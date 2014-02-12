@@ -185,7 +185,7 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 		List<PrismObject<ShadowType>> foundObjects = provisioningService.searchObjects(ShadowType.class, query, options, result);
 		LOGGER.trace("Uniqueness check of {} resulted in {} results, using query:\n{}",
-				new Object[]{identifier, foundObjects.size(), query.dump()});
+				new Object[]{identifier, foundObjects.size(), query.debugDump()});
 		if (foundObjects.isEmpty()) {
 			return true;
 		}
@@ -206,7 +206,7 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 		if (!match) {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Found conflicting existing object with attribute " + identifier.toHumanReadableString() + ":\n"
-						+ foundObjects.get(0).dump());
+						+ foundObjects.get(0).debugDump());
 			}
 			message("Found conflicting existing object with attribute " + identifier.toHumanReadableString() + ": "
 					+ foundObjects.get(0));

@@ -574,7 +574,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		if (LOGGER.isTraceEnabled() && lensContext != null) {
 			LOGGER.trace("---[ SYNCHRONIZATION context before action execution ]-------------------------\n"
 					+ "{}\n------------------------------------------",
-					lensContext.dump());
+					lensContext.debugDump());
 		}
 		
 		executeActions(reactionDefinition, lensContext, situation, BeforeAfterType.BEFORE, resource, 

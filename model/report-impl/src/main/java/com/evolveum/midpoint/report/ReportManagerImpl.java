@@ -33,6 +33,10 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.hooks.ReadHook;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperReport;
@@ -40,6 +44,7 @@ import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Element;
@@ -101,7 +106,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
  * @author lazyman, garbika
  */
 @Service(value = "reportManager")
-public class ReportManagerImpl implements ReportManager, ChangeHook {
+public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
 	
     public static final String HOOK_URI = "http://midpoint.evolveum.com/model/report-hook-1";
     
@@ -123,21 +128,41 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
 	
 	@Autowired
 	private ModelService modelService;
-	
-	
-    
-	
+
+    @Autowired
+    @Qualifier("cacheRepositoryService")
+    private RepositoryService cacheRepositoryService;
+
 	@PostConstruct
     public void init() {   	
         hookRegistry.registerChangeHook(HOOK_URI, this);
+        hookRegistry.registerReadHook(HOOK_URI, this);
     }
 
-    
+    @Override
+    public <T extends ObjectType> void invoke(PrismObject<T> object,
+                                              Collection<SelectorOptions<GetOperationOptions>> options, Task task,
+                                              OperationResult parentResult) throws SchemaException,
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+
+        if (!ReportType.class.equals(object.getCompileTimeClass())) {
+            return;
+        }
+
+        boolean raw = isRaw(options);
+        ReportUtils.applyDefinition((PrismObject<ReportType>) object, prismContext, raw);
+    }
+
+    private boolean isRaw(Collection<SelectorOptions<GetOperationOptions>> options) {
+        GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+        return rootOptions == null ? false : GetOperationOptions.isRaw(rootOptions);
+    }
+
     /**
      * Creates and starts task with proper handler, also adds necessary information to task
      * (like ReportType reference and so on).
      *
-     * @param report
+     * @param object
      * @param task
      * @param parentResult describes report which has to be created
      */

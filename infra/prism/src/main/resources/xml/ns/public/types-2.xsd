@@ -363,6 +363,9 @@
                 of the prism object.
             </xsd:documentation>
         </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:any/>
+        </xsd:sequence>
     </xsd:complexType>
     
     <xsd:complexType name="SchemaDefinitionType">
@@ -382,6 +385,17 @@
 				</xsd:annotation>
 			</xsd:any>
 		</xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="RawType" mixed="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:any/>
+        </xsd:sequence>
     </xsd:complexType>
     
     <!-- ########################################### -->

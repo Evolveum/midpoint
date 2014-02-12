@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,7 +58,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -72,7 +73,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author Radovan Semancik
  *
  */
-public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpable {
+public class SchemaRegistry implements LSResourceResolver, EntityResolver, DebugDumpable {
 	
 	private static final QName DEFAULT_XSD_TYPE = DOMUtil.XSD_STRING;
 	
@@ -632,20 +633,23 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.util.Dumpable#dump()
-	 */
 	@Override
-	public String dump() {
-		StringBuilder sb = new StringBuilder("SchemaRegistry:");
-		
-		sb.append("  Parsed Schemas:\n");
+	public String debugDump() {
+		return debugDump(0);
+	}
+	
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("SchemaRegistry:");
+		sb.append("  Parsed Schemas:");
 		for (String namespace: parsedSchemas.keySet()) {
-			sb.append("    ");
+			sb.append("\n");
+			DebugUtil.indentDebugDump(sb, indent + 1);
 			sb.append(namespace);
 			sb.append(": ");
-			sb.append(parsedSchemas.get(namespace).dump());
-			sb.append("\n");
+			sb.append(parsedSchemas.get(namespace));
 		}
 		return sb.toString();
 	}

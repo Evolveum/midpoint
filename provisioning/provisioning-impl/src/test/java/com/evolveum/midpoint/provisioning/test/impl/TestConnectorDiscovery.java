@@ -151,7 +151,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 				EqualsFilter.createEqual(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE, ConnectorType.class, prismContext, null, LDAP_CONNECTOR_TYPE));
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		
-		System.out.println("Query:\n"+query.dump());
+		System.out.println("Query:\n"+query.debugDump());
 
 		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, null, result);
 		

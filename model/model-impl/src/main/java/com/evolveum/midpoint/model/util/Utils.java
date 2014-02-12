@@ -233,7 +233,7 @@ public final class Utils {
 	        	throw new SystemException("Failed to convert object filter from filter. Reason: " + ex.getMessage(), ex);
 	        }
 	        
-	        LOGGER.trace("Resolving using filter {}", objFilter.dump());
+	        LOGGER.trace("Resolving using filter {}", objFilter.debugDump());
 //	        NodeList childNodes = filter.getChildNodes();
 //	        if (childNodes.getLength() == 0) {
 	        if (objFilter == null){

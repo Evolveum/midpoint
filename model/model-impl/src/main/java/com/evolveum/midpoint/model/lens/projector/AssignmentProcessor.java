@@ -169,7 +169,7 @@ public class AssignmentProcessor {
 
         ContainerDelta<AssignmentType> assignmentDelta = focusContext.getExecutionWaveAssignmentDelta();
 
-        LOGGER.trace("Assignment delta {}", assignmentDelta.dump());
+        LOGGER.trace("Assignment delta {}", assignmentDelta.debugDump());
 
         Collection<PrismContainerValue<AssignmentType>> changedAssignments = assignmentDelta.getValues(AssignmentType.class);
 

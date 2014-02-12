@@ -102,7 +102,7 @@ public class ControllerListAccountShadowOwnerTest extends AbstractTestNGSpringCo
 			final PrismObject<UserType> returned = controller.findShadowOwner("1", task, task.getResult());
 			assertNull(returned);
 		} finally {
-			LOGGER.debug(task.getResult().dump());
+			LOGGER.debug(task.getResult().debugDump());
 		}
 	}
 
@@ -121,7 +121,7 @@ public class ControllerListAccountShadowOwnerTest extends AbstractTestNGSpringCo
 			assertNotNull(returned);
 			assertEquals(expected, returned);
 		} finally {
-			LOGGER.debug(task.getResult().dump());
+			LOGGER.debug(task.getResult().debugDump());
 		}
 	}
 }

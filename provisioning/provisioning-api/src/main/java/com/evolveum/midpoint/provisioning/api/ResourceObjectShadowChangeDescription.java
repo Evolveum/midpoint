@@ -22,7 +22,6 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
@@ -39,7 +38,7 @@ import java.io.Serializable;
  *
  * @author Radovan Semancik
  */
-public class ResourceObjectShadowChangeDescription implements Dumpable, DebugDumpable, Serializable {
+public class ResourceObjectShadowChangeDescription implements DebugDumpable, Serializable {
 
     private ObjectDelta<? extends ShadowType> objectDelta;
     private PrismObject<? extends ShadowType> currentShadow;
@@ -133,11 +132,6 @@ public class ResourceObjectShadowChangeDescription implements Dumpable, DebugDum
 				+ ", resource=" + resource + ")";
 	}
     
-    @Override
-    public String dump() {
-    	return debugDump(0);
-    }
-
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.util.DebugDumpable#debugDump()
 	 */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.util.Cloner;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import java.io.Serializable;
@@ -40,7 +39,7 @@ import java.util.Iterator;
  *
  * @author Radovan Semancik
  */
-public class DeltaSetTriple<T> implements Dumpable, DebugDumpable, Serializable, SimpleVisitable<T> {
+public class DeltaSetTriple<T> implements DebugDumpable, Serializable, SimpleVisitable<T> {
 
     /**
      * Collection of values that were not changed.
@@ -328,12 +327,7 @@ public class DeltaSetTriple<T> implements Dumpable, DebugDumpable, Serializable,
 
 	@Override
     public String toString() {
-        return dump();
-    }
-
-    @Override
-    public String dump() {
-        StringBuilder sb = new StringBuilder();
+		StringBuilder sb = new StringBuilder();
         sb.append(debugName()).append("(");
         dumpSet(sb, "zero", zeroSet);
         dumpSet(sb, "plus", plusSet);

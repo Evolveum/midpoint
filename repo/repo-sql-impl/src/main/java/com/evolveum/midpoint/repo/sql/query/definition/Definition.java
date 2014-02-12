@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,13 @@ package com.evolveum.midpoint.repo.sql.query.definition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.query.handler.DefinitionHandler;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.Dumpable;
 
 import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
  */
-public abstract class Definition implements Dumpable, DebugDumpable {
+public abstract class Definition implements DebugDumpable {
 
     //jaxb
     private QName jaxbName;
@@ -91,11 +90,6 @@ public abstract class Definition implements Dumpable, DebugDumpable {
         builder.append('}');
         builder.append(qname.getLocalPart());
         return builder.toString();
-    }
-
-    @Override
-    public String dump() {
-        return debugDump();
     }
 
     @Override

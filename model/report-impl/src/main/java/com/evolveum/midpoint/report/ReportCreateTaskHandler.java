@@ -249,7 +249,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
     		JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
     		LOGGER.trace("compile jasper design, create jasper report : {}", jasperReport);
 
-    		params.putAll(ReportUtils.getReportParams(reportType, getConfiguration(), opResult));
+    		params.putAll(ReportUtils.getReportParams(reportType, getConfiguration(), getSchema(), opResult));
     		LOGGER.trace("create report params : {}", params);
     	
     		Session session = sessionFactory.openSession();
@@ -278,7 +278,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
     		
  	       	saveReportOutputType(reportFilePath, reportType, task, subResult);
     		LOGGER.trace("create report output type : {}", reportFilePath);
-    		
+    
     		subResult.computeStatus();
     			
     	} catch (Exception ex) {

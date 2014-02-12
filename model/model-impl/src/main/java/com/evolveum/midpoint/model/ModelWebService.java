@@ -410,7 +410,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			if (!StringUtils.isEmpty(oldShadowOid)){
 				oldShadow = model.getObject(ShadowType.class, oldShadowOid, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), task, parentResult);
 				eventDescription.setOldShadow(oldShadow);
-				LOGGER.trace("old object resolved to: {}", oldShadow.dump());
+				LOGGER.trace("old object resolved to: {}", oldShadow.debugDump());
 			} else{
 				LOGGER.trace("Old shadow null");
 			}
@@ -421,7 +421,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 				if (currentShadowType != null){
 					prismContext.adopt(currentShadowType);
 					currentShadow = currentShadowType.asPrismObject();
-					LOGGER.trace("current shadow resolved to {}", currentShadow.dump());
+					LOGGER.trace("current shadow resolved to {}", currentShadow.debugDump());
 				}
 				
 				eventDescription.setCurrentShadow(currentShadow);
@@ -450,7 +450,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 						prismContext.adopt((ShadowType)objToAdd);
 						
 						shadowToAdd = ((ShadowType) objToAdd).asPrismObject();
-						LOGGER.trace("object to add: {}", shadowToAdd.dump());
+						LOGGER.trace("object to add: {}", shadowToAdd.debugDump());
 						delta.setObjectToAdd(shadowToAdd);
 					} else {
 						Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(deltaType.getModification(), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class));
@@ -499,7 +499,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		
 		
 		LOGGER.info("notify change ended.");
-		LOGGER.info("result of notify change: {}", parentResult.dump());
+		LOGGER.info("result of notify change: {}", parentResult.debugDump());
 		return handleTaskResult(task);
 	}
 

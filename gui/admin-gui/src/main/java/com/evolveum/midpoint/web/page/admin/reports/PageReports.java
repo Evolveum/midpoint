@@ -21,13 +21,13 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
@@ -35,7 +35,6 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReconciliationReportDto;
-import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
@@ -44,7 +43,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.design.JasperDesign;
-import net.sf.jasperreports.engine.query.JRHibernateQueryExecuterFactory;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
@@ -57,8 +55,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 
 import javax.servlet.ServletContext;
 import javax.xml.namespace.QName;
@@ -75,32 +71,17 @@ public class PageReports extends PageAdminReports {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageReports.class);
 
-    private static final ArrayList<ReportDto> REPORTS = new ArrayList<ReportDto>();
-
-    /*
-    static {
-        REPORTS.add(new ReportDto(ReportDto.Type.AUDIT, "PageReports.report.auditName",
-                "PageReports.report.auditDescription"));
-        REPORTS.add(new ReportDto(ReportDto.Type.RECONCILIATION, "PageReports.report.reconciliationName",
-                "PageReports.report.reconciliationDescription"));
-        REPORTS.add(new ReportDto(ReportDto.Type.USERS, "PageReports.report.usersName",
-                "PageReports.report.usersDescription"));
-    }
-    */
-
     private static final String DOT_CLASS = PageReports.class.getName() + ".";
     private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
+    private static final String OPERATION_RUN_REPORT = DOT_CLASS + "runReport";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_REPORTS_TABLE = "reportsTable";
 
-    private final String BUTTON_CAPTION_RUN = createStringResource("PageReports.button.run").getString();
-    private final String BUTTON_CAPTION_CONFIGURE = createStringResource("PageReports.button.configure").getString();
-
     private final IModel reportParamsModel = new Model();
 
-    @SpringBean(name = "sessionFactory")
-    private SessionFactory sessionFactory;
+    @SpringBean
+    private transient ReportManager reportManager;
 
     public PageReports() {
         initLayout();
@@ -121,26 +102,16 @@ public class PageReports extends PageAdminReports {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        final AjaxDownloadBehaviorFromStream ajaxDownloadBehavior = new AjaxDownloadBehaviorFromStream(true) {
-
-            @Override
-            protected byte[] initStream() {
-                return createReport();
-            }
-        };
-        ajaxDownloadBehavior.setContentType("application/pdf; charset=UTF-8");
-        mainForm.add(ajaxDownloadBehavior);
-
         //TablePanel table = new TablePanel<ReportDto>(ID_REPORTS_TABLE,
         //        new ListDataProvider<ReportDto>(this, new Model(REPORTS)), initColumns(ajaxDownloadBehavior));
         TablePanel table = new TablePanel<>(ID_REPORTS_TABLE, new ObjectDataProvider(PageReports.this, ReportType.class),
-                initColumns(ajaxDownloadBehavior));
+                initColumns());
         table.setShowPaging(false);
         table.setOutputMarkupId(true);
         mainForm.add(table);
     }
 
-    private List<IColumn<ReportType, String>> initColumns(final AjaxDownloadBehaviorFromStream ajaxDownloadBehavior) {
+    private List<IColumn<ReportType, String>> initColumns() {
         List<IColumn<ReportType, String>> columns = new ArrayList<IColumn<ReportType, String>>();
 
         IColumn column;
@@ -162,12 +133,12 @@ public class PageReports extends PageAdminReports {
 
             @Override
             public String getFirstCap(){
-                return BUTTON_CAPTION_RUN;
+                return PageReports.this.createStringResource("PageReports.button.run").getString();
             }
 
             @Override
             public String getSecondCap(){
-                return BUTTON_CAPTION_CONFIGURE;
+                return PageReports.this.createStringResource("PageReports.button.configure").getString();
             }
 
             @Override
@@ -177,7 +148,7 @@ public class PageReports extends PageAdminReports {
 
             @Override
             public void firstClicked(AjaxRequestTarget target, IModel<SelectableBean<ReportType>> model){
-                runReportPerformed(target, model.getObject().getValue(), ajaxDownloadBehavior);
+                runReportPerformed(target, model.getObject().getValue());
             }
 
             @Override
@@ -194,10 +165,21 @@ public class PageReports extends PageAdminReports {
         //TODO - navigate to CreatedReportsPage and set report type filter.
     }
 
-    private void runReportPerformed(AjaxRequestTarget target, ReportType model,
-                                    AjaxDownloadBehaviorFromStream ajaxDownloadBehavior){
-        //ajaxDownloadBehavior.initiate(target);
-        //TODO - create report based on current configuration
+    private void runReportPerformed(AjaxRequestTarget target, ReportType report){
+        LOGGER.debug("Run report performed for {}", new Object[]{report.asPrismObject()});
+
+        OperationResult result = new OperationResult(OPERATION_RUN_REPORT);
+        try {
+            Task task = createSimpleTask(OPERATION_RUN_REPORT);
+            reportManager.runReport(report.asPrismObject(), task, result);
+        } catch (Exception ex) {
+            result.recordFatalError(ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+
+        showResult(result);
+        target.add(getFeedbackPanel());
     }
 
     private void configurePerformed(AjaxRequestTarget target, ReportType report){
@@ -346,33 +328,33 @@ public class PageReports extends PageAdminReports {
         params.put("BaseTemplateStyles", servletContext.getRealPath("/styles/midpoint_base_styles.jrtx"));
         
         byte[] generatedReport = new byte[]{};
-        Session session = null;
-        try {
-            // Loading template
-            JasperDesign design = JRXmlLoader.load(servletContext.getRealPath(jrxmlPath));
-            JasperReport report = JasperCompileManager.compileReport(design);
-
-            session = sessionFactory.openSession();
-            session.beginTransaction();
-
-            params.put(JRHibernateQueryExecuterFactory.PARAMETER_HIBERNATE_SESSION, session);
-            JasperPrint jasperPrint = JasperFillManager.fillReport(report, params);
-            generatedReport = JasperExportManager.exportReportToPdf(jasperPrint);
-
-            session.getTransaction().commit();
-        } catch (Exception ex) {
-            if (session != null && session.getTransaction().isActive()) {
-                session.getTransaction().rollback();
-            }
-
-            getSession().error(getString("PageReports.message.jasperError") + " " + ex.getMessage());
-            LoggingUtils.logException(LOGGER, "Couldn't create jasper report.", ex);
-            throw new RestartResponseException(PageReports.class);
-        } finally {
-            if (session != null) {
-                session.close();
-            }
-        }
+//        Session session = null;
+//        try {
+//            // Loading template
+//            JasperDesign design = JRXmlLoader.load(servletContext.getRealPath(jrxmlPath));
+//            JasperReport report = JasperCompileManager.compileReport(design);
+//
+//            session = sessionFactory.openSession();
+//            session.beginTransaction();
+//
+//            params.put(JRHibernateQueryExecuterFactory.PARAMETER_HIBERNATE_SESSION, session);
+//            JasperPrint jasperPrint = JasperFillManager.fillReport(report, params);
+//            generatedReport = JasperExportManager.exportReportToPdf(jasperPrint);
+//
+//            session.getTransaction().commit();
+//        } catch (Exception ex) {
+//            if (session != null && session.getTransaction().isActive()) {
+//                session.getTransaction().rollback();
+//            }
+//
+//            getSession().error(getString("PageReports.message.jasperError") + " " + ex.getMessage());
+//            LoggingUtils.logException(LOGGER, "Couldn't create jasper report.", ex);
+//            throw new RestartResponseException(PageReports.class);
+//        } finally {
+//            if (session != null) {
+//                session.close();
+//            }
+//        }
 
         return generatedReport;
     }

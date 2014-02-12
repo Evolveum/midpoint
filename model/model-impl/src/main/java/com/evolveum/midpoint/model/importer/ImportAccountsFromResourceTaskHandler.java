@@ -195,7 +195,7 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         }
 
         if (LOGGER.isTraceEnabled()) {
-        	LOGGER.trace("Refined schema:\n{}", refinedSchema.dump());
+        	LOGGER.trace("Refined schema:\n{}", refinedSchema.debugDump());
         }
         
         RefinedObjectClassDefinition rObjectClass = Utils.determineObjectClass(refinedSchema, task);        

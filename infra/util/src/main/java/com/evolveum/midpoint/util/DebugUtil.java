@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ package com.evolveum.midpoint.util;
 import java.util.*;
 import java.util.Map.Entry;
 
+import javax.xml.namespace.QName;
+
 /**
  *
  * @author semancik
@@ -26,19 +28,41 @@ import java.util.Map.Entry;
 public class DebugUtil {
 
 	private static int SHOW_LIST_MEMBERS = 3;
-	public static String dump(Dumpable dumpable) {
+	
+	private static boolean detailedDebugDump = false;
+	
+	public static boolean isDetailedDebugDump() {
+		return detailedDebugDump;
+	}
+
+	public static void setDetailedDebugDump(boolean detailedDebugDump) {
+		DebugUtil.detailedDebugDump = detailedDebugDump;
+	}
+	
+	public static String formatElementName(QName elementName) {
+		if (elementName == null) {
+			return "null";
+		}
+		if (detailedDebugDump) {
+			return PrettyPrinter.prettyPrint(elementName);
+		} else {
+			return elementName.getLocalPart();
+		}
+	}
+
+	public static String dump(DebugDumpable dumpable) {
 		if (dumpable == null) {
 			return "null";
 		}
-		return dumpable.dump();
+		return dumpable.debugDump();
 	}
 	
 	public static String dump(Object object) {
 		if (object == null) {
 			return "null";
 		}
-		if (object instanceof Dumpable) {
-			return ((Dumpable)object).dump();
+		if (object instanceof DebugDumpable) {
+			return ((DebugDumpable)object).debugDump();
 		}
 		if (object instanceof Map) {
 			StringBuilder sb = new StringBuilder();

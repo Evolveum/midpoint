@@ -182,7 +182,7 @@ public class TestDeltaConverter {
     			PrismTestUtil.getPrismContext());
     	
     	System.out.println("Delta:");
-    	System.out.println(objectDelta.dump());
+    	System.out.println(objectDelta.debugDump());
     	
     	// THEN
     	assertNotNull("No object delta", objectDelta);
@@ -256,7 +256,7 @@ public class TestDeltaConverter {
     			path, PrismTestUtil.getPrismContext(), protectedString);
 
     	System.out.println("ObjectDelta");
-    	System.out.println(objectDelta.dump());
+    	System.out.println(objectDelta.debugDump());
 
     	// WHEN
     	ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(objectDelta);
@@ -292,7 +292,7 @@ public class TestDeltaConverter {
     			UserType.F_COST_CENTER, PrismTestUtil.getPrismContext(), VALUE);
 
     	System.out.println("ObjectDelta");
-    	System.out.println(objectDelta.dump());
+    	System.out.println(objectDelta.debugDump());
 
     	// WHEN
     	ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(objectDelta);
@@ -321,7 +321,7 @@ public class TestDeltaConverter {
     	
     	// THEN
     	System.out.println("ObjectDelta (roundtrip)");
-    	System.out.println(objectDelta.dump());
+    	System.out.println(objectDelta.debugDump());
     	
     	assertTrue("Roundtrip not equals", objectDelta.equals(objectDeltaRoundtrip));
     	
@@ -340,7 +340,7 @@ public class TestDeltaConverter {
 
         ObjectDelta<TaskType> delta = oldTask.diff(newTask, true, true);
         System.out.println("Delta:");
-        System.out.println(delta.dump());
+        System.out.println(delta.debugDump());
 
         final QName CUSTOM_OBJECT = new QName("http://delta.example.com", "object");
 
@@ -379,7 +379,7 @@ public class TestDeltaConverter {
     	
     	// THEN
     	System.out.println("Parsed");
-    	System.out.println(deltaAfter.dump());
+    	System.out.println(deltaAfter.debugDump());
 
     	assertEquals("Deltas do not match", deltaBefore, deltaAfter);
     }
@@ -405,7 +405,7 @@ public class TestDeltaConverter {
 
     	// THEN
     	System.out.println("Parsed");
-    	System.out.println(deltaAfter.dump());
+    	System.out.println(deltaAfter.debugDump());
     	
     	assertEquals("Deltas do not match", deltaBefore, deltaAfter);
     }
@@ -434,7 +434,7 @@ public class TestDeltaConverter {
     	
     	// THEN
     	System.out.println("Parsed");
-    	System.out.println(deltaAfter.dump());
+    	System.out.println(deltaAfter.debugDump());
     	
     	assertEquals("Deltas do not match", deltaBefore, deltaAfter);
     }

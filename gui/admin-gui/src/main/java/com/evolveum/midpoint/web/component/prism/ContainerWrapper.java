@@ -146,7 +146,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
                             .toResourceAttributeContainerDefinition();
 
                     if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Refined account def:\n{}", definition.dump());
+                        LOGGER.trace("Refined account def:\n{}", definition.debugDump());
                     }
                 } catch (Exception ex) {
                     LoggingUtils.logException(LOGGER, "Couldn't load definitions from refined schema for shadow", ex);

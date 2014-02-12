@@ -112,7 +112,7 @@ public class GenericErrorHandler extends ErrorHandler{
 						PrismObject prismShadow = provisioningService.getObject(shadow.getClass(),
 								shadow.getOid(), null, task, result);
 					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Got {} after finishing postponed operation.", prismShadow.dump());
+						LOGGER.trace("Got {} after finishing postponed operation.", prismShadow.debugDump());
 					}
 						shadow = (T) prismShadow.asObjectable();
 					}

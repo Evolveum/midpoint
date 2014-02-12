@@ -588,6 +588,22 @@ public interface TaskManager {
     void startSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult);
     //endregion
 
+    //region Notifications
+    /**
+     * Registers a task listener that will be notified on task-related events.
+     *
+     * @param taskListener listener to be registered
+     */
+    void registerTaskListener(TaskListener taskListener);
+
+    /**
+     * Unregisters a task listener.
+     *
+     * @param taskListener listener to be unregisteted
+     */
+    void unregisterTaskListener(TaskListener taskListener);
+    //endregion
+
     //region Miscellaneous methods
     // ==================================================== Miscellaneous methods
 

@@ -84,7 +84,7 @@ public class PageAdminResources extends PageAdmin {
             result.recomputeStatus();
 
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("getObject(resource) result\n:{}", result.dump());
+                LOGGER.trace("getObject(resource) result\n:{}", result.debugDump());
             }
 
         } catch (Exception ex) {

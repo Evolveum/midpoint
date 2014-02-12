@@ -175,7 +175,9 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 				}
 			}
 			sourceTriples.add(sourceTriple);
-			LOGGER.trace("Processes source triple\n{}",sourceTriple.dump());
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Processes source triple\n{}",sourceTriple.debugDump());
+			}
 		}
 		return sourceTriples;
 	}

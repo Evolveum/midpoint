@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.w3c.dom.Element;
@@ -33,7 +32,7 @@ import java.util.Set;
  * @author semancik
  *
  */
-public abstract class PrismValue implements Visitable, PathVisitable, Serializable, Dumpable, DebugDumpable {
+public abstract class PrismValue implements Visitable, PathVisitable, Serializable, DebugDumpable {
 	
 	private OriginType originType;
     private Objectable originObject;

@@ -26,6 +26,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.model.api.WorkflowService;
+import com.evolveum.midpoint.model.api.hooks.ReadHook;
 import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
@@ -448,7 +449,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			LOGGER.trace("Recomputing {}", focus);
 
 			LensContext<F> syncContext = contextFactory.createRecomputeContext(focus, task, result); 
-			LOGGER.trace("Recomputing {}, context:\n{}", focus, syncContext.dump());
+			LOGGER.trace("Recomputing {}, context:\n{}", focus, syncContext.debugDump());
 			clockwork.run(syncContext, task, result);
 			
 			result.computeStatus();
@@ -617,7 +618,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		}
 
 		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Preview changes output:\n{}", context.dump());
+			LOGGER.debug("Preview changes output:\n{}", context.debugDump());
 		}
 		
 		result.computeStatus();
@@ -708,6 +709,14 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				list = new ArrayList<PrismObject<T>>();
 			}
 
+            for (PrismObject<T> object : list) {
+                if (hookRegistry != null) {
+                    for (ReadHook hook : hookRegistry.getAllReadHooks()) {
+                        hook.invoke(object, options, task, result);
+                    }
+                }
+            }
+
 		} finally {
 			RepositoryCache.exit();
 		}
@@ -719,7 +728,8 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	
 	@Override
 	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,
-			final ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+			final ResultHandler<T> handler, final Collection<SelectorOptions<GetOperationOptions>> options,
+            final Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(type, "Object type must not be null.");
 		Validate.notNull(parentResult, "Result type must not be null.");
@@ -734,14 +744,26 @@ public class ModelController implements ModelService, ModelInteractionService, T
             searchProvider = ObjectTypes.ObjectManager.REPOSITORY;
         }
 
-		OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
+		final OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
 		result.addParams(new String[] { "query", "paging", "searchProvider" },
                 query, (query != null ? query.getPaging() : "undefined"), searchProvider);
 		
         ResultHandler<T> internalHandler = new ResultHandler<T>() {
-			@Override
-			public boolean handle(PrismObject<T> object,
-					OperationResult parentResult) {
+
+            @Override
+			public boolean handle(PrismObject<T> object, OperationResult parentResult) {
+                try {
+                    if (hookRegistry != null) {
+                        for (ReadHook hook : hookRegistry.getAllReadHooks()) {
+                            hook.invoke(object, options, task, result);
+                        }
+                    }
+                } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
+                        | CommunicationException | ConfigurationException ex) {
+                    parentResult.recordFatalError(ex);
+                    throw new SystemException(ex.getMessage(), ex);
+                }
+
 				validateObject(object, rootOptions, parentResult);
 				return handler.handle(object, parentResult);
 			}
@@ -1141,7 +1163,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		result.addParam("options", options);
 		objectImporter.importObjects(input, options, task, result);
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Import result:\n{}", result.dump());
+			LOGGER.trace("Import result:\n{}", result.debugDump());
 		}
 		// No need to compute status. The validator inside will do it.
 		// result.computeStatus("Couldn't import object from input stream.");

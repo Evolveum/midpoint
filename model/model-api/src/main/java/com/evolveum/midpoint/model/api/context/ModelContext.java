@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
@@ -29,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
  * @author semancik
  *
  */
-public interface ModelContext<F extends ObjectType> extends Serializable, Dumpable, DebugDumpable {
+public interface ModelContext<F extends ObjectType> extends Serializable, DebugDumpable {
 
 	public ModelState getState();
 	

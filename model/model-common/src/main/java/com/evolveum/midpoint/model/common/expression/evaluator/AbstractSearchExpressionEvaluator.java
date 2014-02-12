@@ -202,7 +202,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Assignment expression resulted in {} objects, using query:\n{}",
-					list.size(), query.dump());
+					list.size(), query.debugDump());
 		}
 		
 		return list;
@@ -237,7 +237,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 		LOGGER.debug("Creating object on demand from {}: {}", contextDescription, newObject);
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Creating object on demand:\n{}", newObject.dump());
+			LOGGER.trace("Creating object on demand:\n{}", newObject.debugDump());
 		}
 		
 		ObjectDelta<O> addDelta = newObject.createAddDelta();
@@ -291,7 +291,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 		expressionParams.setSkipEvaluationMinus(true);
 		expressionParams.setSkipEvaluationPlus(false);
 		PrismValueDeltaSetTriple<X> outputTriple = expression.evaluate(expressionParams);
-		LOGGER.trace("output triple: {}", outputTriple.dump());
+		LOGGER.trace("output triple: {}", outputTriple.debugDump());
 		Collection<X> pvalues = outputTriple.getNonNegativeValues();
 		
 		// Maybe not really clean but it works. TODO: refactor later
@@ -303,7 +303,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 		ItemDelta<X> itemDelta = propOutputDefinition.createEmptyDelta(targetPath);
 		itemDelta.addValuesToAdd(PrismValue.cloneCollection(pvalues));
 		
-		LOGGER.trace("Item delta:\n{}", itemDelta.dump());
+		LOGGER.trace("Item delta:\n{}", itemDelta.debugDump());
 		
 		return itemDelta;
 	}

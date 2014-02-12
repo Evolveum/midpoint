@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ import com.evolveum.midpoint.prism.delta.PartiallyResolvedDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
@@ -38,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
  * @author Radovan Semancik
  *
  */
-public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<PrismContainerValue<T>> implements Dumpable, DebugDumpable {
+public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<PrismContainerValue<T>> implements DebugDumpable {
 	
 	private PrismObject<T> oldObject;
 	private ObjectDelta<T> delta;
@@ -238,11 +237,6 @@ public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<Prism
 			sb.append("\n");
 			sb.append(object.debugDump(indent + 1));
 		}
-	}
-
-	@Override
-	public String dump() {
-		return debugDump();
 	}
 
 	@Override

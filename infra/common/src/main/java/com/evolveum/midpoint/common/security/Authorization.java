@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import org.springframework.security.core.GrantedAuthority;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
 
@@ -29,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
  * @author semancik
  *
  */
-public class Authorization implements GrantedAuthority, Dumpable, DebugDumpable {
+public class Authorization implements GrantedAuthority, DebugDumpable {
 	
 	AuthorizationType authorizationType;
 
@@ -61,14 +60,6 @@ public class Authorization implements GrantedAuthority, Dumpable, DebugDumpable 
 
 	public List<String> getAction() {
 		return authorizationType.getAction();
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.util.Dumpable#dump()
-	 */
-	@Override
-	public String dump() {
-		return debugDump();
 	}
 
 	/* (non-Javadoc)

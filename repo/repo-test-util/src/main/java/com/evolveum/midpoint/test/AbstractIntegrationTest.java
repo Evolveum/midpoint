@@ -216,7 +216,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			object.asObjectable().setMetadata(metaData);
 		}
 		
-		LOGGER.trace("Adding object:\n{}", object.dump());
+		LOGGER.trace("Adding object:\n{}", object.debugDump());
 		repoAddObject(type, object, "from file "+file, result);
 		result.recordSuccess();
 		return object;

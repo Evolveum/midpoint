@@ -411,7 +411,7 @@ public class ExpressionUtil {
 				filter.setExpression(null);
 			}
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Transformed filter to:\n{}", filter.dump());
+				LOGGER.trace("Transformed filter to:\n{}", filter.debugDump());
 			}
 		} catch (RuntimeException ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't evaluate expression " + valueExpression + ".", ex);

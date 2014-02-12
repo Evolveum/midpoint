@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.ObjectDeltaWaveType;
@@ -34,7 +33,7 @@ import java.util.*;
  * @author semancik
  *
  */
-public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<O>>, Dumpable, DebugDumpable, Serializable {
+public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<O>>, DebugDumpable, Serializable {
 	
 	private List<ObjectDelta<O>> waves = new ArrayList<ObjectDelta<O>>();
 
@@ -334,11 +333,6 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
         return debugDump(0);
     }
 
-    @Override
-    public String dump() {
-        return debugDump(0);
-    }
-    
     public String dump(boolean showTriples) {
         return debugDump(0, showTriples);
     }

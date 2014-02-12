@@ -82,7 +82,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	@Autowired(required = true)
 	protected Clockwork clockwork;
 	
-	protected LensDebugListener lensDebugListener;
+	protected ProfilingLensDebugListener lensDebugListener;
 	
 	protected UserType userTypeJack;
 	protected UserType userTypeBarbossa;

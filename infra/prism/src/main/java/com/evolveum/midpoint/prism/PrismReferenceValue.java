@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -36,7 +35,7 @@ import org.w3c.dom.Element;
 /**
  * @author Radovan Semancik
  */
-public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDumpable, Serializable {
+public class PrismReferenceValue extends PrismValue implements DebugDumpable, Serializable {
 
     private static final QName F_OID = new QName(PrismConstants.NS_TYPES, "oid");
     private static final QName F_TYPE = new QName(PrismConstants.NS_TYPES, "type");
@@ -424,11 +423,6 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
     }
 
     @Override
-    public String dump() {
-        return toString();
-    }
-
-    @Override
     public PrismReferenceValue clone() {
         PrismReferenceValue clone = new PrismReferenceValue(getOid(), getOriginType(), getOriginObject());
         copyValues(clone);
@@ -456,7 +450,14 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 	 */
 	@Override
 	public String toHumanReadableString() {
-		return "oid="+oid;
+		StringBuilder sb = new StringBuilder();
+		sb.append("oid=").append(oid);
+		if (getTargetType() != null) {
+			sb.append("(");
+			sb.append(DebugUtil.formatElementName(getTargetType()));
+			sb.append(")");
+		}
+		return sb.toString();
 	}
     
 }

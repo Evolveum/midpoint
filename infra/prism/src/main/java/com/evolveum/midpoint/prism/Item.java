@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
+
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
@@ -49,7 +50,7 @@ import java.util.Map;
  *
  * @author Radovan Semancik
  */
-public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, DebugDumpable, Visitable, PathVisitable, Serializable {
+public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpable, Visitable, PathVisitable, Serializable {
 
     private static final long serialVersionUID = 510000191615288733L;
 
@@ -805,12 +806,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
 
 	@Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + getElementName() + ")";
-    }
-
-    @Override
-    public String dump() {
-        return toString();
+        return getClass().getSimpleName() + "(" + PrettyPrinter.prettyPrint(getElementName()) + ")";
     }
 
     /**
@@ -825,7 +821,10 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
         for (int i = 0; i < indent; i++) {
             sb.append(INDENT_STRING);
         }
-        sb.append(getDebugDumpClassName()).append(": ").append(PrettyPrinter.prettyPrint(getElementName()));
+        if (DebugUtil.isDetailedDebugDump()) {
+        	sb.append(getDebugDumpClassName()).append(": ");
+        }
+        sb.append(DebugUtil.formatElementName(getElementName()));
         return sb.toString();
     }
 

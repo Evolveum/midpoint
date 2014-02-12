@@ -4413,7 +4413,7 @@
         <xsd:sequence>
             <xsd:element name="name" type="xsd:QName" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
-           	<xsd:element name="path" type="t:XPathType"/>
+           	<xsd:element name="path" type="t:ItemPathType"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -4425,7 +4425,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
-           	<xsd:element name="path" type="t:XPathType"/>
+           	<xsd:element name="path" type="t:ItemPathType"/>
         </xsd:sequence>
     </xsd:complexType>
     
@@ -4496,27 +4496,18 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="returnMultiplicity" type="tns:ExpressionReturnMultiplicityType" minOccurs="0"></xsd:element>
-            <xsd:choice>
-                <xsd:element ref="tns:expressionEvaluator" minOccurs="1" maxOccurs="unbounded">
-                	<xsd:annotation>
-                		<xsd:documentation>
-                			A single expression evaluator.
-                			Although this element is formally multi-value it may be used only for multiple
-                			instances of the same evaluator that in fact form a single group.
-                			E.g. it may be used to define several "value" elements of literal evaluator that
-                			define multiple values. But it must not be used to define multiple scripts or any
-                			other combination of evaluators.
-                		</xsd:documentation>
-                	</xsd:annotation>
-                </xsd:element>
-                <xsd:element name="sequence">
-                    <xsd:complexType>
-                        <xsd:sequence>
-                            <xsd:element ref="tns:expressionEvaluator" maxOccurs="unbounded"/>
-                        </xsd:sequence>
-                    </xsd:complexType>
-                </xsd:element>
-            </xsd:choice>
+            <xsd:element ref="tns:expressionEvaluator" minOccurs="1" maxOccurs="unbounded">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			A single expression evaluator.
+            			Although this element is formally multi-value it may be used only for multiple
+            			instances of the same evaluator that in fact form a single group.
+            			E.g. it may be used to define several "value" elements of literal evaluator that
+            			define multiple values. But it must not be used to define multiple scripts or any
+            			other combination of evaluators.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="expression" type="tns:ExpressionType">
@@ -4602,7 +4593,7 @@
             </xsd:element>
             <xsd:element ref="tns:description" minOccurs="0"/>
             <!-- This needs to be a sequence of optional elements instead of choice due to a JAXB "feature" that generates XML not valid with the schema. -->
-           	<xsd:element name="path" type="t:XPathType" minOccurs="0"/>
+           	<xsd:element name="path" type="t:ItemPathType" minOccurs="0"/>
                <xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0">
                    <xsd:annotation>
                        <xsd:documentation>
@@ -4622,7 +4613,7 @@
 
     <xsd:element name="expressionEvaluator" abstract="true"/>
 
-    <xsd:element name="value" type="xsd:anyType" substitutionGroup="tns:expressionEvaluator" nillable="true">
+    <xsd:element name="value" type="t:RawType" substitutionGroup="tns:expressionEvaluator" nillable="true">
         <xsd:annotation>
             <xsd:documentation>
                 Static value for the attribute or property.
@@ -4785,32 +4776,16 @@
 		                    </xsd:documentation>
 		                </xsd:annotation>
 		            </xsd:element>
-		            <xsd:element name="code" type="tns:ScriptExpressionCodeType">
+		            <xsd:element name="code" type="xsd:string">
 		                <xsd:annotation>
 		                    <xsd:documentation>
-		                        TODO
+		                        Script code in the native format of the scripting language.
 		                    </xsd:documentation>
 		                </xsd:annotation>
 		            </xsd:element>
 		        </xsd:sequence>
         	</xsd:extension>
         </xsd:complexContent>
-    </xsd:complexType>
-
-    <xsd:complexType name="ScriptExpressionCodeType" mixed="true">
-        <xsd:annotation>
-            <xsd:documentation>
-                The expression code is supposed to be in the content of this type. The content ix "mixed"
-                which allows both XML and non-XML languages.
-
-                The expression may use variables or arguments. However, such variables or arguments passed
-                to the expression will be different for each invocation. It should be documented in each
-                case this type is used.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <jaxb:dom/>
-            </xsd:appinfo>
-        </xsd:annotation>
     </xsd:complexType>
 
     <xsd:simpleType name="ScriptExpressionReturnTypeType">
@@ -8754,7 +8729,7 @@
         <xsd:sequence>
             <xsd:element name="nameReportField" type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="nameHeaderField" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="itemPathField" type="t:XPathType" minOccurs="0"/>
+            <xsd:element name="itemPathField" type="t:ItemPathType" minOccurs="0"/>
             <xsd:element name="sortOrderNumber" type="xsd:int" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="sortOrder" type="q:OrderDirectionType" minOccurs="0" maxOccurs="1"/>  
             <xsd:element name="widthField" type="xsd:int" minOccurs="0" maxOccurs="1" />

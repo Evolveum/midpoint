@@ -26,9 +26,8 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 
-public class ObjectQuery implements Dumpable, DebugDumpable, Serializable {
+public class ObjectQuery implements DebugDumpable, Serializable {
 
 	private XNode condition;
 	private ObjectFilter filter;
@@ -141,11 +140,6 @@ public class ObjectQuery implements Dumpable, DebugDumpable, Serializable {
 		}
 		
 		return sb.toString();
-	}
-
-	@Override
-	public String dump() {
-		return debugDump();
 	}
 
 	@Override

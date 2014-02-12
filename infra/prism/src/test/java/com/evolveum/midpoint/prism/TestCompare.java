@@ -122,7 +122,7 @@ public abstract class TestCompare {
 		
 		// THEN
 		System.out.println("Jack delta:");
-		System.out.println(jackDelta.dump());
+		System.out.println(jackDelta.debugDump());
 		
 		jackDelta.assertDefinitions();
 		jackDelta.checkConsistence(true, true, true);

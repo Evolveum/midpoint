@@ -25,13 +25,12 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 
 /**
  * @author semancik
  *
  */
-public class ItemValueWithOrigin<V extends PrismValue> implements Dumpable, DebugDumpable {
+public class ItemValueWithOrigin<V extends PrismValue> implements DebugDumpable {
 	
 	private V itemValue;
 	private Mapping<V> mapping;
@@ -120,11 +119,6 @@ public class ItemValueWithOrigin<V extends PrismValue> implements Dumpable, Debu
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabelToString(sb, "construction", construction, indent +1);
 		return sb.toString();
-	}
-
-	@Override
-	public String dump() {
-		return debugDump();
 	}
 
 	@Override

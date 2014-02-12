@@ -93,7 +93,7 @@ public class TestSchemaRegistry {
 		PrismSchema commonSchema = schemaRegistry.findSchemaByNamespace(SchemaConstants.NS_C);
 		assertNotNull("No parsed common schema", commonSchema);
 		System.out.println("Parsed common schema:");
-		System.out.println(commonSchema.dump());
+		System.out.println(commonSchema.debugDump());
 		
 		// TODO
 	}
@@ -115,7 +115,7 @@ public class TestSchemaRegistry {
         ItemDefinition itemDefinition = schemaRegistry.findItemDefinitionByElementName(TestConstants.EXTENSION_USER_REF_ELEMENT);
         assertNotNull("userRef element definition was not found", itemDefinition);
         System.out.println("UserRef definition:");
-        System.out.println(itemDefinition.dump());
+        System.out.println(itemDefinition.debugDump());
 
         assertEquals("Wrong userRef definition class", PrismReferenceDefinition.class, itemDefinition.getClass());
     }
@@ -131,7 +131,7 @@ public class TestSchemaRegistry {
 		assertNotNull("No user definition", userDefinition);
 		
 		System.out.println("testCommonSchemaUserType:");
-		System.out.println(userDefinition.dump());
+		System.out.println(userDefinition.debugDump());
 		
 		assertFalse("User definition is marked as runtime", userDefinition.isRuntimeSchema());
 		
@@ -157,7 +157,7 @@ public class TestSchemaRegistry {
 		assertNotNull("No account definition", accountDef);
 
 		System.out.println("testCommonSchemaAccountType:");
-		System.out.println(accountDef.dump());
+		System.out.println(accountDef.debugDump());
 		
 		PrismPropertyDefinition nameDef = accountDef.findPropertyDefinition(ShadowType.F_NAME);
 		assertNotNull("No name definition", nameDef);

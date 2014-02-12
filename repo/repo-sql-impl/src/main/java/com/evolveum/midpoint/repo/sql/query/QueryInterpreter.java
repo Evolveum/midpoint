@@ -390,7 +390,7 @@ public class QueryInterpreter {
             return res;
         }
 
-        LOGGER.error("Couldn't find proper restriction that can handle filter '{}'.", new Object[]{filter.dump()});
+        LOGGER.error("Couldn't find proper restriction that can handle filter '{}'.", new Object[]{filter.debugDump()});
         throw new QueryException("Couldn't find proper restriction that can handle '" + filter + "'");
     }
 }

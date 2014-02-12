@@ -38,7 +38,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.apache.commons.lang.Validate;
 
@@ -51,7 +50,7 @@ import javax.xml.datatype.Duration;
  * @author semancik
  *
  */
-public class DummyAuditService implements AuditService, Dumpable, DebugDumpable {
+public class DummyAuditService implements AuditService, DebugDumpable {
 
 	private static DummyAuditService instance = null;
 	
@@ -267,13 +266,29 @@ public class DummyAuditService implements AuditService, Dumpable, DebugDumpable 
 		asserHasDelta(null, 0, expectedChangeType, expectedClass);
 	}
 	
+	public void asserHasDelta(ChangeType expectedChangeType, Class<?> expectedClass, OperationResultStatus expextedResult) {
+		asserHasDelta(null, 0, expectedChangeType, expectedClass, expextedResult);
+	}
+	
 	public void asserHasDelta(int index, ChangeType expectedChangeType, Class<?> expectedClass) {
 		asserHasDelta(null, index, expectedChangeType, expectedClass);
 	}
 	
+	public void asserHasDelta(int index, ChangeType expectedChangeType, Class<?> expectedClass, OperationResultStatus expextedResult) {
+		asserHasDelta(null, index, expectedChangeType, expectedClass, expextedResult);
+	}
+	
 	public void asserHasDelta(String message, int index, ChangeType expectedChangeType, Class<?> expectedClass) {
+		asserHasDelta(message, index, expectedChangeType, expectedClass, null);
+	}
+	
+	public void asserHasDelta(String message, int index, ChangeType expectedChangeType, Class<?> expectedClass, OperationResultStatus expextedResult) {
 		ObjectDeltaOperation<? extends ObjectType> deltaOp = getExecutionDelta(index, expectedChangeType, expectedClass);
 		assert deltaOp != null : (message==null?"":message+": ")+"Delta for "+expectedClass+" of type "+expectedChangeType+" was not found in audit trail";
+		if (expextedResult != null) {
+			assertEquals((message==null?"":message+": ")+"Delta for "+expectedClass+" of type "+expectedChangeType+" has unexpected result", 
+					deltaOp.getExecutionResult().getStatus(), expextedResult);
+		}
 	}
 	
 	public void assertExecutionDeltas(int expectedNumber) {
@@ -315,11 +330,6 @@ public class DummyAuditService implements AuditService, Dumpable, DebugDumpable 
 		sb.append("DummyAuditService: ").append(records.size()).append(" records\n");
 		DebugUtil.debugDump(sb, records, indent + 1, false);
 		return sb.toString();
-	}
-
-	@Override
-	public String dump() {
-		return debugDump();
 	}
 
 }

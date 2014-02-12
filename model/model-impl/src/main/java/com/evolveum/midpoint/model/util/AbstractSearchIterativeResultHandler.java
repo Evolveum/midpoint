@@ -166,7 +166,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			// Everything OK, signal to continue
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("{} finished for {} {}, result:\n{}", new Object[]{
-						getProcessShortNameCapitalized(), object, getContextDesc(), result.dump()});
+						getProcessShortNameCapitalized(), object, getContextDesc(), result.debugDump()});
 			}
 			return true;
 		} else {

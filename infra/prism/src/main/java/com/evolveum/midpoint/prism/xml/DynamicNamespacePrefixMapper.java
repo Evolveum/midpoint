@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@ package com.evolveum.midpoint.prism.xml;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.DebugDumpable;
 
 /**
  * Maps namespaces to preferred prefixes. Should be used through the code to
@@ -29,7 +29,7 @@ import com.evolveum.midpoint.util.Dumpable;
  * @author Radovan Semancik
  * 
  */
-public interface DynamicNamespacePrefixMapper extends Dumpable {
+public interface DynamicNamespacePrefixMapper extends DebugDumpable {
 	
 	public void registerPrefix(String namespace, String prefix, boolean defaultNamespace);
 	

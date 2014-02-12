@@ -363,7 +363,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		// Check native capabilities
 		CapabilityCollectionType nativeCapabilities = resourceType.getCapabilities().getNative();
 		System.out.println("Native capabilities: " + PrismTestUtil.marshalWrap(nativeCapabilities));
-		System.out.println("resource: " + resourceType.asPrismObject().dump());
+		System.out.println("resource: " + resourceType.asPrismObject().debugDump());
 		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
 		assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
 		CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilitiesList,
@@ -451,7 +451,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 		PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
 				addedObjectOid, null, result);
 		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
-		display("Repository shadow", shadowFromRepo.dump());
+		display("Repository shadow", shadowFromRepo.debugDump());
 
 		ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
 

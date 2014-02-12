@@ -459,7 +459,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Shadow recon query:\n{}", query.dump());
+			LOGGER.trace("Shadow recon query:\n{}", query.debugDump());
 		}
 		
 		final Holder<Long> countHolder = new Holder<Long>(0L);

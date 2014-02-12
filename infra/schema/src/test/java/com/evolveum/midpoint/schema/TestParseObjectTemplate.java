@@ -86,7 +86,7 @@ public class TestParseObjectTemplate {
 		
 		// THEN
 		System.out.println("Parsed object:");
-		System.out.println(object.dump());
+		System.out.println(object.debugDump());
 		
 		assertObjectTemplate(object, elementName);
 		
@@ -104,7 +104,7 @@ public class TestParseObjectTemplate {
 		
 		// THEN
 		System.out.println("Re-parsed object:");
-		System.out.println(reparsedObject.dump());
+		System.out.println(reparsedObject.debugDump());
 		
 		assertObjectTemplate(reparsedObject, elementName);
 	}

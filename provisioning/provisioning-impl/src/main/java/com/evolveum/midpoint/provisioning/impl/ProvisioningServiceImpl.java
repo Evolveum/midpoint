@@ -460,7 +460,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		if (tokenProperty != null && (tokenProperty.getValue() == null || tokenProperty.getValue().getValue() == null)) {
 			LOGGER.warn("Sync token exists, but it is empty (null value). Ignoring it.");
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Empty sync token property:\n{}", tokenProperty.dump());
+				LOGGER.trace("Empty sync token property:\n{}", tokenProperty.debugDump());
 			}
 			tokenProperty = null;
 		}
@@ -779,7 +779,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		PrismObject<T> object = getRepoObject(type, oid, result);
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("**PROVISIONING: modifyObject: object to modify:\n{}.", object.dump());
+			LOGGER.trace("**PROVISIONING: modifyObject: object to modify:\n{}.", object.debugDump());
 		}
 
 		try {
@@ -841,7 +841,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		PrismObject<T> object = getRepoObject(type, oid, result);
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("**PROVISIONING: Object from repository to delete:\n{}", object.dump());
+			LOGGER.trace("**PROVISIONING: Object from repository to delete:\n{}", object.debugDump());
 		}
 
 		if (object.canRepresent(ShadowType.class) && !ProvisioningOperationOptions.isRaw(options)) {
@@ -1079,7 +1079,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		Validate.notNull(handler, "Handler must not be null.");
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Start to search object. Query {}", query.dump());
+			LOGGER.trace("Start to search object. Query {}", query.debugDump());
 		}
 
 		final OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()

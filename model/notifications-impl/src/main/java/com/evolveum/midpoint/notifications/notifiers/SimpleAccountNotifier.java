@@ -192,7 +192,7 @@ public class SimpleAccountNotifier extends GeneralNotifier {
                         ObjectDelta<ShadowType> shadowDelta = ObjectDelta.summarize(deltas);
                         body.append(textFormatter.formatObjectModificationDelta(shadowDelta, hiddenPaths, isWatchAuxiliaryAttributes(generalNotifierType)));
                     } catch (SchemaException e) {
-                        LoggingUtils.logException(LOGGER, "Unable to determine the shadow change; account operation = {}", e, accountEvent.getAccountOperationDescription().dump());
+                        LoggingUtils.logException(LOGGER, "Unable to determine the shadow change; account operation = {}", e, accountEvent.getAccountOperationDescription().debugDump());
                         body.append("(unable to determine the change because of schema exception: ").append(e.getMessage()).append(")\n");
                     }
                 } else {

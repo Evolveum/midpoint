@@ -128,7 +128,7 @@ public class TestResourceSchema {
     private void assertSimpleSchema(ResourceSchema schema, String filename) {
     	assertNotNull(schema);
         System.out.println("Parsed schema from " + filename + ":");
-        System.out.println(schema.dump());
+        System.out.println(schema.debugDump());
 
         ObjectClassComplexTypeDefinition accDef = schema.findObjectClassDefinition(new QName(SCHEMA_NAMESPACE, "AccountObjectClass"));
         assertEquals("Wrong account objectclass", new QName(SCHEMA_NAMESPACE, "AccountObjectClass"), accDef.getTypeName());
@@ -165,7 +165,7 @@ public class TestResourceSchema {
 		ResourceSchema schema = createResourceSchema();
 		
 		System.out.println("Resource schema before serializing to XSD: ");
-		System.out.println(schema.dump());
+		System.out.println(schema.debugDump());
 		System.out.println();
 
 		Document xsd = schema.serializeToXsd();
@@ -191,7 +191,7 @@ public class TestResourceSchema {
 		ResourceSchema unSchema = ResourceSchema.parse(unXsd, "unmarshalled resource", PrismTestUtil.getPrismContext());
 		
 		System.out.println("unmarshalled schema");
-		System.out.println(unSchema.dump());
+		System.out.println(unSchema.debugDump());
 		
 		// THEN
 		assertResourceSchema(unSchema);
@@ -204,7 +204,7 @@ public class TestResourceSchema {
 		ResourceSchema schema = createResourceSchema();
 		
 		System.out.println("Resource schema before serializing to XSD: ");
-		System.out.println(schema.dump());
+		System.out.println(schema.debugDump());
 		System.out.println();
 		
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
@@ -227,7 +227,7 @@ public class TestResourceSchema {
 		PrismObject<ResourceType> unmarshalledResource = PrismTestUtil.parseObject(marshalledResource);
 		
 		System.out.println("unmarshalled resource");
-		System.out.println(unmarshalledResource.dump());
+		System.out.println(unmarshalledResource.debugDump());
 		
 		Element unXsd = ResourceTypeUtil.getResourceXsdSchema(unmarshalledResource);
 		
@@ -237,7 +237,7 @@ public class TestResourceSchema {
 		ResourceSchema unSchema = ResourceSchema.parse(unXsd, "unmarshalled resource schema", PrismTestUtil.getPrismContext());
 		
 		System.out.println("unmarshalled parsed schema");
-		System.out.println(unSchema.dump());
+		System.out.println(unSchema.debugDump());
 		
 		// THEN
 		assertResourceSchema(unSchema);
@@ -297,7 +297,7 @@ public class TestResourceSchema {
 		PrismObject<ResourceType> reparsedResource = PrismTestUtil.getPrismContext().parseObject(resourceXmlString);
 		
 		System.out.println("Re-parsed resource");
-		System.out.println(reparsedResource.dump());
+		System.out.println(reparsedResource.debugDump());
 		
 		XmlSchemaType reparsedSchemaType = reparsedResource.asObjectable().getSchema();
 		Element reparsedXsdElement = ObjectTypeUtil.findXsdElement(reparsedSchemaType);

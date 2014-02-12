@@ -23,6 +23,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 import org.w3c.dom.Element;
@@ -342,10 +343,15 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	@Override
 	protected String additionalDumpDescription() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(", ").append(getOid());
+		sb.append("(").append(getOid());
 		if (getVersion() != null) {
-			sb.append(" v").append(getVersion());
+			sb.append(", v").append(getVersion());
 		}
+		PrismObjectDefinition<T> def = getDefinition();
+		if (def != null) {
+			sb.append(", ").append(DebugUtil.formatElementName(def.getTypeName()));
+		}
+		sb.append(")");
 		return sb.toString();
 	}
 

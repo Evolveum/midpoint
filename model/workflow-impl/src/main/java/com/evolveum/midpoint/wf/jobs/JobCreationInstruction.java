@@ -39,7 +39,6 @@ import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.task.api.TaskRecurrence;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
 import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
@@ -396,8 +395,6 @@ public class JobCreationInstruction implements DebugDumpable {
                 Object value = entry.getValue();
                 if (value instanceof DebugDumpable) {
                     sb.append("\n" + ((DebugDumpable) value).debugDump(indent+1));
-                } else if (value instanceof Dumpable) {
-                    sb.append("\n" + ((Dumpable) value).dump());
                 } else {
                     sb.append(value != null ? value.toString() : "null");
                 }

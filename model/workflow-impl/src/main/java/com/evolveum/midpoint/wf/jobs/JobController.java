@@ -228,7 +228,7 @@ public class JobController {
         }
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Saving workflow monitoring/execution task: " + task.dump());
+            LOGGER.trace("Saving workflow monitoring/execution task: " + task.debugDump());
         }
 
         taskManager.switchToBackground(task, result);

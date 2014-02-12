@@ -176,8 +176,8 @@ public class TestUtil {
 		if (result.getStatus() == null || result.getStatus().equals(OperationResultStatus.UNKNOWN)) {
 			String logmsg = message + ": undefined status ("+result.getStatus()+") on operation "+result.getOperation();
 			LOGGER.error(logmsg);
-			LOGGER.trace(logmsg + "\n" + originalResult.dump());
-			System.out.println(logmsg + "\n" + originalResult.dump());
+			LOGGER.trace(logmsg + "\n" + originalResult.debugDump());
+			System.out.println(logmsg + "\n" + originalResult.debugDump());
 			fail(logmsg);
 		}
 		
@@ -191,8 +191,8 @@ public class TestUtil {
 		} else {
 			String logmsg = message + ": " + result.getStatus() + ": " + result.getMessage();
 			LOGGER.error(logmsg);
-			LOGGER.trace(logmsg + "\n" + originalResult.dump());
-			System.out.println(logmsg + "\n" + originalResult.dump());
+			LOGGER.trace(logmsg + "\n" + originalResult.debugDump());
+			System.out.println(logmsg + "\n" + originalResult.debugDump());
 			assert false : logmsg;	
 		}
 		
@@ -377,8 +377,8 @@ public class TestUtil {
 		if (result.getStatus() == null || result.getStatus().equals(OperationResultStatus.UNKNOWN)) {
 			String logmsg = message + ": undefined status ("+result.getStatus()+") on operation "+result.getOperation();
 			LOGGER.error(logmsg);
-			LOGGER.trace(logmsg + "\n" + originalResult.dump());
-			System.out.println(logmsg + "\n" + originalResult.dump());
+			LOGGER.trace(logmsg + "\n" + originalResult.debugDump());
+			System.out.println(logmsg + "\n" + originalResult.debugDump());
 			fail(logmsg);
 		}
 		
@@ -392,8 +392,8 @@ public class TestUtil {
 		} else {
 			String logmsg = message + ": " + result.getStatus() + ": " + result.getMessage();
 			LOGGER.error(logmsg);
-			LOGGER.trace(logmsg + "\n" + originalResult.dump());
-			System.out.println(logmsg + "\n" + originalResult.dump());
+			LOGGER.trace(logmsg + "\n" + originalResult.debugDump());
+			System.out.println(logmsg + "\n" + originalResult.debugDump());
 			assert false : logmsg;	
 		}
 		

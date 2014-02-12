@@ -158,7 +158,7 @@ public class InboundProcessor {
                 RefinedObjectClassDefinition accountDefinition = accountContext.getRefinedAccountDefinition();
                 if (accountDefinition == null) {
                     LOGGER.error("Definition for account type {} not found in the context, but it " +
-                            "should be there, dumping context:\n{}", rat, context.dump());
+                            "should be there, dumping context:\n{}", rat, context.debugDump());
                     throw new IllegalStateException("Definition for account type " + rat
                             + " not found in the context, but it should be there");
                 }
@@ -605,7 +605,7 @@ public class InboundProcessor {
 			                        + " results in null new account. Something must be really broken.";
 			                LOGGER.error(message);
 			                if (LOGGER.isTraceEnabled()) {
-			                    LOGGER.trace("Account context:\n{}", accContext.dump());
+			                    LOGGER.trace("Account context:\n{}", accContext.debugDump());
 			                }
 			                throw new SystemException(message);
 			            }

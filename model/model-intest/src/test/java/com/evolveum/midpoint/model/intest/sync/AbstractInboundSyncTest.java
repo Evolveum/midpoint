@@ -187,7 +187,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 		/// WHEN
         TestUtil.displayWhen(TEST_NAME);
         
-        display("Adding dummy account", account.dump());
+        display("Adding dummy account", account.debugDump());
         
 		dummyResourceEmerald.addAccount(account);
         

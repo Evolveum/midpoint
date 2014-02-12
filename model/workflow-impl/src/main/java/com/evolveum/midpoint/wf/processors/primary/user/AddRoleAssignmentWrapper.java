@@ -150,7 +150,7 @@ public class AddRoleAssignmentWrapper extends BaseWrapper {
                     while (valueIterator.hasNext()) {
                         Object o = valueIterator.next();
                         if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace("Assignment to add = " + ((PrismContainerValue) o).dump());
+                            LOGGER.trace("Assignment to add = " + ((PrismContainerValue) o).debugDump());
                         }
                         PrismContainerValue<AssignmentType> at = (PrismContainerValue<AssignmentType>) o;
                         ObjectType objectType = wrapperHelper.resolveObjectRef(at.getValue(), result);

@@ -233,10 +233,5 @@ public class LayerRefinedResourceSchema extends RefinedResourceSchema {
 		sb.append(refinedResourceSchema.debugDump(indent+1));
 		return sb.toString();
 	}
-
-	@Override
-	public String dump() {
-		return debugDump();
-	}
 	
 }

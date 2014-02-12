@@ -19,6 +19,10 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.hooks.ChangeHook;
+import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
+import com.evolveum.midpoint.model.api.hooks.HookRegistry;
+import com.evolveum.midpoint.model.api.hooks.ReadHook;
 import com.evolveum.midpoint.task.api.TaskManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -73,6 +77,9 @@ public class ModelObjectResolver implements ObjectResolver {
 
     @Autowired
     private transient TaskManager taskManager;
+
+    @Autowired(required = false)
+    private transient HookRegistry hookRegistry;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ModelObjectResolver.class);
 	
@@ -174,6 +181,11 @@ public class ModelObjectResolver implements ObjectResolver {
 						+ (objectType == null ? "null" : objectType.getClass()) + "'.");
 			}
 
+            if (hookRegistry != null) {
+                for (ReadHook hook : hookRegistry.getAllReadHooks()) {
+                    hook.invoke(object, options, task, result);
+                }
+            }
 		} catch (SystemException ex) {
 			result.recordFatalError(ex);
 			throw ex;

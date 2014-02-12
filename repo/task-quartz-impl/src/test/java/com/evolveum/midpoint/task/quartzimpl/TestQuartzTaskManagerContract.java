@@ -262,12 +262,12 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         task.savePendingModifications(result);
 
-        System.out.println("1st round: Task = " + task.dump());
+        System.out.println("1st round: Task = " + task.debugDump());
 
         logger.trace("Retrieving the task and comparing its properties...");
 
         Task task001 = taskManager.getTask(taskOid(test), result);
-        System.out.println("1st round: Task from repo: " + task001.dump());
+        System.out.println("1st round: Task from repo: " + task001.debugDump());
 
         PrismProperty<String> bigString001 = task001.getExtensionProperty(bigStringQName);
         assertEquals("Big string not retrieved correctly (1st round)", bigStringProperty.getRealValue(), bigString001.getRealValue());
@@ -280,11 +280,11 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         // brutal hack, because task extension property has no "indexed" flag when retrieved from repo
         task001.getExtensionProperty(bigStringQName).getDefinition().setIndexed(false);
 
-        System.out.println("2nd round: Task before save = " + task001.dump());
+        System.out.println("2nd round: Task before save = " + task001.debugDump());
         task001.savePendingModifications(result);   // however, this does not work, because 'modifyObject' in repo first reads object, overwriting any existing definitions ...
 
         Task task002 = taskManager.getTask(taskOid(test), result);
-        System.out.println("2nd round: Task from repo: " + task002.dump());
+        System.out.println("2nd round: Task from repo: " + task002.debugDump());
 
         PrismProperty<String> bigString002 = task002.getExtensionProperty(bigStringQName);
         assertEquals("Big string not retrieved correctly (2nd round)", bigStringProperty.getRealValue(), bigString002.getRealValue());
@@ -323,12 +323,12 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         task.savePendingModifications(result);
 
-        System.out.println("1st round: Task = " + task.dump());
+        System.out.println("1st round: Task = " + task.debugDump());
 
         logger.trace("Retrieving the task and comparing its properties...");
 
         Task task001 = taskManager.getTask(taskOid(test), result);
-        System.out.println("1st round: Task from repo: " + task001.dump());
+        System.out.println("1st round: Task from repo: " + task001.debugDump());
 
         PrismProperty<String> shipState001 = task001.getExtensionProperty(shipStateQName);
         assertEquals("Big string not retrieved correctly (1st round)", shipStateProperty.getRealValue(), shipState001.getRealValue());
@@ -338,11 +338,11 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         shipStateProperty.setRealValue(string300a);
         task001.setExtensionProperty(shipStateProperty);
 
-        System.out.println("2nd round: Task before save = " + task001.dump());
+        System.out.println("2nd round: Task before save = " + task001.debugDump());
         task001.savePendingModifications(result);
 
         Task task002 = taskManager.getTask(taskOid(test), result);
-        System.out.println("2nd round: Task from repo: " + task002.dump());
+        System.out.println("2nd round: Task from repo: " + task002.debugDump());
 
         PrismProperty<String> bigString002 = task002.getExtensionProperty(shipStateQName);
         assertEquals("Big string not retrieved correctly (2nd round)", shipStateProperty.getRealValue(), bigString002.getRealValue());
@@ -367,7 +367,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         //logger.trace("Retrieving the task and comparing its properties...");
         //Task task001 = taskManager.getTask(taskOid(test), result);
-        //logger.trace("Task from repo: " + task001.dump());
+        //logger.trace("Task from repo: " + task001.debugDump());
         //AssertJUnit.assertEquals("RequesteeRef was not stored/retrieved correctly", requestee.getOid(), task001.getRequesteeRef().getOid());
     }
 
@@ -409,7 +409,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         }
 
         task.savePendingModifications(result);
-        System.out.println("Task = " + task.dump());
+        System.out.println("Task = " + task.debugDump());
 
         PrismObject<UserType> owner2 = repositoryService.getObject(UserType.class, TASK_OWNER2_OID, null, result);
 
@@ -463,7 +463,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         logger.trace("Retrieving the task (second time) and comparing its properties...");
 
         Task task001 = taskManager.getTask(taskOid(test), result);
-        logger.trace("Task from repo: " + task001.dump());
+        logger.trace("Task from repo: " + task001.debugDump());
         AssertJUnit.assertEquals(TaskBinding.LOOSE, task001.getBinding());
         PrismAsserts.assertEqualsPolyString("Name not", newname, task001.getName());
 //        AssertJUnit.assertEquals(newname, task001.getName());
@@ -575,10 +575,10 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         Task task1 = taskManager.getTask(taskOid(test), result);
 
         AssertJUnit.assertNotNull(task1);
-        System.out.println("getTask returned: " + task1.dump());
+        System.out.println("getTask returned: " + task1.debugDump());
 
         PrismObject<TaskType> po = repositoryService.getObject(TaskType.class, taskOid(test), null, result);
-        System.out.println("getObject returned: " + po.dump());
+        System.out.println("getObject returned: " + po.debugDump());
 
         // .. it should be closed
         AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task1.getExecutionStatus());
@@ -626,7 +626,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         ObjectType objectType = object.asObjectable();
         TaskType addedTask = (TaskType) objectType;
         System.out.println("Added task");
-        System.out.println(object.dump());
+        System.out.println(object.debugDump());
 
         PrismContainer<?> extensionContainer = object.getExtension();
         PrismProperty<Object> deadProperty = extensionContainer.findProperty(new QName(NS_WHATEVER, "dead"));
@@ -661,10 +661,10 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         Task task = taskManager.getTask(taskOid(test), result);
 
         AssertJUnit.assertNotNull(task);
-        System.out.println(task.dump());
+        System.out.println(task.debugDump());
 
         PrismObject<TaskType> t = repositoryService.getObject(TaskType.class, taskOid(test), null, result);
-        System.out.println(t.dump());
+        System.out.println(t.debugDump());
 
         // .. it should be running
         AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
@@ -726,7 +726,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         Task task = taskManager.getTask(taskOid(test), result);
 
         AssertJUnit.assertNotNull(task);
-        System.out.println(task.dump());
+        System.out.println(task.debugDump());
 
         PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, taskOid(test), null, result);
         System.out.println(ObjectTypeUtil.dump(o.getValue().getValue()));
@@ -792,10 +792,10 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         Task task = taskManager.getTask(taskOid(test), result);
 
         AssertJUnit.assertNotNull(task);
-        System.out.println(task.dump());
+        System.out.println(task.debugDump());
 
         PrismObject<TaskType> t = repositoryService.getObject(TaskType.class, taskOid(test), null, result);
-        System.out.println(t.dump());
+        System.out.println(t.debugDump());
 
         // .. it should be running
         AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
@@ -848,7 +848,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         Task task = taskManager.getTask(taskOid(test), result);
 
         AssertJUnit.assertNotNull(task);
-        System.out.println(task.dump());
+        System.out.println(task.debugDump());
 
         TaskType t = repositoryService.getObject(TaskType.class, taskOid(test), null, result).getValue().getValue();
         System.out.println(ObjectTypeUtil.dump(t));
@@ -904,7 +904,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         Task task = taskManager.getTask(taskOid(test), result);
 
         AssertJUnit.assertNotNull(task);
-        System.out.println(task.dump());
+        System.out.println(task.debugDump());
 
         PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, taskOid(test), null, result);
         System.out.println(ObjectTypeUtil.dump(o.getValue().getValue()));
@@ -986,7 +986,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         Task task = taskManager.getTask(taskOid(test), result);
 
         AssertJUnit.assertNotNull(task);
-        System.out.println(task.dump());
+        System.out.println(task.debugDump());
 
         AssertJUnit.assertEquals("Task is not running", TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
 
@@ -995,7 +995,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         boolean stopped = taskManager.suspendTask(task, 0, result);
 
         task.refresh(result);
-        System.out.println("After suspend and refresh: " + task.dump());
+        System.out.println("After suspend and refresh: " + task.debugDump());
 
         AssertJUnit.assertTrue("Task is not stopped", stopped);
         AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
@@ -1021,7 +1021,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     	addObjectFromFile(taskFilename(test));
 
         Task task = taskManager.getTask(taskOid(test), result);
-        System.out.println("After setup: " + task.dump());
+        System.out.println("After setup: " + task.debugDump());
 
         // check if we can read the extension (xsi:type issue)
 
@@ -1046,7 +1046,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         task.refresh(result);
 
-        System.out.println("After refresh: " + task.dump());
+        System.out.println("After refresh: " + task.debugDump());
 
         AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
 //        AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());		// task cycle is 1000 ms, so it should be released now
@@ -1089,7 +1089,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     	addObjectFromFile(taskFilename(test));
 
         Task task = taskManager.getTask(taskOid(test), result);
-        System.out.println("After setup: " + task.dump());
+        System.out.println("After setup: " + task.debugDump());
 
         waitFor("Waiting for task manager to start the task", new Checker() {
             public boolean check() throws ObjectNotFoundException, SchemaException {
@@ -1105,7 +1105,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         task.refresh(result);
 
-        System.out.println("After refresh: " + task.dump());
+        System.out.println("After refresh: " + task.debugDump());
 
         AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
 //        AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
@@ -1363,7 +1363,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         Task task = taskManager.getTask(taskOid(test), result);
 
         AssertJUnit.assertNotNull(task);
-        System.out.println(task.dump());
+        System.out.println(task.debugDump());
 
         PrismObject<TaskType> o = repositoryService.getObject(TaskType.class, taskOid(test), null, result);
         System.out.println(ObjectTypeUtil.dump(o.getValue().getValue()));
@@ -1484,14 +1484,14 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         addObjectFromFile(taskFilename(test));
 
         Task task = taskManager.getTask(taskOid(test), result);
-        System.out.println("After setup: " + task.dump());
+        System.out.println("After setup: " + task.debugDump());
 
         System.out.println("Waiting to see if the task would not start...");
         Thread.sleep(5000L);
 
         // check the task HAS NOT started
         task.refresh(result);
-        System.out.println("After initial wait: " + task.dump());
+        System.out.println("After initial wait: " + task.debugDump());
 
         assertEquals("task is not RUNNABLE", TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
         assertNull("task was started", task.getLastRunStartTimestamp());
@@ -1514,7 +1514,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         }, 10000, 2000);
 
         task.refresh(result);
-        System.out.println("After refresh: " + task.dump());
+        System.out.println("After refresh: " + task.debugDump());
 
         AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
         AssertJUnit.assertNotNull("LastRunStartTimestamp is null", task.getLastRunStartTimestamp());

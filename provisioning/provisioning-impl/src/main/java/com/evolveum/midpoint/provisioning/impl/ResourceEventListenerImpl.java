@@ -78,7 +78,7 @@ public class ResourceEventListenerImpl implements ResourceEventListener{
 		Validate.notNull(task, "Task must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null");
 		
-		LOGGER.trace("Received event notification with the description: {}", eventDescription.dump());
+		LOGGER.trace("Received event notification with the description: {}", eventDescription.debugDump());
 		
 		if (eventDescription.getCurrentShadow() == null && eventDescription.getDelta() == null){
 			throw new IllegalStateException("Neither current shadow, nor delta specified. It is required to have at least one of them specified.");

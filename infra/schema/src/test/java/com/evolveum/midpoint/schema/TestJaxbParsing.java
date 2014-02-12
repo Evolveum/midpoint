@@ -93,7 +93,7 @@ public class TestJaxbParsing {
 
         // THEN
         System.out.println("Parsed user:");
-        System.out.println(user.dump());
+        System.out.println(user.debugDump());
 
         user.checkConsistence();
         assertPropertyValue(user, UserType.F_NAME, PrismTestUtil.createPolyString("jack"));
@@ -137,7 +137,7 @@ public class TestJaxbParsing {
         account.revive(prismContext);
 
         System.out.println("Parsed account:");
-        System.out.println(account.dump());
+        System.out.println(account.debugDump());
 
         account.checkConsistence(); 
         assertPropertyValue(account, ShadowType.F_NAME, PrismTestUtil.createPolyString("jack"));
@@ -162,14 +162,14 @@ public class TestJaxbParsing {
 
         // THEN
         System.out.println("Parsed role:");
-        System.out.println(role.dump());
+        System.out.println(role.debugDump());
 
         role.checkConsistence();
         assertPropertyValue(role, RoleType.F_NAME, PrismTestUtil.createPolyString("r3"));
         PrismAsserts.assertEquals("Wrong number of approver expressions", 1, role.asObjectable().getApproverExpression().size());
         Object o = role.asObjectable().getApproverExpression().get(0).getExpressionEvaluator().get(0).getValue();
         PrismAsserts.assertEquals("Invalid evaluator type", ScriptExpressionEvaluatorType.class, o.getClass());
-        String code = ((ScriptExpressionEvaluatorType) o).getCode().getTextContent();
+        String code = ((ScriptExpressionEvaluatorType) o).getCode();
         PrismAsserts.assertEquals("Incorrect code parsed", "midpoint.oid2ort(user.getOid())", code);
     }
 

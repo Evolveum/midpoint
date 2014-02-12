@@ -99,7 +99,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 		OperationResult result = new OperationResult("testConfirmUser");
 		boolean confirmed = expressionHandler.evaluateConfirmationExpression(user.asObjectable(), account.asObjectable(), expression,
 				null, result);
-		LOGGER.info(result.dump());
+		LOGGER.info(result.debugDump());
 
 		assertTrue("Wrong expression result (expected true)", confirmed);
 	}
@@ -122,7 +122,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 
 		OperationResult result = new OperationResult("testCorrelationRule");
 		String name = expressionHandler.evaluateExpression(accountType, expression, "test expression", null, result);
-		LOGGER.info(result.dump());
+		LOGGER.info(result.debugDump());
 
 		assertEquals("Wrong expression result", "hbarbossa", name);
 		}

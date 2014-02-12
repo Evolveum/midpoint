@@ -48,7 +48,7 @@ public class MockLensDebugListener implements LensDebugListener {
 	 */
 	@Override
 	public <F extends ObjectType> void beforeSync(LensContext<F> context) {
-		LOGGER.trace(SEPARATOR+"\nSYNC CONTEXT BEFORE SYNC\n{}\n"+SEPARATOR, context.dump());
+		LOGGER.trace(SEPARATOR+"\nSYNC CONTEXT BEFORE SYNC\n{}\n"+SEPARATOR, context.debugDump());
 	}
 
 	/* (non-Javadoc)
@@ -56,7 +56,7 @@ public class MockLensDebugListener implements LensDebugListener {
 	 */
 	@Override
 	public <F extends ObjectType> void afterSync(LensContext<F> context) {
-		LOGGER.trace(SEPARATOR+"\nSYNC CONTEXT AFTER SYNC\n{}\n"+SEPARATOR, context.dump());
+		LOGGER.trace(SEPARATOR+"\nSYNC CONTEXT AFTER SYNC\n{}\n"+SEPARATOR, context.debugDump());
 		lastSyncContext = context;
 	}
 

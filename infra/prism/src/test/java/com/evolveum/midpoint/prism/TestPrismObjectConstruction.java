@@ -77,7 +77,7 @@ public class TestPrismObjectConstruction {
 		
 		// THEN
 		System.out.println("User:");
-		System.out.println(user.dump());
+		System.out.println(user.debugDump());
 		// Check if the values are correct, also checking definitions
 		assertUserDrake(user, true, ctx);
 	}
@@ -101,7 +101,7 @@ public class TestPrismObjectConstruction {
 		
 		// THEN
 		System.out.println("User:");
-		System.out.println(user.dump());
+		System.out.println(user.debugDump());
 		// Check if the values are correct, no schema checking
 		PrismContext ctx = constructInitializedPrismContext();
 		assertUserDrake(user, false, ctx);
@@ -134,7 +134,7 @@ public class TestPrismObjectConstruction {
 			
 		// THEN
 		System.out.println("User:");
-		System.out.println(user.dump());
+		System.out.println(user.debugDump());
 		
 		// Check schema now 
 		assertUserDrake(user, true, ctx);
@@ -159,7 +159,7 @@ public class TestPrismObjectConstruction {
 		
 		// THEN
 		System.out.println("Cloned user:");
-		System.out.println(clone.dump());
+		System.out.println(clone.debugDump());
 		// Check if the values are correct, also checking definitions
 		assertUserDrake(clone, true, ctx);
 	}
