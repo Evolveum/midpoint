@@ -16,19 +16,36 @@
 
 package com.evolveum.midpoint.web.util;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 
 /**
+ * This behavior is used for bootstrap tooltips. Just add this behaviour to {@link org.apache.wicket.markup.html.basic.Label}.
+ * Label must have title set (e.g. wicket:message="title:YOUR_LOCALIZATION_PROPERTY_KEY").
+ *
  * @author lazyman
  */
 public class TooltipBehavior extends Behavior {
 
     @Override
-    public void onConfigure(Component component) {
+    public void onConfigure(final Component component) {
         component.setOutputMarkupId(true);
+        component.add(AttributeModifier.replace("class", "fa fa-fw fa-info-circle text-info"));
+        component.add(AttributeModifier.replace("data-toggle", "tooltip"));
+        component.add(new AttributeModifier("data-placement", "right") {
+
+            @Override
+            protected String newValue(String currentValue, String replacementValue) {
+                if (StringUtils.isEmpty(currentValue)) {
+                    return replacementValue;
+                }
+                return currentValue;
+            }
+        });
     }
 
     @Override
