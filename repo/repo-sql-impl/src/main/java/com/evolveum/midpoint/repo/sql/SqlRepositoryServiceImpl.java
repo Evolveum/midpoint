@@ -252,7 +252,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private <F extends FocusType> PrismObject<F> searchShadowOwnerAttempt(String shadowOid, OperationResult result)
             throws ObjectNotFoundException {
-        ObjectType owner = null;
+        PrismObject<F> owner = null;
         Session session = null;
         try {
             session = beginReadOnlyTransaction();
@@ -265,11 +265,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
 
             LOGGER.trace("Selecting account shadow owner for account {}.", new Object[]{shadowOid});
-            query = session.createQuery("select owner from " + ClassMapper.getHQLType(FocusType.class)
+            query = session.createQuery("select owner.fullObject from " + ClassMapper.getHQLType(FocusType.class)
                     + " as owner left join owner.linkRef as ref where ref.targetOid = :oid");
             query.setString("oid", shadowOid);
 
-            List<RUser> users = query.list();
+            List<String> users = query.list();
             LOGGER.trace("Found {} users, transforming data to JAXB types.",
                     new Object[]{(users != null ? users.size() : 0)});
 
@@ -283,14 +283,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                         new Object[]{users.size(), shadowOid});
             }
 
-            RFocus focus = users.get(0);
-            owner = focus.toJAXB(getPrismContext(), null);
+            String focus = users.get(0);
+            owner = updateCriteriaListObject(focus);
 
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
             rollbackTransaction(session, ex, result, true);
             throw ex;
-        } catch (DtoTranslationException ex) {
+        } catch (SchemaException ex) {
             handleGeneralCheckedException(ex, session, result);
         } catch (RuntimeException ex) {
             handleGeneralRuntimeException(ex, session, result);
@@ -298,7 +298,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             cleanupSessionAndResult(session, result);
         }
 
-        return owner.asPrismObject();
+        return owner;
     }
 
     @Override
@@ -999,18 +999,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
         return domProcessor.parseObject(fullObject);
-//        if (object instanceof RObject) {
-//            return (RObject) object;
-//        }
-//
-//        Object[] array = (Object[]) object;
-//        for (Object item : array) {
-//            if (item instanceof RObject) {
-//                return (RObject) item;
-//            }
-//        }
-//
-//        throw new QueryException("Query result doesn't contain object(s) of type " + RObject.class.getSimpleName());
     }
 
     @Override
@@ -1360,22 +1348,21 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             String resourceOid, Class<T> resourceObjectShadowType, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
 
-        List<PrismObject<T>> list = new ArrayList<PrismObject<T>>();
+        List<PrismObject<T>> list = new ArrayList<>();
         Session session = null;
         try {
             session = beginReadOnlyTransaction();
-            Query query = session.createQuery("select shadow from " + ClassMapper.getHQLType(resourceObjectShadowType)
+            Query query = session.createQuery("select shadow.fullObject from " + ClassMapper.getHQLType(resourceObjectShadowType)
                     + " as shadow left join shadow.resourceRef as ref where ref.oid = :oid");
             query.setString("oid", resourceOid);
 
-            List<RShadow> shadows = query.list();
+            List<String> shadows = query.list();
             LOGGER.trace("Query returned {} shadows, transforming to JAXB types.",
                     new Object[]{(shadows != null ? shadows.size() : 0)});
 
             if (shadows != null) {
-                for (RShadow shadow : shadows) {
-                    ShadowType jaxb = shadow.toJAXB(getPrismContext(), null);
-                    PrismObject<T> prismObject = jaxb.asPrismObject();
+                for (String shadow : shadows) {
+                    PrismObject<T> prismObject = updateCriteriaListObject(shadow);
                     validateObjectType(prismObject, resourceObjectShadowType);
 
                     list.add(prismObject);
@@ -1383,7 +1370,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
             session.getTransaction().commit();
             LOGGER.trace("Done.");
-        } catch (DtoTranslationException ex) {
+        } catch (SchemaException ex) {
             handleGeneralCheckedException(ex, session, result);
         } catch (RuntimeException ex) {
             handleGeneralRuntimeException(ex, session, result);
@@ -1602,7 +1589,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Session session = null;
         try {
             session = beginReadOnlyTransaction();
-            Query query = session.createQuery("select o.version from " + ClassMapper.getHQLType(type)
+            Query query = session.createQuery("select o.version from " + ClassMapper.getHQLType(ObjectType.class)
                     + " as o where o.id = 0 and o.oid = :oid");
             query.setString("oid", oid);
 
