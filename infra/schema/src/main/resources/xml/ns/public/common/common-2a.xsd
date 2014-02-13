@@ -3952,6 +3952,9 @@
                 This part defines native and configured capabilities. The effective capabilities of the resource
                 are determined by application of configured capabilities to native capabilities.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element ref="tns:cachingMetadata" minOccurs="0">
@@ -4002,6 +4005,9 @@
                 a closed set. Resource may also specify additional capabilities. If the code that is processing
                 capabilities encounters unknown capability it must ignore it.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
 <!--          <xsd:element name="cap" type="cap:CapabilityType" minOccurs="0" maxOccurs="unbounded"> -->
