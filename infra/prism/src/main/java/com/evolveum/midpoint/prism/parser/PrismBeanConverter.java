@@ -94,10 +94,13 @@ public class PrismBeanConverter {
 			XNode xsubnode = entry.getValue();
 			String propName = key.getLocalPart();
 			Field field = findPropertyField(beanClass, propName);
+			Method propertyGetter = null;
+			if (field == null) {
+				propertyGetter = findPropertyGetter(beanClass, propName);
+			}
 			Method elementMethod = null;
 			Object objectFactory = null;
-			String methodBaseName = propName;
-			if (field == null) {
+			if (field == null && propertyGetter == null) {
 				// We have to try to find a more generic field, such as xsd:any (TODO) or substitution element
 				// check for global element definition first
 				objectFactory = getObjectFactory(beanClass.getPackage());
@@ -109,25 +112,31 @@ public class PrismBeanConverter {
 				if (field == null) {
 					throw new SchemaException("No field "+propName+" in class "+beanClass+" (and no suitable substitution too)");
 				}
-				methodBaseName = field.getName();
 			}
-			Method setter = findSetter(beanClass, methodBaseName);
+			String fieldName;
+			if (field != null) {
+				fieldName = field.getName();
+			} else {
+				fieldName = propName;
+			}
+			
+			Method setter = findSetter(beanClass, fieldName);
 			Method getter = null;
 			boolean wrapInJaxbElement = false;
 			Class<?> paramType;
 			if (setter == null) {
 				// No setter. But if the property is multi-value we need to look
 				// for a getter that returns a collection (Collection<Whatever>)
-				getter = findGetter(beanClass, methodBaseName);
+				getter = findGetter(beanClass, fieldName);
 				if (getter == null) {
-					throw new SchemaException("Cannot find setter or getter for field "+field.getName()+" in "+beanClass);
+					throw new SchemaException("Cannot find setter or getter for field "+fieldName+" in "+beanClass);
 				}
 				Class<?> getterReturnType = getter.getReturnType();
 				if (!Collection.class.isAssignableFrom(getterReturnType)) {
-					throw new SchemaException("Cannot find getter for field "+field.getName()+" in "+beanClass+" does not return collection, cannot use it to set value");
+					throw new SchemaException("Cannot find getter for field "+fieldName+" in "+beanClass+" does not return collection, cannot use it to set value");
 				}
 				Type genericReturnType = getter.getGenericReturnType();
-				Type typeArgument = getTypeArgument(genericReturnType, "for field "+field.getName()+" in "+beanClass+", cannot determine collection type");
+				Type typeArgument = getTypeArgument(genericReturnType, "for field "+fieldName+" in "+beanClass+", cannot determine collection type");
 				if (typeArgument instanceof Class) {
 					paramType = (Class<?>) typeArgument;
 				} else if (typeArgument instanceof ParameterizedType) {
@@ -136,7 +145,7 @@ public class PrismBeanConverter {
 					if (rawTypeArgument.equals(JAXBElement.class)) {
 						// This is the case of Collection<JAXBElement<....>>
 						wrapInJaxbElement = true;
-						Type innerTypeArgument = getTypeArgument(typeArgument, "for field "+field.getName()+" in "+beanClass+", cannot determine collection type (inner type argument)");
+						Type innerTypeArgument = getTypeArgument(typeArgument, "for field "+fieldName+" in "+beanClass+", cannot determine collection type (inner type argument)");
 						if (innerTypeArgument instanceof Class) {
 							// This is the case of Collection<JAXBElement<Whatever>>
 							paramType = (Class<?>) innerTypeArgument;
@@ -144,33 +153,33 @@ public class PrismBeanConverter {
 							// This is the case of Collection<JAXBElement<?>>
 							// we need to exctract the specific type from the factory method
 							if (elementMethod == null) {
-								throw new IllegalArgumentException("Wildcard type in JAXBElement field specification and no facotry method found for field "+field.getName()+" in "+beanClass+", cannot determine collection type (inner type argument)");
+								throw new IllegalArgumentException("Wildcard type in JAXBElement field specification and no facotry method found for field "+fieldName+" in "+beanClass+", cannot determine collection type (inner type argument)");
 							}
 							Type factoryMethodGenericReturnType = elementMethod.getGenericReturnType();
-							Type factoryMethodTypeArgument = getTypeArgument(factoryMethodGenericReturnType, "in factory method "+elementMethod+" return type for field "+field.getName()+" in "+beanClass+", cannot determine collection type");
+							Type factoryMethodTypeArgument = getTypeArgument(factoryMethodGenericReturnType, "in factory method "+elementMethod+" return type for field "+fieldName+" in "+beanClass+", cannot determine collection type");
 							if (factoryMethodTypeArgument instanceof Class) {
 								// This is the case of JAXBElement<Whatever>
 								paramType = (Class<?>) factoryMethodTypeArgument;
 								if (Object.class.equals(paramType)) {
 									throw new IllegalArgumentException("Factory method "+elementMethod+" type argument is Object for field "+
-												field.getName()+" in "+beanClass+", property "+propName);
+											fieldName+" in "+beanClass+", property "+propName);
 								}
 							} else {
-								throw new IllegalArgumentException("Cannot determine factory method return type, got "+factoryMethodTypeArgument+" - for field "+field.getName()+" in "+beanClass+", cannot determine collection type (inner type argument)");
+								throw new IllegalArgumentException("Cannot determine factory method return type, got "+factoryMethodTypeArgument+" - for field "+fieldName+" in "+beanClass+", cannot determine collection type (inner type argument)");
 							}
 						} else {
-							throw new IllegalArgumentException("Ejha! "+innerTypeArgument+" "+innerTypeArgument.getClass()+" from "+getterReturnType+" from "+methodBaseName+" in "+propName+" "+beanClass);
+							throw new IllegalArgumentException("Ejha! "+innerTypeArgument+" "+innerTypeArgument.getClass()+" from "+getterReturnType+" from "+fieldName+" in "+propName+" "+beanClass);
 						}
 					} else {
 						// The case of Collection<Whatever<Something>>
 						if (rawTypeArgument instanceof Class) {
 							paramType = (Class<?>) rawTypeArgument;
 						} else {
-							throw new IllegalArgumentException("EH? Eh!? "+typeArgument+" "+typeArgument.getClass()+" from "+getterReturnType+" from "+methodBaseName+" in "+propName+" "+beanClass);
+							throw new IllegalArgumentException("EH? Eh!? "+typeArgument+" "+typeArgument.getClass()+" from "+getterReturnType+" from "+fieldName+" in "+propName+" "+beanClass);
 						}
 					}
 				} else {
-					throw new IllegalArgumentException("EH? "+typeArgument+" "+typeArgument.getClass()+" from "+getterReturnType+" from "+methodBaseName+" in "+propName+" "+beanClass);
+					throw new IllegalArgumentException("EH? "+typeArgument+" "+typeArgument.getClass()+" from "+getterReturnType+" from "+fieldName+" in "+propName+" "+beanClass);
 				}
 			} else {
 				paramType = setter.getParameterTypes()[0];
@@ -178,10 +187,10 @@ public class PrismBeanConverter {
 			
 			if (Element.class.isAssignableFrom(paramType)) {
 				// DOM!
-				throw new IllegalArgumentException("DOM not supported in field "+field.getName()+" in "+beanClass);
+				throw new IllegalArgumentException("DOM not supported in field "+fieldName+" in "+beanClass);
 			}
 			if (Object.class.equals(paramType)) {
-				throw new IllegalArgumentException("Object property not supported in field "+field.getName()+" in "+beanClass);
+				throw new IllegalArgumentException("Object property not supported in field "+fieldName+" in "+beanClass);
 			}
 						
 			String paramNamespace = determineNamespace(paramType);
@@ -191,16 +200,16 @@ public class PrismBeanConverter {
 			if (xsubnode instanceof ListXNode) {
 				ListXNode xlist = (ListXNode)xsubnode;
 				if (setter != null) {
-					propValue = convertSinglePropValue(xsubnode, field, paramType, beanClass, paramNamespace);
+					propValue = convertSinglePropValue(xsubnode, fieldName, paramType, beanClass, paramNamespace);
 				} else {
 					// No setter, we have to use collection getter
 					propValues = new ArrayList<>(xlist.size());
 					for(XNode xsubsubnode: xlist) {
-						propValues.add(convertSinglePropValue(xsubsubnode, field, paramType, beanClass, paramNamespace));
+						propValues.add(convertSinglePropValue(xsubsubnode, fieldName, paramType, beanClass, paramNamespace));
 					}
 				}
 			} else {
-				propValue = convertSinglePropValue(xsubnode, field, paramType, beanClass, paramNamespace);
+				propValue = convertSinglePropValue(xsubnode, fieldName, paramType, beanClass, paramNamespace);
 			}
 			
 			if (setter != null) {
@@ -323,7 +332,7 @@ public class PrismBeanConverter {
 		}
 	}
 	
-	private Object convertSinglePropValue(XNode xsubnode, Field field, Class paramType, Class classType, String schemaNamespace) throws SchemaException {
+	private Object convertSinglePropValue(XNode xsubnode, String fieldName, Class paramType, Class classType, String schemaNamespace) throws SchemaException {
 		Object propValue;
 		if (xsubnode instanceof PrimitiveXNode<?>) {
 			propValue = unmarshallPrimitive(((PrimitiveXNode<?>)xsubnode), paramType);
@@ -332,7 +341,7 @@ public class PrismBeanConverter {
 		} else if (xsubnode instanceof ListXNode) {
 			ListXNode xlist = (ListXNode)xsubnode;
 			if (xlist.size() > 1) {
-				throw new SchemaException("Cannot set multi-value value to a single valued property "+field+" of "+classType);
+				throw new SchemaException("Cannot set multi-value value to a single valued property "+fieldName+" of "+classType);
 			} else {
 				if (xlist.isEmpty()) {
 					propValue = null;
@@ -390,6 +399,29 @@ public class PrismBeanConverter {
 		}
 		return findField(superclass, selector);
 	}
+	
+	private <T> Method findPropertyGetter(Class<T> classType, String propName) throws SchemaException {
+		for (Method method: classType.getDeclaredMethods()) {
+			XmlElement xmlElement = method.getAnnotation(XmlElement.class);
+			if (xmlElement != null && xmlElement.name() != null && xmlElement.name().equals(propName)) {
+				return method;
+			}
+			XmlAttribute xmlAttribute = method.getAnnotation(XmlAttribute.class);
+			if (xmlAttribute != null && xmlAttribute.name() != null && xmlAttribute.name().equals(propName)) {
+				return method;
+			}
+		}
+		try {
+			return classType.getDeclaredMethod(getGetterName(propName));
+		} catch (NoSuchMethodException e) {
+			// nothing found
+		}
+		Class<? super T> superclass = classType.getSuperclass();
+		if (superclass.equals(Object.class)) {
+			return null;
+		}
+		return findPropertyGetter(superclass, propName);
+	}
 
 	public <T> T unmarshallPrimitive(PrimitiveXNode<?> xprim, QName typeQName) throws SchemaException {
 		Class<T> classType = schemaRegistry.determineCompileTimeClass(typeQName);
@@ -414,6 +446,15 @@ public class PrismBeanConverter {
 			rawType.setType(typeQName);
 			rawType.setValue(parsedValue);
 			return (T) rawType;
+		}
+		
+		if (xprim.isEmpty()) {
+			// Special case. Just return empty object
+			try {
+				return classType.newInstance();
+			} catch (InstantiationException | IllegalAccessException e) {
+				throw new SystemException("Cannot instantiate "+classType+": "+e.getMessage(), e);
+			}
 		}
 		
 		if (!classType.isEnum()) {
@@ -575,6 +616,9 @@ public class PrismBeanConverter {
 	}
 
 	private String getGetterName(String fieldName) {
+		if (fieldName.startsWith("_")) {
+			fieldName = fieldName.substring(1);
+		}
 		return "get"+StringUtils.capitalize(fieldName);
 	}
 	
@@ -594,8 +638,20 @@ public class PrismBeanConverter {
 		}
 		return null;
 	}
+	
+	private String getPropertyNameFromGetter(String getterName) {
+		if ((getterName.length() > 3) && getterName.startsWith("get") && 
+				Character.isUpperCase(getterName.charAt(3))) {
+			String propPart = getterName.substring(3);
+			return StringUtils.uncapitalize(propPart);
+		}
+		return getterName;
+	}
 
 	private String getSetterName(String fieldName) {
+		if (fieldName.startsWith("_")) {
+			fieldName = fieldName.substring(1);
+		}
 		return "set"+StringUtils.capitalize(fieldName);
 	}
 

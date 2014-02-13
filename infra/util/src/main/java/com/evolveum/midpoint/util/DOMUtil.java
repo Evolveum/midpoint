@@ -1171,4 +1171,24 @@ public class DOMUtil {
         return restXml.replaceFirst("</[^>]>\\s*$", "");
     }
 
+	public static boolean isEmpty(Element element) {
+		if (element == null) {
+			return true;
+		}
+		if (hasChildElements(element)) {
+			return false;
+		}
+		if (isNil(element)) {
+			return true;
+		}
+		return StringUtils.isBlank(element.getTextContent());
+	}
+
+	public static boolean isEmpty(Attr attr) {
+		if (attr == null) {
+			return true;
+		}
+		return StringUtils.isEmpty(attr.getValue());
+	}
+
 }

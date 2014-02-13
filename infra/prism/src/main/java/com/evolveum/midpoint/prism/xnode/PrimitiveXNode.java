@@ -42,6 +42,8 @@ public class PrimitiveXNode<T> extends XNode {
 	public void parseValue(QName typeName) throws SchemaException {
 		if (valueParser != null) {
 			value = valueParser.parse(typeName);
+			// Necessary. It marks that the value is parsed. It also frees some memory.
+			valueParser = null;
 		}
 	}
 	
@@ -69,7 +71,7 @@ public class PrimitiveXNode<T> extends XNode {
 	}
 	
 	public boolean isParsed() {
-		return value != null;
+		return valueParser == null;
 	}
 
 	public boolean isAttribute() {
@@ -81,6 +83,9 @@ public class PrimitiveXNode<T> extends XNode {
 	}
 	
 	public boolean isEmpty() {
+		if (!isParsed()) {
+			return valueParser.isEmpty();
+		}
 		if (value == null) {
 			return true;
 		}
