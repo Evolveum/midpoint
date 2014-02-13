@@ -179,7 +179,7 @@ public class TestPrismParsing {
 		
 		ObjectDelta<UserType> diff = DiffUtil.diff(originalUser, parsedUser);
 		System.out.println("Diff:");
-		System.out.println(diff.dump());
+		System.out.println(diff.debugDump());
 		
 		assertTrue("Diff: "+diff, diff.isEmpty());
 		
