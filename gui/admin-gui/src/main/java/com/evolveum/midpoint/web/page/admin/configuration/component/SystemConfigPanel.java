@@ -22,7 +22,10 @@ import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.AEPlevel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
@@ -41,6 +44,8 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
     private static final String ID_GLOBAL_AEP = "aepChooser";
     private static final String ID_CLEANUP_AUDIT_RECORDS = "auditRecordsCleanup";
     private static final String ID_CLEANUP_CLOSED_TASKS = "closedTasksCleanup";
+    private static final String ID_CLEANUP_AUDIT_RECORDS_TOOLTIP = "auditRecordsCleanupTooltip";
+    private static final String ID_CLEANUP_CLOSED_TASKS_TOOLTIP = "closedTasksCleanupTooltip";
 
     private ChooseTypePanel passPolicyChoosePanel;
     private ChooseTypePanel userTemplateChoosePanel;
@@ -51,7 +56,6 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
 
     @Override
     protected void initLayout(){
-
         passPolicyChoosePanel = new ChooseTypePanel(ID_GLOBAL_PASSWORD_POLICY_CHOOSER,
                 new PropertyModel<ObjectViewDto>(getModel(), "passPolicyDto"));
         userTemplateChoosePanel = new ChooseTypePanel(ID_GLOBAL_USER_TEMPLATE_CHOOSER,
@@ -74,5 +78,14 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
         TextField<String> closedTasksField = new TextField<String>(ID_CLEANUP_CLOSED_TASKS, new PropertyModel<String>(getModel(), "taskCleanupValue"));
         add(auditRecordsField);
         add(closedTasksField);
+
+        createTooltip(ID_CLEANUP_AUDIT_RECORDS_TOOLTIP, this);
+        createTooltip(ID_CLEANUP_CLOSED_TASKS_TOOLTIP, this);
+    }
+
+    private void createTooltip(String id, WebMarkupContainer parent) {
+        Label tooltip = new Label(id);
+        tooltip.add(new TooltipBehavior());
+        parent.add(tooltip);
     }
 }

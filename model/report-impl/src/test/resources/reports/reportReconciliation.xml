@@ -1,0 +1,360 @@
+<!--
+  ~ Copyright (c) 2010-2014 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
+		oid="RECONCIL-3333-3333-TEST-10000000000"
+        version="0">
+	<name>
+		<orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Reconciliation report</orig>
+		<norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Reconciliation report</norm>
+	</name>
+	<description>Reconciliation report for selected resource.</description>
+	<!-- flag if this report is "parent" report, used for gui -->
+	<parent>true</parent>
+	<template>
+		<jasperReport 
+			xmlns="http://jasperreports.sourceforge.net/jasperreports" 
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+			xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" 
+			name="reportReconciliation" 
+			pageWidth="842" 
+			pageHeight="595" 
+			orientation="Landscape" 
+			whenNoDataType="AllSectionsNoDetail" 
+			columnWidth="802" 
+			leftMargin="20" 
+			rightMargin="20" 
+			topMargin="20" 
+			bottomMargin="20" 
+			uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
+			<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
+			<property name="net.sf.jasperreports.export.pdf.force.linebreak.policy" value="true"/>
+			<style fontName="DejaVu Sans" fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="true" 
+				   name="Base" pdfEncoding="Identity-H" pdfFontName="DejaVuSans.ttf" vAlign="Middle">
+			</style>
+			<style backcolor="#267994" fontSize="26" forecolor="#FFFFFF" isDefault="false"
+                   mode="Opaque" name="Title" style="Base"/> 
+			<style fontSize="12" forecolor="#000000" isDefault="false" name="Page header"
+                   style="Base"/>
+			<style backcolor="#333333" fontSize="12" forecolor="#FFFFFF" hAlign="Center"
+                   isDefault="false" mode="Opaque" name="Column header" style="Base"/>
+			<style isBold="false" isDefault="false" name="Detail" style="Base"/>
+			<style fontSize="9" forecolor="#000000" isDefault="false" name="Page footer"
+                   style="Base"/>
+			<parameter name="hqlQuery" class="java.lang.String"/>
+			<parameter name="resourceOid" class="java.lang.String"/>
+			<parameter name="resourceName" class="java.lang.String"/>
+			<parameter name="objectClass" class="javax.xml.namespace.QName"/>
+			<parameter name="intent" class="java.lang.String"/>
+			<queryString language="hql"><![CDATA[$P!{hqlQuery}]]></queryString>
+			<field name="username" class="java.lang.String"/>
+			<field name="name" class="java.lang.String"/>
+			<field name="situation" class="com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation">
+				<fieldDescription><![CDATA[situation]]></fieldDescription>
+			</field>
+			<field name="situationTimestamp" class="javax.xml.datatype.XMLGregorianCalendar"/>
+			<background>
+				<band splitType="Stretch"/>
+			</background>
+			<title>
+				<band height="138" splitType="Stretch">
+					<frame>
+						<reportElement uuid="44bedacc-fa23-4fe1-b71f-e5afa943f553" style="Title" mode="Opaque" x="0" y="0" width="800" height="67" backcolor="#267994"/>
+						<staticText>
+							<reportElement uuid="f2d99cad-9d84-4f50-b455-453c87f62c4c" style="Title" x="10" y="13" width="266" height="38"/>
+							<textElement verticalAlignment="Middle"/>
+							<text><![CDATA[Reconciliation Report]]></text>
+						</staticText>
+					</frame>
+					<staticText>
+						<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" style="Page header" x="2" y="70" width="100" height="20"/>
+						<textElement verticalAlignment="Middle"/>
+						<text><![CDATA[Resource:]]></text>
+					</staticText>
+					<textField isBlankWhenNull="true">
+						<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Page header" x="102" y="70" width="280" height="20"/>
+						<textElement verticalAlignment="Middle">
+							<font isBold="false"/>
+						</textElement>
+						<textFieldExpression><![CDATA[$P{resourceName}]]></textFieldExpression>
+					</textField>
+					<staticText>
+						<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" style="Page header" x="2" y="90" width="100" height="20"/>
+						<textElement verticalAlignment="Middle"/>
+						<text><![CDATA[Intent:]]></text>
+					</staticText>
+					<textField isBlankWhenNull="true">
+						<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Page header" x="102" y="90" width="150" height="20"/>
+						<textElement verticalAlignment="Middle">
+							<font isBold="false"/>
+						</textElement>
+						<textFieldExpression><![CDATA[$P{intent}]]></textFieldExpression>
+					</textField>
+					<staticText>
+						<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" style="Page header" x="2" y="110" width="100" height="20"/>
+						<textElement verticalAlignment="Middle"/>
+						<text><![CDATA[Object Class:]]></text>
+					</staticText>
+					<textField isBlankWhenNull="true">
+						<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Page header" x="102" y="110" width="150" height="20"/>
+						<textElement verticalAlignment="Middle">
+							<font isBold="false"/>
+						</textElement>
+						<textFieldExpression><![CDATA[$P{objectClass}.getLocalPart()]]></textFieldExpression>
+					</textField>
+					<staticText>
+						<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" style="Page header" x="400" y="70" width="150" height="20"/>
+						<textElement verticalAlignment="Middle"/>
+						<text><![CDATA[Report generated on:]]></text>
+					</staticText>
+					<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
+						<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Page header" x="550" y="70" width="250" height="20"/>
+						<textElement textAlignment="Right" verticalAlignment="Middle">
+							<font isBold="false"/>
+						</textElement>
+						<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+					</textField>
+					<staticText>
+						<reportElement uuid="8599b2c5-3a24-4594-98b9-5b3f38f39e24" style="Page header" x="400" y="90" width="150" height="20"/>
+						<textElement verticalAlignment="Middle"/>
+						<text><![CDATA[Number of records:]]></text>
+					</staticText>
+					<textField evaluationTime="Report" isBlankWhenNull="true">
+						<reportElement uuid="f6b01016-2406-4195-8b3b-35dca232ce68" style="Page header" x="550" y="90" width="250" height="20"/>
+						<textElement textAlignment="Right" verticalAlignment="Middle">
+							<font isBold="false"/>
+						</textElement>
+						<textFieldExpression><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
+					</textField>
+				</band>
+			</title>
+			<pageHeader>
+				<band splitType="Stretch"/>
+			</pageHeader>
+			<columnHeader>
+				<band height="24" splitType="Stretch">
+					<frame>
+						<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Column header" mode="Transparent" x="0" y="1" width="800" height="19" isRemoveLineWhenBlank="true"/>
+						<staticText>
+							<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" x="0" y="0" width="300" height="18"/>
+							<textElement textAlignment="Center" verticalAlignment="Middle"/>
+							<text><![CDATA[Name]]></text>
+						</staticText>
+						<staticText>
+							<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" x="300" y="0" width="150" height="18"/>
+							<textElement textAlignment="Center" verticalAlignment="Middle"/>
+							<text><![CDATA[Situation]]></text>
+						</staticText>
+						<staticText>
+							<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" x="450" y="0" width="200" height="18"/>
+							<textElement textAlignment="Center" verticalAlignment="Middle"/>
+							<text><![CDATA[Owner]]></text>
+						</staticText>
+						<staticText>
+							<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" x="650" y="0" width="150" height="18"/>
+							<textElement textAlignment="Center" verticalAlignment="Middle"/>
+							<text><![CDATA[Timestamp]]></text>
+						</staticText>
+					</frame>
+				</band>
+			</columnHeader>
+			<detail>
+				<band height="15" splitType="Stretch">
+					<frame>
+						<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Detail" stretchType="RelativeToTallestObject" mode="Opaque" x="0" y="0" width="800" height="14"/>
+						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+							<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" stretchType="RelativeToTallestObject" x="0" y="0" width="300" height="13" isPrintWhenDetailOverflows="true"/>
+							<textElement verticalAlignment="Middle"/>
+							<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
+						</textField>
+						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+							<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" stretchType="RelativeToTallestObject" x="300" y="0" width="150" height="13" isPrintWhenDetailOverflows="true"/>
+							<textElement textAlignment="Center" verticalAlignment="Middle"/>
+							<textFieldExpression><![CDATA[$F{situation}.getSchemaValue()]]></textFieldExpression>
+						</textField>
+						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+							<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" stretchType="RelativeToTallestObject" x="450" y="0" width="200" height="13" isPrintWhenDetailOverflows="true"/>
+							<textElement verticalAlignment="Middle"/>
+							<textFieldExpression><![CDATA[$F{username}]]></textFieldExpression>
+						</textField>
+						<textField isStretchWithOverflow="true" pattern="dd.MM.yy, HH:mm:ss" isBlankWhenNull="true">
+							<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" stretchType="RelativeToTallestObject" x="650" y="0" width="150" height="13" isPrintWhenDetailOverflows="true"/>
+							<textElement textAlignment="Center" verticalAlignment="Middle"/>
+							<textFieldExpression><![CDATA[$F{situationTimestamp}.toGregorianCalendar().getTime()]]></textFieldExpression>
+						</textField>
+						<line>
+							<reportElement uuid="47f91801-cf5f-4bed-b19c-ca3931cbf98d" positionType="FixRelativeToBottom" mode="Opaque" x="0" y="13" width="800" height="1" forecolor="#333333"/>
+						</line>
+					</frame>
+				</band>
+			</detail>
+			<columnFooter>
+				<band height="7" splitType="Stretch">
+					<line>
+						<reportElement uuid="a591d4c1-1cad-4da2-9f9d-081f539e9043" positionType="FixRelativeToBottom" x="0" y="3" width="800" height="1"/>
+						<graphicElement>
+							<pen lineWidth="0.5" lineColor="#999999"/>
+						</graphicElement>
+					</line>
+				</band>
+			</columnFooter>
+			<pageFooter>
+				<band height="32" splitType="Stretch">
+					<frame>
+						<reportElement uuid="fbe8aae4-6500-468a-b1e8-700b569139a1" style="Page footer" mode="Transparent" x="0" y="1" width="800" height="24" forecolor="#000000" backcolor="#267994"/>
+						<textField>
+							<reportElement uuid="5c062c66-ba45-4288-9dcd-246e28c5af75" style="Page footer" x="680" y="1" width="80" height="20"/>
+							<textElement textAlignment="Right" verticalAlignment="Middle">
+								<font size="9" isBold="true"/>
+							</textElement>
+							<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+						</textField>
+						<textField pattern="EEEEE dd MMMMM yyyy">
+							<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Page footer" x="2" y="1" width="197" height="20"/>
+							<textElement verticalAlignment="Middle">
+								<font size="9" isBold="true"/>
+							</textElement>
+							<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+						</textField>
+						<textField evaluationTime="Report">
+							<reportElement uuid="934b16e8-c3eb-4017-866a-0b7735bf2917" style="Page footer" x="760" y="1" width="40" height="20"/>
+							<textElement verticalAlignment="Middle">
+								<font size="9" isBold="true"/>
+							</textElement>
+							<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+						</textField>
+					</frame>
+				</band>
+			</pageFooter>
+			<summary>
+				<band splitType="Stretch"/>
+			</summary>
+		</jasperReport>
+	</template>
+	<orientation>landscape</orientation>
+	<export>pdf</export>
+	<!-- set to true if report needs hibernate session (e.g. hql query is used) -->
+	<useHibernateSession>true</useHibernateSession>
+	<reportField>
+		<nameReportField>name</nameReportField>
+		<nameHeaderField>Name</nameHeaderField>
+		<itemPathField>c:name</itemPathField>
+		<sortOrderNumber>2</sortOrderNumber>
+		<sortOrder>ascending</sortOrder>
+		<widthField>30</widthField>
+		<classTypeField>t:PolyString</classTypeField>
+	</reportField>
+	<reportField>
+		<nameReportField>situation</nameReportField>
+		<nameHeaderField>Situation</nameHeaderField>
+		<itemPathField>c:synchronizationSituation</itemPathField>
+		<sortOrderNumber>1</sortOrderNumber>
+		<sortOrder>ascending</sortOrder>
+		<widthField>20</widthField>
+		<classTypeField>c:SynchronizationSituationType</classTypeField>
+	</reportField>
+	<reportField>
+		<nameReportField>username</nameReportField>
+		<nameHeaderField>Owner</nameHeaderField>
+		<itemPathField>c:name</itemPathField>
+		<widthField>30</widthField>
+		<classTypeField>t:PolyString</classTypeField>
+	</reportField>
+	<reportField>
+		<nameReportField>situationTimestamp</nameReportField>
+		<nameHeaderField>Timestamp</nameHeaderField>
+		<itemPathField>c:synchronizationTimestamp</itemPathField>
+		<widthField>20</widthField>
+		<classTypeField>xsd:dateTime</classTypeField>
+	</reportField>
+	<!-- configuration properties -->
+	<configuration xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report">
+		<r:hqlQuery>select 
+			(select u.name.orig from RUser as u join u.linkRef as ref where ref.targetOid = s.oid) as username, 
+			s.name.orig as name, 
+			s.synchronizationSituation as situation, 
+			s.synchronizationTimestamp as situationTimestamp 
+			from RShadow as s join s.resourceRef as resRef 
+			where s.objectClass = $P{objectClass} and resRef.type = 8 and resRef.targetOid = $P{resourceOid} and s.kind = 0 
+			order by s.synchronizationSituation, s.name.orig
+		</r:hqlQuery>
+		<r:objectClass>ri:AccountObjectClass</r:objectClass>
+		<r:resourceOid>ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe</r:resourceOid>
+		<r:resourceName>Localhost CSVfile</r:resourceName>
+		<r:intent>default</r:intent>
+	</configuration>
+	<!-- report parameters configuration schema sample with different options -->
+	<configurationSchema>
+		<definition>
+			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+                    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+                    xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report"
+                    elementFormDefault="qualified"
+                    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/report">
+
+				<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"/>
+				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"/>
+				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-2"/>
+
+				<xsd:complexType name="ConfigurationType">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<a:container/>
+						</xsd:appinfo>
+					</xsd:annotation>
+					<xsd:sequence>
+
+						<!-- HQL query for jasper design (queryString element) -->
+						<xsd:element name="hqlQuery" type="xsd:string"/>
+
+						<!-- special audit configuration -->
+						<xsd:element name="objectClass" type="xsd:QName">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Object Class:</a:displayName>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+
+						<xsd:element name="resourceOid" type="xsd:string"/>
+			
+						<xsd:element name="resourceName" type="xsd:string">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Resource:</a:displayName>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						
+						<xsd:element name="intent" type="xsd:string">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Intent:</a:displayName>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:complexType>
+				<xsd:element name="configuration" type="r:ConfigurationType"/>
+			</xsd:schema>
+		</definition>
+	</configurationSchema>
+</report>

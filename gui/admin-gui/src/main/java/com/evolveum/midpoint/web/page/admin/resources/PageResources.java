@@ -55,6 +55,7 @@ import com.evolveum.midpoint.web.page.admin.resources.dto.*;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
 import com.evolveum.midpoint.web.session.ResourcesStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -174,10 +175,7 @@ public class PageResources extends PageAdminResources {
     }
 
     private void initSearchForm(Form searchForm){
-        TextField search = new TextField(ID_SEARCH_TEXT, new PropertyModel(searchModel, ResourceSearchDto.F_TEXT));
-        searchForm.add(search);
-
-        AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
+        final AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
                 new StringResourceModel("pageResources.button.search", this, null)) {
 
             @Override
@@ -191,6 +189,10 @@ public class PageResources extends PageAdminResources {
             }
         };
         searchForm.add(searchButton);
+
+        final TextField search = new TextField(ID_SEARCH_TEXT, new PropertyModel(searchModel, ResourceSearchDto.F_TEXT));
+        search.add(new SearchFormEnterBehavior(searchButton));
+        searchForm.add(search);
 
         AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {
 

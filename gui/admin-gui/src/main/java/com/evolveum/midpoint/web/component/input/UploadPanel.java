@@ -55,6 +55,11 @@ public class UploadPanel<T> extends InputPanel {
             protected void onSubmit(AjaxRequestTarget target, Form<?> form){
                 uploadFilePerformed(target);
             }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
         });
 
         add(new AjaxSubmitButton(ID_BUTTON_DELETE) {
@@ -62,6 +67,11 @@ public class UploadPanel<T> extends InputPanel {
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form){
                 removePhotoPerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
             }
         });
     }

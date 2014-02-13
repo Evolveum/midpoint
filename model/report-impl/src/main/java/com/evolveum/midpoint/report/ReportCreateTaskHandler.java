@@ -205,7 +205,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
         PrismObject<ReportType> report = null;
         try {
         	LOGGER.trace("get report : {}", reportOid);
-    		report = modelService.getObject(ReportType.class, reportOid, SelectorOptions.createCollection(GetOperationOptions.createRaw()), task, opResult); 
+    		report = modelService.getObject(ReportType.class, reportOid, null, task, opResult); 
 		} catch (ObjectNotFoundException ex) {
 			LOGGER.error("Report does not exist: {}", ex.getMessage(), ex);
 			opResult.recordFatalError("Report does not exist: " + ex.getMessage(), ex);
@@ -529,7 +529,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
     	reportOutputType.setName(new PolyStringType(reportOutputName));
     	reportOutputType.setDescription(reportType.getDescription() + " - " + reportType.getExport().value());
     	
-   		ObjectQuery query = ObjectQueryUtil.createNameQuery(PrismTestUtil.createPolyString(reportOutputName), prismContext);
+   		ObjectQuery query = ObjectQueryUtil.createNameQuery(reportOutputName, prismContext);
    		List<PrismObject<ReportOutputType>> reportOutputList = modelService.searchObjects(ReportOutputType.class, query, null, task, parentResult);
     	
    		ObjectDelta<ReportOutputType> objectDelta = null;

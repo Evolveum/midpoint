@@ -52,14 +52,22 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserListItemDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AbstractAjaxBehavior;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.JavaScriptHeaderItem;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
@@ -368,10 +376,6 @@ public class PageUsers extends PageAdminUsers {
         add(searchForm);
         searchForm.setOutputMarkupId(true);
 
-        TextField searchText = new TextField(ID_SEARCH_TEXT, new PropertyModel<String>(model,
-                UsersDto.F_TEXT));
-        searchForm.add(searchText);
-
         IModel<Map<String, String>> options = new Model(null);
         DropDownMultiChoice searchType = new DropDownMultiChoice<UsersDto.SearchType>(ID_SEARCH_TYPE,
                 new PropertyModel<List<UsersDto.SearchType>>(model, UsersDto.F_TYPE),
@@ -390,7 +394,7 @@ public class PageUsers extends PageAdminUsers {
                 }, options);
         searchForm.add(searchType);
 
-        AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
+        final AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
                 createStringResource("pageUsers.button.searchButton")) {
 
             @Override
@@ -404,6 +408,11 @@ public class PageUsers extends PageAdminUsers {
             }
         };
         searchForm.add(searchButton);
+
+        final TextField searchText = new TextField(ID_SEARCH_TEXT, new PropertyModel<String>(model,
+                UsersDto.F_TEXT));
+        searchText.add(new SearchFormEnterBehavior(searchButton));
+        searchForm.add(searchText);
 
         AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {
 
