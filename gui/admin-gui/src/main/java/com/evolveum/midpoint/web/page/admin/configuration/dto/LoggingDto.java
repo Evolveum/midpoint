@@ -144,7 +144,9 @@ public class LoggingDto implements Serializable {
 
             if (componentMap.containsKey(logger.getPackage())) {
                 loggers.add(new ComponentLogger(logger));
-            } else {
+            } else if(StandardLogger.isStandardLogger(logger.getPackage())){
+                loggers.add(new StandardLogger(logger));
+            }else {
                 loggers.add(new ClassLogger(logger));
             }
         }

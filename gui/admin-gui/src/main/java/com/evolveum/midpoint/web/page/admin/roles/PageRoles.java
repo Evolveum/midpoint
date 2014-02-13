@@ -172,19 +172,10 @@ public class PageRoles extends PageAdminRoles {
             }
 
         };
-        searchButton.setOutputMarkupId(true);
         searchForm.add(searchButton);
 
         final TextField text = new TextField<String>(ID_SEARCH_TEXT, new PropertyModel<String>(searchModel, RolesSearchDto.F_SEARCH_TEXT));
-        text.setOutputMarkupId(true);
-        text.add(new SearchFormEnterBehavior(){
-
-            @Override
-            public String[] getSourceAndTarget(){
-                return new String[]{text.getMarkupId(), searchButton.getMarkupId()};
-            }
-
-        });
+        text.add(new SearchFormEnterBehavior(searchButton));
         searchForm.add(text);
 
         AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {

@@ -190,20 +190,11 @@ public class PageCreatedReports extends PageAdminReports {
                 target.add(getFeedbackPanel());
             }
         };
-        searchButton.setOutputMarkupId(true);
         searchForm.add(searchButton);
 
         final TextField searchText = new TextField(ID_SEARCH_TEXT, new PropertyModel<String>(filterModel,
                 ReportOutputDto.F_TEXT));
-        searchText.setOutputMarkupId(true);
-        searchText.add(new SearchFormEnterBehavior(){
-
-            @Override
-            public String[] getSourceAndTarget(){
-                return new String[]{searchText.getMarkupId(), searchButton.getMarkupId()};
-            }
-
-        });
+        searchText.add(new SearchFormEnterBehavior(searchButton));
         searchForm.add(searchText);
 
         DropDownChoice filetypeSelect = new DropDownChoice(ID_FILTER_FILE_TYPE,
