@@ -188,19 +188,10 @@ public class PageResources extends PageAdminResources {
                 searchPerformed(target);
             }
         };
-        searchButton.setOutputMarkupId(true);
         searchForm.add(searchButton);
 
         final TextField search = new TextField(ID_SEARCH_TEXT, new PropertyModel(searchModel, ResourceSearchDto.F_TEXT));
-        search.setOutputMarkupId(true);
-        search.add(new SearchFormEnterBehavior(){
-
-            @Override
-            public String[] getSourceAndTarget(){
-                return new String[]{search.getMarkupId(), searchButton.getMarkupId()};
-            }
-
-        });
+        search.add(new SearchFormEnterBehavior(searchButton));
         searchForm.add(search);
 
         AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {

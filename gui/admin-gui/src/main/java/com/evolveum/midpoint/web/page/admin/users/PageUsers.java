@@ -408,19 +408,10 @@ public class PageUsers extends PageAdminUsers {
             }
         };
         searchForm.add(searchButton);
-        searchButton.setOutputMarkupId(true);
 
         final TextField searchText = new TextField(ID_SEARCH_TEXT, new PropertyModel<String>(model,
                 UsersDto.F_TEXT));
-        searchText.setOutputMarkupId(true);
-        searchText.add(new SearchFormEnterBehavior(){
-
-            @Override
-            public String[] getSourceAndTarget(){
-                return new String[]{searchText.getMarkupId(), searchButton.getMarkupId()};
-            }
-
-        });
+        searchText.add(new SearchFormEnterBehavior(searchButton));
         searchForm.add(searchText);
 
         AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {

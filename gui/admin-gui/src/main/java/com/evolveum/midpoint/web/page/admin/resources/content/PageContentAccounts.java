@@ -207,20 +207,11 @@ public class PageContentAccounts extends PageAdminResources {
                 searchPerformed(target);
             }
         };
-        searchButton.setOutputMarkupId(true);
         searchForm.add(searchButton);
 
         final TextField searchText = new TextField(ID_SEARCH_TEXT,
                 new PropertyModel(model, AccountContentSearchDto.F_SEARCH_TEXT));
-        searchText.setOutputMarkupId(true);
-        searchText.add(new SearchFormEnterBehavior(){
-
-            @Override
-            public String[] getSourceAndTarget(){
-                return new String[]{searchText.getMarkupId(), searchButton.getMarkupId()};
-            }
-
-        });
+        searchText.add(new SearchFormEnterBehavior(searchButton));
         searchForm.add(searchText);
 
 
