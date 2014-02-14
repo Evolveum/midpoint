@@ -426,14 +426,16 @@ public final class PrismForJAXBUtil {
 	}
 
 	public static Element getReferenceFilterElement(PrismReferenceValue rval) {
+		ObjectFilter filter = rval.getFilter();
+		if (filter == null) {
+			return null;
+		}
 		Element filterElement;
 		PrismContext prismContext = rval.getPrismContext();
-		if (prismContext == null) {
-			throw new IllegalStateException("Cannot retrieve filter element value from prism that has not been adopted");
-		}
+		// We have to work even if prismContext is null. This is needed for
+		// equals and hashcode and similar methods.
 		DomParser parser = getDomParser(rval);
 		try {
-			ObjectFilter filter = rval.getFilter();
 			MapXNode filterXmap = QueryConvertor.serializeFilter(filter, prismContext);
 			if (filterXmap.size() != 1) {
 				// This is supposed to be a map with just a single entry. This is an internall error
@@ -457,5 +459,8 @@ public final class PrismForJAXBUtil {
 		}
 	}
 
+	public static DomParser getDomParser() {
+		return new DomParser(null);
+	}
 	
 }

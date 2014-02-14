@@ -17,6 +17,7 @@ package com.evolveum.midpoint.prism.xnode;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 
 /**
@@ -33,6 +34,11 @@ public class SchemaXNode extends XNode {
 
 	public void setSchemaElement(Element schemaElement) {
 		this.schemaElement = schemaElement;
+	}
+
+	@Override
+	public boolean isEmpty() {
+		return schemaElement == null || DOMUtil.isEmpty(schemaElement);
 	}
 
 	@Override

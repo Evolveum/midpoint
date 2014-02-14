@@ -153,4 +153,27 @@ public class PrimitiveXNode<T> extends XNode {
 		}
 	}
 
+	/**
+	 * Returns the value represented as string - in the best format that we can.
+	 * There is no guarantee that the returned value will be precise.
+	 * This method is used as a "last instance" if everything else fails.
+	 * Invocation of this method will not change the state of this xnode, e.g.
+	 * it will NOT cause it to be parsed.
+	 */
+	public String getStringValue() {
+		if (isParsed()) {
+			if (getTypeQName() != null) {
+				return getFormattedValue();
+			} else {
+				if (value == null) {
+					return null;
+				} else {
+					return value.toString();
+				}
+			}
+		} else {
+			return valueParser.getStringValue();
+		}
+	}
+
 }

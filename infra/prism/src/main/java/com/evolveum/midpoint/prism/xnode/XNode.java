@@ -110,6 +110,8 @@ public abstract class XNode implements DebugDumpable {
 	public void setMaxOccurs(Integer maxOccurs) {
 		this.maxOccurs = maxOccurs;
 	}
+	
+	public abstract boolean isEmpty();
 
 	public boolean isExplicitTypeDeclaration() {
 		return explicitTypeDeclaration;

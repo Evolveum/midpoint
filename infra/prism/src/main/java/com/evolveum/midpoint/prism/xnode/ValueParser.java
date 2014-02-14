@@ -25,5 +25,15 @@ public interface ValueParser<T> {
 	
 	// This has to work even without the type
 	boolean isEmpty();
+
+	/**
+	 * Returns the value represented as string - in the best format that we can.
+	 * This has to work even without knowing the exact data type. Therefore
+	 * there is no guarantee that the returned value will be precise.
+	 * This method is used as a "last instance" if everything else fails.
+	 * Invocation of this method will not change the state of the xnode, e.g.
+	 * it will NOT cause it to be parsed. It can be invoked without any side effects.
+	 */
+	String getStringValue();
 	
 }

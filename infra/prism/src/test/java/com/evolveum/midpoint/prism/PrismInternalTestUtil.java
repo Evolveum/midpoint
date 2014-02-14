@@ -271,7 +271,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	}
 	
 	public static void displayTestTitle(String testName) {
-		System.out.println("\n\n===[ "+testName+" ]===\n");
+		PrismTestUtil.displayTestTitle(testName);
 	}
 
 	public static void assertUserJack(PrismObject<UserType> user) throws SchemaException {

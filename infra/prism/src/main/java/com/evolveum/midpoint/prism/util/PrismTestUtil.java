@@ -217,4 +217,7 @@ public class PrismTestUtil {
 		return new PolyStringType(createPolyString(string));
 	}
 
+	public static void displayTestTitle(String testName) {
+		System.out.println("\n\n===[ "+testName+" ]===\n");
+	}
 }

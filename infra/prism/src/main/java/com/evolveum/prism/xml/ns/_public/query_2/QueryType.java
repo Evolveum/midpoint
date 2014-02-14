@@ -40,7 +40,11 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.parser.DomParser;
+import com.evolveum.midpoint.prism.xjc.PrismForJAXBUtil;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
 import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
 
@@ -97,11 +101,12 @@ public class QueryType implements Serializable, Cloneable, Equals, HashCode
     @XmlAnyElement
     protected Element filter;
     @XmlTransient
-    protected XNode xfilter;
+    protected MapXNode xfilter;
     
     protected PagingType paging;
     public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "QueryType");
     public final static QName F_DESCRIPTION = new QName(PrismConstants.NS_QUERY, "description");
+    public final static QName F_FILTER = new QName(PrismConstants.NS_QUERY, "filter");
     public final static QName F_CONDITION = new QName(PrismConstants.NS_QUERY, "condition");
     public final static QName F_PAGING = new QName(PrismConstants.NS_QUERY, "paging");
 
@@ -196,23 +201,53 @@ public class QueryType implements Serializable, Cloneable, Equals, HashCode
      *     
      */
     public Element getFilter() {
-        return filter;
+        if (xfilter == null) {
+        	return null;
+        } else {
+        	DomParser domParser = PrismForJAXBUtil.getDomParser();
+        	try {
+				return domParser.serializeToElement(xfilter, F_FILTER);
+			} catch (SchemaException e) {
+				throw new RuntimeException(e.getMessage(), e);
+			}
+        }
+    }
+    
+    public MapXNode getXFilter() {
+    	return this.xfilter;
     }
 
     /**
      * Sets the value of the filter property.
      * 
-     * @param value
+     * @param element
      *     allowed object is
      *     {@link Element }
      *     
      */
-    public void setFilter(Element value) {
-        this.filter = value;
+    public void setFilter(Element element) {
+    	if (element == null) {
+    		this.xfilter = null;
+    	} else {
+    		DomParser domParser = PrismForJAXBUtil.getDomParser();
+    		try {
+				this.xfilter = domParser.parseElementAsMap(element);
+			} catch (SchemaException e) {
+				throw new RuntimeException(e.getMessage(), e);
+			}
+    	}
     }
     
     public void setFilter(XNode xnode) {
-        this.xfilter = xnode;
+    	if (xnode == null || xnode.isEmpty()) {
+    		this.xfilter = null;
+    	} else {
+    		if (xnode instanceof MapXNode) {
+    			this.xfilter = (MapXNode) xnode;
+	    	} else {
+	    		throw new IllegalArgumentException("Cannot parse filter from "+xnode);
+	    	}
+    	}
     }
 
     /**
