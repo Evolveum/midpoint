@@ -135,6 +135,9 @@ public class DomSerializer {
 	}
 	
 	private void serializeSubnode(XNode xsubnode, Element parentElement, QName elementName) throws SchemaException {
+		if (xsubnode == null) {
+			return;
+		}
 		if (xsubnode instanceof MapXNode) {
 			Element element = createElement(elementName);
 			parentElement.appendChild(element);
