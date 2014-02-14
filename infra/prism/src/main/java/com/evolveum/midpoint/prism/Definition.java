@@ -64,6 +64,7 @@ public abstract class Definition implements Serializable, DebugDumpable {
 	protected String help;
     protected String documentation;
     protected boolean deprecated = false;
+    protected boolean inherited = false;            // whether an item is inherited from a supertype (experimental feature)
 	
 	/**
      * This means that the property container is not defined by fixed (compile-time) schema.
@@ -123,7 +124,15 @@ public abstract class Definition implements Serializable, DebugDumpable {
 		this.deprecated = deprecated;
 	}
 
-	/**
+    public boolean isInherited() {
+        return inherited;
+    }
+
+    public void setInherited(boolean inherited) {
+        this.inherited = inherited;
+    }
+
+    /**
 	 * Returns display name.
 	 * 
 	 * Specifies the printable name of the object class or attribute. It must

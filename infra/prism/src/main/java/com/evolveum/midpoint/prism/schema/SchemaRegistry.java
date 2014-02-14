@@ -411,6 +411,10 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		}
 		return schemas;
 	}
+
+    public Collection<SchemaDescription> getSchemaDescriptions() {
+        return parsedSchemas.values();
+    }
 	
 	/**
 	 * Returns a schema that contains all the object definitions augmented with

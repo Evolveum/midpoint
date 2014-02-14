@@ -149,9 +149,14 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/workflow/process-instance-state-2.xsd", "wfpis",
                 com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ObjectFactory.class.getPackage());
 
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/scripting/scripting-2.xsd", "s",
+                com.evolveum.midpoint.xml.ns._public.model.scripting_2.ObjectFactory.class.getPackage());
+
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/noop-1.xsd", "noop");
 
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/extension-2.xsd", "taskext");
+
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/connector-extension-2.xsd", "connext");
     }
 	
 	private void setupDebug() {

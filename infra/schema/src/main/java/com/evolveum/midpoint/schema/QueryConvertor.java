@@ -132,7 +132,7 @@ public class QueryConvertor {
 
 	}
 
-	private static Element createFilterType(ObjectFilter filter, Document doc, PrismContext prismContext) throws SchemaException{
+	public static Element createFilterType(ObjectFilter filter, Document doc, PrismContext prismContext) throws SchemaException{
 
 		if (filter instanceof AndFilter) {
 			return createAndFilterType((AndFilter) filter, doc, prismContext);
@@ -232,7 +232,7 @@ public class QueryConvertor {
 			for (Element e : DOMUtil.listChildElements(element)){
 				value.appendChild(e);
 			}
-		} else{
+		} else {
 			value.setTextContent(element.getTextContent());
 		}
 //		if (XmlTypeConverter.canConvert(val.getClass())){

@@ -279,7 +279,39 @@
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>
-       
+
+            <!--<xsd:element name="executeMslCommand">-->
+                <!--<xsd:complexType>-->
+                    <!--<xsd:sequence>-->
+                        <!--<xsd:element name="command" type="xsd:string"/>-->
+                        <!--<xsd:element name="environment" type="xsd:string"/>-->
+                    <!--</xsd:sequence>-->
+                <!--</xsd:complexType>-->
+            <!--</xsd:element>-->
+            <!--<xsd:element name="executeMslCommandResponse">-->
+                <!--<xsd:complexType>-->
+                    <!--<xsd:sequence>-->
+                        <!--<xsd:element name="responses" type="apit:ExecuteMslCommandResponsesType" />-->
+                        <!--<xsd:element name="result" type="c:OperationResultType" />-->
+                    <!--</xsd:sequence>-->
+                <!--</xsd:complexType>-->
+            <!--</xsd:element>-->
+
+            <!--<xsd:element name="getSchemas">-->
+                <!--<xsd:complexType>-->
+                    <!--<xsd:sequence>-->
+                        <!--<xsd:element name="prefixMapping" type="apit:PrefixMappingType"/>-->
+                    <!--</xsd:sequence>-->
+                <!--</xsd:complexType>-->
+            <!--</xsd:element>-->
+            <!--<xsd:element name="getSchemasResponse">-->
+                <!--<xsd:complexType>-->
+                    <!--<xsd:sequence>-->
+                        <!--<xsd:element name="schemas" type="apit:SchemaFilesType"/>-->
+                    <!--</xsd:sequence>-->
+                <!--</xsd:complexType>-->
+            <!--</xsd:element>-->
+
         </xsd:schema>
     </types>
 
@@ -368,6 +400,20 @@
     <message name="notifyChangeResponse">
         <part name="parameters" element="tns:notifyChangeResponse" />
     </message>
+
+    <!--<message name="executeMslCommand">-->
+        <!--<part name="parameters" element="tns:executeMslCommand" />-->
+    <!--</message>-->
+    <!--<message name="executeMslCommandResponse">-->
+        <!--<part name="parameters" element="tns:executeMslCommandResponse" />-->
+    <!--</message>-->
+
+    <!--<message name="getSchemas">-->
+        <!--<part name="parameters" element="tns:getSchemas" />-->
+    <!--</message>-->
+    <!--<message name="getSchemasResponse">-->
+        <!--<part name="parameters" element="tns:getSchemasResponse" />-->
+    <!--</message>-->
 
     <portType name="modelPortType">
 
@@ -602,6 +648,23 @@
             <output name="notifyChangeOutput" message="tns:notifyChangeResponse"/>
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
+
+        <!--<operation name="executeMslCommand">-->
+            <!--<documentation>-->
+            <!--</documentation>-->
+            <!--<input name="executeMslCommandInput" message="tns:executeMslCommand"/>-->
+            <!--<output name="executeMslCommandOutput" message="tns:executeMslCommandResponse"/>-->
+            <!--<fault name="fault" message="f:FaultMessage"/>-->
+        <!--</operation>-->
+
+        <!--<operation name="getSchemas">-->
+            <!--<documentation>-->
+            <!--</documentation>-->
+            <!--<input name="getSchemasInput" message="tns:getSchemas"/>-->
+            <!--<output name="getSchemasOutput" message="tns:getSchemasResponse"/>-->
+            <!--<fault name="fault" message="f:FaultMessage"/>-->
+        <!--</operation>-->
+
     </portType>
 
     <binding name="modelBinding" type="tns:modelPortType">
@@ -738,6 +801,31 @@
                 <soap:fault name="fault" use="literal"/>
             </fault>
         </operation>
+        <!--<operation name="executeMslCommand">-->
+            <!--<soap:operation/>-->
+            <!--<input name="executeMslCommandInput">-->
+                <!--<soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>-->
+            <!--</input>-->
+            <!--<output name="executeMslCommandOutput">-->
+                <!--<soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>-->
+            <!--</output>-->
+            <!--<fault name="fault">-->
+                <!--<soap:fault name="fault" use="literal"/>-->
+            <!--</fault>-->
+        <!--</operation>-->
+
+        <!--<operation name="getSchemas">-->
+            <!--<soap:operation/>-->
+            <!--<input name="getSchemasInput">-->
+                <!--<soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>-->
+            <!--</input>-->
+            <!--<output name="getSchemasOutput">-->
+                <!--<soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>-->
+            <!--</output>-->
+            <!--<fault name="fault">-->
+                <!--<soap:fault name="fault" use="literal"/>-->
+            <!--</fault>-->
+        <!--</operation>-->
     </binding>
 </definitions>
 
