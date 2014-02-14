@@ -285,8 +285,13 @@ public class XNodeSerializer {
 	}
 
 	private <T> XNode serializePropertyRawValue(PrismPropertyValue<T> value) throws SchemaException {
-		T realValue = value.getValue();
-		return createPrimitiveXNode(realValue, DOMUtil.XSD_STRING);
+		Object rawElement = value.getRawElement();
+		if (rawElement instanceof XNode) {
+			return (XNode) rawElement;
+		} else {
+			T realValue = value.getValue();
+			return createPrimitiveXNode(realValue, DOMUtil.XSD_STRING);
+		}
 	}
 
 	private PrimitiveXNode<String> createPrimitiveXNodeStringAttr(String val) {

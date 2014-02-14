@@ -458,9 +458,5 @@ public final class PrismForJAXBUtil {
 			return parser;
 		}
 	}
-
-	public static DomParser getDomParser() {
-		return new DomParser(null);
-	}
 	
 }

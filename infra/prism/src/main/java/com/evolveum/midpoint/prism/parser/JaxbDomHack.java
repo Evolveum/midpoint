@@ -48,8 +48,11 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -185,6 +188,22 @@ public class JaxbDomHack {
 		Object xmlValue;
 		if (value instanceof PrismPropertyValue) {
 			PrismPropertyValue<Object> pval = (PrismPropertyValue)value;
+			if (pval.isRaw() && (pval.getParent() == null || pval.getParent().getDefinition() == null)) {
+				Object rawElement = pval.getRawElement();
+				if (rawElement instanceof Element) {
+					return ((Element)rawElement).cloneNode(true);
+				} else if (rawElement instanceof MapXNode) {
+					return domParser.serializeToElement((MapXNode)rawElement, elementName);
+				} else if (rawElement instanceof PrimitiveXNode<?>) {
+					PrimitiveXNode<?> xprim = (PrimitiveXNode<?>)rawElement;
+					String stringValue = xprim.getStringValue();
+					Element element = DOMUtil.createElement(document, elementName);
+					element.setTextContent(stringValue);
+					return element;
+				} else {
+					throw new IllegalArgumentException("Cannot convert raw element "+rawElement+" to xsd:any");
+				}
+			}
 			Object realValue = pval.getValue();
         	xmlValue = realValue;
         	if (XmlTypeConverter.canConvert(realValue.getClass())) {

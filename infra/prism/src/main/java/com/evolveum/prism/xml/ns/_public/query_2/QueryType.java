@@ -41,6 +41,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.parser.DomParser;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xjc.PrismForJAXBUtil;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
@@ -204,7 +205,7 @@ public class QueryType implements Serializable, Cloneable, Equals, HashCode
         if (xfilter == null) {
         	return null;
         } else {
-        	DomParser domParser = PrismForJAXBUtil.getDomParser();
+        	DomParser domParser = PrismUtil.getDomParser(null);
         	try {
 				return domParser.serializeToElement(xfilter, F_FILTER);
 			} catch (SchemaException e) {
@@ -229,7 +230,7 @@ public class QueryType implements Serializable, Cloneable, Equals, HashCode
     	if (element == null) {
     		this.xfilter = null;
     	} else {
-    		DomParser domParser = PrismForJAXBUtil.getDomParser();
+    		DomParser domParser = PrismUtil.getDomParser(null);
     		try {
 				this.xfilter = domParser.parseElementAsMap(element);
 			} catch (SchemaException e) {

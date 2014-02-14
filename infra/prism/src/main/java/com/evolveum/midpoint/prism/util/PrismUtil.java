@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.util;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.parser.DomParser;
 import com.evolveum.midpoint.prism.parser.PrismBeanConverter;
 import com.evolveum.midpoint.prism.parser.XNodeProcessor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -151,5 +152,14 @@ public class PrismUtil {
 			return prismContext.getBeanConverter();
 		}
 	}
+	
+	public static DomParser getDomParser(PrismContext prismContext) {
+		if (prismContext == null) {
+			return new DomParser(null);
+		} else {
+			return prismContext.getParserDom();
+		}
+	}
+
 
 }

@@ -63,6 +63,9 @@ public class PrismContext {
 	public static final String LANG_YAML = "yaml";
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismContext.class);
+    
+    private static boolean allowSchemalessSerialization = true;
+    
 	private SchemaRegistry schemaRegistry;
 	private XNodeProcessor xnodeProcessor;
 	private PrismBeanConverter beanConverter;
@@ -109,6 +112,14 @@ public class PrismContext {
 		if (defaultPolyStringNormalizer == null) {
 			defaultPolyStringNormalizer = new PrismDefaultPolyStringNormalizer();
 		}
+	}
+
+	public static boolean isAllowSchemalessSerialization() {
+		return allowSchemalessSerialization;
+	}
+
+	public static void setAllowSchemalessSerialization(boolean allowSchemalessSerialization) {
+		PrismContext.allowSchemalessSerialization = allowSchemalessSerialization;
 	}
 
 	public SchemaRegistry getSchemaRegistry() {
