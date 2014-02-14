@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-.capability {
-  .capability-item{
-    width: 99%;
-  }
+package com.evolveum.midpoint.web.page;
 
-  .cap-header {
-    font-size: ceil(@font-size-base * 1.25);
-  }
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 
-  .cap-body {
-    padding: 0 @padding-base-horizontal;
-  }
-
-  .cap-dl-multivalue {
-    margin-bottom: @padding-base-vertical;
-  }
+/**
+ * @author lazyman
+ */
+@PageDescriptor(url = "/test", action = {AuthorizationConstants.AUTZ_UI_PERMIT_ALL})
+public class PageTest extends PageBase {
 }

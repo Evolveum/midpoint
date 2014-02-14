@@ -1213,22 +1213,39 @@
 							order by aer.timestamp]]></queryString>
             </jasperReport>
         </template>
+        <templateStyle>
+        	<jasperTemplate xmlns="http://jasperreports.sourceforge.net/dtds/jaspertemplate.dtd">
+				<style fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="false" name="Base"
+					   pdfEncoding="Cp1252" pdfFontName="Helvetica" vAlign="Middle"/>
+				<style backcolor="#267994" fontSize="26" forecolor="#FFFFFF" isDefault="false"
+                	   mode="Opaque" name="Title" style="Base"/>	
+			</jasperTemplate>
+        </templateStyle>
         <orientation>landscape</orientation>
         <export>pdf</export>
         <useHibernateSession>true</useHibernateSession>
+        <field>
+			<nameReport>timestamp</nameReport>
+			<nameHeader>Timestamp</nameHeader>
+			<itemPath>c:timestamp</itemPath>
+			<sortOrderNumber>1</sortOrderNumber>
+			<sortOrder>ascending</sortOrder>
+			<width>12</width>
+			<classType>xsd:dateTime</classType>
+		</field>
         <dataSource>
             <providerClass>com.evolveum.midpoint.report.SomeCustomSuperProvider</providerClass>
             <springBean>true</springBean>
         </dataSource>
         <parent>true</parent>
-        <subReport>
+        <subreport>
             <name>userList</name>
             <reportRef oid="12345678-1234-1234-1234-123456789012" type="c:ReportType"/>
-        </subReport>
-        <subReport>
+        </subreport>
+        <subreport>
             <name>someParameter</name>
             <reportRef oid="87654321-1234-1234-1234-123456789012" type="c:ReportType"/>
-        </subReport>
+        </subreport>
         <configurationSchema>
             <definition>
                 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"

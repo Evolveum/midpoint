@@ -24,26 +24,29 @@ import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
  *  @author shood
  * */
 public class SearchFormEnterBehavior extends Behavior {
-    private static final long serialVersionUID = 1L;
 
     private Component target;
-
-    public SearchFormEnterBehavior(){}
 
     public SearchFormEnterBehavior(Component target){
         this.target = target;
     }
 
     @Override
-    public void renderHead(Component component, IHeaderResponse response){
-        super.renderHead(component, response);
+    public void onConfigure(Component component) {
+        super.onConfigure(component);
+
         component.setOutputMarkupId(true);
         target.setOutputMarkupId(true);
+    }
+
+    @Override
+    public void renderHead(Component component, IHeaderResponse response){
+        super.renderHead(component, response);
 
         StringBuilder sb = new StringBuilder();
-        sb.append("$( \"#");
+        sb.append("$(\"#");
         sb.append(component.getMarkupId());
-        sb.append("\" ).on(\"keypress\",function(event) {if(event.which==13){ $(\"#");
+        sb.append("\").on(\"keypress\",function(event) {if(event.which==13){ $(\"#");
         sb.append(target.getMarkupId());
         sb.append("\").click();return false;}});");
 

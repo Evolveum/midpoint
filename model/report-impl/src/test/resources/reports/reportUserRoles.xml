@@ -1,0 +1,127 @@
+<!--
+  ~ Copyright (c) 2010-2014 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+		oid="USERROLE-3333-3333-TEST-10000000000"
+        version="0">
+	<name>
+		<orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">User roles subreport</orig>
+		<norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">User roles subreport</norm>
+	</name>
+	<description>User roles subreport for midpoint users.</description>
+	<!-- flag if this report is "parent" report, used for gui -->
+	<parent>false</parent>
+	<template>
+		<jasperReport 
+			xmlns="http://jasperreports.sourceforge.net/jasperreports" 
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+			xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" 
+			name="reportUserRoles" 
+			columnCount="2" 
+			pageWidth="110" 
+			pageHeight="18" 
+			whenNoDataType="AllSectionsNoDetail" 
+			columnWidth="54" 
+			columnSpacing="1" 
+			leftMargin="0" 
+			rightMargin="0" 
+			topMargin="0" 
+			bottomMargin="0" 
+			uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
+			<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
+			<property name="net.sf.jasperreports.export.pdf.force.linebreak.policy" value="true"/>
+			<style fontName="DejaVu Sans" fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="true" 
+				   name="Base" pdfEncoding="Identity-H" pdfFontName="DejaVuSans.ttf" vAlign="Middle">
+			</style>
+			<style isBold="false" isDefault="false" name="Detail" style="Base"/>
+			<parameter name="userOid" class="java.lang.String"/>
+			<parameter name="hqlQuery" class="java.lang.String"/>
+			<queryString language="hql"><![CDATA[$P!{hqlQuery}]]></queryString>
+			<field name="roleName" class="java.lang.String"/>
+			<detail>
+				<band height="18" splitType="Stretch">
+					<frame>
+						<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Detail" mode="Opaque" x="0" y="1" width="100" height="17"/>
+						<line>
+							<reportElement uuid="47f91801-cf5f-4bed-b19c-ca3931cbf98d" positionType="FixRelativeToTop" mode="Opaque" x="0" y="0" width="100" height="1" forecolor="#333333">
+								<printWhenExpression><![CDATA[new java.lang.Boolean((int)$V{REPORT_COUNT}.intValue()!=1)]]></printWhenExpression>
+							</reportElement>
+							<graphicElement>
+								<pen lineWidth="0.5" lineColor="#999999"/>
+							</graphicElement>
+						</line>
+						<textField isStretchWithOverflow="true">
+							<reportElement uuid="ebaef16d-2903-4029-9a6b-d4d244558ae9" style="Detail" x="0" y="2" width="100" height="13"/>
+							<textElement verticalAlignment="Middle"/>
+							<textFieldExpression><![CDATA[$F{roleName}]]></textFieldExpression>
+						</textField>
+					</frame>
+				</band>
+			</detail>
+		</jasperReport>
+	</template>
+	<orientation>landscape</orientation>
+	<export>pdf</export>
+	<!-- set to true if report needs hibernate session (e.g. hql query is used) -->
+	<useHibernateSession>true</useHibernateSession>
+	<field>
+		<nameReport>roleName</nameReport>
+		<nameHeader>Name</nameHeader>
+		<itemPath>c:name</itemPath>
+		<width>100</width>
+		<classType>t:PolyStringType</classType>
+	</field>
+	<!-- configuration properties -->
+	<configuration xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report">
+		<r:hqlQuery>
+			select r.name.orig as roleName 
+			from RAssignment as a, RRole as r 
+			where a.targetRef.type = 10 and a.targetRef.targetOid = r.oid and a.owner.oid = $P{userOid}
+		</r:hqlQuery>
+	</configuration>
+	<!-- report parameters configuration schema sample with different options -->
+	<configurationSchema>
+		<definition>
+			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+                    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+                    xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report"
+                    elementFormDefault="qualified"
+                    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/report">
+
+				<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"/>
+				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"/>
+				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-2"/>
+
+				<xsd:complexType name="ConfigurationType">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<a:container/>
+						</xsd:appinfo>
+					</xsd:annotation>
+					<xsd:sequence>
+						<!-- HQL query for jasper design (queryString element) -->
+						<xsd:element name="hqlQuery" type="xsd:string"/>
+					</xsd:sequence>
+				</xsd:complexType>
+				<xsd:element name="configuration" type="r:ConfigurationType"/>
+			</xsd:schema>
+		</definition>
+	</configurationSchema>
+</report>

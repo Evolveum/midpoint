@@ -34,10 +34,10 @@ public class HibernateQueryDataSourceReport implements JRDataSource {
     
     private  LinkedHashMap<String, Class> getFields()
 	{
-    	int countFields = reportType.getReportField().size();
+    	int countFields = reportType.getField().size();
 	    for (int i=0; i<countFields; i++)
 	   	{
-	    	ReportFieldConfigurationType fieldRepo = reportType.getReportField().get(i);
+	    	ReportFieldConfigurationType fieldRepo = reportType.getField().get(i);
 	   		//fields.put(fieldRepo.getNameReportField(), ReportUtils.getClassType(fieldRepo.getClassTypeField()));
 	   	}	
 	   	return fields;
