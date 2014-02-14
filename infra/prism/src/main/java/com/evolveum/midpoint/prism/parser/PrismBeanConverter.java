@@ -41,6 +41,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -334,23 +335,27 @@ public class PrismBeanConverter {
 	
 	private Object convertSinglePropValue(XNode xsubnode, String fieldName, Class paramType, Class classType, String schemaNamespace) throws SchemaException {
 		Object propValue;
-		if (xsubnode instanceof PrimitiveXNode<?>) {
-			propValue = unmarshallPrimitive(((PrimitiveXNode<?>)xsubnode), paramType);
-		} else if (xsubnode instanceof MapXNode) {
-			propValue = unmarshall((MapXNode)xsubnode, paramType);
-		} else if (xsubnode instanceof ListXNode) {
-			ListXNode xlist = (ListXNode)xsubnode;
-			if (xlist.size() > 1) {
-				throw new SchemaException("Cannot set multi-value value to a single valued property "+fieldName+" of "+classType);
-			} else {
-				if (xlist.isEmpty()) {
-					propValue = null;
-				} else {
-					propValue = xlist.get(0);
-				}
-			}
+		if (paramType.equals(XNode.class)) {
+			propValue = xsubnode;
 		} else {
-			throw new IllegalArgumentException("Cannot parse "+xsubnode+" to a bean "+classType);
+			if (xsubnode instanceof PrimitiveXNode<?>) {
+				propValue = unmarshallPrimitive(((PrimitiveXNode<?>)xsubnode), paramType);
+			} else if (xsubnode instanceof MapXNode) {
+				propValue = unmarshall((MapXNode)xsubnode, paramType);
+			} else if (xsubnode instanceof ListXNode) {
+				ListXNode xlist = (ListXNode)xsubnode;
+				if (xlist.size() > 1) {
+					throw new SchemaException("Cannot set multi-value value to a single valued property "+fieldName+" of "+classType);
+				} else {
+					if (xlist.isEmpty()) {
+						propValue = null;
+					} else {
+						propValue = xlist.get(0);
+					}
+				}
+			} else {
+				throw new IllegalArgumentException("Cannot parse "+xsubnode+" to a bean "+classType);
+			}
 		}
 		return propValue;
 	}
@@ -633,7 +638,21 @@ public class PrismBeanConverter {
 				continue;
 			}
 			Class<?> setterType = parameterTypes[0];
-			// TODO: check for multiple setters?
+			if (setterType.equals(Object.class) || Node.class.isAssignableFrom(setterType)) {
+				// Leave for second pass, let's try find a better setter
+				continue;
+			}
+			return method;
+		}
+		// Second pass
+		for(Method method: classType.getMethods()) {
+			if (!method.getName().equals(setterName)) {
+				continue;
+			}
+			Class<?>[] parameterTypes = method.getParameterTypes();
+			if (parameterTypes.length != 1) {
+				continue;
+			}
 			return method;
 		}
 		return null;

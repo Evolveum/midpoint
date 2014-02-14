@@ -215,6 +215,10 @@
                                         </extraarg>
                                         <extraarg>-nexclude</extraarg>
                                         <extraarg>http://prism.evolveum.com/xml/ns/public/types-2</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-2</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-2</extraarg>
                                         <!-- 										<extraargs>-version</extraargs> -->
 
                                         <extraarg>-xjc-Xmidpoint</extraarg>
@@ -241,6 +245,10 @@
                                         </extraarg>
                                         <extraarg>-nexclude</extraarg>
                                         <extraarg>http://prism.evolveum.com/xml/ns/public/types-2</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-2</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-2</extraarg>
                                         <!-- 										<extraargs>-version</extraargs> -->
 
                                         <extraarg>-xjc-Xmidpoint</extraarg>
