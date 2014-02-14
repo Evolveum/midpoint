@@ -275,64 +275,64 @@
 	<export>pdf</export>
 	<!-- set to true if report needs hibernate session (e.g. hql query is used) -->
 	<useHibernateSession>true</useHibernateSession>
-	<reportField>
-		<nameReportField>timestamp</nameReportField>
-		<nameHeaderField>Timestamp</nameHeaderField>
-		<itemPathField>c:timestamp</itemPathField>
+	<field>
+		<nameReport>timestamp</nameReport>
+		<nameHeader>Timestamp</nameHeader>
+		<itemPath>c:timestamp</itemPath>
 		<sortOrderNumber>1</sortOrderNumber>
 		<sortOrder>ascending</sortOrder>
-		<widthField>12</widthField>
-		<classTypeField>xsd:dateTime</classTypeField>
-	</reportField>
-	<reportField>
-		<nameReportField>initiatorName</nameReportField>
-		<nameHeaderField>Initiator</nameHeaderField>
-		<itemPathField>c:initiatorName</itemPathField>
-		<widthField>10</widthField>
-		<classTypeField>xsd:string</classTypeField>
-	</reportField>
-	<reportField>
-		<nameReportField>eventType</nameReportField>
-		<nameHeaderField>Event Type</nameHeaderField>
-		<itemPathField>c:eventType</itemPathField>
-		<widthField>12</widthField>
-		<classTypeField>c:AuditEventType</classTypeField>
-	</reportField>
-	<reportField>
-		<nameReportField>eventStage</nameReportField>
-		<nameHeaderField>Event Stage</nameHeaderField>
-		<itemPathField>c:eventStage</itemPathField>
-		<widthField>12</widthField>
-		<classTypeField>c:AuditEventStage</classTypeField>
-	</reportField>
-	<reportField>
-		<nameReportField>targetName</nameReportField>
-		<nameHeaderField>Target</nameHeaderField>
-		<itemPathField>c:targetName</itemPathField>
-		<widthField>10</widthField>
-		<classTypeField>xsd:string</classTypeField>
-	</reportField>
-	<reportField>
-		<nameReportField>outcome</nameReportField>
-		<nameHeaderField>Outcome</nameHeaderField>
-		<itemPathField>c:outcome</itemPathField>
-		<widthField>12</widthField>
-		<classTypeField>c:OperationResultStatusType</classTypeField>
-	</reportField>
-	<reportField>
-		<nameReportField>message</nameReportField>
-		<nameHeaderField>Message</nameHeaderField>
-		<itemPathField>c:message</itemPathField>
-		<widthField>20</widthField>
-		<classTypeField>xsd:string</classTypeField>
-	</reportField>
-	<reportField>
-		<nameReportField>delta</nameReportField>
-		<nameHeaderField>Delta</nameHeaderField>
-		<itemPathField>c:delta</itemPathField>
-		<widthField>12</widthField>
-		<classTypeField>xsd:string</classTypeField>
-	</reportField>
+		<width>12</width>
+		<classType>xsd:dateTime</classType>
+	</field>
+	<field>
+		<nameReport>initiatorName</nameReport>
+		<nameHeader>Initiator</nameHeader>
+		<itemPath>c:initiatorName</itemPath>
+		<width>10</width>
+		<classType>xsd:string</classType>
+	</field>
+	<field>
+		<nameReport>eventType</nameReport>
+		<nameHeader>Event Type</nameHeader>
+		<itemPath>c:eventType</itemPath>
+		<width>12</width>
+		<classType>c:AuditEventType</classType>
+	</field>
+	<field>
+		<nameReport>eventStage</nameReport>
+		<nameHeader>Event Stage</nameHeader>
+		<itemPath>c:eventStage</itemPath>
+		<width>12</width>
+		<classType>c:AuditEventStage</classType>
+	</field>
+	<field>
+		<nameReport>targetName</nameReport>
+		<nameHeader>Target</nameHeader>
+		<itemPath>c:targetName</itemPath>
+		<width>10</width>
+		<classType>xsd:string</classType>
+	</field>
+	<field>
+		<nameReport>outcome</nameReport>
+		<nameHeader>Outcome</nameHeader>
+		<itemPath>c:outcome</itemPath>
+		<width>12</width>
+		<classType>c:OperationResultStatusType</classType>
+	</field>
+	<field>
+		<nameReport>message</nameReport>
+		<nameHeader>Message</nameHeader>
+		<itemPath>c:message</itemPath>
+		<width>20</width>
+		<classType>xsd:string</classType>
+	</field>
+	<field>
+		<nameReport>delta</nameReport>
+		<nameHeader>Delta</nameHeader>
+		<itemPath>c:delta</itemPath>
+		<width>12</width>
+		<classType>xsd:string</classType>
+	</field>
 	<!-- configuration properties -->
 	<configuration xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report">
 		<r:hqlQuery>select aer.timestamp as timestamp, 

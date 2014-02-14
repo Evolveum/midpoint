@@ -12,24 +12,24 @@ ALTER TABLE m_operation_result ADD context LONGTEXT;
 ALTER TABLE m_operation_result ADD returns LONGTEXT;
 
 CREATE TABLE m_report (
-  configuration            LONGTEXT,
-  configurationSchema      LONGTEXT,
-  dataSource_providerClass VARCHAR(255),
-  dataSource_springBean    BIT,
-  name_norm                VARCHAR(255),
-  name_orig                VARCHAR(255),
-  parent                   BIT,
-  reportExport             INTEGER,
-  reportFields             LONGTEXT,
-  reportOrientation        INTEGER,
-  reportTemplate           LONGTEXT,
-  reportTemplateStyle      LONGTEXT,
-  subReport                LONGTEXT,
-  useHibernateSession      BIT,
-  id                       BIGINT      NOT NULL,
-  oid                      VARCHAR(36) NOT NULL,
-  PRIMARY KEY (id, oid),
-  UNIQUE (name_norm)
+	configuration LONGTEXT,
+    configurationSchema LONGTEXT,
+    dataSource_providerClass VARCHAR(255),
+    dataSource_springBean BIT,
+    export INTEGER,
+    field LONGTEXT,
+    name_norm VARCHAR(255),
+    name_orig VARCHAR(255),
+    orientation INTEGER,
+    parent BIT,
+    subreport LONGTEXT,
+    template LONGTEXT,
+    templateStyle LONGTEXT,
+    useHibernateSession BIT,
+	id BIGINT NOT NULL,
+	oid VARCHAR(36) NOT NULL,
+	PRIMARY KEY (id, oid),
+	UNIQUE (name_norm)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin

@@ -418,20 +418,20 @@
         primary key (owner_id, owner_oid, relLocalPart, relNamespace, targetOid)
     );
 
-    create table m_report (
+   create table m_report (
         configuration clob,
         configurationSchema clob,
         dataSource_providerClass varchar(255),
         dataSource_springBean boolean,
+        export integer,
+        field clob,
         name_norm varchar(255),
         name_orig varchar(255),
+        orientation integer,
         parent boolean,
-        reportExport integer,
-        reportFields clob,
-        reportOrientation integer,
-        reportTemplate clob,
-        reportTemplateStyle clob,
-        subReport clob,
+        subreport clob,
+        template clob,
+        templateStyle clob,
         useHibernateSession boolean,
         id bigint not null,
         oid varchar(36) not null,
