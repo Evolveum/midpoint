@@ -11,26 +11,26 @@ ALTER TABLE m_audit_delta ADD returns CLOB;
 ALTER TABLE m_operation_result ADD context CLOB;
 ALTER TABLE m_operation_result ADD returns CLOB;
 
- CREATE TABLE m_report (
-  configuration            CLOB,
-  configurationSchema      CLOB,
-  dataSource_providerClass VARCHAR(255),
-  dataSource_springBean    BOOLEAN,
+CREATE TABLE m_report (
+    configuration CLOB,
+    configurationSchema CLOB,
+    dataSource_providerClass VARCHAR(255),
+    dataSource_springBean BOOLEAN,
+    export INTEGER,
+    field CLOB,
     name_norm VARCHAR(255),
     name_orig VARCHAR(255),
-  parent                   BOOLEAN,
-    reportExport INTEGER,
-    reportFields CLOB,
-    reportOrientation INTEGER,
-  reportTemplate           CLOB,
-  reportTemplateStyle      CLOB,
-  subReport                CLOB,
-  useHibernateSession      BOOLEAN,
-    id BIGINT NOT NULL,
-    oid VARCHAR(36) NOT NULL,
-    PRIMARY KEY (id, oid),
-    UNIQUE (name_norm)
-  );
+    orientation INTEGER,
+    parent BOOLEAN,
+    subreport CLOB,
+    template CLOB,
+    templateStyle CLOB,
+    useHibernateSession BOOLEAN,
+	id BIGINT NOT NULL,
+	oid VARCHAR(36) NOT NULL,
+	PRIMARY KEY (id, oid),
+	UNIQUE (name_norm)
+);
 
 CREATE INDEX iReportParent ON m_report (parent);
 
@@ -41,8 +41,8 @@ ALTER TABLE m_report
     FOREIGN KEY (id, oid) 
     REFERENCES m_object;
 
-    CREATE INDEX iAncestorDepth ON m_org_closure (ancestor_id, ancestor_oid, depthValue);
-
+CREATE INDEX iAncestorDepth ON m_org_closure (ancestor_id, ancestor_oid, depthValue);
+	
 CREATE TABLE m_report_output (
     name_norm VARCHAR(255),
     name_orig VARCHAR(255),
@@ -61,9 +61,9 @@ CREATE TABLE m_report_output (
 
 CREATE INDEX iReportOutputName ON m_report_output (name_orig);
 
-ALTER TABLE m_report_output
-    ADD CONSTRAINT fk_reportoutput
-	FOREIGN KEY (id, oid)
+ALTER TABLE m_report_output 
+    ADD CONSTRAINT fk_reportoutput 
+	FOREIGN KEY (id, oid) 
     REFERENCES m_object;
 
 
