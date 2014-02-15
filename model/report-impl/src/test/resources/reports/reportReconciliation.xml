@@ -251,38 +251,38 @@
 	<export>pdf</export>
 	<!-- set to true if report needs hibernate session (e.g. hql query is used) -->
 	<useHibernateSession>true</useHibernateSession>
-	<reportField>
-		<nameReportField>name</nameReportField>
-		<nameHeaderField>Name</nameHeaderField>
-		<itemPathField>c:name</itemPathField>
+	<field>
+		<nameReport>name</nameReport>
+		<nameHeader>Name</nameHeader>
+		<itemPath>c:name</itemPath>
 		<sortOrderNumber>2</sortOrderNumber>
 		<sortOrder>ascending</sortOrder>
-		<widthField>30</widthField>
-		<classTypeField>t:PolyString</classTypeField>
-	</reportField>
-	<reportField>
-		<nameReportField>situation</nameReportField>
-		<nameHeaderField>Situation</nameHeaderField>
-		<itemPathField>c:synchronizationSituation</itemPathField>
+		<width>30</width>
+		<classType>t:PolyString</classType>
+	</field>
+	<field>
+		<nameReport>situation</nameReport>
+		<nameHeader>Situation</nameHeader>
+		<itemPath>c:synchronizationSituation</itemPath>
 		<sortOrderNumber>1</sortOrderNumber>
 		<sortOrder>ascending</sortOrder>
-		<widthField>20</widthField>
-		<classTypeField>c:SynchronizationSituationType</classTypeField>
-	</reportField>
-	<reportField>
-		<nameReportField>username</nameReportField>
-		<nameHeaderField>Owner</nameHeaderField>
-		<itemPathField>c:name</itemPathField>
-		<widthField>30</widthField>
-		<classTypeField>t:PolyString</classTypeField>
-	</reportField>
-	<reportField>
-		<nameReportField>situationTimestamp</nameReportField>
-		<nameHeaderField>Timestamp</nameHeaderField>
-		<itemPathField>c:synchronizationTimestamp</itemPathField>
-		<widthField>20</widthField>
-		<classTypeField>xsd:dateTime</classTypeField>
-	</reportField>
+		<width>20</width>
+		<classType>c:SynchronizationSituationType</classType>
+	</field>
+	<field>
+		<nameReport>username</nameReport>
+		<nameHeader>Owner</nameHeader>
+		<itemPath>c:name</itemPath>
+		<width>30</width>
+		<classType>t:PolyString</classType>
+	</field>
+	<field>
+		<nameReport>situationTimestamp</nameReport>
+		<nameHeader>Timestamp</nameHeader>
+		<itemPath>c:synchronizationTimestamp</itemPath>
+		<width>20</width>
+		<classType>xsd:dateTime</classType>
+	</field>
 	<!-- configuration properties -->
 	<configuration xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report">
 		<r:hqlQuery>select 

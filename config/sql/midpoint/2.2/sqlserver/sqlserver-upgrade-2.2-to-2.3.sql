@@ -12,24 +12,24 @@ ALTER TABLE m_operation_result ADD context NVARCHAR(MAX);
 ALTER TABLE m_operation_result ADD returns NVARCHAR(MAX);
 
 CREATE TABLE m_report (
-  configuration            NVARCHAR(MAX),
-  configurationSchema      NVARCHAR(MAX),
-  dataSource_providerClass NVARCHAR(255),
-  dataSource_springBean    BIT,
-  name_norm                NVARCHAR(255),
-  name_orig                NVARCHAR(255),
-  parent                   BIT,
-  reportExport             INT,
-  reportFields             NVARCHAR(MAX),
-  reportOrientation        INT,
-  reportTemplate           NVARCHAR(MAX),
-  reportTemplateStyle      NVARCHAR(MAX),
-  subReport                NVARCHAR(MAX),
-  useHibernateSession      BIT,
-  id                       BIGINT       NOT NULL,
-  oid                      NVARCHAR(36) NOT NULL,
-  PRIMARY KEY (id, oid),
-  UNIQUE (name_norm)
+	configuration NVARCHAR(MAX),
+    configurationSchema NVARCHAR(MAX),
+    dataSource_providerClass NVARCHAR(255),
+    dataSource_springBean BIT,
+    export INT,
+    name_norm NVARCHAR(255),
+    name_orig NVARCHAR(255),
+    orientation INT,
+    parent BIT,
+    field NVARCHAR(MAX),
+    subreport NVARCHAR(MAX),
+    template NVARCHAR(MAX),
+    templateStyle NVARCHAR(MAX),
+    useHibernateSession BIT,
+	id BIGINT NOT NULL,
+	oid NVARCHAR(36) NOT NULL,
+	PRIMARY KEY (id, oid),
+	UNIQUE (name_norm)
 );
 
 CREATE INDEX iReportParent ON m_report (parent);

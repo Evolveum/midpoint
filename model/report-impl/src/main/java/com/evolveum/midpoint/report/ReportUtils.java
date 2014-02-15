@@ -2,8 +2,9 @@ package com.evolveum.midpoint.report;
 
 
 import java.awt.Color;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.sql.Timestamp;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,11 +12,11 @@ import java.util.Map;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRExpression;
 import net.sf.jasperreports.engine.JRStyle;
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.base.JRBasePen;
 import net.sf.jasperreports.engine.design.JRDesignBand;
 import net.sf.jasperreports.engine.design.JRDesignExpression;
@@ -38,16 +39,20 @@ import net.sf.jasperreports.engine.type.PositionTypeEnum;
 import net.sf.jasperreports.engine.type.SplitTypeEnum;
 import net.sf.jasperreports.engine.type.VerticalAlignEnum;
 import net.sf.jasperreports.engine.type.WhenNoDataTypeEnum;
+import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -56,6 +61,8 @@ import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ReportTypeUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -64,6 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SubreportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
@@ -77,8 +85,7 @@ public class ReportUtils {
     private static String PARAMETER_OBJECT_TYPE = "type";
     private static String PARAMETER_QUERY_FILTER = "filter";
     
-    // parameter HQL query for jasper design (queryString element)
-    private static String PARAMETER_HQLQUERY = "hqlQuery";
+   
     
     private static String PARAMETER_LOGO = "logoPath";
     private static String PARAMETER_TEMPLATE_STYLES = "baseTemplateStyles";
@@ -238,6 +245,9 @@ public class ReportUtils {
 		return configuration;
 	}
     
+ 
+    		
+    
     public static Map<String, Object> getReportParams(ReportType reportType, PrismContainer<Containerable> parameterConfiguration, PrismSchema reportSchema, OperationResult parentResult)
 	{
 		Map<String, Object> params = new HashMap<String, Object>();
@@ -308,7 +318,7 @@ public class ReportUtils {
 		return clazz;
 	}
 	
-	private static PrismProperty getParameter(String parameterName, PrismContainer<Containerable> parameterConfiguration, String namespace)
+	public static PrismProperty getParameter(String parameterName, PrismContainer<Containerable> parameterConfiguration, String namespace)
 	{
 		PrismProperty property = parameterConfiguration.findProperty(new QName(namespace, parameterName));	
 		/*for(PrismProperty parameter : parameterConfiguration.getValue().getProperties())
@@ -356,7 +366,7 @@ public class ReportUtils {
 		textField.setBlankWhenNull(true);
 		textField.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
 		textField.setStyleNameReference("Detail");
-		textField.setExpression(new JRDesignExpression("$F{" + fieldRepo.getNameReportField() + "}"));
+		textField.setExpression(new JRDesignExpression("$F{" + fieldRepo.getNameReport() + "}"));
 		return textField;
 	}
 	
@@ -601,8 +611,8 @@ public class ReportUtils {
 		int width = 0;
 		for(ReportFieldConfigurationType fieldRepo : reportFields)
 		{
-			width =  Math.round((float) ((frame.getWidth()/100) * fieldRepo.getWidthField()));	
-			JRDesignStaticText staticText = createStaticText(x, 0, 18, width, "Column header", VerticalAlignEnum.MIDDLE, fieldRepo.getNameHeaderField());
+			width =  Math.round((float) ((frame.getWidth()/100) * fieldRepo.getWidth()));	
+			JRDesignStaticText staticText = createStaticText(x, 0, 18, width, "Column header", VerticalAlignEnum.MIDDLE, fieldRepo.getNameHeader());
 			frame.addElement(staticText);
 			x = x + width;
 		}
@@ -621,7 +631,7 @@ public class ReportUtils {
 		int frameWidth = frame.getWidth();
 		for(ReportFieldConfigurationType fieldRepo : reportFields)
 		{
-			width = Math.round((float) ((frameWidth/100) * fieldRepo.getWidthField())); 
+			width = Math.round((float) ((frameWidth/100) * fieldRepo.getWidth())); 
 			JRDesignTextField textField = createField(fieldRepo, x, width, frameWidth);
 			frame.addElement(textField);
 			x = x + width;
@@ -702,11 +712,11 @@ public class ReportUtils {
 		else createStyles(jasperDesign);
 		
 		//Fields
-		for(ReportFieldConfigurationType fieldRepo : reportType.getReportField())
+		for(ReportFieldConfigurationType fieldRepo : reportType.getField())
 		{
 			JRDesignField field = new JRDesignField();
-			field.setName(fieldRepo.getNameReportField());
-			field.setValueClass(getClassType(fieldRepo.getClassTypeField(), reportSchema.getNamespace()));	
+			field.setName(fieldRepo.getNameReport());
+			field.setValueClass(getClassType(fieldRepo.getClassType(), reportSchema.getNamespace()));	
 			jasperDesign.addField(field);
 		}
 
@@ -725,11 +735,11 @@ public class ReportUtils {
 		jasperDesign.setTitle(titleBand);
 	
 		//Column header
-		JRDesignBand columnHeaderBand = createColumnHeaderBand(24, reportColumn, reportType.getReportField());
+		JRDesignBand columnHeaderBand = createColumnHeaderBand(24, reportColumn, reportType.getField());
 		jasperDesign.setColumnHeader(columnHeaderBand);
 		
 		//Detail
-		JRDesignBand detailBand = createDetailBand(20, reportColumn, reportType.getReportField());
+		JRDesignBand detailBand = createDetailBand(20, reportColumn, reportType.getField());
 		((JRDesignSection)jasperDesign.getDetailSection()).addBand(detailBand);		
 		
 		//Column footer

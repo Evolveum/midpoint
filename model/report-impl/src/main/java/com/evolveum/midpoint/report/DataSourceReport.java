@@ -78,9 +78,9 @@ public class DataSourceReport implements JRDataSource
 	{
     	LinkedHashMap<String, ItemPath> fieldsPair = new LinkedHashMap<String, ItemPath>();
 	    // pair fields in the report with fields in repo
-	    for (ReportFieldConfigurationType fieldRepo : reportType.getReportField())
+	    for (ReportFieldConfigurationType fieldRepo : reportType.getField())
 	   	{
-	   		fieldsPair.put(fieldRepo.getNameReportField(), new XPathHolder(fieldRepo.getItemPathField()).toItemPath());
+	   		fieldsPair.put(fieldRepo.getNameReport(), new XPathHolder(fieldRepo.getItemPath()).toItemPath());
 	   	}	
 	   	return fieldsPair;
 	}

@@ -888,13 +888,13 @@ public class OrgStructTest extends BaseSQLRepoTest {
     	query.setFilter(filter);
     	query.setPaging(paging);
     	
-    	List<PrismObject<OrgType>> orgClosure = repositoryService.searchObjects(OrgType.class, query, null, opResult);
+    	List<PrismObject<ObjectType>> orgClosure = repositoryService.searchObjects(ObjectType.class, query, null, opResult);
          
-        AssertJUnit.assertEquals(3, orgClosure.size());
+        AssertJUnit.assertEquals(4, orgClosure.size());
          
-        for (PrismObject<OrgType> u : orgClosure)
+        for (PrismObject<ObjectType> u : orgClosure)
         {
-             LOGGER.info("ORG000 ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));
+             LOGGER.info("CHILD ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));
         }
     }
 
