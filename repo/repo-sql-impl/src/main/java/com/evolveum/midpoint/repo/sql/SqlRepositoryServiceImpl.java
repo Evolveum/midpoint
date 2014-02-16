@@ -18,11 +18,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -33,7 +29,9 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.*;
+import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
+import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
@@ -62,6 +60,7 @@ import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.jdbc.Work;
 import org.springframework.stereotype.Repository;
 
+import javax.xml.namespace.QName;
 import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.*;
@@ -141,12 +140,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             throwObjectNotFoundException(type, oid);
         }
 
-        PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
-        LOGGER.trace("Transforming data to JAXB type.");
-        PrismObject<T> objectType = domProcessor.parseObject(object);
-        validateObjectType(objectType, type);
-
-        return objectType;
+        return updateLoadedObject(object, session, type);
     }
 
     private <T extends ObjectType> PrismObject<T> throwObjectNotFoundException(Class<T> type, String oid) throws ObjectNotFoundException {
@@ -284,7 +278,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
 
             String focus = users.get(0);
-            owner = updateCriteriaListObject(focus);
+            owner = updateLoadedObject(focus, session, (Class<F>) FocusType.class);
 
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
@@ -960,8 +954,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 
             for (Object object : objects) {
-                PrismObject<T> prismObject = updateCriteriaListObject(object);
-                validateObjectType(prismObject, type);
+                PrismObject<T> prismObject = updateLoadedObject(object, session, type);
                 list.add(prismObject);
             }
 
@@ -980,7 +973,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     /**
-     * this is workaround for https://hibernate.atlassian.net/browse/HHH-2893
+     * this also contains workaround for https://hibernate.atlassian.net/browse/HHH-2893
      * group property not includes in select is not supported by criteria api [lazyman]
      * therefore when selecting org. units this will find RObject objects in returned array.
      *
@@ -988,7 +981,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
      * @return
      * @throws QueryException
      */
-    private <T extends ObjectType> PrismObject<T> updateCriteriaListObject(Object object) throws SchemaException {
+    private <T extends ObjectType> PrismObject<T> updateLoadedObject(Object object, Session session, Class<T> type)
+            throws SchemaException {
+
         String fullObject;
         if (object instanceof String) {
             fullObject=(String) object;
@@ -998,7 +993,58 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
-        return domProcessor.parseObject(fullObject);
+        PrismObject<T> prismObject = domProcessor.parseObject(fullObject);
+
+        if (ShadowType.class.equals(prismObject.getCompileTimeClass())) {
+            LOGGER.debug("Loading definitions for shadow attributes.");
+
+            applyShadowAttributeDefinitions(RAnyClob.class, prismObject, session);
+            applyShadowAttributeDefinitions(RAnyDate.class, prismObject, session);
+            applyShadowAttributeDefinitions(RAnyLong.class, prismObject, session);
+            applyShadowAttributeDefinitions(RAnyString.class, prismObject, session);
+            applyShadowAttributeDefinitions(RAnyPolyString.class, prismObject, session);
+            applyShadowAttributeDefinitions(RAnyReference.class, prismObject, session);
+        }
+
+        validateObjectType(prismObject, type);
+
+        return prismObject;
+    }
+
+    private void applyShadowAttributeDefinitions(Class<? extends RAnyValue> anyValueType,
+                                                 PrismObject object, Session session) throws SchemaException {
+
+        PrismContainer attributes = object.findContainer(ShadowType.F_ATTRIBUTES);
+
+        Query query = session.createQuery("select c.name, c.type, c.valueType from "
+                + anyValueType.getSimpleName() + " as c where c.ownerId = :id and c.ownerOid = :oid and c.ownerType = :ownerType");
+        query.setParameter("id", 0L);
+        query.setParameter("oid", object.getOid());
+        query.setParameter("ownerType", RContainerType.SHADOW);
+
+        List<Object[]> values = query.list();
+        if (values == null || values.isEmpty()) {
+            return;
+        }
+
+        for (Object[] value : values) {
+            ItemDefinition def;
+            switch ((RValueType) value[2]) {
+                case PROPERTY:
+                    def = new PrismPropertyDefinition((QName) value[0], (QName) value[1], object.getPrismContext());
+                    break;
+                case REFERENCE:
+                    def = new PrismReferenceDefinition((QName) value[0], (QName) value[1], object.getPrismContext());
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Unsupported value type " + value[2]);
+            }
+
+            Item item = attributes.findItem(def.getName());
+            if (item.getDefinition() == null) {
+                item.applyDefinition(def, true);
+            }
+        }
     }
 
     @Override
@@ -1362,9 +1408,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
             if (shadows != null) {
                 for (String shadow : shadows) {
-                    PrismObject<T> prismObject = updateCriteriaListObject(shadow);
-                    validateObjectType(prismObject, resourceObjectShadowType);
-
+                    PrismObject<T> prismObject = updateLoadedObject(shadow, session, resourceObjectShadowType);
                     list.add(prismObject);
                 }
             }
@@ -1674,9 +1718,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 while (iterator.hasNext()) {
                     Object object = iterator.next();
 
-                    PrismObject<T> prismObject = updateCriteriaListObject(object);
-                    validateObjectType(prismObject, type);
-
+                    PrismObject<T> prismObject = updateLoadedObject(object, session, type);
                     if (!handler.handle(prismObject, result)) {
                         break;
                     }
