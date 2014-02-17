@@ -844,9 +844,7 @@ public class PageTaskEdit extends PageAdminTasks {
         showResult(result);
 
         showResultInSession(result);
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-        setResponsePage(new PageTaskEdit(parameters, (PageBase) getPage()));
+        setResponsePage(PageTasks.class);
     }
 
     private void resumePerformed(AjaxRequestTarget target) {
@@ -873,9 +871,7 @@ public class PageTaskEdit extends PageAdminTasks {
         showResult(result);
 
         showResultInSession(result);
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-        setResponsePage(new PageTaskEdit(parameters, (PageBase) getPage()));
+        setResponsePage(PageTasks.class);
     }
 
 	private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
