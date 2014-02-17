@@ -51,7 +51,7 @@ public class TestPrismParsingXml extends TestPrismParsing {
 		
 		// THEN
 		System.out.println("User:");
-		System.out.println(user.dump());
+		System.out.println(user.debugDump());
 		assertNotNull(user);
 		
 		assertUserJack(user);
@@ -73,7 +73,7 @@ public class TestPrismParsingXml extends TestPrismParsing {
 		
 		// THEN
 		System.out.println("User:");
-		System.out.println(user.dump());
+		System.out.println(user.debugDump());
 		assertNotNull(user);
 		
 		assertUserAdhoc(user);

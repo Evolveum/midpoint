@@ -20,18 +20,14 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
-
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.Transformer;
 
 /**
  * @author semancik
  *
  */
-public abstract class XNode implements Dumpable, DebugDumpable {
+public abstract class XNode implements DebugDumpable {
 	
 	public static final QName KEY_OID = new QName(null, "oid");
 	public static final QName KEY_VERSION = new QName(null, "version");
@@ -156,7 +152,7 @@ public abstract class XNode implements Dumpable, DebugDumpable {
 		return debugDump(0);
 	}
 
-	@Override
+//	@Override
 	public String dump() {
 		return debugDump();
 	}

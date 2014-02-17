@@ -30,6 +30,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 
@@ -152,7 +153,10 @@ public class ItemPathType {
 
 				@Override
 				public boolean add(Object e) {
-					throw new IllegalArgumentException("PATH ADD: "+e+" "+e.getClass());
+					XPathHolder holder = new XPathHolder(e.toString());
+					itemPath = holder.toItemPath();
+					return true;
+//					throw new IllegalArgumentException("PATH ADD: "+e+" "+e.getClass());
 				}
 
 				@Override

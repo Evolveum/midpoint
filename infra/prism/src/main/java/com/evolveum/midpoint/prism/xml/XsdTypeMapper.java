@@ -89,7 +89,7 @@ public class XsdTypeMapper {
         addMapping(QName.class, DOMUtil.XSD_QNAME, true);
         
         addMapping(PolyString.class, PrismConstants.POLYSTRING_TYPE_QNAME, true);
-        addMapping(ItemPathType.class, ItemPathType.COMPLEX_TYPE, true);
+//        addMapping(ItemPathType.class, ItemPathType.COMPLEX_TYPE, true);
 
         xsdToJavaTypeMap.put(DOMUtil.XSD_ANYURI, String.class);
     }

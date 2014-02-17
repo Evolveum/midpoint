@@ -136,7 +136,7 @@ public class PrismJasonProcessor {
 //		prismObj.applyDefinition(def);
 //		prismContext.adopt(prismObj.asObjectable());
 		
-		System.out.println("object: \n" + prismObj.dump());
+		System.out.println("object: \n" + prismObj.debugDump());
 		
 		return prismObj;
 	}

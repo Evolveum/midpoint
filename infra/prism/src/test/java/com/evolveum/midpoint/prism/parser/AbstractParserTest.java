@@ -115,7 +115,7 @@ public abstract class AbstractParserTest {
 		// WHEN (parse to xnode)
 		XNode xnode = parser.parse(getFile(USER_JACK_FILE_BASENAME));
 		System.out.println("XNode after parsing:");
-		System.out.println(xnode.dump());
+		System.out.println(xnode.debugDump());
 		
 		
 		
@@ -125,7 +125,7 @@ public abstract class AbstractParserTest {
 		
 		// THEN
 		System.out.println("Parsed user:");
-		System.out.println(user.dump());
+		System.out.println(user.debugDump());
 
 		
 		assertUserJackXNodeOrdering("serialized xnode", xnode);
@@ -153,7 +153,7 @@ public abstract class AbstractParserTest {
 		
 		// THEN
 		System.out.println("\nParsed user:");
-		System.out.println(user.dump());
+		System.out.println(user.debugDump());
 		
 		assertUserJack(user);
 		
@@ -199,20 +199,20 @@ public abstract class AbstractParserTest {
 		System.out.println("\nXNode after re-parsing:");
 		System.out.println(reparsedXnode.dump());
 		System.out.println("\nRe-parsed user:");
-		System.out.println(reparsedUser.dump());
+		System.out.println(reparsedUser.debugDump());
 		
 		assertUserJackXNodeOrdering("serialized xnode", reparsedXnode);
 				
 		ObjectDelta<UserType> diff = DiffUtil.diff(user, reparsedUser);
 		System.out.println("\nDiff:");
-		System.out.println(diff.dump());
+		System.out.println(diff.debugDump());
 		
 		PrismObject accountRefObjOrig = findObjectFromAccountRef(user);
 		PrismObject accountRefObjRe = findObjectFromAccountRef(reparsedUser);
 		
 		ObjectDelta<UserType> accountRefObjDiff = DiffUtil.diff(accountRefObjOrig, accountRefObjRe);
 		System.out.println("\naccountRef object diff:");
-		System.out.println(accountRefObjDiff.dump());
+		System.out.println(accountRefObjDiff.debugDump());
 		
 		assertTrue("Re-parsed object in accountRef does not match: "+accountRefObjDiff, accountRefObjDiff.isEmpty());
 		
@@ -240,7 +240,7 @@ public abstract class AbstractParserTest {
 		
 		// THEN
 		System.out.println("Parsed resource:");
-		System.out.println(resource.dump());
+		System.out.println(resource.debugDump());
 		
 		assertResourceRum(resource);		
 		
@@ -263,7 +263,7 @@ public abstract class AbstractParserTest {
 		
 		// THEN
 		System.out.println("\nParsed resource:");
-		System.out.println(resource.dump());
+		System.out.println(resource.debugDump());
 		
 		assertResourceRum(resource);
 		
@@ -310,11 +310,11 @@ public abstract class AbstractParserTest {
 		System.out.println("\nXNode after re-parsing:");
 		System.out.println(reparsedXnode.dump());
 		System.out.println("\nRe-parsed resource:");
-		System.out.println(reparsedResource.dump());
+		System.out.println(reparsedResource.debugDump());
 		
 		ObjectDelta<ResourceType> diff = DiffUtil.diff(resource, reparsedResource);
 		System.out.println("\nDiff:");
-		System.out.println(diff.dump());
+		System.out.println(diff.debugDump());
 				
 		assertTrue("Re-parsed user does not match: "+diff, diff.isEmpty());
 	}	

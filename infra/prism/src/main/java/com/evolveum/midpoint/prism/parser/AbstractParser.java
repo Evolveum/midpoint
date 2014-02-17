@@ -15,6 +15,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.parser.json.ItemPathDeserializer;
+import com.evolveum.midpoint.prism.parser.json.ItemPathTypeDeserializer;
 import com.evolveum.midpoint.prism.parser.json.JsonValueParser;
 import com.evolveum.midpoint.prism.parser.json.PolyStringDeserializer;
 import com.evolveum.midpoint.prism.parser.json.QNameDeserializer;
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -210,6 +212,7 @@ public abstract class AbstractParser implements Parser {
 		sm.addDeserializer(QName.class, new QNameDeserializer());
 		sm.addDeserializer(ItemPath.class, new ItemPathDeserializer());
 		sm.addDeserializer(PolyString.class, new PolyStringDeserializer());
+		sm.addDeserializer(ItemPathType.class, new ItemPathTypeDeserializer());
 
 		mapper.registerModule(sm);
 		parser.setCodec(mapper);

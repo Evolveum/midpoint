@@ -65,6 +65,7 @@ import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 public class QueryConvertor {
@@ -236,7 +237,7 @@ public class QueryConvertor {
 			PrismContainerDefinition<C> pcd, PrismContext prismContext) throws SchemaException {
 		MapXNode xmap = toMap(xnode);
 		ItemPath itemPath = getPath(xmap);
-
+		
 		if (itemPath == null || itemPath.isEmpty()){
 			throw new SchemaException("Could not convert query, because query does not contain item path.");	
 		}
@@ -411,6 +412,7 @@ public class QueryConvertor {
 	
 	private static ItemPath getPath(MapXNode xmap) throws SchemaException {
 		return xmap.getParsedPrimitiveValue(KEY_FILTER_EQUALS_PATH, ItemPath.XSD_TYPE);
+//		return itemPathType.getItemPath();
 	}
 
 	private static QName determineMatchingRule(MapXNode xmap) throws SchemaException{

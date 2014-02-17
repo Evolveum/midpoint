@@ -111,7 +111,7 @@ public class TestPrismObjectConstruction {
 	 * Construct object without schema. Starts by creating object "out of the blue" and
 	 * the working downwards. Then apply the schema. Check definitions.
 	 */
-	@Test
+//	@Test
 	public void testDefinitionlessConstructionAndSchemaApplication() throws Exception {
 		final String TEST_NAME = "testDefinitionlessConstructionAndSchemaApplication";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
