@@ -973,13 +973,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     /**
-     * this also contains workaround for https://hibernate.atlassian.net/browse/HHH-2893
-     * group property not includes in select is not supported by criteria api [lazyman]
-     * therefore when selecting org. units this will find RObject objects in returned array.
+     * This method provides object parsing from String and validation.
+     * Also provides definition loading for shadow attributes which is needed for modify operation.
      *
      * @param object
+     * @param session
+     * @param type
+     * @param <T>
      * @return
-     * @throws QueryException
+     * @throws SchemaException
      */
     private <T extends ObjectType> PrismObject<T> updateLoadedObject(Object object, Session session, Class<T> type)
             throws SchemaException {
@@ -998,12 +1000,25 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (ShadowType.class.equals(prismObject.getCompileTimeClass())) {
             LOGGER.debug("Loading definitions for shadow attributes.");
 
-            applyShadowAttributeDefinitions(RAnyClob.class, prismObject, session);
-            applyShadowAttributeDefinitions(RAnyDate.class, prismObject, session);
-            applyShadowAttributeDefinitions(RAnyLong.class, prismObject, session);
-            applyShadowAttributeDefinitions(RAnyString.class, prismObject, session);
-            applyShadowAttributeDefinitions(RAnyPolyString.class, prismObject, session);
-            applyShadowAttributeDefinitions(RAnyReference.class, prismObject, session);
+            Query query = session.createQuery("select stringsCount, longsCount, datesCount, referencesCount, clobsCount,"
+                    + " polysCount from RAnyContainer where ownerId = :id and ownerOid = :oid and ownerType = :ownerType");
+            query.setParameter("id", 0L);
+            query.setParameter("oid", prismObject.getOid());
+            query.setParameter("ownerType", RContainerType.SHADOW);
+
+            Object[] counts = (Object[]) query.uniqueResult();
+            Class[] classes = new Class[]{RAnyString.class, RAnyLong.class, RAnyDate.class, RAnyReference.class,
+                    RAnyClob.class, RAnyPolyString.class};
+
+            if (counts != null) {
+                for (int i = 0; i < classes.length; i++) {
+                    if (counts[i] == null || ((short) counts[i]) == 0) {
+                        continue;
+                    }
+
+                    applyShadowAttributeDefinitions(classes[i], prismObject, session);
+                }
+            }
         }
 
         validateObjectType(prismObject, type);

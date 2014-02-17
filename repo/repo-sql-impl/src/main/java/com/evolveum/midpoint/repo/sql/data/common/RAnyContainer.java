@@ -54,6 +54,13 @@ public class RAnyContainer implements Serializable {
     private Long ownerId;
     private RContainerType ownerType;
 
+    private Short stringsCount;
+    private Short longsCount;
+    private Short datesCount;
+    private Short referencesCount;
+    private Short clobsCount;
+    private Short polysCount;
+
     private Set<RAnyString> strings;
     private Set<RAnyLong> longs;
     private Set<RAnyDate> dates;
@@ -102,7 +109,7 @@ public class RAnyContainer implements Serializable {
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAnyClob> getClobs() {
         if (clobs == null) {
-            clobs = new HashSet<RAnyClob>();
+            clobs = new HashSet<>();
         }
         return clobs;
     }
@@ -111,7 +118,7 @@ public class RAnyContainer implements Serializable {
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAnyLong> getLongs() {
         if (longs == null) {
-            longs = new HashSet<RAnyLong>();
+            longs = new HashSet<>();
         }
         return longs;
     }
@@ -120,7 +127,7 @@ public class RAnyContainer implements Serializable {
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAnyString> getStrings() {
         if (strings == null) {
-            strings = new HashSet<RAnyString>();
+            strings = new HashSet<>();
         }
         return strings;
     }
@@ -129,7 +136,7 @@ public class RAnyContainer implements Serializable {
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAnyDate> getDates() {
         if (dates == null) {
-            dates = new HashSet<RAnyDate>();
+            dates = new HashSet<>();
         }
         return dates;
     }
@@ -138,7 +145,7 @@ public class RAnyContainer implements Serializable {
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAnyReference> getReferences() {
         if (references == null) {
-            references = new HashSet<RAnyReference>();
+            references = new HashSet<>();
         }
         return references;
     }
@@ -147,9 +154,57 @@ public class RAnyContainer implements Serializable {
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAnyPolyString> getPolys() {
         if (polys == null) {
-            polys = new HashSet<RAnyPolyString>();
+            polys = new HashSet<>();
         }
         return polys;
+    }
+
+    public Short getStringsCount() {
+        return stringsCount;
+    }
+
+    public Short getLongsCount() {
+        return longsCount;
+    }
+
+    public Short getDatesCount() {
+        return datesCount;
+    }
+
+    public Short getReferencesCount() {
+        return referencesCount;
+    }
+
+    public Short getClobsCount() {
+        return clobsCount;
+    }
+
+    public Short getPolysCount() {
+        return polysCount;
+    }
+
+    public void setStringsCount(Short stringsCount) {
+        this.stringsCount = stringsCount;
+    }
+
+    public void setLongsCount(Short longsCount) {
+        this.longsCount = longsCount;
+    }
+
+    public void setDatesCount(Short datesCount) {
+        this.datesCount = datesCount;
+    }
+
+    public void setReferencesCount(Short referencesCount) {
+        this.referencesCount = referencesCount;
+    }
+
+    public void setClobsCount(Short clobsCount) {
+        this.clobsCount = clobsCount;
+    }
+
+    public void setPolysCount(Short polysCount) {
+        this.polysCount = polysCount;
     }
 
     public void setPolys(Set<RAnyPolyString> polys) {
@@ -200,11 +255,18 @@ public class RAnyContainer implements Serializable {
         RAnyContainer that = (RAnyContainer) o;
 
         if (clobs != null ? !clobs.equals(that.clobs) : that.clobs != null) return false;
+        if (clobsCount != null ? !clobsCount.equals(that.clobsCount) : that.clobsCount != null) return false;
         if (dates != null ? !dates.equals(that.dates) : that.dates != null) return false;
+        if (datesCount != null ? !datesCount.equals(that.datesCount) : that.datesCount != null) return false;
         if (longs != null ? !longs.equals(that.longs) : that.longs != null) return false;
-        if (strings != null ? !strings.equals(that.strings) : that.strings != null) return false;
-        if (references != null ? !references.equals(that.references) : that.references != null) return false;
+        if (longsCount != null ? !longsCount.equals(that.longsCount) : that.longsCount != null) return false;
         if (polys != null ? !polys.equals(that.polys) : that.polys != null) return false;
+        if (polysCount != null ? !polysCount.equals(that.polysCount) : that.polysCount != null) return false;
+        if (references != null ? !references.equals(that.references) : that.references != null) return false;
+        if (referencesCount != null ? !referencesCount.equals(that.referencesCount) : that.referencesCount != null)
+            return false;
+        if (strings != null ? !strings.equals(that.strings) : that.strings != null) return false;
+        if (stringsCount != null ? !stringsCount.equals(that.stringsCount) : that.stringsCount != null) return false;
 
         return true;
     }
@@ -311,5 +373,12 @@ public class RAnyContainer implements Serializable {
                 repo.getPolys().add((RAnyPolyString) value);
             }
         }
+
+        repo.setClobsCount((short) repo.getClobs().size());
+        repo.setStringsCount((short) repo.getStrings().size());
+        repo.setDatesCount((short) repo.getDates().size());
+        repo.setPolysCount((short) repo.getPolys().size());
+        repo.setReferencesCount((short) repo.getReferences().size());
+        repo.setLongsCount((short) repo.getLongs().size());
     }
 }
