@@ -66,6 +66,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -83,6 +84,7 @@ public class PageCreatedReports extends PageAdminReports {
 
     private static final String DOT_CLASS = PageCreatedReports.class.getName() + ".";
     private static final String OPERATION_DELETE = DOT_CLASS + "deleteReportOutput";
+    private static final String OPERATION_DOWNLOAD_REPORT = DOT_CLASS + "downloadReport";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_CREATED_REPORTS_TABLE = "table";
@@ -97,6 +99,7 @@ public class PageCreatedReports extends PageAdminReports {
 
     private IModel<ReportOutputDto> filterModel;
     private IModel<ReportDeleteDialogDto> deleteModel = new Model<ReportDeleteDialogDto>();
+    private ReportOutputType currentReport;
 
     public PageCreatedReports(){
 
@@ -137,7 +140,7 @@ public class PageCreatedReports extends PageAdminReports {
         final AjaxDownloadBehaviorFromStream ajaxDownloadBehavior = new AjaxDownloadBehaviorFromStream() {
 
             @Override
-            protected byte[] initStream() {
+            protected InputStream initStream() {
                 return createReport();
             }
         };
@@ -299,6 +302,7 @@ public class PageCreatedReports extends PageAdminReports {
 
             @Override
             public void firstClicked(AjaxRequestTarget target, IModel<SelectableBean<ReportOutputType>> model){
+                currentReport = model.getObject().getValue();
                 downloadPerformed(target, model.getObject().getValue(), ajaxDownloadBehavior);
             }
 
@@ -500,8 +504,22 @@ public class PageCreatedReports extends PageAdminReports {
         return query;
     }
 
-    private byte[] createReport(){
-        //TODO - create report from ReportType
+    private InputStream createReport(){
+        OperationResult result = new OperationResult(OPERATION_DOWNLOAD_REPORT);
+
+        InputStream reportStream;
+
+        if(currentReport != null){
+
+            try{
+                reportStream = getReportManager().getReportOutputData(currentReport.getOid(), result);
+                return reportStream;
+            } catch (Exception e){
+                error(getString("pageCreatedReports.message.downloadError") + " " + e.getMessage());
+                LoggingUtils.logException(LOGGER, "Couldn't download report.", e);
+            }
+        }
+
         return null;
     }
 
@@ -528,7 +546,7 @@ public class PageCreatedReports extends PageAdminReports {
     private void downloadPerformed(AjaxRequestTarget target, ReportOutputType report,
                                    AjaxDownloadBehaviorFromStream ajaxDownloadBehavior){
 
-        //TODO - run download from file
+        ajaxDownloadBehavior.initiate(target);
     }
 
     private void clearSearchPerformed(AjaxRequestTarget target){
