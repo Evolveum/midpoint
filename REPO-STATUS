@@ -1,6 +1,6 @@
 mvn -P -dist clean install -o
 
-cca. 367k selects
+cca. 305k selects vs. 540k
 
 [INFO] Total time: 52:37.257s
 [INFO] Finished at: Sun Feb 16 16:18:35 CET 2014
