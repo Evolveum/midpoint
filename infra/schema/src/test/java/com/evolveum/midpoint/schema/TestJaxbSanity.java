@@ -313,7 +313,7 @@ public class TestJaxbSanity {
 
         ObjectReferenceType ref = new ObjectReferenceType();
         ref.setOid("1234");
-        ref.setType(ValuePolicyType.F_COMPLEX___TYPE);
+        ref.setType(ValuePolicyType.COMPLEX_TYPE);
 
         configNew.setGlobalPasswordPolicyRef(ref);
         configNew.setGlobalPasswordPolicyRef(null);

@@ -22,12 +22,17 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskListener;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.component.GuiComponents;
+import com.evolveum.midpoint.web.component.atmosphere.NotifyMessage;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.page.error.PageError401;
@@ -147,6 +152,34 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         //ajax push (just an experiment)
         eventBus = new EventBus(this);
         eventBus.getParameters().setLogLevel(AtmosphereLogLevel.DEBUG);
+
+        //enable simple task notifications here
+//        taskManager.registerTaskListener(new TaskListener() {
+//
+//            @Override
+//            public void onTaskStart(Task task) {
+//                EventBus bus = getEventBus();
+//                bus.post(new NotifyMessage("Task start", WebMiscUtil.getOrigStringFromPoly(task.getName()) + " started.",
+//                        OperationResultStatus.SUCCESS));
+//            }
+//
+//            @Override
+//            public void onTaskFinish(Task task, TaskRunResult runResult) {
+//                EventBus bus = getEventBus();
+//                bus.post(new NotifyMessage("Task finish", WebMiscUtil.getOrigStringFromPoly(task.getName()) + " finished.",
+//                        OperationResultStatus.parseStatusType(task.getResultStatus())));
+//            }
+//
+//            @Override
+//            public void onTaskThreadStart(Task task, boolean isRecovering) {
+//
+//            }
+//
+//            @Override
+//            public void onTaskThreadFinish(Task task) {
+//
+//            }
+//        });
 
         //descriptor loader, used for customization
         new DescriptorLoader().loadData(this);

@@ -28,6 +28,10 @@ public class StandardLogger extends LoggerConfiguration{
     public StandardLogger(ClassLoggerConfigurationType config){
         Validate.notNull(config, "Standard logger configuration must not be null.");
 
+        if(config.getPackage() != null && !config.getPackage().isEmpty()){
+           logger = StandardLoggerType.fromValue(config.getPackage());
+        }
+
         setLevel(config.getLevel());
         setAppenders(config.getAppender());
     }
@@ -59,5 +63,14 @@ public class StandardLogger extends LoggerConfiguration{
         type.getAppender().addAll(getAppenders());
 
         return type;
+    }
+
+    public static boolean isStandardLogger(String pkg){
+        for(StandardLoggerType s: StandardLoggerType.values()){
+            if(s.getValue().equals(pkg)){
+                return true;
+            }
+        }
+        return false;
     }
 }

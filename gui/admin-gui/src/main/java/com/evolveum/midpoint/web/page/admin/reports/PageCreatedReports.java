@@ -45,6 +45,7 @@ import com.evolveum.midpoint.web.page.admin.reports.dto.ReportOutputDto;
 import com.evolveum.midpoint.web.page.admin.roles.dto.RolesSearchDto;
 import com.evolveum.midpoint.web.session.ReportsStorage;
 import com.evolveum.midpoint.web.session.RolesStorage;
+import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
@@ -176,11 +177,7 @@ public class PageCreatedReports extends PageAdminReports {
         Form searchForm = new Form(ID_SEARCH_FORM);
         add(searchForm);
 
-        TextField searchText = new TextField(ID_SEARCH_TEXT, new PropertyModel<String>(filterModel,
-                ReportOutputDto.F_TEXT));
-        searchForm.add(searchText);
-
-        AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
+        final AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
                 createStringResource("pageCreatedReports.button.searchButton")) {
 
             @Override
@@ -194,6 +191,11 @@ public class PageCreatedReports extends PageAdminReports {
             }
         };
         searchForm.add(searchButton);
+
+        final TextField searchText = new TextField(ID_SEARCH_TEXT, new PropertyModel<String>(filterModel,
+                ReportOutputDto.F_TEXT));
+        searchText.add(new SearchFormEnterBehavior(searchButton));
+        searchForm.add(searchText);
 
         DropDownChoice filetypeSelect = new DropDownChoice(ID_FILTER_FILE_TYPE,
                 new PropertyModel(filterModel, ReportOutputDto.F_FILE_TYPE),

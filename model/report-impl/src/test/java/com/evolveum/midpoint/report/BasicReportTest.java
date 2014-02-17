@@ -144,7 +144,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	private static final File REPORT_DATASOURCE_TEST = new File(REPORTS_DIR + "/reportDataSourceTest.jrxml");
 	private static final File STYLE_TEMPLATE_DEFAULT = new File(STYLES_DIR	+ "/midpoint_base_styles.jrtx");
 	private static final File REPORT_AUDIT_TEST = new File(REPORTS_DIR + "/reportAuditLogs.jrxml");
-	private static final File RECONCILIATION_REPORT_FILE = new File(REPORTS_DIR + "/reportReconiciliation.xml");
+	private static final File RECONCILIATION_REPORT_FILE = new File(REPORTS_DIR + "/reportReconciliation.xml");
 	private static final File AUDITLOGS_REPORT_FILE = new File(REPORTS_DIR + "/reportAuditLogs.xml");
 	private static final File AUDITLOGS_WITH_DATASOURCE_REPORT_FILE = new File(REPORTS_DIR + "/reportAuditLogs-with-datasource.xml");
 	private static final File USERLIST_REPORT_FILE = new File(REPORTS_DIR + "/reportUserList.xml");
@@ -158,6 +158,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	private static final String TASK_REPORT_OID = "00000000-3333-3333-TASK-10000000000";
 	private static final String AUDITLOGS_REPORT_OID = "AUDITLOG-3333-3333-TEST-10000000000";
 	private static final String RECONCILIATION_REPORT_OID = "RECONCIL-3333-3333-TEST-10000000000";
+	private static final String USERLIST_REPORT_OID = "USERLIST-3333-3333-TEST-10000000000";
 	private static final String AUDITLOGS_DATASOURCE_REPORT_OID = "AUDITLOG-3333-3333-TEST-1DATASOURCE";
 	
 	@Autowired
@@ -215,7 +216,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	private PrismObject<ReportType> getReport(String reportOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		Task task = taskManager.createTaskInstance(GET_REPORT);
         OperationResult result = task.getResult();
-		PrismObject<ReportType> report = modelService.getObject(ReportType.class, reportOid, SelectorOptions.createCollection(GetOperationOptions.createRaw()), task, result);
+		PrismObject<ReportType> report = modelService.getObject(ReportType.class, reportOid, null, task, result);
 		result.computeStatus();
 		TestUtil.assertSuccess("getObject(Report) result not success", result);
 		return report;
@@ -233,10 +234,9 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	private List<PrismObject<ReportOutputType>> searchReportOutput(String reportOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		Task task = taskManager.createTaskInstance(SEARCH_REPORT_OUTPUT);
         OperationResult result = task.getResult();
-        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
         ObjectFilter filter = RefFilter.createReferenceEqual(ReportOutputType.F_REPORT_REF, ReportOutputType.class, prismContext, reportOid);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-		List<PrismObject<ReportOutputType>> reportOutputList = modelService.searchObjects(ReportOutputType.class, query, options, task, result);
+		List<PrismObject<ReportOutputType>> reportOutputList = modelService.searchObjects(ReportOutputType.class, query, null, task, result);
 		result.computeStatus();
 		TestUtil.assertSuccess("getObject(Report) result not success", result);
 		return reportOutputList;
@@ -1126,7 +1126,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	       session.getTransaction().commit();
 	       session.close();			
 		}*/
-			
+
 		@Test 
 		public void test013CreateAuditLogsReportFromFile() throws Exception {
 			
@@ -1204,49 +1204,73 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			
 		}*/
 		
-		/*
+		
 		@Test 
 		public void test015CreateUserListReportFromFile() throws Exception {
 			
 			final String TEST_NAME = "test015CreateUserListReportFromFile";
 	        TestUtil.displayTestTile(this, TEST_NAME);
-		
+	
 	        // GIVEN
-			Task task = taskManager.createTaskInstance(CREATE_USERLIST_REPORT_FROM_FILE);
+	        Task task = createTask(CREATE_USERLIST_REPORT_FROM_FILE);
 			OperationResult result = task.getResult();
-			/*
-			// GIVEN
-			OperationResult subResult = result.createSubresult("Create ");
-						
-						
-						FileInputStream stream = new FileInputStream(USERLIST_REPORT_FILE);
-						
-						//WHEN 	
-						TestUtil.displayWhen(TEST_NAME);
-						modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
-
-						// THEN
-						result.computeStatus();
-						display("Result after good import", result);
-						TestUtil.assertSuccess("Import has failed (result)", result);	
-						
 			
-			*/
-		/*
-			FileInputStream stream = new FileInputStream(USERLIST_REPORT_FILE);
+			//WHEN IMPORT ROLES 	
+			TestUtil.displayWhen(TEST_NAME + " - import subreport roles");			
+			importObjectFromFile(USERROLES_REPORT_FILE);
 			
-			//WHEN 	
-			TestUtil.displayWhen(TEST_NAME);
-			modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
+			// THEN
+			result.computeStatus();
+			display("Result after good import", result);
+			TestUtil.assertSuccess("Import has failed (result)", result);
+			
+			//WHEN INMPORT ORGS
+			TestUtil.displayWhen(TEST_NAME + " - import subreport orgs");			
+			importObjectFromFile(USERORGS_REPORT_FILE);
 
 			// THEN
 			result.computeStatus();
 			display("Result after good import", result);
-			TestUtil.assertSuccess("Import has failed (result)", result);	
+			TestUtil.assertSuccess("Import has failed (result)", result);
+
+			//WHEN IMPORT ACCOUNTS
+			TestUtil.displayWhen(TEST_NAME + " - import subreport accounts");			
+			importObjectFromFile(USERACCOUNTS_REPORT_FILE);
+
+			// THEN
+			result.computeStatus();
+			display("Result after good import", result);
+			TestUtil.assertSuccess("Import has failed (result)", result);
 			
-		}		*/
-		
-	/*
+			//WHEN IMPORT USER LIST
+			TestUtil.displayWhen(TEST_NAME + " - import report user list");			
+			importObjectFromFile(USERLIST_REPORT_FILE);
+
+			// THEN
+			result.computeStatus();
+			display("Result after good import", result);
+			TestUtil.assertSuccess("Import has failed (result)", result);
+			
+
+			ReportType reportType = getReport(USERLIST_REPORT_OID).asObjectable();
+			
+			//WHEN 	
+			TestUtil.displayWhen(TEST_NAME);
+			reportManager.runReport(reportType.asPrismObject(), task, result);
+			
+			// THEN
+	        TestUtil.displayThen(TEST_NAME);
+	        
+	        waitForTaskFinish(task.getOid(), false, 75000);
+	        
+	     // Task result
+	        PrismObject<TaskType> reportTaskAfter = getTask(task.getOid());
+	        OperationResultType reportTaskResult = reportTaskAfter.asObjectable().getResult();
+	        display("Report task result", reportTaskResult);
+	        TestUtil.assertSuccess(reportTaskResult);
+	
+		}				
+
 		@Test 
 		public void test016CreateReconciliationReportFromFile() throws Exception {
 			
@@ -1258,7 +1282,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			OperationResult result = task.getResult();
 			
 			//WHEN 	
-			TestUtil.displayWhen(TEST_NAME);
+			TestUtil.displayWhen(TEST_NAME);			
 			importObjectFromFile(RECONCILIATION_REPORT_FILE);
 
 			// THEN
@@ -1284,7 +1308,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	        TestUtil.assertSuccess(reportTaskResult);
 		}
 		
-*/		
+	
 		@Test 
 		public void test017GetReportData() throws Exception {
 			

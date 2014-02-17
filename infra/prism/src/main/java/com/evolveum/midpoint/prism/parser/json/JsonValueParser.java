@@ -70,6 +70,18 @@ public class JsonValueParser<T> implements ValueParser<T> {
 	}
 	
 	@Override
+	public boolean isEmpty() {
+		// TODO
+		throw new UnsupportedOperationException("TODO");
+	}
+
+	@Override
+	public String getStringValue() {
+		// TODO
+		throw new UnsupportedOperationException("TODO");
+	}
+
+	@Override
 	public String toString() {
 		return "JsonValueParser(JSON value: token: "+node+")";
 	}

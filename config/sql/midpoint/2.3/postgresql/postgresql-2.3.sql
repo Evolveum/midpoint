@@ -423,22 +423,22 @@
         configurationSchema text,
         dataSource_providerClass varchar(255),
         dataSource_springBean boolean,
+        export int4,
+        field text,
         name_norm varchar(255),
         name_orig varchar(255),
+        orientation int4,
         parent boolean,
-        reportExport int4,
-        reportFields text,
-        reportOrientation int4,
-        reportTemplate text,
-        reportTemplateStyle text,
-        subReport text,
+        subreport text,
+        template text,
+        templateStyle text,
         useHibernateSession boolean,
         id int8 not null,
         oid varchar(36) not null,
         primary key (id, oid),
         unique (name_norm)
     );
-
+	
     create table m_report_output (
         name_norm varchar(255),
         name_orig varchar(255),

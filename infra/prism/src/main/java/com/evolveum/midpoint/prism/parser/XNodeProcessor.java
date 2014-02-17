@@ -747,6 +747,6 @@ public class XNodeProcessor {
 	}
 
 	public XNodeSerializer createSerializer() {
-		return new XNodeSerializer(prismContext.getBeanConverter());
+		return new XNodeSerializer(PrismUtil.getBeanConverter(prismContext));
 	}
 }

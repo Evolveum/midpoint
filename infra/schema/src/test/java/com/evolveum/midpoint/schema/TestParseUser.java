@@ -72,7 +72,8 @@ public class TestParseUser {
 	
 	@Test
 	public void testParseUserFile() throws Exception {
-		System.out.println("===[ testParseUserFile ]===");
+		final String TEST_NAME = "testParseUserFile";
+		PrismTestUtil.displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
@@ -88,8 +89,9 @@ public class TestParseUser {
 	}
 
 	@Test
-	public void testParseUserDom() throws SchemaException {
-		System.out.println("===[ testParseUserDom ]===");
+	public void testParseUserDom() throws Exception {
+		final String TEST_NAME = "testParseUserDom";
+		PrismTestUtil.displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
@@ -108,21 +110,29 @@ public class TestParseUser {
 	}
 
 	@Test
-	public void testPrismParseJaxb() throws JAXBException, SchemaException, SAXException, IOException {
-		System.out.println("===[ testPrismParseJaxb ]===");
+	public void testPrismParseJaxb() throws Exception {
+		final String TEST_NAME = "testPrismParseJaxb";
+		PrismTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
+		JaxbTestUtil jaxbUtil = PrismTestUtil.getJaxbUtil();
 		
 		// WHEN
-		UserType userType = jaxbProcessor.unmarshalObject(USER_FILE, UserType.class);
+		UserType userType = jaxbUtil.unmarshalObject(USER_FILE, UserType.class);
+		
+		System.out.println("Parsed user (before adopt):");
+		System.out.println(userType.asPrismObject().debugDump());
+		
+		prismContext.adopt(userType);
 		
 		// THEN
-		System.out.println("Parsed user:");
+		System.out.println("Parsed user (after adopt):");
 		System.out.println(userType.asPrismObject().debugDump());
 		
 		assertUser(userType.asPrismObject());
+		
+		userType.asPrismObject().checkConsistence(true, true);
 	}
 	
 	/**
@@ -130,8 +140,9 @@ public class TestParseUser {
 	 * the actual type.
 	 */
 	@Test
-	public void testPrismParseJaxbObjectType() throws JAXBException, SchemaException, SAXException, IOException {
-		System.out.println("===[ testPrismParseJaxbObjectType ]===");
+	public void testPrismParseJaxbObjectType() throws Exception {
+		final String TEST_NAME = "testPrismParseJaxbObjectType";
+		PrismTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
@@ -140,8 +151,13 @@ public class TestParseUser {
 		// WHEN
 		ObjectType userType = jaxbProcessor.unmarshalObject(USER_FILE, ObjectType.class);
 		
+		System.out.println("Parsed user (before adopt):");
+		System.out.println(userType.asPrismObject().debugDump());
+		
+		prismContext.adopt(userType);
+		
 		// THEN
-		System.out.println("Parsed user:");
+		System.out.println("Parsed user (after adopt):");
 		System.out.println(userType.asPrismObject().debugDump());
 		
 		assertUser(userType.asPrismObject());
@@ -151,8 +167,9 @@ public class TestParseUser {
 	 * Parsing in form of JAXBELement
 	 */
 	@Test
-	public void testPrismParseJaxbElement() throws JAXBException, SchemaException, SAXException, IOException {
-		System.out.println("===[ testPrismParseJaxbElement ]===");
+	public void testPrismParseJaxbElement() throws Exception {
+		final String TEST_NAME = "testPrismParseJaxbElement";
+		PrismTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
@@ -162,8 +179,13 @@ public class TestParseUser {
 		JAXBElement<UserType> jaxbElement = jaxbProcessor.unmarshalElement(USER_FILE, UserType.class);
 		UserType userType = jaxbElement.getValue();
 		
+		System.out.println("Parsed user (before adopt):");
+		System.out.println(userType.asPrismObject().debugDump());
+		
+		prismContext.adopt(userType);
+		
 		// THEN
-		System.out.println("Parsed user:");
+		System.out.println("Parsed user (after adopt):");
 		System.out.println(userType.asPrismObject().debugDump());
 		
 		assertUser(userType.asPrismObject());
@@ -173,8 +195,9 @@ public class TestParseUser {
 	 * Parsing in form of JAXBELement, with declared ObjectType
 	 */
 	@Test
-	public void testPrismParseJaxbElementObjectType() throws JAXBException, SchemaException, SAXException, IOException {
-		System.out.println("===[ testPrismParseJaxbElementObjectType ]===");
+	public void testPrismParseJaxbElementObjectType() throws Exception {
+		final String TEST_NAME = "testPrismParseJaxbElementObjectType";
+		PrismTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
@@ -184,11 +207,16 @@ public class TestParseUser {
 		JAXBElement<ObjectType> jaxbElement = jaxbProcessor.unmarshalElement(USER_FILE, ObjectType.class);
 		ObjectType userType = jaxbElement.getValue();
 		
-		// THEN
-		System.out.println("Parsed user:");
+		System.out.println("Parsed user (before adopt):");
 		System.out.println(userType.asPrismObject().debugDump());
 		
-		assertUser(userType.asPrismObject());
+		prismContext.adopt(userType);
+		
+		// THEN
+		System.out.println("Parsed user (after adopt):");
+		System.out.println(userType.asPrismObject().debugDump());
+		
+		assertUser(userType.asPrismObject());		
 	}
 
 	
@@ -196,6 +224,8 @@ public class TestParseUser {
 		user.checkConsistence();
 		assertUserPrism(user);
 		assertUserJaxb(user.asObjectable());
+		
+		user.checkConsistence(true, true);
 	}
 
 	private void assertUserPrism(PrismObject<UserType> user) {
@@ -248,6 +278,7 @@ public class TestParseUser {
 		PrismContainer<Containerable> assignmentExtensionContainer = firstAssignmentValue.findContainer(AssignmentType.F_EXTENSION);
 		PrismAsserts.assertDefinition(assignmentExtensionContainer.getDefinition(), AssignmentType.F_EXTENSION, ExtensionType.COMPLEX_TYPE, 0, 1);
 		List<Item<?>> assignmentExtensionItems = assignmentExtensionContainer.getValue().getItems();
+		assertNotNull("No assignment extension items", assignmentExtensionItems);
 		assertEquals("Wrong number of assignment extension items", 1, assignmentExtensionItems.size());
 		PrismProperty<String> firstAssignmentExtensionItem = (PrismProperty<String>) assignmentExtensionItems.get(0);
 		PrismAsserts.assertDefinition(firstAssignmentExtensionItem.getDefinition(), EXTENSION_INT_TYPE_ELEMENT, DOMUtil.XSD_INT, 0, -1);

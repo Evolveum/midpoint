@@ -56,6 +56,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserListItemDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.session.ResourceContentStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
@@ -191,10 +192,6 @@ public class PageContentAccounts extends PageAdminResources {
         Form searchForm = new Form(ID_SEARCH_FORM);
         add(searchForm);
 
-        TextField searchText = new TextField(ID_SEARCH_TEXT,
-                new PropertyModel(model, AccountContentSearchDto.F_SEARCH_TEXT));
-        searchForm.add(searchText);
-
         CheckBox nameCheck = new CheckBox(ID_NAME_CHECK, new PropertyModel(model, AccountContentSearchDto.F_NAME));
         searchForm.add(nameCheck);
 
@@ -202,7 +199,7 @@ public class PageContentAccounts extends PageAdminResources {
                 new PropertyModel(model, AccountContentSearchDto.F_IDENTIFIERS));
         searchForm.add(identifiersCheck);
 
-        AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
+        final AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
                 createStringResource("pageContentAccounts.search")) {
 
             @Override
@@ -211,6 +208,12 @@ public class PageContentAccounts extends PageAdminResources {
             }
         };
         searchForm.add(searchButton);
+
+        final TextField searchText = new TextField(ID_SEARCH_TEXT,
+                new PropertyModel(model, AccountContentSearchDto.F_SEARCH_TEXT));
+        searchText.add(new SearchFormEnterBehavior(searchButton));
+        searchForm.add(searchText);
+
 
         AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {
 

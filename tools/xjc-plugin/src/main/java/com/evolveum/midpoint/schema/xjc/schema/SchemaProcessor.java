@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.xjc.*;
 import com.evolveum.midpoint.schema.xjc.PrefixMapper;
 import com.evolveum.midpoint.schema.xjc.Processor;
+import com.evolveum.midpoint.util.Holder;
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.model.CClassInfo;
@@ -34,8 +35,10 @@ import com.sun.xml.xsom.XSElementDecl;
 import com.sun.xml.xsom.XSSchema;
 import com.sun.xml.xsom.XSSchemaSet;
 import com.sun.xml.xsom.XSType;
+
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang.mutable.MutableBoolean;
 import org.jvnet.jaxb2_commons.lang.HashCode;
 import org.w3c.dom.Element;
 import org.xml.sax.ErrorHandler;
@@ -43,6 +46,11 @@ import org.xml.sax.SAXException;
 
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.Map.Entry;
@@ -143,7 +151,7 @@ public class SchemaProcessor implements Processor {
             createClassMap(CLASS_MAP, outline, PrismReferenceValue.class, PrismReference.class, PrismObject.class,
                     String.class, Object.class, XmlTransient.class, Override.class, IllegalArgumentException.class,
                     QName.class, PrismForJAXBUtil.class, PrismReferenceArrayList.class, PrismContainerValue.class,
-                    List.class, Objectable.class, StringBuilder.class, XmlAccessorType.class, XmlElement.class,
+                    List.class, Objectable.class, StringBuilder.class, XmlAccessorType.class, XmlElement.class, XmlType.class,
                     XmlAttribute.class, XmlAnyAttribute.class, XmlAnyElement.class, PrismContainer.class, Equals.class,
                     PrismContainerArrayList.class, HashCode.class, PrismContainerDefinition.class, Containerable.class);
 
@@ -334,7 +342,7 @@ public class SchemaProcessor implements Processor {
             //create setContainer
             createSetContainerValueMethod(definedClass, containerValue);
 
-            System.out.println("Creating toString, equals, hashCode methods.");
+//            System.out.println("Creating toString, equals, hashCode methods.");
             //create toString, equals, hashCode
             createToStringMethod(definedClass, METHOD_AS_PRISM_CONTAINER_VALUE);
             createEqualsMethod(classOutline, METHOD_AS_PRISM_CONTAINER_VALUE);
@@ -447,22 +455,51 @@ public class SchemaProcessor implements Processor {
             JDefinedClass definedClass = classOutline.implClass;
             List<JAnnotationUse> existingAnnotations = (List<JAnnotationUse>) getAnnotations(definedClass);
             for (JAnnotationUse annotation : existingAnnotations) {
-                if (!isAnnotationTypeOf(annotation, XmlAccessorType.class)) {
-                    continue;
+                if (isAnnotationTypeOf(annotation, XmlAccessorType.class)) {
+	                Field field = getField(JAnnotationUse.class, "memberValues");
+	                field.setAccessible(true);
+	                Map<String, Object> map = (Map<String, Object>) field.get(annotation);
+	                field.setAccessible(false);	
+	                map.clear();
+	                annotation.param("value", XmlAccessType.PROPERTY);
                 }
-
-                Field field = getField(JAnnotationUse.class, "memberValues");
-                field.setAccessible(true);
-                Map<String, Object> map = (Map<String, Object>) field.get(annotation);
-                field.setAccessible(false);
-
-                map.clear();
-                annotation.param("value", XmlAccessType.PROPERTY);
-                break;
+                if (isAnnotationTypeOf(annotation, XmlType.class)) {
+	                Field field = getField(JAnnotationUse.class, "memberValues");
+	                field.setAccessible(true);
+	                Map<String, Object> map = (Map<String, Object>) field.get(annotation);
+	                Object propOrder = map.get("propOrder");
+	                if (propOrder != null) {
+	                	JAnnotationArrayMember paramArray = (JAnnotationArrayMember)propOrder;
+	                	Field valField = getField(JAnnotationArrayMember.class, "values");
+	                	valField.setAccessible(true);
+	                	List<JAnnotationValue> values = (List<JAnnotationValue>) valField.get(paramArray);
+	                	for (int i=0; i < values.size(); i++) {
+	                		JAnnotationValue jAnnValue = values.get(i);
+							String value = extractString(jAnnValue);
+							if (value.startsWith("_")) {
+								paramArray.param(value.substring(1));
+								values.set(i, values.get(values.size() - 1));
+								values.remove(values.size() - 1);
+							}
+							String valAfter = extractString(values.get(i));
+//							System.out.println("PPPPPPPPPPPPPPPPPPP: "+value+" -> "+valAfter);
+	                	}
+	                	valField.setAccessible(false);
+	                }
+	                field.setAccessible(false);	
+                }
             }
         } catch (Exception ex) {
             throw new RuntimeException(ex.getMessage(), ex);
         }
+    }
+    
+    private String extractString(JAnnotationValue jAnnValue) {
+    	StringWriter writer = new StringWriter();
+		JFormatter formatter = new JFormatter(writer);
+		jAnnValue.generate(formatter);
+		String value = writer.getBuffer().toString();
+		return value.substring(1, value.length() - 1);
     }
 
     private boolean isAnnotationTypeOf(JAnnotationUse annotation, Class clazz) {
@@ -859,9 +896,9 @@ public class SchemaProcessor implements Processor {
 
             List<FieldBox<QName>> boxes = new ArrayList<FieldBox<QName>>();
             for (Entry<String, JFieldVar> fieldEntry : fields.entrySet()) {
-                String field = fieldEntry.getKey();
-                if (isObject && ("serialVersionUID".equals(field) || "oid".equals(field) || "version".equals(field)
-                        || "id".equals(field) || COMPLEX_TYPE_FIELD_NAME.equals(field))) {
+                String field = normalizeFieldName(fieldEntry.getKey());
+                if ((isObject && ("oid".equals(field) || "version".equals(field)) ||
+                		"serialVersionUID".equals(field) || "id".equals(field) || COMPLEX_TYPE_FIELD_NAME.equals(field))) {
                     continue;
                 }
 
@@ -884,7 +921,7 @@ public class SchemaProcessor implements Processor {
         }
     }
 
-    private void updateFields(Outline outline) {
+	private void updateFields(Outline outline) {
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
             ClassOutline classOutline = outline.getClazz(entry.getValue());
@@ -900,7 +937,7 @@ public class SchemaProcessor implements Processor {
             updateClassAnnotation(classOutline);
             boolean isObject = hasAnnotation(classOutline, A_PRISM_OBJECT);
 
-            System.out.println("Updating fields and get/set methods: " + classOutline.implClass.fullName());
+//            System.out.println("Updating fields and get/set methods: " + classOutline.implClass.fullName());
 
             List<JFieldVar> fieldsToBeRemoved = new ArrayList<JFieldVar>();
             for (String field : fields.keySet()) {
@@ -1398,6 +1435,23 @@ public class SchemaProcessor implements Processor {
     private void createContainerFieldGetterBody(JFieldVar field, ClassOutline classOutline, JMethod method) {
         JBlock body = method.body();
 
+        List<JAnnotationUse> existingAnnotations = (List<JAnnotationUse>) getAnnotations(method);
+        for (JAnnotationUse annotation : existingAnnotations) {
+            if (isAnnotationTypeOf(annotation, XmlElement.class)) {
+                Field mfield = getField(JAnnotationUse.class, "memberValues");
+                mfield.setAccessible(true);
+                Map<String, Object> map;
+				try {
+					map = (Map<String, Object>) mfield.get(annotation);
+				} catch (IllegalArgumentException | IllegalAccessException e) {
+					throw new RuntimeException(e.getMessage(), e);
+				}
+                mfield.setAccessible(false);	
+                map.remove("name");
+                annotation.param("name", normalizeFieldName(field.name()));
+            }
+        }
+        
         if (isList(field.type())) {
             JClass list = (JClass) field.type();
             JClass listType = list.getTypeParameters().get(0);
@@ -1426,30 +1480,6 @@ public class SchemaProcessor implements Processor {
         invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
         invocation.arg(JExpr.dotclass((JClass) field.type()));
         body._return(invocation);
-
-//        JVar container;
-//        if (isPrismContainer(method.type(), classOutline.parent())) {
-//            //handle PrismObject
-//            JInvocation invocation = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_GET_FIELD_CONTAINER_VALUE);
-//            invocation.arg(JExpr.invoke(METHOD_PRISM_UTIL_GET_FIELD_CONTAINER_VALUE));
-//            invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
-//            invocation.arg(JExpr.dotclass(CLASS_MAP.get(PrismObject.class)));
-//
-//            container = body.decl(CLASS_MAP.get(PrismObject.class), CONTAINER_FIELD_NAME, invocation);
-//        } else {
-//            //handle PrismContainerValue
-//            JInvocation invocation = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_GET_FIELD_CONTAINER_VALUE);
-//            invocation.arg(JExpr.invoke(METHOD_AS_PRISM_CONTAINER_VALUE));
-//            invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
-//
-//            container = body.decl(CLASS_MAP.get(PrismContainerValue.class), CONTAINER_FIELD_NAME, invocation);
-//        }
-//        JBlock then = body._if(container.eq(JExpr._null()))._then();
-//        then._return(JExpr._null());
-//        JVar wrapper = body.decl(field.type(), field.name(), JExpr._new(field.type()));
-//        JInvocation invocation = body.invoke(wrapper, METHOD_SET_CONTAINER);
-//        invocation.arg(container);
-//        body._return(wrapper);
     }
 
     private boolean isPrismContainer(JType type, Outline outline) {
@@ -1575,4 +1605,5 @@ public class SchemaProcessor implements Processor {
 
         body._return(invocation);
     }
+
 }

@@ -3952,6 +3952,9 @@
                 This part defines native and configured capabilities. The effective capabilities of the resource
                 are determined by application of configured capabilities to native capabilities.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element ref="tns:cachingMetadata" minOccurs="0">
@@ -4002,6 +4005,9 @@
                 a closed set. Resource may also specify additional capabilities. If the code that is processing
                 capabilities encounters unknown capability it must ignore it.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
 <!--          <xsd:element name="cap" type="cap:CapabilityType" minOccurs="0" maxOccurs="unbounded"> -->
@@ -8727,13 +8733,13 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="nameReportField" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="nameHeaderField" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="itemPathField" type="t:ItemPathType" minOccurs="0"/>
+            <xsd:element name="nameReport" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="nameHeader" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="itemPath" type="t:XPathType" minOccurs="0"/>
             <xsd:element name="sortOrderNumber" type="xsd:int" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="sortOrder" type="q:OrderDirectionType" minOccurs="0" maxOccurs="1"/>  
-            <xsd:element name="widthField" type="xsd:int" minOccurs="0" maxOccurs="1" />
-            <xsd:element name="classTypeField" type="xsd:QName" minOccurs="0" maxOccurs="1"/>   
+            <xsd:element name="width" type="xsd:int" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="classType" type="xsd:QName" minOccurs="0" maxOccurs="1"/>   
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="reportFieldConfiguration" type="tns:ReportFieldConfigurationType"/>
@@ -8769,7 +8775,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="SubReportType">
+    <xsd:complexType name="SubreportType">
         <xsd:sequence>
             <xsd:element name="name" type="xsd:string"/>
             <xsd:element name="reportRef" type="tns:ObjectReferenceType"/>
@@ -8786,7 +8792,7 @@
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
                     <xsd:element name="parent" type="xsd:boolean" default="true" minOccurs="0"/>
-                    <xsd:element name="subReport" type="tns:SubReportType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="subreport" type="tns:SubreportType" minOccurs="0" maxOccurs="unbounded"/>
                    	<xsd:element name="template" type="tns:ReportTemplateType" minOccurs="0"/>
                 	<xsd:element name="templateStyle" type="tns:ReportTemplateStyleType" minOccurs="0"/>
                     <xsd:element name="orientation" type="tns:OrientationType" minOccurs="0">
@@ -8805,7 +8811,7 @@
                     </xsd:element>
                     <xsd:element name="useHibernateSession" type="xsd:boolean" default="false" minOccurs="0"/>
                     <xsd:element name="dataSource" type="tns:DataSourceType" minOccurs="0"/>
-            		<xsd:element name="reportField" type="tns:ReportFieldConfigurationType" minOccurs="0" maxOccurs="unbounded">
+            		<xsd:element name="field" type="tns:ReportFieldConfigurationType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Columns user definition. Name, type, report field, column name.

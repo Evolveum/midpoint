@@ -16,6 +16,9 @@
 
 package com.evolveum.midpoint.web.component.atmosphere;
 
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
+
 import java.io.Serializable;
 
 /**
@@ -23,25 +26,35 @@ import java.io.Serializable;
  */
 public class NotifyMessage implements Serializable {
 
-    public static enum Type {INFO, SUCCESS, WARN, ERROR}
+    public static enum MessageType {INFO, SUCCESS, WARNING, DANGER}
 
     private String title;
     private String message;
-    private Type type;
+
+    private OperationResultStatus type;
+    private MessageType messageType;
+
     private String icon;
 
     public NotifyMessage(String title, String message) {
-        this(title, message, Type.INFO);
+        this(title, message, OperationResultStatus.SUCCESS);
     }
 
-    public NotifyMessage(String title, String message, Type type) {
+    public NotifyMessage(String title, String message, OperationResultStatus type) {
         this(title, message, type, null);
     }
 
-    public NotifyMessage(String title, String message, Type type, String icon) {
+    public NotifyMessage(String title, String message, OperationResultStatus type, String icon) {
         this.title = title;
         this.message = message;
         this.type = type;
+        this.icon = icon;
+    }
+
+    public NotifyMessage(String title, String message, MessageType type, String icon) {
+        this.title = title;
+        this.message = message;
+        this.messageType = type;
         this.icon = icon;
     }
 
@@ -53,9 +66,31 @@ public class NotifyMessage implements Serializable {
         return message;
     }
 
-    public Type getType() {
+    public MessageType getMessageType() {
+        if (messageType != null) {
+            return messageType;
+        }
+
+        switch (getType()) {
+            case FATAL_ERROR:
+            case PARTIAL_ERROR:
+                return MessageType.DANGER;
+            case IN_PROGRESS:
+            case NOT_APPLICABLE:
+                return MessageType.INFO;
+            case SUCCESS:
+                return MessageType.SUCCESS;
+            case UNKNOWN:
+            case WARNING:
+            case HANDLED_ERROR:
+            default:
+                return MessageType.WARNING;
+        }
+    }
+
+    public OperationResultStatus getType() {
         if (type == null) {
-            return Type.INFO;
+            return OperationResultStatus.UNKNOWN;
         }
         return type;
     }
@@ -65,16 +100,21 @@ public class NotifyMessage implements Serializable {
             return icon;
         }
 
-        switch (getType()) {
-            case SUCCESS:
-                return "silk-accept";
-            case WARN:
-                return "silk-error";
-            case ERROR:
-                return "silk-exclamation";
-            case INFO:
-            default:
-                return "silk-information";
-        }
+        return OperationResultStatusIcon.parseOperationalResultStatus(type).getIcon();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("NotifyMessage{");
+        sb.append("title='").append(title).append('\'');
+        sb.append(", message='").append(message).append('\'');
+        sb.append(", type=").append(type);
+        sb.append(", messageType=").append(messageType);
+        sb.append(", icon='").append(icon).append('\'');
+        sb.append('}');
+
+        return sb.toString();
     }
 }

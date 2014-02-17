@@ -54,6 +54,11 @@ public class RootXNode extends XNode {
 	}
 
 	@Override
+	public boolean isEmpty() {
+		return (subnode == null);
+	}
+
+	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);

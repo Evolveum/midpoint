@@ -31,6 +31,7 @@ import com.sun.xml.xsom.XSComponent;
 import com.sun.xml.xsom.XSParticle;
 
 import javax.xml.namespace.QName;
+
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -43,7 +44,7 @@ public final class ProcessorUtils {
     }
 
     public static String fieldFPrefixUnderscoredUpperCase(String fieldName) {
-        return "F_" + fieldUnderscoredUpperCase(fieldName);
+        return "F_" + fieldUnderscoredUpperCase(normalizeFieldName(fieldName));
     }
 
     public static String fieldPrefixedUnderscoredUpperCase(String fieldName, QName qname) {
@@ -284,4 +285,12 @@ public final class ProcessorUtils {
 
         return classOutline;
     }
+    
+    public static String normalizeFieldName(String fieldName) {
+		if (fieldName.startsWith("_")) {
+			return fieldName.substring(1);
+		} else {
+			return fieldName;
+		}
+	}
 }

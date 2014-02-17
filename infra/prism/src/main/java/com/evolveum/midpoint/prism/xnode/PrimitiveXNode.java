@@ -42,6 +42,8 @@ public class PrimitiveXNode<T> extends XNode {
 	public void parseValue(QName typeName) throws SchemaException {
 		if (valueParser != null) {
 			value = valueParser.parse(typeName);
+			// Necessary. It marks that the value is parsed. It also frees some memory.
+			valueParser = null;
 		}
 	}
 	
@@ -69,7 +71,7 @@ public class PrimitiveXNode<T> extends XNode {
 	}
 	
 	public boolean isParsed() {
-		return value != null;
+		return valueParser == null;
 	}
 
 	public boolean isAttribute() {
@@ -81,6 +83,9 @@ public class PrimitiveXNode<T> extends XNode {
 	}
 	
 	public boolean isEmpty() {
+		if (!isParsed()) {
+			return valueParser.isEmpty();
+		}
 		if (value == null) {
 			return true;
 		}
@@ -145,6 +150,29 @@ public class PrimitiveXNode<T> extends XNode {
 		} else {
 			sb.append(PrettyPrinter.prettyPrint(value));
 			sb.append(" (").append(value.getClass()).append(")");
+		}
+	}
+
+	/**
+	 * Returns the value represented as string - in the best format that we can.
+	 * There is no guarantee that the returned value will be precise.
+	 * This method is used as a "last instance" if everything else fails.
+	 * Invocation of this method will not change the state of this xnode, e.g.
+	 * it will NOT cause it to be parsed.
+	 */
+	public String getStringValue() {
+		if (isParsed()) {
+			if (getTypeQName() != null) {
+				return getFormattedValue();
+			} else {
+				if (value == null) {
+					return null;
+				} else {
+					return value.toString();
+				}
+			}
+		} else {
+			return valueParser.getStringValue();
 		}
 	}
 

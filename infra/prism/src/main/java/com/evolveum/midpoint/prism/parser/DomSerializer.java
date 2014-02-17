@@ -135,6 +135,9 @@ public class DomSerializer {
 	}
 	
 	private void serializeSubnode(XNode xsubnode, Element parentElement, QName elementName) throws SchemaException {
+		if (xsubnode == null) {
+			return;
+		}
 		if (xsubnode instanceof MapXNode) {
 			Element element = createElement(elementName);
 			parentElement.appendChild(element);
@@ -175,7 +178,25 @@ public class DomSerializer {
 
 	private void serializePrimitiveElement(PrimitiveXNode<?> xprim, Element parentElement, QName elementName) {
 		QName typeQName = xprim.getTypeQName();
-		if (typeQName.equals(ItemPath.XSD_TYPE)) {
+		if (typeQName == null) {
+			if (PrismContext.isAllowSchemalessSerialization()) {
+				// We cannot correctly serialize without a type. But this is needed
+				// sometimes. So just default to string
+				String stringValue = xprim.getStringValue();
+				if (stringValue != null) {
+					Element element;
+					try {
+						element = createElement(elementName);
+					} catch (DOMException e) {
+						throw new DOMException(e.code, e.getMessage() + "; creating element "+elementName+" in element "+DOMUtil.getQName(parentElement));
+					}
+					parentElement.appendChild(element);
+					element.setTextContent(stringValue);
+				}
+			} else {
+				throw new IllegalStateException("No type for primitive element "+elementName+", cannot serialize (schemaless serialization is disabled)");
+			}
+		} else  if (typeQName.equals(ItemPath.XSD_TYPE)) {
     		ItemPath itemPath = (ItemPath)xprim.getValue();
     		XPathHolder holder = new XPathHolder(itemPath);
     		Element element = holder.toElement(elementName, parentElement.getOwnerDocument());

@@ -217,6 +217,14 @@ public class DomParser implements Parser {
 				return parsePrimitiveElementValue(element, typeName);
 			}
 			@Override
+			public boolean isEmpty() {
+				return DOMUtil.isEmpty(element);
+			}
+			@Override
+			public String getStringValue() {
+				return element.getTextContent();
+			}
+			@Override
 			public String toString() {
 				return "ValueParser(DOMe, "+PrettyPrinter.prettyPrint(DOMUtil.getQName(element))+": "+element.getTextContent()+")";
 			}
@@ -241,6 +249,14 @@ public class DomParser implements Parser {
 			@Override
 			public T parse(QName typeName) throws SchemaException {
 				return parsePrimitiveAttrValue(attr, typeName);
+			}
+			@Override
+			public boolean isEmpty() {
+				return DOMUtil.isEmpty(attr);
+			}
+			@Override
+			public String getStringValue() {
+				return attr.getValue();
 			}
 			@Override
 			public String toString() {

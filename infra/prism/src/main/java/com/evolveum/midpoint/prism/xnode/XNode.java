@@ -20,6 +20,9 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
+
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Transformer;
 
@@ -107,6 +110,8 @@ public abstract class XNode implements DebugDumpable {
 	public void setMaxOccurs(Integer maxOccurs) {
 		this.maxOccurs = maxOccurs;
 	}
+	
+	public abstract boolean isEmpty();
 
 	public boolean isExplicitTypeDeclaration() {
 		return explicitTypeDeclaration;
@@ -152,11 +157,6 @@ public abstract class XNode implements DebugDumpable {
 		return debugDump(0);
 	}
 
-//	@Override
-	public String dump() {
-		return debugDump();
-	}
-	
 	public abstract String getDesc();
 	
 	protected String dumpSuffix() {

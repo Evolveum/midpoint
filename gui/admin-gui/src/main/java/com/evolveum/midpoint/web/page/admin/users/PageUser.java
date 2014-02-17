@@ -88,6 +88,7 @@ import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
 import org.apache.wicket.request.resource.ContextRelativeResource;
 import org.apache.wicket.request.resource.PackageResourceReference;
+import org.apache.wicket.util.lang.Bytes;
 import org.apache.wicket.util.string.StringValue;
 
 import javax.xml.namespace.QName;
@@ -241,8 +242,9 @@ public class PageUser extends PageAdminUsers {
 
     private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
-        add(mainForm);
+        mainForm.setMaxSize(Bytes.kilobytes(512));
         mainForm.setMultiPart(true);
+        add(mainForm);
 
         initSummaryInfo(mainForm);
 

@@ -148,7 +148,7 @@ public abstract class AbstractParserTest {
 		// WHEN (parse)
 		XNode xnode = parser.parse(getFile(USER_JACK_FILE_BASENAME));
 		System.out.println("\nParsed xnode:");
-		System.out.println(xnode.dump());
+		System.out.println(xnode.debugDump());
 		PrismObject<UserType> user = processor.parseObject(xnode);
 		
 		// THEN
@@ -163,7 +163,7 @@ public abstract class AbstractParserTest {
 		
 		// THEN
 				System.out.println("\nXNode after re-serialization:");
-				System.out.println(serializedXNode.dump());
+				System.out.println(serializedXNode.debugDump());
 				System.out.println("\nRe-serialized string:");
 				System.out.println(serializedString);
 		
@@ -178,7 +178,7 @@ public abstract class AbstractParserTest {
 ////			
 ////			// THEN
 ////					System.out.println("AFTER JSON XNode:");
-////					System.out.println(afterJson.dump());
+////					System.out.println(afterJson.debugDump());
 //			
 //			} catch (Exception ex){
 //				System.out.println( ex);
@@ -197,7 +197,7 @@ public abstract class AbstractParserTest {
 		
 		// THEN
 		System.out.println("\nXNode after re-parsing:");
-		System.out.println(reparsedXnode.dump());
+		System.out.println(reparsedXnode.debugDump());
 		System.out.println("\nRe-parsed user:");
 		System.out.println(reparsedUser.debugDump());
 		
@@ -233,7 +233,7 @@ public abstract class AbstractParserTest {
 		// WHEN (parse to xnode)
 		XNode xnode = parser.parse(getFile(RESOURCE_RUM_FILE_BASENAME));
 		System.out.println("XNode after parsing:");
-		System.out.println(xnode.dump());
+		System.out.println(xnode.debugDump());
 		
 		// WHEN (parse to prism)
 		PrismObject<ResourceType> resource = processor.parseObject(xnode);
@@ -273,7 +273,7 @@ public abstract class AbstractParserTest {
 				
 		// THEN
 		System.out.println("\nXNode after re-serialization:");
-		System.out.println(serializedXNode.dump());
+		System.out.println(serializedXNode.debugDump());
 		System.out.println("\nRe-serialized string:");
 		System.out.println(serializedString);
 		
@@ -293,7 +293,7 @@ public abstract class AbstractParserTest {
 ////			
 ////			// THEN
 ////					System.out.println("AFTER JSON XNode:");
-////					System.out.println(afterJson.dump());
+////					System.out.println(afterJson.debugDump());
 //			
 //			} catch (Exception ex){
 //				System.out.println( ex);
@@ -308,7 +308,7 @@ public abstract class AbstractParserTest {
 		
 		// THEN
 		System.out.println("\nXNode after re-parsing:");
-		System.out.println(reparsedXnode.dump());
+		System.out.println(reparsedXnode.debugDump());
 		System.out.println("\nRe-parsed resource:");
 		System.out.println(reparsedResource.debugDump());
 		

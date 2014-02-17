@@ -119,7 +119,8 @@ public class TestParseResource {
 
 	@Test
 	public void testParseResourceDom() throws Exception {
-		System.out.println("===[ testParseResourceDom ]===");
+		final String TEST_NAME = "testParseResourceDom";
+		PrismTestUtil.displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
@@ -158,7 +159,7 @@ public class TestParseResource {
 	}
 
 	@Test
-	public void testPrismParseJaxb() throws JAXBException, SchemaException, SAXException, IOException {
+	public void testPrismParseJaxb() throws Exception {
 		System.out.println("===[ testPrismParseJaxb ]===");
 		
 		// GIVEN
@@ -174,7 +175,7 @@ public class TestParseResource {
 	}
 	
 	@Test
-	public void testPrismParseJaxbSimple() throws JAXBException, SchemaException, SAXException, IOException {
+	public void testPrismParseJaxbSimple() throws Exception {
 		System.out.println("===[ testPrismParseJaxbSimple ]===");
 		
 		// GIVEN

@@ -57,6 +57,7 @@ import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
@@ -425,13 +426,15 @@ public class QueryConvertor {
 	}		
 
 
-
 	public static MapXNode serializeFilter(ObjectFilter filter, PrismContext prismContext) throws SchemaException{
-		return serializeFilter(filter, prismContext.getXnodeProcessor().createSerializer());
+		return serializeFilter(filter, PrismUtil.getXnodeProcessor(prismContext).createSerializer());
 	}
 	
 	public static MapXNode serializeFilter(ObjectFilter filter, XNodeSerializer xnodeSerilizer) throws SchemaException{
-	
+		if (filter == null) {
+			return null;
+		}
+		
 		if (filter instanceof AndFilter) {
 			return serializeAndFilter((AndFilter) filter, xnodeSerilizer);
 		}

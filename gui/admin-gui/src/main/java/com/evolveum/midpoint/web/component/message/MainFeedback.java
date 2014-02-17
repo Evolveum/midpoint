@@ -79,8 +79,6 @@ public class MainFeedback extends Panel implements IFeedback {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
-        response.render(CssHeaderItem.forReference(
-                new CssResourceReference(MainFeedback.class, "MainFeedback.css")));
         response.render(JavaScriptHeaderItem.forReference(
                 new PackageResourceReference(MainFeedback.class, "MainFeedback.js")));
         response.render(OnDomReadyHeaderItem.forScript("initMessages()"));
