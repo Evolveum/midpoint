@@ -494,6 +494,19 @@ public class PrismBeanConverter {
 			return (T) rawType;
 		}
 		
+		if (ItemPathType.class.isAssignableFrom(classType)){
+			QName typeQName = xprim.getTypeQName();
+			if (typeQName == null) {
+				typeQName = DOMUtil.XSD_STRING;
+			}
+			Object parsedValue = xprim.getParsedValue(ItemPathType.COMPLEX_TYPE);
+			T primValue = postConvertUnmarshall(parsedValue);
+//			ItemPath itemPath = new RawType();
+//			rawType.setType(typeQName);
+//			rawType.setValue(parsedValue);
+			return (T) primValue;
+		}
+		
 		if (xprim.isEmpty()) {
 			// Special case. Just return empty object
 			try {

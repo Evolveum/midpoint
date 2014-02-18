@@ -125,11 +125,11 @@ public class TestParseResource {
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		
-		Document document = DOMUtil.parseFile(RESOURCE_FILE);
-		Element resourceElement = DOMUtil.getFirstChildElement(document);
+//		Document document = DOMUtil.parseFile(RESOURCE_FILE);
+//		Element resourceElement = DOMUtil.getFirstChildElement(document);
 		
 		// WHEN
-		PrismObject<ResourceType> resource = prismContext.parseObject(resourceElement);
+		PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_FILE);
 		
 		// THEN
 		System.out.println("Parsed resource:");

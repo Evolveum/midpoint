@@ -44,6 +44,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -63,6 +64,7 @@ import com.evolveum.midpoint.util.Transformer;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.prism.xml.ns._public.types_2.EncryptedDataType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedByteArrayType;
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedDataType;
@@ -410,7 +412,7 @@ public class XNodeProcessor {
 	private <T> T parsePrismPropertyRealValueFromPrimitive(PrimitiveXNode<T> xprim, PrismPropertyDefinition<T> propertyDefinition) throws SchemaException {
 		QName typeName = propertyDefinition.getTypeName();
 		T realValue;
-		if (prismContext.getBeanConverter().canConvert(typeName) && !typeName.equals(PolyStringType.COMPLEX_TYPE)) {
+		if (prismContext.getBeanConverter().canConvert(typeName) && !typeName.equals(PolyStringType.COMPLEX_TYPE) && !typeName.equals(ItemPathType.COMPLEX_TYPE)) {
 			// Primitive elements may also have complex Java representations (e.g. enums)
 			return prismContext.getBeanConverter().unmarshallPrimitive(xprim, typeName);
 		} else {

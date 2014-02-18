@@ -38,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType.Filter;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import com.sun.tools.xjc.reader.Ring;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -96,11 +97,11 @@ public class TestParseUser {
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		
-		Document document = DOMUtil.parseFile(USER_FILE);
-		Element userElement = DOMUtil.getFirstChildElement(document);
+//		Document document = DOMUtil.parseFile(USER_FILE);
+//		Element userElement = DOMUtil.getFirstChildElement(document);
 		
 		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(userElement);
+		PrismObject<UserType> user = prismContext.parseObject(USER_FILE);
 		
 		// THEN
 		System.out.println("Parsed user:");
@@ -115,8 +116,10 @@ public class TestParseUser {
 		PrismTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
+//		PrismTestUtil.resetPrismContext();
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		JaxbTestUtil jaxbUtil = PrismTestUtil.getJaxbUtil();
+		
 		
 		// WHEN
 		UserType userType = jaxbUtil.unmarshalObject(USER_FILE, UserType.class);

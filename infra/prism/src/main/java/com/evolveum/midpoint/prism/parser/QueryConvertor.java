@@ -419,10 +419,10 @@ public class QueryConvertor {
 		if (!(xnode instanceof PrimitiveXNode<?>)) {
 			throw new SchemaException("Expected that field "+KEY_FILTER_EQUALS_PATH+" will be primitive, but it is "+xnode.getDesc());
 		}
-		XNodeProcessor processor = PrismUtil.getXnodeProcessor(prismContext);
-		return processor.parsePrismPropertyRealValue(xnode, new PrismPropertyDefinition<ItemPath>(ItemPathType.COMPLEX_TYPE, ItemPathType.COMPLEX_TYPE, prismContext));
+//		XNodeProcessor processor = PrismUtil.getXnodeProcessor(prismContext);
+//		return processor.parsePrismPropertyRealValue(xnode, new PrismPropertyDefinition<ItemPath>(ItemPathType.COMPLEX_TYPE, ItemPathType.COMPLEX_TYPE, prismContext));
 //		return ipt.getItemPath();
-		//		return xmap.getParsedPrimitiveValue(KEY_FILTER_EQUALS_PATH, ItemPath.XSD_TYPE);
+		return xmap.getParsedPrimitiveValue(KEY_FILTER_EQUALS_PATH, ItemPath.XSD_TYPE);
 //		return itemPathType.getItemPath();
 	}
 
