@@ -366,10 +366,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             userType = user.toJAXB(getPrismContext(), null);
 
             session.getTransaction().commit();
-        } catch (DtoTranslationException ex) {
-            handleGeneralCheckedException(ex, session, result);
-        } catch (RuntimeException ex) {
-            handleGeneralRuntimeException(ex, session, result);
+        } catch (DtoTranslationException | RuntimeException ex) {
+            handleGeneralException(ex, session, result);
         } finally {
             cleanupSessionAndResult(session, result);
         }
@@ -481,10 +479,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } catch (SchemaException ex) {
             rollbackTransaction(session, ex, result, true);
             throw ex;
-        } catch (DtoTranslationException ex) {
-            handleGeneralCheckedException(ex, session, result);
-        } catch (RuntimeException ex) {
-            handleGeneralRuntimeException(ex, session, result);
+        } catch (DtoTranslationException | RuntimeException ex) {
+            handleGeneralException(ex, session, result);
         } finally {
             cleanupSessionAndResult(session, result);
         }
@@ -779,12 +775,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } catch (ObjectNotFoundException ex) {
             rollbackTransaction(session, ex, result, true);
             throw ex;
-        } catch (SchemaException ex) {
-            handleGeneralCheckedException(ex, session, result);
-        } catch (DtoTranslationException ex) {
-            handleGeneralCheckedException(ex, session, result);
-        } catch (RuntimeException ex) {
-            handleGeneralRuntimeException(ex, session, result);
+        } catch (SchemaException | DtoTranslationException | RuntimeException ex) {
+            handleGeneralException(ex, session, result);
         } finally {
             cleanupSessionAndResult(session, result);
         }
@@ -892,10 +884,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 longCount = (Long) criteria.uniqueResult();
             }
             count = longCount.intValue();
-        } catch (QueryException ex) {
-            handleGeneralCheckedException(ex, session, result);
-        } catch (RuntimeException ex) {
-            handleGeneralRuntimeException(ex, session, result);
+        } catch (QueryException | RuntimeException ex) {
+            handleGeneralException(ex, session, result);
         } finally {
             cleanupSessionAndResult(session, result);
         }
@@ -978,12 +968,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
 
             session.getTransaction().commit();
-//        } catch (DtoTranslationException ex) {
-//            handleGeneralCheckedException(ex, session, result);
-        } catch (QueryException ex) {
-            handleGeneralCheckedException(ex, session, result);
-        } catch (RuntimeException ex) {
-            handleGeneralRuntimeException(ex, session, result);
+        } catch (QueryException | RuntimeException ex) {
+            handleGeneralException(ex, session, result);
         } finally {
             cleanupSessionAndResult(session, result);
         }
@@ -1203,12 +1189,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } catch (SchemaException ex) {
             rollbackTransaction(session, ex, result, true);
             throw ex;
-        } catch (QueryException ex) {
-            handleGeneralCheckedException(ex, session, result);
-        } catch (DtoTranslationException ex) {
-            handleGeneralCheckedException(ex, session, result);
-        } catch (RuntimeException ex) {
-            handleGeneralRuntimeException(ex, session, result);
+        } catch (QueryException | DtoTranslationException | RuntimeException ex) {
+            handleGeneralException(ex, session, result);
         } finally {
             cleanupSessionAndResult(session, result);
             LOGGER.trace("Session cleaned up.");
@@ -1448,10 +1430,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
             session.getTransaction().commit();
             LOGGER.trace("Done.");
-        } catch (SchemaException ex) {
-            handleGeneralCheckedException(ex, session, result);
-        } catch (RuntimeException ex) {
-            handleGeneralRuntimeException(ex, session, result);
+        } catch (SchemaException | RuntimeException ex) {
+            handleGeneralException(ex, session, result);
         } finally {
             cleanupSessionAndResult(session, result);
         }
@@ -1575,9 +1555,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             // real configuration from session factory
             String dialect = factory.getDialect() != null ? factory.getDialect().getClass().getName() : null;
             details.add(new LabeledString(DETAILS_HIBERNATE_DIALECT, dialect));
-        } catch (Exception ex) {
-            //nowhere to report error (no operation result available)
-            session.getTransaction().rollback();
         } catch (Throwable th) {
             //nowhere to report error (no operation result available)
             session.getTransaction().rollback();
@@ -1764,12 +1741,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
 
             session.getTransaction().commit();
-        } catch (SchemaException ex) {
-            handleGeneralCheckedException(ex, session, result);
-        } catch (QueryException ex) {
-            handleGeneralCheckedException(ex, session, result);
-        } catch (RuntimeException ex) {
-            handleGeneralRuntimeException(ex, session, result);
+        } catch (SchemaException | QueryException | RuntimeException ex) {
+            handleGeneralException(ex, session, result);
         } finally {
             cleanupSessionAndResult(session, result);
         }

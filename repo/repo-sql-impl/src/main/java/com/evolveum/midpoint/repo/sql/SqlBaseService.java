@@ -272,6 +272,14 @@ public class SqlBaseService {
         }
     }
 
+    protected void handleGeneralException(Exception ex, Session session, OperationResult result) {
+        if (ex instanceof RuntimeException) {
+            handleGeneralRuntimeException((RuntimeException) ex, session, result);
+        } else {
+            handleGeneralCheckedException(ex, session, result);
+        }
+    }
+
     protected void handleGeneralRuntimeException(RuntimeException ex, Session session, OperationResult result) {
         LOGGER.debug("General runtime exception occurred.", ex);
 
