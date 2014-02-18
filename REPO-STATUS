@@ -1,6 +1,6 @@
 mvn -P -dist clean install -o
 
-cca. 305k selects vs. 540k
+cca. 291k selects vs. 540k
 
 [INFO] Total time: 52:37.257s
 [INFO] Finished at: Sun Feb 16 16:18:35 CET 2014
@@ -12,14 +12,14 @@ cca. 305k selects vs. 540k
 
 mvn -P default,aspectj,extratest,-dist clean install -o
 
-cca. 209k selects vs. 336k
+cca. 187k selects vs. 336k
 
-[INFO] midPoint Testing - Long Tests ..................... SUCCESS [14:17.573s] vs. [15:48.234s]
-[INFO] midPoint Testing - Story Tests .................... SUCCESS [1:14.154s]
-[INFO] midPoint Testing Infrastructure ................... SUCCESS [0.031s]
+[INFO] midPoint Testing - Long Tests ..................... SUCCESS [11:52.295s] vs. [15:48.234s]
+[INFO] midPoint Testing - Story Tests .................... SUCCESS [1:10.042s]
+[INFO] midPoint Testing Infrastructure ................... SUCCESS [0.026s]
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
 [INFO] ------------------------------------------------------------------------
-[INFO] Total time: 19:51.431s
-[INFO] Finished at: Sun Feb 16 16:59:49 CET 2014
-[INFO] Final Memory: 79M/724M
+[INFO] Total time: 16:44.739s
+[INFO] Finished at: Tue Feb 18 14:41:13 CET 2014
+[INFO] Final Memory: 79M/725M

@@ -128,19 +128,39 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
         }
 
-        Query query = session.createQuery("select o.fullObject from RObject as o where o.id = :id and o.oid = :oid");
-        query.setLong("id", 0L);
-        query.setString("oid", oid);
+        if (!lockForUpdate) {
+            //we're not doing update after, so this is faster way to load full object
+            Query query = session.createQuery("select o.fullObject from RObject as o where o.id = :id and o.oid = :oid");
+            query.setLong("id", 0L);
+            query.setString("oid", oid);
 
-        query.setLockOptions(lockOptions);
-        String object = (String) query.uniqueResult();
+            query.setLockOptions(lockOptions);
+            String object = (String) query.uniqueResult();
 
-        LOGGER.trace("Got it.");
+            LOGGER.trace("Got it.");
+            if (object == null) {
+                throwObjectNotFoundException(type, oid);
+            }
+            return updateLoadedObject(object, session, type);
+        }
+
+        //we're doing update after this get, therefore we load full object right now (it would be loaded during merge anyway)
+        Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
+        criteria.add(Restrictions.eq("id", 0L));
+        criteria.add(Restrictions.eq("oid", oid));
+
+        criteria.setLockMode(lockOptions.getLockMode());
+        RObject object = (RObject) criteria.uniqueResult();
+
         if (object == null) {
             throwObjectNotFoundException(type, oid);
         }
 
-        return updateLoadedObject(object, session, type);
+        LOGGER.trace("Transforming data to JAXB type.");
+        PrismObject<T> prismObject = object.toJAXB(getPrismContext(), options).asPrismObject();
+        validateObjectType(prismObject, type);
+
+        return prismObject;
     }
 
     private <T extends ObjectType> PrismObject<T> throwObjectNotFoundException(Class<T> type, String oid) throws ObjectNotFoundException {
@@ -522,14 +542,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private <T extends ObjectType> void updateFullObject(Session session, RObject object)
             throws DtoTranslationException, SchemaException {
-        LOGGER.debug(">>>>> UPDATING FULL OBJECT START");
+        LOGGER.debug("Updating full object xml column start.");
         session.flush();
 
         PrismObject<T> savedObject = object.toJAXB(getPrismContext(), null).asPrismObject();
         PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
         String fullObject = domProcessor.serializeObjectToString(savedObject);
 
-//        Query query = session.createQuery("update RObject set fullObject = :fullObject where oid=:oid"); // TODO ADD MISSING ID OR CREATE OID INDEX
         SQLQuery query = session.createSQLQuery("update m_object set fullObject = :fullObject where id=:id and oid=:oid");
 
         query.setString("fullObject", fullObject);
@@ -537,9 +556,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         query.setString("oid", savedObject.getOid());
         int result = query.executeUpdate();
         if (result != 1) {
-            throw new SystemException("AAAAAAAAAAAAAAAAAAAAAAAaaa");
+            throw new SystemException("Update of fullObject xml column failed.");
         }
-        LOGGER.debug(">>>>> UPDATING FULL OBJECT FINISH");
+        LOGGER.debug("Updating full object xml column finish.");
     }
 
     private <T extends ObjectType> String nonOverwriteAddObjectAttempt(PrismObject<T> object, ObjectType objectType,

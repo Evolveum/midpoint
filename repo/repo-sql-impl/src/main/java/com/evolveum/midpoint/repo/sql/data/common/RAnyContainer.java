@@ -305,12 +305,12 @@ public class RAnyContainer implements Serializable {
             DtoTranslationException {
         RAnyConverter converter = new RAnyConverter(prismContext);
 
-        convertValues(converter, containerValue, repo.getClobs());
-        convertValues(converter, containerValue, repo.getDates());
-        convertValues(converter, containerValue, repo.getLongs());
-        convertValues(converter, containerValue, repo.getStrings());
-        convertValues(converter, containerValue, repo.getReferences());
-        convertValues(converter, containerValue, repo.getPolys());
+        if (repo.getClobsCount() > 0) convertValues(converter, containerValue, repo.getClobs());
+        if (repo.getDatesCount() > 0) convertValues(converter, containerValue, repo.getDates());
+        if (repo.getLongsCount() > 0) convertValues(converter, containerValue, repo.getLongs());
+        if (repo.getStringsCount() > 0) convertValues(converter, containerValue, repo.getStrings());
+        if (repo.getReferencesCount() > 0) convertValues(converter, containerValue, repo.getReferences());
+        if (repo.getPolysCount() > 0) convertValues(converter, containerValue, repo.getPolys());
     }
 
     private static <T extends RAnyValue> void convertValues(RAnyConverter converter, PrismContainerValue containerValue,
