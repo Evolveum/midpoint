@@ -176,7 +176,8 @@ public class XPathHolder {
             } else {
                 String namespace = findNamespace(qnameArray[0], domNode, namespaceMap);
                 if (namespace == null) {
-                	throw new IllegalArgumentException("Undeclared namespace prefix '"+qnameArray[0]+"'");
+                	LOGGER.warn("Undeclared namespace prefix '" + qnameArray[0]+"'. Default matching will be used to find namespace.");
+//                	throw new IllegalArgumentException("Undeclared namespace prefix '"+qnameArray[0]+"'");
                 }
                 qname = new QName(namespace, qnameArray[1], qnameArray[0]);
             }

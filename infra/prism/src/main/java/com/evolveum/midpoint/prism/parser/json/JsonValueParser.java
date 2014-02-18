@@ -38,30 +38,15 @@ public class JsonValueParser<T> implements ValueParser<T> {
 	public T parse(QName typeName) throws SchemaException {
 		ObjectMapper mapper = (ObjectMapper) parser.getCodec();
 		Class clazz = XsdTypeMapper.toJavaType(typeName);
-		
-//		if (clazz == null){
-//			clazz = schemaRegistry.determineCompileTimeClass(typeName);
-//		}
-		
-		
+			
 		ObjectReader r = mapper.reader(clazz);
 	    try {
-//	    	TokenBuffer tb = parser.readValueAs(TokenBuffer.class);
-	    	JsonFactory f = new JsonFactory();
-//	    	node.as
-//	    	System.out.println("OID: " + tb.asParser().getObjectId());
-//	    	System.out.println("TID: " + tb.asParser().getTypeId());
-	    	if (parser.getCurrentToken() == null){
-	    		JsonToken t = parser.nextToken();
-//	    		System.out.println("token: " + t);
-	    		if (t == null){
-	    			t = parser.nextToken();
-//		    		System.out.println("token: " + t);
-	    		}
-	    	}
-//	    	T val = (T) parser.readValueAs(clazz);
-//	    	System.out.println("Parsed to :  " + val);
-//	    	return val;
+//	    	if (parser.getCurrentToken() == null){
+//	    		JsonToken t = parser.nextToken();
+//	    		if (t == null){
+//	    			t = parser.nextToken();
+//	    		}
+//	    	}
 			return r.readValue(node);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -71,19 +56,20 @@ public class JsonValueParser<T> implements ValueParser<T> {
 	
 	@Override
 	public boolean isEmpty() {
-		// TODO
-		throw new UnsupportedOperationException("TODO");
+		return node == null || parser == null;
 	}
 
 	@Override
 	public String getStringValue() {
-		// TODO
-		throw new UnsupportedOperationException("TODO");
+		if (node == null){
+			return null;
+		}
+		return node.asText();
 	}
 
 	@Override
 	public String toString() {
-		return "JsonValueParser(JSON value: token: "+node+")";
+		return "JsonValueParser(JSON value: "+node+")";
 	}
 
 }

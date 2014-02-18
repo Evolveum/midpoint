@@ -282,11 +282,11 @@ public abstract class TestPrismParsing {
 		System.out.println(userJack.debugDump());
 		
 		// WHEN
-		Element elementJack = prismContext.serializeToDom(userJack);
+		String elementJack = prismContext.serializeObjectToString(userJack, getOutputFormat());
 		
 		// THEN
 		System.out.println("Serialized user jack:");
-		System.out.println(DOMUtil.serializeDOMToString(elementJack));
+		System.out.println(elementJack);
 		
 		// TODO: see that there is really the serialized barbossa
 		
@@ -359,12 +359,12 @@ public abstract class TestPrismParsing {
 		assertUserWill(user);
 		
 		// WHEN
-		Element serialized = prismContext.serializeToDom(user);
+		String serialized = prismContext.serializeObjectToString(user, getOutputFormat());
 		
 		// THEN
 		assertNotNull(serialized);
 		System.out.println("Serialized user:");
-		System.out.println(DOMUtil.serializeDOMToString(serialized));
+		System.out.println(serialized);
 		
 		// WHEN
 		PrismObject<UserType> reparsedUser = prismContext.parseObject(serialized);

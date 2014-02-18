@@ -237,7 +237,7 @@ public class QueryConvertor {
 	private static <T,C extends Containerable> EqualsFilter<PrismPropertyDefinition<T>> parseEqualFilter(XNode xnode,
 			PrismContainerDefinition<C> pcd, PrismContext prismContext) throws SchemaException {
 		MapXNode xmap = toMap(xnode);
-		ItemPath itemPath = getPath(xmap);
+		ItemPath itemPath = getPath(xmap, prismContext);
 		
 		if (itemPath == null || itemPath.isEmpty()){
 			throw new SchemaException("Could not convert query, because query does not contain item path.");	
@@ -291,7 +291,7 @@ public class QueryConvertor {
 	
 	private static <C extends Containerable> RefFilter parseRefFilter(XNode xnode, PrismContainerDefinition<C> pcd) throws SchemaException{
 		MapXNode xmap = toMap(xnode);
-		ItemPath itemPath = getPath(xmap);
+		ItemPath itemPath = getPath(xmap, pcd.getPrismContext());
 		
 		if (itemPath == null || itemPath.isEmpty()){
 			throw new SchemaException("Cannot convert query, becasue query does not contian property path.");
@@ -335,7 +335,7 @@ public class QueryConvertor {
 	private static <C extends Containerable> SubstringFilter parseSubstringFilter(XNode xnode, PrismContainerDefinition<C> pcd)
 			throws SchemaException {
 		MapXNode xmap = toMap(xnode);
-		ItemPath itemPath = getPath(xmap);
+		ItemPath itemPath = getPath(xmap, pcd.getPrismContext());
 
 		if (itemPath == null || itemPath.isEmpty()){
 			throw new SchemaException("Could not convert query, because query does not contain item path.");	
@@ -411,8 +411,18 @@ public class QueryConvertor {
 		return (MapXNode)xnode;
 	}
 	
-	private static ItemPath getPath(MapXNode xmap) throws SchemaException {
-		return xmap.getParsedPrimitiveValue(KEY_FILTER_EQUALS_PATH, ItemPath.XSD_TYPE);
+	private static ItemPath getPath(MapXNode xmap, PrismContext prismContext) throws SchemaException {
+		XNode xnode = xmap.get(KEY_FILTER_EQUALS_PATH);
+		if (xnode == null) {
+			return null;
+		}
+		if (!(xnode instanceof PrimitiveXNode<?>)) {
+			throw new SchemaException("Expected that field "+KEY_FILTER_EQUALS_PATH+" will be primitive, but it is "+xnode.getDesc());
+		}
+		XNodeProcessor processor = PrismUtil.getXnodeProcessor(prismContext);
+		return processor.parsePrismPropertyRealValue(xnode, new PrismPropertyDefinition<ItemPath>(ItemPathType.COMPLEX_TYPE, ItemPathType.COMPLEX_TYPE, prismContext));
+//		return ipt.getItemPath();
+		//		return xmap.getParsedPrimitiveValue(KEY_FILTER_EQUALS_PATH, ItemPath.XSD_TYPE);
 //		return itemPathType.getItemPath();
 	}
 
