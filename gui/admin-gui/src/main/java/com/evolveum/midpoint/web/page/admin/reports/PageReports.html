@@ -19,7 +19,29 @@
 <body>
 <wicket:extend>
 
-	<form wicket:id="mainForm">
+    <form wicket:id="searchForm" class="form-inline pull-right search-form">
+        <div class="form-group">
+            <label class="sr-only"><wicket:message key="searchForm.searchTextPlaceholder" /></label>
+            <input class="form-control input-sm" wicket:id="searchText"
+                   wicket:message="placeholder:searchForm.searchTextPlaceholder">
+        </div>
+
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" wicket:id="subReportCheckbox"/>
+                <wicket:message key="PageReports.search.showSubreports" />
+            </label>
+        </div>
+
+        <span class="btn-group">
+            <a class="btn btn-default btn-sm" wicket:id="searchButton"/>
+            <a class="btn btn-danger btn-sm" wicket:message="title:PageBase.button.tooltip.clearSearch" wicket:id="searchClear">
+                <i class="fa fa-trash-o"/>
+            </a>
+        </span>
+    </form>
+
+	<form wicket:id="mainForm" class="clearfix form-horizontal">
         <div wicket:id="reportsTable"/>
     </form>
 

@@ -21,6 +21,10 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -28,31 +32,38 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReconciliationReportDto;
+import com.evolveum.midpoint.web.page.admin.reports.dto.ReportSearchDto;
+import com.evolveum.midpoint.web.session.ReportsStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 
@@ -78,12 +89,34 @@ public class PageReports extends PageAdminReports {
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_REPORTS_TABLE = "reportsTable";
 
+    private static final String ID_SEARCH_FORM = "searchForm";
+    private static final String ID_SEARCH_TEXT = "searchText";
+    private static final String ID_SUBREPORTS = "subReportCheckbox";
+    private static final String ID_BUTTON_SEARCH = "searchButton";
+    private static final String ID_BUTTON_CLEAR_SEARCH = "searchClear";
+
     private final IModel reportParamsModel = new Model();
+    private IModel<ReportSearchDto> searchModel;
 
     @SpringBean
     private transient ReportManager reportManager;
 
     public PageReports() {
+        searchModel = new LoadableModel<ReportSearchDto>() {
+
+            @Override
+            protected ReportSearchDto load() {
+                ReportsStorage storage = getSessionStorage().getReports();
+                ReportSearchDto dto = storage.getReportSearch();
+
+                if(dto == null){
+                    dto = new ReportSearchDto();
+                }
+
+                return dto;
+            }
+        };
+
         initLayout();
     }
 
@@ -102,6 +135,11 @@ public class PageReports extends PageAdminReports {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
+        Form searchForm = new Form(ID_SEARCH_FORM);
+        add(searchForm);
+        initSearchForm(searchForm);
+
+
         //TablePanel table = new TablePanel<ReportDto>(ID_REPORTS_TABLE,
         //        new ListDataProvider<ReportDto>(this, new Model(REPORTS)), initColumns(ajaxDownloadBehavior));
         TablePanel table = new TablePanel<>(ID_REPORTS_TABLE, new ObjectDataProvider(PageReports.this, ReportType.class),
@@ -109,6 +147,57 @@ public class PageReports extends PageAdminReports {
         table.setShowPaging(false);
         table.setOutputMarkupId(true);
         mainForm.add(table);
+    }
+
+    private void initSearchForm(Form<?> form){
+
+        final AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_BUTTON_SEARCH,
+                createStringResource("PageBase.button.search")) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form){
+                searchPerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form){
+                target.add(getFeedbackPanel());
+            }
+        };
+        form.add(searchButton);
+
+        final TextField searchText = new TextField(ID_SEARCH_TEXT, new PropertyModel<String>(searchModel, ReportSearchDto.F_SEARCH_TEXT));
+        searchText.add(new SearchFormEnterBehavior(searchButton));
+        form.add(searchText);
+
+        CheckBox showSubreports = new CheckBox(ID_SUBREPORTS,
+                new PropertyModel(searchModel, ReportSearchDto.F_PARENT));
+        showSubreports.add(createFilterAjaxBehaviour());
+        form.add(showSubreports);
+
+        AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_BUTTON_CLEAR_SEARCH) {
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                clearSearchPerformed(target);
+            }
+        };
+        form.add(clearButton);
+    }
+
+    private AjaxFormComponentUpdatingBehavior createFilterAjaxBehaviour() {
+        return new AjaxFormComponentUpdatingBehavior("onchange") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                searchPerformed(target);
+            }
+        };
     }
 
     private List<IColumn<ReportType, String>> initColumns() {
@@ -358,4 +447,94 @@ public class PageReports extends PageAdminReports {
 
         return generatedReport;
     }
+
+    private ObjectDataProvider getDataProvider(){
+        DataTable table = getReportTable().getDataTable();
+        return (ObjectDataProvider) table.getDataProvider();
+    }
+
+    private TablePanel getReportTable(){
+        return (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_REPORTS_TABLE));
+    }
+
+    private void searchPerformed(AjaxRequestTarget target){
+        ObjectQuery query = createQuery(target);
+        ObjectDataProvider provider = getDataProvider();
+        provider.setQuery(query);
+
+        ReportsStorage storage = getSessionStorage().getReports();
+        storage.setReportSearch(searchModel.getObject());
+
+        TablePanel table = getReportTable();
+        target.add(table);
+        target.add(getFeedbackPanel());
+    }
+
+    private ObjectQuery createQuery(AjaxRequestTarget target){
+        ReportSearchDto dto = searchModel.getObject();
+        String text = dto.getText();
+        Boolean parent = !dto.isParent();
+        ObjectQuery query = new ObjectQuery();
+
+        if(!StringUtils.isEmpty(text)){
+//            try{
+                PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
+                String normalizedText = normalizer.normalize(text);
+
+                ObjectFilter substring = SubstringFilter.createSubstring(ReportType.F_NAME, ReportType.class,
+                        getPrismContext(), PolyStringNormMatchingRule.NAME, normalizedText);
+
+                if(parent == true){
+                    EqualsFilter boolFilter = EqualsFilter.createEqual(ReportType.F_PARENT, ReportType.class,
+                            getPrismContext(), null, parent);
+
+//                    EqualsFilter nullFilter = EqualsFilter.createEqual(ReportType.F_PARENT, ReportType.class,
+//                            getPrismContext(), null, null);
+
+//                    OrFilter or = OrFilter.createOr(boolFilter, nullFilter);
+
+                    query.setFilter(AndFilter.createAnd(substring, boolFilter));
+                } else {
+                    query.setFilter(substring);
+                }
+
+//            }catch (Exception e){
+//                LoggingUtils.logException(LOGGER, "Couldn't create query filter", e);
+//                error(getString("PageReports.message.queryError", e.getMessage()));
+//                target.add(getFeedbackPanel());
+//            }
+        } else{
+            if(parent == true){
+                EqualsFilter boolFilter = EqualsFilter.createEqual(ReportType.F_PARENT, ReportType.class,
+                        getPrismContext(), null, parent);
+
+//                EqualsFilter nullFilter = EqualsFilter.createEqual(ReportType.F_PARENT, ReportType.class,
+//                        getPrismContext(), null, null);
+
+//                query.setFilter(OrFilter.createOr(boolFilter, nullFilter));
+                query.setFilter(boolFilter);
+            } else{
+                query = null;
+            }
+        }
+
+        return query;
+    }
+
+
+    private void clearSearchPerformed(AjaxRequestTarget target){
+        searchModel.setObject(new ReportSearchDto());
+
+        TablePanel panel = getReportTable();
+        DataTable table = panel.getDataTable();
+        ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
+        provider.setQuery(null);
+
+        ReportsStorage storage = getSessionStorage().getReports();
+        storage.setReportSearch(searchModel.getObject());
+        panel.setCurrentPage(storage.getReportsPaging());
+
+        target.add(get(ID_SEARCH_FORM));
+        target.add(panel);
+    };
 }

@@ -19,9 +19,7 @@ package com.evolveum.midpoint.web.page.admin.reports;
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -30,7 +28,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.DropDownMultiChoice;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
@@ -42,11 +39,8 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportOutputDto;
-import com.evolveum.midpoint.web.page.admin.roles.dto.RolesSearchDto;
-import com.evolveum.midpoint.web.session.ReportsStorage;
-import com.evolveum.midpoint.web.session.RolesStorage;
+import com.evolveum.midpoint.web.session.CreatedReportsStorage;
 import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportOutputType;
@@ -70,7 +64,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author lazyman
@@ -106,7 +99,7 @@ public class PageCreatedReports extends PageAdminReports {
         filterModel = new LoadableModel<ReportOutputDto>() {
             @Override
             protected ReportOutputDto load() {
-                ReportsStorage storage = getSessionStorage().getReports();
+                CreatedReportsStorage storage = getSessionStorage().getCreatedReports();
                 ReportOutputDto dto = storage.getReportsSearch();
 
                 if(dto == null){
@@ -536,7 +529,7 @@ public class PageCreatedReports extends PageAdminReports {
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
         provider.setQuery(query);
 
-        ReportsStorage storage = getSessionStorage().getReports();
+        CreatedReportsStorage storage = getSessionStorage().getCreatedReports();
         storage.setReportsSearch(filterModel.getObject());
         panel.setCurrentPage(storage.getReportsPaging());
 
@@ -557,7 +550,7 @@ public class PageCreatedReports extends PageAdminReports {
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
         provider.setQuery(null);
 
-        ReportsStorage storage = getSessionStorage().getReports();
+        CreatedReportsStorage storage = getSessionStorage().getCreatedReports();
         storage.setReportsSearch(filterModel.getObject());
         panel.setCurrentPage(storage.getReportsPaging());
 

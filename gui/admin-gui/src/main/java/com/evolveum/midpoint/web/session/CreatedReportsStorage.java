@@ -24,7 +24,7 @@ import java.io.Serializable;
 /**
  * @author shood
  */
-public class ReportsStorage implements Serializable{
+public class CreatedReportsStorage implements Serializable{
 
     /**
      *  DTO used for search purposes in {@link com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports}

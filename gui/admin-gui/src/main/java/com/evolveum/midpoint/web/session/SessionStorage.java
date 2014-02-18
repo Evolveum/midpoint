@@ -43,6 +43,7 @@ public class SessionStorage implements Serializable {
      * Store sessions information for "users" and other pages
      */
     private UsersStorage users;
+    private CreatedReportsStorage createdReports;
     private ReportsStorage reports;
     private ResourcesStorage resources;
     private RolesStorage roles;
@@ -79,11 +80,11 @@ public class SessionStorage implements Serializable {
         return users;
     }
 
-    public ReportsStorage getReports(){
-        if(reports == null){
-            reports = new ReportsStorage();
+    public CreatedReportsStorage getCreatedReports(){
+        if(createdReports == null){
+            createdReports = new CreatedReportsStorage();
         }
-        return reports;
+        return createdReports;
     }
 
     public ResourcesStorage getResources(){
@@ -112,5 +113,12 @@ public class SessionStorage implements Serializable {
             resourceContent = new ResourceContentStorage();
         }
         return resourceContent;
+    }
+
+    public ReportsStorage getReports(){
+        if(reports == null){
+            reports = new ReportsStorage();
+        }
+        return reports;
     }
 }
