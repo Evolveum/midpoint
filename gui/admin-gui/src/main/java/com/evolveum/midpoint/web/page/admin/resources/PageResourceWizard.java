@@ -121,32 +121,5 @@ public class PageResourceWizard extends PageAdminResources {
 
         Wizard wizard = new Wizard(ID_WIZARD, new Model(wizardModel));
         add(wizard);
-
-        //todo remove
-        final AceEditor editor = new AceEditor("editor", new AbstractReadOnlyModel<String>() {
-
-            @Override
-            public String getObject() {
-                try {
-                    PrismDomProcessor domProcessor = PageResourceWizard.this.getPrismContext().getPrismDomProcessor();
-                    return domProcessor.serializeObjectToString(model.getObject());
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-                return "error";
-            }
-        });
-        editor.setReadonly(true);
-        editor.setOutputMarkupId(true);
-        add(editor);
-        AjaxButton reload = new AjaxButton("reload", new Model<String>("reload")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                target.add(editor);
-                editor.refreshReadonly(target);
-            }
-        };
-        add(reload);
     }
 }
