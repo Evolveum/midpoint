@@ -50,13 +50,13 @@
 			</style>
 			<style isBold="false" isDefault="false" name="Detail" style="Base"/>
 			<parameter name="userOid" class="java.lang.String"/>
-			<parameter name="hqlQuery" class="java.lang.String"/>
-			<queryString language="hql"><![CDATA[$P!{hqlQuery}]]></queryString>
+			<parameter name="hqlQueryRoles" class="java.lang.String"/>
+			<queryString language="hql"><![CDATA[$P!{hqlQueryRoles}]]></queryString>
 			<field name="roleName" class="java.lang.String"/>
 			<detail>
 				<band height="18" splitType="Stretch">
 					<frame>
-						<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Detail" mode="Opaque" x="0" y="1" width="100" height="17"/>
+						<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" positionType="Float" style="Detail" mode="Opaque" x="0" y="1" width="100" height="17"/>
 						<line>
 							<reportElement uuid="47f91801-cf5f-4bed-b19c-ca3931cbf98d" positionType="FixRelativeToTop" mode="Opaque" x="0" y="0" width="100" height="1" forecolor="#333333">
 								<printWhenExpression><![CDATA[new java.lang.Boolean((int)$V{REPORT_COUNT}.intValue()!=1)]]></printWhenExpression>
@@ -88,11 +88,11 @@
 	</field>
 	<!-- configuration properties -->
 	<configuration xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report">
-		<r:hqlQuery>
+		<r:hqlQueryRoles>
 			select r.name.orig as roleName 
 			from RAssignment as a, RRole as r 
 			where a.targetRef.type = 10 and a.targetRef.targetOid = r.oid and a.owner.oid = $P{userOid}
-		</r:hqlQuery>
+		</r:hqlQueryRoles>
 	</configuration>
 	<!-- report parameters configuration schema sample with different options -->
 	<configurationSchema>
@@ -117,7 +117,7 @@
 					</xsd:annotation>
 					<xsd:sequence>
 						<!-- HQL query for jasper design (queryString element) -->
-						<xsd:element name="hqlQuery" type="xsd:string"/>
+						<xsd:element name="hqlQueryRoles" type="xsd:string"/>
 					</xsd:sequence>
 				</xsd:complexType>
 				<xsd:element name="configuration" type="r:ConfigurationType"/>

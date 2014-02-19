@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -129,7 +131,7 @@ public class ReportUtils {
 			return null;
 		}
 
-		LOGGER.trace("Parameters schema element : {}", parametersSchemaElement.getElementsByTagName("simpleType"));
+		/*LOGGER.trace("Parameters schema element : {}", parametersSchemaElement.getElementsByTagName("simpleType"));
 		LOGGER.trace("Parameters schema attribut : {}", parametersSchemaElement.getAttributeNode("simpleType"));
 		NodeList childNodes = parametersSchemaElement.getChildNodes();
 		for (int i=0; i< childNodes.getLength(); i++)
@@ -157,7 +159,7 @@ public class ReportUtils {
 				}
 			}
 		}
-		
+		*/
 		PrismSchema parametersSchema = PrismSchema.parse(parametersSchemaElement, true, "schema for " + reportType, prismContext);
 		if (parametersSchema == null) {
 			throw new SchemaException("No parameters schema in "+ reportType);
@@ -245,13 +247,41 @@ public class ReportUtils {
 		return configuration;
 	}
     
- 
+ public static JasperReport getJasperReport(ReportType reportType,  PrismContainer<Containerable> parameterConfiguration, PrismSchema reportSchema) throws JRException
+ {
+	 JasperDesign jasperDesign;
+	 JasperReport jasperReport;
+	 try
+	 {
+		 if (reportType.getTemplate() == null || reportType.getTemplate().getAny() == null)
+		 {
+			jasperDesign = createJasperDesign(reportType, parameterConfiguration, reportSchema);
+    	 	LOGGER.trace("create jasper design : {}", jasperDesign);
+		 }
+		 else
+		 {
+    	 	String reportTemplate = DOMUtil.serializeDOMToString((Node)reportType.getTemplate().getAny());
+    	 	InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate.getBytes());
+    	 	jasperDesign = JRXmlLoader.load(inputStreamJRXML);
+    	 	LOGGER.trace("load jasper design : {}", jasperDesign);
+		 }
+		 
+		 jasperReport = JasperCompileManager.compileReport(jasperDesign);
+		 
+	 } catch (JRException ex){ 
+		 LOGGER.error("Couldn't create jasper report design {}", ex.getMessage());
+		 throw ex;
+	 }
+	 
+	 return jasperReport;
+ }
     		
     
     public static Map<String, Object> getReportParams(ReportType reportType, PrismContainer<Containerable> parameterConfiguration, PrismSchema reportSchema, OperationResult parentResult)
 	{
 		Map<String, Object> params = new HashMap<String, Object>();
-		 	
+		
+		
 		OperationResult subResult = parentResult.createSubresult("get report parameters");
 		if (parameterConfiguration != null) 	
 		{
@@ -753,10 +783,17 @@ public class ReportUtils {
 		return jasperDesign;
 	}
 
+    public static String getDateTime()
+    {
+    	Date createDate = new Date(System.currentTimeMillis());
+    	SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy hh-mm-ss");
+        return formatDate.format(createDate);
+    }
        
     public static String getReportOutputFilePath(ReportType reportType){
     	
-    	String output =  EXPORT_DIR + reportType.getName().getOrig();
+    	
+    	String output = EXPORT_DIR +  reportType.getName().getOrig() + " " + getDateTime();
     	switch (reportType.getExport())
         {
         	case PDF : output = output + ".pdf";
