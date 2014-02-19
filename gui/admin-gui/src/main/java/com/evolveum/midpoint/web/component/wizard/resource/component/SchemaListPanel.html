@@ -24,8 +24,17 @@
                 <thead>
                 <tr>
                     <th>
-                        <input type="text" class="form-control input-sm" wicket:id="objectClass"
-                               wicket:message="placeholder:SchemaListPanel.objectClass"/>
+                        <div class="input-group">
+                            <input type="text" class="form-control input-sm" wicket:id="objectClass"
+                                   wicket:message="placeholder:SchemaListPanel.objectClass"/>
+
+                            <span class="input-group-btn">
+                                <a class="btn btn-danger btn-sm" wicket:id="clearSearch"
+                                   wicket:message="title:PageBase.button.tooltip.clearSearch">
+                                    <i class="fa fa-trash-o"/>
+                                </a>
+                            </span>
+                        </div>
                     </th>
                 </tr>
                 </thead>

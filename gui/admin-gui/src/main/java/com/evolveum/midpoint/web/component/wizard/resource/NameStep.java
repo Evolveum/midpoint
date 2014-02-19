@@ -112,7 +112,7 @@ public class NameStep extends WizardStep {
         TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION,
                 new PrismPropertyModel(resourceModel, UserType.F_DESCRIPTION),
                 createStringResource("NameStep.description"), "col-md-3", "col-md-3");
-        description.setRows(2);
+        description.setRows(3);
         add(description);
 
         DropDownFormGroup<PrismObject<ConnectorHostType>> location = createLocationDropDown();

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.ObjectClassDataProvider;
@@ -62,6 +63,7 @@ public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
     private static final String ID_PAGEABLE = "pageable";
     private static final String ID_CLASS_LINK = "classLink";
     private static final String ID_LABEL = "label";
+    private static final String ID_CLEAR_SEARCH = "clearSearch";
 
     public SchemaListPanel(String id, IModel<PrismObject<ResourceType>> model) {
         super(id, model);
@@ -78,17 +80,25 @@ public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
         };
         final ObjectClassDataProvider dataProvider = new ObjectClassDataProvider(allClasses);
 
-        final IModel<String> textModel = new Model<>();
-        TextField objectClass = new TextField(ID_OBJECT_CLASS, textModel);
+        TextField objectClass = new TextField(ID_OBJECT_CLASS, new Model<>());
+        objectClass.setOutputMarkupId(true);
         objectClass.add(new AjaxFormComponentUpdatingBehavior("keyUp") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                dataProvider.filterClasses(textModel.getObject());
-                target.add(get(ID_TABLE_BODY));
+                updateSearchPerformed(target, dataProvider);
             }
         });
         add(objectClass);
+
+        AjaxButton clearSearch = new AjaxButton(ID_CLEAR_SEARCH) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                clearSearchPerformed(target, dataProvider);
+            }
+        };
+        add(clearSearch);
 
         WebMarkupContainer tableBody = new WebMarkupContainer(ID_TABLE_BODY);
         tableBody.setOutputMarkupId(true);
@@ -123,6 +133,22 @@ public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
             }
         };
         tableBody.add(pageable);
+    }
+
+    private TextField<String> getObjectClassText() {
+        return (TextField) get(ID_OBJECT_CLASS);
+    }
+
+    private void updateSearchPerformed(AjaxRequestTarget target, ObjectClassDataProvider dataProvider) {
+        dataProvider.filterClasses(getObjectClassText().getModelObject());
+        target.add(get(ID_TABLE_BODY));
+    }
+
+    private void clearSearchPerformed(AjaxRequestTarget target, ObjectClassDataProvider dataProvider) {
+        getObjectClassText().setModelObject(null);
+        target.add(getObjectClassText());
+
+        updateSearchPerformed(target, dataProvider);
     }
 
     private void objectClassClickPerformed(AjaxRequestTarget target, ObjectClassDto dto, List<ObjectClassDto> all) {
