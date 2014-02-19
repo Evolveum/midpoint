@@ -134,6 +134,7 @@ public class PrismPropertyPanel extends Panel {
                 });
             }
         };
+        values.setReuseItems(true);
         add(values);
     }
 
