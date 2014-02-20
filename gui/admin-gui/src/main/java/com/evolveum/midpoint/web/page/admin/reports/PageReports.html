@@ -20,17 +20,18 @@
 <wicket:extend>
 
     <form wicket:id="searchForm" class="form-inline pull-right search-form">
-        <div class="form-group">
-            <label class="sr-only"><wicket:message key="searchForm.searchTextPlaceholder" /></label>
-            <input class="form-control input-sm" wicket:id="searchText"
-                   wicket:message="placeholder:searchForm.searchTextPlaceholder">
-        </div>
 
         <div class="checkbox">
             <label>
                 <input type="checkbox" wicket:id="subReportCheckbox"/>
                 <wicket:message key="PageReports.search.showSubreports" />
             </label>
+        </div>
+
+        <div class="form-group">
+            <label class="sr-only"><wicket:message key="searchForm.searchTextPlaceholder" /></label>
+            <input class="form-control input-sm" wicket:id="searchText"
+                   wicket:message="placeholder:searchForm.searchTextPlaceholder">
         </div>
 
         <span class="btn-group">
