@@ -83,7 +83,7 @@ public class PrismContainerPanel extends Panel {
         });
         add(header);
 
-        header.add(new Label("label", new PropertyModel<Object>(model, "displayName")));
+        header.add(new Label("label", new PropertyModel<>(model, "displayName")));
 
         ListView<PropertyWrapper> properties = new ListView<PropertyWrapper>("properties",
                 new PropertyModel(model, "properties")) {
@@ -94,6 +94,7 @@ public class PrismContainerPanel extends Panel {
                 item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
             }
         };
+        properties.setReuseItems(true);
         add(properties);
     }
 

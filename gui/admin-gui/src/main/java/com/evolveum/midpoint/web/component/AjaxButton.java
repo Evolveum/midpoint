@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.web.component;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.MarkupStream;
@@ -21,7 +22,13 @@ public abstract class AjaxButton extends AjaxLink<String> {
 
     @Override
     public void onComponentTagBody(final MarkupStream markupStream, final ComponentTag openTag) {
-        replaceComponentTagBody(markupStream, openTag, getDefaultModelObjectAsString());
+        String text = getModelObject();
+        if (StringUtils.isNotEmpty(text)) {
+            replaceComponentTagBody(markupStream, openTag, text);
+            return;
+        }
+
+        super.onComponentTagBody(markupStream, openTag);
     }
 
     @Override

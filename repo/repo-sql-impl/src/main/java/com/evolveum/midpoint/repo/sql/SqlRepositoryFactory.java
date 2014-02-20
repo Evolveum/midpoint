@@ -245,7 +245,11 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
     }
 
     private String getRelativeBaseDirPath(String baseDir) {
-        return new File(".").toURI().relativize(new File(baseDir).toURI()).getPath();
+        String path = new File(".").toURI().relativize(new File(baseDir).toURI()).getPath();
+        if (StringUtils.isEmpty(path)) {
+            path = ".";
+        }
+        return path;
     }
 
     private void checkPort(int port) throws RepositoryServiceFactoryException {
@@ -276,7 +280,12 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         checkPort(config.getPort());
 
         try {
-            server = Server.createTcpServer(createArguments(config));
+        	String[] serverArguments = createArguments(config);
+        	if (LOGGER.isTraceEnabled()) {
+        		String stringArgs = StringUtils.join(serverArguments, " ");
+        		LOGGER.trace("Starting H2 server with arguments: {}", stringArgs);
+        	}
+            server = Server.createTcpServer(serverArguments);
             server.start();
         } catch (Exception ex) {
             throw new RepositoryServiceFactoryException(ex.getMessage(), ex);
