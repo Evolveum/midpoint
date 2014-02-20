@@ -158,5 +158,11 @@ public class ListXNode extends XNode implements List<XNode> {
 	public String toString() {
 		return "XNode(list:"+subnodes.size()+" elements)";
 	}
+	
+	@Override
+	public int hashCode() {
+		// TODO Auto-generated method stub
+		return super.hashCode();
+	}
 
 }

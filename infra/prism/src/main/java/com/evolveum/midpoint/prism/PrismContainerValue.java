@@ -1144,6 +1144,9 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     }
     
 	public void assertDefinitions(boolean tolerateRaw, String sourceDescription) throws SchemaException {
+		if (getItems() == null){
+			return;
+		}
 		for (Item<?> item: getItems()) {
 			item.assertDefinitions(tolerateRaw, "value("+getId()+") in "+sourceDescription);
 		}

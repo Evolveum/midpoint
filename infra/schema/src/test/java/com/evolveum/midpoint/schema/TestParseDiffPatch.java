@@ -476,6 +476,8 @@ public class TestParseDiffPatch {
         resourceAfter.checkConsistence();
 
         // WHEN
+        System.out.println("Resource before: " + resourceBefore.debugDump());
+        System.out.println("Resource after: " + resourceAfter.debugDump());
 
         ObjectDelta<ResourceType> resourceDelta = resourceBefore.diff(resourceAfter, true, true);
 

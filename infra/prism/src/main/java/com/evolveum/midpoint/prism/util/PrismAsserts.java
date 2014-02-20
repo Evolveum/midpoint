@@ -364,7 +364,7 @@ public class PrismAsserts {
 	}
 
 	public static void assertPropertyDelete(ObjectDelta<?> userDelta, ItemPath propertyPath, Object... expectedValues) {
-		PropertyDelta propertyDelta = userDelta.findPropertyDelta(propertyPath);
+		ItemDelta propertyDelta = userDelta.findItemDelta(propertyPath);
 		assertNotNull("Property delta for "+propertyPath+" not found",propertyDelta);
 		assertSet("delta "+propertyDelta+" for "+propertyPath.last(), "delete", propertyDelta.getValuesToDelete(), expectedValues);
 	}

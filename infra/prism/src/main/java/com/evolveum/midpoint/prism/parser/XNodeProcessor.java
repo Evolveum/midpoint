@@ -259,7 +259,7 @@ public class XNodeProcessor {
 		return cval;
 	}
 	
-	private <T extends Containerable> ItemDefinition locateItemDefinition(
+	protected <T extends Containerable> ItemDefinition locateItemDefinition(
 			PrismContainerDefinition<T> containerDefinition, QName elementQName, XNode xnode)
 			throws SchemaException {
 		ItemDefinition def = containerDefinition.findItemDefinition(elementQName);
@@ -340,7 +340,9 @@ public class XNodeProcessor {
 	
 	public <T> PrismProperty<T> parsePrismProperty(XNode xnode, QName propName,
 			PrismPropertyDefinition<T> propertyDefinition) throws SchemaException {
-		if (xnode instanceof ListXNode) {
+		if (xnode == null){
+			return propertyDefinition.instantiate();
+		} else if (xnode instanceof ListXNode) {
 			return parsePrismPropertyFromList((ListXNode)xnode, propName, propertyDefinition);
 		} else if (xnode instanceof MapXNode) {
 			return parsePrismPropertyFromMap((MapXNode)xnode, propName, propertyDefinition);

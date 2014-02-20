@@ -296,9 +296,13 @@ public class SchemaDefinitionType implements Serializable {
 		result = prime * result + ((schema == null) ? 0 : schema.hashCode());
 		return result;
 	}
-
+	
 	@Override
 	public boolean equals(Object obj) {
+		return equals(obj, false);
+	}
+
+	public boolean equals(Object obj, boolean isLiteral) {
 		if (this == obj)
 			return true;
 		if (obj == null)
@@ -309,7 +313,7 @@ public class SchemaDefinitionType implements Serializable {
 		if (schema == null) {
 			if (other.schema != null)
 				return false;
-		} else if (!DOMUtil.compareElement(schema, other.schema, false))
+		} else if (!DOMUtil.compareElement(schema, other.schema, isLiteral))
 			return false;
 		return true;
 	}

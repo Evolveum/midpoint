@@ -8,6 +8,7 @@
 
 package com.evolveum.prism.xml.ns._public.types_2;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +19,10 @@ import javax.xml.bind.annotation.XmlMixed;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
+
+import org.apache.commons.collections.CollectionUtils;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 
 /**
@@ -47,7 +52,7 @@ import javax.xml.namespace.QName;
 @XmlType(name = "RawType", propOrder = {
     "content"
 })
-public class RawType {
+public class RawType implements Serializable{
 	
 	@XmlTransient
 	private Object value;
@@ -109,8 +114,28 @@ public class RawType {
 
     public RawType clone() {
     	RawType clone = new RawType();
-    	// TODO
+    	clone.getContent().addAll(content);
     	return clone;
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+    	if (!(obj instanceof RawType)){
+    		return false;
+    	}
+    	
+    	RawType other = (RawType) obj;
+    	
+    	return MiscUtil.unorderedCollectionEquals(getContent(), other.getContent());
+    }
+    
+    @Override
+    public int hashCode() {
+    	final int prime = 31;
+		int result = 1;
+		result = prime * result + ((value == null) ? 0 : value.hashCode());
+		result = prime * result + ((type == null) ? 0 : type.hashCode());
+		return result;
     }
     
 }

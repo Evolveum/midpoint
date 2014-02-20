@@ -132,9 +132,9 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
 		if (getTypeName().equals(DOMUtil.XSD_ANY)) {
 			return true;
 		}
-		if (complexTypeDefinition != null && complexTypeDefinition.isXsdAnyMarker()) {
-			return true;
-		}
+//		if (complexTypeDefinition != null && complexTypeDefinition.isXsdAnyMarker()) {
+//			return true;
+//		}
 		return false;
 	}
 

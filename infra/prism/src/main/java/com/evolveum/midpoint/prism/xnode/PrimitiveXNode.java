@@ -175,5 +175,29 @@ public class PrimitiveXNode<T> extends XNode {
 			return valueParser.getStringValue();
 		}
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof PrimitiveXNode)) {
+			return false;
+		}
+		
+		PrimitiveXNode other = (PrimitiveXNode) obj;
+		if (other.isParsed() && isParsed()){
+			return value.equals(obj);
+		} else if (!other.isParsed() && !isParsed()){
+			String thisStringVal = valueParser.getStringValue();
+			String otherStringVal = other.getValueParser().getStringValue();
+			return thisStringVal.equals(otherStringVal);
+		} 
+		
+		return false;
+	}
+	
+	@Override
+	public int hashCode() {
+		// TODO Auto-generated method stub
+		return super.hashCode();
+	}
 
 }

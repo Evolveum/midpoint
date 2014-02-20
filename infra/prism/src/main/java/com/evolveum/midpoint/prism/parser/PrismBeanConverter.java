@@ -507,7 +507,7 @@ public class PrismBeanConverter {
 			return (T) primValue;
 		}
 		
-		if (xprim.isEmpty()) {
+		if (xprim.isEmpty() && !classType.isEnum()) {
 			// Special case. Just return empty object
 			try {
 				return classType.newInstance();

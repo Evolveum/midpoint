@@ -30,6 +30,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
+import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -223,6 +225,11 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 			// This is OK
 			return;
 		}
+		
+		if (value instanceof RawType) {
+			return;
+		}
+		
 		throw new IllegalArgumentException("Unsupported value "+value+" ("+valueClass+") in "+this);
 	}
 
@@ -363,6 +370,13 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 		if (thisRealValue instanceof Element &&
 				otherRealValue instanceof Element) {
 			return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, isLiteral);
+		}
+		
+		if (thisRealValue instanceof SchemaDefinitionType &&
+				otherRealValue instanceof SchemaDefinitionType) {
+			SchemaDefinitionType thisSchema = (SchemaDefinitionType) thisRealValue;
+			return thisSchema.equals(otherRealValue, isLiteral);
+//			return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, isLiteral);
 		}
 
         if (thisRealValue instanceof byte[] && otherRealValue instanceof byte[]) {

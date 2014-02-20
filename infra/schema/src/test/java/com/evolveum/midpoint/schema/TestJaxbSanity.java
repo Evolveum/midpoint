@@ -242,10 +242,12 @@ public class TestJaxbSanity {
 		// GIVEN
 		ResourceType resource1Type = PrismTestUtil.unmarshalObject(new File(RESOURCE_OPENDJ_FILENAME), ResourceType.class);
 		assertNotNull(resource1Type);
+		System.out.println("Resource1 " + resource1Type.asPrismObject().debugDump());
 		PrismObject resource1 = resource1Type.asPrismObject();
 		
 		ResourceType resource2Type = PrismTestUtil.unmarshalObject(new File(RESOURCE_OPENDJ_FILENAME),ResourceType.class);
 		assertNotNull(resource2Type);
+		System.out.println("Resource2 " + resource2Type.asPrismObject().debugDump());
 		PrismObject resource2 = resource2Type.asPrismObject();
 		
 		// WHEN, THEN
@@ -256,6 +258,9 @@ public class TestJaxbSanity {
 		
 		assertTrue("Resource not equal", resource1Type.equals(resource2Type));
 		
+		System.out.println("HASH");
+		System.out.println(resource1Type.hashCode());
+		System.out.println(resource2Type.hashCode());
 		assertTrue("Resource hashcode does not match", resource1Type.hashCode() == resource2Type.hashCode());
 		
 		PrismPropertyValue<Object> pv1 = new PrismPropertyValue<Object>(resource1Type.getConnectorConfiguration());

@@ -28,6 +28,7 @@ import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -205,7 +206,11 @@ public class MapXNode extends XNode implements Map<QName,XNode> {
 	}
 
 	public boolean equals(Object o) {
-		return subnodes.equals(o);
+		if (!(o instanceof MapXNode)){
+			return false;
+		}
+		MapXNode other = (MapXNode) o;
+		return MiscUtil.unorderedCollectionEquals(this.values(), other.values());
 	}
 
 	public int hashCode() {

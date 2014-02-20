@@ -23,6 +23,7 @@
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:my="http://whatever.com/my"
 	xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
 	<modification>

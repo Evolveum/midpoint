@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
 
 /**
  * @author semancik
@@ -45,6 +46,9 @@ public class CloneUtil {
 		if (orig instanceof PolyString) {
 			// PolyString is immutable
 			return (T)orig;
+		}
+		if (orig instanceof RawType){
+			return (T) ((RawType) orig).clone();
 		}
 		if (orig instanceof Item<?>) {
 			return (T) ((Item<?>)orig).clone();

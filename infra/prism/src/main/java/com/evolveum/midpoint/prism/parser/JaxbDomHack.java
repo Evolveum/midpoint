@@ -28,6 +28,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -45,12 +47,14 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
@@ -61,6 +65,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectReferenceType;
 
 /**
  * A set of ugly hacks that are needed for prism and "real" JAXB to coexist. We hate it be we need it.
@@ -107,6 +112,77 @@ public class JaxbDomHack {
 		}
 	}
 	
+	private <T extends Containerable> ItemDefinition locateItemDefinition(
+			PrismContainerDefinition<T> containerDefinition, QName elementQName, Object valueElements)
+			throws SchemaException {
+		ItemDefinition def = containerDefinition.findItemDefinition(elementQName);
+		if (def != null) {
+			return def;
+		}
+
+		if (valueElements instanceof Element) {
+			// Try to locate xsi:type definition in the element
+			def = resolveDynamicItemDefinition(containerDefinition, elementQName, (Element) valueElements,
+					prismContext);
+		}
+		if (def != null) {
+			return def;
+		}
+
+		if (containerDefinition.isRuntimeSchema()) {
+			// Try to locate global definition in any of the schemas
+			def = resolveGlobalItemDefinition(containerDefinition, elementQName);
+		}
+		return def;
+	}
+	private ItemDefinition resolveDynamicItemDefinition(ItemDefinition parentDefinition, QName elementName,
+			Element element, PrismContext prismContext) throws SchemaException {
+		QName typeName = null;
+		// QName elementName = null;
+		// Set it to multi-value to be on the safe side
+		int maxOccurs = -1;
+//		for (Object element : valueElements) {
+			// if (elementName == null) {
+			// elementName = JAXBUtil.getElementQName(element);
+			// }
+			// TODO: try JAXB types
+			if (element instanceof Element) {
+				Element domElement = (Element) element;
+				if (DOMUtil.hasXsiType(domElement)) {
+					typeName = DOMUtil.resolveXsiType(domElement);
+					if (typeName != null) {
+						String maxOccursString = domElement.getAttributeNS(
+								PrismConstants.A_MAX_OCCURS.getNamespaceURI(),
+								PrismConstants.A_MAX_OCCURS.getLocalPart());
+						if (!StringUtils.isBlank(maxOccursString)) {
+							// TODO
+//							maxOccurs = parseMultiplicity(maxOccursString, elementName);
+						}
+//						break;
+					}
+				}
+			}
+//		}
+		// FIXME: now the definition assumes property, may also be property
+		// container?
+		if (typeName == null) {
+			return null;
+		}
+		PrismPropertyDefinition propDef = new PrismPropertyDefinition(elementName, typeName, prismContext);
+		propDef.setMaxOccurs(maxOccurs);
+		propDef.setDynamic(true);
+		return propDef;
+	}
+
+
+	private <T extends Containerable> ItemDefinition resolveGlobalItemDefinition(
+			PrismContainerDefinition<T> containerDefinition, QName elementQName)
+			throws SchemaException {
+		// Object firstElement = valueElements.get(0);
+		// QName elementQName = JAXBUtil.getElementQName(firstElement);
+		return prismContext.getSchemaRegistry().resolveGlobalItemDefinition(elementQName);
+	}
+	
 	/**
 	 * This is used in a form of "fromAny" to parse elements from a JAXB getAny method to prism. 
 	 */
@@ -115,6 +191,12 @@ public class JaxbDomHack {
 		
 		QName elementName = JAXBUtil.getElementQName(element);
 		ItemDefinition itemDefinition = definition.findItemDefinition(elementName);
+		
+		
+		if (itemDefinition == null){
+			itemDefinition = locateItemDefinition(definition, elementName, element);
+		}
+		
 		PrismContext prismContext = definition.getPrismContext();
 		Item<V> subItem;
 		if (element instanceof Element) {
@@ -144,8 +226,7 @@ public class JaxbDomHack {
 					throw new IllegalArgumentException("Unsupported JAXB bean "+jaxbBean.getClass());
 				}
 			} else if (itemDefinition instanceof PrismReferenceDefinition) {
-			
-//				TODO;
+				// TODO
 				throw new UnsupportedOperationException();
 				
 			} else {

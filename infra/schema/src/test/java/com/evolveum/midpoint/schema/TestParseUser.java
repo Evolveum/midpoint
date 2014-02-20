@@ -120,6 +120,8 @@ public class TestParseUser {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		JaxbTestUtil jaxbUtil = PrismTestUtil.getJaxbUtil();
 		
+//		prismContext.getSchemaRegistry().registerPrismSchemaFile(file);
+		
 		
 		// WHEN
 		UserType userType = jaxbUtil.unmarshalObject(USER_FILE, UserType.class);

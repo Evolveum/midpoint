@@ -16,12 +16,14 @@
 
 package com.evolveum.prism.xml.ns._public.types_2;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
@@ -30,8 +32,15 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
+import org.jvnet.jaxb2_commons.lang.Equals;
+import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
+import org.jvnet.jaxb2_commons.lang.HashCode;
+import org.jvnet.jaxb2_commons.lang.HashCodeStrategy;
+import org.jvnet.jaxb2_commons.locator.ObjectLocator;
+
 import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
 
 
 /**
@@ -62,9 +71,11 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 @XmlType(name = "ItemPathType", propOrder = {
     "content"
 })
-public class ItemPathType {
+public class ItemPathType implements Serializable, Equals{
 	
 	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "ItemPathType");
+	
+	public static final QName F_PATH = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "path");
 
 	@XmlTransient
 	private ItemPath itemPath;
@@ -117,142 +128,146 @@ public class ItemPathType {
 
 				@Override
 				public int size() {
-					// TODO Auto-generated method stub
+					if (itemPath != null){
+						return 1;
+					}
 					return 0;
 				}
 
 				@Override
 				public boolean isEmpty() {
-					// TODO Auto-generated method stub
-					return false;
+					return itemPath == null;
+//					throw new UnsupportedOperationException("nto supported yet");
 				}
 
 				@Override
 				public boolean contains(Object o) {
-					// TODO Auto-generated method stub
-					return false;
+					throw new UnsupportedOperationException("nto supported yet");
 				}
 
 				@Override
 				public Iterator<Object> iterator() {
-					// TODO Auto-generated method stub
-					return null;
+					return new Iterator<Object>() {
+						int i = 0;
+						@Override
+						public boolean hasNext() {
+							return i==0;
+						}
+
+						@Override
+						public Object next() {
+							if (i== 0){
+								i++;
+								return new JAXBElement<ItemPathType>(F_PATH, ItemPathType.class, new ItemPathType(itemPath));
+							} 
+							return null;
+						}
+
+						@Override
+						public void remove() {
+							throw new UnsupportedOperationException("nto supported yet");
+						}
+						
+					};
+//					throw new UnsupportedOperationException("nto supported yet");
 				}
 
 				@Override
 				public Object[] toArray() {
-					// TODO Auto-generated method stub
-					return null;
+					throw new UnsupportedOperationException("nto supported yet");
 				}
 
 				@Override
 				public <T> T[] toArray(T[] a) {
-					// TODO Auto-generated method stub
-					return null;
+					throw new UnsupportedOperationException("nto supported yet");
 				}
 
 				@Override
 				public boolean add(Object e) {
-					XPathHolder holder = new XPathHolder(e.toString());
-					itemPath = holder.toItemPath();
-					return true;
-//					throw new IllegalArgumentException("PATH ADD: "+e+" "+e.getClass());
+//					XPathHolder holder = new XPathHolder(e.toString());
+//					itemPath = holder.toItemPath();
+//					return true;
+					throw new IllegalArgumentException("PATH ADD: "+e+" "+e.getClass());
 				}
 
 				@Override
 				public boolean remove(Object o) {
-					// TODO Auto-generated method stub
-					return false;
+					throw new UnsupportedOperationException("nto supported yet");
 				}
 
 				@Override
 				public boolean containsAll(Collection<?> c) {
-					// TODO Auto-generated method stub
-					return false;
+					throw new UnsupportedOperationException("nto supported yet");
 				}
 
 				@Override
 				public boolean addAll(Collection<? extends Object> c) {
-					// TODO Auto-generated method stub
-					return false;
+					throw new UnsupportedOperationException("nto supported yet");
 				}
 
 				@Override
 				public boolean addAll(int index, Collection<? extends Object> c) {
-					// TODO Auto-generated method stub
-					return false;
+					throw new UnsupportedOperationException("nto supported yet");
 				}
 
 				@Override
 				public boolean removeAll(Collection<?> c) {
-					// TODO Auto-generated method stub
-					return false;
+					throw new UnsupportedOperationException("nto supported yet");
 				}
 
 				@Override
 				public boolean retainAll(Collection<?> c) {
-					// TODO Auto-generated method stub
-					return false;
+					throw new UnsupportedOperationException("nto supported yet");
 				}
 
 				@Override
 				public void clear() {
-					// TODO Auto-generated method stub
-					
+					throw new UnsupportedOperationException("nto supported yet");
 				}
 
 				@Override
 				public Object get(int index) {
-					// TODO Auto-generated method stub
-					return null;
+					throw new UnsupportedOperationException("nto supported yet");
 				}
 
 				@Override
 				public Object set(int index, Object element) {
-					// TODO Auto-generated method stub
-					return null;
+					throw new UnsupportedOperationException("nto supported yet");
 				}
 
 				@Override
 				public void add(int index, Object element) {
-					// TODO Auto-generated method stub
-					
+					throw new UnsupportedOperationException("nto supported yet");
 				}
 
 				@Override
 				public Object remove(int index) {
-					// TODO Auto-generated method stub
-					return null;
+					throw new UnsupportedOperationException("nto supported yet");
 				}
 
 				@Override
 				public int indexOf(Object o) {
-					// TODO Auto-generated method stub
-					return 0;
+					throw new UnsupportedOperationException("nto supported yet");
 				}
 
 				@Override
 				public int lastIndexOf(Object o) {
-					// TODO Auto-generated method stub
-					return 0;
+					throw new UnsupportedOperationException("nto supported yet");
 				}
 
 				@Override
 				public ListIterator<Object> listIterator() {
-					// TODO Auto-generated method stub
-					return null;
+					throw new UnsupportedOperationException("nto supported yet");
 				}
 
 				@Override
 				public ListIterator<Object> listIterator(int index) {
-					// TODO Auto-generated method stub
-					return null;
+					throw new UnsupportedOperationException("nto supported yet");
 				}
 
 				@Override
 				public List<Object> subList(int fromIndex, int toIndex) {
-					// TODO Auto-generated method stub
-					return null;
+					throw new UnsupportedOperationException("nto supported yet");
 				}
             	
             };
@@ -265,5 +280,50 @@ public class ItemPathType {
     	// TODO
     	return clone;
     }
+    
+    @Override
+    public boolean equals(Object obj) {
+    	final EqualsStrategy strategy = DomAwareEqualsStrategy.INSTANCE;
+    	return equals(null, null, obj, strategy);
+    }
+
+	@Override
+	public boolean equals(ObjectLocator thisLocator, ObjectLocator thatLocator, Object that,
+			EqualsStrategy equalsStrategy) {
+		
+		if (!(that instanceof ItemPathType)){
+    		return false;
+    	}
+    	
+    	ItemPathType other = (ItemPathType) that;
+    	
+    	ItemPath thisPath = getItemPath();
+    	ItemPath otherPath = other.getItemPath();
+    	
+    	if (thisPath != null){
+    		return thisPath.equals(otherPath);
+    	}
+    	
+    	List<Object> thsContent = getContent();
+    	List<Object> othContent = other.getContent();
+    	
+    	return equalsStrategy.equals(thisLocator, thatLocator, thsContent, othContent);
+    	
+	}
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((itemPath == null) ? 0 : itemPath.hashCode());
+		return result;
+	}
+
+//	@Override
+//	public int hashCode(ObjectLocator locator, HashCodeStrategy hashCodeStrategy) {
+//		final EqualsStrategy strategy = DomAwareEqualsStrategy.INSTANCE;
+////		hashCodeStrategy.
+//		return 0;
+//	}
     
 }
