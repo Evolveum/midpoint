@@ -66,6 +66,8 @@ import java.util.List;
  */
 public class PrismValuePanel extends Panel {
 
+    private static final String ID_FEEDBACK = "feedback";
+
     private IModel<ValueWrapper> model;
 
     public PrismValuePanel(String id, IModel<ValueWrapper> model, IModel<String> label, Form form) {
@@ -78,19 +80,9 @@ public class PrismValuePanel extends Panel {
 
     private void initLayout(IModel<String> label, Form form) {
         //feedback
-        FeedbackPanel feedback = new FeedbackPanel("feedback");
+        FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
         feedback.setOutputMarkupId(true);
         add(feedback);
-
-//        //helpButton
-//        Image helpButtonImage = new Image("helpButton", new Model<String>("InfoSmall.png"));
-//        helpButtonImage.setOutputMarkupId(true);
-//        add(helpButtonImage);
-//
-//        //helpContent
-//        Label labelHelpContent = new Label("helpContent", createHelpModel());
-//        labelHelpContent.setMarkupId("content_" + helpButtonImage.getMarkupId());
-//        add(labelHelpContent);
 
         //input
         InputPanel input = createInputComponent("input", label, form);
@@ -368,7 +360,7 @@ public class PrismValuePanel extends Panel {
         } else if (DOMUtil.XSD_BOOLEAN.equals(valueType)) {
             panel = new TriStateComboPanel(id, new PropertyModel<Boolean>(model, baseExpression));
         } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(valueType)) {
-            panel = new TextPanel<String>(id, new PropertyModel<String>(model, baseExpression + ".orig"), String.class);
+            panel = new TextPanel<>(id, new PropertyModel<String>(model, baseExpression + ".orig"), String.class);
 
             PrismPropertyDefinition def = property.getDefinition();
             if (ObjectType.F_NAME.equals(def.getName()) || UserType.F_FULL_NAME.equals(def.getName())) {
@@ -378,28 +370,27 @@ public class PrismValuePanel extends Panel {
             panel = new UploadPanel(id){
 
                 @Override
-                public void uploadFilePerformed(AjaxRequestTarget target){
-                    try{
-                        FileUpload uploadedFile = getFileUpload();
-                        model.getObject().getValue().setValue(uploadedFile.getBytes());
-                        success("Image upload was successful. Continue with editing and press 'Save' when done.");
-                        target.add();
-                    } catch (Exception e){
-                        error("Image upload was not successful. Try again please.");
-                        target.add(getFeedbackPanel());
-                    }
+                public void updateValue(byte[] file) {
+                    model.getObject().getValue().setValue(file);
                 }
 
                 @Override
-                public void removePhotoPerformed(AjaxRequestTarget target){
-                    try{
-                        model.getObject().getValue().setValue(null);
-                        success("Image removal was successful.");
-                        target.add(getFeedbackPanel());
-                    } catch (Exception e){
-                        error("Image removal was not successful.");
-                        target.add(getFeedbackPanel());
-                    }
+                public void uploadFilePerformed(AjaxRequestTarget target) {
+                    super.uploadFilePerformed(target);
+                    target.add(PrismValuePanel.this.get(ID_FEEDBACK));
+                }
+
+                @Override
+                public void removeFilePerformed(AjaxRequestTarget target) {
+                    super.removeFilePerformed(target);
+                    target.add(PrismValuePanel.this.get(ID_FEEDBACK));
+                }
+
+                @Override
+                public void uploadFileFailed(AjaxRequestTarget target) {
+                    super.uploadFileFailed(target);
+                    target.add(PrismValuePanel.this.get(ID_FEEDBACK));
+                    target.add(((PageBase) getPage()).getFeedbackPanel());
                 }
             };
 
@@ -408,8 +399,7 @@ public class PrismValuePanel extends Panel {
             if (type != null && type.isPrimitive()) {
                 type = ClassUtils.primitiveToWrapper(type);
             }
-            panel = new TextPanel<String>(id, new PropertyModel<String>(model, baseExpression),
-                    type);
+            panel = new TextPanel<>(id, new PropertyModel<String>(model, baseExpression), type);
         }
 
         return panel;
