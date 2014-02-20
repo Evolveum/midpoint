@@ -232,15 +232,18 @@ public class PageContentAccounts extends PageAdminResources {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        List<IColumn> columns = initColumns();
-        TablePanel table = new TablePanel(ID_TABLE, new AccountContentDataProvider(this,
+        AccountContentDataProvider provider = new AccountContentDataProvider(this,
                 new PropertyModel<String>(resourceModel, "oid"), createObjectClassModel()) {
 
             @Override
             protected void addInlineMenuToDto(AccountContentDto dto) {
                 addRowMenuToTable(dto);
             }
-        }, columns);
+        };
+        provider.setQuery(createQuery());
+
+        List<IColumn> columns = initColumns();
+        TablePanel table = new TablePanel(ID_TABLE, provider, columns);
         table.setOutputMarkupId(true);
         mainForm.add(table);
 

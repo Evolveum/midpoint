@@ -200,6 +200,7 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private void addOrReplaceTable(RepositoryObjectDataProvider provider) {
+        provider.setQuery(createQuery());
         Form mainForm = (Form) get(ID_MAIN_FORM);
 
         TablePanel table = new TablePanel(ID_TABLE, provider, initColumns(provider.getType()));
@@ -435,28 +436,10 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private void listObjectsPerformed(AjaxRequestTarget target) {
         DebugSearchDto dto = searchModel.getObject();
-        String nameText = dto.getText();
         ObjectTypes selected = dto.getType();
 
         RepositoryObjectDataProvider provider = getTableDataProvider();
-        if (StringUtils.isNotEmpty(nameText)) {
-            try {
-                PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
-                String normalizedString = normalizer.normalize(nameText);
-
-                ObjectFilter substring = SubstringFilter.createSubstring(ObjectType.F_NAME, ObjectType.class, getPrismContext(),
-                        PolyStringNormMatchingRule.NAME, normalizedString);
-                ObjectQuery query = new ObjectQuery();
-                query.setFilter(substring);
-                provider.setQuery(query);
-            } catch (Exception ex) {
-                LoggingUtils.logException(LOGGER, "Couldn't create substring filter", ex);
-                error(getString("pageDebugList.message.queryException", ex.getMessage()));
-                target.add(getFeedbackPanel());
-            }
-        } else {
-            provider.setQuery(null);
-        }
+        provider.setQuery(createQuery());
 
         if (selected != null) {
             provider.setType(selected.getClassDefinition());
@@ -469,6 +452,25 @@ public class PageDebugList extends PageAdminConfiguration {
 
         TablePanel table = getListTable();
         target.add(table);
+    }
+
+    private ObjectQuery createQuery(){
+        DebugSearchDto dto = searchModel.getObject();
+        String nameText = dto.getText();
+        ObjectQuery query = new ObjectQuery();
+
+        if (StringUtils.isNotEmpty(nameText)) {
+                PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
+                String normalizedString = normalizer.normalize(nameText);
+
+                ObjectFilter substring = SubstringFilter.createSubstring(ObjectType.F_NAME, ObjectType.class, getPrismContext(),
+                        PolyStringNormMatchingRule.NAME, normalizedString);
+                query.setFilter(substring);
+
+            return  query;
+        }
+
+        return null;
     }
 
     private void objectEditPerformed(AjaxRequestTarget target, String oid, Class<? extends ObjectType> type) {
