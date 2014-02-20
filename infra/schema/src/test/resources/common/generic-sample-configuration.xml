@@ -37,11 +37,12 @@
 		</c:name>
 		<c:description>Sample description</c:description>
 		<c:extension>
-			<ext:locations>
-				<ext:location key="home">Here</ext:location>
-				<ext:location key="work">There</ext:location>
-				<ext:location key="somewhere">There there over the corner</ext:location>
-			</ext:locations>
+<!-- 		Complex run-time property - > NOT SUPPORTED -->
+<!-- 			<ext:locations> -->
+<!-- 				<ext:location key="home">Here</ext:location> -->
+<!-- 				<ext:location key="work">There</ext:location> -->
+<!-- 				<ext:location key="somewhere">There there over the corner</ext:location> -->
+<!-- 			</ext:locations> -->
 			<ext:stringType>X marks the spot</ext:stringType>
 	        <ext:intType>1234</ext:intType>
 	        <ext:doubleType>456.789</ext:doubleType>

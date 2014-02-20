@@ -64,10 +64,10 @@ public class TestQueryConvertor {
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-		// PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-		PrismContextFactory contextFactory = MidPointPrismContextFactory.FACTORY;
-		prismContext = contextFactory.createPrismContext();
-		prismContext.initialize();
+		 PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+//		PrismContextFactory contextFactory = MidPointPrismContextFactory.FACTORY;
+//		prismContext = contextFactory.createPrismContext();
+//		prismContext.initialize();
 	}
 
 	@Test
@@ -118,9 +118,9 @@ public class TestQueryConvertor {
 			query = QueryJaxbConvertor.createObjectQuery(ConnectorType.class, queryType, prismContext);
 			LOGGER.info("query converted: ");
 
-			LOGGER.info("QUERY DUMP: {}", query.debugDump());
-			LOGGER.info("QUERY Pretty print: {}", query.toString());
-			System.out.println("QUERY Pretty print: " + query.toString());
+//			LOGGER.info("QUERY DUMP: {}", query.debugDump());
+//			LOGGER.info("QUERY Pretty print: {}", query.toString());
+//			System.out.println("QUERY Pretty print: " + query.toString());
 
 			AssertJUnit.assertNotNull(query);
 			AssertJUnit.assertEquals(EqualsFilter.class, query.getFilter().getClass());

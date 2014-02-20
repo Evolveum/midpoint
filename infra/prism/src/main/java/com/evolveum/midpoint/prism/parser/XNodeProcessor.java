@@ -625,7 +625,11 @@ public class XNodeProcessor {
 		} else {
 			QName defTargetType = referenceDefinition.getTargetTypeName();
 			if (defTargetType != null && !type.equals(defTargetType)) {
-				throw new SchemaException("Target type specified in reference ("+type+") does not match target type in schema ("+defTargetType+")");
+				//one more check - if the type is not a subtype of the schema type
+				
+				if (!qnameToClass(defTargetType).isAssignableFrom(qnameToClass(type))){
+					throw new SchemaException("Target type specified in reference ("+type+") does not match target type in schema ("+defTargetType+")");
+				}
 			}
 		}
 		PrismObjectDefinition<Objectable> objectDefinition = getSchemaRegistry().findObjectDefinitionByType(type);
@@ -715,6 +719,11 @@ public class XNodeProcessor {
 		if (xnode == null) {
 			return null;
 		}
+		// TODO: is this warning needed?
+		if (xnode.isEmpty()){
+			System.out.println("Emplty filter. Skipping parsing.");
+			return null;
+		}
 		return QueryConvertor.parseFilter(xnode, prismContext);
 	}
 	
@@ -728,6 +737,10 @@ public class XNodeProcessor {
 
 	private Long getContainerId(MapXNode xmap) throws SchemaException {
 		return xmap.getParsedPrimitiveValue(XNode.KEY_CONTAINER_ID, DOMUtil.XSD_LONG);
+	}
+	
+	private Class qnameToClass(QName type){
+		return getSchemaRegistry().determineCompileTimeClass(type);
 	}
 	
 	// --------------------------

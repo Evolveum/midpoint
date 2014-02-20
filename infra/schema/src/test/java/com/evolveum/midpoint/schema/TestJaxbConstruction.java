@@ -31,17 +31,23 @@ import com.evolveum.midpoint.prism.*;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.util.JAXBUtilTest;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.SchemaTestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
@@ -137,7 +143,7 @@ public class TestJaxbConstruction {
 		// accountRef/account
 		ObjectReferenceType accountRefType = new ObjectReferenceType();
 		accountRefType.setOid(USER_ACCOUNT_REF_1_OID);
-		Element filterElement = DOMUtil.getDocument().createElementNS(NS_EXTENSION, "fooFilter");
+		Element filterElement = createFilter();
 		ObjectReferenceType.Filter filter = new ObjectReferenceType.Filter();
 		filter.setFilter(filterElement);
 		accountRefType.setFilter(filter);
@@ -152,7 +158,8 @@ public class TestJaxbConstruction {
         PrismReferenceValue accountRefVal0 = accountRef.getValue(0);
         ObjectFilter prismFilter = accountRefVal0.getFilter();
         assertNotNull("Filter have not passed", prismFilter);
-        assertEquals("Difference filter", filterElement, prismFilter);
+        assertTrue("Bad filter in reference", prismFilter instanceof EqualsFilter);
+//        assertEquals("Difference filter", filterElement, prismFilter);
 
         ShadowType accountShadowType = new ShadowType();
         accountShadowType.setOid(USER_ACCOUNT_REF_1_OID);
@@ -201,7 +208,8 @@ public class TestJaxbConstruction {
 		// accountRef/account
 		ObjectReferenceType accountRefType = new ObjectReferenceType();
 		accountRefType.setOid(USER_ACCOUNT_REF_1_OID);
-		Element filterElement = DOMUtil.getDocument().createElementNS(NS_EXTENSION, "fooFilter");
+		
+		Element filterElement = createFilter();
 		ObjectReferenceType.Filter filter = new ObjectReferenceType.Filter();
 		filter.setFilter(filterElement);
 		accountRefType.setFilter(filter);
@@ -248,7 +256,8 @@ public class TestJaxbConstruction {
         PrismReferenceValue accountRefVal0 = accountRef.getValue(0);
         ObjectFilter prismFilter = accountRefVal0.getFilter();
         assertNotNull("Filter have not passed", prismFilter);
-        assertEquals("Difference filter", filterElement, prismFilter);
+        assertTrue("Wrong filter in reference " , prismFilter instanceof EqualsFilter);
+//        assertEquals("Difference filter", filterElement, prismFilter);
 		
 		assertAccountRefs(userType, USER_ACCOUNT_REF_1_OID, USER_ACCOUNT_REF_2_OID);
 
@@ -516,6 +525,19 @@ public class TestJaxbConstruction {
 		PrismProperty<String> stringProperty = extensionValueFromJaxb.findOrCreateItem(EXTENSION_STRING_TYPE_ELEMENT, PrismProperty.class);
 		PrismAsserts.assertDefinition(stringProperty.getDefinition(), EXTENSION_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
 		stringProperty.setRealValue("fifteen men on a dead man chest");
+	}
+	
+	private Element createFilter(){
+		Document doc = DOMUtil.getDocument();
+		Element filterElement = doc.createElementNS(SchemaConstantsGenerated.NS_QUERY, "equal");
+		Element path = doc.createElementNS(SchemaConstantsGenerated.NS_QUERY, "path");
+		path.setTextContent("name");
+		filterElement.appendChild(path);
+		
+		Element value = doc.createElementNS(SchemaConstantsGenerated.NS_QUERY, "value");
+		path.setTextContent("čučoriedka");
+		filterElement.appendChild(value);
+		return filterElement;
 	}
 
 }

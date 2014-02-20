@@ -26,8 +26,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -39,7 +37,7 @@ public class TestJsonParsing {
 	// private PrismJasonProcessor jsonProcessor;
 
 	
-	@Test
+	@Test(enabled = false)
 	public void test000SerializeUserJson() throws Exception {
 		System.out.println("===[ testParseUserJson ]===");
 //		PrismContext prismContext = PrismInternalTestUtil.constructInitializedPrismContext();
@@ -73,7 +71,7 @@ public class TestJsonParsing {
 //		assertUserPrism(userType);
 	}
 	
-	@Test
+	@Test(enabled = false)
 	public void test001ParseUserJson() throws Exception {
 		System.out.println("===[ testParseUserJson ]===");
 		PrismJasonProcessor jsonProcessor = new PrismJasonProcessor();
@@ -114,7 +112,7 @@ public class TestJsonParsing {
 	
 	String resourceFileName = null;
 	
-	@Test
+	@Test(enabled = false)
 	public void test002ParseResourceJson() throws Exception {
 		System.out.println("===[ test002ParseResourceJson ]===");
 		PrismJasonProcessor jsonProcessor = new PrismJasonProcessor();
@@ -155,7 +153,7 @@ System.out.println("=====================objectTYPE");
 //		assertUserPrism(userType);
 	}
 	
-	@Test
+	@Test(enabled = false)
 	public void test003ParseResourceJson() throws Exception {
 		System.out.println("===[ testParseUserJson ]===");
 		PrismJasonProcessor jsonProcessor = new PrismJasonProcessor();

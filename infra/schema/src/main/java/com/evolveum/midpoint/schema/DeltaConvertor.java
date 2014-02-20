@@ -278,11 +278,11 @@ public class DeltaConvertor {
         Item<V> item = items.iterator().next();
         ItemDelta<V> itemDelta = item.createDelta(parentPath.subPath(item.getElementName()));
         if (propMod.getModificationType() == ModificationTypeType.ADD) {
-        	itemDelta.addValuesToAdd(PrismValue.resetParentCollection(item.getValues()));
+        	itemDelta.addValuesToAdd(PrismValue.resetParentCollection(PrismValue.cloneCollection(item.getValues())));
         } else if (propMod.getModificationType() == ModificationTypeType.DELETE) {
-        	itemDelta.addValuesToDelete(PrismValue.resetParentCollection(item.getValues()));
+        	itemDelta.addValuesToDelete(PrismValue.resetParentCollection(PrismValue.cloneCollection(item.getValues())));
         } else if (propMod.getModificationType() == ModificationTypeType.REPLACE) {
-        	itemDelta.setValuesToReplace(PrismValue.resetParentCollection(item.getValues()));
+        	itemDelta.setValuesToReplace(PrismValue.resetParentCollection(PrismValue.cloneCollection(item.getValues())));
         }
 
         return itemDelta;
