@@ -20,6 +20,7 @@ import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -36,10 +37,12 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportOutputDto;
 import com.evolveum.midpoint.web.session.CreatedReportsStorage;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
@@ -59,6 +62,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -93,8 +97,16 @@ public class PageCreatedReports extends PageAdminReports {
     private IModel<ReportOutputDto> filterModel;
     private IModel<ReportDeleteDialogDto> deleteModel = new Model<ReportDeleteDialogDto>();
     private ReportOutputType currentReport;
+    private PageParameters parameters;
 
     public PageCreatedReports(){
+        this(new PageParameters(), null);
+    }
+
+    public PageCreatedReports(PageParameters pageParameters, PageBase previousPage){
+
+        this.parameters = pageParameters;
+        setPreviousPage(previousPage);
 
         filterModel = new LoadableModel<ReportOutputDto>() {
             @Override
@@ -111,6 +123,7 @@ public class PageCreatedReports extends PageAdminReports {
         };
 
         initLayout();
+
     }
 
     @Override
@@ -140,8 +153,20 @@ public class PageCreatedReports extends PageAdminReports {
         ajaxDownloadBehavior.setContentType("application/pdf; charset=UTF-8");
         mainForm.add(ajaxDownloadBehavior);
 
+        ObjectDataProvider provider = new ObjectDataProvider(PageCreatedReports.this, ReportOutputType.class);
+        ObjectQuery query;
+
+        String oidValue = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
+        if(oidValue != null && !StringUtils.isEmpty(oidValue)){
+            query = createReportTypeRefQuery(oidValue);
+        } else {
+            query = createQuery();
+        }
+
+        provider.setQuery(query);
+
         TablePanel table = new TablePanel<ReportOutputDto>(ID_CREATED_REPORTS_TABLE,
-                new ObjectDataProvider(PageCreatedReports.this, ReportOutputType.class), initColumns(ajaxDownloadBehavior));
+                provider, initColumns(ajaxDownloadBehavior));
         table.setShowPaging(true);
         table.setOutputMarkupId(true);
         mainForm.add(table);
@@ -470,6 +495,24 @@ public class PageCreatedReports extends PageAdminReports {
         //TODO - implement as background task
         warn("Not implemented yet, will be implemented as background task.");
         target.add(getFeedbackPanel());
+    }
+
+    private ObjectQuery createReportTypeRefQuery(String oid){
+
+        ObjectQuery query = new ObjectQuery();
+
+        try {
+            RefFilter reportRef = RefFilter.createReferenceEqual(ReportOutputType.F_REPORT_REF, ReportOutputType.class,
+                    getPrismContext(), oid);
+
+            query.setFilter(reportRef);
+            return query;
+        } catch (Exception e){
+            LoggingUtils.logException(LOGGER, "Couldn't create query", e);
+            error("Couldn't create query, reason: " + e.getMessage());
+        }
+
+        return null;
     }
 
     private ObjectQuery createQuery(){

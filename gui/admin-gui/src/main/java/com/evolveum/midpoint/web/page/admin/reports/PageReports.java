@@ -130,7 +130,7 @@ public class PageReports extends PageAdminReports {
             }
         };
     }
-   
+
     private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
@@ -138,7 +138,6 @@ public class PageReports extends PageAdminReports {
         Form searchForm = new Form(ID_SEARCH_FORM);
         add(searchForm);
         initSearchForm(searchForm);
-
 
         //TablePanel table = new TablePanel<ReportDto>(ID_REPORTS_TABLE,
         //        new ListDataProvider<ReportDto>(this, new Model(REPORTS)), initColumns(ajaxDownloadBehavior));
@@ -252,7 +251,9 @@ public class PageReports extends PageAdminReports {
     }
 
     private void reportTypeFilterPerformed(AjaxRequestTarget target, String oid){
-        //TODO - navigate to CreatedReportsPage and set report type filter.
+        PageParameters params = new PageParameters();
+        params.add(OnePageParameterEncoder.PARAMETER, oid);
+        setResponsePage(new PageCreatedReports(params, PageReports.this));
     }
 
     private void runReportPerformed(AjaxRequestTarget target, ReportType report){
@@ -338,7 +339,7 @@ public class PageReports extends PageAdminReports {
         params.put("EVENT_TYPE", auditEventTypeId);
         params.put("EVENT_TYPE_DESC", auditEventTypeName);
         //String theQuery = auditEventTypeId != -1 ? "select aer.timestamp as timestamp, aer.initiatorName as initiator, aer.eventType as eventType, aer.eventStage as eventStage, aer.targetName as targetName, aer.targetType as targetType, aer.targetOwnerName as targetOwnerName, aer.outcome as outcome, aer.message as message from RAuditEventRecord as aer where aer.eventType = $P{EVENT_TYPE} and aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} order by aer.timestamp" : "select aer.timestamp as timestamp, aer.initiatorName as initiator, aer.eventType as eventType, aer.eventStage as eventStage, aer.targetName as targetName, aer.targetType as targetType, aer.targetOwnerName as targetOwnerName, aer.outcome as outcome, aer.message as message from RAuditEventRecord as aer where aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} order by aer.timestamp";;
-        String theQuery = auditEventTypeId != -1 ? 
+        String theQuery = auditEventTypeId != -1 ?
 	    		"select aer.timestamp as timestamp, " +
 	        	"aer.initiatorName as initiator, " +
 	        	"aer.eventType as eventType, " +
@@ -352,8 +353,8 @@ public class PageReports extends PageAdminReports {
 	        	"from RObjectDeltaOperation as odo " +
 	        	"join odo.record as aer " +
 	        	"where aer.eventType = $P{EVENT_TYPE} and aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} " +
-	        	"order by aer.timestamp" 
-	        	: 
+	        	"order by aer.timestamp"
+	        	:
 	        	"select aer.timestamp as timestamp, " +
 	        	"aer.initiatorName as initiator, " +
 	        	"aer.eventType as eventType, " +
@@ -368,7 +369,7 @@ public class PageReports extends PageAdminReports {
 	        	"join odo.record as aer " +
 	        	"where aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} " +
 	        	"order by aer.timestamp";
-        params.put("QUERY_STRING", theQuery);        
+        params.put("QUERY_STRING", theQuery);
         return createReport("/reports/reportAuditLogs.jrxml", params);
     }
 
@@ -399,11 +400,11 @@ public class PageReports extends PageAdminReports {
             JasperDesign designOrgs = JRXmlLoader.load(servletContext.getRealPath("/reports/reportUserOrgs.jrxml"));
             JasperReport reportOrgs = JasperCompileManager.compileReport(designOrgs);
             params.put("orgReport", reportOrgs);
-            
+
             JasperDesign designAccounts = JRXmlLoader.load(servletContext.getRealPath("/reports/reportUserAccounts.jrxml"));
             JasperReport reportAccounts = JasperCompileManager.compileReport(designAccounts);
             params.put("accountReport", reportAccounts);
-            
+
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't create jasper subreport.", ex);
             throw new RestartResponseException(PageReports.class);
@@ -416,7 +417,7 @@ public class PageReports extends PageAdminReports {
         ServletContext servletContext = getMidpointApplication().getServletContext();
         params.put("LOGO_PATH", servletContext.getRealPath("/reports/logo.jpg"));
         params.put("BaseTemplateStyles", servletContext.getRealPath("/styles/midpoint_base_styles.jrtx"));
-        
+
         byte[] generatedReport = new byte[]{};
 //        Session session = null;
 //        try {
