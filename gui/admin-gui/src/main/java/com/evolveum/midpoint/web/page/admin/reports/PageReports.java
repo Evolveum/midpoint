@@ -142,8 +142,9 @@ public class PageReports extends PageAdminReports {
 
         //TablePanel table = new TablePanel<ReportDto>(ID_REPORTS_TABLE,
         //        new ListDataProvider<ReportDto>(this, new Model(REPORTS)), initColumns(ajaxDownloadBehavior));
-        TablePanel table = new TablePanel<>(ID_REPORTS_TABLE, new ObjectDataProvider(PageReports.this, ReportType.class),
-                initColumns());
+        ObjectDataProvider provider = new ObjectDataProvider(PageReports.this, ReportType.class);
+        provider.setQuery(createQuery());
+        TablePanel table = new TablePanel<>(ID_REPORTS_TABLE, provider, initColumns());
         table.setShowPaging(false);
         table.setOutputMarkupId(true);
         mainForm.add(table);
@@ -458,7 +459,7 @@ public class PageReports extends PageAdminReports {
     }
 
     private void searchPerformed(AjaxRequestTarget target){
-        ObjectQuery query = createQuery(target);
+        ObjectQuery query = createQuery();
         ObjectDataProvider provider = getDataProvider();
         provider.setQuery(query);
 
@@ -470,48 +471,45 @@ public class PageReports extends PageAdminReports {
         target.add(getFeedbackPanel());
     }
 
-    private ObjectQuery createQuery(AjaxRequestTarget target){
+    /*
+    private ObjectQuery createParentOnlyQuery(){
+        ObjectQuery query = new ObjectQuery();
+        Boolean showSubtasks = false;
+
+        EqualsFilter boolFilter = EqualsFilter.createEqual(ReportType.F_PARENT, ReportType.class,
+                getPrismContext(), null, showSubtasks);
+
+        query.setFilter(boolFilter);
+        return query;
+    }
+    */
+
+    private ObjectQuery createQuery(){
         ReportSearchDto dto = searchModel.getObject();
         String text = dto.getText();
         Boolean parent = !dto.isParent();
         ObjectQuery query = new ObjectQuery();
 
         if(!StringUtils.isEmpty(text)){
-//            try{
-                PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
-                String normalizedText = normalizer.normalize(text);
+            PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
+            String normalizedText = normalizer.normalize(text);
 
-                ObjectFilter substring = SubstringFilter.createSubstring(ReportType.F_NAME, ReportType.class,
-                        getPrismContext(), PolyStringNormMatchingRule.NAME, normalizedText);
+            ObjectFilter substring = SubstringFilter.createSubstring(ReportType.F_NAME, ReportType.class,
+                    getPrismContext(), PolyStringNormMatchingRule.NAME, normalizedText);
 
-                if(parent == true){
-                    EqualsFilter boolFilter = EqualsFilter.createEqual(ReportType.F_PARENT, ReportType.class,
-                            getPrismContext(), null, parent);
+            if(parent == true){
+                EqualsFilter boolFilter = EqualsFilter.createEqual(ReportType.F_PARENT, ReportType.class,
+                        getPrismContext(), null, parent);
 
-//                    EqualsFilter nullFilter = EqualsFilter.createEqual(ReportType.F_PARENT, ReportType.class,
-//                            getPrismContext(), null, null);
-
-//                    OrFilter or = OrFilter.createOr(boolFilter, nullFilter);
-
-                    query.setFilter(AndFilter.createAnd(substring, boolFilter));
-                } else {
-                    query.setFilter(substring);
-                }
-
-//            }catch (Exception e){
-//                LoggingUtils.logException(LOGGER, "Couldn't create query filter", e);
-//                error(getString("PageReports.message.queryError", e.getMessage()));
-//                target.add(getFeedbackPanel());
-//            }
+                query.setFilter(AndFilter.createAnd(substring, boolFilter));
+            } else {
+                query.setFilter(substring);
+            }
         } else{
             if(parent == true){
                 EqualsFilter boolFilter = EqualsFilter.createEqual(ReportType.F_PARENT, ReportType.class,
                         getPrismContext(), null, parent);
 
-//                EqualsFilter nullFilter = EqualsFilter.createEqual(ReportType.F_PARENT, ReportType.class,
-//                        getPrismContext(), null, null);
-
-//                query.setFilter(OrFilter.createOr(boolFilter, nullFilter));
                 query.setFilter(boolFilter);
             } else{
                 query = null;
