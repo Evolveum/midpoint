@@ -98,7 +98,6 @@ public class NavigatorPanel extends Panel {
                 return isPreviousEnabled();
             }
         });
-        updateDisabledLink(previousLink);
         previous.add(previousLink);
     }
 
@@ -119,7 +118,6 @@ public class NavigatorPanel extends Panel {
                 firstPerformed(target);
             }
         };
-        updateDisabledLink(firstLink);
         first.add(firstLink);
 
         WebMarkupContainer dots = new WebMarkupContainer(ID_DOTS);
@@ -159,7 +157,6 @@ public class NavigatorPanel extends Panel {
                         pageLinkPerformed(target, getPageNumber());
                     }
                 };
-                updateDisabledLink(pageLink);
                 item.add(pageLink);
 
                 item.add(new AttributeModifier("class", new AbstractReadOnlyModel<String>() {
@@ -224,7 +221,6 @@ public class NavigatorPanel extends Panel {
                 return isNextEnabled();
             }
         });
-        updateDisabledLink(nextLink);
         next.add(nextLink);
     }
 
@@ -238,11 +234,6 @@ public class NavigatorPanel extends Panel {
 
     private boolean showFirstAndDots() {
         return pageable.getCurrentPage() >= PAGING_SIZE - 1;
-    }
-
-    private void updateDisabledLink(AjaxLink link) {
-        link.setBeforeDisabledLink("");
-        link.setAfterDisabledLink("");
     }
 
     private void previousPerformed(AjaxRequestTarget target) {

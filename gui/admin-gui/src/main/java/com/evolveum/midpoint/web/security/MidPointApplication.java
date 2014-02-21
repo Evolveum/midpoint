@@ -120,6 +120,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         resourceSettings.setThrowExceptionOnMissingResource(false);
         getMarkupSettings().setStripWicketTags(true);
+        getMarkupSettings().setDefaultBeforeDisabledLink("");
+        getMarkupSettings().setDefaultAfterDisabledLink("");
 
         if (RuntimeConfigurationType.DEVELOPMENT.equals(getConfigurationType())) {
             getDebugSettings().setAjaxDebugModeEnabled(true);
