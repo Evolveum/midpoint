@@ -31,6 +31,9 @@ import java.io.Serializable;
 public class DoubleButtonColumn<T extends Serializable>  extends AbstractColumn<T, String>{
 
     public static final String BUTTON_BASE_CLASS = "btn";
+    public static final String BUTTON_DISABLED = "btn-disabled";
+
+    private DoubleButtonPanel panel;
 
     public enum BUTTON_COLOR_CLASS{
         DEFAULT("btn-default"), PRIMARY("btn-primary"), SUCCESS("btn-success"),
@@ -65,7 +68,7 @@ public class DoubleButtonColumn<T extends Serializable>  extends AbstractColumn<
     public void populateItem(final Item<ICellPopulator<T>> cellItem, String componentId,
                              final IModel<T> rowModel){
 
-        cellItem.add(new DoubleButtonPanel<T>(componentId, rowModel){
+        panel = new DoubleButtonPanel<T>(componentId, rowModel){
 
             @Override
             public String getFirstCssSizeClass(){
@@ -106,7 +109,16 @@ public class DoubleButtonColumn<T extends Serializable>  extends AbstractColumn<
             public void secondPerformed(AjaxRequestTarget target, IModel<T> model){
                 secondClicked(target, model);
             }
-        });
+
+            public boolean isFirstEnabled(IModel<T> model){
+                return isFirstButtonEnabled(model);
+            }
+
+            public boolean isSecondEnabled(IModel<T> model){
+                return isSecondButtonEnabled(model);
+            }
+        };
+        cellItem.add(panel);
     }
 
     public void firstClicked(AjaxRequestTarget target, IModel<T> model){}
@@ -134,5 +146,17 @@ public class DoubleButtonColumn<T extends Serializable>  extends AbstractColumn<
 
     public String getSecondCap(){
         return secondCaption;
+    }
+
+    public boolean isFirstButtonEnabled(IModel<T> model){
+        return true;
+    }
+
+    public boolean isSecondButtonEnabled(IModel<T> model){
+        return true;
+    }
+
+    public DoubleButtonPanel getButtonPanel(){
+        return panel;
     }
 }

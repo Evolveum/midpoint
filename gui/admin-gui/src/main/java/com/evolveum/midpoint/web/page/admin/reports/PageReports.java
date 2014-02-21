@@ -39,6 +39,7 @@ import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReconciliationReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportSearchDto;
@@ -54,6 +55,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -212,6 +214,15 @@ public class PageReports extends PageAdminReports {
                 ReportType report = rowModel.getObject().getValue();
                 reportTypeFilterPerformed(target, report.getOid());
             }
+
+            @Override
+            public boolean isEnabled(IModel<SelectableBean<ReportType>> rowModel){
+                if(rowModel.getObject().getValue().isParent()){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
         };
         columns.add(column);
 
@@ -243,6 +254,15 @@ public class PageReports extends PageAdminReports {
             @Override
             public void secondClicked(AjaxRequestTarget target, IModel<SelectableBean<ReportType>> model){
                 configurePerformed(target, model.getObject().getValue());
+            }
+
+            @Override
+            public boolean isFirstButtonEnabled(IModel<SelectableBean<ReportType>> rowModel){
+                if(rowModel.getObject().getValue().isParent()){
+                    return true;
+                } else {
+                    return false;
+                }
             }
         };
         columns.add(column);
