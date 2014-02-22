@@ -27,17 +27,13 @@ public interface ObjectReference extends Serializable {
 
     String F_TARGET_OID = "targetOid";
 
-    String F_RELATION_NAMESPACE = "relationNamespace";
-
-    String F_RELATION_LOCAL_PART = "relationLocalPart";
+    String F_RELATION = "relation";
 
     String F_TYPE = "type";
 
     String getTargetOid();
 
-    String getRelationNamespace();
-
-    String getRelationLocalPart();
+    String getRelation();
 
     String getDescription();
 

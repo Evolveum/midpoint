@@ -17,10 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.id;
 
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 
-import javax.persistence.Embedded;
-import javax.xml.namespace.QName;
 import java.io.Serializable;
 
 /**
@@ -32,8 +29,8 @@ public class RAnyPolyStringId implements Serializable {
     private Long ownerId;
     private RContainerType ownerType;
     private String value;
-    private QName name;
-    private QName type;
+    private String name;
+    private String type;
 
     public String getOwnerOid() {
         return ownerOid;
@@ -67,19 +64,19 @@ public class RAnyPolyStringId implements Serializable {
         this.value = value;
     }
 
-    public QName getName() {
+    public String getName() {
         return name;
     }
 
-    public void setName(QName name) {
+    public void setName(String name) {
         this.name = name;
     }
 
-    public QName getType() {
+    public String getType() {
         return type;
     }
 
-    public void setType(QName type) {
+    public void setType(String type) {
         this.type = type;
     }
 

@@ -17,15 +17,13 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
-import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAnyLongId;
+import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import org.hibernate.annotations.Columns;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
-import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
@@ -42,8 +40,8 @@ public class RAnyLong implements RAnyValue {
     private RContainerType ownerType;
 
     private boolean dynamic;
-    private QName name;
-    private QName type;
+    private String name;
+    private String type;
     private RValueType valueType;
 
     private Long value;
@@ -95,20 +93,14 @@ public class RAnyLong implements RAnyValue {
     }
 
     @Id
-    @Columns(columns = {
-            @Column(name = "name_namespace"),
-            @Column(name = "name_localPart", length = RUtil.COLUMN_LENGTH_LOCALPART)
-    })
-    public QName getName() {
+    @Column(name = "eName", length = RUtil.COLUMN_LENGTH_QNAME)
+    public String getName() {
         return name;
     }
 
     @Id
-    @Columns(columns = {
-            @Column(name = "type_namespace"),
-            @Column(name = "type_localPart", length = RUtil.COLUMN_LENGTH_LOCALPART)
-    })
-    public QName getType() {
+    @Column(name = "eType", length = RUtil.COLUMN_LENGTH_QNAME)
+    public String getType() {
         return type;
     }
 
@@ -139,11 +131,11 @@ public class RAnyLong implements RAnyValue {
         this.valueType = valueType;
     }
 
-    public void setName(QName name) {
+    public void setName(String name) {
         this.name = name;
     }
 
-    public void setType(QName type) {
+    public void setType(String type) {
         this.type = type;
     }
 

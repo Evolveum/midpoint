@@ -1,21 +1,8 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import java.util.Collection;
-import java.util.List;
-
-import javax.persistence.*;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RDataSource;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-import org.apache.commons.lang.StringUtils;
-import org.hibernate.annotations.Columns;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
-import org.hibernate.annotations.Type;
-
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RDataSource;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RExportType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROrientationType;
@@ -23,7 +10,15 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import org.apache.commons.lang.StringUtils;
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Type;
+
+import javax.persistence.*;
+import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))

@@ -408,6 +408,11 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
             value = new PolyString(type.getOrig(), type.getNorm());
         }
 
+        if (String.class.equals(def.getJaxbType()) && (value instanceof QName)) {
+            //eg. shadow/objectClass
+            value = RUtil.qnameToString((QName) value);
+        }
+
         if (value != null && !def.getJaxbType().isAssignableFrom(value.getClass())) {
             throw new QueryException("Value should by type of '" + def.getJaxbType() + "' but it's '"
                     + value.getClass() + "', filter '" + filter + "'.");

@@ -29,7 +29,6 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryContext;
 import com.evolveum.midpoint.repo.sql.query.definition.AnyDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.Definition;
-import com.evolveum.midpoint.repo.sql.type.QNameType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -99,8 +98,8 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
         Object value = RAnyConverter.getAggregatedRepoObject(testedValue);
         conjunction.add(createCriterion(propertyNamePrefix + RAnyValue.F_VALUE, value, filter));
 
-        conjunction.add(Restrictions.eq(propertyNamePrefix + RAnyValue.F_NAME, QNameType.optimizeQName(name)));
-        conjunction.add(Restrictions.eq(propertyNamePrefix + RAnyValue.F_TYPE, QNameType.optimizeQName(type)));
+        conjunction.add(Restrictions.eq(propertyNamePrefix + RAnyValue.F_NAME, RUtil.qnameToString(name)));
+        conjunction.add(Restrictions.eq(propertyNamePrefix + RAnyValue.F_TYPE, RUtil.qnameToString(type)));
 
         return conjunction;
     }

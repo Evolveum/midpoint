@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.id.RObjectReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
-import com.evolveum.midpoint.repo.sql.type.QNameType;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -57,8 +56,7 @@ public class RObjectReference implements ObjectReference {
     private Long ownerId;
     //other primary key fields
     private String targetOid;
-    private String relationNamespace;
-    private String relationLocalPart;
+    private String relation;
 
     //other fields
     private String description;
@@ -105,23 +103,9 @@ public class RObjectReference implements ObjectReference {
     }
 
     @Id
-    @Column(name = "relNamespace")
-    @Override
-    public String getRelationNamespace() {
-        if (relationNamespace == null) {
-            relationNamespace = QNameType.EMPTY_QNAME_COLUMN_VALUE;
-        }
-        return relationNamespace;
-    }
-
-    @Id
-    @Column(name = "relLocalPart", length = RUtil.COLUMN_LENGTH_LOCALPART)
-    @Override
-    public String getRelationLocalPart() {
-        if (relationLocalPart == null) {
-            relationLocalPart = QNameType.EMPTY_QNAME_COLUMN_VALUE;
-        }
-        return relationLocalPart;
+    @Column(name="relation", length = RUtil.COLUMN_LENGTH_QNAME)
+    public String getRelation() {
+        return relation;
     }
 
     @Lob
@@ -173,12 +157,8 @@ public class RObjectReference implements ObjectReference {
         this.ownerOid = ownerOid;
     }
 
-    public void setRelationLocalPart(String relationLocalPart) {
-        this.relationLocalPart = relationLocalPart;
-    }
-
-    public void setRelationNamespace(String relationNamespace) {
-        this.relationNamespace = relationNamespace;
+    public void setRelation(String relation) {
+        this.relation = relation;
     }
 
     public void setTargetOid(String targetOid) {
@@ -199,10 +179,7 @@ public class RObjectReference implements ObjectReference {
         if (description != null ? !description.equals(ref.description) : ref.description != null)
             return false;
         if (filter != null ? !filter.equals(ref.filter) : ref.filter != null) return false;
-        if (getRelationNamespace() != null ? !getRelationNamespace().equals(ref.getRelationNamespace()) :
-                ref.getRelationNamespace() != null) return false;
-        if (getRelationLocalPart() != null ? !getRelationLocalPart().equals(ref.getRelationLocalPart()) :
-                ref.getRelationLocalPart() != null) return false;
+        if (relation != null ? !relation.equals(ref.filter) : ref.relation != null) return false;
         if (targetOid != null ? !targetOid.equals(ref.targetOid) : ref.targetOid != null) return false;
         if (type != ref.type) return false;
 
@@ -215,8 +192,7 @@ public class RObjectReference implements ObjectReference {
         result = 31 * result + (description != null ? description.hashCode() : 0);
         result = 31 * result + (filter != null ? filter.hashCode() : 0);
         result = 31 * result + (type != null ? type.hashCode() : 0);
-        result = 31 * result + (getRelationNamespace() != null ? getRelationNamespace().hashCode() : 0);
-        result = 31 * result + (getRelationLocalPart() != null ? getRelationLocalPart().hashCode() : 0);
+        result = 31 * result + (relation != null ? relation.hashCode() : 0);
 
         return result;
     }
@@ -230,7 +206,7 @@ public class RObjectReference implements ObjectReference {
         }
         jaxb.setType(ClassMapper.getQNameForHQLType(repo.getType()));
         jaxb.setOid(repo.getTargetOid());
-        jaxb.setRelation(QNameType.assembleQName(repo.getRelationNamespace(), repo.getRelationLocalPart()));
+        jaxb.setRelation(RUtil.stringToQName(repo.getRelation()));
 
         String filter = repo.getFilter();
         if (StringUtils.isNotEmpty(filter)) {
@@ -250,10 +226,7 @@ public class RObjectReference implements ObjectReference {
             repo.setDescription(jaxb.getDescription());
         }
         repo.setType(ClassMapper.getHQLTypeForQName(jaxb.getType()));
-
-        String[] relation = QNameType.disassembleQName(jaxb.getRelation());
-        repo.setRelationNamespace(relation[0]);
-        repo.setRelationLocalPart(relation[1]);
+        repo.setRelation(RUtil.qnameToString(jaxb.getRelation()));
 
         repo.setTargetOid(jaxb.getOid());
 

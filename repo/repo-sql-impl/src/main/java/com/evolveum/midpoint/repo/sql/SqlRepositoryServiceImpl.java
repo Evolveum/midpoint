@@ -304,10 +304,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } catch (ObjectNotFoundException ex) {
             rollbackTransaction(session, ex, result, true);
             throw ex;
-        } catch (SchemaException ex) {
-            handleGeneralCheckedException(ex, session, result);
-        } catch (RuntimeException ex) {
-            handleGeneralRuntimeException(ex, session, result);
+        } catch (SchemaException | RuntimeException ex) {
+            handleGeneralException(ex, session, result);
         } finally {
             cleanupSessionAndResult(session, result);
         }
@@ -339,16 +337,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private PrismObject<UserType> listAccountShadowOwnerAttempt(String accountOid, OperationResult result)
             throws ObjectNotFoundException {
-        UserType userType = null;
+        PrismObject<UserType> userType = null;
         Session session = null;
         try {
             session = beginReadOnlyTransaction();
             LOGGER.trace("Selecting account shadow owner for account {}.", new Object[]{accountOid});
-            Query query = session.createQuery("select user from " + ClassMapper.getHQLType(UserType.class)
+            Query query = session.createQuery("select user.fullObject from " + ClassMapper.getHQLType(UserType.class)
                     + " as user left join user.linkRef as ref where ref.targetOid = :oid");
             query.setString("oid", accountOid);
 
-            List<RUser> users = query.list();
+            List<String> users = query.list();
             LOGGER.trace("Found {} users, transforming data to JAXB types.",
                     new Object[]{(users != null ? users.size() : 0)});
 
@@ -362,17 +360,17 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                         new Object[]{users.size(), accountOid});
             }
 
-            RUser user = users.get(0);
-            userType = user.toJAXB(getPrismContext(), null);
+            String user = users.get(0);
+            userType = updateLoadedObject(user, session, UserType.class);
 
             session.getTransaction().commit();
-        } catch (DtoTranslationException | RuntimeException ex) {
+        } catch (SchemaException | RuntimeException ex) {
             handleGeneralException(ex, session, result);
         } finally {
             cleanupSessionAndResult(session, result);
         }
 
-        return userType.asPrismObject();
+        return userType;
     }
 
     private void validateName(PrismObject object) throws SchemaException {
@@ -1049,12 +1047,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         for (Object[] value : values) {
             ItemDefinition def;
+            QName name = RUtil.stringToQName((String) value[0]);
+            QName type = RUtil.stringToQName((String) value[1]);
+
             switch ((RValueType) value[2]) {
                 case PROPERTY:
-                    def = new PrismPropertyDefinition((QName) value[0], (QName) value[1], object.getPrismContext());
+                    def = new PrismPropertyDefinition(name, type, object.getPrismContext());
                     break;
                 case REFERENCE:
-                    def = new PrismReferenceDefinition((QName) value[0], (QName) value[1], object.getPrismContext());
+                    def = new PrismReferenceDefinition(name, type, object.getPrismContext());
                     break;
                 default:
                     throw new UnsupportedOperationException("Unsupported value type " + value[2]);
@@ -1077,6 +1078,17 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Validate.notNull(type, "Object class in delta must not be null.");
         Validate.notEmpty(oid, "Oid must not null or empty.");
         Validate.notNull(result, "Operation result must not be null.");
+
+        OperationResult subResult = result.createSubresult(MODIFY_OBJECT);
+        subResult.addParam("type", type.getName());
+        subResult.addParam("oid", oid);
+        subResult.addCollectionOfSerializablesAsParam("modifications", modifications);
+
+        if (modifications.isEmpty()) {
+            LOGGER.debug("Modification list is empty, nothing was modified.");
+            subResult.recordStatus(OperationResultStatus.SUCCESS, "Modification list is empty, nothing was modified.");
+            return;
+        }
 
         if (InternalsConfig.encryptionChecks) {
             CryptoUtil.checkEncrypted(modifications);
@@ -1101,18 +1113,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         			}
         		}
         	}        	
-        }
-
-
-        OperationResult subResult = result.createSubresult(MODIFY_OBJECT);
-        subResult.addParam("type", type.getName());
-        subResult.addParam("oid", oid);
-        subResult.addCollectionOfSerializablesAsParam("modifications", modifications);
-
-        if (modifications.isEmpty()) {
-            LOGGER.debug("Modification list is empty, nothing was modified.");
-            subResult.recordStatus(OperationResultStatus.SUCCESS, "Modification list is empty, nothing was modified.");
-            return;
         }
 
         final String operation = "modifying";
@@ -1276,22 +1276,19 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (ocAncestor != null && !ocAncestor.isEmpty()) {
             cOrgClosure.add(Restrictions.in("ancestor", ocAncestor));
         } else {
-            LOGGER.trace("No ancestors for object: {}",
-                    rObjectToModify.getOid());
+            LOGGER.trace("No ancestors for object: {}", rObjectToModify.getOid());
         }
 
         if (ocDescendant != null && !ocDescendant.isEmpty()) {
             cOrgClosure.add(Restrictions.in("descendant", ocDescendant));
         } else {
-            LOGGER.trace("No descendants for object: {}",
-                    rObjectToModify.getOid());
+            LOGGER.trace("No descendants for object: {}", rObjectToModify.getOid());
         }
 
         List<ROrgClosure> orgClosure = cOrgClosure.list();
 
         for (ROrgClosure o : orgClosure) {
-            LOGGER.trace(
-                    "1deleting from hierarchy: A: {} D:{} depth:{}",
+            LOGGER.trace("deleting from hierarchy: A: {} D:{} depth:{}",
                     new Object[]{o.getAncestor().toJAXB(getPrismContext(), null),
                             o.getDescendant().toJAXB(getPrismContext(), null),
                             o.getDepth()});

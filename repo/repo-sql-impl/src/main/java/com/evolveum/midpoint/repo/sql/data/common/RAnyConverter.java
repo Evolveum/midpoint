@@ -118,8 +118,8 @@ public class RAnyConverter {
                     rValue = RAnyReference.createReference(referenceValue);
                 }
 
-                rValue.setName(definition.getName());
-                rValue.setType(definition.getTypeName());
+                rValue.setName(RUtil.qnameToString(definition.getName()));
+                rValue.setType(RUtil.qnameToString(definition.getTypeName()));
                 rValue.setValueType(getValueType(value.getParent()));
                 rValue.setDynamic(definition.isDynamic());
 
@@ -225,7 +225,7 @@ public class RAnyConverter {
                 any.add(item);
             } else {
                 try {
-                    item = any.findOrCreateItem(value.getName(), value.getValueType().getItemClass());
+                    item = any.findOrCreateItem(RUtil.stringToQName(value.getName()), value.getValueType().getItemClass());
                 } catch (SchemaException ex) {
                     //item was not found, and can't be created (e.g. definition is not available)
                     //for example attributes, therefore we create item without definition and add there raw value
@@ -254,10 +254,12 @@ public class RAnyConverter {
 
     private ItemDefinition createDefinitionForItem(RAnyValue value) {
         ItemDefinition def;
+        QName name = RUtil.stringToQName(value.getName());
+        QName type = RUtil.stringToQName(value.getType());
+
         switch (value.getValueType()) {
             case PROPERTY:
-                def = new PrismPropertyDefinition(value.getName(),
-                        value.getType(), prismContext);
+                def = new PrismPropertyDefinition(name, type, prismContext);
                 break;
             case CONTAINER:
                 //todo implement
@@ -266,8 +268,7 @@ public class RAnyConverter {
                 //todo implement
                 throw new UnsupportedOperationException("Not implemented yet.");
             case REFERENCE:
-                def = new PrismReferenceDefinition(value.getName(),
-                        value.getType(), prismContext);
+                def = new PrismReferenceDefinition(name, type, prismContext);
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown value type " + value.getValueType());
@@ -288,7 +289,8 @@ public class RAnyConverter {
         PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
         Element root = DOMUtil.parseDocument(value.getValue()).getDocumentElement();
 
-        Item parsedItem = domProcessor.parseItem(DOMUtil.listChildElements(root), value.getName(), item.getDefinition());
+        Item parsedItem = domProcessor.parseItem(DOMUtil.listChildElements(root),
+                RUtil.stringToQName(value.getName()), item.getDefinition());
 
         item.addAll(PrismValue.resetParentCollection(parsedItem.getValues()));
     }
@@ -338,28 +340,30 @@ public class RAnyConverter {
         }
 
         Object value = rValue.getValue();
+        QName type = RUtil.stringToQName(rValue.getType());
+
         if (rValue instanceof RAnyDate) {
             if (value instanceof Date) {
                 return XMLGregorianCalendarType.asXMLGregorianCalendar((Date) value);
             }
         } else if (rValue instanceof RAnyLong) {
-            if (DOMUtil.XSD_LONG.equals(rValue.getType())) {
+            if (DOMUtil.XSD_LONG.equals(type)) {
                 return value;
-            } else if (DOMUtil.XSD_INT.equals(rValue.getType())) {
+            } else if (DOMUtil.XSD_INT.equals(type)) {
                 return ((Long) value).intValue();
-            } else if (DOMUtil.XSD_SHORT.equals(rValue.getType())) {
+            } else if (DOMUtil.XSD_SHORT.equals(type)) {
                 return ((Long) value).shortValue();
             }
         } else if (rValue instanceof RAnyString) {
-            if (DOMUtil.XSD_STRING.equals(rValue.getType())) {
+            if (DOMUtil.XSD_STRING.equals(type)) {
                 return value;
-            } else if (DOMUtil.XSD_DOUBLE.equals(rValue.getType())) {
+            } else if (DOMUtil.XSD_DOUBLE.equals(type)) {
                 return Double.parseDouble((String) value);
-            } else if (DOMUtil.XSD_FLOAT.equals(rValue.getType())) {
+            } else if (DOMUtil.XSD_FLOAT.equals(type)) {
                 return Float.parseFloat((String) value);
-            } else if (DOMUtil.XSD_INTEGER.equals(rValue.getType())) {
+            } else if (DOMUtil.XSD_INTEGER.equals(type)) {
                 return new BigInteger((String) value);
-            } else if (DOMUtil.XSD_DECIMAL.equals(rValue.getType())) {
+            } else if (DOMUtil.XSD_DECIMAL.equals(type)) {
                 return new BigDecimal((String) value);
             }
         } else if (rValue instanceof RAnyPolyString) {
@@ -368,9 +372,9 @@ public class RAnyConverter {
         }
 
         LOGGER.trace("Couldn't create real value of type '{}' from '{}'",
-                new Object[]{rValue.getType(), rValue.getValue()});
+                new Object[]{type, rValue.getValue()});
 
-        throw new IllegalStateException("Can't create real value of type '" + rValue.getType()
+        throw new IllegalStateException("Can't create real value of type '" + type
                 + "' from value saved in DB as '" + rValue.getClass().getSimpleName() + "'.");
     }
 

@@ -31,7 +31,6 @@ import org.hibernate.annotations.Type;
 import org.w3c.dom.Element;
 
 import javax.persistence.*;
-import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
@@ -42,22 +41,16 @@ public class REmbeddedReference implements ObjectReference {
     //target
     private String targetOid;
     //other fields
-    private String description = "";
+    private String description;
     private String filter = "";
     private RContainerType type;
     //relation qname
-    private String relationNamespace = "";
-    private String relationLocalPart = "";
+    private String relation;
 
-    @Column(length = RUtil.COLUMN_LENGTH_LOCALPART)
+    @Column(length = RUtil.COLUMN_LENGTH_QNAME)
     @Override
-    public String getRelationLocalPart() {
-        return relationLocalPart;
-    }
-
-    @Override
-    public String getRelationNamespace() {
-        return relationNamespace;
+    public String getRelation() {
+        return relation;
     }
 
     @Column(length = RUtil.COLUMN_LENGTH_OID, insertable = true, updatable = true, nullable = true)
@@ -86,12 +79,8 @@ public class REmbeddedReference implements ObjectReference {
         return filter;
     }
 
-    public void setRelationLocalPart(String relationLocalPart) {
-        this.relationLocalPart = relationLocalPart;
-    }
-
-    public void setRelationNamespace(String relationNamespace) {
-        this.relationNamespace = relationNamespace;
+    public void setRelation(String relation) {
+        this.relation = relation;
     }
 
     public void setDescription(String description) {
@@ -122,10 +111,7 @@ public class REmbeddedReference implements ObjectReference {
         if (targetOid != null ? !targetOid.equals(that.targetOid) : that.targetOid != null)
             return false;
         if (type != that.type) return false;
-        if (relationLocalPart != null ? !relationLocalPart.equals(that.relationLocalPart) : that.relationLocalPart != null)
-            return false;
-        if (relationNamespace != null ? !relationNamespace.equals(that.relationNamespace) : that.relationNamespace != null)
-            return false;
+        if (relation != null ? !relation.equals(that.relation) : that.relation != null) return false;
 
         return true;
     }
@@ -135,8 +121,7 @@ public class REmbeddedReference implements ObjectReference {
         int result = description != null ? description.hashCode() : 0;
         result = 31 * result + (filter != null ? filter.hashCode() : 0);
         result = 31 * result + (type != null ? type.hashCode() : 0);
-        result = 31 * result + (relationLocalPart != null ? relationLocalPart.hashCode() : 0);
-        result = 31 * result + (relationNamespace != null ? relationNamespace.hashCode() : 0);
+        result = 31 * result + (relation != null ? relation.hashCode() : 0);
 
         return result;
     }
@@ -154,9 +139,7 @@ public class REmbeddedReference implements ObjectReference {
             jaxb.setDescription(repo.getDescription());
         }
         jaxb.setType(ClassMapper.getQNameForHQLType(repo.getType()));
-        if (StringUtils.isNotEmpty(repo.getRelationLocalPart()) && StringUtils.isNotEmpty(repo.getRelationNamespace())) {
-            jaxb.setRelation(new QName(repo.getRelationNamespace(), repo.getRelationLocalPart()));
-        }
+        jaxb.setRelation(RUtil.stringToQName(repo.getRelation()));
         if (StringUtils.isNotEmpty(repo.getTargetOid())) {
             jaxb.setOid(repo.getTargetOid());
         }
@@ -179,11 +162,7 @@ public class REmbeddedReference implements ObjectReference {
             repo.setDescription(jaxb.getDescription());
         }
         repo.setType(ClassMapper.getHQLTypeForQName(jaxb.getType()));
-        if (jaxb.getRelation() != null) {
-            repo.setRelationNamespace(jaxb.getRelation().getNamespaceURI());
-            repo.setRelationLocalPart(jaxb.getRelation().getLocalPart());
-        }
-
+        repo.setRelation(RUtil.qnameToString(jaxb.getRelation()));
         repo.setTargetOid(jaxb.getOid());
 
         if (jaxb.getFilter() != null && jaxb.getFilter().getFilter() != null) {
@@ -193,6 +172,10 @@ public class REmbeddedReference implements ObjectReference {
     }
 
     public ObjectReferenceType toJAXB(PrismContext prismContext) {
+        if (StringUtils.isEmpty(targetOid) && StringUtils.isEmpty(filter)) {
+            return null;
+        }
+
         ObjectReferenceType ref = new ObjectReferenceType();
         copyToJAXB(this, ref, prismContext);
 

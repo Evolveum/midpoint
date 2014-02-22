@@ -78,10 +78,9 @@ public final class RUtil {
      */
     public static final String LOB_STRING_TYPE = "org.hibernate.type.StringClobType";
 
-    /**
-     * This constant is used for {@link QName#localPart} column size in database.
-     */
-    public static final int COLUMN_LENGTH_LOCALPART = 100;
+    public static final int COLUMN_LENGTH_QNAME = 200;
+
+    public static final String QNAME_DELIMITER = "#";
 
     /**
      * This constant is used for oid column size in database.
@@ -315,11 +314,12 @@ public final class RUtil {
     }
 
     public static List<ObjectReferenceType> safeSetReferencesToList(Set<RObjectReference> set, PrismContext prismContext) {
+        List<ObjectReferenceType> list = new ArrayList<ObjectReferenceType>();
+
         if (set == null || set.isEmpty()) {
-            return new ArrayList<ObjectReferenceType>();
+            return list;
         }
 
-        List<ObjectReferenceType> list = new ArrayList<ObjectReferenceType>();
         for (RObjectReference str : set) {
             ObjectReferenceType ort = new ObjectReferenceType();
             RObjectReference.copyToJAXB(str, ort, prismContext);
@@ -451,7 +451,7 @@ public final class RUtil {
                     prismContext));
             jaxb.setParams(RUtil.toJAXB(OperationResultType.class, new ItemPath(OperationResultType.F_PARAMS),
                     repo.getParams(), ParamsType.class, prismContext));
-            
+
             jaxb.setContext(RUtil.toJAXB(OperationResultType.class, new ItemPath(OperationResultType.F_CONTEXT),
                     repo.getContext(), ParamsType.class, prismContext));
 
@@ -554,5 +554,34 @@ public final class RUtil {
         segments.add(new NameItemPathSegment(def.getName()));
 
         return new ItemPath(segments);
+    }
+
+    public static String qnameToString(QName qname) {
+        StringBuilder sb = new StringBuilder();
+        if (qname != null) {
+            sb.append(qname.getNamespaceURI());
+        }
+        sb.append(QNAME_DELIMITER);
+        if (qname != null) {
+            sb.append(qname.getLocalPart());
+        }
+
+        return sb.toString();
+    }
+
+    public static QName stringToQName(String text) {
+        if (StringUtils.isEmpty(text)) {
+            return null;
+        }
+
+        int index = text.lastIndexOf(QNAME_DELIMITER);
+        String namespace = StringUtils.left(text, index);
+        String localPart = StringUtils.right(text, text.length() - index - 1);
+
+        if (StringUtils.isEmpty(localPart)) {
+            return null;
+        }
+
+        return new QName(namespace, localPart);
     }
 }

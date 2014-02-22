@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -25,7 +24,6 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
 import com.evolveum.midpoint.repo.sql.data.common.RShadow;
@@ -38,9 +36,9 @@ import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SynchronizationSituationUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -534,8 +532,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         RAnyDate date = new RAnyDate();
         date.setAnyContainer(any);
         date.setDynamic(false);
-        date.setName(new QName(namespace, "funeralDate"));
-        date.setType(new QName("http://www.w3.org/2001/XMLSchema", "dateTime"));
+        date.setName(RUtil.qnameToString(new QName(namespace, "funeralDate")));
+        date.setType(RUtil.qnameToString(new QName("http://www.w3.org/2001/XMLSchema", "dateTime")));
         date.setValue(dateValue);
         dates.add(date);
         date.setValueType(RValueType.PROPERTY);
@@ -547,8 +545,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         l.setAnyContainer(any);
         longs.add(l);
         l.setDynamic(false);
-        l.setName(new QName(namespace, "loot"));
-        l.setType(new QName("http://www.w3.org/2001/XMLSchema", "int"));
+        l.setName(RUtil.qnameToString(new QName(namespace, "loot")));
+        l.setType(RUtil.qnameToString(new QName("http://www.w3.org/2001/XMLSchema", "int")));
         l.setValue(lootValue);
         l.setValueType(RValueType.PROPERTY);
 
@@ -559,8 +557,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         s1.setAnyContainer(any);
         strings.add(s1);
         s1.setDynamic(false);
-        s1.setName(new QName(namespace, "weapon"));
-        s1.setType(new QName("http://www.w3.org/2001/XMLSchema", "string"));
+        s1.setName(RUtil.qnameToString(new QName(namespace, "weapon")));
+        s1.setType(RUtil.qnameToString(new QName("http://www.w3.org/2001/XMLSchema", "string")));
         s1.setValue("gun");
         s1.setValueType(RValueType.PROPERTY);
 
@@ -568,8 +566,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         s2.setAnyContainer(any);
         strings.add(s2);
         s2.setDynamic(false);
-        s2.setName(new QName(namespace, "shipName"));
-        s2.setType(new QName("http://www.w3.org/2001/XMLSchema", "string"));
+        s2.setName(RUtil.qnameToString(new QName(namespace, "shipName")));
+        s2.setType(RUtil.qnameToString(new QName("http://www.w3.org/2001/XMLSchema", "string")));
         s2.setValue("pltka");
         s2.setValueType(RValueType.PROPERTY);
 
@@ -580,8 +578,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         clobs.add(c1);
         c1.setAnyContainer(any);
         c1.setDynamic(false);
-        c1.setName(new QName(namespace, "someContainer"));
-        c1.setType(new QName("http://www.w3.org/2001/XMLSchema", "string"));
+        c1.setName(RUtil.qnameToString(new QName(namespace, "someContainer")));
+        c1.setType(RUtil.qnameToString(new QName("http://www.w3.org/2001/XMLSchema", "string")));
         c1.setValue("some container xml as clob or what...");
         c1.setValueType(RValueType.CONTAINER);
 

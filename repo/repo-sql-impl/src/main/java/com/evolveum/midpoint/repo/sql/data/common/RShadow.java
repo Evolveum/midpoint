@@ -34,15 +34,13 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
-import org.hibernate.annotations.*;
-import org.hibernate.bytecode.internal.javassist.FieldHandled;
-import org.hibernate.bytecode.internal.javassist.FieldHandler;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
-import javax.persistence.Entity;
-import javax.persistence.Table;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -66,7 +64,8 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RShadow.class);
     private RPolyString name;
-    private QName objectClass;
+
+    private String objectClass;
     private RActivation activation;
     private ROperationResult result;
     private REmbeddedReference resourceRef;
@@ -111,11 +110,8 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         return kind;
     }
 
-    @Columns(columns = {
-            @Column(name = "class_namespace"),
-            @Column(name = "class_localPart", length = RUtil.COLUMN_LENGTH_LOCALPART)
-    })
-    public QName getObjectClass() {
+    @Column(length = RUtil.COLUMN_LENGTH_QNAME)
+    public String getObjectClass() {
         return objectClass;
     }
 
@@ -249,7 +245,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         }
     }
 
-    public void setObjectClass(QName objectClass) {
+    public void setObjectClass(String objectClass) {
         this.objectClass = objectClass;
     }
 
@@ -344,12 +340,12 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
     }
 
     public static <T extends ShadowType> void copyToJAXB(RShadow<T> repo, ShadowType jaxb,
-                                  PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
+                                                         PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
             throws DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext, options);
 
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-        jaxb.setObjectClass(repo.getObjectClass());
+        jaxb.setObjectClass(RUtil.stringToQName(repo.getObjectClass()));
         jaxb.setIntent(repo.getIntent());
         jaxb.setFullSynchronizationTimestamp(repo.getFullSynchronizationTimestamp());
         if (repo.getActivation() != null) {
@@ -403,11 +399,11 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
     }
 
     public static <T extends ShadowType> void copyFromJAXB(ShadowType jaxb, RShadow<T> repo,
-                                    PrismContext prismContext) throws DtoTranslationException {
+                                                           PrismContext prismContext) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
-        repo.setObjectClass(jaxb.getObjectClass());
+        repo.setObjectClass(RUtil.qnameToString(jaxb.getObjectClass()));
         repo.setIntent(jaxb.getIntent());
         repo.setKind(RUtil.getRepoEnumValue(jaxb.getKind(), RShadowKind.class));
         repo.setFullSynchronizationTimestamp(jaxb.getFullSynchronizationTimestamp());
