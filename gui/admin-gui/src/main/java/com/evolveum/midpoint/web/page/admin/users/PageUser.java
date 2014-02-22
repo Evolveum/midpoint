@@ -63,6 +63,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider
 import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
@@ -242,7 +243,7 @@ public class PageUser extends PageAdminUsers {
 
     private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
-        mainForm.setMaxSize(Bytes.kilobytes(512));
+        mainForm.setMaxSize(MidPointApplication.USER_PHOTO_MAX_FILE_SIZE);
         mainForm.setMultiPart(true);
         add(mainForm);
 
@@ -1145,7 +1146,7 @@ public class PageUser extends PageAdminUsers {
             }
         } catch (Exception ex) {
             result.recordFatalError(getString("pageUser.message.cantCreateUser"), ex);
-            LoggingUtils.logException(LOGGER, getString("pageUser.message.cantCreateUser"), ex);
+            LoggingUtils.logException(LOGGER, "Create user failed", ex);
             showResult(result);
             return;
         }
@@ -1168,7 +1169,7 @@ public class PageUser extends PageAdminUsers {
                     }
                 } catch (Exception ex) {
                     result.recordFatalError(getString("pageUser.message.cantCreateUser"), ex);
-                    LoggingUtils.logException(LOGGER, getString("pageUser.message.cantCreateUser"), ex);
+                    LoggingUtils.logException(LOGGER, "Create user failed", ex);
                 }
                 break;
 

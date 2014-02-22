@@ -68,7 +68,7 @@ public class WizardSteps extends SimplePanel<List<WizardStepDto>> {
 
                     @Override
                     public String getObject() {
-                        return dto.isActive() ? "current" : "";
+                        return dto.isActive() ? "current" : null;
                     }
                 }));
             }

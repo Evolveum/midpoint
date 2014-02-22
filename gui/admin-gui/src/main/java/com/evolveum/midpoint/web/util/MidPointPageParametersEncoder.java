@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.util;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.wicket.request.Url;
 import org.apache.wicket.request.mapper.parameter.IPageParametersEncoder;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -29,6 +31,8 @@ import java.util.Iterator;
 public class MidPointPageParametersEncoder implements IPageParametersEncoder {
 
     public static final MidPointPageParametersEncoder ENCODER = new MidPointPageParametersEncoder();
+
+    private static final Trace LOGGER = TraceManager.getTrace(MidPointPageParametersEncoder.class);
 
     /**
      * Encodes a URL in the form:
@@ -44,6 +48,10 @@ public class MidPointPageParametersEncoder implements IPageParametersEncoder {
         for (PageParameters.NamedPair pair : pageParameters.getAllNamed()) {
             url.getSegments().add(pair.getKey());
             url.getSegments().add(pair.getValue());
+        }
+
+        if (LOGGER.isTraceEnabled() && !pageParameters.isEmpty()) {
+            LOGGER.trace("Parameters '{}' encoded to: '{}'", pageParameters, url.toString());
         }
 
         return url;
@@ -69,6 +77,10 @@ public class MidPointPageParametersEncoder implements IPageParametersEncoder {
                     parameters.add(key, value);
                 }
             }
+        }
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Parameters '{}' encoded from: '{}'", parameters, url.toString());
         }
 
         return parameters.isEmpty() ? null : parameters;

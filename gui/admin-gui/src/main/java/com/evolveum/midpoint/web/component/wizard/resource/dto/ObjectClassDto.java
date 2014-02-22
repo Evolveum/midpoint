@@ -17,26 +17,20 @@
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.web.component.util.Selectable;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author lazyman
  */
-public class ObjectClassDto implements Serializable {
+public class ObjectClassDto extends Selectable implements Comparable<ObjectClassDto> {
 
-    public static final String F_ATTRIBUTES_VISIBLE = "attributesVisible";
     public static final String F_NAME = "name";
-    public static final String F_ATTRIBUTES = "attributes";
 
     private ObjectClassComplexTypeDefinition definition;
-    private boolean attributesVisible;
 
     public ObjectClassDto(ObjectClassComplexTypeDefinition definition) {
         Validate.notNull(definition, "Object class complex type definition must not be null.");
@@ -57,21 +51,16 @@ public class ObjectClassDto implements Serializable {
         return builder.toString().trim();
     }
 
-    public boolean isAttributesVisible() {
-        return attributesVisible;
+    public ObjectClassComplexTypeDefinition getDefinition() {
+        return definition;
     }
 
-    public void setAttributesVisible(boolean attributesVisible) {
-        this.attributesVisible = attributesVisible;
-    }
-
-    public String getAttributes() {
-        List<String> attributes = new ArrayList<String>();
-        for (ResourceAttributeDefinition def : definition.getAttributeDefinitions()) {
-            attributes.add(def.getName().getLocalPart());
+    @Override
+    public int compareTo(ObjectClassDto o) {
+        if (o == null) {
+            return 0;
         }
 
-        Collections.sort(attributes);
-        return StringUtils.join(attributes, ", ");
+        return String.CASE_INSENSITIVE_ORDER.compare(getName(), o.getName());
     }
 }

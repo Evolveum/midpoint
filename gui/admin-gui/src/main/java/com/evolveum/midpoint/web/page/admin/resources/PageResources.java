@@ -221,6 +221,7 @@ public class PageResources extends PageAdminResources {
         Collection<SelectorOptions<GetOperationOptions>> options =
                 SelectorOptions.createCollection(ResourceType.F_CONNECTOR, GetOperationOptions.createResolve());
         provider.setOptions(options);
+        provider.setQuery(createQuery());
 
         return provider;
     }

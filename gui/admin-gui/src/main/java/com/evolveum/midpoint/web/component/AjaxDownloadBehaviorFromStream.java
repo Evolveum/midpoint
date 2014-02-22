@@ -60,11 +60,9 @@ public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxBehavio
 	}
 
 	public void onRequest() {
-		final byte[] byteStream = initStream();	
+		final InputStream byteStream = initStream();
 		IResourceStream resourceStream = new AbstractResourceStream(){
 
-			InputStream stream;
-			
 			@Override
 			public String getContentType() {
 				return contentType;
@@ -72,13 +70,12 @@ public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxBehavio
 
 			@Override
 			public InputStream getInputStream() throws ResourceStreamNotFoundException {
-				stream = new ByteArrayInputStream(byteStream);
-				return stream;
-			}
+			    return byteStream;
+            }
 
 			@Override
 			public void close() throws IOException {
-				stream.close();
+				byteStream.close();
 				
 			}
 			
@@ -98,5 +95,5 @@ public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxBehavio
 	}
 
 
-	protected abstract byte[] initStream();
+    protected abstract InputStream initStream();
 }

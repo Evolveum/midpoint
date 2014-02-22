@@ -15,83 +15,99 @@
  */
 package com.evolveum.midpoint.web.component.input;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
-import org.apache.wicket.markup.html.panel.FeedbackPanel;
-import org.apache.wicket.model.IModel;
 
 /**
- *  @author shood
- * */
-public class UploadPanel<T> extends InputPanel {
+ * @author shood
+ * @author lazyman
+ */
+public class UploadPanel extends InputPanel {
+
+    private static final Trace LOGGER = TraceManager.getTrace(UploadPanel.class);
 
     private static final String ID_BUTTON_UPLOAD = "upload";
     private static final String ID_BUTTON_DELETE = "remove";
     private static final String ID_INPUT_FILE = "fileInput";
-    private static final String ID_FEEDBACK = "feedback";
 
-    public UploadPanel(String id){
+    public UploadPanel(String id) {
         super(id);
         initLayout();
     }
 
-    private void initLayout(){
-
-        final FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
-        feedback.setOutputMarkupId(true);
-        add(feedback);
-
+    private void initLayout() {
         FileUploadField fileUpload = new FileUploadField(ID_INPUT_FILE);
         add(fileUpload);
 
         add(new AjaxSubmitButton(ID_BUTTON_UPLOAD) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form){
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 uploadFilePerformed(target);
             }
 
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
+                uploadFileFailed(target);
             }
         });
 
         add(new AjaxSubmitButton(ID_BUTTON_DELETE) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form){
-                removePhotoPerformed(target);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                removeFilePerformed(target);
             }
         });
     }
 
     @Override
-    public FormComponent getBaseFormComponent(){
+    public FormComponent getBaseFormComponent() {
         return (FormComponent) get(ID_INPUT_FILE);
     }
 
-    public FileUpload getFileUpload(){
+    private FileUpload getFileUpload() {
         FileUploadField file = (FileUploadField) get(ID_INPUT_FILE);
-        final FileUpload uploadedFile = file.getFileUpload();
-
-        return uploadedFile;
+        return file.getFileUpload();
     }
 
-    public FeedbackPanel getFeedbackPanel(){
-        return (FeedbackPanel)get(ID_FEEDBACK);
+    public void uploadFilePerformed(AjaxRequestTarget target) {
+        Component input = get(ID_INPUT_FILE);
+        try {
+            FileUpload uploadedFile = getFileUpload();
+            updateValue(uploadedFile.getBytes());
+            LOGGER.trace("Upload file success.");
+            input.success(getString("UploadPanel.message.uploadSuccess"));
+        } catch (Exception e) {
+            LOGGER.trace("Upload file error.", e);
+            input.error(getString("UploadPanel.message.uploadError") + " " + e.getMessage());
+        }
     }
 
-    public void uploadFilePerformed(AjaxRequestTarget target){}
-    public void removePhotoPerformed(AjaxRequestTarget target){}
+    public void removeFilePerformed(AjaxRequestTarget target) {
+        Component input = get(ID_INPUT_FILE);
+        try {
+            updateValue(null);
+            LOGGER.trace("Remove file success.");
+            input.success(getString("UploadPanel.message.removeSuccess"));
+        } catch (Exception e) {
+            LOGGER.trace("Remove file error.", e);
+            input.error(getString("UploadPanel.message.removeError") + " " + e.getMessage());
+        }
+    }
+
+    public void uploadFileFailed(AjaxRequestTarget target) {
+        LOGGER.trace("Upload file validation failed.");
+    }
+
+    public void updateValue(byte[] file) {
+    }
 }

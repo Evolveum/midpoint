@@ -116,8 +116,11 @@ public class PageRoles extends PageAdminRoles {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
+        ObjectDataProvider provider = new ObjectDataProvider(PageRoles.this, RoleType.class);
+        provider.setQuery(createQuery());
+
         List<IColumn<RoleType, String>> columns = initColumns();
-        TablePanel table = new TablePanel<>(ID_TABLE, new ObjectDataProvider(PageRoles.this, RoleType.class), columns);
+        TablePanel table = new TablePanel<>(ID_TABLE, provider, columns);
         table.setOutputMarkupId(true);
         mainForm.add(table);
 
@@ -331,46 +334,51 @@ public class PageRoles extends PageAdminRoles {
     }
 
     private void listRolesPerformed(AjaxRequestTarget target){
+        ObjectQuery query = createQuery();
+        ObjectDataProvider provider = getRoleDataProvider();
+        provider.setQuery(query);
+
+        RolesStorage storage = getSessionStorage().getRoles();
+        storage.setRolesSearch(searchModel.getObject());
+
+        TablePanel table = getRoleTable();
+        target.add(table);
+        target.add(getFeedbackPanel());
+    }
+
+    private ObjectQuery createQuery(){
         RolesSearchDto dto = searchModel.getObject();
         String text = dto.getText();
         Boolean requestable = dto.getRequestableValue();
         ObjectQuery query = new ObjectQuery();
 
-        ObjectDataProvider provider = getRoleDataProvider();
         if(StringUtils.isNotEmpty(text)){
-            try{
-                PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
-                String normalizedText = normalizer.normalize(text);
+            PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
+            String normalizedText = normalizer.normalize(text);
 
-                ObjectFilter substring = SubstringFilter.createSubstring(RoleType.F_NAME, RoleType.class, getPrismContext(),
-                        PolyStringNormMatchingRule.NAME, normalizedText);
+            ObjectFilter substring = SubstringFilter.createSubstring(RoleType.F_NAME, RoleType.class, getPrismContext(),
+                    PolyStringNormMatchingRule.NAME, normalizedText);
 
-                if(requestable == null){
-                    query.setFilter(substring);
+            if(requestable == null){
+                query.setFilter(substring);
+            } else {
+                EqualsFilter boolFilter = EqualsFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
+                        null, requestable);
+
+                if (requestable == true){
+                    query.setFilter(AndFilter.createAnd(substring, boolFilter));
+
                 } else {
-                    EqualsFilter boolFilter = EqualsFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
-                            null, requestable);
-
-                    if (requestable == true){
-                        query.setFilter(AndFilter.createAnd(substring, boolFilter));
-
-                    } else {
-                        boolFilter = EqualsFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
-                                null, false);
-                        EqualsFilter nullFilter = EqualsFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
-                                null, null);
-                        OrFilter or = OrFilter.createOr(boolFilter, nullFilter);
-                        query.setFilter(AndFilter.createAnd(substring, or));
-                    }
+                    boolFilter = EqualsFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
+                            null, false);
+                    EqualsFilter nullFilter = EqualsFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
+                            null, null);
+                    OrFilter or = OrFilter.createOr(boolFilter, nullFilter);
+                    query.setFilter(AndFilter.createAnd(substring, or));
                 }
-
-                provider.setQuery(query);
-
-            }catch (Exception e){
-                LoggingUtils.logException(LOGGER, "Couldn't create filter", e);
-                error(getString("pageRoles.message.queryError", e.getMessage()));
-                target.add(getFeedbackPanel());
             }
+
+            return query;
         }else{
             if(requestable == null){
                 query.setFilter(null);
@@ -391,15 +399,8 @@ public class PageRoles extends PageAdminRoles {
                     query.setFilter(or);
                 }
             }
-            provider.setQuery(query);
+            return query;
         }
-
-        RolesStorage storage = getSessionStorage().getRoles();
-        storage.setRolesSearch(dto);
-
-        TablePanel table = getRoleTable();
-        target.add(table);
-        target.add(getFeedbackPanel());
     }
 
     private void clearSearchPerformed(AjaxRequestTarget target){

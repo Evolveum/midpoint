@@ -191,6 +191,10 @@ public final class DescriptorLoader {
 
         for (String url : descriptor.url()) {
             IPageParametersEncoder encoder = descriptor.encoder().newInstance();
+
+            LOGGER.trace("Mounting page '{}' to url '{}' with encoder '{}'.", new Object[]{
+                    clazz.getName(), url, encoder.getClass().getSimpleName()});
+
             application.mount(new MountedMapper(url, clazz, encoder));
         }
     }

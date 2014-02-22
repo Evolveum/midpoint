@@ -36,8 +36,12 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 /**
  * @author lazyman
@@ -100,10 +104,40 @@ public class ConfigurationStep extends WizardStep {
     }
 
     private void testConnectionPerformed(AjaxRequestTarget target) {
+        saveChanges();
+
         PageBase page = getPageBase();
         ModelService model = page.getModelService();
 
-        OperationResult result = new OperationResult(TEST_CONNECTION);
+        OperationResult result = null;
+        try {
+            Task task = page.createSimpleTask(TEST_CONNECTION);
+            String oid = resourceModel.getObject().getOid();
+            result = model.testResource(oid, task);
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Error occurred during resource test connection", ex);
+            if (result == null) {
+                result = new OperationResult(TEST_CONNECTION);
+            }
+
+            result.recordFatalError("Couldn't perform test connection.", ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+
+        page.showResult(result);
+        target.add(page.getFeedbackPanel());
+    }
+
+    @Override
+    public void applyState() {
+        saveChanges();
+    }
+
+    private void saveChanges() {
+        PageBase page = getPageBase();
+
+        OperationResult result = new OperationResult(OPERATION_SAVE);
         try {
             PrismObject<ResourceType> newResource = resourceModel.getObject();
             //apply configuration to old resource
@@ -111,39 +145,26 @@ public class ConfigurationStep extends WizardStep {
             ObjectDelta delta = wrapper.getObjectDelta();
             delta.applyTo(newResource);
 
+            page.getPrismContext().adopt(newResource);
+
             PrismObject<ResourceType> oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(),
                     result, page);
 
             delta = DiffUtil.diff(oldResource, newResource);
+
             WebModelUtils.save(delta, result, page);
 
             newResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), result, page);
             resourceModel.setObject(newResource);
-
-            Task task = page.createSimpleTask(TEST_CONNECTION);
-            String oid = resourceModel.getObject().getOid();
-            result = model.testResource(oid, task);
-
-            page.showResult(result);
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Error occurred during resource test connection", ex);
+            result.recordFatalError("Couldn't save configuration changes.", ex);
+        } finally {
+            result.computeStatusIfUnknown();
         }
 
-        target.add(page.getFeedbackPanel());
-
-        //todo show more precise information about test connection operation [lazyman]
-    }
-
-    @Override
-    public void applyState() {
-//        PageBase page = getPageBase();
-//        OperationResult result = new OperationResult(OPERATION_SAVE);
-//
-//        PrismObject<ResourceType> newResource = resourceModel.getObject();
-//        PrismObject<ResourceType> oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(),
-//                result, page);
-//
-//        ObjectDelta delta = DiffUtil.diff(oldResource, newResource);
-//        WebModelUtils.save(delta, result, page);
+        if (WebMiscUtil.showResultInPage(result)) {
+            page.showResult(result);
+        }
     }
 }

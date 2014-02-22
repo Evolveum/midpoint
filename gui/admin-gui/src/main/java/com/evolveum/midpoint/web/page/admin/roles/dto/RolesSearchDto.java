@@ -41,7 +41,7 @@ public class RolesSearchDto implements Serializable{
     public static final String F_REQUESTABLE = "requestable";
 
     private String text;
-    private Requestable requestable;
+    private Requestable requestable = Requestable.ALL;
 
     public String getText() {
         return text;
