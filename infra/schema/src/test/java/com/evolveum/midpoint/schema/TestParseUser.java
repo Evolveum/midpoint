@@ -81,10 +81,16 @@ public class TestParseUser {
 		
 		// WHEN
 		PrismObject<UserType> user = prismContext.parseObject(USER_FILE);
-		
 		// THEN
 		System.out.println("Parsed user:");
 		System.out.println(user.debugDump());
+		
+		String serialized = prismContext.serializeObjectToString(user, PrismContext.LANG_XML);
+		System.out.println("Serialized: \n" +serialized);
+		
+		PrismObject<UserType> reparsedUser = prismContext.parseObject(serialized);
+		
+		
 		
 		assertUser(user);
 	}

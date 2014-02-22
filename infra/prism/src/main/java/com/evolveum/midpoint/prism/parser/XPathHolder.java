@@ -267,7 +267,8 @@ public class XPathHolder {
         for (ItemPathSegment segment: propertyPath.getSegments()) {
             XPathSegment xsegment = null;
             if (segment instanceof NameItemPathSegment) {
-                xsegment = new XPathSegment(((NameItemPathSegment)segment).getName());
+            	boolean variable = ((NameItemPathSegment) segment).isVariable();
+                xsegment = new XPathSegment(((NameItemPathSegment)segment).getName(), variable);
             } else if (segment instanceof IdItemPathSegment) {
                 xsegment = new XPathSegment(idToString(((IdItemPathSegment) segment).getId()));
             }

@@ -27,7 +27,7 @@
 		<t:value>
 			<c:assignment>
 				<c:construction>
-					<c:resourceRef oid="10000000-0000-0000-0000-000000000003"/>
+					<c:resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
 					<c:attribute>
 						<c:ref>ri:l</c:ref>
 						<c:value>Shipwreck cove</c:value>

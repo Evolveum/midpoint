@@ -97,9 +97,9 @@ public abstract class SchemaConstants {
 	public static final QName C_SYSTEM_CONFIGURATION = new QName(NS_C, "systemConfiguration");
 	public static final QName C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS = new QName(NS_C,
 			"globalAccountSynchronizationSettings");
-	public static final QName C_PROTECTED_STRING_TYPE = new QName(NS_C, "ProtectedStringType");
-	public static final QName C_PROTECTED_STRING = new QName(NS_C, "protectedString");
-	public static final QName C_PROTECTED_BYTE_ARRAY_TYPE = new QName(NS_C, "ProtectedByteArrayType");
+//	public static final QName C_PROTECTED_STRING_TYPE = new QName(NS_C, "ProtectedStringType");
+//	public static final QName C_PROTECTED_STRING = new QName(NS_C, "protectedString");
+//	public static final QName C_PROTECTED_BYTE_ARRAY_TYPE = new QName(NS_C, "ProtectedByteArrayType");
 	
 	public static final QName C_REPORT = new QName(NS_C, "report");
 	public static final QName C_REPORT_OUTPUT = new QName(NS_C, "reportOutput");

@@ -46,6 +46,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -55,8 +56,10 @@ import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Handler;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_2.RawType;
 
@@ -75,7 +78,7 @@ public class PrismBeanConverter {
 	}
 	
 	public boolean canConvert(Class<?> clazz) {
-		return clazz.getAnnotation(XmlType.class) != null;
+		return !clazz.isEnum() && clazz.getAnnotation(XmlType.class) != null;
 	}
 	
 	public <T> T unmarshall(MapXNode xnode, QName typeQName) throws SchemaException {
@@ -465,6 +468,25 @@ public class PrismBeanConverter {
 			}
 		}
 		
+		Field[] fields = beanClass.getDeclaredFields();
+		for (int i = 0; i< fields.length; i++){
+			Field field = fields[i];
+			if (field.isAnnotationPresent(XmlAttribute.class)){
+				propOrder.add(field.getName());
+			}
+		}
+		
+		Method[] methods = beanClass.getDeclaredMethods();
+		for (int i = 0; i< methods.length; i++){
+			Method method = methods[i];
+			if (method.isAnnotationPresent(XmlAttribute.class)){
+				System.out.println("methodName: " + method.getName());
+				String propname = getPropertyNameFromGetter(method.getName());
+				//StringUtils.uncapitalize(StringUtils.removeStart("get", method.getName()))
+				propOrder.add(propname);
+			}
+		}
+		
 		return propOrder;
 	}
 
@@ -601,6 +623,7 @@ public class PrismBeanConverter {
 			}
 			
 			Field field = findPropertyField(beanClass, fieldName);
+			boolean isAttribute = isAttribute(field, getter);
 			
 			if (getterResult instanceof Collection<?>) {
 				Collection col = (Collection)getterResult;
@@ -616,21 +639,48 @@ public class PrismBeanConverter {
 				if (getterResultValue == null) {
 					continue;
 				}
+				
 				QName fieldTypeName = findFieldTypeName(field, getterResultValue.getClass(), namespace);
 				ListXNode xlist = new ListXNode();
+				boolean isJaxb = false;
 				for (Object element: col) {
-					xlist.add(marshallValue(element, fieldTypeName));
+					if (element instanceof JAXBElement){
+						if (((JAXBElement) element).getName() != null){
+							elementName = ((JAXBElement) element).getName(); 
+						}
+						xmap.put(elementName, marshallValue(((JAXBElement) element).getValue(), fieldTypeName, isAttribute));
+						isJaxb = true;
+						continue;
+					}
+					xlist.add(marshallValue(element, fieldTypeName, isAttribute));
 				}
-				xmap.put(elementName, xlist);
+				if (!isJaxb){
+					xmap.put(elementName, xlist);
+				}
 			} else {
 				QName fieldTypeName = findFieldTypeName(field, getterResult.getClass(), namespace);
-				xmap.put(elementName, marshallValue(getterResult, fieldTypeName));
+				xmap.put(elementName, marshallValue(getterResult, fieldTypeName, isAttribute));
 			}
 		}
 		
 		return xmap;
 	}
 	
+	private boolean isAttribute(Field field, Method getter){
+		if (field == null && getter == null){
+			return false;
+		}
+		
+		if (field != null && field.isAnnotationPresent(XmlAttribute.class)){
+			return true;
+		}
+		
+		if (getter != null && getter.isAnnotationPresent(XmlAttribute.class)){
+			return true;
+		}
+		
+		return false;
+	}
 	private String determineNamespace(Class<? extends Object> beanClass) {
 		XmlType xmlType = beanClass.getAnnotation(XmlType.class);
 		if (xmlType == null) {
@@ -649,22 +699,53 @@ public class PrismBeanConverter {
 		return namespace;
 	}
 
-	private <T> XNode marshallValue(T value, QName fieldTypeName) {
+	private <T> XNode marshallValue(T value, QName fieldTypeName, boolean isAttribute) {
 		if (value == null) {
 			return null;
 		}
+		if (value instanceof ItemPathType){
+			return marshalItemPath((ItemPathType) value);
+		} else if (value instanceof QueryType){
+			return marshalQueryType((QueryType) value);
+		} else
+		
 		if (canConvert(value.getClass())) {
 			// This must be a bean
 			return marshall(value);
 		} else {
 			// primitive value
 			PrimitiveXNode<T> xprim = new PrimitiveXNode<T>();
+			if (value.getClass().isEnum()){
+				value = (T) value.toString();
+			}
 			xprim.setValue(value);
 			xprim.setTypeQName(fieldTypeName);
+			xprim.setAttribute(isAttribute);
 			return xprim;
 		}
 	}
 
+	private XNode marshalQueryType(QueryType value) {
+		MapXNode queryNode = new MapXNode();
+		XNode description = marshallValue(value.getDescription(), DOMUtil.XSD_STRING, false);
+		queryNode.put(new QName(QueryConvertor.NS_QUERY, "description"), description);
+		//TODO: condition + paging
+		MapXNode filterNode = value.getXFilter();
+		queryNode.put(new QName("filter"), filterNode);
+		
+		return queryNode;
+	}
+
+	private XNode marshalItemPath(ItemPathType itemPath){
+		PrimitiveXNode xprim = new PrimitiveXNode<>();
+		ItemPath path = itemPath.getItemPath();
+//		XPathHolder holder = new XPathHolder(path);
+//		xprim.setValue(holder.getXPath());
+		xprim.setValue(path);
+		xprim.setTypeQName(ItemPathType.COMPLEX_TYPE);
+		return xprim;
+	}
+	
 	private <T> Method findSetter(Class<T> classType, String fieldName) {
 		String setterName = getSetterName(fieldName);
 		for(Method method: classType.getMethods()) {

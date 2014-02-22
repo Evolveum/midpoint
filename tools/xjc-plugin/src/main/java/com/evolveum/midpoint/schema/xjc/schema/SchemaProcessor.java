@@ -153,7 +153,7 @@ public class SchemaProcessor implements Processor {
                     QName.class, PrismForJAXBUtil.class, PrismReferenceArrayList.class, PrismContainerValue.class,
                     List.class, Objectable.class, StringBuilder.class, XmlAccessorType.class, XmlElement.class, XmlType.class,
                     XmlAttribute.class, XmlAnyAttribute.class, XmlAnyElement.class, PrismContainer.class, Equals.class,
-                    PrismContainerArrayList.class, HashCode.class, PrismContainerDefinition.class, Containerable.class);
+                    PrismContainerArrayList.class, HashCode.class, PrismContainerDefinition.class, Containerable.class, Referencable.class);
 
             StepSchemaConstants stepSchemaConstants = new StepSchemaConstants();
             stepSchemaConstants.run(outline, options, errorHandler);
@@ -202,6 +202,7 @@ public class SchemaProcessor implements Processor {
         updateClassAnnotation(objectReferenceOutline);
 
         JDefinedClass definedClass = objectReferenceOutline.implClass;
+        definedClass._implements(CLASS_MAP.get(Referencable.class));
         //add prism reference and get/set method for it
         JVar reference = definedClass.field(JMod.PRIVATE, PrismReferenceValue.class, REFERENCE_VALUE_FIELD_NAME);
         JMethod getReference = definedClass.method(JMod.PUBLIC, PrismReferenceValue.class, METHOD_AS_REFERENCE_VALUE);

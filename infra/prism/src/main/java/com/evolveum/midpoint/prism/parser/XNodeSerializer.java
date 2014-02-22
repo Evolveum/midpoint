@@ -23,6 +23,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -47,6 +48,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.JaxbTestUtil;
@@ -62,6 +64,7 @@ import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_2.EncryptedDataType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedDataType;
 import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
@@ -211,7 +214,9 @@ public class XNodeSerializer {
 	
 	private XNode serializeReferenceValue(PrismReferenceValue value, PrismReferenceDefinition definition) throws SchemaException {
 		MapXNode xmap = new MapXNode();
-		xmap.put(XNode.KEY_REFERENCE_OID, createPrimitiveXNodeStringAttr(value.getOid()));
+		if (StringUtils.isNotBlank(value.getOid())){
+			xmap.put(XNode.KEY_REFERENCE_OID, createPrimitiveXNodeStringAttr(value.getOid()));
+		}
 		QName relation = value.getRelation();
 		if (relation != null) {
 			xmap.put(XNode.KEY_REFERENCE_RELATION, createPrimitiveXNodeAttr(relation, DOMUtil.XSD_QNAME));
@@ -251,12 +256,24 @@ public class XNodeSerializer {
 			return serializeProtectedDataType((ProtectedDataType<?>) realValue);
 		} else if (realValue instanceof PolyString) {
 			return serializePolyString((PolyString) realValue);
+		} else if (realValue instanceof ItemPathType){
+			return serializeItemPathType((ItemPathType) realValue);
 		} else if (beanConverter.canConvert(typeQName)) {
 			return beanConverter.marshall(realValue);
 		} else {
 			// primitive value
 			return createPrimitiveXNode(realValue, typeQName);
 		}
+	}
+
+	private XNode serializeItemPathType(ItemPathType itemPath) {
+		PrimitiveXNode<ItemPath> xprim = new PrimitiveXNode<ItemPath>();
+		if (itemPath != null){
+			ItemPath path = itemPath.getItemPath();
+			xprim.setValue(path);
+			xprim.setTypeQName(ItemPath.XSD_TYPE);
+		}
+		return xprim;
 	}
 
 	private XNode serializePolyString(PolyString realValue) {

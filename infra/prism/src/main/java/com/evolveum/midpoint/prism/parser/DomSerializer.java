@@ -198,9 +198,11 @@ public class DomSerializer {
 			}
 		} else  if (typeQName.equals(ItemPath.XSD_TYPE)) {
     		ItemPath itemPath = (ItemPath)xprim.getValue();
-    		XPathHolder holder = new XPathHolder(itemPath);
-    		Element element = holder.toElement(elementName, parentElement.getOwnerDocument());
-    		parentElement.appendChild(element);
+    		if (itemPath != null){
+	    		XPathHolder holder = new XPathHolder(itemPath);
+	    		Element element = holder.toElement(elementName, parentElement.getOwnerDocument());
+	    		parentElement.appendChild(element);
+    		}
 		} else {
 			Element element;
 			try {
@@ -226,6 +228,9 @@ public class DomSerializer {
     
     private void serializeSchema(SchemaXNode xschema, Element parentElement) {
 		Element schemaElement = xschema.getSchemaElement();
+		if (schemaElement == null){
+			return;
+		}
 		Element clonedSchema = (Element) schemaElement.cloneNode(true);
 		doc.adoptNode(clonedSchema);
 		parentElement.appendChild(clonedSchema);

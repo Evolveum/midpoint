@@ -51,6 +51,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -112,7 +113,7 @@ public class JaxbDomHack {
 		}
 	}
 	
-	private <T extends Containerable> ItemDefinition locateItemDefinition(
+	protected <T extends Containerable> ItemDefinition locateItemDefinition(
 			PrismContainerDefinition<T> containerDefinition, QName elementQName, Object valueElements)
 			throws SchemaException {
 		ItemDefinition def = containerDefinition.findItemDefinition(elementQName);
@@ -227,7 +228,14 @@ public class JaxbDomHack {
 				}
 			} else if (itemDefinition instanceof PrismReferenceDefinition) {
 				// TODO
-				throw new UnsupportedOperationException();
+				if (jaxbBean instanceof Referencable){
+					PrismReference reference = ((PrismReferenceDefinition)itemDefinition).instantiate();
+					PrismReferenceValue refValue = ((Referencable) jaxbBean).asReferenceValue();
+					reference.merge(refValue);
+					subItem = (Item<V>) reference;
+				} else{
+					throw new IllegalArgumentException("Unsupported JAXB bean" + jaxbBean);
+				}
 				
 			} else {
 				throw new IllegalArgumentException("Unsupported definition type "+itemDefinition.getClass());

@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
@@ -73,7 +74,9 @@ public class QueryJaxbConvertor {
 			
 			if (filterDom != null) {
 				XNode filterXNode = prismContext.getParserDom().parseElementContent(filterDom);
-				ObjectFilter filter = QueryConvertor.parseFilter(filterXNode, prismContext);
+				MapXNode rootFilter = new MapXNode();
+				rootFilter.put(QNameUtil.getNodeQName(filterDom), filterXNode);
+				ObjectFilter filter = QueryConvertor.parseFilter(rootFilter, objDef);
 				query.setFilter(filter);
 			}
 
@@ -95,8 +98,9 @@ public class QueryJaxbConvertor {
 			QueryType queryType = new QueryType();
 			if (filter != null){
 				MapXNode filterXnode = QueryConvertor.serializeFilter(filter, prismContext);
-				Element filterElement = prismContext.getParserDom().serializeToElement(filterXnode, QueryConvertor.FILTER_ELEMENT_NAME);
-				queryType.setFilter(filterElement);
+				queryType.setFilter(filterXnode);
+//				Element filterElement = prismContext.getParserDom().serializeToElement(filterXnode, QueryConvertor.FILTER_ELEMENT_NAME);
+//				queryType.setFilter(filterElement);
 			}
 		
 		

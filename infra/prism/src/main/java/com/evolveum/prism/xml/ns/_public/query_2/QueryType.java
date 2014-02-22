@@ -202,15 +202,15 @@ public class QueryType implements Serializable, Cloneable, Equals, HashCode
      *     
      */
     public Element getFilter() {
-        if (xfilter == null) {
-        	return null;
-        } else {
+        if (xfilter != null) {
         	DomParser domParser = PrismUtil.getDomParser(null);
         	try {
 				return domParser.serializeToElement(xfilter, F_FILTER);
 			} catch (SchemaException e) {
 				throw new RuntimeException(e.getMessage(), e);
 			}
+        } else {
+        	return filter;
         }
     }
     

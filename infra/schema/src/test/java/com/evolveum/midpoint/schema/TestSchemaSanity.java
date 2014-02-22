@@ -229,10 +229,10 @@ public class TestSchemaSanity {
 		System.out.println("configurationProperties definition:");
 		System.out.println(configurationPropertiesDefinition.debugDump());
 		
-//		assertTrue("configurationProperties definition is NOT marked as runtime", configurationPropertiesDefinition.isRuntimeSchema());
+		assertTrue("configurationProperties definition is NOT marked as runtime", configurationPropertiesDefinition.isRuntimeSchema());
 //		assertNull("Unexpected compile-time class in configurationProperties definition", configurationPropertiesDefinition.getCompileTimeClass());
 
-		assertTrue("configurationProperties definition is NOT marked as wildcard", configurationPropertiesDefinition.isWildcard());
+//		assertTrue("configurationProperties definition is NOT marked as wildcard", configurationPropertiesDefinition.isWildcard());
 		
 		// TODO
 	}

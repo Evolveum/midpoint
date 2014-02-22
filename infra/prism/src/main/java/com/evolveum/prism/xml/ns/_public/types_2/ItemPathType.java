@@ -27,6 +27,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
+import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlMixed;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
@@ -80,6 +81,7 @@ public class ItemPathType implements Serializable, Equals{
 	@XmlTransient
 	private ItemPath itemPath;
 	
+	@XmlElementRef(name = "path", namespace = "http://prism.evolveum.com/xml/ns/public/types-2", type = JAXBElement.class)
     @XmlMixed
     @XmlAnyElement(lax = true)
     protected List<Object> content;
@@ -94,6 +96,10 @@ public class ItemPathType implements Serializable, Equals{
 
 	public ItemPath getItemPath() {
 		return itemPath;
+	}
+	
+	public void setItemPath(ItemPath itemPath){
+		this.itemPath = itemPath;
 	}
 
 	/**
@@ -158,7 +164,9 @@ public class ItemPathType implements Serializable, Equals{
 						public Object next() {
 							if (i== 0){
 								i++;
-								return new JAXBElement<ItemPathType>(F_PATH, ItemPathType.class, new ItemPathType(itemPath));
+								XPathHolder holder = new XPathHolder(itemPath);	
+								return new JAXBElement<String>(F_PATH, String.class, holder.getXPath());
+//								return itemPath;
 							} 
 							return null;
 						}
@@ -301,7 +309,7 @@ public class ItemPathType implements Serializable, Equals{
     	ItemPath otherPath = other.getItemPath();
     	
     	if (thisPath != null){
-    		return thisPath.equals(otherPath);
+    		return thisPath.equivalent(otherPath);
     	}
     	
     	List<Object> thsContent = getContent();

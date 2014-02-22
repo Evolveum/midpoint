@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
@@ -417,6 +418,9 @@ public final class PrismForJAXBUtil {
 	public static void setReferenceFilterElement(PrismReferenceValue rval, Element filterElement) {
 		DomParser parser = getDomParser(rval);
 		try {
+			if (filterElement == null || DOMUtil.isEmpty(filterElement)){
+				return;
+			}
 			MapXNode filterXNode = parser.parseElementAsMap(filterElement);
 			ObjectFilter filter = QueryConvertor.parseFilter(filterXNode, rval.getPrismContext());
 			rval.setFilter(filter);

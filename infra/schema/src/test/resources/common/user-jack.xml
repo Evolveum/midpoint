@@ -18,6 +18,7 @@
 <object xsi:type="UserType" 
         oid="2f9b9299-6f45-498f-bc8e-8d17c6b93b20" 
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
         xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
@@ -39,7 +40,7 @@
 		<foo:multi xsi:type="xsd:string">dva</foo:multi>
 		<foo:multi xsi:type="xsd:string">tri</foo:multi>
 		<foo:password xsi:type="t:ProtectedStringType">
-			<clearValue>openS3zam3</clearValue>
+			<t:clearValue>openS3zam3</t:clearValue>
 		</foo:password>
 	</extension>
 
@@ -82,7 +83,7 @@
     		<ext:intType>42</ext:intType>
     	</extension>
     	<construction>
-			<resourceRef oid="2f9b9299-5555-5555-5555-000000001111"/>    		
+			<resourceRef oid="2f9b9299-5555-5555-5555-000000001111" type="c:ResourceType"/>    		
     	</construction>
     </assignment>
     
@@ -116,18 +117,21 @@
     	<t:norm>davie jones locker</t:norm>
     </organizationalUnit>
     <locality></locality>
+    
     <credentials>
         <password>
-            <value>
-                <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
-                    <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"/>
-                    <ds:KeyInfo>
-                        <ds:KeyName>HF6JRsNMeJt6alihT44CXKgpe0c=</ds:KeyName>
-         			</ds:KeyInfo>
-                    <enc:CipherData>
-                        <enc:CipherValue>blc5OXO2Z4vJW7o/XXhqZzg/rkwsIOwRBK7KLgMqwcrVcYpeZZOjxzgRgFiNw4IB</enc:CipherValue>
-                    </enc:CipherData>
-                </enc:EncryptedData>
+        	<value>
+            <t:encryptedData>
+            	<t:encryptionMethod>
+            		<t:algorithm>http://www.w3.org/2001/04/xmlenc#aes256-cbc"</t:algorithm>
+            	</t:encryptionMethod>
+                <t:keyInfo>
+                    <t:keyName>HF6JRsNMeJt6alihT44CXKgpe0c=</t:keyName>
+         		</t:keyInfo>
+                <t:cipherData>
+                    <t:cipherValue>blc5OXO2Z4vJW7o/XXhqZzg/rkwsIOwRBK7KLgMqwcrVcYpeZZOjxzgRgFiNw4IB</t:cipherValue>
+                </t:cipherData>
+            </t:encryptedData>
             </value>
         </password>
         <allowedIdmAdminGuiAccess>false</allowedIdmAdminGuiAccess>

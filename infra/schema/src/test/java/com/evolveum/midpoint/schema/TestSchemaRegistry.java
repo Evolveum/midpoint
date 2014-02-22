@@ -24,6 +24,7 @@ import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import java.io.File;
 import java.io.IOException;
 
 import javax.xml.transform.dom.DOMResult;
@@ -33,11 +34,13 @@ import javax.xml.validation.Validator;
 
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
@@ -74,6 +77,8 @@ public class TestSchemaRegistry {
 		assertNotNull(javaxSchema);
 		
 		// Try to use the schema to validate Jack
+//		PrismObject<UserType> user = context.parseObject(new File("src/test/resources/common/user-jack.xml"));
+//		Element document = context.serializeToDom(user);
 		Document document = DOMUtil.parseFile("src/test/resources/common/user-jack.xml");
 		Validator validator = javaxSchema.newValidator();
 		DOMResult validationResult = new DOMResult();

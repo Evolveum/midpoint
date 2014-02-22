@@ -17,7 +17,9 @@
   -->
 
 <query xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-       xmlns="http://prism.evolveum.com/xml/ns/public/query-2" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+       xmlns="http://prism.evolveum.com/xml/ns/public/query-2" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 	<and>
 		<equal>
 			<path>c:name</path>
@@ -28,7 +30,7 @@
 		</equal>
 		<equal>
 			<path xmlns:p="http://midpoint.evolveum.com/xml/ns/test/extension">c:extension/p:intType</path>
-			<value>123</value>
+			<value xsi:type="xsd:int">123</value>
 		</equal>
 	</and>
 </query>

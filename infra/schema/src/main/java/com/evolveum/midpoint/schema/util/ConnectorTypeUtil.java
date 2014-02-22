@@ -31,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorConfigurat
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
+import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
 /**
  * @author Radovan Semancik
@@ -73,7 +74,7 @@ public class ConnectorTypeUtil {
 		PrismContainer<XmlSchemaType> schemaContainer;
 		try {
 			schemaContainer = connector.findOrCreateContainer(ConnectorType.F_SCHEMA);
-			PrismProperty<Element> definitionProperty = schemaContainer.findOrCreateProperty(XmlSchemaType.F_DEFINITION);
+			PrismProperty<SchemaDefinitionType> definitionProperty = schemaContainer.findOrCreateProperty(XmlSchemaType.F_DEFINITION);
 			ObjectTypeUtil.setXsdSchemaDefinition(definitionProperty, xsdElement);
 		} catch (SchemaException e) {
 			// Should not happen

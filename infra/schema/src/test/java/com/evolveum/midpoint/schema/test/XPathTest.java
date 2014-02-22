@@ -293,7 +293,7 @@ public class XPathTest {
         AssertJUnit.assertEquals("foo:foofoo/x:bar", xpath.getXPath());
 
         System.out.println("ROUND TRIP: "+xpath.getXPathWithDeclarations());
-        AssertJUnit.assertEquals("declare default namespace 'http://default.com/'; declare namespace c='http://default.com/'; declare namespace foo='http://ff.com/'; declare namespace bar='http://www.b.com'; declare namespace x='http://xxx.com/'; foo:foofoo/x:bar",
+        AssertJUnit.assertEquals("declare default namespace 'http://default.com/'; declare namespace foo='http://ff.com/'; declare namespace bar='http://www.b.com'; declare namespace x='http://xxx.com/'; foo:foofoo/x:bar",
                 xpath.getXPathWithDeclarations());
         
     }
@@ -367,7 +367,8 @@ public class XPathTest {
     	assertEquals("Wrong element content", XPathHolder.DEFAULT_PREFIX+":foo", element.getTextContent());
     }
 
-    @Test
+    //not actual anymore..we have something like "wildcard" in xpath..there don't need to be prefix specified.we will try to match the local names
+    @Test(enabled=false)
     public void testUndefinedPrefix() throws ParserConfigurationException, SAXException, IOException {
 
         // GIVEN

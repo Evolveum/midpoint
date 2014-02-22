@@ -38,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificatio
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
+import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
@@ -210,30 +211,38 @@ public class ObjectTypeUtil {
     }
     
     public static Element findXsdElement(PrismContainerValue<XmlSchemaType> xmlSchemaContainerValue) {
-        PrismProperty<Element> definitionProperty = xmlSchemaContainerValue.findProperty(XmlSchemaType.F_DEFINITION);
+        PrismProperty<SchemaDefinitionType> definitionProperty = xmlSchemaContainerValue.findProperty(XmlSchemaType.F_DEFINITION);
         if (definitionProperty == null) {
 			return null;
 		}
-        Element definitionElement = definitionProperty.getValue().getValue();
-        if (definitionElement == null) {
+        SchemaDefinitionType schemaDefinition = definitionProperty.getValue().getValue();
+        if (schemaDefinition == null) {
 			return null;
 		}
-        List<Element> schemaElements = DOMUtil.listChildElements(definitionElement);
-        for (Element e : schemaElements) {
-            if (QNameUtil.compareQName(DOMUtil.XSD_SCHEMA_ELEMENT, e)) {
-            	DOMUtil.fixNamespaceDeclarations(e);
-                return e;
-            }
-        }
-        return null;
+        
+        return schemaDefinition.getSchema();
+        
+//        List<Element> schemaElements = DOMUtil.listChildElements(definitionElement);
+//        for (Element e : schemaElements) {
+//            if (QNameUtil.compareQName(DOMUtil.XSD_SCHEMA_ELEMENT, e)) {
+//            	DOMUtil.fixNamespaceDeclarations(e);
+//                return e;
+//            }
+//        }
+//        return null;
     }
     
-	public static void setXsdSchemaDefinition(PrismProperty<Element> definitionProperty, Element xsdElement) {
-		Document document = xsdElement.getOwnerDocument();
-		Element definitionElement = document.createElementNS(XmlSchemaType.F_DEFINITION.getNamespaceURI(),
-				XmlSchemaType.F_DEFINITION.getLocalPart());
-		definitionElement.appendChild(xsdElement);
-		definitionProperty.setRealValue(definitionElement);
+	public static void setXsdSchemaDefinition(PrismProperty<SchemaDefinitionType> definitionProperty, Element xsdElement) {
+		
+//		Document document = xsdElement.getOwnerDocument();
+//		Element definitionElement = document.createElementNS(XmlSchemaType.F_DEFINITION.getNamespaceURI(),
+//				XmlSchemaType.F_DEFINITION.getLocalPart());
+//		definitionElement.appendChild(xsdElement);
+//		SchemaDefinitionType schemaDefinition = definitionProperty.getValue().getValue();
+//		schemaDefinition.setSchema(definitionElement);
+		SchemaDefinitionType schemaDefinition = new SchemaDefinitionType();
+		schemaDefinition.setSchema(xsdElement);
+		definitionProperty.setRealValue(schemaDefinition);
 	}
 
     public static XPathHolder createXPathHolder(QName property) {

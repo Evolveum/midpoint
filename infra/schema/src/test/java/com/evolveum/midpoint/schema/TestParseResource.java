@@ -282,10 +282,10 @@ public class TestParseResource {
 		// Cannot assert here. It will cause parsing of some of the raw values and diff will fail
 		assertResource(resource, true, false, false);
 		
-		PrismProperty<Element> definitionProperty = reparsedResource.findContainer(ResourceType.F_SCHEMA).findProperty(XmlSchemaType.F_DEFINITION);
-		Element definitionElement = definitionProperty.getValue().getValue();
+		PrismProperty<SchemaDefinitionType> definitionProperty = reparsedResource.findContainer(ResourceType.F_SCHEMA).findProperty(XmlSchemaType.F_DEFINITION);
+		SchemaDefinitionType definitionElement = definitionProperty.getValue().getValue();
 		System.out.println("Re-parsed definition element:");
-		System.out.println(DOMUtil.serializeDOMToString(definitionElement));
+		System.out.println(DOMUtil.serializeDOMToString(definitionElement.getSchema()));
 		
 		ObjectDelta<ResourceType> objectDelta = resource.diff(reparsedResource);
 		System.out.println("Delta:");
@@ -333,10 +333,17 @@ public class TestParseResource {
 		System.out.println("Re-parsed schema container:");
 		System.out.println(reparsedSchemaContainer.debugDump());
 		
-		Document reparsedDocument = DOMUtil.parseDocument(serializesSchema);
-		Element reparsedSchemaElement = DOMUtil.getFirstChildElement(DOMUtil.getFirstChildElement(reparsedDocument));
-		Element reparsedXsdSchemaElement = DOMUtil.getChildElement(DOMUtil.getFirstChildElement(reparsedSchemaElement), DOMUtil.XSD_SCHEMA_ELEMENT);
+//		String reserializesSchema = prismContext.serializeContainerValueToString(reparsedSchemaContainer.getValue(), new QName("fakeNs", "fake"), PrismContext.LANG_XML);
+//		
+//		System.out.println("re-serialized schema:");
+//		System.out.println(reserializesSchema);
 		
+//		Document reparsedDocument = DOMUtil.parseDocument(serializesSchema);
+//		Element reparsedSchemaElement = DOMUtil.getFirstChildElement(DOMUtil.getFirstChildElement(reparsedDocument));
+//		Element reparsedXsdSchemaElement = DOMUtil.getChildElement(DOMUtil.getFirstChildElement(reparsedSchemaElement), DOMUtil.XSD_SCHEMA_ELEMENT);
+		
+		XmlSchemaType defType = (XmlSchemaType) reparsedSchemaContainer.getValue().asContainerable();
+		Element reparsedXsdSchemaElement = defType.getDefinition().getSchema();
 		ResourceSchema reparsedSchema = ResourceSchema.parse(reparsedXsdSchemaElement, "reparsed schema", prismContext);
 		
 	}

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.parser;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -161,7 +162,7 @@ public class QueryConvertor {
 	}
 
 	private static <C extends Containerable> ObjectFilter parseFilterContainer(MapXNode xmap, PrismContainerDefinition<C> pcd,
-			PrismContext prismContext) throws SchemaException {
+		PrismContext prismContext) throws SchemaException {
 		Entry<QName, XNode> entry = singleSubEntry(xmap, "top-level element");
 		QName filterQName = entry.getKey();
 		XNode xsubnode = entry.getValue();
@@ -192,7 +193,7 @@ public class QueryConvertor {
 		}
 
 		if (QNameUtil.match(filterQName, KEY_FILTER_SUBSTRING)) {
-			return parseSubstringFilter(xsubnode, pcd);
+			return parseSubstringFilter(xsubnode, pcd, prismContext);
 		}
 
 		if (QNameUtil.match(filterQName, KEY_FILTER_ORG)) {
@@ -205,23 +206,38 @@ public class QueryConvertor {
 
 	private static <C extends Containerable> AndFilter parseAndFilter(XNode xnode, PrismContainerDefinition<C> pcd,
 			PrismContext prismContext) throws SchemaException {
-		List<ObjectFilter> subfilters = new ArrayList<ObjectFilter>();
-		MapXNode xmap = toMap(xnode);
-		for (Entry<QName, XNode> entry : xmap.entrySet()) {
-			ObjectFilter subfilter = parseFilterContainer(entry.getValue(), entry.getKey(), pcd, prismContext);
-			subfilters.add(subfilter);
-		}
+		
+		List<ObjectFilter> subfilters = parseLogicalFilter(xnode, pcd, prismContext);
 		return AndFilter.createAnd(subfilters);
 	}
 
-	private static <C extends Containerable> OrFilter parseOrFilter(XNode xnode, PrismContainerDefinition<C> pcd,
-			PrismContext prismContext) throws SchemaException {
-		List<ObjectFilter> subfilters = new ArrayList<ObjectFilter>();
+	private static <C extends Containerable> List<ObjectFilter> parseLogicalFilter(XNode xnode,
+			PrismContainerDefinition<C> pcd, PrismContext prismContext) throws SchemaException {
+	List<ObjectFilter> subfilters = new ArrayList<ObjectFilter>();
 		MapXNode xmap = toMap(xnode);
 		for (Entry<QName, XNode> entry : xmap.entrySet()) {
-			ObjectFilter subfilter = parseFilterContainer(entry.getValue(), entry.getKey(), pcd, prismContext);
-			subfilters.add(subfilter);
+			if (entry.getValue() instanceof ListXNode){
+				Iterator<XNode> subNodes = ((ListXNode) entry.getValue()).iterator();
+				while (subNodes.hasNext()){
+					ObjectFilter subFilter = parseFilterContainer(subNodes.next(), entry.getKey(), pcd, prismContext);
+					subfilters.add(subFilter);
+				}
+			} else{
+				ObjectFilter subfilter = parseFilterContainer(entry.getValue(), entry.getKey(), pcd, prismContext);
+				subfilters.add(subfilter);
+			}
 		}
+		return subfilters;
+	}
+	private static <C extends Containerable> OrFilter parseOrFilter(XNode xnode, PrismContainerDefinition<C> pcd,
+			PrismContext prismContext) throws SchemaException {
+		List<ObjectFilter> subfilters = parseLogicalFilter(xnode, pcd, prismContext);
+//		new ArrayList<ObjectFilter>();
+//		MapXNode xmap = toMap(xnode);
+//		for (Entry<QName, XNode> entry : xmap.entrySet()) {
+//			ObjectFilter subfilter = parseFilterContainer(entry.getValue(), entry.getKey(), pcd, prismContext);
+//			subfilters.add(subfilter);
+//		}
 		return OrFilter.createOr(subfilters);
 	}
 
@@ -234,8 +250,7 @@ public class QueryConvertor {
 		return NotFilter.createNot(subfilter);
 	}
 	
-	private static <T,C extends Containerable> EqualsFilter<PrismPropertyDefinition<T>> parseEqualFilter(XNode xnode,
-			PrismContainerDefinition<C> pcd, PrismContext prismContext) throws SchemaException {
+	private static <T,C extends Containerable> EqualsFilter<PrismPropertyDefinition<T>> parseEqualFilter(XNode xnode, PrismContainerDefinition<C> pcd, PrismContext prismContext) throws SchemaException{
 		MapXNode xmap = toMap(xnode);
 		ItemPath itemPath = getPath(xmap, prismContext);
 		
@@ -249,33 +264,18 @@ public class QueryConvertor {
 			throw new SchemaException("Cannot convert query, becasue query does not contian property path.");
 		}
 		QName itemName = ItemPath.getName(itemPath.last());
-		ItemPath parentPath = itemPath.allExceptLast();
-		if (parentPath.isEmpty()){
-			parentPath = null;
-		}
+//		ItemPath parentPath = itemPath.allExceptLast();
+//		if (parentPath.isEmpty()){
+//			parentPath = null;
+//		}
 		
-		ItemDefinition itemDefinition = null;
-		if (pcd != null) {
-			itemDefinition = pcd.findItemDefinition(itemPath);
-			if (itemDefinition == null) {
-				throw new SchemaException("No definition for item "+itemPath+" in "+pcd);
-			}
-		}
-
 		XNode valueXnode = xmap.get(KEY_FILTER_EQUALS_VALUE);
 		
+		ItemDefinition itemDefinition = locateItemDefinition(valueXnode, itemPath, pcd, prismContext);
+
 		if (valueXnode != null) {
-			Item<PrismValue> item;
-			if (prismContext == null) {
-				item = (Item)XNodeProcessor.parsePrismPropertyRaw(valueXnode, itemName);
-			} else {
-				item = prismContext.getXnodeProcessor().parseItem(valueXnode, itemName, itemDefinition);
-			}
-
-			if (item.getValues().size() < 1 ) {
-				throw new IllegalStateException("No values to search specified for item " + itemName);
-			}
-
+			
+			Item item = parseItem(valueXnode, itemName, itemDefinition, prismContext);
 			return EqualsFilter.createEqual(itemPath, (PrismProperty) item, matchingRule);
 			
 		} else {
@@ -286,8 +286,10 @@ public class QueryConvertor {
 			
 			return EqualsFilter.createEqual(itemPath, (PrismPropertyDefinition) itemDefinition, matchingRule, expressionXnode);
 		}
-				
+
 	}
+	
+	
 	
 	private static <C extends Containerable> RefFilter parseRefFilter(XNode xnode, PrismContainerDefinition<C> pcd) throws SchemaException{
 		MapXNode xmap = toMap(xnode);
@@ -332,7 +334,7 @@ public class QueryConvertor {
 		return RefFilter.createReferenceEqual(itemPath, ref, expressionXnode);
 	}
 
-	private static <C extends Containerable> SubstringFilter parseSubstringFilter(XNode xnode, PrismContainerDefinition<C> pcd)
+	private static <C extends Containerable> SubstringFilter parseSubstringFilter(XNode xnode, PrismContainerDefinition<C> pcd, PrismContext prismContext)
 			throws SchemaException {
 		MapXNode xmap = toMap(xnode);
 		ItemPath itemPath = getPath(xmap, pcd.getPrismContext());
@@ -347,26 +349,30 @@ public class QueryConvertor {
 			throw new SchemaException("Cannot convert query, becasue query does not contian property path.");
 		}
 		QName itemName = ItemPath.getName(itemPath.last());
-		ItemPath parentPath = itemPath.allExceptLast();
-		if (parentPath.isEmpty()){
-			parentPath = null;
-		}
+//		ItemPath parentPath = itemPath.allExceptLast();
+//		if (parentPath.isEmpty()){
+//			parentPath = null;
+//		}
 		
-		ItemDefinition itemDefinition = null;
-		if (pcd != null) {
-			itemDefinition = pcd.findItemDefinition(itemPath);
-			if (itemDefinition == null) {
-				throw new SchemaException("No definition for item "+itemPath+" in "+pcd);
-			}
-		}
+		XNode valueXnode = xmap.get(KEY_FILTER_EQUALS_VALUE);
+		
+		ItemDefinition itemDefinition = locateItemDefinition(valueXnode, itemPath, pcd, prismContext);
+		
+		Item item = parseItem(valueXnode, itemName, itemDefinition, prismContext);
+//		if (pcd != null) {
+//			itemDefinition = pcd.findItemDefinition(itemPath);
+//			if (itemDefinition == null) {
+//				throw new SchemaException("No definition for item "+itemPath+" in "+pcd);
+//			}
+//		}
 
-		String substring = xmap.getParsedPrimitiveValue(KEY_FILTER_EQUALS_VALUE, DOMUtil.XSD_STRING);
+//		String substring = xmap.getParsedPrimitiveValue(KEY_FILTER_EQUALS_VALUE, DOMUtil.XSD_STRING);
 				
-		if (StringUtils.isBlank(substring)) {
-			throw new IllegalStateException("No substring values to search specified for item " + itemName);
-		}
+//		if (StringUtils.isBlank(substring)) {
+//			throw new IllegalStateException("No substring values to search specified for item " + itemName);
+//		}
 
-		return SubstringFilter.createSubstring(itemPath, (PrismPropertyDefinition)itemDefinition, matchingRule, substring);
+		return SubstringFilter.createSubstring(itemPath, (PrismProperty) item, matchingRule);
 	}
 
 	private static <C extends Containerable> OrgFilter parseOrgFilter(XNode xnode, PrismContainerDefinition<C> pcd) throws SchemaException {
@@ -434,6 +440,36 @@ public class QueryConvertor {
 			return null;
 		}
 	}		
+	
+	private static Item parseItem(XNode valueXnode, QName itemName, ItemDefinition itemDefinition, PrismContext prismContext) throws SchemaException{
+		Item<PrismValue> item;
+		if (prismContext == null) {
+			item = (Item)XNodeProcessor.parsePrismPropertyRaw(valueXnode, itemName);
+		} else {
+			item = prismContext.getXnodeProcessor().parseItem(valueXnode, itemName, itemDefinition);
+		}
+
+		if (item.getValues().size() < 1 ) {
+			throw new IllegalStateException("No values to search specified for item " + itemName);
+		}
+		
+		return item;
+	}
+	
+	private static <C extends Containerable> ItemDefinition locateItemDefinition(XNode valueXnode, ItemPath itemPath, PrismContainerDefinition<C> pcd, PrismContext prismContext) throws SchemaException{
+		QName itemName = ItemPath.getName(itemPath.last());
+		ItemDefinition itemDefinition = null;
+		if (pcd != null) {
+			itemDefinition = pcd.findItemDefinition(itemPath);
+			if (itemDefinition == null) {
+				itemDefinition = prismContext.getXnodeProcessor().locateItemDefinition(pcd, itemName, valueXnode);
+				// do not throw...it will be saved as raw..
+//				if (itemDefinition == null){
+//				throw new SchemaException("No definition for item "+itemPath+" in "+pcd);
+			}
+		}
+		return itemDefinition;
+	}
 
 
 	public static MapXNode serializeFilter(ObjectFilter filter, PrismContext prismContext) throws SchemaException{

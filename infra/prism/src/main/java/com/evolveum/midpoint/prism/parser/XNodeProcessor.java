@@ -414,6 +414,9 @@ public class XNodeProcessor {
 	private <T> T parsePrismPropertyRealValueFromPrimitive(PrimitiveXNode<T> xprim, PrismPropertyDefinition<T> propertyDefinition) throws SchemaException {
 		QName typeName = propertyDefinition.getTypeName();
 		T realValue;
+		if (ItemPathType.COMPLEX_TYPE.equals(typeName)){
+			return (T) parseItemPathType(xprim);
+		} else
 		if (prismContext.getBeanConverter().canConvert(typeName) && !typeName.equals(PolyStringType.COMPLEX_TYPE) && !typeName.equals(ItemPathType.COMPLEX_TYPE)) {
 			// Primitive elements may also have complex Java representations (e.g. enums)
 			return prismContext.getBeanConverter().unmarshallPrimitive(xprim, typeName);
@@ -468,6 +471,13 @@ public class XNodeProcessor {
 				throw new SystemException("Cannot parse compile-time property "+propertyDefinition.getName()+" type "+propertyDefinition.getTypeName()+" from "+xmap);
 			}
 		}
+	}
+	
+	private ItemPathType parseItemPathType(PrimitiveXNode itemPath) throws SchemaException{
+		ItemPath path = (ItemPath) itemPath.getParsedValue(ItemPath.XSD_TYPE);
+		ItemPathType itemPathType = new ItemPathType();
+		itemPathType.setItemPath(path);
+		return itemPathType;
 	}
 	
 	private <T> void parseProtectedType(ProtectedDataType<T> protectedType, MapXNode xmap) throws SchemaException {
