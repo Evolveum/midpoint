@@ -36,7 +36,7 @@ public class RSynchronizationSituationDescription implements Serializable {
 
     private RShadow shadow;
     private String shadowOid;
-    private Long shadowId;
+    private Short shadowId;
     private String checksum;
     //fields
     private RSynchronizationSituation    situation;
@@ -66,7 +66,7 @@ public class RSynchronizationSituationDescription implements Serializable {
 
     @Id
     @Column(name = "shadow_id")
-    public Long getShadowId() {
+    public Short getShadowId() {
         if (shadowId == null && shadow != null) {
             shadowId = shadow.getId();
         }
@@ -139,7 +139,7 @@ public class RSynchronizationSituationDescription implements Serializable {
         this.shadowOid = shadowOid;
     }
 
-    public void setShadowId(Long shadowId) {
+    public void setShadowId(Short shadowId) {
         this.shadowId = shadowId;
     }
 

@@ -27,7 +27,7 @@ import java.sql.Timestamp;
 public class RAnyDateId implements Serializable {
 
     private String ownerOid;
-    private Long ownerId;
+    private Short ownerId;
     private RContainerType ownerType;
     private Timestamp value;
     private String name;
@@ -41,11 +41,11 @@ public class RAnyDateId implements Serializable {
         this.ownerOid = ownerOid;
     }
 
-    public Long getOwnerId() {
+    public Short getOwnerId() {
         return ownerId;
     }
 
-    public void setOwnerId(Long ownerId) {
+    public void setOwnerId(Short ownerId) {
         this.ownerId = ownerId;
     }
 

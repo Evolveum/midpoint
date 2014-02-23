@@ -51,7 +51,7 @@ public class RMetadata implements Serializable {
     //owner
     private RContainer owner;
     private String ownerOid;
-    private Long ownerId;
+    private Short ownerId;
 
     private XMLGregorianCalendar createTimestamp;
     private REmbeddedReference creatorRef;
@@ -84,7 +84,7 @@ public class RMetadata implements Serializable {
 
     @Id
     @Column(name = "owner_id")
-    public Long getOwnerId() {
+    public Short getOwnerId() {
         if (ownerId == null && owner != null) {
             ownerId = owner.getId();
         }
@@ -175,7 +175,7 @@ public class RMetadata implements Serializable {
         this.owner = owner;
     }
 
-    public void setOwnerId(Long ownerId) {
+    public void setOwnerId(Short ownerId) {
         this.ownerId = ownerId;
     }
 

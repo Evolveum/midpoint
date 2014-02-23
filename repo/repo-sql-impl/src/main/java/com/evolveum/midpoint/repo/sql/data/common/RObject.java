@@ -54,7 +54,7 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
 
     private String description;
     private RAnyContainer extension;
-    private long version;
+    private int version;
     private Set<ROrgClosure> descendants;
     private Set<ROrgClosure> ancestors;
     private Set<RObjectReference> parentOrgRef;
@@ -163,11 +163,11 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
         }
     }
 
-    public long getVersion() {
+    public int getVersion() {
         return version;
     }
 
-    public void setVersion(long version) {
+    public void setVersion(int version) {
         this.version = version;
     }
 
@@ -223,7 +223,7 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
 
         jaxb.setDescription(repo.getDescription());
         jaxb.setOid(repo.getOid());
-        jaxb.setVersion(Long.toString(repo.getVersion()));
+        jaxb.setVersion(Integer.toString(repo.getVersion()));
 
         if (SelectorOptions.hasToLoadPath(ObjectType.F_EXTENSION, options)) {
             if (repo.getExtension() != null) {
@@ -262,10 +262,10 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
 
         repo.setDescription(jaxb.getDescription());
         repo.setOid(jaxb.getOid());
-        repo.setId(0L); // objects types have default id
+        repo.setId((short) 0); // objects types have default id
 
         String strVersion = jaxb.getVersion();
-        long version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*") ? Long.parseLong(jaxb
+        int version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*") ? Integer.parseInt(jaxb
                 .getVersion()) : 0;
         repo.setVersion(version);
 

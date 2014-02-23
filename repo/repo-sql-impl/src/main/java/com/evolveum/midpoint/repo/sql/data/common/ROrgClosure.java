@@ -36,11 +36,11 @@ public class ROrgClosure implements Serializable {
 
     private RObject ancestor;
     private String ancestorOid;
-    private Long ancestorId;
+    private Short ancestorId;
 
     private RObject descendant;
     private String descendantOid;
-    private Long descendantId;
+    private Short descendantId;
 
     private int depth;
 
@@ -50,11 +50,11 @@ public class ROrgClosure implements Serializable {
     public ROrgClosure(String ancestorOid, String descendantOid, int depth) {
         if (ancestorOid != null) {
             this.ancestorOid = ancestorOid;
-            this.ancestorId = 0L;
+            this.ancestorId = 0;
         }
         if (descendantOid != null) {
             this.descendantOid = descendantOid;
-            this.descendantId = 0L;
+            this.descendantId = 0;
         }
         this.depth = depth;
     }
@@ -84,7 +84,7 @@ public class ROrgClosure implements Serializable {
     }
 
     @Column(name = "ancestor_id", insertable = false, updatable = false)
-    public Long getAncestorId() {
+    public Short getAncestorId() {
         if (ancestorId == null && ancestor != null) {
             ancestorId = ancestor.getId();
         }
@@ -112,7 +112,7 @@ public class ROrgClosure implements Serializable {
     }
 
     @Column(name = "descendant_id", insertable = false, updatable = false)
-    public Long getDescendantId() {
+    public Short getDescendantId() {
         if (descendantId == null && descendant != null) {
             descendantId = descendant.getId();
         }
@@ -140,7 +140,7 @@ public class ROrgClosure implements Serializable {
         this.depth = depth;
     }
 
-    public void setAncestorId(Long ancestorId) {
+    public void setAncestorId(Short ancestorId) {
         this.ancestorId = ancestorId;
     }
 
@@ -148,7 +148,7 @@ public class ROrgClosure implements Serializable {
         this.ancestorOid = ancestorOid;
     }
 
-    public void setDescendantId(Long descendantId) {
+    public void setDescendantId(Short descendantId) {
         this.descendantId = descendantId;
     }
 

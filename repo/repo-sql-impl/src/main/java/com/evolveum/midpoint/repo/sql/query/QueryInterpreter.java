@@ -120,7 +120,7 @@ public class QueryInterpreter {
         }
 
         Criteria main = session.createCriteria(ClassMapper.getHQLTypeClass(type));
-        main.add(Restrictions.eq("id", 0L));
+        main.add(Restrictions.eq("id", (short) 0));
         main.add(Restrictions.eq("oid", oid));
 
 //        updateFetchingMode(main, type, options);

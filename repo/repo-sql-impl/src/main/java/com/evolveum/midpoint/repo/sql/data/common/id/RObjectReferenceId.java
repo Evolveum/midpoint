@@ -24,18 +24,18 @@ import java.io.Serializable;
 public class RObjectReferenceId implements Serializable {
 
     private String ownerOid;
-    private Long ownerId;
+    private Short ownerId;
     private String targetOid;
     private String relation;
 
     public RObjectReferenceId() {
     }
 
-    public Long getOwnerId() {
+    public Short getOwnerId() {
         return ownerId;
     }
 
-    public void setOwnerId(Long ownerId) {
+    public void setOwnerId(Short ownerId) {
         this.ownerId = ownerId;
     }
 

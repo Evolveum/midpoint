@@ -468,7 +468,7 @@ public class ModifyTest extends BaseSQLRepoTest {
             session.beginTransaction();
             user = createUser(456L, DATE);
 
-            user.setId(0L);
+            user.setId((short)0);
             user.setOid(id.getOid());
             session.merge(user);
             session.getTransaction().commit();
@@ -665,7 +665,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         //modify1
         s1 = new RShadow();
-        s1.setId(0L);
+        s1.setId((short)0);
         s1.setOid(ID.getOid());
         s1.setName(new RPolyString("acc", "acc"));
         RSynchronizationSituationDescription desc = new RSynchronizationSituationDescription();
@@ -707,7 +707,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         //modify2
         s1 = new RShadow();
-        s1.setId(0L);
+        s1.setId((short)0);
         s1.setOid(ID.getOid());
         s1.setName(new RPolyString("acc", "acc"));
         desc = new RSynchronizationSituationDescription();

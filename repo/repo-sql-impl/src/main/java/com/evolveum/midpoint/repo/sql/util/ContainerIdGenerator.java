@@ -20,7 +20,6 @@ import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.hibernate.HibernateException;
-import org.hibernate.Query;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.id.IdentifierGenerator;
 
@@ -40,7 +39,7 @@ public class ContainerIdGenerator implements IdentifierGenerator {
         if (object instanceof RAnyContainer) {
             RAnyContainer any = (RAnyContainer) object;
             RContainer owner = any.getOwner();
-            Long id = owner.getId();
+            Short id = owner.getId();
             if (id == null) {
                 id = generate(owner);
                 owner.setId(id);
@@ -57,10 +56,10 @@ public class ContainerIdGenerator implements IdentifierGenerator {
         return generate((RContainer) object);
     }
 
-    private Long generate(RContainer container) {
+    private Short generate(RContainer container) {
         if (container instanceof RObject) {
             LOGGER.trace("Created id='0' for '{}'.", new Object[]{toString(container)});
-            return 0L;
+            return 0;
         }
 
         if (container.getId() != null && container.getId() != 0) {
@@ -76,21 +75,9 @@ public class ContainerIdGenerator implements IdentifierGenerator {
         RContainer parent = ((ROwnable) container).getContainerOwner();
         Set<RContainer> containers = getChildrenContainers(parent);
 
-        Long id = getNextId(containers);
+        Short id = getNextId(containers);
         LOGGER.trace("Created id='{}' for '{}'.", new Object[]{id, toString(container)});
         return id;
-    }
-
-    private Long getNextId(SessionImplementor session, String oid) {
-        Query query = session.getNamedQuery(RContainer.QUERY_NEXT_ID);
-        query.setString("oid", oid);
-        query.setReadOnly(true);
-        Long id = (Long) query.uniqueResult();
-        if (id == null) {
-            id = 0L;
-        }
-
-        return ++id;
     }
 
     private String toString(Object object) {
@@ -107,18 +94,18 @@ public class ContainerIdGenerator implements IdentifierGenerator {
         return builder.toString();
     }
 
-    private Long getNextId(Set<? extends RContainer> set) {
-        Long id = 0L;
+    private Short getNextId(Set<? extends RContainer> set) {
+        Short id = 0;
         if (set != null) {
             for (RContainer container : set) {
-                Long contId = container.getId();
+                Short contId = container.getId();
                 if (contId != null && contId > id) {
                     id = contId;
                 }
             }
         }
 
-        return id + 1;
+        return (short) (id + 1);
     }
 
     /**
@@ -132,17 +119,17 @@ public class ContainerIdGenerator implements IdentifierGenerator {
             return;
         }
 
-        container.setId(0L);
+        container.setId((short) 0);
 
         Set<RContainer> containers = getChildrenContainers(container);
-        Set<Long> usedIds = new HashSet<Long>();
+        Set<Short> usedIds = new HashSet<>();
         for (RContainer c : containers) {
             if (c.getId() != null) {
                 usedIds.add(c.getId());
             }
         }
 
-        Long nextId = 1L;
+        Short nextId = 1;
         for (RContainer c : containers) {
             if (c.getId() != null) {
                 continue;
@@ -158,7 +145,7 @@ public class ContainerIdGenerator implements IdentifierGenerator {
     }
 
     private Set<RContainer> getChildrenContainers(RContainer parent) {
-        Set<RContainer> containers = new HashSet<RContainer>();
+        Set<RContainer> containers = new HashSet<>();
         if (parent instanceof RObject) {
             containers.addAll(((RObject) parent).getTrigger());
         }

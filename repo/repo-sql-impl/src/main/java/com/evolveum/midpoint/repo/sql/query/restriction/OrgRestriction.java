@@ -84,7 +84,7 @@ public class OrgRestriction extends Restriction<OrgFilter> {
             return Restrictions.eq(ANCESTOR_OID, orgRefOid);
         } else {
             Conjunction conjunction = Restrictions.conjunction();
-            conjunction.add(Restrictions.eq(ANCESTOR_ID, 0L));
+            conjunction.add(Restrictions.eq(ANCESTOR_ID, (short) 0));
             conjunction.add(Restrictions.eq(ANCESTOR_OID, orgRefOid));
             conjunction.add(Restrictions.le(DEPTH, maxDepth));
             conjunction.add(Restrictions.gt(DEPTH, 0));

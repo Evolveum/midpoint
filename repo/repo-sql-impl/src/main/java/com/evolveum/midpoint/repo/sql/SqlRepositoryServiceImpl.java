@@ -131,7 +131,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (!lockForUpdate) {
             //we're not doing update after, so this is faster way to load full object
             Query query = session.createQuery("select o.fullObject from RObject as o where o.id = :id and o.oid = :oid");
-            query.setLong("id", 0L);
+            query.setLong("id", (short) 0);
             query.setString("oid", oid);
 
             query.setLockOptions(lockOptions);
@@ -146,7 +146,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         //we're doing update after this get, therefore we load full object right now (it would be loaded during merge anyway)
         Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
-        criteria.add(Restrictions.eq("id", 0L));
+        criteria.add(Restrictions.eq("id", (short) 0));
         criteria.add(Restrictions.eq("oid", oid));
 
         criteria.setLockMode(lockOptions.getLockMode());
@@ -272,7 +272,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             session = beginReadOnlyTransaction();
             Query query = session.createQuery("select s.oid from " + ClassMapper.getHQLType(ShadowType.class)
                     + " as s where s.id = :id and s.oid = :oid");
-            query.setLong("id", 0L);
+            query.setLong("id", (short) 0);
             query.setString("oid", shadowOid);
             if (query.uniqueResult() == null) {
                 throw new ObjectNotFoundException("Shadow with oid '" + shadowOid + "' doesn't exist.");
@@ -500,8 +500,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 modifications = delta.getModifications();
 
                 //we found existing object which will be overwritten, therefore we increment version
-                Long version = RUtil.getLongFromString(oldObject.getVersion());
-                version = (version == null) ? 0L : ++version;
+                Integer version = RUtil.getIntegerFromString(oldObject.getVersion());
+                version = (version == null) ? 0 : ++version;
 
                 rObject.setVersion(version);
             } catch (QueryException ex) {
@@ -546,7 +546,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         SQLQuery query = session.createSQLQuery("update m_object set fullObject = :fullObject where id=:id and oid=:oid");
 
         query.setString("fullObject", fullObject);
-        query.setLong("id", 0L);
+        query.setLong("id", (short) 0);
         query.setString("oid", savedObject.getOid());
         int result = query.executeUpdate();
         if (result != 1) {
@@ -564,7 +564,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (StringUtils.isNotEmpty(originalOid)) {
             LOGGER.trace("Checking oid uniqueness.");
             Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(object.getCompileTimeClass()));
-            criteria.add(Restrictions.eq("id", 0L));
+            criteria.add(Restrictions.eq("id", (short) 0));
             criteria.add(Restrictions.eq("oid", object.getOid()));
             criteria.setProjection(Projections.rowCount());
 
@@ -612,9 +612,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                         + "o.ancestorId = :ancestorId and o.ancestorOid = :ancestorOid "
                         + "and o.descendantId = :descendantId and o.descendantOid = :descendantOid "
                         + "and o.depth = :depth");
-        qExistClosure.setParameter("ancestorId", 0L);
+        qExistClosure.setParameter("ancestorId", (short) 0);
         qExistClosure.setParameter("ancestorOid", ancestorOid);
-        qExistClosure.setParameter("descendantId", 0L);
+        qExistClosure.setParameter("descendantId", (short) 0);
         qExistClosure.setParameter("descendantOid", descendantOid);
         qExistClosure.setParameter("depth", depth);
 
@@ -630,7 +630,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                         + "o.ancestorOid = :ancestorOid "
                         + "and o.descendantId = :descendantId and o.descendantOid = :descendantOid");
         qExistIncorrect.setParameter("ancestorOid", ancestorOid);
-        qExistIncorrect.setParameter("descendantId", 0L);
+        qExistIncorrect.setParameter("descendantId", (short) 0);
         qExistIncorrect.setParameter("descendantOid", descendantOid);
 
         return (Long) qExistIncorrect.uniqueResult() != 0;
@@ -749,7 +749,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
             Criteria query = session.createCriteria(ClassMapper.getHQLTypeClass(type));
             query.add(Restrictions.eq("oid", oid));
-            query.add(Restrictions.eq("id", 0L));
+            query.add(Restrictions.eq("id", (short) 0));
             RObject object = (RObject) query.uniqueResult();
             if (object == null) {
                 throw new ObjectNotFoundException("Object of type '" + type.getSimpleName() + "' with oid '" + oid
@@ -791,7 +791,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     .getHQLTypeClass(object.toJAXB(getPrismContext(), null)
                             .getClass()));
             query.add(Restrictions.eq("oid", object.getOid()));
-            query.add(Restrictions.eq("id", 0L));
+            query.add(Restrictions.eq("id", (short) 0));
             RObject obj = (RObject) query.uniqueResult();
             if (obj == null) {
                 // object not found..probably it was just deleted.
@@ -1005,7 +1005,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
             Query query = session.createQuery("select stringsCount, longsCount, datesCount, referencesCount, clobsCount,"
                     + " polysCount from RAnyContainer where ownerId = :id and ownerOid = :oid and ownerType = :ownerType");
-            query.setParameter("id", 0L);
+            query.setParameter("id", (short) 0);
             query.setParameter("oid", prismObject.getOid());
             query.setParameter("ownerType", RContainerType.SHADOW);
 
@@ -1036,7 +1036,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         Query query = session.createQuery("select c.name, c.type, c.valueType from "
                 + anyValueType.getSimpleName() + " as c where c.ownerId = :id and c.ownerOid = :oid and c.ownerType = :ownerType");
-        query.setParameter("id", 0L);
+        query.setParameter("id", (short) 0);
         query.setParameter("oid", object.getOid());
         query.setParameter("ownerType", RContainerType.SHADOW);
 
@@ -1322,7 +1322,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         session.createQuery(sqlDeleteOrgClosure)
                 .setParameter("modifyOid", objectToDelete.getOid())
-                .setParameter("modifyId", 0L)
+                .setParameter("modifyId", (short) 0)
                 .executeUpdate();
 
         String sqlDeleteOrgIncorrect = "delete from ROrgIncorrect as o where "
@@ -1330,7 +1330,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 + "or o.ancestorOid = :modifyOid";
         session.createQuery(sqlDeleteOrgIncorrect)
                 .setParameter("modifyOid", objectToDelete.getOid())
-                .setParameter("descendantId", 0L)
+                .setParameter("descendantId", (short) 0)
                 .executeUpdate();
 
     }
@@ -1645,7 +1645,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     + " as o where o.id = 0 and o.oid = :oid");
             query.setString("oid", oid);
 
-            Long versionLong = (Long) query.uniqueResult();
+            Integer versionLong = (Integer) query.uniqueResult();
             if (versionLong == null) {
                 throw new ObjectNotFoundException("Object '" + type.getSimpleName()
                         + "' with oid '" + oid + "' was not found.");

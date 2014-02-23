@@ -53,7 +53,7 @@ public class RObjectReference implements ObjectReference {
     //owner
     private RContainer owner;
     private String ownerOid;
-    private Long ownerId;
+    private Short ownerId;
     //other primary key fields
     private String targetOid;
     private String relation;
@@ -88,7 +88,7 @@ public class RObjectReference implements ObjectReference {
 
     @Id
     @Column(name = "owner_id")
-    public Long getOwnerId() {
+    public Short getOwnerId() {
         if (ownerId == null && owner != null) {
             ownerId = owner.getId();
         }
@@ -149,7 +149,7 @@ public class RObjectReference implements ObjectReference {
         this.owner = owner;
     }
 
-    public void setOwnerId(Long ownerId) {
+    public void setOwnerId(Short ownerId) {
         this.ownerId = ownerId;
     }
 

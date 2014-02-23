@@ -35,7 +35,7 @@ public class ROperationResult implements OperationResult {
     //owner
     private RObject owner;
     private String ownerOid;
-    private Long ownerId;
+    private Short ownerId;
     //other fields
     private String operation;
     private ROperationResultStatus status;
@@ -63,7 +63,7 @@ public class ROperationResult implements OperationResult {
 
     @Id
     @Column(name = "owner_id")
-    public Long getOwnerId() {
+    public Short getOwnerId() {
         if (ownerId == null && owner != null) {
             ownerId = owner.getId();
         }
@@ -145,7 +145,7 @@ public class ROperationResult implements OperationResult {
         return operation;
     }
 
-    public void setOwnerId(Long ownerId) {
+    public void setOwnerId(Short ownerId) {
         this.ownerId = ownerId;
     }
 

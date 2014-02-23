@@ -34,13 +34,13 @@ public class ROrgIncorrect implements Serializable {
 
 	private String ancestorOid;
 	private String descendantOid;
-	private Long descendantId;
+	private Short descendantId;
 
 	public ROrgIncorrect() {
 
 	}
 
-	public ROrgIncorrect(String ancestorOid, String descendantOid, Long descendantId) {
+	public ROrgIncorrect(String ancestorOid, String descendantOid, Short descendantId) {
 		this.ancestorOid = ancestorOid;
 		this.descendantOid = descendantOid;
 		this.descendantId = descendantId;
@@ -68,11 +68,11 @@ public class ROrgIncorrect implements Serializable {
 
 	@Id
 	@Column(name = "descendant_id")
-	public Long getDescendantId() {
+	public Short getDescendantId() {
 		return descendantId;
 	}
 
-	public void setDescendantId(Long descendantId) {
+	public void setDescendantId(Short descendantId) {
 		this.descendantId = descendantId;
 	}
 

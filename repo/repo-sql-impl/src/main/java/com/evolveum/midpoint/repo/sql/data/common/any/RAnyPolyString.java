@@ -37,7 +37,7 @@ public class RAnyPolyString implements RAnyValue {
     //owner entity
     private RAnyContainer anyContainer;
     private String ownerOid;
-    private Long ownerId;
+    private Short ownerId;
     private RContainerType ownerType;
 
     private boolean dynamic;
@@ -83,7 +83,7 @@ public class RAnyPolyString implements RAnyValue {
 
     @Id
     @Column(name = "anyContainer_owner_id")
-    public Long getOwnerId() {
+    public Short getOwnerId() {
         if (ownerId == null && anyContainer != null) {
             ownerId = anyContainer.getOwnerId();
         }
@@ -166,7 +166,7 @@ public class RAnyPolyString implements RAnyValue {
         this.ownerOid = ownerOid;
     }
 
-    public void setOwnerId(Long ownerId) {
+    public void setOwnerId(Short ownerId) {
         this.ownerId = ownerId;
     }
 

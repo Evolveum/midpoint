@@ -24,7 +24,7 @@ import java.io.Serializable;
 public class RSynchronizationSituationDescriptionId implements Serializable {
 
     private String shadowOid;
-    private Long shadowId;
+    private Short shadowId;
     private String checksum;
 
     public String getShadowOid() {
@@ -35,11 +35,11 @@ public class RSynchronizationSituationDescriptionId implements Serializable {
         this.shadowOid = shadowOid;
     }
 
-    public Long getShadowId() {
+    public Short getShadowId() {
         return shadowId;
     }
 
-    public void setShadowId(Long shadowId) {
+    public void setShadowId(Short shadowId) {
         this.shadowId = shadowId;
     }
 

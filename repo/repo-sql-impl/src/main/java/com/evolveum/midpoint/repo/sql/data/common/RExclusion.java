@@ -41,7 +41,7 @@ public class RExclusion extends RContainer implements ROwnable {
     //owner
     private RObject owner;
     private String ownerOid;
-    private Long ownerId;
+    private Short ownerId;
     //exclusion
     private String description;
     private REmbeddedReference targetRef;
@@ -67,7 +67,7 @@ public class RExclusion extends RContainer implements ROwnable {
     }
 
     @Column(name = "owner_id", nullable = false)
-    public Long getOwnerId() {
+    public Short getOwnerId() {
         if (ownerId == null && owner != null) {
             ownerId = owner.getId();
         }
@@ -114,7 +114,7 @@ public class RExclusion extends RContainer implements ROwnable {
         this.owner = owner;
     }
 
-    public void setOwnerId(Long ownerId) {
+    public void setOwnerId(Short ownerId) {
         this.ownerId = ownerId;
     }
 
@@ -157,7 +157,7 @@ public class RExclusion extends RContainer implements ROwnable {
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
         jaxb.setDescription(repo.getDescription());
-        jaxb.setId(repo.getId());
+        jaxb.setId(RUtil.toLong(repo.getId()));
         if (repo.getPolicy() != null) {
             jaxb.setPolicy(repo.getPolicy().getSchemaValue());
         }
@@ -173,7 +173,7 @@ public class RExclusion extends RContainer implements ROwnable {
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
         repo.setOid(parent.getOid());
-        repo.setId(jaxb.getId());
+        repo.setId(RUtil.toShort(jaxb.getId()));
 
         repo.setDescription(jaxb.getDescription());
         repo.setPolicy(RUtil.getRepoEnumValue(jaxb.getPolicy(), RExclusionPolicy.class));

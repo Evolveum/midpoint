@@ -29,5 +29,5 @@ public interface ROwnable {
 
     String getOwnerOid();
 
-    Long getOwnerId();
+    Short getOwnerId();
 }

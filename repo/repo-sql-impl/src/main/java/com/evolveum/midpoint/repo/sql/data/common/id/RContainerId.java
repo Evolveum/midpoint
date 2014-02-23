@@ -24,21 +24,21 @@ import java.io.Serializable;
 public class RContainerId implements Serializable {
 
     private String oid;
-    private Long id;
+    private Short id;
 
     public RContainerId() {
     }
 
     public RContainerId(String oid) {
-        this(0L, oid);
+        this((short) 0, oid);
     }
 
-    public RContainerId(Long id, String oid) {
+    public RContainerId(Short id, String oid) {
         this.id = id;
         this.oid = oid;
     }
 
-    public Long getId() {
+    public Short getId() {
         return id;
     }
 
@@ -46,7 +46,7 @@ public class RContainerId implements Serializable {
         return oid;
     }
 
-    public void setId(Long id) {
+    public void setId(Short id) {
         this.id = id;
     }
 

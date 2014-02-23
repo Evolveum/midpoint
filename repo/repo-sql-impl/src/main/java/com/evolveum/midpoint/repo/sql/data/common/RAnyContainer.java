@@ -51,7 +51,7 @@ public class RAnyContainer implements Serializable {
 
     private RContainer owner;
     private String ownerOid;
-    private Long ownerId;
+    private Short ownerId;
     private RContainerType ownerType;
 
     private Short stringsCount;
@@ -80,7 +80,7 @@ public class RAnyContainer implements Serializable {
     }
 
     @Column(name = "owner_id")
-    public Long getOwnerId() {
+    public Short getOwnerId() {
         if (ownerId == null && owner != null) {
             ownerId = owner.getId();
         }
@@ -231,7 +231,7 @@ public class RAnyContainer implements Serializable {
         this.longs = longs;
     }
 
-    public void setOwnerId(Long ownerId) {
+    public void setOwnerId(Short ownerId) {
         this.ownerId = ownerId;
     }
 

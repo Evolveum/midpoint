@@ -26,7 +26,7 @@ import java.io.Serializable;
 public class RAnyClobId implements Serializable {
 
     private String ownerOid;
-    private Long ownerId;
+    private Short ownerId;
     private RContainerType ownerType;
     private String checksum;
     private String name;
@@ -40,11 +40,11 @@ public class RAnyClobId implements Serializable {
         this.ownerOid = ownerOid;
     }
 
-    public Long getOwnerId() {
+    public Short getOwnerId() {
         return ownerId;
     }
 
-    public void setOwnerId(Long ownerId) {
+    public void setOwnerId(Short ownerId) {
         this.ownerId = ownerId;
     }
 

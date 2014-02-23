@@ -26,7 +26,7 @@ import java.io.Serializable;
 public class RAnyPolyStringId implements Serializable {
 
     private String ownerOid;
-    private Long ownerId;
+    private Short ownerId;
     private RContainerType ownerType;
     private String value;
     private String name;
@@ -40,11 +40,11 @@ public class RAnyPolyStringId implements Serializable {
         this.ownerOid = ownerOid;
     }
 
-    public Long getOwnerId() {
+    public Short getOwnerId() {
         return ownerId;
     }
 
-    public void setOwnerId(Long ownerId) {
+    public void setOwnerId(Short ownerId) {
         this.ownerId = ownerId;
     }
 

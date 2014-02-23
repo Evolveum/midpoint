@@ -370,12 +370,12 @@ public final class RUtil {
         return ref;
     }
 
-    public static Long getLongFromString(String val) {
+    public static Integer getIntegerFromString(String val) {
         if (val == null || !val.matches("[0-9]+")) {
             return null;
         }
 
-        return Long.parseLong(val);
+        return Integer.parseInt(val);
     }
 
     /**
@@ -583,5 +583,25 @@ public final class RUtil {
         }
 
         return new QName(namespace, localPart);
+    }
+
+    public static Long toLong(Short s) {
+        if (s == null) {
+            return null;
+        }
+
+        return s.longValue();
+    }
+
+    public static Short toShort(Long l) {
+        if (l == null) {
+            return null;
+        }
+
+        if (l > Short.MAX_VALUE || l < Short.MIN_VALUE) {
+            throw new IllegalArgumentException("Couldn't cast value to short " + l);
+        }
+
+        return l.shortValue();
     }
 }

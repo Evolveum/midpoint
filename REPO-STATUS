@@ -23,3 +23,8 @@ cca. 187k selects vs. 336k
 [INFO] Total time: 16:44.739s
 [INFO] Finished at: Tue Feb 18 14:41:13 CET 2014
 [INFO] Final Memory: 79M/725M
+
+
+Still needs to be done:
+- org. structure, closure table & relation
+- object hash and removing clob and all non searchable columns
