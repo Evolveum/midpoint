@@ -75,6 +75,10 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 	PropertyValueFilter(ItemPath path, ItemDefinition definition, XNode expression) {
 		super(path, definition, expression);
 	}
+	PropertyValueFilter(ItemPath path, ItemDefinition definition, XNode expression, List<T> values) {
+		super(path, definition, expression);
+		this.values = values;
+	}
 	
 	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule, XNode expression) {
 		super(path, definition, matchingRule, expression);

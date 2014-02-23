@@ -30,11 +30,14 @@
 		</equal>
 		<equal>
 			<path xmlns:p="http://midpoint.evolveum.com/xml/ns/test/extension">c:extension/p:stringType</path>
-			<value>uid=test,dc=example,dc=com</value>
+			<value xsi:type="xsd:string">uid=test,dc=example,dc=com</value>
 		</equal>
 		<ref>
 			<path>c:resourceRef</path>
-			<oid>d0db5be9-cb93-401f-b6c1-86ffffe4cd5e</oid>
+			<value>
+				<oid>d0db5be9-cb93-401f-b6c1-86ffffe4cd5e</oid>
+				<relation>boss</relation>
+			</value>
 		</ref>
 	</or>
 </query>

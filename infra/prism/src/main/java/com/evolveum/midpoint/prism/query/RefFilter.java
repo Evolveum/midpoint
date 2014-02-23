@@ -47,8 +47,8 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue>{
 	 */
 	private static final long serialVersionUID = 1L;
 
-	RefFilter(ItemPath path, PrismReferenceDefinition definition, QName matchingRule, List<PrismReferenceValue> values) {
-		super(path, definition, matchingRule, values);
+	RefFilter(ItemPath path, PrismReferenceDefinition definition, XNode expression, List<PrismReferenceValue> values) {
+		super(path, definition, expression, values);
 	}
 		
 	RefFilter(ItemPath path, PrismReferenceDefinition definition, XNode expression) {
@@ -68,7 +68,7 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue>{
 	}
 	
 	public static RefFilter createReferenceEqual(ItemPath path, PrismReference item, XNode expression){
-		return new RefFilter(path, item.getDefinition(), expression);
+		return new RefFilter(path, item.getDefinition(), expression, item.getValues());
 	}
 	
 	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, XNode expression){
@@ -134,7 +134,7 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue>{
 
 	@Override
 	public RefFilter clone() {
-		RefFilter clone = new RefFilter(getFullPath(), (PrismReferenceDefinition) getDefinition(), getMatchingRule(), (List<PrismReferenceValue>) getValues());
+		RefFilter clone = new RefFilter(getFullPath(), (PrismReferenceDefinition) getDefinition(), getExpression(), (List<PrismReferenceValue>) getValues());
 		cloneValues(clone);
 		return clone;
 	}
