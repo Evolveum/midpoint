@@ -21,6 +21,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *  @author shood
@@ -39,17 +41,20 @@ public class ReportOutputDto extends Selectable implements Serializable{
         private String getKey(){return key;}
     }
 
+    public static final String F_REPORT_TYPE = "reportType";
     public static final String F_FILE_TYPE = "fileType";
     public static final String F_TYPE = "type";
     public static final String F_DESCRIPTION = "description";
     public static final String F_TEXT = "text";
     public static final String F_NAME = "name";
 
+    private Map<String, String> reportTypeMap = new HashMap<String, String>();
     private String name;
     private String description;
     private String time;
     private String author;
     private ExportType fileType;
+    private String reportType = "Report Type";
     private String text;
 
     private Collection<SearchType> type;
@@ -59,6 +64,22 @@ public class ReportOutputDto extends Selectable implements Serializable{
     public ReportOutputDto(String name, String description){
         this.name = name;
         this.description = description;
+    }
+
+    public Map<String, String> getReportTypeMap() {
+        return reportTypeMap;
+    }
+
+    public void setReportTypeMap(Map<String, String> reportTypeMap) {
+        this.reportTypeMap = reportTypeMap;
+    }
+
+    public String getReportType() {
+        return reportType;
+    }
+
+    public void setReportType(String reportType) {
+        this.reportType = reportType;
     }
 
     public ReportOutputDto(String name, String description,

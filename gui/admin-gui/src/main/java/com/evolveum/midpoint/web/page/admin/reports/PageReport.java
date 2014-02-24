@@ -82,7 +82,6 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
     private static final String ID_CANCEL_BUTTON = "cancel";
 
     private LoadableModel<ReportDto> model;
-    IModel<List<ResourceItemDto>> resources = new Model();
 
     public PageReport() {
         model = new LoadableModel<ReportDto>(false) {

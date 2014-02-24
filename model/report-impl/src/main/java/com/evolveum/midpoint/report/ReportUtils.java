@@ -168,36 +168,6 @@ public class ReportUtils {
 		
 		return parametersSchema;
 	}
-
-    public static void applyDefinition(PrismObject<ReportType> report, PrismContext prismContext, boolean raw)
-            throws SchemaException {
-        if (raw) {
-            return;
-        }
-
-        PrismContainer<Containerable> configuration = report.findContainer(ReportType.F_CONFIGURATION);
-        if (configuration == null) {
-            //nothing to apply definitions on
-            return;
-        }
-
-        PrismContainer xmlSchema = report.findContainer(ReportType.F_CONFIGURATION_SCHEMA);
-        Element xmlSchemaElement = ObjectTypeUtil.findXsdElement(xmlSchema);
-        if (xmlSchemaElement == null) {
-            //no schema definition available
-            throw new SchemaException("Couldn't find schema for configuration in report type " + report + ".");
-        }
-
-        PrismSchema schema = ReportTypeUtil.parseReportConfigurationSchema(report, prismContext);
-        PrismContainerDefinition<ReportConfigurationType> definition =  ReportTypeUtil.findReportConfigurationDefinition(schema);
-        if (definition == null) {
-            //no definition found for container
-            throw new SchemaException("Couldn't find definitions for report type " + report + ".");
-        }
-
-        configuration.applyDefinition(definition, true);
-    }
-	
 	
     public static PrismContainer<Containerable> getParametersContainer(ReportType reportType, PrismSchema schema)
 			throws SchemaException, ObjectNotFoundException {
