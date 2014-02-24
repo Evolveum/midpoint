@@ -51,6 +51,10 @@ public class ObjectClassDto extends Selectable implements Comparable<ObjectClass
         return builder.toString().trim();
     }
 
+    public ObjectClassComplexTypeDefinition getDefinition() {
+        return definition;
+    }
+
     @Override
     public int compareTo(ObjectClassDto o) {
         if (o == null) {

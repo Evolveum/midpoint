@@ -52,8 +52,6 @@ public class MenuLinkPanel extends Panel {
         }
         add(a);
 
-        a.setBeforeDisabledLink("");
-        a.setAfterDisabledLink("");
         a.add(new VisibleEnableBehaviour() {
 
             @Override
