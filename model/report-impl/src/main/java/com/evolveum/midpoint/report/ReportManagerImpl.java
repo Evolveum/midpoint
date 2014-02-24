@@ -32,6 +32,8 @@ import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Node;
@@ -361,22 +363,32 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
    
     @Override
     public InputStream getReportOutputData(String reportOutputOid, OperationResult parentResult) {
-   
     	Task task = taskManager.createTaskInstance(REPORT_OUTPUT_DATA);
-    	OperationResult result = parentResult.createSubresult(REPORT_OUTPUT_DATA);
-    	InputStream reportData = null;
-        result.addParam("oid", reportOutputOid);
-        try {
-        	ReportOutputType reportOutput = modelService.getObject(ReportOutputType.class, reportOutputOid, null, task, result).asObjectable();
-            reportData = new FileInputStream(reportOutput.getFilePath());
 
-            LOGGER.trace("Report Data : {} ", reportData.toString());
+    	OperationResult result = parentResult.createSubresult(REPORT_OUTPUT_DATA);
+        result.addParam("oid", reportOutputOid);
+
+    	InputStream reportData = null;
+        try {
+        	ReportOutputType reportOutput = modelService.getObject(ReportOutputType.class, reportOutputOid, null,
+                    task, result).asObjectable();
+
+            String filePath = reportOutput.getFilePath();
+            if (StringUtils.isEmpty(filePath)) {
+                parentResult.recordFatalError("Report output file path is not defined.");
+                return null;
+            }
+            File file = new File(filePath);
+            reportData = FileUtils.openInputStream(file);
+
             result.recordSuccessIfUnknown();
         } catch (Exception e) {
+            LOGGER.trace("Cannot read the report data : {}", e.getMessage());
         	result.recordFatalError("Cannot read the report data.", e);
-        	LOGGER.trace("Cannot read the report data : {}", e.getMessage());
-            reportData = null;
+        } finally {
+            result.computeStatusIfUnknown();
         }
+
         return reportData;
     }
 }

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
+import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -598,37 +599,30 @@ public class PageCreatedReports extends PageAdminReports {
         return query;
     }
 
-    private InputStream createReport(){
+    private InputStream createReport() {
         OperationResult result = new OperationResult(OPERATION_DOWNLOAD_REPORT);
+        ReportManager reportManager = getReportManager();
 
-        InputStream reportStream;
-
-        if(currentReport != null){
-
-            try{
-                reportStream = getReportManager().getReportOutputData(currentReport.getOid(), result);
-
-                if(reportStream == null){
-                    throw new FileNotFoundException();
-
-                } else{
-                    result.recordSuccess();
-                    return reportStream;
-                }
-
-            } catch (FileNotFoundException fe){
-                result.recordFatalError(getString("pageCreatedReports.message.fileNotFound"));
-                LoggingUtils.logException(LOGGER, "Couldn't download report, file does not exist.", fe);
-                LOGGER.trace(result.debugDump());
-                showResult(result);
-            } catch (Exception e){
-                error(getString("pageCreatedReports.message.downloadError") + " " + e.getMessage());
-                LoggingUtils.logException(LOGGER, "Couldn't download report.", e);
-                LOGGER.trace(result.debugDump());
-            }
+        if (currentReport == null) {
+            return null;
         }
 
-        return null;
+        InputStream input = null;
+        try {
+            input = reportManager.getReportOutputData(currentReport.getOid(), result);
+        } catch (Exception e) {
+            error(getString("pageCreatedReports.message.downloadError") + " " + e.getMessage());
+            LoggingUtils.logException(LOGGER, "Couldn't download report.", e);
+            LOGGER.trace(result.debugDump());
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+
+        if (WebMiscUtil.showResultInPage(result)) {
+            showResultInSession(result);
+        }
+
+        return input;
     }
 
     private void fileTypeFilterPerformed(AjaxRequestTarget target){

@@ -298,33 +298,6 @@ public class PageReports extends PageAdminReports {
         setResponsePage(PageReport.class, params);
     }
 
-    private QName getObjectClass(String resourceOid) {
-        if (StringUtils.isEmpty(resourceOid)) {
-            getSession().error(getString("PageReports.message.resourceNotDefined"));
-            throw new RestartResponseException(PageReports.class);
-        }
-
-        OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCE);
-        try {
-            Task task = createSimpleTask(OPERATION_LOAD_RESOURCE);
-            PrismObject<ResourceType> resource = getModelService().getObject(ResourceType.class,
-                    resourceOid, null, task, result);
-            RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
-                    LayerType.PRESENTATION, getPrismContext());
-
-            RefinedObjectClassDefinition def = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
-            return def.getTypeName();
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't get default object class qname for resource oid '"
-                    + resourceOid + "'.", ex);
-            showResultInSession(result);
-
-            LoggingUtils.logException(LOGGER, "Couldn't get default object class qname for resource oid {}",
-                    ex, resourceOid);
-            throw new RestartResponseException(PageReports.class);
-        }
-    }
-
     private ObjectDataProvider getDataProvider(){
         DataTable table = getReportTable().getDataTable();
         return (ObjectDataProvider) table.getDataProvider();
@@ -353,7 +326,7 @@ public class PageReports extends PageAdminReports {
         Boolean parent = !dto.isParent();
         ObjectQuery query = new ObjectQuery();
 
-        if(!StringUtils.isEmpty(text)){
+        if(StringUtils.isNotEmpty(text)){
             PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
             String normalizedText = normalizer.normalize(text);
 
@@ -382,7 +355,6 @@ public class PageReports extends PageAdminReports {
         return query;
     }
 
-
     private void clearSearchPerformed(AjaxRequestTarget target){
         searchModel.setObject(new ReportSearchDto());
 
@@ -397,5 +369,5 @@ public class PageReports extends PageAdminReports {
 
         target.add(get(ID_SEARCH_FORM));
         target.add(panel);
-    };
+    }
 }
