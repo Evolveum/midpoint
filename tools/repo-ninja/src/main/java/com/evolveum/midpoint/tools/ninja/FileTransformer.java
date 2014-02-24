@@ -2,6 +2,7 @@ package com.evolveum.midpoint.tools.ninja;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -58,6 +59,7 @@ public class FileTransformer extends BaseNinjaAction{
 						transform(prismContext, files[i], output, outLang);
 						
 					} catch (SchemaException | IOException e) {
+						System.out.println("failed to transform: " + e.getMessage()+ ". Stack: " + e);
 						errors++;
 						failedToParse.add(files[i].getName());
 					}
@@ -85,11 +87,18 @@ public class FileTransformer extends BaseNinjaAction{
 		
 		
 		if (StringUtils.isNotBlank(outputDirecorty)){
-			
 		}
 		
 		String outName = getOutputFileName(inFile, lang);
-		BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(outName)));
+		System.out.println("file will be saved as: " + outName);
+		BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(outputDirecorty, outName)));
+		
+		PrismObject object = prismContext.parseObject(inFile);
+		String serialized = prismContext.serializeObjectToString(object, lang);
+		
+		bos.write(serialized.getBytes());
+		bos.flush();
+		bos.close();
 		
 	}
 	
