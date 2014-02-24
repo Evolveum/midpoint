@@ -16,10 +16,7 @@
 
 package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportConfigurationType;
@@ -53,5 +50,31 @@ public class ReportTypeUtil {
 
         QName configContainerQName = new QName(schema.getNamespace(), ReportType.F_CONFIGURATION.getLocalPart());
         return schema.findContainerDefinitionByElementName(configContainerQName);
+    }
+
+    public static void applyDefinition(PrismObject<ReportType> report, PrismContext prismContext)
+            throws SchemaException {
+
+        PrismContainer<Containerable> configuration = report.findContainer(ReportType.F_CONFIGURATION);
+        if (configuration == null) {
+            //nothing to apply definitions on
+            return;
+        }
+
+        PrismContainer xmlSchema = report.findContainer(ReportType.F_CONFIGURATION_SCHEMA);
+        Element xmlSchemaElement = ObjectTypeUtil.findXsdElement(xmlSchema);
+        if (xmlSchemaElement == null) {
+            //no schema definition available
+            throw new SchemaException("Couldn't find schema for configuration in report type " + report + ".");
+        }
+
+        PrismSchema schema = ReportTypeUtil.parseReportConfigurationSchema(report, prismContext);
+        PrismContainerDefinition<ReportConfigurationType> definition =  ReportTypeUtil.findReportConfigurationDefinition(schema);
+        if (definition == null) {
+            //no definition found for container
+            throw new SchemaException("Couldn't find definitions for report type " + report + ".");
+        }
+
+        configuration.applyDefinition(definition, true);
     }
 }

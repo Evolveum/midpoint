@@ -26,6 +26,7 @@ import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperReport;
@@ -127,7 +128,9 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
         }
 
         boolean raw = isRaw(options);
-        ReportUtils.applyDefinition((PrismObject<ReportType>) object, prismContext, raw);
+        if (!raw) {
+            ReportTypeUtil.applyDefinition((PrismObject<ReportType>) object, prismContext);
+        }
     }
 
     private boolean isRaw(Collection<SelectorOptions<GetOperationOptions>> options) {
