@@ -28,3 +28,5 @@ cca. 187k selects vs. 336k
 Still needs to be done:
 - org. structure, closure table & relation
 - object hash and removing clob and all non searchable columns
+
+repo-sql-impl-test: 3739

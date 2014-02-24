@@ -604,4 +604,16 @@ public final class RUtil {
 
         return l.shortValue();
     }
+
+    public static String getDebugString(RObject object) {
+        StringBuilder sb = new StringBuilder();
+        if (object.getName() != null) {
+            sb.append(object.getName().getOrig());
+        } else {
+            sb.append("null");
+        }
+        sb.append('(').append(object.getOid()).append(')');
+
+        return sb.toString();
+    }
 }

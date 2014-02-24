@@ -650,15 +650,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         if (withIncorrect) {
-            Query qIncorrect = session
-                    .createQuery("from ROrgIncorrect as o where o.ancestorOid = :oid");
+            Query qIncorrect = session.createQuery("from ROrgIncorrect as o where o.ancestorOid = :oid");
             qIncorrect.setString("oid", rOrg.getOid());
 
             List<ROrgIncorrect> orgIncorrect = qIncorrect.list();
 
             for (ROrgIncorrect orgInc : orgIncorrect) {
-                Query qObject = session
-                        .createQuery("from RObject where id = 0 and oid = :oid");
+                Query qObject = session.createQuery("from RObject where id = 0 and oid = :oid");
                 qObject.setString("oid", orgInc.getDescendantOid());
                 RObject rObjectI = (RObject) qObject.uniqueResult();
                 if (rObjectI != null) {
@@ -790,6 +788,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             Criteria query = session.createCriteria(ClassMapper
                     .getHQLTypeClass(object.toJAXB(getPrismContext(), null)
                             .getClass()));
+//            Criteria query = session.createCriteria(object.getClass());
             query.add(Restrictions.eq("oid", object.getOid()));
             query.add(Restrictions.eq("id", (short) 0));
             RObject obj = (RObject) query.uniqueResult();
@@ -813,6 +812,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             session.delete(objectToDelete);
         }
 
+//        Query query = session.createQuery("delete from ROrgClosure as c where c.descendantId = :dId and c.descendantOid = :dOid");
+//        query.setParameter("dId", (short) 0);
+//        query.setParameter("dOid", object.getOid());
+//
+//        query.executeUpdate();
     }
 
     private void deleteReferences(RObject object, Session session) {
@@ -1292,6 +1296,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     new Object[]{o.getAncestor().toJAXB(getPrismContext(), null),
                             o.getDescendant().toJAXB(getPrismContext(), null),
                             o.getDepth()});
+//            if (LOGGER.isTraceEnabled()) {
+//                RObject ancestor = o.getAncestor();
+//                RObject descendant = o.getDescendant();
+//                LOGGER.trace("deleting from hierarchy: A:{} D:{} depth:{}",
+//                        new Object[]{RUtil.getDebugString(ancestor), RUtil.getDebugString(descendant), o.getDepth()});
+//            }
             session.delete(o);
         }
         deleteHierarchy(rObjectToModify, session);

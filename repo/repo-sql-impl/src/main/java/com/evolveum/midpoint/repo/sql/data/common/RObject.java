@@ -297,4 +297,9 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
 
     public abstract T toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
             throws DtoTranslationException;
+
+    @Override
+    public String toString() {
+        return RUtil.getDebugString(this);
+    }
 }
