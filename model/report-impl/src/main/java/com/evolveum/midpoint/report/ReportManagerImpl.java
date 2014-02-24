@@ -16,11 +16,7 @@
 
 package com.evolveum.midpoint.report;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -372,16 +368,15 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
         result.addParam("oid", reportOutputOid);
         try {
         	ReportOutputType reportOutput = modelService.getObject(ReportOutputType.class, reportOutputOid, null, task, result).asObjectable();
-            reportData = new FileInputStream(reportOutput.getFilePath());	
-            
+            reportData = new FileInputStream(reportOutput.getFilePath());
+
             LOGGER.trace("Report Data : {} ", reportData.toString());
             result.recordSuccessIfUnknown();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
         	result.recordFatalError("Cannot read the report data.", e);
         	LOGGER.trace("Cannot read the report data : {}", e.getMessage());
+            reportData = null;
         }
         return reportData;
     }
-   
 }

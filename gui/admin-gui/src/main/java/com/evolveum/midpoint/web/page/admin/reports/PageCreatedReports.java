@@ -67,6 +67,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -95,8 +96,6 @@ public class PageCreatedReports extends PageAdminReports {
     private static final String ID_FILTER_FILE_TYPE = "filetype";
     private static final String ID_REPORT_TYPE_SELECT = "reportType";
     private static final String ID_CONFIRM_DELETE = "confirmDeletePopup";
-
-    private final String BUTTON_CAPTION_DOWNLOAD = createStringResource("pageCreatedReports.button.download").getString();
 
     private IModel<ReportOutputDto> filterModel;
     private IModel<ReportDeleteDialogDto> deleteModel = new Model<ReportDeleteDialogDto>();
@@ -359,7 +358,7 @@ public class PageCreatedReports extends PageAdminReports {
 
             @Override
             public String getFirstCap(){
-                return BUTTON_CAPTION_DOWNLOAD;
+                return createStringResource("pageCreatedReports.button.download").getString();
             }
 
             @Override
@@ -608,10 +607,24 @@ public class PageCreatedReports extends PageAdminReports {
 
             try{
                 reportStream = getReportManager().getReportOutputData(currentReport.getOid(), result);
-                return reportStream;
+
+                if(reportStream == null){
+                    throw new FileNotFoundException();
+
+                } else{
+                    result.recordSuccess();
+                    return reportStream;
+                }
+
+            } catch (FileNotFoundException fe){
+                result.recordFatalError(getString("pageCreatedReports.message.fileNotFound"));
+                LoggingUtils.logException(LOGGER, "Couldn't download report, file does not exist.", fe);
+                LOGGER.trace(result.debugDump());
+                showResult(result);
             } catch (Exception e){
                 error(getString("pageCreatedReports.message.downloadError") + " " + e.getMessage());
                 LoggingUtils.logException(LOGGER, "Couldn't download report.", e);
+                LOGGER.trace(result.debugDump());
             }
         }
 

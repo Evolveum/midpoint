@@ -61,6 +61,11 @@ public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxBehavio
 
 	public void onRequest() {
 		final InputStream byteStream = initStream();
+
+        if(byteStream == null){
+            return;
+        }
+
 		IResourceStream resourceStream = new AbstractResourceStream(){
 
 			@Override
@@ -76,7 +81,6 @@ public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxBehavio
 			@Override
 			public void close() throws IOException {
 				byteStream.close();
-				
 			}
 			
 		};
@@ -93,7 +97,6 @@ public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxBehavio
 	public void setContentType(String contentType) {
 		this.contentType = contentType;
 	}
-
 
     protected abstract InputStream initStream();
 }

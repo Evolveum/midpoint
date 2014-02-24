@@ -97,7 +97,6 @@ public class PageReports extends PageAdminReports {
     private static final String ID_BUTTON_SEARCH = "searchButton";
     private static final String ID_BUTTON_CLEAR_SEARCH = "searchClear";
 
-    private final IModel reportParamsModel = new Model();
     private IModel<ReportSearchDto> searchModel;
 
     @SpringBean
@@ -299,25 +298,6 @@ public class PageReports extends PageAdminReports {
         setResponsePage(PageReport.class, params);
     }
 
-    private byte[] createReport() {
-        Object object = reportParamsModel.getObject();
-        if (object == null) {
-            return createUserListReport();
-        }
-
-        if (object instanceof AuditReportDto) {
-            AuditReportDto dto = (AuditReportDto) object;
-            return createAuditLogReport(dto.getDateFrom(), dto.getDateTo(), dto.getAuditEventType());
-        } else if (object instanceof ReconciliationReportDto) {
-            ReconciliationReportDto dto = (ReconciliationReportDto) object;
-
-            QName objectClass = getObjectClass(dto.getResourceOid());
-            return createReconciliationReport(dto.getResourceOid(), dto.getResourceName(), objectClass, "default");
-        }
-
-        return new byte[]{};
-    }
-
     private QName getObjectClass(String resourceOid) {
         if (StringUtils.isEmpty(resourceOid)) {
             getSession().error(getString("PageReports.message.resourceNotDefined"));
@@ -345,131 +325,6 @@ public class PageReports extends PageAdminReports {
         }
     }
 
-    private byte[] createAuditLogReport(Timestamp dateFrom, Timestamp dateTo,  AuditEventType auditEventType) {
-        LOGGER.debug("Creating audit log report from {} to {}, type {}.", new Object[]{dateFrom, dateTo, auditEventType != null ? auditEventType.name() : ""});
-
-        int auditEventTypeId = auditEventType != null ? auditEventType.ordinal() : -1;
-
-        String auditEventTypeName = auditEventType == null ? getString("AuditEventType.null") :
-                WebMiscUtil.createLocalizedModelForEnum(auditEventType, this).getObject();
-
-        Map params = new HashMap();
-        params.put("DATE_FROM", dateFrom);
-        params.put("DATE_TO", dateTo);
-        params.put("EVENT_TYPE", auditEventTypeId);
-        params.put("EVENT_TYPE_DESC", auditEventTypeName);
-        //String theQuery = auditEventTypeId != -1 ? "select aer.timestamp as timestamp, aer.initiatorName as initiator, aer.eventType as eventType, aer.eventStage as eventStage, aer.targetName as targetName, aer.targetType as targetType, aer.targetOwnerName as targetOwnerName, aer.outcome as outcome, aer.message as message from RAuditEventRecord as aer where aer.eventType = $P{EVENT_TYPE} and aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} order by aer.timestamp" : "select aer.timestamp as timestamp, aer.initiatorName as initiator, aer.eventType as eventType, aer.eventStage as eventStage, aer.targetName as targetName, aer.targetType as targetType, aer.targetOwnerName as targetOwnerName, aer.outcome as outcome, aer.message as message from RAuditEventRecord as aer where aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} order by aer.timestamp";;
-        String theQuery = auditEventTypeId != -1 ?
-	    		"select aer.timestamp as timestamp, " +
-	        	"aer.initiatorName as initiator, " +
-	        	"aer.eventType as eventType, " +
-	        	"aer.eventStage as eventStage, " +
-	        	"aer.targetName as targetName, " +
-	        	"aer.targetType as targetType, " +
-	        	"aer.targetOwnerName as targetOwnerName, " +
-	        	"aer.outcome as outcome, " +
-	        	"aer.message as message, " +
-	        	"odo.delta as delta " +
-	        	"from RObjectDeltaOperation as odo " +
-	        	"join odo.record as aer " +
-	        	"where aer.eventType = $P{EVENT_TYPE} and aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} " +
-	        	"order by aer.timestamp"
-	        	:
-	        	"select aer.timestamp as timestamp, " +
-	        	"aer.initiatorName as initiator, " +
-	        	"aer.eventType as eventType, " +
-	        	"aer.eventStage as eventStage, " +
-	        	"aer.targetName as targetName, " +
-	        	"aer.targetType as targetType, " +
-	        	"aer.targetOwnerName as targetOwnerName, " +
-	        	"aer.outcome as outcome, " +
-	        	"aer.message as message, " +
-	        	"odo.delta as delta " +
-	        	"from RObjectDeltaOperation as odo " +
-	        	"join odo.record as aer " +
-	        	"where aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} " +
-	        	"order by aer.timestamp";
-        params.put("QUERY_STRING", theQuery);
-        return createReport("/reports/reportAuditLogs.jrxml", params);
-    }
-
-    private byte[] createReconciliationReport(String resourceOid, String resourceName, QName objectClass,
-                                              String intent) {
-        LOGGER.debug("Creating reconciliation report for resource {} with object class {} and intent {}.",
-                new Object[]{resourceOid, objectClass, intent});
-        Map params = new HashMap();
-
-        params.put("RESOURCE_OID", resourceOid);
-        params.put("RESOURCE_NAME", resourceName);
-        params.put("CLASS", objectClass);
-        params.put("INTENT", intent);
-
-        return createReport("/reports/reportReconciliation.jrxml", params);
-    }
-
-    private byte[] createUserListReport() {
-        LOGGER.debug("Creating user list report.");
-        Map params = new HashMap();
-
-        ServletContext servletContext = getMidpointApplication().getServletContext();
-        try {
-            JasperDesign designRoles = JRXmlLoader.load(servletContext.getRealPath("/reports/reportUserRoles.jrxml"));
-            JasperReport reportRoles = JasperCompileManager.compileReport(designRoles);
-            params.put("roleReport", reportRoles);
-
-            JasperDesign designOrgs = JRXmlLoader.load(servletContext.getRealPath("/reports/reportUserOrgs.jrxml"));
-            JasperReport reportOrgs = JasperCompileManager.compileReport(designOrgs);
-            params.put("orgReport", reportOrgs);
-
-            JasperDesign designAccounts = JRXmlLoader.load(servletContext.getRealPath("/reports/reportUserAccounts.jrxml"));
-            JasperReport reportAccounts = JasperCompileManager.compileReport(designAccounts);
-            params.put("accountReport", reportAccounts);
-
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't create jasper subreport.", ex);
-            throw new RestartResponseException(PageReports.class);
-        }
-
-        return createReport("/reports/reportUserList.jrxml", params);
-    }
-
-    protected byte[] createReport(String jrxmlPath, Map params) {
-        ServletContext servletContext = getMidpointApplication().getServletContext();
-        params.put("LOGO_PATH", servletContext.getRealPath("/reports/logo.jpg"));
-        params.put("BaseTemplateStyles", servletContext.getRealPath("/styles/midpoint_base_styles.jrtx"));
-
-        byte[] generatedReport = new byte[]{};
-//        Session session = null;
-//        try {
-//            // Loading template
-//            JasperDesign design = JRXmlLoader.load(servletContext.getRealPath(jrxmlPath));
-//            JasperReport report = JasperCompileManager.compileReport(design);
-//
-//            session = sessionFactory.openSession();
-//            session.beginTransaction();
-//
-//            params.put(JRHibernateQueryExecuterFactory.PARAMETER_HIBERNATE_SESSION, session);
-//            JasperPrint jasperPrint = JasperFillManager.fillReport(report, params);
-//            generatedReport = JasperExportManager.exportReportToPdf(jasperPrint);
-//
-//            session.getTransaction().commit();
-//        } catch (Exception ex) {
-//            if (session != null && session.getTransaction().isActive()) {
-//                session.getTransaction().rollback();
-//            }
-//
-//            getSession().error(getString("PageReports.message.jasperError") + " " + ex.getMessage());
-//            LoggingUtils.logException(LOGGER, "Couldn't create jasper report.", ex);
-//            throw new RestartResponseException(PageReports.class);
-//        } finally {
-//            if (session != null) {
-//                session.close();
-//            }
-//        }
-
-        return generatedReport;
-    }
-
     private ObjectDataProvider getDataProvider(){
         DataTable table = getReportTable().getDataTable();
         return (ObjectDataProvider) table.getDataProvider();
@@ -491,19 +346,6 @@ public class PageReports extends PageAdminReports {
         target.add(table);
         target.add(getFeedbackPanel());
     }
-
-    /*
-    private ObjectQuery createParentOnlyQuery(){
-        ObjectQuery query = new ObjectQuery();
-        Boolean showSubtasks = false;
-
-        EqualsFilter boolFilter = EqualsFilter.createEqual(ReportType.F_PARENT, ReportType.class,
-                getPrismContext(), null, showSubtasks);
-
-        query.setFilter(boolFilter);
-        return query;
-    }
-    */
 
     private ObjectQuery createQuery(){
         ReportSearchDto dto = searchModel.getObject();
