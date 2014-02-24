@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.init;
 
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -33,6 +32,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -41,9 +41,7 @@ import java.io.FileFilter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
 
 /**
  * @author lazyman
@@ -55,8 +53,6 @@ public class InitialDataImport {
     private static final String DOT_CLASS = InitialDataImport.class.getName() + ".";
     private static final String OPERATION_INITIAL_OBJECTS_IMPORT = DOT_CLASS + "initialObjectsImport";
     private static final String OPERATION_IMPORT_OBJECT = DOT_CLASS + "importObject";
-
-    private static final String OBJECTS_FILE = "objects.xml";
 
     @Autowired
     private transient PrismContext prismContext;
@@ -82,31 +78,20 @@ public class InitialDataImport {
 
         int count = 0;
         int errors = 0;
-        try {
-            PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
 
-            List<PrismObject<? extends Objectable>> objects = domProcessor.parseObjects(getResource(OBJECTS_FILE));
-            for (PrismObject object : objects) {
-                Boolean importObject = importObject(object, task, mainResult);
-                if (importObject == null) {
-                    continue;
-                }
-                if (importObject) {
-                    count++;
-                } else {
-                    errors++;
-                }
-            }
+        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+        File[] files = getInitialImportObjects();
+        LOGGER.info("Importing files {}.", Arrays.toString(files));
 
-            File[] files = getInitialImportObjects();
-            for (File file : files) {
-                LOGGER.trace("Initial import of file {}.", file.getName());
+        for (File file : files) {
+            try {
+                LOGGER.info("Initial import of file {}.", file.getName());
                 PrismObject object = domProcessor.parseObject(file);
                 if (ReportType.class.equals(object.getCompileTimeClass())) {
                     ReportTypeUtil.applyDefinition(object, prismContext);
                 }
 
-                Boolean importObject = importObject(object, task, mainResult);
+                Boolean importObject = importObject(object, file, task, mainResult);
                 if (importObject == null) {
                     continue;
                 }
@@ -115,10 +100,10 @@ public class InitialDataImport {
                 } else {
                     errors++;
                 }
+            } catch (Exception ex) {
+                LoggingUtils.logException(LOGGER, "Couldn't import file {}", ex, file.getName());
+                mainResult.recordFatalError("Couldn't import file '" + file.getName() + "'", ex);
             }
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't import file {}", ex, OBJECTS_FILE);
-            mainResult.recordFatalError("Couldn't import file '" + OBJECTS_FILE + "'", ex);
         }
 
         mainResult.recomputeStatus("Couldn't import objects.");
@@ -135,7 +120,7 @@ public class InitialDataImport {
      * @param mainResult
      * @return null if nothing was imported, true if it was success, otherwise false
      */
-    private Boolean importObject(PrismObject object, Task task, OperationResult mainResult) {
+    private Boolean importObject(PrismObject object, File file, Task task, OperationResult mainResult) {
         OperationResult result = mainResult.createSubresult(OPERATION_IMPORT_OBJECT);
 
         boolean importObject = true;
@@ -163,8 +148,11 @@ public class InitialDataImport {
             LOGGER.info("Created {} as part of initial import", object);
             return true;
         } catch (Exception e) {
-            LoggingUtils.logException(LOGGER, "Couldn't import {} from file {}: ", e, object, OBJECTS_FILE, e.getMessage());
+            LoggingUtils.logException(LOGGER, "Couldn't import {} from file {}: ", e, object,
+                    file.getName(), e.getMessage());
             result.recordFatalError(e);
+
+            LOGGER.info("\n" + result.debugDump());
             return false;
         }
     }
@@ -196,10 +184,22 @@ public class InitialDataImport {
 
             @Override
             public int compare(File o1, File o2) {
-                return String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName());
+                int n1 = getNumberFromName(o1);
+                int n2 = getNumberFromName(o2);
+
+                return n1 - n2;
             }
         });
 
         return files;
+    }
+
+    private int getNumberFromName(File file) {
+        String name = file.getName();
+        String number = StringUtils.left(name, 3);
+        if (number.matches("[\\d]+")) {
+            return Integer.parseInt(number);
+        }
+        return 0;
     }
 }
