@@ -1,7 +1,5 @@
 package com.evolveum.midpoint.prism.crypto;
 
-import javax.crypto.Cipher;
-
 import org.apache.xml.security.encryption.XMLCipher;
 import org.testng.annotations.Test;
 
@@ -45,7 +43,7 @@ public class TestProtector {
 	  
 	  String value = "someValue";
 	
-	  Protector protector256 = createProtector("AES/CBC/PKCS5Padding");
+	  Protector protector256 = createProtector(XMLCipher.AES_256);
 	  ProtectedStringType pdt = new ProtectedStringType();
 	  pdt.setClearValue(value);
 	  protector256.encrypt(pdt);

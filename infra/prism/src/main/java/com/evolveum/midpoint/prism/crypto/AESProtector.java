@@ -15,20 +15,21 @@
  */
 package com.evolveum.midpoint.prism.crypto;
 
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.prism.xml.ns._public.types_2.CipherDataType;
-import com.evolveum.prism.xml.ns._public.types_2.EncryptedDataType;
-import com.evolveum.prism.xml.ns._public.types_2.EncryptionMethodType;
-import com.evolveum.prism.xml.ns._public.types_2.KeyInfoType;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.xml.security.algorithms.JCEMapper;
-import org.apache.xml.security.encryption.XMLCipher;
-import org.apache.xml.security.utils.Base64;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.UnrecoverableKeyException;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -39,13 +40,21 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.security.*;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.apache.xml.security.Init;
+import org.apache.xml.security.algorithms.JCEMapper;
+import org.apache.xml.security.encryption.XMLCipher;
+import org.apache.xml.security.utils.Base64;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.types_2.CipherDataType;
+import com.evolveum.prism.xml.ns._public.types_2.EncryptedDataType;
+import com.evolveum.prism.xml.ns._public.types_2.EncryptionMethodType;
+import com.evolveum.prism.xml.ns._public.types_2.KeyInfoType;
 
 /**
  * Class that manages encrypted string values. Java Cryptography Extension is
@@ -129,6 +138,9 @@ public class AESProtector implements Protector {
                 trustManagers.add(trustManager);
             }
             
+            //init apache crypto library
+            Init.init();
+            
         } catch (Exception ex) {
             LOGGER.error("Unable to work with keystore {}, reason {}.",
                     new Object[]{getKeyStorePath(), ex.getMessage()}, ex);
@@ -173,7 +185,7 @@ public class AESProtector implements Protector {
 	
 	@Override
 	public <T> void decrypt(ProtectedData<T> protectedData) throws EncryptionException, SchemaException {
-		if (protectedData.isEncrypted()) {
+		if (!protectedData.isEncrypted()) {
 			throw new IllegalArgumentException("Attempt to decrypt protected data that are not encrypted");
 		}
 		
@@ -288,7 +300,7 @@ public class AESProtector implements Protector {
 	}
 	
 	private Cipher getCipher(int cipherMode, String algorithmUri) throws NoSuchAlgorithmException, NoSuchPaddingException, NoSuchProviderException, InvalidKeyException, InvalidAlgorithmParameterException {
-		String jceAlgorithm = JCEMapper.translateURItoJCEID(algorithmUri);
+		String jceAlgorithm = JCEMapper.translateURItoJCEID(algorithmUri);//JCEMapper.getJCEKeyAlgorithmFromURI(algorithmUri);
 		Cipher cipher;
 		if (requestedJceProviderName == null) {
 			cipher = Cipher.getInstance(jceAlgorithm);
@@ -310,6 +322,13 @@ public class AESProtector implements Protector {
 		return cipher;
 	}
 	
+//	private String translateUriToJCE(String algorithmUri){
+//		String jceAgorithm = null;
+//		if (algorithmUri.startsWith("http://")){
+//			
+//		}
+//		return jceAgorithm;
+//	}
 	// public -> add to some utility method
     public String getSecretKeyDigest(SecretKey key) throws EncryptionException {
         MessageDigest sha1 = null;
@@ -374,10 +393,6 @@ public class AESProtector implements Protector {
         return keyStorePath;
     }
     
-    private String getDefaultSecretKeyDigest() throws EncryptionException {
-        return getSecretKeyDigest(getSecretKeyByAlias(getEncryptionKeyAlias()));
-    }
-
     private SecretKey getSecretKeyByAlias(String alias) throws EncryptionException {
         Key key = null;
         try {
