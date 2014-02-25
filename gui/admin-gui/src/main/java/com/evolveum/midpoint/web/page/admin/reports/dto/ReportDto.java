@@ -36,12 +36,14 @@ public class ReportDto implements Serializable {
         public String toString(){return name;}
     }
 
+    public static final String F_PARENT = "parent";
     public static final String F_OID = "oid";
     public static final String F_XML = "xml";
     public static final String F_NAME = "name";
     public static final String F_DESCRIPTION = "description";
     public static final String F_EXPORT_TYPE = "exportType";
 
+    private boolean parent;
     private String oid;
     private String xml;
     private Type type;
@@ -58,11 +60,20 @@ public class ReportDto implements Serializable {
         this.name = name;
     }
 
-    public ReportDto(String name, String description, String xml, ExportType export){
+    public ReportDto(String name, String description, String xml, ExportType export, boolean parent){
         this.name = name;
         this.description = description;
         this.xml = xml;
         this.exportType = export;
+        this.parent = parent;
+    }
+
+    public boolean isParent() {
+        return parent;
+    }
+
+    public void setParent(boolean parent) {
+        this.parent = parent;
     }
 
     public PrismObject<ReportType> getObject() {

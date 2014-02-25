@@ -30,6 +30,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ResourceItemDto;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.reports.component.*;
@@ -119,7 +120,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
 
             PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
             String xml = domProcessor.serializeObjectToString(prismReport);
-            dto = new ReportDto(report.getName().getNorm(), report.getDescription(), xml, report.getExport());
+            dto = new ReportDto(report.getName().getNorm(), report.getDescription(), xml, report.getExport(), report.isParent());
             dto.setObject(prismReport);
             result.recordSuccess();
         } catch (Exception e) {
@@ -169,6 +170,18 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
                 onSaveAndRunPerformed(target);
             }
         };
+        saveAndRun.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                if(model.getObject().isParent()){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+
+        });
         mainForm.add(saveAndRun);
 
         AjaxSubmitButton save = new AjaxSubmitButton(ID_SAVE_BUTTON, createStringResource("PageBase.button.save")) {
