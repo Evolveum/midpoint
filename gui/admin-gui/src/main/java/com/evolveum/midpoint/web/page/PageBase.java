@@ -75,6 +75,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.resource.CoreLibrariesContributor;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.w3c.dom.Element;
@@ -128,13 +129,19 @@ public abstract class PageBase extends WebPage {
     private PageBase previousPage;                  // experimental -- where to return e.g. when 'Back' button is clicked [NOT a class, in order to eliminate reinitialization when it is not needed]
     private boolean reinitializePreviousPages;      // experimental -- should we reinitialize all the chain of previous pages?
 
-    public PageBase() {
+    public PageBase(PageParameters parameters){
+        super(parameters);
+
         Injector.get().inject(this);
         Validate.notNull(modelService, "Model service was not injected.");
         Validate.notNull(taskManager, "Task manager was not injected.");
         Validate.notNull(reportManager, "Report manager was not injected.");
 
         initLayout();
+    }
+
+    public PageBase() {
+        this(null);
     }
 
     @Override

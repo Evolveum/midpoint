@@ -18,11 +18,20 @@ package com.evolveum.midpoint.web.page.admin.reports;
 
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
  * @author lazyman
  */
 public class PageAdminReports extends PageAdmin {
+
+    public PageAdminReports(){
+        this(null);
+    }
+
+    public PageAdminReports(PageParameters parameters){
+        super(parameters);
+    }
 
     public static final String AUTHORIZATION_REPORTS_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#reportsAll";
 }

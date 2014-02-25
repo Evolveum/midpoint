@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.session;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.web.page.admin.reports.dto.ReportOutputDto;
+import com.evolveum.midpoint.web.page.admin.reports.dto.ReportOutputSearchDto;
 
 import java.io.Serializable;
 
@@ -29,18 +29,18 @@ public class CreatedReportsStorage implements Serializable{
     /**
      *  DTO used for search purposes in {@link com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports}
      * */
-    private ReportOutputDto reportsSearch;
+    private ReportOutputSearchDto reportsSearch;
 
     /**
      *  Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports}
      * */
     private ObjectPaging reportsPaging;
 
-    public ReportOutputDto getReportsSearch() {
+    public ReportOutputSearchDto getReportsSearch() {
         return reportsSearch;
     }
 
-    public void setReportsSearch(ReportOutputDto reportsSearch) {
+    public void setReportsSearch(ReportOutputSearchDto reportsSearch) {
         this.reportsSearch = reportsSearch;
     }
 

@@ -242,7 +242,11 @@ public class PageReports extends PageAdminReports {
 
             @Override
             public String getFirstColorCssClass(){
-                return BUTTON_COLOR_CLASS.PRIMARY.toString();
+                if(getRowModel().getObject().getValue().isParent()){
+                    return BUTTON_COLOR_CLASS.PRIMARY.toString();
+                } else {
+                    return BUTTON_COLOR_CLASS.PRIMARY.toString() + " " + BUTTON_DISABLED;
+                }
             }
 
             @Override
