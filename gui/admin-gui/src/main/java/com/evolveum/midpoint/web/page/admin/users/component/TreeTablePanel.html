@@ -19,15 +19,20 @@
     <div wicket:id="confirmDeletePopup" />
     <div wicket:id="movePopup" />
     <!-- todo fix styles for all header with cog, it must be unified somehow !!!! [lazyman] -->
-    <div class="row" style="margin-top: 15px;">
+    <div class="row">
+        <div class="col-md-12 clearfix">
+            <form class="form-inline pull-right search-form" wicket:id="searchForm">
+                <div wicket:id="basicSearch"/>
+            </form>
+        </div>
         <div class="col-md-4">
             <div wicket:id="treeHeader" class="row" style="margin: 0; border-bottom: 1px solid #ddd;">
-                <div class="col-xs-10" style="padding-left: 5px;">
+                <div class="col-xs-9" style="padding-left: 5px;">
                     <div style="margin: 3px; margin-top: 10px; font-weight: bold;">
                         <wicket:message key="TreeTablePanel.hierarchy"/>
                     </div>
                 </div>
-                <div class="col-xs-2 cog" style="padding-right: 5px; margin-top: 2px;" wicket:id="treeMenu"/>
+                <div class="col-xs-3 cog" style="padding-right: 5px; margin-top: 2px;" wicket:id="treeMenu"/>
             </div>
 
             <div wicket:id="treeContainer" class="org-tree-container">
@@ -35,9 +40,6 @@
             </div>
         </div>
         <div class="col-md-8">
-            <form class="form-inline pull-right search-form" wicket:id="searchForm">
-                <div wicket:id="basicSearch"/>
-            </form>
             <form class="clearfix form-horizontal" wicket:id="form">
                 <div wicket:id="table"/>
             </form>
