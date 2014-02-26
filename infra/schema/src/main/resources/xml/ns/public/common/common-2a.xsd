@@ -496,7 +496,7 @@
 	        	</xsd:annotation>
 	        </xsd:element>
 	        
-            <xsd:element name="tenantRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="tenantRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
@@ -2617,7 +2617,7 @@
 
 			<xsd:element name="order" type="xsd:int" minOccurs="0"/>
 			
-			<xsd:element name="tenantRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="tenantRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
