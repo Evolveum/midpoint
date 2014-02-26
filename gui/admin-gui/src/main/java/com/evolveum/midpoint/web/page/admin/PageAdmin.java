@@ -40,6 +40,7 @@ import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesRequest
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesRequestedFor;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +51,12 @@ import java.util.List;
 public class PageAdmin extends PageBase {
 
     public PageAdmin() {
+        this(null);
+    }
+
+    public PageAdmin(PageParameters parameters){
+        super(parameters);
+
         TopMenuBar menuBar = getTopMenuBar();
         menuBar.addOrReplace(new UserMenuPanel(TopMenuBar.ID_RIGHT_PANEL));
     }

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.util;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -32,8 +33,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.poi.hssf.record.formula.functions.T;
 
 import java.util.ArrayList;
@@ -237,5 +237,15 @@ public class WebModelUtils {
         }
 
         LOGGER.debug("Saved with result {}", new Object[]{subResult});
+    }
+
+    public static <T extends ObjectType> ObjectDelta<T> createActivationAdminStatusDelta(
+            Class<T> type, String oid, boolean enabled, PrismContext context) {
+
+        ItemPath path = new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
+        ActivationStatusType status = enabled ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED;
+        ObjectDelta objectDelta = ObjectDelta.createModificationReplaceProperty(type, oid, path, context, status);
+
+        return objectDelta;
     }
 }

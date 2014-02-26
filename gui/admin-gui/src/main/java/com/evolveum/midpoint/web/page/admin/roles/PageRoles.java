@@ -28,7 +28,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -40,11 +40,8 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.roles.dto.RolesSearchDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.session.RolesStorage;
-import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import org.apache.commons.lang3.StringUtils;
@@ -80,10 +77,8 @@ public class PageRoles extends PageAdminRoles {
     private static final String ID_TABLE = "table";
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_SEARCH_FORM = "searchForm";
-    private static final String ID_SEARCH_TEXT = "searchText";
+    private static final String ID_BASIC_SEARCH = "basicSearch";
     private static final String ID_SEARCH_REQUESTABLE = "choice";
-    private static final String ID_SEARCH_BUTTON = "searchButton";
-    private static final String ID_SEARCH_CLEAR = "searchClear";
 
     private IModel<RolesSearchDto> searchModel;
 
@@ -136,21 +131,9 @@ public class PageRoles extends PageAdminRoles {
     }
 
     private void initSearchForm(Form searchForm){
-        IChoiceRenderer<RolesSearchDto.Requestable> renderer = new IChoiceRenderer<RolesSearchDto.Requestable>() {
-
-            @Override
-            public Object getDisplayValue(RolesSearchDto.Requestable requestable) {
-                return requestable.getKey();
-            }
-
-            @Override
-            public String getIdValue(RolesSearchDto.Requestable requestable, int i) {
-                return requestable.getKey();
-            }
-        };
-
-        DropDownChoice requestable = new DropDownChoice(ID_SEARCH_REQUESTABLE, new PropertyModel(searchModel, RolesSearchDto.F_REQUESTABLE),
-                createChoiceModel(renderer), renderer);
+        DropDownChoice requestable = new DropDownChoice(ID_SEARCH_REQUESTABLE,
+                new PropertyModel(searchModel, RolesSearchDto.F_REQUESTABLE),
+                WebMiscUtil.createReadonlyModelFromEnum(RolesSearchDto.Requestable.class), new EnumChoiceRenderer(this));
         requestable.add(new OnChangeAjaxBehavior() {
 
             @Override
@@ -161,53 +144,24 @@ public class PageRoles extends PageAdminRoles {
 
         searchForm.add(requestable);
 
-        final AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
-                createStringResource("pageRoles.button.search")) {
+        BasicSearchPanel<RolesSearchDto> basicSearch = new BasicSearchPanel<RolesSearchDto>(ID_BASIC_SEARCH) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form){
+            protected IModel<String> createSearchTextModel() {
+                return new PropertyModel<>(searchModel, RolesSearchDto.F_SEARCH_TEXT);
+            }
+
+            @Override
+            protected void searchPerformed(AjaxRequestTarget target) {
                 listRolesPerformed(target);
             }
 
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form){
-                target.add(getFeedbackPanel());
-            }
-
-        };
-        searchForm.add(searchButton);
-
-        final TextField text = new TextField<String>(ID_SEARCH_TEXT, new PropertyModel<String>(searchModel, RolesSearchDto.F_SEARCH_TEXT));
-        text.add(new SearchFormEnterBehavior(searchButton));
-        searchForm.add(text);
-
-        AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form){
-                clearSearchPerformed(target);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
+            protected void clearSearchPerformed(AjaxRequestTarget target) {
+                PageRoles.this.clearSearchPerformed(target);
             }
         };
-        searchForm.add(clearButton);
-    }
-
-    private IModel<List<RolesSearchDto.Requestable>> createChoiceModel(final IChoiceRenderer<RolesSearchDto.Requestable> renderer){
-        return new LoadableModel<List<RolesSearchDto.Requestable>>(false) {
-
-            @Override
-            protected List<RolesSearchDto.Requestable> load() {
-                List<RolesSearchDto.Requestable> choices = new ArrayList<RolesSearchDto.Requestable>();
-
-                Collections.addAll(choices, RolesSearchDto.Requestable.values());
-
-                return choices;
-            }
-        };
+        searchForm.add(basicSearch);
     }
 
     private List<IColumn<RoleType, String>> initColumns() {
@@ -216,7 +170,7 @@ public class PageRoles extends PageAdminRoles {
         IColumn column = new CheckBoxHeaderColumn<RoleType>();
         columns.add(column);
 
-        column = new LinkColumn<SelectableBean<RoleType>>(createStringResource("pageRoles.name"), "name", "value.name") {
+        column = new LinkColumn<SelectableBean<RoleType>>(createStringResource("ObjectType.name"), "name", "value.name") {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<RoleType>> rowModel) {
@@ -226,7 +180,7 @@ public class PageRoles extends PageAdminRoles {
         };
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("pageRoles.description"), "value.description");
+        column = new PropertyColumn(createStringResource("ObjectType.description"), "value.description");
         columns.add(column);
 
         column = new InlineMenuHeaderColumn(initInlineMenu());

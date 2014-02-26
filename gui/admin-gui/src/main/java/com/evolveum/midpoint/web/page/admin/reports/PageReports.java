@@ -16,19 +16,12 @@
 
 package com.evolveum.midpoint.web.page.admin.reports;
 
-import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
@@ -39,23 +32,14 @@ import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.reports.dto.AuditReportDto;
-import com.evolveum.midpoint.web.page.admin.reports.dto.ReconciliationReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportSearchDto;
 import com.evolveum.midpoint.web.session.ReportsStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-import net.sf.jasperreports.engine.*;
-import net.sf.jasperreports.engine.design.JasperDesign;
-import net.sf.jasperreports.engine.xml.JRXmlLoader;
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -67,11 +51,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.spring.injection.annot.SpringBean;
 
-import javax.servlet.ServletContext;
-import javax.xml.namespace.QName;
-import java.sql.Timestamp;
 import java.util.*;
 
 /**
@@ -98,9 +78,6 @@ public class PageReports extends PageAdminReports {
     private static final String ID_BUTTON_CLEAR_SEARCH = "searchClear";
 
     private IModel<ReportSearchDto> searchModel;
-
-    @SpringBean
-    private transient ReportManager reportManager;
 
     public PageReports() {
         searchModel = new LoadableModel<ReportSearchDto>() {
@@ -242,7 +219,11 @@ public class PageReports extends PageAdminReports {
 
             @Override
             public String getFirstColorCssClass(){
-                return BUTTON_COLOR_CLASS.PRIMARY.toString();
+                if(getRowModel().getObject().getValue().isParent()){
+                    return BUTTON_COLOR_CLASS.PRIMARY.toString();
+                } else {
+                    return BUTTON_COLOR_CLASS.PRIMARY.toString() + " " + BUTTON_DISABLED;
+                }
             }
 
             @Override
@@ -281,7 +262,7 @@ public class PageReports extends PageAdminReports {
         OperationResult result = new OperationResult(OPERATION_RUN_REPORT);
         try {
             Task task = createSimpleTask(OPERATION_RUN_REPORT);
-            reportManager.runReport(report.asPrismObject(), task, result);
+            getReportManager().runReport(report.asPrismObject(), task, result);
         } catch (Exception ex) {
             result.recordFatalError(ex);
         } finally {

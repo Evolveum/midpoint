@@ -27,7 +27,7 @@ import java.util.Map;
 /**
  *  @author shood
  * */
-public class ReportOutputDto extends Selectable implements Serializable{
+public class ReportOutputSearchDto extends Selectable implements Serializable{
 
     public static enum SearchType{
         NAME("SearchType.NAME");
@@ -59,9 +59,9 @@ public class ReportOutputDto extends Selectable implements Serializable{
 
     private Collection<SearchType> type;
 
-    public ReportOutputDto(){}
+    public ReportOutputSearchDto(){}
 
-    public ReportOutputDto(String name, String description){
+    public ReportOutputSearchDto(String name, String description){
         this.name = name;
         this.description = description;
     }
@@ -82,8 +82,8 @@ public class ReportOutputDto extends Selectable implements Serializable{
         this.reportType = reportType;
     }
 
-    public ReportOutputDto(String name, String description,
-                           String author, String time){
+    public ReportOutputSearchDto(String name, String description,
+                                 String author, String time){
         this.name = name;
         this.description = description;
         this.author = author;
