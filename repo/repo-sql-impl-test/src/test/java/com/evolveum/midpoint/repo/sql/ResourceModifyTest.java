@@ -76,7 +76,7 @@ public class ResourceModifyTest extends BaseSQLRepoTest {
     	
     	// GIVEN
         OperationResult result = new OperationResult(ResourceModifyTest.class.getName()+"."+TEST_NAME);
-        PrismObject<ResourceType> resource = prismContext.getPrismDomProcessor().parseObject(RESOURCE_OPENDJ_FILE);
+        PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_OPENDJ_FILE);
         
         // WHEN
         String addOid = repositoryService.addObject(resource, null, result);

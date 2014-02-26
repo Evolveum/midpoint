@@ -69,7 +69,7 @@ public class CleanupTest extends BaseSQLRepoTest {
     public void testTasksCleanup() throws Exception {
         // GIVEN
         final File file = new File(FOLDER_BASIC, "tasks.xml");
-        List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(file);
+        List<PrismObject<? extends Objectable>> elements = prismContext.parseObjects(file);
 
         OperationResult result = new OperationResult("tasks cleanup");
         for (int i = 0; i < elements.size(); i++) {

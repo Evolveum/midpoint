@@ -422,7 +422,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         try {
             ObjectType objectType = object.asObjectable();
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Object\n{}", new Object[]{getPrismContext().silentMarshalObject(objectType, LOGGER)});
+                LOGGER.trace("Object\n{}", new Object[]{object.debugDump()});
             }
 
             LOGGER.trace("Translating JAXB to data type.");

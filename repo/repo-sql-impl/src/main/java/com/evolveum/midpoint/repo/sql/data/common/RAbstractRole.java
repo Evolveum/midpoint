@@ -243,7 +243,7 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
 
         jaxb.setApprovalProcess(repo.getApprovalProcess());
         try {
-            jaxb.setApprovalSchema(RUtil.toJAXB(RoleType.class, new ItemPath(RoleType.F_APPROVAL_SCHEMA),
+            jaxb.setApprovalSchema(RUtil.toJAXB(RoleType.class, RoleType.F_APPROVAL_SCHEMA,
                     repo.getApprovalSchema(), ApprovalSchemaType.class, prismContext));
 
             if (SelectorOptions.hasToLoadPath(AbstractRoleType.F_APPROVER_EXPRESSION, options)) {

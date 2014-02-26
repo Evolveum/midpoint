@@ -16,13 +16,16 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.util.ValueSerializationUtil;
 import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAnyReferenceId;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.Columns;
 import org.hibernate.annotations.ForeignKey;
@@ -255,7 +258,7 @@ public class RAnyReference implements RAnyValue {
         value.setOid(repo.getValue());
         value.setDescription(repo.getDescription());
         value.setFilter(StringUtils.isNotEmpty(repo.getFilter()) ?
-                DOMUtil.parseDocument(repo.getFilter()).getDocumentElement() : null);
+                ValueSerializationUtil.deserializeFilter(repo.getFilter(), PrismContext.LANG_XML) : null);
         value.setRelation(repo.getRelation());
         value.setTargetType(ClassMapper.getQNameForHQLType(repo.getTargetType()));
 
@@ -266,7 +269,7 @@ public class RAnyReference implements RAnyValue {
         RAnyReference repo = new RAnyReference();
 
         repo.setDescription(jaxb.getDescription());
-        repo.setFilter(jaxb.getFilter() != null ? DOMUtil.printDom(jaxb.getFilter()).toString() : null);
+        repo.setFilter(jaxb.getFilter() != null ? ValueSerializationUtil.serializeFilter(jaxb.getFilter(), jaxb.getPrismContext(), PrismContext.LANG_XML) : null);
         repo.setValue(jaxb.getOid());
         repo.setRelation(jaxb.getRelation());
         repo.setTargetType(ClassMapper.getHQLTypeForQName(jaxb.getTargetType()));

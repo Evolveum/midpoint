@@ -16,7 +16,11 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RCapabilities;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
@@ -32,11 +36,13 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+
 import org.hibernate.annotations.*;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -264,6 +270,8 @@ public class RResource extends RObject<ResourceType> {
             throws DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext, options);
 
+        PrismObjectDefinition<ResourceType> resourceDef = prismContext.getSchemaRegistry().determineDefinitionFromClass(ResourceType.class);
+        
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setNamespace(repo.getNamespace());
 
@@ -273,7 +281,7 @@ public class RResource extends RObject<ResourceType> {
 
         try {
             jaxb.setConnectorConfiguration(RUtil.toJAXB(ResourceType.class, new ItemPath(
-                    ResourceType.F_CONNECTOR_CONFIGURATION), repo.getConfiguration(), ConnectorConfigurationType.class,
+                    ResourceType.F_CONNECTOR_CONFIGURATION), repo.getConfiguration(), ConnectorConfigurationType.class, ResourceType.F_CONNECTOR_CONFIGURATION,
                     prismContext));
             jaxb.setSchema(RUtil.toJAXB(ResourceType.class, new ItemPath(ResourceType.F_SCHEMA),
                     repo.getXmlSchema(), XmlSchemaType.class, prismContext));
@@ -282,6 +290,7 @@ public class RResource extends RObject<ResourceType> {
             jaxb.setSynchronization(RUtil.toJAXB(ResourceType.class, new ItemPath(ResourceType.F_SYNCHRONIZATION),
                     repo.getSynchronization(), SynchronizationType.class, prismContext));
             if (repo.getCapabilities() != null) {
+            	PrismContainerDefinition<CapabilitiesType> capabilityDefinition = resourceDef.findContainerDefinition(ResourceType.F_CAPABILITIES);
                 jaxb.setCapabilities(repo.getCapabilities().toJAXB(prismContext));
             }
             jaxb.setScripts(RUtil.toJAXB(ResourceType.class, new ItemPath(ResourceType.F_SCRIPTS),
@@ -325,23 +334,26 @@ public class RResource extends RObject<ResourceType> {
         if (jaxb.getConnector() != null) {
             LOGGER.warn("Connector from resource type won't be saved. It should be translated to connector reference.");
         }
+        PrismObject<ResourceType> resource = jaxb.asPrismObject();
+        PrismContainerDefinition parentDefinition = resource.getDefinition();
 
         try {
-            repo.setConfiguration(RUtil.toRepo(jaxb.getConnectorConfiguration(), prismContext));
-            repo.setXmlSchema(RUtil.toRepo(jaxb.getSchema(), prismContext));
-            repo.setSchemaHandling(RUtil.toRepo(jaxb.getSchemaHandling(), prismContext));
-            repo.setSynchronization(RUtil.toRepo(jaxb.getSynchronization(), prismContext));
+            repo.setConfiguration(RUtil.toRepo(parentDefinition, ResourceType.F_CONNECTOR_CONFIGURATION, jaxb.getConnectorConfiguration(), prismContext));
+            repo.setXmlSchema(RUtil.toRepo(parentDefinition, ResourceType.F_SCHEMA, jaxb.getSchema(), prismContext));
+            repo.setSchemaHandling(RUtil.toRepo(parentDefinition, ResourceType.F_SCHEMA_HANDLING, jaxb.getSchemaHandling(), prismContext));
+            repo.setSynchronization(RUtil.toRepo(parentDefinition, ResourceType.F_SYNCHRONIZATION, jaxb.getSynchronization(), prismContext));
             if (jaxb.getCapabilities() != null) {
                 RCapabilities cap = new RCapabilities();
-                RCapabilities.copyFromJAXB(jaxb.getCapabilities(), cap, prismContext);
+                ItemDefinition def = parentDefinition.findItemDefinition(ResourceType.F_CAPABILITIES);
+                RCapabilities.copyFromJAXB((PrismContainerDefinition) def, jaxb.getCapabilities(), cap, prismContext);
                 repo.setCapabilities(cap);
             }
             // repo.setCapabilities(RUtil.toRepo(jaxb.getCapabilities(),
             // prismContext));
             // repo.setNativeCapabilities(RUtil.toRepo(jaxb.getNativeCapabilities(),
             // prismContext));
-            repo.setScripts(RUtil.toRepo(jaxb.getScripts(), prismContext));
-            repo.setConsistency(RUtil.toRepo(jaxb.getConsistency(), prismContext));
+            repo.setScripts(RUtil.toRepo(parentDefinition, ResourceType.F_SCRIPTS, jaxb.getScripts(), prismContext));
+            repo.setConsistency(RUtil.toRepo(parentDefinition, ResourceType.COMPLEX_TYPE, jaxb.getConsistency(), prismContext));
             if (jaxb.getBusiness() != null) {
                 ResourceBusinessConfigurationType business = jaxb.getBusiness();
                 repo.getApproverRef().addAll(RUtil.safeListReferenceToSet(business.getApproverRef(),
@@ -355,7 +367,7 @@ public class RResource extends RObject<ResourceType> {
                 repo.setOperationalState(repoOpState);
             }
 
-            repo.setProjection(RUtil.toRepo(jaxb.getProjection(), prismContext));
+            repo.setProjection(RUtil.toRepo(parentDefinition, ResourceType.COMPLEX_TYPE, jaxb.getProjection(), prismContext));
 
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);

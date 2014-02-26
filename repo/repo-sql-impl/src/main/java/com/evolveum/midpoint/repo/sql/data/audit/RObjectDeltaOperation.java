@@ -25,6 +25,8 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 import org.hibernate.annotations.ForeignKey;
@@ -320,7 +322,7 @@ public class RObjectDeltaOperation implements OperationResult {
                 ObjectDelta delta = operation.getObjectDelta();
                 //this two step conversion is twice as fast compared to DeltaConvertor.toObjectDeltaTypeXml(delta)
                 ObjectDeltaType xmlDelta = DeltaConvertor.toObjectDeltaType(delta);
-                auditDelta.setDelta(RUtil.toRepo(xmlDelta, prismContext));
+                auditDelta.setDelta(RUtil.toRepo(xmlDelta, SchemaConstantsGenerated.T_OBJECT_DELTA, prismContext));
 
                 auditDelta.setDeltaOid(delta.getOid());
                 auditDelta.setDeltaType(RUtil.getRepoEnumValue(delta.getChangeType(), RChangeType.class));

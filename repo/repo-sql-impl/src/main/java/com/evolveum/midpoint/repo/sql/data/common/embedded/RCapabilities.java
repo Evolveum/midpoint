@@ -16,6 +16,18 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
+import javax.persistence.Lob;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
+import org.hibernate.annotations.Type;
+
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -23,15 +35,6 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilityCollectionType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
-import org.hibernate.annotations.Type;
-
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
-import javax.persistence.Lob;
 
 @Embeddable
 public class RCapabilities {
@@ -105,15 +108,15 @@ public class RCapabilities {
         return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
     }
 
-    public static void copyFromJAXB(CapabilitiesType jaxb, RCapabilities repo, PrismContext prismContext)
+    public static void copyFromJAXB(PrismContainerDefinition parentDefinition, CapabilitiesType jaxb, RCapabilities repo, PrismContext prismContext)
             throws DtoTranslationException {
         Validate.notNull(repo);
         Validate.notNull(jaxb);
-
+        
         try {
-            repo.setNative(RUtil.toRepo(jaxb.getNative(), prismContext));
-            repo.setConfigured(RUtil.toRepo(jaxb.getConfigured(), prismContext));
-            repo.setCachingMetadata(RUtil.toRepo(jaxb.getCachingMetadata(), prismContext));
+            repo.setNative(RUtil.toRepo(parentDefinition, CapabilitiesType.F_NATIVE, jaxb.getNative(), prismContext));
+            repo.setConfigured(RUtil.toRepo(parentDefinition, CapabilitiesType.F_CONFIGURED, jaxb.getConfigured(), prismContext));
+            repo.setCachingMetadata(RUtil.toRepo(parentDefinition, CapabilitiesType.F_CACHING_METADATA, jaxb.getCachingMetadata(), prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
@@ -128,10 +131,10 @@ public class RCapabilities {
         Validate.notNull(repo);
         Validate.notNull(jaxb);
         try {
-            jaxb.setNative(RUtil.toJAXB(CapabilitiesType.class, new ItemPath(CapabilitiesType.F__NATIVE),
+            jaxb.setNative(RUtil.toJAXB(CapabilitiesType.class, CapabilitiesType.F_NATIVE,
                     repo.getNative(), CapabilityCollectionType.class, prismContext));
             jaxb.setConfigured(RUtil.toJAXB(CapabilitiesType.class, new ItemPath(CapabilitiesType.F_CONFIGURED),
-                    repo.getConfigured(), CapabilityCollectionType.class, prismContext));
+                    repo.getConfigured(), CapabilityCollectionType.class, CapabilityCollectionType.COMPLEX_TYPE, prismContext));
             jaxb.setCachingMetadata(RUtil.toJAXB(CachingMetadataType.class,
                     new ItemPath(CapabilitiesType.F_CACHING_METADATA), repo.getCachingMetadata(),
                     CachingMetadataType.class, prismContext));

@@ -87,18 +87,22 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	/**
      * Returns a set of items that the property container contains. The items may be properties or inner property containers.
      * <p/>
-     * The set must not be null. In case there are no properties an empty set is
+     * The set may be null. In case there are no properties an empty set is
      * returned.
      * <p/>
      * Returned set is mutable. Live object is returned.
      *
      * @return set of items that the property container contains.
      */
+    
     public List<Item<?>> getItems() {
     	return items;
     }
     
     public Item<?> getNextItem(Item<?> referenceItem) {
+    	if (items == null){
+    		return null;
+    	}
     	Iterator<Item<?>> iterator = items.iterator();
     	while (iterator.hasNext()) {
     		Item<?> item = iterator.next();
@@ -114,6 +118,9 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     }
 
     public Item<?> getPreviousItem(Item<?> referenceItem) {
+    	if (items == null){
+    		return null;
+    	}
     	Item<?> lastItem = null;
     	Iterator<Item<?>> iterator = items.iterator();
     	while (iterator.hasNext()) {
@@ -139,6 +146,9 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
      */
     public Set<PrismProperty<?>> getProperties() {
         Set<PrismProperty<?>> properties = new HashSet<PrismProperty<?>>();
+        if (items == null){
+        	return null;
+        }
         for (Item<?> item : getItems()) {
             if (item instanceof PrismProperty) {
                 properties.add((PrismProperty<?>) item);
@@ -323,7 +333,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
      */
     public void addReplaceExisting(Item<?> item) throws SchemaException {
         Item<?> existingItem = findItem(item.getElementName(), Item.class);
-        if (existingItem != null) {
+        if (existingItem != null && items != null) {
             items.remove(existingItem);
             existingItem.setParent(null);
         }
@@ -334,13 +344,16 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
         Validate.notNull(item, "Item must not be null.");
 
         Item<?> existingItem = findItem(item.getElementName(),  Item.class);
-        if (existingItem != null) {
+        if (existingItem != null && items != null) {
             items.remove(existingItem);
             existingItem.setParent(null);
         }
     }
     
     public void removeAll() {
+    	if (items == null){
+    		return;
+    	}
         Iterator<Item<?>> iterator = items.iterator();
         while (iterator.hasNext()) {
             Item<?> item = iterator.next();
@@ -370,7 +383,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
         // Check for conflicts, remove conflicting values
         for (Item<?> item : itemsToAdd) {
             Item<?> existingItem = findItem(item.getElementName(), Item.class);
-            if (existingItem != null) {
+            if (existingItem != null && items != null) {
                 items.remove(existingItem);
             }
         }
@@ -478,6 +491,9 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     }
     
     public PrismReference findReferenceByCompositeObjectElementName(QName elementName) {
+    	if (items == null){
+    		return null;
+    	}
     	for (Item item: items) {
     		if (item instanceof PrismReference) {
     			PrismReference ref = (PrismReference)item;
@@ -751,7 +767,10 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 
 	// Expects that "self" path is NOT present in propPath
 	<I extends Item<?>> void removeItem(ItemPath propPath, Class<I> itemType) {
-    	ItemPathSegment first = propPath.first();
+		if (items == null){
+    		return;
+    	}
+		ItemPathSegment first = propPath.first();
     	if (!(first instanceof NameItemPathSegment)) {
     		throw new IllegalArgumentException("Attempt to remove item using a non-name path "+propPath+" in "+this);
     	}
@@ -797,8 +816,10 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     @Override
 	public void accept(Visitor visitor) {
 		super.accept(visitor);
-		for (Item<?> item: getItems()) {
-			item.accept(visitor);
+		if (items != null) {
+			for (Item<?> item : getItems()) {
+				item.accept(visitor);
+			}
 		}
 	}
     
@@ -818,20 +839,24 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	    	}
 	    	QName subName = ((NameItemPathSegment)first).getName();
 	    	ItemPath rest = path.rest();
-	    	for (Item<?> item : items) {
-	            if (first.isWildcard() || subName.equals(item.getElementName())) {
-	            	item.accept(visitor, rest, recursive);
-	            }
-	    	}
+			if (items != null) {
+				for (Item<?> item : items) {
+					if (first.isWildcard() || subName.equals(item.getElementName())) {
+						item.accept(visitor, rest, recursive);
+					}
+				}
+			}
 		}
 	}
     
     public boolean hasCompleteDefinition() {
-    	for (Item<?> item: getItems()) {
-    		if (!item.hasCompleteDefinition()) {
-    			return false;
-    		}
-    	}
+		if (items != null) {
+			for (Item<?> item : getItems()) {
+				if (!item.hasCompleteDefinition()) {
+					return false;
+				}
+			}
+		}
     	return true;
     }
 
@@ -1161,14 +1186,16 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	protected void copyValues(PrismContainerValue<T> clone) {
 		super.copyValues(clone);
 		clone.id = this.id;
-        for (Item<?> item: this.items) {
-        	Item<?> clonedItem = item.clone();
-        	clonedItem.setParent(clone);
-        	if (clone.items == null) {
-        		clone.items = new ArrayList<>(this.items.size());
-        	}
-        	clone.items.add(clonedItem);
-        }
+		if (this.items != null) {
+			for (Item<?> item : this.items) {
+				Item<?> clonedItem = item.clone();
+				clonedItem.setParent(clone);
+				if (clone.items == null) {
+					clone.items = new ArrayList<>(this.items.size());
+				}
+				clone.items.add(clonedItem);
+			}
+		}
         // TODO: deep clonning?
         clone.rawXNode = this.rawXNode;
         clone.rawElements = this.rawElements;

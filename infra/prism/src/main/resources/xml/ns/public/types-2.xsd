@@ -415,7 +415,7 @@
 
         <xsd:sequence>
         	<xsd:element name="modificationType" type="tns:ModificationTypeType"/>
-        	<xsd:element name="path" type="tns:XPathType" minOccurs="0">
+        	<xsd:element name="path" type="tns:ItemPathType" minOccurs="0">
         		<xsd:annotation>
         			<xsd:documentation>
         				Path to the CONTAINER.

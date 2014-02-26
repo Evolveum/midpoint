@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -26,6 +28,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
 import com.evolveum.midpoint.repo.sql.data.common.RShadow;
@@ -39,27 +42,36 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SynchronizationSituationUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
 import org.hibernate.Session;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
 import java.io.File;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.*;
 
@@ -70,6 +82,12 @@ import java.util.*;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class ModifyTest extends BaseSQLRepoTest {
 
+	@BeforeSuite
+    public void setup() throws SchemaException, SAXException, IOException {
+        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+    }
+	
     private static final Trace LOGGER = TraceManager.getTrace(ModifyTest.class);
     private static final File TEST_DIR = new File("src/test/resources/modify");
 
@@ -79,19 +97,19 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         File userFile = new File(TEST_DIR, "modify-user.xml");
         //add first user
-        PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(userFile);
+        PrismObject<UserType> user = prismContext.parseObject(userFile);
         user.setOid(null);
         user.setPropertyRealValue(ObjectType.F_NAME, "existingName");
         repositoryService.addObject(user, null, result);
 
         //add second user
-        user = prismContext.getPrismDomProcessor().parseObject(userFile);
+        user = prismContext.parseObject(userFile);
         user.setOid(null);
         user.setPropertyRealValue(ObjectType.F_NAME, "otherName");
         String oid = repositoryService.addObject(user, null, result);
 
         //modify second user name to "existingName"
-        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
+        ObjectModificationType modification = getJaxbUtil().unmarshalObject(
                 new File(TEST_DIR, "change-name.xml"),
                 ObjectModificationType.class);
         modification.setOid(oid);
@@ -103,7 +121,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test(expectedExceptions = ObjectNotFoundException.class, enabled = false)
     public void test020ModifyNotExistingUser() throws Exception {
-        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
+        ObjectModificationType modification = getJaxbUtil().unmarshalObject(
                 new File(TEST_DIR, "change-add.xml"),
                 ObjectModificationType.class);
 
@@ -120,7 +138,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         //add user
         File userFile = new File(TEST_DIR, "modify-user.xml");
-        PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(userFile);
+        PrismObject<UserType> user = prismContext.parseObject(userFile);
         user.setOid(null);
         user.asObjectable().setName(new PolyStringType("non-existing-account-user"));
 
@@ -128,7 +146,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         PrismObject<UserType> userOld = repositoryService.getObject(UserType.class, oid, null, result);
 
-        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
+        ObjectModificationType modification = getJaxbUtil().unmarshalObject(
                 new File(TEST_DIR, "change-add-non-existing.xml"),
                 ObjectModificationType.class);
 
@@ -153,12 +171,12 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         //add account
         File accountFile = new File(TEST_DIR, "account.xml");
-        PrismObject<ShadowType> account = prismContext.getPrismDomProcessor().parseObject(accountFile);
+        PrismObject<ShadowType> account = prismContext.parseObject(accountFile);
         repositoryService.addObject(account, null, result);
 
         //add user
         File userFile = new File(TEST_DIR, "modify-user.xml");
-        PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(userFile);
+        PrismObject<UserType> user = prismContext.parseObject(userFile);
 
         String userOid = user.getOid();
         String oid = repositoryService.addObject(user, null, result);
@@ -166,7 +184,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         PrismObject<UserType> userOld = repositoryService.getObject(UserType.class, oid, null, result);
 
-        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
+        ObjectModificationType modification = getJaxbUtil().unmarshalObject(
                 new File(TEST_DIR, "change-add.xml"),
                 ObjectModificationType.class);
 
@@ -190,7 +208,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("MODIFY");
         File taskFile = new File(TEST_DIR, "task.xml");
         System.out.println("ADD");
-        PrismObject<TaskType> task = prismContext.getPrismDomProcessor().parseObject(taskFile);
+        PrismObject<TaskType> task = prismContext.parseObject(taskFile);
         repositoryService.addObject(task, null, result);
         final String taskOid = "00000000-0000-0000-0000-123450000001";
         AssertJUnit.assertNotNull(taskOid);
@@ -239,7 +257,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         AssertJUnit.assertNotNull(taskType.getObjectRef());
         objectRef = taskType.getObjectRef();
         AssertJUnit.assertEquals("2", objectRef.getOid());
-        LOGGER.info(prismContext.silentMarshalObject(taskType, LOGGER));
+        LOGGER.info(getJaxbUtil().marshalObjectToString(taskType, TaskType.COMPLEX_TYPE));
         SqlRepoTestUtil.assertVersionProgress(lastVersion, getTask.getVersion());
         lastVersion = getTask.getVersion();
 
@@ -280,27 +298,27 @@ public class ModifyTest extends BaseSQLRepoTest {
         OperationResult parentResult = new OperationResult("Modify user -> add roles");
         String userToModifyOid = "f65963e3-9d47-4b18-aaf3-bfc98bdfa000";
 
-        PrismObject<ResourceType> csvResource = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/resource-csv.xml"));
+        PrismObject<ResourceType> csvResource = prismContext.parseObject(new File(TEST_DIR + "/resource-csv.xml"));
         repositoryService.addObject(csvResource, null, parentResult);
 
-        PrismObject<ResourceType> openDjResource = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/resource-opendj.xml"));
+        PrismObject<ResourceType> openDjResource = prismContext.parseObject(new File(TEST_DIR + "/resource-opendj.xml"));
         repositoryService.addObject(openDjResource, null, parentResult);
 
-        PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/user.xml"));
+        PrismObject<UserType> user = prismContext.parseObject(new File(TEST_DIR + "/user.xml"));
         repositoryService.addObject(user, null, parentResult);
 
-        PrismObject<RoleType> roleCsv = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/role-csv.xml"));
+        PrismObject<RoleType> roleCsv = prismContext.parseObject(new File(TEST_DIR + "/role-csv.xml"));
         repositoryService.addObject(roleCsv, null, parentResult);
 
         String ldapRoleOid = "12345678-d34d-b33f-f00d-987987987988";
-        PrismObject<RoleType> roleLdap = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/role-ldap.xml"));
+        PrismObject<RoleType> roleLdap = prismContext.parseObject(new File(TEST_DIR + "/role-ldap.xml"));
         repositoryService.addObject(roleLdap, null, parentResult);
 
         RoleType ldapRole = repositoryService.getObject(RoleType.class, ldapRoleOid, null, parentResult).asObjectable();
         AssertJUnit.assertEquals("Expected that the role has one approver.", 1, ldapRole.getApproverRef().size());
         AssertJUnit.assertEquals("Actual approved not equals to expected one.", userToModifyOid, ldapRole.getApproverRef().get(0).getOid());
 
-        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(TEST_DIR + "/modify-user-add-roles.xml"),
+        ObjectModificationType modification = getJaxbUtil().unmarshalObject(new File(TEST_DIR + "/modify-user-add-roles.xml"),
                 ObjectModificationType.class);
 
 
@@ -317,7 +335,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test
     public void testModifyDeleteObjectChangeFromAccount() throws Exception {
         OperationResult parentResult = new OperationResult("testModifyDeleteObjectChnageFromAccount");
-        PrismObject<ShadowType> accShadow = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/account-delete-object-change.xml"));
+        PrismObject<ShadowType> accShadow = prismContext.parseObject(new File(TEST_DIR + "/account-delete-object-change.xml"));
         String oid = repositoryService.addObject(accShadow, null, parentResult);
         System.out.println("\nAcc shadow");
         System.out.println(accShadow.debugDump());
@@ -342,10 +360,10 @@ public class ModifyTest extends BaseSQLRepoTest {
     public void testModifyAccountMetadata() throws Exception {
         OperationResult parentResult = new OperationResult("testModifyAccountMetadata");
 
-        PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/user-modify-link-account.xml"));
+        PrismObject<UserType> user = prismContext.parseObject(new File(TEST_DIR + "/user-modify-link-account.xml"));
 
 
-        PrismObject<ShadowType> accShadow = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/account-modify-metadata.xml"));
+        PrismObject<ShadowType> accShadow = prismContext.parseObject(new File(TEST_DIR + "/account-modify-metadata.xml"));
 
         MetadataType metaData = new MetadataType();
         metaData.setCreateChannel("channel");
@@ -421,12 +439,12 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         File userFile = new File(TEST_DIR, "user-with-extension.xml");
         //add first user
-        PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(userFile);
+        PrismObject<UserType> user = prismContext.parseObject(userFile);
 
         OperationResult result = new OperationResult("test extension modify");
         final String oid = repositoryService.addObject(user, null, result);
 
-        user = prismContext.getPrismDomProcessor().parseObject(userFile);
+        user = prismContext.parseObject(userFile);
         PrismObject<UserType> readUser = repositoryService.getObject(UserType.class, oid, null, result);
         AssertJUnit.assertTrue("User was not saved correctly", user.diff(readUser).isEmpty());
         String lastVersion = readUser.getVersion();
@@ -441,7 +459,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, oid, modifications, result);
 
         //check read after modify operation
-        user = prismContext.getPrismDomProcessor().parseObject(userFile);
+        user = prismContext.parseObject(userFile);
         loot = user.findProperty(new ItemPath(UserType.F_EXTENSION, QNAME_LOOT));
         loot.setValue(new PrismPropertyValue(456));
 
@@ -594,7 +612,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         //add account
         File accountFile = new File(TEST_DIR, "account-synchronization-situation.xml");
-        PrismObject<ShadowType> account = prismContext.getPrismDomProcessor().parseObject(accountFile);
+        PrismObject<ShadowType> account = prismContext.parseObject(accountFile);
         repositoryService.addObject(account, null, result);
 
 //        XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
@@ -758,11 +776,11 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         File roleFile = new File(TEST_DIR, "role-modify.xml");
         //add first user
-        PrismObject<RoleType> role = prismContext.getPrismDomProcessor().parseObject(roleFile);
+        PrismObject<RoleType> role = prismContext.parseObject(roleFile);
         String oid = repositoryService.addObject(role, null, result);
 
         //modify second user name to "existingName"
-        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
+        ObjectModificationType modification = getJaxbUtil().unmarshalObject(
                 new File(TEST_DIR, "role-modify-change.xml"),
                 ObjectModificationType.class);
         modification.setOid(oid);

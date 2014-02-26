@@ -17,7 +17,10 @@ package com.evolveum.midpoint.prism;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -200,6 +203,12 @@ public class PrismContext {
 	 * @throws IOException 
 	 */
 	public <T extends Objectable> PrismObject<T> parseObject(File file) throws SchemaException, IOException {
+		Parser parser = findParser(file);
+		XNode xnode = parser.parse(file);
+		return xnodeProcessor.parseObject(xnode);
+	}
+	
+	private Parser findParser(File file) throws IOException{
 		Parser parser = null;
 		for (Entry<String,Parser> entry: parserMap.entrySet()) {
 			Parser aParser = entry.getValue();
@@ -211,8 +220,7 @@ public class PrismContext {
 		if (parser == null) {
 			throw new SystemException("No parser for file '"+file+"' (autodetect)");
 		}
-		XNode xnode = parser.parse(file);
-		return xnodeProcessor.parseObject(xnode);
+		return parser;
 	}
 	/**
 	 * Parses a file and creates a prism from it.
@@ -228,19 +236,24 @@ public class PrismContext {
 	 * Used mostly for testing, but can also be used for built-in editors, etc.
 	 */
 	public <T extends Objectable> PrismObject<T> parseObject(String dataString) throws SchemaException {
+		Parser parser = findParser(dataString);
+		XNode xnode = parser.parse(dataString);
+		return xnodeProcessor.parseObject(xnode);
+	}
+	
+	private Parser findParser(String data){
 		Parser parser = null;
 		for (Entry<String,Parser> entry: parserMap.entrySet()) {
 			Parser aParser = entry.getValue();
-			if (aParser.canParse(dataString)) {
+			if (aParser.canParse(data)) {
 				parser = aParser;
 				break;
 			}
 		}
 		if (parser == null) {
-			throw new SystemException("No parser for data '"+DebugUtil.excerpt(dataString,16)+"' (autodetect)");
+			throw new SystemException("No parser for data '"+DebugUtil.excerpt(data,16)+"' (autodetect)");
 		}
-		XNode xnode = parser.parse(dataString);
-		return xnodeProcessor.parseObject(xnode);
+		return parser;
 	}
 	
 	/**
@@ -312,8 +325,17 @@ public class PrismContext {
 		getSchemaRegistry().applyDefinition(prismContainerValue, typeName, path, false);
 	}
 
-	public List<PrismObject<? extends Objectable>> parseObjects(File file) {
-		throw new UnsupportedOperationException();
+	public List<PrismObject<? extends Objectable>> parseObjects(File file) throws SchemaException, IOException {
+		Parser parser = findParser(file);
+		Collection<XNode> nodes = parser.parseCollection(file);
+		Iterator<XNode> nodesIterator = nodes.iterator();
+		List<PrismObject<? extends Objectable>> objects = new ArrayList<PrismObject<? extends Objectable>>();
+		while (nodesIterator.hasNext()){
+			XNode node = nodesIterator.next();
+			PrismObject object = xnodeProcessor.parseObject(node);
+			objects.add(object);
+		}
+		return objects;
 	}
 
 	public <O extends Objectable> String serializeObjectToString(PrismObject<O> object, String language) throws SchemaException {

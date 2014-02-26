@@ -16,6 +16,19 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import java.util.Collection;
+
+import javax.persistence.Column;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.Lob;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
+
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Type;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -24,13 +37,7 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
-import org.hibernate.annotations.Type;
-
-import javax.persistence.*;
-import java.util.Collection;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 
 /**
  * @author lazyman

@@ -510,7 +510,21 @@ public class XNodeProcessor {
 				protectedType.setEncryptedData(encryptedDataType);
 			}
 		}
-		// TODO: clearValue
+		// protected data empty..check for clear value
+		if (protectedType.isEmpty()){
+			XNode xClearValue = xmap.get(ProtectedDataType.F_CLEAR_VALUE);
+			if (xClearValue == null){
+				return;
+			}
+			if (!(xClearValue instanceof PrimitiveXNode)){
+				//this is maybe not good..
+				throw new SchemaException("Cannot parse clear value from " + xClearValue);
+			}
+			// TODO: clearValue
+			T clearValue = (T) ((PrimitiveXNode)xClearValue).getParsedValue(DOMUtil.XSD_STRING);
+			protectedType.setClearValue(clearValue);
+		}
+		
 	}
 	
 	private PolyString parsePolyString(MapXNode xmap) throws SchemaException {
@@ -722,6 +736,7 @@ public class XNodeProcessor {
 
 		PrismReferenceValue refVal = new PrismReferenceValue();
 		setReferenceObject(refVal, compositeObject);
+		referenceDefinition.setComposite(true);
 		return refVal;
 	}
 

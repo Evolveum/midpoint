@@ -466,6 +466,10 @@ public class JaxbTestUtil {
 		return value;
 	}
 	
+	public Object unmarshalObjects(File file) throws JAXBException{
+		return createUnmarshaller().unmarshal(file);
+	}
+	
 	public <T> T unmarshalObject(String stringXml, Class<T> type) throws JAXBException, SchemaException {
 		JAXBElement<T> element = unmarshalElement(stringXml, type);
 		if (element == null) {

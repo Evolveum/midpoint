@@ -24,6 +24,7 @@
             <class name="com.evolveum.midpoint.schema.TestDiffEquals"/>
         	<class name="com.evolveum.midpoint.schema.TestSchemaSanity"/>
             <class name="com.evolveum.midpoint.schema.TestParseUser"/>
+            <class name="com.evolveum.midpoint.schema.TestParseUserXml"/>
             <class name="com.evolveum.midpoint.schema.TestParseResource"/>
             <class name="com.evolveum.midpoint.schema.TestParseTask"/>
             <class name="com.evolveum.midpoint.schema.TestParseGenericObject"/>

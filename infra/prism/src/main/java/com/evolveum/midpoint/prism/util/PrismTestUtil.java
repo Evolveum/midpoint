@@ -115,7 +115,7 @@ public class PrismTestUtil {
     	return getPrismContext().parseObject(element);
     }
     
-    public static List<PrismObject<? extends Objectable>> parseObjects(File file) throws SchemaException {
+    public static List<PrismObject<? extends Objectable>> parseObjects(File file) throws SchemaException, IOException {
     	return getPrismContext().parseObjects(file);
     }
     

@@ -18,13 +18,17 @@ package com.evolveum.midpoint.repo.sql;
 
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
+
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
@@ -38,11 +42,16 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CapabilityType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -80,7 +89,9 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
 
     @Test
     public void addWithOverwrite() throws Exception {
-        List<PrismObject<?>> objects = prismContext.getPrismDomProcessor().parseObjects(new File(ORG_STRUCT_OBJECTS));
+        List<PrismObject<?>> objects = prismContext.parseObjects(new File(ORG_STRUCT_OBJECTS));
+        
+    
         OperationResult opResult = new OperationResult("Import file");
         for (PrismObject o : objects) {
             repositoryService.addObject(o, null, opResult);
@@ -99,7 +110,7 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
         AssertJUnit.assertNotNull(oid);
 
         //reimport carla, oid should stay the same, version must be incremented
-        objects = prismContext.getPrismDomProcessor().parseObjects(new File(IMPORT_OVERWRITE));
+        objects = prismContext.parseObjects(new File(IMPORT_OVERWRITE));
         PrismObject newCarla = objects.get(0);
         newCarla.setOid(oid);
 
@@ -159,7 +170,11 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
     @Test
     public void addWithOverwriteResource() throws Exception {
     	// GIVEN
-        PrismObject<ResourceType> resource = prismContext.getPrismDomProcessor().parseObject(RESOURCE_OPENDJ_FILE);
+    	
+        SchemaRegistry reg= prismContext.getSchemaRegistry();
+        PrismPropertyDefinition def = reg.findPropertyDefinitionByElementName(CapabilitiesType.F_NATIVE);
+    	
+        PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_OPENDJ_FILE);
         OperationResult opResult = new OperationResult("Import resource");
         
         repositoryService.addObject(resource, null, opResult);

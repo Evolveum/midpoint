@@ -3,6 +3,7 @@ package com.evolveum.midpoint.prism.parser;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Map.Entry;
@@ -53,6 +54,16 @@ public abstract class AbstractParser implements Parser {
 	protected abstract JsonParser createParser(String dataString)  throws SchemaException;
 	protected abstract JsonParser createParser(File file)  throws SchemaException, IOException;
 	public abstract JsonGenerator createGenerator(StringWriter out) throws SchemaException;
+	
+	@Override
+	public Collection<XNode> parseCollection(File file) throws SchemaException, IOException {
+		throw new UnsupportedOperationException("Parse objects not supported for json and yaml.");
+	}
+	
+	@Override
+	public Collection<XNode> parseCollection(String dataString) throws SchemaException {
+		throw new UnsupportedOperationException("Parse objects not supported for json and yaml.");
+	}
 	
 	@Override
 	public XNode parse(File file) throws SchemaException, IOException {

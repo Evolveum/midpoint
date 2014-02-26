@@ -55,6 +55,7 @@ import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
@@ -67,6 +68,7 @@ import com.evolveum.prism.xml.ns._public.types_2.EncryptedDataType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedDataType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
 /**
@@ -164,7 +166,7 @@ public class XNodeSerializer {
 		}
 	}
 	
-	private <V extends PrismValue> XNode serializeItem(Item<V> item) throws SchemaException {
+	public <V extends PrismValue> XNode serializeItem(Item<V> item) throws SchemaException {
 		ListXNode xlist = new ListXNode();
 		List<V> values = item.getValues();
 		ItemDefinition definition = item.getDefinition();
@@ -192,7 +194,7 @@ public class XNodeSerializer {
 		}
 	}
 	
-	protected <V extends PrismValue> XNode serializeItemValue(V itemValue, ItemDefinition definition) throws SchemaException {
+	public <V extends PrismValue> XNode serializeItemValue(V itemValue, ItemDefinition definition) throws SchemaException {
 		XNode xnode;
 		if (definition == null){
 			return serializePropertyRawValue((PrismPropertyValue<?>) itemValue);
@@ -253,7 +255,12 @@ public class XNodeSerializer {
 		if (realValue instanceof SchemaDefinitionType) {
 			return serializeSchemaDefinition((SchemaDefinitionType)realValue);
 		} else if (realValue instanceof ProtectedDataType<?>) {
-			return serializeProtectedDataType((ProtectedDataType<?>) realValue);
+			MapXNode xProtected = serializeProtectedDataType((ProtectedDataType<?>) realValue);
+			if (definition.isDynamic()){
+				xProtected.setExplicitTypeDeclaration(true);
+				xProtected.setTypeQName(definition.getTypeName());
+			}
+			return xProtected;
 		} else if (realValue instanceof PolyString) {
 			return serializePolyString((PolyString) realValue);
 		} else if (realValue instanceof ItemPathType){
@@ -283,12 +290,16 @@ public class XNodeSerializer {
 		return xprim;
 	}
 
-	private <T> XNode serializeProtectedDataType(ProtectedDataType<T> protectedType) {
+	private <T> MapXNode serializeProtectedDataType(ProtectedDataType<T> protectedType) {
 		MapXNode xmap = new MapXNode();
 		if (protectedType.getEncryptedDataType() != null) {
 			EncryptedDataType encryptedDataType = protectedType.getEncryptedDataType();
-			MapXNode xEncryptedDataType = beanConverter.marshall(encryptedDataType);
+			MapXNode xEncryptedDataType = (MapXNode) beanConverter.marshall(encryptedDataType);
 			xmap.put(ProtectedDataType.F_ENCRYPTED_DATA, xEncryptedDataType);
+		} else if (protectedType.getClearValue() != null){
+			QName type = XsdTypeMapper.toXsdType(protectedType.getClearValue().getClass());
+			PrimitiveXNode xClearValue = createPrimitiveXNode(protectedType.getClearValue(), type);
+			xmap.put(ProtectedDataType.F_CLEAR_VALUE, xClearValue);
 		}
 		// TODO: clearValue
 		return xmap;

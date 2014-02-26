@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -26,11 +27,13 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordLifeTimeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
+
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+
 import java.util.Collection;
 
 /**
@@ -107,9 +110,8 @@ public class RValuePolicy extends RObject<ValuePolicyType> {
 
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         try {
-            jaxb.setLifetime(RUtil.toJAXB(ValuePolicyType.class, new ItemPath(ValuePolicyType.F_LIFETIME), repo.getLifetime(),
-                    PasswordLifeTimeType.class, prismContext));
-            jaxb.setStringPolicy(RUtil.toJAXB(ValuePolicyType.class, new ItemPath(ValuePolicyType.F_STRING_POLICY), repo.getStringPolicy(),
+            jaxb.setLifetime(RUtil.toJAXB(ValuePolicyType.class, ValuePolicyType.F_LIFETIME, repo.getLifetime(), PasswordLifeTimeType.class, prismContext));
+            jaxb.setStringPolicy(RUtil.toJAXB(ValuePolicyType.class, ValuePolicyType.F_STRING_POLICY, repo.getStringPolicy(),
                     StringPolicyType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
@@ -119,11 +121,14 @@ public class RValuePolicy extends RObject<ValuePolicyType> {
     public static void copyFromJAXB(ValuePolicyType jaxb, RValuePolicy repo, PrismContext prismContext) throws
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
+        
+		PrismContainerDefinition<ValuePolicyType> valuePolicyDefinition = prismContext.getSchemaRegistry()
+				.findContainerDefinitionByCompileTimeClass(ValuePolicyType.class);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         try {
-            repo.setLifetime(RUtil.toRepo(jaxb.getLifetime(), prismContext));
-            repo.setStringPolicy(RUtil.toRepo(jaxb.getStringPolicy(), prismContext));
+            repo.setLifetime(RUtil.toRepo(valuePolicyDefinition, ValuePolicyType.F_LIFETIME, jaxb.getLifetime(), prismContext));
+            repo.setStringPolicy(RUtil.toRepo(valuePolicyDefinition, ValuePolicyType.F_STRING_POLICY, jaxb.getStringPolicy(), prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }

@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -185,8 +187,9 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
         QueryInterpreter interpreter = new QueryInterpreter();
 
         Document document = DOMUtil.parseFile(file);
-        QueryType queryType = prismContext.getPrismJaxbProcessor().unmarshalObject(file, QueryType.class);
-        Element filter = DOMUtil.listChildElements(document.getDocumentElement()).get(0);
+        QueryType queryType = PrismTestUtil.getJaxbUtil().unmarshalObject(file, QueryType.class);
+//        QueryType queryType = prismContext.getPrismJaxbProcessor().unmarshalObject(file, QueryType.class);
+//        Element filter = DOMUtil.listChildElements(document.getDocumentElement()).get(0);
 
         LOGGER.info("QUERY TYPE TO CONVERT : {}", ObjectQueryUtil.dump(queryType));
 

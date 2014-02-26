@@ -275,8 +275,8 @@ public class RAssignment extends RContainer implements ROwnable {
         }
 
         try {
-            jaxb.setAccountConstruction(RUtil.toJAXB(repo.getAccountConstruction(), ConstructionType.class, ConstructionType.COMPLEX_TYPE, prismContext));
-            jaxb.setConstruction(RUtil.toJAXB(repo.getConstruction(), ConstructionType.class, ConstructionType.COMPLEX_TYPE, prismContext));
+            jaxb.setAccountConstruction(RUtil.toJAXB(AssignmentType.class, AssignmentType.F_ACCOUNT_CONSTRUCTION, repo.getAccountConstruction(), ConstructionType.class, prismContext));
+            jaxb.setConstruction(RUtil.toJAXB(AssignmentType.class, AssignmentType.F_CONSTRUCTION, repo.getConstruction(), ConstructionType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }

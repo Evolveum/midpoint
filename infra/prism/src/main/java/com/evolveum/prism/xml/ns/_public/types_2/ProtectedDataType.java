@@ -77,6 +77,7 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
 	
 	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "ProtectedDataType");
 	public final static QName F_ENCRYPTED_DATA = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "encryptedData");
+	public final static QName F_CLEAR_VALUE = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "clearValue");
 	
 	public static final String NS_XML_ENC = "http://www.w3.org/2001/04/xmlenc#";
 	public static final String NS_XML_DSIG = "http://www.w3.org/2000/09/xmldsig#";

@@ -17,6 +17,7 @@
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
@@ -33,6 +34,10 @@ public interface Parser {
 	XNode parse(File file) throws SchemaException, IOException;
 	
 	XNode parse(String dataString) throws SchemaException;
+	
+	Collection<XNode> parseCollection(File file) throws SchemaException, IOException;
+	
+	Collection<XNode> parseCollection(String dataString) throws SchemaException;
 	
 	boolean canParse(File file) throws IOException;
 	

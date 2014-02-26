@@ -155,14 +155,14 @@ public class OrgClosureTest extends BaseSQLRepoTest {
         OperationResult opResult = new OperationResult("===[ addOrgStruct ]===");
 
         LOGGER.info("Starting import.");
-        List<PrismObject<? extends Objectable>> orgStruct = prismContext.getPrismDomProcessor().parseObjects(
+        List<PrismObject<? extends Objectable>> orgStruct = prismContext.parseObjects(
                 new File(ORG_STRUCT_OBJECTS));
 
         for (PrismObject<? extends Objectable> o : orgStruct) {
             repositoryService.addObject((PrismObject<ObjectType>) o, null, opResult);
         }
 
-        orgStruct = prismContext.getPrismDomProcessor().parseObjects(new File(ORG_SIMPLE_TEST));
+        orgStruct = prismContext.parseObjects(new File(ORG_SIMPLE_TEST));
         for (PrismObject<? extends Objectable> o : orgStruct) {
             repositoryService.addObject((PrismObject<ObjectType>) o, null, opResult);
         }

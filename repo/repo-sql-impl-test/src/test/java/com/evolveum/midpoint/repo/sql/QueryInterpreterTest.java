@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Date;
@@ -26,6 +27,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.query.*;
+
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.Session;
@@ -39,7 +41,9 @@ import org.hibernate.criterion.Restrictions;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
@@ -47,6 +51,7 @@ import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.data.common.RConnector;
 import com.evolveum.midpoint.repo.sql.data.common.RGenericObject;
@@ -60,7 +65,13 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.RTaskExecutionStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
@@ -69,6 +80,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExecutionStatusType;
@@ -86,6 +98,12 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     private static final Trace LOGGER = TraceManager.getTrace(QueryInterpreterTest.class);
     private static final File TEST_DIR = new File("./src/test/resources/query");
 
+    @BeforeSuite
+    public void setup() throws SchemaException, SAXException, IOException {
+        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
+        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+    }
+    
     @Test
     public void queryOrganizationNorm() throws Exception {
         Session session = open();
@@ -240,7 +258,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Conjunction c2 = Restrictions.conjunction();
         c2.add(Restrictions.eq("l.value", 123L));
         c2.add(Restrictions.eq("l.name", new QName("http://example.com/p", "intType")));
-        c2.add(Restrictions.eq("l.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "integer")));
+        c2.add(Restrictions.eq("l.type", DOMUtil.XSD_INTEGER));
 
         Conjunction conjunction = Restrictions.conjunction();
         conjunction.add(c1);
@@ -274,15 +292,16 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Conjunction c2 = Restrictions.conjunction();
         c2.add(Restrictions.eq("s1x.value", "foo value"));
         c2.add(Restrictions.eq("s1x.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
-        c2.add(Restrictions.eq("s1x.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
+        c2.add(Restrictions.eq("s1x.type", DOMUtil.XSD_STRING));
         //or
         Conjunction c3 = Restrictions.conjunction();
         c3.add(Restrictions.eq("s2x.value", "uid=test,dc=example,dc=com"));
         c3.add(Restrictions.eq("s2x.name", new QName("http://example.com/p", "stringType")));
-        c3.add(Restrictions.eq("s2x.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
+        c3.add(Restrictions.eq("s2x.type", DOMUtil.XSD_STRING));
         //or
-        Criterion c4 = Restrictions.conjunction().add(
-                Restrictions.eq("r.resourceRef.targetOid", "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e"));
+        Conjunction c4 = Restrictions.conjunction();
+        c4.add(Restrictions.eq("r.resourceRef.targetOid", "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e"));
+        c4.add(Restrictions.eq("r.resourceRef.type", QNameUtil.qNameToUri(ResourceType.COMPLEX_TYPE)));
 
         Disjunction disjunction = Restrictions.disjunction();
         disjunction.add(c1);
@@ -401,13 +420,16 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Criteria stringAttr = attributes.createCriteria("strings", "s1x");
 
         //and
-        Criterion c1 = Restrictions.conjunction().add(
-                Restrictions.eq("r.resourceRef.targetOid", "aae7be60-df56-11df-8608-0002a5d5c51b"));
+        Conjunction c1 = Restrictions.conjunction();
+        c1.add(Restrictions.eq("r.resourceRef.targetOid", "aae7be60-df56-11df-8608-0002a5d5c51b"));
+        c1.add(Restrictions.eq("r.resourceRef.type", QNameUtil.qNameToUri(ResourceType.COMPLEX_TYPE)));
+//        Criterion c1 = Restrictions.conjunction().add(
+//                Restrictions.eq("r.resourceRef.targetOid", "aae7be60-df56-11df-8608-0002a5d5c51b"));
         //and
         Conjunction c2 = Restrictions.conjunction();
         c2.add(Restrictions.eq("s1x.value", "uid=jbond,ou=People,dc=example,dc=com"));
         c2.add(Restrictions.eq("s1x.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
-        c2.add(Restrictions.eq("s1x.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
+        c2.add(Restrictions.eq("s1x.type", DOMUtil.XSD_STRING));
 
         Conjunction conjunction = Restrictions.conjunction();
         conjunction.add(c1);

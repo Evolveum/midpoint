@@ -60,6 +60,7 @@ object.
             </description>
             <filter>
                 <q:equal>
+                	<q:path>connectorType</q:path>
                     <q:value>
                         <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
                     </q:value>
@@ -276,9 +277,11 @@ object.
 				<outbound>
 				    <strength>weak</strength>
 					<expression>
-						<code>
-							concat('uid=', $c:user/c:name, $c:iterationToken, ',ou=people,dc=example,dc=com')
-						</code>
+						<script>
+							<code>
+								concat('uid=', $c:user/c:name, $c:iterationToken, ',ou=people,dc=example,dc=com')
+							</code>
+						</script>
 					</expression>
 				</outbound>
 			</attribute>
@@ -294,15 +297,15 @@ object.
 				<access>read</access>
 				<access>update</access>
 				<outbound>
-					<expression>
-						<code>
+					<source>
+						<path>
 							$c:user/c:fullName/t:orig
-						</code>
-					</expression>
+						</path>
+					</source>
 				</outbound>
 				<inbound>
 					<target>
-						$c:user/c:fullName
+						<path>$c:user/c:fullName</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -313,15 +316,15 @@ object.
 				<access>read</access>
 				<access>update</access>
 				<outbound>
-					<expression>
-						<code>
+					<source>
+						<path>
 							$c:user/c:familyName/t:orig
-						</code>
-					</expression>
+						</path>
+					</source>
 				</outbound>
 				<inbound>
 					<target>
-						$c:user/c:familyName
+						<path>$c:user/c:familyName</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -332,15 +335,15 @@ object.
 				<access>read</access>
 				<access>update</access>
 				<outbound>
-					<expression>
-						<code>
+					<source>
+						<path>
 							$c:user/c:givenName/t:orig
-						</code>
-					</expression>
+						</path>
+					</source>
 				</outbound>
 				<inbound>
 					<target>
-						$c:user/c:givenName
+						<path>$c:user/c:givenName</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -350,15 +353,15 @@ object.
 				<access>create</access>
 				<access>read</access>
 				<outbound>
-					<expression>
-						<code>
+					<source>
+						<path>
 							$c:user/c:name
-						</code>
-					</expression>
+						</path>
+					</source>
 				</outbound>
 				<inbound>
 					<target>
-						$c:user/c:name
+						<path>$c:user/c:name</path>
                     </target>
 				</inbound>
 			</attribute>
@@ -366,7 +369,10 @@ object.
 				<ref>ri:description</ref>
 				<outbound>
 					<strength>weak</strength>
-					<value>Created by IDM</value>
+					<expression>
+						<description>Expression that assigns a fixed value</description>
+						<value>Created by IDM</value>
+					</expression>
 				</outbound>
 				<inbound>
 					<!-- c:valueFilter type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter"
@@ -377,8 +383,8 @@ object.
 						</f:replace>
 					</c:valueFilter>  -->
 					<target>
-						declare namespace my="http://whatever.com/my";
-						$c:user/c:extension/my:description
+						<path>declare namespace my="http://whatever.com/my";
+						$c:user/c:extension/my:description</path>
                     </target>
 				</inbound>
 			</attribute>
@@ -388,12 +394,14 @@ object.
 					<expression>
 						<variable xmlns:my="http://whatever.com/my">
 							<name>my:defaultLocation</name>
-							<value xsi:type="xsd:string">middle of nowhere</value>
+<!-- 							<value xsi:type="xsd:string">middle of nowhere</value> -->
 						</variable>
-						<returnType>scalar</returnType>
-						<c:code xmlns:my="http://whatever.com/my">
-								$my:defaultLocation
-						</c:code>
+						<script>
+							<returnType>scalar</returnType>
+							<c:code xmlns:my="http://whatever.com/my">
+									$my:defaultLocation
+							</c:code>
+						</script>
 					</expression>
 				</outbound>
 			</attribute>
@@ -401,26 +409,30 @@ object.
                 <credentials>
                     <password>
                         <outbound>
-                            <asIs/>
+                        	<expression>
+                            	<asIs/>
+                            </expression>
                         </outbound>
                         <inbound>
-                            <source>
-                                <strength>weak</strength>
+                        	<strength>weak</strength>
+                            <expression>
                                 <generate/>
-                            </source>
+                            </expression>
                         </inbound>
                     </password>
                 </credentials>
                 <activation>
                     <administrativeStatus>
                         <outbound>
-                            <asIs/>
+                            <expression>
+                            	<asIs/>
+                            </expression>
                         </outbound>
                         <inbound>
-                            <source>
-				<strength>weak</strength>
-                                <asIs/>
-                            </source>
+                        	<strength>weak</strength>
+                            <expression>
+                            		<asIs/>
+                           	</expression>
                         </inbound>
                     </administrativeStatus>
                 </activation>
@@ -435,20 +447,22 @@ object.
 
 
         <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
-            <cap:activation>
-
-                <cap:status>
-                    <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
-                    <cap:enableValue/>
-                    <cap:disableValue>true</cap:disableValue>
-                </cap:status>
-            </cap:activation>
-            <cap:credentials>
-                <cap:password/>
-
-            </cap:credentials>
-            <cap:liveSync/>
-            <cap:testConnection/>
+	        <configured>
+	            <cap:activation>
+	
+	                <cap:status>
+	                    <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
+	                    <cap:enableValue/>
+	                    <cap:disableValue>true</cap:disableValue>
+	                </cap:status>
+	            </cap:activation>
+	            <cap:credentials>
+	                <cap:password/>
+	
+	            </cap:credentials>
+	            <cap:liveSync/>
+	            <cap:testConnection/>
+            </configured>
         </capabilities>
 
         <!--

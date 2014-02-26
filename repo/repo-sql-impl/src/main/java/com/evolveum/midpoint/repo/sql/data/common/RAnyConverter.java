@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.ValueSerializationUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
@@ -30,12 +31,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
@@ -86,7 +89,7 @@ public class RAnyConverter {
             List<PrismValue> values = item.getValues();
             for (PrismValue value : values) {
                 if (value instanceof PrismContainerValue) {
-                    rValue = createClobValue(value);
+                    rValue = createClobValue(value, item.getDefinition());
                 } else if (value instanceof PrismPropertyValue) {
                     PrismPropertyValue propertyValue = (PrismPropertyValue) value;
                     switch (getValueType(definition.getTypeName())) {
@@ -110,7 +113,7 @@ public class RAnyConverter {
                                 strValue.setValue(extractValue(propertyValue, String.class));
                                 rValue = strValue;
                             } else {
-                                rValue = createClobValue(propertyValue);
+                                rValue = createClobValue(propertyValue, item.getDefinition());
                             }
                     }
                 } else if (value instanceof PrismReferenceValue) {
@@ -171,12 +174,12 @@ public class RAnyConverter {
         return RValueType.getTypeFromItemClass(((Item) itemable).getClass());
     }
 
-    private RAnyClob createClobValue(PrismValue prismValue) throws SchemaException {
-        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
-        Element root = createElement(RUtil.CUSTOM_OBJECT);
-        domProcessor.serializeValueToDom(prismValue, root);
-        String value = DOMUtil.serializeDOMToString(root);
-
+    private RAnyClob createClobValue(PrismValue prismValue, ItemDefinition def) throws SchemaException {
+//        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+//        Element root = createElement(RUtil.CUSTOM_OBJECT);
+//        domProcessor.serializeValueToDom(prismValue, root);
+//        String value = DOMUtil.serializeDOMToString(root);
+    	String value = ValueSerializationUtil.serializeItemValue(prismValue, PrismContext.LANG_XML);
         return new RAnyClob(value);
     }
 
@@ -285,12 +288,13 @@ public class RAnyConverter {
     }
 
     private void addClobValueToItem(RAnyClob value, Item item) throws SchemaException {
-        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
-        Element root = DOMUtil.parseDocument(value.getValue()).getDocumentElement();
+//        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+//        Element root = DOMUtil.parseDocument(value.getValue()).getDocumentElement();
 
-        Item parsedItem = domProcessor.parseItem(DOMUtil.listChildElements(root), value.getName(), item.getDefinition());
+//        Item parsedItem = domProcessor.parseItem(DOMUtil.listChildElements(root), value.getName(), item.getDefinition());
+    	Collection<? extends PrismValue> parsedValues = ValueSerializationUtil.deserializeItemValues(value.getValue(), PrismContext.LANG_XML);
 
-        item.addAll(PrismValue.resetParentCollection(parsedItem.getValues()));
+        item.addAll(PrismValue.resetParentCollection(parsedValues));
     }
 
     private void addValueToItem(RAnyValue value, Item item) throws SchemaException {

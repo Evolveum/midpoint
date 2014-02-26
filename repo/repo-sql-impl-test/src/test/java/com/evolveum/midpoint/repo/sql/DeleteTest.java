@@ -53,7 +53,7 @@ public class DeleteTest extends BaseSQLRepoTest {
             return;
         }
 
-        List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(file);
+        List<PrismObject<? extends Objectable>> elements = prismContext.parseObjects(file);
         List<String> oids = new ArrayList<String>();
 
         OperationResult result = new OperationResult("Delete Test");

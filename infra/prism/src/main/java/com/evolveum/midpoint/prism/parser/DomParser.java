@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.parser;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,6 +29,7 @@ import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -44,6 +46,7 @@ import com.evolveum.midpoint.prism.xnode.ValueParser;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class DomParser implements Parser {
@@ -56,7 +59,27 @@ public class DomParser implements Parser {
 		super();
 		this.schemaRegistry = schemaRegistry;
 	}
+	
+	@Override
+	public Collection<XNode> parseCollection(File file) throws SchemaException, IOException {
+		Document document = DOMUtil.parseFile(file);
+		Element root = DOMUtil.getFirstChildElement(document);
+		// TODO: maybe some check if this is a collection of other objects???
+		List<Element> children = DOMUtil.listChildElements(root);
+		Collection<XNode> nodes = new ArrayList<XNode>();
+		for (Element child : children){
+			RootXNode xroot = parse(child);
+			nodes.add(xroot);
+		}
+		return nodes;
+	}
 
+	@Override
+	public Collection<XNode> parseCollection(String dataString) throws SchemaException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 	@Override
 	public XNode parse(File file) throws SchemaException {
 		Document document = DOMUtil.parseFile(file);
@@ -71,6 +94,11 @@ public class DomParser implements Parser {
 
 	public RootXNode parse(Document document) throws SchemaException {
 		Element rootElement = DOMUtil.getFirstChildElement(document);
+		RootXNode xroot = parse(rootElement);
+		return xroot;
+	}
+	
+	private RootXNode parse(Element rootElement) throws SchemaException{
 		RootXNode xroot = new RootXNode(DOMUtil.getQName(rootElement));
 		extractCommonMetadata(rootElement, xroot);
 		XNode xnode = parseElementContent(rootElement);
@@ -355,4 +383,6 @@ public class DomParser implements Parser {
 		DomSerializer serializer = new DomSerializer(this, schemaRegistry);
 		return serializer.serialize(xroot);
 	}
+
+	
 }

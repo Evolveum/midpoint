@@ -201,6 +201,14 @@ public class PrismBeanConverter {
 						
 			String paramNamespace = determineNamespace(paramType);
 			
+			//check for subclasses???
+			if (!(xsubnode instanceof PrimitiveXNode) && xsubnode.getTypeQName()!= null){
+				Class explicitParamType = schemaRegistry.determineCompileTimeClass(xsubnode.getTypeQName());
+				if (explicitParamType != null && explicitParamType != null){
+					paramType = explicitParamType; 
+				}
+			}
+			
 			Object propValue = null;
 			Collection<Object> propValues = null;
 			if (xsubnode instanceof ListXNode) {
@@ -586,14 +594,21 @@ public class PrismBeanConverter {
 		}
 	}
 
-	public <T> MapXNode marshall(T bean) {
+	public <T> XNode marshall(T bean) {
 		if (bean == null) {
 			return null;
 		}
 		
 		MapXNode xmap = new MapXNode();
-		
+				
 		Class<? extends Object> beanClass = bean.getClass();
+		
+		//check for enums
+		if (beanClass.isEnum()){
+			QName fieldTypeName = findFieldTypeName(null, beanClass, DEFAULT_NAMESPACE_PLACEHOLDER);
+			return marshallValue(bean, fieldTypeName, false);
+		}
+		
 		XmlType xmlType = beanClass.getAnnotation(XmlType.class);
 		if (xmlType == null) {
 			throw new IllegalArgumentException("Cannot marshall "+beanClass+" it does not have @XmlType annotation");

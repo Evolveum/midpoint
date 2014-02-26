@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
+
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -48,6 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.Query;
@@ -122,7 +125,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         LOGGER.info("===[ addOrgStruct ]===");
         OperationResult opResult = new OperationResult("===[ addOrgStruct ]===");
         
-        List<PrismObject<? extends Objectable>> orgStruct = prismContext.getPrismDomProcessor().parseObjects(
+        List<PrismObject<? extends Objectable>> orgStruct = prismContext.parseObjects(
                 new File(ORG_STRUCT_OBJECTS));  
 
         for (PrismObject<? extends Objectable> o : orgStruct) {
@@ -192,7 +195,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(1, users.size());
         UserType elaine = users.get(0).asObjectable();
         LOGGER.info("--->elaine<----");
-        LOGGER.info(prismContext.silentMarshalObject(elaine, LOGGER));
+//        LOGGER.info(prismContext.silentMarshalObject(elaine, LOGGER));
         AssertJUnit.assertEquals("Expected name elaine, but got " + elaine.getName().getOrig(), "elaine", elaine.getName().getOrig());
         AssertJUnit.assertEquals("Expected elaine has one org ref, but got " + elaine.getParentOrgRef().size(), 2, elaine.getParentOrgRef().size());
         AssertJUnit.assertEquals("Parent org ref oid not equal.", "00000000-8888-6666-0000-100000000001", elaine.getParentOrgRef().get(0).getOid());
@@ -259,7 +262,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
     	
          OperationResult opResult = new OperationResult("===[ addIncorrectOrgStruct ]===");       
                   
-        List<PrismObject<? extends Objectable>> orgStructIncorrect = prismContext.getPrismDomProcessor().parseObjects(
+        List<PrismObject<? extends Objectable>> orgStructIncorrect = prismContext.parseObjects(
         	 new File(ORG_STRUCT_OBJECTS_INCORRECT));
             
         for (PrismObject<? extends Objectable> o : orgStructIncorrect) {  	 
@@ -327,7 +330,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(1, users.size());
         UserType elaine1 = users.get(0).asObjectable();
         LOGGER.info("--->elaine1<----");
-        LOGGER.info(prismContext.silentMarshalObject(elaine1, LOGGER));
+//        LOGGER.info(prismContext.silentMarshalObject(elaine1, LOGGER));
         AssertJUnit.assertEquals("Expected name elaine, but got " + elaine1.getName().getOrig(), "elaine1", elaine1.getName().getOrig());
         AssertJUnit.assertEquals("Expected elaine has one org ref, but got " + elaine1.getParentOrgRef().size(), 2, elaine1.getParentOrgRef().size());
         AssertJUnit.assertEquals("Parent org ref oid not equal.", "00000000-8888-6666-0000-100000000011", elaine1.getParentOrgRef().get(0).getOid());
@@ -343,7 +346,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         OperationResult opResult = new OperationResult("===[ modifyOrgStruct ]===");
         // test modification of org ref in another org type..
 
-        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(MODIFY_ORG_ADD_REF_FILENAME),
+        ObjectModificationType modification = getJaxbUtil().unmarshalObject(new File(MODIFY_ORG_ADD_REF_FILENAME),
                 ObjectModificationType.class);
         ObjectDelta<OrgType> delta = DeltaConvertor.createObjectDelta(modification, OrgType.class, prismContext);
 
@@ -438,7 +441,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         OperationResult opResult = new OperationResult("===[ modifyOrgStructIncorrect ]===");
         // test modification of org ref in another org type..
 
-        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(MODIFY_ORG_INCORRECT_ADD_REF_FILENAME),
+        ObjectModificationType modification = getJaxbUtil().unmarshalObject(new File(MODIFY_ORG_INCORRECT_ADD_REF_FILENAME),
                 ObjectModificationType.class);
         ObjectDelta<OrgType> delta = DeltaConvertor.createObjectDelta(modification, OrgType.class, prismContext);
 
@@ -523,7 +526,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         LOGGER.info("===[ modify delete org ref ]===");
         OperationResult opResult = new OperationResult("===[ modify delete org ref ]===");
         
-        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(MODIFY_ORG_DELETE_REF_FILENAME),
+        ObjectModificationType modification = getJaxbUtil().unmarshalObject(new File(MODIFY_ORG_DELETE_REF_FILENAME),
                 ObjectModificationType.class);
         
         ObjectDelta<OrgType> delta = DeltaConvertor.createObjectDelta(modification, OrgType.class, prismContext);
@@ -580,7 +583,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         LOGGER.info("===[ modify delete org ref ]===");
         OperationResult opResult = new OperationResult("===[ modify delete org ref ]===");
         
-        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(MODIFY_ORG_INCORRECT_DELETE_REF_FILENAME),
+        ObjectModificationType modification = getJaxbUtil().unmarshalObject(new File(MODIFY_ORG_INCORRECT_DELETE_REF_FILENAME),
                 ObjectModificationType.class);
         
         ObjectDelta<OrgType> delta = DeltaConvertor.createObjectDelta(modification, OrgType.class, prismContext);
@@ -651,7 +654,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         OperationResult opResult = new OperationResult("===[ modify add user to orgStruct ]===");
         
         //test modification of org ref in another org type..
-        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(MODIFY_ORG_ADD_USER_FILENAME),
+        ObjectModificationType modification = getJaxbUtil().unmarshalObject(new File(MODIFY_ORG_ADD_USER_FILENAME),
                 ObjectModificationType.class);
         
         ObjectDelta<UserType> delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);

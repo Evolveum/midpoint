@@ -17,9 +17,11 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -31,6 +33,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -38,6 +41,7 @@ import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
+
 import java.util.Collection;
 
 /**
@@ -252,7 +256,7 @@ public class RSystemConfiguration extends RObject<SystemConfigurationType> {
                     repo.getGlobalAccountSynchronizationSettings(), ProjectionPolicyType.class,
                     prismContext));
             jaxb.setLogging(RUtil.toJAXB(SystemConfigurationType.class,
-                    new ItemPath(SystemConfigurationType.F_LOGGING),
+                    SystemConfigurationType.F_LOGGING,
                     repo.getLogging(),
                     LoggingConfigurationType.class, prismContext));
             jaxb.setModelHooks(RUtil.toJAXB(SystemConfigurationType.class,
@@ -306,11 +310,12 @@ public class RSystemConfiguration extends RObject<SystemConfigurationType> {
         }
 
         repo.setGlobalPasswordPolicyRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getGlobalPasswordPolicyRef(), prismContext));
-
+        
+        PrismContainerDefinition def = jaxb.asPrismContainer().getDefinition();
         try {
             repo.setConnectorFramework(RUtil.toRepo(jaxb.getConnectorFramework(), prismContext));
             repo.setGlobalAccountSynchronizationSettings(RUtil.toRepo(jaxb.getGlobalAccountSynchronizationSettings(), prismContext));
-            repo.setLogging(RUtil.toRepo(jaxb.getLogging(), prismContext));
+            repo.setLogging(RUtil.toRepo(def, SystemConfigurationType.F_LOGGING, jaxb.getLogging(), prismContext));
             repo.setModelHooks(RUtil.toRepo(jaxb.getModelHooks(), prismContext));
             repo.setNotificationConfiguration(RUtil.toRepo(jaxb.getNotificationConfiguration(), prismContext));
 

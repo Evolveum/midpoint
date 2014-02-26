@@ -140,6 +140,9 @@ public class DomSerializer {
 		}
 		if (xsubnode instanceof MapXNode) {
 			Element element = createElement(elementName);
+			if (xsubnode.isExplicitTypeDeclaration() && xsubnode.getTypeQName() != null){
+				DOMUtil.setXsiType(element, xsubnode.getTypeQName());
+			}
 			parentElement.appendChild(element);
 			serializeMap((MapXNode)xsubnode, element);
 		} else if (xsubnode instanceof PrimitiveXNode<?>) {
