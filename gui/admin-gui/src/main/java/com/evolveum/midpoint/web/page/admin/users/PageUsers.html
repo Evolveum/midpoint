@@ -21,20 +21,9 @@
     <div wicket:id="confirmDeletePopup" />
 
     <form class="form-inline pull-right search-form" wicket:id="searchForm">
-        <div class="form-group">
-            <label class="sr-only"><wicket:message key="pageUsers.searchTextPlaceholder"/></label>
-            <input class="form-control input-sm" wicket:id="searchText"
-                   wicket:message="placeholder:pageUsers.searchTextPlaceholder">
-        </div>
-
         <select multiple="multiple" class="multiselect" wicket:id="searchType"/>
 
-        <span class="btn-group">
-            <a class="btn btn-default btn-sm" wicket:id="searchButton"/>
-            <a class="btn btn-danger btn-sm" wicket:id="searchClear" wicket:message="title:PageBase.button.tooltip.clearSearch">
-                <i class="fa fa-trash-o"/>
-            </a>
-        </span>
+        <div wicket:id="basicSearch"/>
     </form>
 
     <form wicket:id="mainForm" class="clearfix form-horizontal">
