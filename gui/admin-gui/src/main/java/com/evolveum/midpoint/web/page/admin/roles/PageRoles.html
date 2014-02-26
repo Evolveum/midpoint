@@ -27,18 +27,7 @@
             <select class="form-control input-sm" wicket:id="choice" />
         </div>
 
-        <div class="form-group">
-            <label class="sr-only"><wicket:message key="pageRoles.name" /></label>
-            <input class="form-control input-sm" wicket:id="searchText"
-                   wicket:message="placeholder:pageRoles.name">
-        </div>
-
-        <span class="btn-group">
-            <a class="btn btn-default btn-sm" wicket:id="searchButton"/>
-            <a class="btn btn-danger btn-sm" wicket:message="title:PageBase.button.tooltip.clearSearch" wicket:id="searchClear">
-                <i class="fa fa-trash-o"/>
-            </a>
-        </span>
+        <div wicket:id="basicSearch"/>
     </form>
 
     <form wicket:id="mainForm" class="clearfix form-horizontal">

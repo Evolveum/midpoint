@@ -38,6 +38,10 @@ public class BasicSearchPanel<T extends Serializable> extends SimplePanel<T> {
     private static final String ID_CLEAR_SEARCH = "clearSearch";
     private static final String ID_LABEL = "label";
 
+    public BasicSearchPanel(String id) {
+        this(id, null);
+    }
+
     public BasicSearchPanel(String id, IModel<T> model) {
         super(id, model);
         setRenderBodyOnly(true);
