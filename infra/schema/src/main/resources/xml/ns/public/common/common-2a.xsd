@@ -495,6 +495,21 @@
                     </xsd:appinfo>
 	        	</xsd:annotation>
 	        </xsd:element>
+	        
+            <xsd:element name="tenantRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                        Reference to the tenant to which this object belongs. It is a computed value set automatically
+                        by midPoint. It is determined from the organizational structure. Even though this value is
+                        compted it is also stored in the repository due to performance reasons.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+            			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+            		</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>	       	
             
         </xsd:sequence>
        
@@ -2601,6 +2616,22 @@
             <xsd:element name="activation" type="tns:ActivationType" minOccurs="0"/>
 
 			<xsd:element name="order" type="xsd:int" minOccurs="0"/>
+			
+			<xsd:element name="tenantRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                        Reference to the tenant to which this assignment refers. This is an argument to the target of this
+                        assignment. E.g. is if frequenty used to parametrize the role which is assigned by this assignment.
+                        However the exact interpretation of this value depends on the logic of the target role. It may be
+                        significat or it may be entirelly ignored.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+            			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+            		</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
 
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
@@ -6592,6 +6623,20 @@
                             <xsd:appinfo>
                                 <a:displayName>Type</a:displayName>
                                 <a:displayOrder>120</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+					<xsd:element name="isTenant" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Flag indicating whether this object is a tenant or not. Tenants are top-level
+                                organizational units of organizational structures that are designed to be independent
+                                of one another. It represents a "customer" is service provider environment.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Is tenant</a:displayName>
+                                <a:displayOrder>130</a:displayOrder>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
