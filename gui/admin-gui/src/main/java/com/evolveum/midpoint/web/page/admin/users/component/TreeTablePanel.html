@@ -30,13 +30,15 @@
                 <div class="col-xs-2 cog" style="padding-right: 5px; margin-top: 2px;" wicket:id="treeMenu"/>
             </div>
 
-
             <div wicket:id="treeContainer" class="org-tree-container">
                 <div wicket:id="tree"/>
             </div>
         </div>
         <div class="col-md-8">
-            <form wicket:id="form">
+            <form class="form-inline pull-right search-form" wicket:id="searchForm">
+                <div wicket:id="basicSearch"/>
+            </form>
+            <form class="clearfix form-horizontal" wicket:id="form">
                 <div wicket:id="table"/>
             </form>
         </div>

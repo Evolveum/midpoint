@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
@@ -74,6 +75,7 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -110,6 +112,8 @@ public class TreeTablePanel extends SimplePanel<String> {
     private static final String ID_MOVE_POPUP = "movePopup";
     private static final String ID_TREE_MENU = "treeMenu";
     private static final String ID_TREE_HEADER = "treeHeader";
+    private static final String ID_SEARCH_FORM="searchForm";
+    private static final String ID_BASIC_SEARCH = "basicSearch";
 
     private IModel<OrgTreeDto> selected = new LoadableModel<OrgTreeDto>() {
 
@@ -237,6 +241,16 @@ public class TreeTablePanel extends SimplePanel<String> {
         TablePanel table = new TablePanel(ID_TABLE, tableProvider, tableColumns, 10);
         table.setOutputMarkupId(true);
         form.add(table);
+
+        initSearch();
+    }
+
+    private void initSearch() {
+        Form form = new Form(ID_SEARCH_FORM);
+        add(form);
+
+        BasicSearchPanel basicSearch = new BasicSearchPanel(ID_BASIC_SEARCH, new Model());
+        form.add(basicSearch);
     }
 
     private List<InlineMenuItem> createTreeMenu() {
