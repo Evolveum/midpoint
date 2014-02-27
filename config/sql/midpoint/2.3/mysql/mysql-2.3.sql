@@ -142,6 +142,12 @@
         targetRef_relationNamespace varchar(255),
         targetRef_targetOid varchar(36),
         targetRef_type integer,
+        tenantRef_description longtext,
+        tenantRef_filter longtext,
+        tenantRef_relationLocalPart varchar(100),
+        tenantRef_relationNamespace varchar(255),
+        tenantRef_targetOid varchar(36),
+        tenantRef_type integer,
         id bigint not null,
         oid varchar(36) not null,
         extId bigint,
@@ -339,6 +345,12 @@
 
     create table m_object (
         description longtext,
+        tenantRef_description longtext,
+        tenantRef_filter longtext,
+        tenantRef_relationLocalPart varchar(100),
+        tenantRef_relationNamespace varchar(255),
+        tenantRef_targetOid varchar(36),
+        tenantRef_type integer,
         version bigint not null,
         id bigint not null,
         oid varchar(36) not null,
@@ -386,6 +398,7 @@
         locality_orig varchar(255),
         name_norm varchar(255),
         name_orig varchar(255),
+		tenant bit,
         id bigint not null,
         oid varchar(36) not null,
         primary key (id, oid),
@@ -429,7 +442,7 @@
     ) DEFAULT CHARACTER SET utf8 COLLATE utf8_bin ENGINE=InnoDB;
 
     create table m_report (
-		configuration longtext,
+        configuration longtext,
         configurationSchema longtext,
         dataSource_providerClass varchar(255),
         dataSource_springBean bit,
@@ -710,220 +723,220 @@
 
     create index iRequestable on m_abstract_role (requestable);
 
-    alter table m_abstract_role
-        add index fk_abstract_role (id, oid),
-        add constraint fk_abstract_role
-        foreign key (id, oid)
+    alter table m_abstract_role 
+        add index fk_abstract_role (id, oid), 
+        add constraint fk_abstract_role 
+        foreign key (id, oid) 
         references m_focus (id, oid);
 
-    alter table m_any_clob
-        add index fk_any_clob (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type),
-        add constraint fk_any_clob
-        foreign key (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type)
+    alter table m_any_clob 
+        add index fk_any_clob (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type), 
+        add constraint fk_any_clob 
+        foreign key (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type) 
         references m_any (owner_id, owner_oid, owner_type);
 
     create index iDate on m_any_date (dateValue);
 
-    alter table m_any_date
-        add index fk_any_date (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type),
-        add constraint fk_any_date
-        foreign key (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type)
+    alter table m_any_date 
+        add index fk_any_date (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type), 
+        add constraint fk_any_date 
+        foreign key (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type) 
         references m_any (owner_id, owner_oid, owner_type);
 
     create index iLong on m_any_long (longValue);
 
-    alter table m_any_long
-        add index fk_any_long (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type),
-        add constraint fk_any_long
-        foreign key (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type)
+    alter table m_any_long 
+        add index fk_any_long (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type), 
+        add constraint fk_any_long 
+        foreign key (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type) 
         references m_any (owner_id, owner_oid, owner_type);
 
     create index iPolyString on m_any_poly_string (orig);
 
-    alter table m_any_poly_string
-        add index fk_any_poly_string (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type),
-        add constraint fk_any_poly_string
-        foreign key (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type)
+    alter table m_any_poly_string 
+        add index fk_any_poly_string (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type), 
+        add constraint fk_any_poly_string 
+        foreign key (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type) 
         references m_any (owner_id, owner_oid, owner_type);
 
     create index iTargetOid on m_any_reference (targetoid);
 
-    alter table m_any_reference
-        add index fk_any_reference (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type),
-        add constraint fk_any_reference
-        foreign key (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type)
+    alter table m_any_reference 
+        add index fk_any_reference (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type), 
+        add constraint fk_any_reference 
+        foreign key (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type) 
         references m_any (owner_id, owner_oid, owner_type);
 
     create index iString on m_any_string (stringValue);
 
-    alter table m_any_string
-        add index fk_any_string (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type),
-        add constraint fk_any_string
-        foreign key (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type)
+    alter table m_any_string 
+        add index fk_any_string (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type), 
+        add constraint fk_any_string 
+        foreign key (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type) 
         references m_any (owner_id, owner_oid, owner_type);
 
     create index iAssignmentAdministrative on m_assignment (administrativeStatus);
 
     create index iAssignmentEffective on m_assignment (effectiveStatus);
 
-    alter table m_assignment
-        add index fk_assignment (id, oid),
-        add constraint fk_assignment
-        foreign key (id, oid)
+    alter table m_assignment 
+        add index fk_assignment (id, oid), 
+        add constraint fk_assignment 
+        foreign key (id, oid) 
         references m_container (id, oid);
 
-    alter table m_assignment
-        add index fk_assignment_owner (owner_id, owner_oid),
-        add constraint fk_assignment_owner
-        foreign key (owner_id, owner_oid)
+    alter table m_assignment 
+        add index fk_assignment_owner (owner_id, owner_oid), 
+        add constraint fk_assignment_owner 
+        foreign key (owner_id, owner_oid) 
         references m_object (id, oid);
 
-    alter table m_audit_delta
-        add index fk_audit_delta (record_id),
-        add constraint fk_audit_delta
-        foreign key (record_id)
+    alter table m_audit_delta 
+        add index fk_audit_delta (record_id), 
+        add constraint fk_audit_delta 
+        foreign key (record_id) 
         references m_audit_event (id);
 
-    alter table m_authorization
-        add index fk_authorization (id, oid),
-        add constraint fk_authorization
-        foreign key (id, oid)
+    alter table m_authorization 
+        add index fk_authorization (id, oid), 
+        add constraint fk_authorization 
+        foreign key (id, oid) 
         references m_container (id, oid);
 
-    alter table m_authorization
-        add index fk_authorization_owner (owner_id, owner_oid),
-        add constraint fk_authorization_owner
-        foreign key (owner_id, owner_oid)
+    alter table m_authorization 
+        add index fk_authorization_owner (owner_id, owner_oid), 
+        add constraint fk_authorization_owner 
+        foreign key (owner_id, owner_oid) 
         references m_object (id, oid);
 
-    alter table m_authorization_action
-        add index fk_authorization_action (role_id, role_oid),
-        add constraint fk_authorization_action
-        foreign key (role_id, role_oid)
+    alter table m_authorization_action 
+        add index fk_authorization_action (role_id, role_oid), 
+        add constraint fk_authorization_action 
+        foreign key (role_id, role_oid) 
         references m_authorization (id, oid);
 
     create index iConnectorNameNorm on m_connector (name_norm);
 
     create index iConnectorNameOrig on m_connector (name_orig);
 
-    alter table m_connector
-        add index fk_connector (id, oid),
-        add constraint fk_connector
-        foreign key (id, oid)
+    alter table m_connector 
+        add index fk_connector (id, oid), 
+        add constraint fk_connector 
+        foreign key (id, oid) 
         references m_object (id, oid);
 
     create index iConnectorHostName on m_connector_host (name_orig);
 
-    alter table m_connector_host
-        add index fk_connector_host (id, oid),
-        add constraint fk_connector_host
-        foreign key (id, oid)
+    alter table m_connector_host 
+        add index fk_connector_host (id, oid), 
+        add constraint fk_connector_host 
+        foreign key (id, oid) 
         references m_object (id, oid);
 
-    alter table m_connector_target_system
-        add index fk_connector_target_system (connector_id, connector_oid),
-        add constraint fk_connector_target_system
-        foreign key (connector_id, connector_oid)
+    alter table m_connector_target_system 
+        add index fk_connector_target_system (connector_id, connector_oid), 
+        add constraint fk_connector_target_system 
+        foreign key (connector_id, connector_oid) 
         references m_connector (id, oid);
 
-    alter table m_exclusion
-        add index fk_exclusion (id, oid),
-        add constraint fk_exclusion
-        foreign key (id, oid)
+    alter table m_exclusion 
+        add index fk_exclusion (id, oid), 
+        add constraint fk_exclusion 
+        foreign key (id, oid) 
         references m_container (id, oid);
 
-    alter table m_exclusion
-        add index fk_exclusion_owner (owner_id, owner_oid),
-        add constraint fk_exclusion_owner
-        foreign key (owner_id, owner_oid)
+    alter table m_exclusion 
+        add index fk_exclusion_owner (owner_id, owner_oid), 
+        add constraint fk_exclusion_owner 
+        foreign key (owner_id, owner_oid) 
         references m_object (id, oid);
 
     create index iFocusAdministrative on m_focus (administrativeStatus);
 
     create index iFocusEffective on m_focus (effectiveStatus);
 
-    alter table m_focus
-        add index fk_focus (id, oid),
-        add constraint fk_focus
-        foreign key (id, oid)
+    alter table m_focus 
+        add index fk_focus (id, oid), 
+        add constraint fk_focus 
+        foreign key (id, oid) 
         references m_object (id, oid);
 
     create index iGenericObjectName on m_generic_object (name_orig);
 
-    alter table m_generic_object
-        add index fk_generic_object (id, oid),
-        add constraint fk_generic_object
-        foreign key (id, oid)
+    alter table m_generic_object 
+        add index fk_generic_object (id, oid), 
+        add constraint fk_generic_object 
+        foreign key (id, oid) 
         references m_object (id, oid);
 
-    alter table m_metadata
-        add index fk_metadata_owner (owner_id, owner_oid),
-        add constraint fk_metadata_owner
-        foreign key (owner_id, owner_oid)
+    alter table m_metadata 
+        add index fk_metadata_owner (owner_id, owner_oid), 
+        add constraint fk_metadata_owner 
+        foreign key (owner_id, owner_oid) 
         references m_container (id, oid);
 
     create index iNodeName on m_node (name_orig);
 
-    alter table m_node
-        add index fk_node (id, oid),
-        add constraint fk_node
-        foreign key (id, oid)
+    alter table m_node 
+        add index fk_node (id, oid), 
+        add constraint fk_node 
+        foreign key (id, oid) 
         references m_object (id, oid);
 
-    alter table m_object
-        add index fk_object (id, oid),
-        add constraint fk_object
-        foreign key (id, oid)
+    alter table m_object 
+        add index fk_object (id, oid), 
+        add constraint fk_object 
+        foreign key (id, oid) 
         references m_container (id, oid);
 
     create index iObjectTemplate on m_object_template (name_orig);
 
-    alter table m_object_template
-        add index fk_object_template (id, oid),
-        add constraint fk_object_template
-        foreign key (id, oid)
+    alter table m_object_template 
+        add index fk_object_template (id, oid), 
+        add constraint fk_object_template 
+        foreign key (id, oid) 
         references m_object (id, oid);
 
-    alter table m_operation_result
-        add index fk_result_owner (owner_id, owner_oid),
-        add constraint fk_result_owner
-        foreign key (owner_id, owner_oid)
+    alter table m_operation_result 
+        add index fk_result_owner (owner_id, owner_oid), 
+        add constraint fk_result_owner 
+        foreign key (owner_id, owner_oid) 
         references m_object (id, oid);
 
     create index iOrgName on m_org (name_orig);
 
-    alter table m_org
-        add index fk_org (id, oid),
-        add constraint fk_org
-        foreign key (id, oid)
+    alter table m_org 
+        add index fk_org (id, oid), 
+        add constraint fk_org 
+        foreign key (id, oid) 
         references m_abstract_role (id, oid);
 
     create index iAncestorDepth on m_org_closure (ancestor_id, ancestor_oid, depthValue);
 
-    alter table m_org_closure
-        add index fk_descendant (descendant_id, descendant_oid),
-        add constraint fk_descendant
-        foreign key (descendant_id, descendant_oid)
+    alter table m_org_closure 
+        add index fk_descendant (descendant_id, descendant_oid), 
+        add constraint fk_descendant 
+        foreign key (descendant_id, descendant_oid) 
         references m_object (id, oid);
 
-    alter table m_org_closure
-        add index fk_ancestor (ancestor_id, ancestor_oid),
-        add constraint fk_ancestor
-        foreign key (ancestor_id, ancestor_oid)
+    alter table m_org_closure 
+        add index fk_ancestor (ancestor_id, ancestor_oid), 
+        add constraint fk_ancestor 
+        foreign key (ancestor_id, ancestor_oid) 
         references m_object (id, oid);
 
-    alter table m_org_org_type
-        add index fk_org_org_type (org_id, org_oid),
-        add constraint fk_org_org_type
-        foreign key (org_id, org_oid)
+    alter table m_org_org_type 
+        add index fk_org_org_type (org_id, org_oid), 
+        add constraint fk_org_org_type 
+        foreign key (org_id, org_oid) 
         references m_org (id, oid);
 
     create index iReferenceTargetOid on m_reference (targetOid);
 
-    alter table m_reference
-        add index fk_reference_owner (owner_id, owner_oid),
-        add constraint fk_reference_owner
-        foreign key (owner_id, owner_oid)
+    alter table m_reference 
+        add index fk_reference_owner (owner_id, owner_oid), 
+        add constraint fk_reference_owner 
+        foreign key (owner_id, owner_oid) 
         references m_container (id, oid);
 
     create index iReportParent on m_report (parent);

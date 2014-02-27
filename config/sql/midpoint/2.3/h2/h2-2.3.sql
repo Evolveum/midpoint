@@ -132,6 +132,12 @@
         targetRef_relationNamespace varchar(255),
         targetRef_targetOid varchar(36),
         targetRef_type integer,
+        tenantRef_description clob,
+        tenantRef_filter clob,
+        tenantRef_relationLocalPart varchar(100),
+        tenantRef_relationNamespace varchar(255),
+        tenantRef_targetOid varchar(36),
+        tenantRef_type integer,
         id bigint not null,
         oid varchar(36) not null,
         extId bigint,
@@ -329,6 +335,12 @@
 
     create table m_object (
         description clob,
+        tenantRef_description clob,
+        tenantRef_filter clob,
+        tenantRef_relationLocalPart varchar(100),
+        tenantRef_relationNamespace varchar(255),
+        tenantRef_targetOid varchar(36),
+        tenantRef_type integer,
         version bigint not null,
         id bigint not null,
         oid varchar(36) not null,
@@ -376,6 +388,7 @@
         locality_orig varchar(255),
         name_norm varchar(255),
         name_orig varchar(255),
+		tenant boolean,
         id bigint not null,
         oid varchar(36) not null,
         primary key (id, oid),
@@ -418,7 +431,7 @@
         primary key (owner_id, owner_oid, relLocalPart, relNamespace, targetOid)
     );
 
-   create table m_report (
+    create table m_report (
         configuration clob,
         configurationSchema clob,
         dataSource_providerClass varchar(255),
