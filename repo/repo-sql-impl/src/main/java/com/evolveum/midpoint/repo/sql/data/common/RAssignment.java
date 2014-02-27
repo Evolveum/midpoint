@@ -110,6 +110,12 @@ public class RAssignment extends RContainer implements ROwnable {
     public REmbeddedReference getTargetRef() {
         return targetRef;
     }
+    
+    @Embedded
+    public REmbeddedReference getTenantRef() {
+		return tenantRef;
+	}
+
 
     @Column(name = "owner_id", nullable = false)
     public Long getOwnerId() {
@@ -219,10 +225,7 @@ public class RAssignment extends RContainer implements ROwnable {
         this.assignmentOwner = assignmentOwner;
     }
 
-    public REmbeddedReference getTenantRef() {
-		return tenantRef;
-	}
-
+   
 	public void setTenantRef(REmbeddedReference tenantRef) {
 		this.tenantRef = tenantRef;
 	}

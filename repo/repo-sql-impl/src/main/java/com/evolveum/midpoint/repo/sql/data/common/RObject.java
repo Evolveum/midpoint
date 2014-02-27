@@ -184,7 +184,8 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
     public void setVersion(long version) {
         this.version = version;
     }
-
+    
+    @Embedded
     public REmbeddedReference getTenantRef() {
 		return tenantRef;
 	}

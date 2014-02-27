@@ -35,6 +35,7 @@ public class RReportOutput extends RObject<ReportOutputType> {
 	private String reportFilePath;
 	private REmbeddedReference reportRef;	
 
+	@Embedded
 	public RPolyString getName() {
 		return name;
 	}
