@@ -4,12 +4,26 @@ ALTER TABLE m_sync_situation_description ADD fullFlag BIT;
 ALTER TABLE m_shadow ADD fullSynchronizationTimestamp DATETIME2;
 ALTER TABLE m_task ADD expectedTotal BIGINT;
 ALTER TABLE m_assignment ADD disableReason NVARCHAR(255);
+ALTER TABLE m_assignment ADD tenantRef_description NVARCHAR(MAX);
+ALTER TABLE m_assignment ADD tenantRef_filter NVARCHAR(MAX);
+ALTER TABLE m_assignment ADD tenantRef_relationLocalPart NVARCHAR(100);
+ALTER TABLE m_assignment ADD tenantRef_relationNamespace NVARCHAR(255);
+ALTER TABLE m_assignment ADD tenantRef_targetOid NVARCHAR(36);
+ALTER TABLE m_assignment ADD tenantRef_type INT;
 ALTER TABLE m_focus ADD disableReason NVARCHAR(255);
 ALTER TABLE m_shadow ADD disableReason NVARCHAR(255);
 ALTER TABLE m_audit_delta ADD context NVARCHAR(MAX);
 ALTER TABLE m_audit_delta ADD returns NVARCHAR(MAX);
 ALTER TABLE m_operation_result ADD context NVARCHAR(MAX);
 ALTER TABLE m_operation_result ADD returns NVARCHAR(MAX);
+ALTER TABLE m_object ADD tenantRef_description NVARCHAR(MAX);
+ALTER TABLE m_object ADD tenantRef_filter NVARCHAR(MAX);
+ALTER TABLE m_object ADD tenantRef_relationLocalPart NVARCHAR(100);
+ALTER TABLE m_object ADD tenantRef_relationNamespace NVARCHAR(255);
+ALTER TABLE m_object ADD tenantRef_targetOid NVARCHAR(36);
+ALTER TABLE m_object ADD tenantRef_type INT;
+ALTER TABLE m_org ADD tenant BIT;
+
 
 CREATE TABLE m_report (
 	configuration NVARCHAR(MAX),

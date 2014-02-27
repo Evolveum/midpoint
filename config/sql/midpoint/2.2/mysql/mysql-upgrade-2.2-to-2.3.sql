@@ -4,12 +4,25 @@ ALTER TABLE m_sync_situation_description ADD fullFlag BIT;
 ALTER TABLE m_shadow ADD fullSynchronizationTimestamp DATETIME(6);
 ALTER TABLE m_task ADD expectedTotal BIGINT;
 ALTER TABLE m_assignment ADD disableReason VARCHAR(255);
+ALTER TABLE m_assignment ADD tenantRef_description LONGTEXT;
+ALTER TABLE m_assignment ADD tenantRef_filter LONGTEXT;
+ALTER TABLE m_assignment ADD tenantRef_relationLocalPart VARCHAR(100);
+ALTER TABLE m_assignment ADD tenantRef_relationNamespace VARCHAR(255);
+ALTER TABLE m_assignment ADD tenantRef_targetOid VARCHAR(36);
+ALTER TABLE m_assignment ADD tenantRef_type INTEGER;
 ALTER TABLE m_focus ADD disableReason VARCHAR(255);
 ALTER TABLE m_shadow ADD disableReason VARCHAR(255);
 ALTER TABLE m_audit_delta ADD context LONGTEXT;
 ALTER TABLE m_audit_delta ADD returns LONGTEXT;
 ALTER TABLE m_operation_result ADD context LONGTEXT;
 ALTER TABLE m_operation_result ADD returns LONGTEXT;
+ALTER TABLE m_object ADD tenantRef_description LONGTEXT;
+ALTER TABLE m_object ADD tenantRef_filter LONGTEXT;
+ALTER TABLE m_object ADD tenantRef_relationLocalPart VARCHAR(100);
+ALTER TABLE m_object ADD tenantRef_relationNamespace VARCHAR(255);
+ALTER TABLE m_object ADD tenantRef_targetOid VARCHAR(36);
+ALTER TABLE m_object ADD tenantRef_type INTEGER;
+ALTER TABLE m_org ADD tenant BIT;
 
 CREATE TABLE m_report (
 	configuration LONGTEXT,
