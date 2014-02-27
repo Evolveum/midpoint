@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
@@ -60,6 +61,7 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
     private Set<RObjectReference> parentOrgRef;
     private Set<RTrigger> trigger;
     private RMetadata metadata;
+    private REmbeddedReference tenantRef;
 
 //    /**
 //     * Used for lazy loading properties (entities)
@@ -183,7 +185,15 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
         this.version = version;
     }
 
-    @Override
+    public REmbeddedReference getTenantRef() {
+		return tenantRef;
+	}
+
+	public void setTenantRef(REmbeddedReference tenantRef) {
+		this.tenantRef = tenantRef;
+	}
+
+	@Override
     public boolean equals(Object o) {
         if (this == o)
             return true;
@@ -206,7 +216,8 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
             return false;
         if (trigger != null ? !trigger.equals(rObject.trigger) : rObject.trigger != null)
             return false;
-
+        if (tenantRef != null ? !tenantRef.equals(rObject.tenantRef) : rObject.tenantRef != null)
+            return false;
         return true;
     }
 
@@ -255,6 +266,12 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
                 jaxb.setMetadata(repo.getMetadata().toJAXB(prismContext));
             }
         }
+        
+        if (SelectorOptions.hasToLoadPath(ObjectType.F_TENANT_REF, options)) {
+        	if (repo.getTenantRef() != null) {
+        		jaxb.setTenantRef(repo.getTenantRef().toJAXB(prismContext));
+        	}
+        }
     }
 
     public static <T extends ObjectType> void copyFromJAXB(ObjectType jaxb, RObject<T> repo, PrismContext prismContext)
@@ -295,6 +312,8 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
             RMetadata.copyFromJAXB(jaxb.getMetadata(), metadata, prismContext);
             repo.setMetadata(metadata);
         }
+        
+        repo.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTenantRef(), prismContext));
     }
 
     public abstract T toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)

@@ -73,8 +73,9 @@ public class RAssignment extends RContainer implements ROwnable {
     private REmbeddedReference targetRef;
     private RMetadata metadata;
     private Integer order;
+    private REmbeddedReference tenantRef;
 
-    public RAssignment() {
+	public RAssignment() {
         this(null, null);
     }
 
@@ -218,6 +219,14 @@ public class RAssignment extends RContainer implements ROwnable {
         this.assignmentOwner = assignmentOwner;
     }
 
+    public REmbeddedReference getTenantRef() {
+		return tenantRef;
+	}
+
+	public void setTenantRef(REmbeddedReference tenantRef) {
+		this.tenantRef = tenantRef;
+	}
+	
     @Transient
     @Override
     public RContainer getContainerOwner() {
@@ -230,7 +239,7 @@ public class RAssignment extends RContainer implements ROwnable {
         if (o == null || getClass() != o.getClass()) return false;
 
         RAssignment that = (RAssignment) o;
-
+    
         if (accountConstruction != null ? !accountConstruction.equals(that.accountConstruction) : that.accountConstruction != null)
             return false;
         if (construction != null ? !construction.equals(that.construction) : that.construction != null)
@@ -242,6 +251,7 @@ public class RAssignment extends RContainer implements ROwnable {
             return false;
         if (order != null ? !order.equals(that.order) : that.order != null)
             return false;
+        if (tenantRef != null ? !tenantRef.equals(that.tenantRef) : that.tenantRef != null) return false;
 
         return true;
     }
@@ -284,7 +294,9 @@ public class RAssignment extends RContainer implements ROwnable {
         if (repo.getTargetRef() != null) {
             jaxb.setTargetRef(repo.getTargetRef().toJAXB(prismContext));
         }
-
+        if (repo.getTenantRef() != null) {
+            jaxb.setTenantRef(repo.getTenantRef().toJAXB(prismContext));
+        }
         if (repo.getMetadata() != null) {
             jaxb.setMetadata(repo.getMetadata().toJAXB(prismContext));
         }
@@ -326,7 +338,9 @@ public class RAssignment extends RContainer implements ROwnable {
         }
 
         repo.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTargetRef(), prismContext));
-
+        
+        repo.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTenantRef(), prismContext));
+        
         if (jaxb.getMetadata() != null) {
             RMetadata metadata = new RMetadata();
             metadata.setOwner(repo);

@@ -6627,7 +6627,7 @@
                         </xsd:annotation>
                     </xsd:element>
 
-					<xsd:element name="isTenant" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+					<xsd:element name="tenant" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Flag indicating whether this object is a tenant or not. Tenants are top-level
