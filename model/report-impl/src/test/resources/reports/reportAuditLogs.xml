@@ -125,10 +125,11 @@
 					</staticText>
 					<textField>
 						<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Page header" isPrintRepeatedValues="false" x="110" y="145" width="644" height="20"/>
+							
 						<textElement verticalAlignment="Middle">
 							<font isBold="false"/>
 						</textElement>
-						<textFieldExpression><![CDATA[$P{eventDescription}]]></textFieldExpression>
+						<textFieldExpression><![CDATA[$P{eventType} != null ? $P{eventDescription} : "All"]]></textFieldExpression>
 					</textField>
 				</band>
 			</title>
@@ -347,13 +348,11 @@
 					odo.delta as delta 
 					from RObjectDeltaOperation as odo 
 					join odo.record as aer 
-					where ($P{eventType} = -1 or aer.eventType = $P{eventType}) and aer.timestamp &gt;= $P{from} and aer.timestamp &lt;= $P{to} 
+					where ($P{eventType} = null or aer.eventType = $P{eventType}) and aer.timestamp &gt;= $P{from} and aer.timestamp &lt;= $P{to} 
 					order by aer.timestamp
 		</r:hqlQuery>
 		<r:from>2000-01-01T00:00:00</r:from>
 		<r:to>2020-12-31T00:00:00</r:to>
-		<r:eventType>-1</r:eventType>
-		<r:eventDescription>All</r:eventDescription>
 	</configuration>
 	<!-- report parameters configuration schema sample with different options -->
 	<configurationSchema>
@@ -411,7 +410,7 @@
 
 				<xsd:simpleType name="EventType">
 					<xsd:restriction base="xsd:int">
-						<xsd:enumeration value="-1">
+						<xsd:enumeration value="null">
 							<xsd:annotation>
 								<xsd:appinfo>All</xsd:appinfo>
 							</xsd:annotation>
