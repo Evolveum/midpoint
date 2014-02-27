@@ -30,7 +30,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
@@ -45,7 +45,6 @@ import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportOutputSearchDto;
 import com.evolveum.midpoint.web.session.CreatedReportsStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
@@ -91,14 +90,12 @@ public class PageCreatedReports extends PageAdminReports {
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_CREATED_REPORTS_TABLE = "table";
     private static final String ID_SEARCH_FORM = "searchForm";
-    private static final String ID_SEARCH_TEXT = "searchText";
-    private static final String ID_SEARCH_BUTTON = "searchButton";
-    private static final String ID_SEARCH_CLEAR = "searchClear";
+    private static final String ID_BASIC_SEARCH = "basicSearch";
     private static final String ID_FILTER_FILE_TYPE = "filetype";
     private static final String ID_REPORT_TYPE_SELECT = "reportType";
     private static final String ID_CONFIRM_DELETE = "confirmDeletePopup";
 
-    private IModel<ReportOutputSearchDto> filterModel;
+    private IModel<ReportOutputSearchDto> searchModel;
     private IModel<ReportDeleteDialogDto> deleteModel = new Model<ReportDeleteDialogDto>();
     private ReportOutputType currentReport;
 
@@ -111,7 +108,7 @@ public class PageCreatedReports extends PageAdminReports {
 
         setPreviousPage(previousPage);
 
-        filterModel = new LoadableModel<ReportOutputSearchDto>() {
+        searchModel = new LoadableModel<ReportOutputSearchDto>() {
             @Override
             protected ReportOutputSearchDto load() {
                 CreatedReportsStorage storage = getSessionStorage().getCreatedReports();
@@ -201,30 +198,10 @@ public class PageCreatedReports extends PageAdminReports {
         Form searchForm = new Form(ID_SEARCH_FORM);
         add(searchForm);
 
-        final AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
-                createStringResource("pageCreatedReports.button.searchButton")) {
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form){
-                searchPerformed(target);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form){
-                target.add(getFeedbackPanel());
-            }
-        };
-        searchForm.add(searchButton);
-
-        final TextField searchText = new TextField(ID_SEARCH_TEXT, new PropertyModel<String>(filterModel,
-                ReportOutputSearchDto.F_TEXT));
-        searchText.add(new SearchFormEnterBehavior(searchButton));
-        searchForm.add(searchText);
-
         //TODO - commented until FileType property will be available in ReportOutputType
         /*
         DropDownChoice filetypeSelect = new DropDownChoice(ID_FILTER_FILE_TYPE,
-                new PropertyModel(filterModel, ReportOutputDto.F_FILE_TYPE),
+                new PropertyModel(searchModel, ReportOutputDto.F_FILE_TYPE),
                 new AbstractReadOnlyModel<List<ExportType>>() {
 
                     @Override
@@ -249,7 +226,7 @@ public class PageCreatedReports extends PageAdminReports {
         */
 
         DropDownChoice reportTypeSelect = new DropDownChoice(ID_REPORT_TYPE_SELECT,
-                new PropertyModel(filterModel, ReportOutputSearchDto.F_REPORT_TYPE),
+                new PropertyModel(searchModel, ReportOutputSearchDto.F_REPORT_TYPE),
                 new AbstractReadOnlyModel<List<String>>() {
 
                     @Override
@@ -273,43 +250,50 @@ public class PageCreatedReports extends PageAdminReports {
             }
         });
         reportTypeSelect.setOutputMarkupId(true);
-        reportTypeSelect.setDefaultModelObject(null);
         reportTypeSelect.setNullValid(true);
 
         if(getPageParameters().get(OnePageParameterEncoder.PARAMETER) != null){
             createReportTypeList();
 
-            for(String key: filterModel.getObject().getReportTypeMap().keySet()){
-                if(filterModel.getObject().getReportTypeMap().get(key).equals(getPageParameters().get(OnePageParameterEncoder.PARAMETER).toString())){
+            for(String key: searchModel.getObject().getReportTypeMap().keySet()){
+                if(searchModel.getObject().getReportTypeMap().get(key).equals(getPageParameters().get(OnePageParameterEncoder.PARAMETER).toString())){
                     reportTypeSelect.getModel().setObject(key);
                 }
             }
         }
         searchForm.add(reportTypeSelect);
 
-        AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {
+        BasicSearchPanel<ReportOutputSearchDto> basicSearch = new BasicSearchPanel<ReportOutputSearchDto>(ID_BASIC_SEARCH) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form){
-                clearSearchPerformed(target);
+            protected IModel<String> createSearchTextModel() {
+                return new PropertyModel<>(searchModel, ReportOutputSearchDto.F_TEXT);
             }
 
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
+            protected void searchPerformed(AjaxRequestTarget target) {
+                PageCreatedReports.this.searchPerformed(target);
+            }
+
+            @Override
+            protected void clearSearchPerformed(AjaxRequestTarget target) {
+                PageCreatedReports.this.clearSearchPerformed(target);
             }
         };
-        searchForm.add(clearButton);
+        searchForm.add(basicSearch);
     }
 
+    //TODO - commented until FileType property will be available in ReportOutputType
+    /*
     private List<ExportType> createFileTypeList(){
         List<ExportType> list = new ArrayList<ExportType>();
         Collections.addAll(list, ExportType.values());
         return list;
     }
+    */
 
     private List<String> createReportTypeList(){
-        filterModel.getObject().getReportTypeMap().clear();
+        searchModel.getObject().getReportTypeMap().clear();
         List<String> reportTypeNames = new ArrayList<String>();
 
         List<PrismObject<ReportType>> reportTypes = WebModelUtils.searchObjects(ReportType.class, null, null, getPageBase());
@@ -320,7 +304,7 @@ public class PageCreatedReports extends PageAdminReports {
             if(reportType.isParent()){
                 String name = WebMiscUtil.getName(o);
 
-                filterModel.getObject().getReportTypeMap().put(name, reportType.getOid());
+                searchModel.getObject().getReportTypeMap().put(name, reportType.getOid());
 
                 reportTypeNames.add(name);
             }
@@ -563,7 +547,7 @@ public class PageCreatedReports extends PageAdminReports {
     }
 
     private ObjectQuery createQuery(){
-        ReportOutputSearchDto dto = filterModel.getObject();
+        ReportOutputSearchDto dto = searchModel.getObject();
         ObjectQuery query = null;
 
         if(StringUtils.isEmpty(dto.getText())){
@@ -618,7 +602,7 @@ public class PageCreatedReports extends PageAdminReports {
     }
 
     private void reportTypeFilterPerformed(AjaxRequestTarget target){
-        ReportOutputSearchDto dto = filterModel.getObject();
+        ReportOutputSearchDto dto = searchModel.getObject();
         String oid = dto.getReportTypeMap().get(dto.getReportType());
         ObjectQuery query;
 
@@ -634,7 +618,7 @@ public class PageCreatedReports extends PageAdminReports {
         provider.setQuery(query);
 
         CreatedReportsStorage storage = getSessionStorage().getCreatedReports();
-        storage.setReportsSearch(filterModel.getObject());
+        storage.setReportsSearch(searchModel.getObject());
         panel.setCurrentPage(storage.getReportsPaging());
 
         target.add(panel);
@@ -651,7 +635,7 @@ public class PageCreatedReports extends PageAdminReports {
         provider.setQuery(query);
 
         CreatedReportsStorage storage = getSessionStorage().getCreatedReports();
-        storage.setReportsSearch(filterModel.getObject());
+        storage.setReportsSearch(searchModel.getObject());
         panel.setCurrentPage(storage.getReportsPaging());
 
         target.add(panel);
@@ -664,7 +648,7 @@ public class PageCreatedReports extends PageAdminReports {
     }
 
     private void clearSearchPerformed(AjaxRequestTarget target){
-        filterModel.setObject(new ReportOutputSearchDto());
+        searchModel.setObject(new ReportOutputSearchDto());
 
         TablePanel panel = getReportOutputTable();
         DataTable table = panel.getDataTable();
@@ -672,7 +656,7 @@ public class PageCreatedReports extends PageAdminReports {
         provider.setQuery(null);
 
         CreatedReportsStorage storage = getSessionStorage().getCreatedReports();
-        storage.setReportsSearch(filterModel.getObject());
+        storage.setReportsSearch(searchModel.getObject());
         panel.setCurrentPage(storage.getReportsPaging());
 
         target.add(get(ID_SEARCH_FORM));

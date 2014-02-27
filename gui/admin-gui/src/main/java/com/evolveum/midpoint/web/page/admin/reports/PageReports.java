@@ -25,7 +25,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
@@ -35,7 +35,6 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportSearchDto;
 import com.evolveum.midpoint.web.session.ReportsStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -45,7 +44,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -65,17 +63,14 @@ public class PageReports extends PageAdminReports {
     private static final Trace LOGGER = TraceManager.getTrace(PageReports.class);
 
     private static final String DOT_CLASS = PageReports.class.getName() + ".";
-    private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
     private static final String OPERATION_RUN_REPORT = DOT_CLASS + "runReport";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_REPORTS_TABLE = "reportsTable";
 
     private static final String ID_SEARCH_FORM = "searchForm";
-    private static final String ID_SEARCH_TEXT = "searchText";
+    private static final String ID_BASIC_SEARCH = "basicSearch";
     private static final String ID_SUBREPORTS = "subReportCheckbox";
-    private static final String ID_BUTTON_SEARCH = "searchButton";
-    private static final String ID_BUTTON_CLEAR_SEARCH = "searchClear";
 
     private IModel<ReportSearchDto> searchModel;
 
@@ -117,8 +112,6 @@ public class PageReports extends PageAdminReports {
         add(searchForm);
         initSearchForm(searchForm);
 
-        //TablePanel table = new TablePanel<ReportDto>(ID_REPORTS_TABLE,
-        //        new ListDataProvider<ReportDto>(this, new Model(REPORTS)), initColumns(ajaxDownloadBehavior));
         ObjectDataProvider provider = new ObjectDataProvider(PageReports.this, ReportType.class);
         provider.setQuery(createQuery());
         TablePanel table = new TablePanel<>(ID_REPORTS_TABLE, provider, initColumns());
@@ -127,45 +120,31 @@ public class PageReports extends PageAdminReports {
         mainForm.add(table);
     }
 
-    private void initSearchForm(Form<?> form){
-
-        final AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_BUTTON_SEARCH,
-                createStringResource("PageBase.button.search")) {
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form){
-                searchPerformed(target);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form){
-                target.add(getFeedbackPanel());
-            }
-        };
-        form.add(searchButton);
-
-        final TextField searchText = new TextField(ID_SEARCH_TEXT, new PropertyModel<String>(searchModel, ReportSearchDto.F_SEARCH_TEXT));
-        searchText.add(new SearchFormEnterBehavior(searchButton));
-        form.add(searchText);
+    private void initSearchForm(Form<?> searchForm){
 
         CheckBox showSubreports = new CheckBox(ID_SUBREPORTS,
                 new PropertyModel(searchModel, ReportSearchDto.F_PARENT));
         showSubreports.add(createFilterAjaxBehaviour());
-        form.add(showSubreports);
+        searchForm.add(showSubreports);
 
-        AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_BUTTON_CLEAR_SEARCH) {
+        BasicSearchPanel<ReportSearchDto> basicSearch = new BasicSearchPanel<ReportSearchDto>(ID_BASIC_SEARCH) {
 
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
+            protected IModel<String> createSearchTextModel() {
+                return new PropertyModel<>(searchModel, ReportSearchDto.F_SEARCH_TEXT);
             }
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                clearSearchPerformed(target);
+            protected void searchPerformed(AjaxRequestTarget target) {
+                PageReports.this.searchPerformed(target);
+            }
+
+            @Override
+            protected void clearSearchPerformed(AjaxRequestTarget target) {
+                PageReports.this.clearSearchPerformed(target);
             }
         };
-        form.add(clearButton);
+        searchForm.add(basicSearch);
     }
 
     private AjaxFormComponentUpdatingBehavior createFilterAjaxBehaviour() {
@@ -342,7 +321,7 @@ public class PageReports extends PageAdminReports {
         TablePanel panel = getReportTable();
         DataTable table = panel.getDataTable();
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
-        provider.setQuery(null);
+        provider.setQuery(createQuery());
 
         ReportsStorage storage = getSessionStorage().getReports();
         storage.setReportSearch(searchModel.getObject());
