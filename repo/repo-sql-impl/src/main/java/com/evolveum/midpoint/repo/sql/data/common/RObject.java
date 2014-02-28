@@ -39,6 +39,8 @@ import org.hibernate.annotations.*;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
+import javax.persistence.Table;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -47,12 +49,13 @@ import java.util.Set;
 /**
  * @author lazyman
  */
-@QueryEntity(properties = {@VirtualProperty(jaxbName = @JaxbName(localPart = "name"), jaxbType = PolyString.class,
-        jpaName = "name", jpaType = RPolyString.class)})
+@org.hibernate.annotations.Table(appliesTo = "m_object",
+        indexes = {@Index(name = "iObject", columnNames = "name_orig")})
 @Entity
 @ForeignKey(name = "fk_object")
 public abstract class RObject<T extends ObjectType> extends RContainer {//implements FieldHandled {
 
+	private RPolyString name;
     private String description;
     private RAnyContainer extension;
     private long version;
@@ -75,11 +78,16 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
 //    public void setFieldHandler(FieldHandler fieldHandler) {
 //        this.fieldHandler = fieldHandler;
 //    }
+    
+    @Embedded
+    public RPolyString getName() {
+		return name;
+	}
 
-    @Transient
-    public abstract RPolyString getName();
-
-    public abstract void setName(RPolyString name);
+	public void setName(RPolyString name) {
+		this.name = name;
+	}
+   
 
 //    @LazyToOne(LazyToOneOption.NO_PROXY)
     @OneToOne(mappedBy = RMetadata.F_OWNER, optional = true, orphanRemoval = true)//, fetch = FetchType.LAZY)
@@ -91,7 +99,9 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
         return metadata;
     }
 
-    public void setMetadata(RMetadata metadata) {
+   
+
+	public void setMetadata(RMetadata metadata) {
 //        if (fieldHandler != null) {
 //            this.metadata = (RMetadata) fieldHandler.writeObject(this, "metadata", this.metadata, metadata);
 //            return;
@@ -204,7 +214,9 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
             return false;
 
         RObject rObject = (RObject) o;
-
+        
+        if (name != null ? !name.equals(rObject.name) : rObject.name != null)
+        	return false;
         if (description != null ? !description.equals(rObject.description) : rObject.description != null)
             return false;
         if (extension != null ? !extension.equals(rObject.extension) : rObject.extension != null)
@@ -225,6 +237,7 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
     @Override
     public int hashCode() {
         int result = super.hashCode();
+        result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (description != null ? description.hashCode() : 0);
         return result;
     }
@@ -235,6 +248,7 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
+        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setDescription(repo.getDescription());
         jaxb.setOid(repo.getOid());
         jaxb.setVersion(Long.toString(repo.getVersion()));
@@ -280,6 +294,7 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
 
+        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setDescription(jaxb.getDescription());
         repo.setOid(jaxb.getOid());
         repo.setId(0L); // objects types have default id
