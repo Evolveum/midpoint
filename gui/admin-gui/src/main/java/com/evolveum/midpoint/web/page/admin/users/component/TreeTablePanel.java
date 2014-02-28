@@ -633,7 +633,6 @@ public class TreeTablePanel extends SimplePanel<String> {
             PrismObject<OrgType> orgUnit = WebModelUtils.loadObject(OrgType.class, object.getOid(),
                     WebModelUtils.createOptionsForParentOrgRefs(), subResult, getPageBase());
             try {
-//                if (orgUnit)
                 ObjectDelta delta = createMoveDelta(orgUnit, oldParent, newParent, operation);
 
                 model.executeChanges(WebMiscUtil.createDeltaCollection(delta), null,

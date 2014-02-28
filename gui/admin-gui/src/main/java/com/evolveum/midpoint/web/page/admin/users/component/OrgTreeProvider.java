@@ -173,6 +173,6 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
 
     @Override
     public IModel<OrgTreeDto> model(OrgTreeDto object) {
-        return new Model<OrgTreeDto>(object);
+        return new Model<>(object);
     }
 }
