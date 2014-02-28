@@ -22,6 +22,8 @@ ALTER TABLE m_object ADD tenantRef_relationLocalPart VARCHAR(100);
 ALTER TABLE m_object ADD tenantRef_relationNamespace VARCHAR(255);
 ALTER TABLE m_object ADD tenantRef_targetOid VARCHAR(36);
 ALTER TABLE m_object ADD tenantRef_type INT4;
+ALTER TABLE m_object ADD name_norm VARCHAR(255);
+ALTER TABLE m_object ADD name_orig VARCHAR(255);
 ALTER TABLE m_org ADD tenant BOOLEAN;
 
 CREATE TABLE m_report (
@@ -82,3 +84,7 @@ ALTER TABLE m_report_output
 ALTER TABLE m_assignment ADD orderValue INT4;
 
 ALTER TABLE m_user ADD jpegPhoto OID;
+
+CREATE INDEX iObjectNameOrig ON m_object (name_orig);
+
+CREATE INDEX iObjectNameNorm ON m_object (name_norm);
