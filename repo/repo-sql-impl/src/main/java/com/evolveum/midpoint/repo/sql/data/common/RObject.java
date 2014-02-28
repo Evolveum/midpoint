@@ -49,9 +49,11 @@ import java.util.Set;
 /**
  * @author lazyman
  */
-@org.hibernate.annotations.Table(appliesTo = "m_object",
-        indexes = {@Index(name = "iObject", columnNames = "name_orig")})
 @Entity
+@Table(name = "m_object")
+@org.hibernate.annotations.Table(appliesTo = "m_object",
+        indexes = {@Index(name = "iObjectNameOrig", columnNames = "name_orig"),
+		@Index(name = "iObjectNameNorm", columnNames = "name_norm")})
 @ForeignKey(name = "fk_object")
 public abstract class RObject<T extends ObjectType> extends RContainer {//implements FieldHandled {
 
