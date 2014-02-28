@@ -855,7 +855,9 @@
         foreign key (id, oid) 
         references m_object;
 
-    create index iObject on m_object (name_orig) INITRANS 30;
+    create index iObjectNameOrig on m_object (name_orig) INITRANS 30;
+
+    create index iObjectNameNorm on m_object (name_norm) INITRANS 30;
 
     alter table m_object 
         add constraint fk_object 
