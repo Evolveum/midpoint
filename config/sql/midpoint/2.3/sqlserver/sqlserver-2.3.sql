@@ -335,6 +335,8 @@
 
     create table m_object (
         description nvarchar(MAX),
+        name_norm nvarchar(255),
+        name_orig nvarchar(255),
         tenantRef_description nvarchar(MAX),
         tenantRef_filter nvarchar(MAX),
         tenantRef_relationLocalPart nvarchar(100),
@@ -388,7 +390,7 @@
         locality_orig nvarchar(255),
         name_norm nvarchar(255),
         name_orig nvarchar(255),
-		tenant bit,
+        tenant bit,
         id bigint not null,
         oid nvarchar(36) not null,
         primary key (id, oid),
@@ -850,6 +852,8 @@
         add constraint fk_node 
         foreign key (id, oid) 
         references m_object;
+
+    create index iObject on m_object (name_orig);
 
     alter table m_object 
         add constraint fk_object 

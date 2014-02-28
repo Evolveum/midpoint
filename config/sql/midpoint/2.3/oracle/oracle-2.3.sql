@@ -337,6 +337,8 @@
 
     create table m_object (
         description clob,
+        name_norm varchar2(255 char),
+        name_orig varchar2(255 char),
         tenantRef_description clob,
         tenantRef_filter clob,
         tenantRef_relationLocalPart varchar2(100 char),
@@ -390,7 +392,7 @@
         locality_orig varchar2(255 char),
         name_norm varchar2(255 char),
         name_orig varchar2(255 char),
-		tenant number(1,0),
+        tenant number(1,0),
         id number(19,0) not null,
         oid varchar2(36 char) not null,
         primary key (id, oid),
@@ -852,6 +854,8 @@
         add constraint fk_node 
         foreign key (id, oid) 
         references m_object;
+
+    create index iObject on m_object (name_orig) INITRANS 30;
 
     alter table m_object 
         add constraint fk_object 
