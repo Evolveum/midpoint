@@ -22,6 +22,8 @@ ALTER TABLE m_object ADD tenantRef_relationLocalPart NVARCHAR(100);
 ALTER TABLE m_object ADD tenantRef_relationNamespace NVARCHAR(255);
 ALTER TABLE m_object ADD tenantRef_targetOid NVARCHAR(36);
 ALTER TABLE m_object ADD tenantRef_type INT;
+ALTER TABLE m_object ADD name_norm NVARCHAR(255);
+ALTER TABLE m_object ADD name_orig NVARCHAR(255);
 ALTER TABLE m_org ADD tenant BIT;
 
 
@@ -83,3 +85,7 @@ ALTER TABLE m_report_output
 ALTER TABLE m_assignment ADD orderValue INT;
 
 ALTER TABLE m_user ADD jpegPhoto VARBINARY(MAX);
+
+CREATE INDEX iObjectNameOrig ON m_object (name_orig);
+
+CREATE INDEX iObjectNameNorm ON m_object (name_norm);
