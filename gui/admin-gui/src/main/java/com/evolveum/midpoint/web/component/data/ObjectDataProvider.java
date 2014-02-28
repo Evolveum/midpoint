@@ -75,6 +75,8 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
             }
             query.setPaging(paging);
 
+            LOGGER.trace("Query {} with {}", type.getSimpleName(), query.debugDump());
+
             List<PrismObject<T>> list = getModel().searchObjects(type, query, options, task, result);
             for (PrismObject<T> object : list) {
                 getAvailableData().add(createDataObjectWrapper(object));

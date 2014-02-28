@@ -52,7 +52,6 @@ public class PropertyRestriction extends ItemRestriction<ValueFilter> {
         ValueFilter valFilter = (ValueFilter) filter;
 
         QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
-//        ItemPath fullPath = RUtil.createFullPath(valFilter);
         ItemPath fullPath = valFilter.getFullPath();
 
         PropertyDefinition def = registry.findDefinition(context.getType(), fullPath, PropertyDefinition.class);
@@ -66,15 +65,10 @@ public class PropertyRestriction extends ItemRestriction<ValueFilter> {
         QueryContext context = getContext();
 
         QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
-//        ItemPath fullPath = RUtil.createFullPath(filter);
         ItemPath fullPath = filter.getFullPath();
         PropertyDefinition def = registry.findDefinition(context.getType(), fullPath, PropertyDefinition.class);
         if (def.isLob()) {
             throw new QueryException("Can't query based on clob property value '" + def + "'.");
-        }
-
-        if (ObjectType.class.equals(context.getType()) && new ItemPath(ObjectType.F_NAME).equals(fullPath)) {
-            throw new QueryException("Can't query ObjectType based on " + ObjectType.F_NAME + " property.");
         }
 
         String propertyName = def.getJpaName();
