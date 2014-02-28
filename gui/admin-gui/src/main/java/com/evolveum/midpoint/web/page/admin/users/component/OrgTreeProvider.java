@@ -34,6 +34,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
+import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
@@ -122,6 +123,10 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
     }
 
     private OrgTreeDto createDto(OrgTreeDto parent, PrismObject<OrgType> unit) {
+        if (unit == null) {
+            return null;
+        }
+
         String name = WebMiscUtil.getName(unit);
         String description = unit.getPropertyRealValue(OrgType.F_DESCRIPTION, String.class);
         String displayName = WebMiscUtil.getOrigStringFromPoly(
@@ -150,7 +155,7 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
 
         if (WebMiscUtil.showResultInPage(result)) {
             getPage().showResultInSession(result);
-            throw new RestartResponseException(PageDashboard.class);
+            throw new RestartResponseException(PageUsers.class);
         }
 
         List<OrgTreeDto> list = new ArrayList<OrgTreeDto>();

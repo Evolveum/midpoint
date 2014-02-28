@@ -664,12 +664,13 @@ public class TreeTablePanel extends SimplePanel<String> {
         PageBase page = getPageBase();
 
         TabbedPanel tabbedPanel = findParent(TabbedPanel.class);
-        tabbedPanel.setSelectedTab(0);
-
         IModel<List<ITab>> tabs = tabbedPanel.getTabs();
+
         if (tabs instanceof LoadableModel) {
             ((LoadableModel) tabs).reset();
         }
+
+        tabbedPanel.setSelectedTab(0);
 
         target.add(tabbedPanel);
         target.add(page.getFeedbackPanel());
