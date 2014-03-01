@@ -337,5 +337,72 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <!-- the following types are related to script execution; these are experimental for now -->
+    <xsd:complexType name="XmlScriptsType">
+        <xsd:sequence>
+            <xsd:any minOccurs="0" maxOccurs="unbounded" />         <!-- objects substituable with s:expression should be put here -->
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ScriptOutputsType">
+        <xsd:sequence>
+            <xsd:element name="output" type="tns:SingleScriptOutputType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SingleScriptOutputType">
+        <xsd:sequence>
+            <xsd:choice>
+                <xsd:element name="xmlData" type="tns:ItemListType" />
+                <xsd:element name="mslData" type="xsd:string" />
+            </xsd:choice>
+            <xsd:element name="textOutput" type="xsd:string" minOccurs="0" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ItemListType">
+        <xsd:sequence>
+            <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
+                <!--<xsd:annotation>-->
+                    <!--<xsd:appinfo>-->
+                        <!--<jaxb:dom/>-->
+                    <!--</xsd:appinfo>-->
+                <!--</xsd:annotation>-->
+            </xsd:any>
+            <!--<xsd:element ref="c:object" minOccurs="0" maxOccurs="unbounded" />          &lt;!&ndash; temporary "solution" &ndash;&gt;-->
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ExecuteScriptsOptionsType">
+        <xsd:sequence>
+            <xsd:element name="outputFormat" type="tns:OutputFormatType" minOccurs="0"/>
+            <xsd:element name="objectLimit" type="xsd:int" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="OutputFormatType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="xml">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="XML"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="msl">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MSL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
 </xsd:schema>
 

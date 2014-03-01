@@ -79,6 +79,10 @@ public class ScriptingExpressionEvaluator {
 
     public ExecutionContext evaluateExpression(ExpressionType expression, OperationResult result) throws ScriptExecutionException {
         Task task = taskManager.createTaskInstance();
+        return evaluateExpression(expression, task, result);
+    }
+
+    public ExecutionContext evaluateExpression(ExpressionType expression, Task task, OperationResult result) throws ScriptExecutionException {
         ExecutionContext context = new ExecutionContext(task);
         Data output = evaluateExpression(expression, null, context, result);
         context.setFinalOutput(output);

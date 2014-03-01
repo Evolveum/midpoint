@@ -41,6 +41,7 @@ public abstract class SchemaConstants {
 	public static final String NS_ORG = "http://midpoint.evolveum.com/xml/ns/public/common/org-2";
 	public static final String NS_QUERY = "http://prism.evolveum.com/xml/ns/public/query-2";
 	public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-2";
+    public static final String NS_API_TYPES = "http://midpoint.evolveum.com/xml/ns/public/common/api-types-2";
 	public static final String NS_MIDPOINT_PUBLIC_PREFIX = "http://midpoint.evolveum.com/xml/ns/public/";
 	public static final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 	public static final String NS_C_PREFIX = "c";
