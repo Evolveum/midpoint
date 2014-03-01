@@ -19,6 +19,8 @@ package com.evolveum.midpoint.model.scripting.expressions;
 import com.evolveum.midpoint.model.scripting.Data;
 import com.evolveum.midpoint.model.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.scripting.ScriptExecutionException;
+import com.evolveum.midpoint.model.scripting.helpers.ExpressionHelper;
+import com.evolveum.midpoint.model.scripting.helpers.OperationsHelper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.QueryConvertor;
@@ -36,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.SearchExpressionType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -44,8 +47,18 @@ import org.springframework.stereotype.Component;
 @Component
 public class SearchEvaluator extends BaseExpressionEvaluator {
 
+    @Autowired
+    private ExpressionHelper expressionHelper;
+
+    @Autowired
+    private OperationsHelper operationsHelper;
+
+    private static final String PARAM_NO_FETCH = "noFetch";
+
     public <T extends ObjectType> Data evaluate(final SearchExpressionType searchExpression, Data input, final ExecutionContext context, final OperationResult result) throws ScriptExecutionException {
         Validate.notNull(searchExpression.getType());
+
+        boolean noFetch = expressionHelper.getArgumentAsBoolean(searchExpression.getParameter(), PARAM_NO_FETCH, input, context, false, "search", result);
 
         Class<T> objectClass = (Class) ObjectTypes.getObjectTypeFromTypeQName(searchExpression.getType()).getClassDefinition();
 
@@ -79,7 +92,7 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
                     }
                     ExpressionType childExpression = searchExpression.getExpression().getValue();
                     try {
-                        outputData.addAllFrom(scriptExpressionEvaluator.evaluateExpression(childExpression, Data.create(object), context, result));
+                        outputData.addAllFrom(scriptingExpressionEvaluator.evaluateExpression(childExpression, Data.create(object), context, result));
                     } catch (ScriptExecutionException e) {
                         throw new SystemException(e);           // todo think about this
                     }
@@ -91,7 +104,7 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
         };
 
         try {
-            modelService.searchObjectsIterative(objectClass, objectQuery, handler, null, context.getTask(), result);
+            modelService.searchObjectsIterative(objectClass, objectQuery, handler, operationsHelper.createGetOptions(noFetch), context.getTask(), result);
         } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException e) {
             throw new ScriptExecutionException("Couldn't execute searchObjects operation: " + e.getMessage(), e);
         }

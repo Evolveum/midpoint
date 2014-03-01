@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.model.scripting.actions;
+package com.evolveum.midpoint.model.scripting.helpers;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -39,7 +38,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -62,11 +60,14 @@ public class OperationsHelper {
         }
     }
 
-    <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, boolean noFetch, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+    public Collection<SelectorOptions<GetOperationOptions>> createGetOptions(boolean noFetch) {
+        LOGGER.info("noFetch = {}", noFetch);
+        return noFetch ? SelectorOptions.createCollection(GetOperationOptions.createNoFetch()) : null;
+    }
+
+    public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, boolean noFetch, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
         try {
-            Collection<SelectorOptions<GetOperationOptions>> options =
-                    noFetch ? SelectorOptions.createCollection(GetOperationOptions.createNoFetch()) : null;
-            return modelService.getObject(type, oid, options, context.getTask(), result);
+            return modelService.getObject(type, oid, createGetOptions(noFetch), context.getTask(), result);
         } catch (ConfigurationException|ObjectNotFoundException|SchemaException|CommunicationException|SecurityViolationException e) {
             throw new ScriptExecutionException("Couldn't get object: " + e.getMessage(), e);
         }

@@ -33,7 +33,6 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ActionExpressionTy
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionType;
 import com.evolveum.prism.xml.ns._public.types_2.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -49,19 +48,16 @@ public class ModifyExecutor extends BaseActionExecutor {
     private static final String NAME = "modify";
     private static final String PARAM_DELTA = "delta";
 
-    @Autowired
-    private OperationsHelper operationsHelper;
-
     @PostConstruct
     public void init() {
-        scriptExpressionEvaluator.registerActionExecutor(NAME, this);
+        scriptingExpressionEvaluator.registerActionExecutor(NAME, this);
     }
 
     @Override
     public Data execute(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
 
-        ExpressionType deltaExpression = getArgument(expression, PARAM_DELTA, true, true);
-        Data deltaData = scriptExpressionEvaluator.evaluateExpression(deltaExpression, input, context, result);
+        ExpressionType deltaExpression = expressionHelper.getArgument(expression.getParameter(), PARAM_DELTA, true, true, NAME);
+        Data deltaData = scriptingExpressionEvaluator.evaluateExpression(deltaExpression, input, context, result);
 
         if (input != null) {
             for (Item item : input.getData()) {

@@ -35,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ForeachExpressionT
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.SearchExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.SelectExpressionType;
 import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -53,10 +54,10 @@ import java.util.Map;
  * @author mederly
  */
 @Component
-public class ScriptExpressionEvaluator {
+public class ScriptingExpressionEvaluator {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ScriptExpressionEvaluator.class);
-    private static final String DOT_CLASS = ScriptExpressionEvaluator.class + ".";
+    private static final Trace LOGGER = TraceManager.getTrace(ScriptingExpressionEvaluator.class);
+    private static final String DOT_CLASS = ScriptingExpressionEvaluator.class + ".";
 
     @Autowired
     private TaskManager taskManager;
@@ -172,7 +173,12 @@ public class ScriptExpressionEvaluator {
             if (jaxbValue != null) {
                 return Data.createProperty(jaxbValue.getValue(), prismContext);
             } else {
-                return Data.createEmpty();
+                String text = element.getTextContent();
+                if (StringUtils.isNotEmpty(text)) {             // todo what if there will be only LF's among child elements? this needs to be thought out...
+                    return Data.createProperty(text, prismContext);
+                } else {
+                    return Data.createEmpty();
+                }
             }
         } else {
             return Data.createProperty(expression.getValue(), prismContext);

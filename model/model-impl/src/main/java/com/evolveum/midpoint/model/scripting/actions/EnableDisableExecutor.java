@@ -19,6 +19,7 @@ package com.evolveum.midpoint.model.scripting.actions;
 import com.evolveum.midpoint.model.scripting.Data;
 import com.evolveum.midpoint.model.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.scripting.ScriptExecutionException;
+import com.evolveum.midpoint.model.scripting.helpers.OperationsHelper;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -53,8 +54,8 @@ public class EnableDisableExecutor extends BaseActionExecutor {
 
     @PostConstruct
     public void init() {
-        scriptExpressionEvaluator.registerActionExecutor(NAME_ENABLE, this);
-        scriptExpressionEvaluator.registerActionExecutor(NAME_DISABLE, this);
+        scriptingExpressionEvaluator.registerActionExecutor(NAME_ENABLE, this);
+        scriptingExpressionEvaluator.registerActionExecutor(NAME_DISABLE, this);
     }
 
     @Override

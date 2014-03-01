@@ -163,6 +163,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="parameter" type="tns:ActionParameterValueType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Action parameters.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element ref="tns:expression" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>

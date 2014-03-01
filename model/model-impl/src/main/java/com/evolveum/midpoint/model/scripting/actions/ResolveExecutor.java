@@ -32,10 +32,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ActionExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionType;
 import com.evolveum.prism.xml.ns._public.types_2.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -54,18 +52,15 @@ public class ResolveExecutor extends BaseActionExecutor {
     private static final String NAME = "resolve";
     private static final String PARAM_NO_FETCH = "noFetch";
 
-    @Autowired
-    private OperationsHelper operationsHelper;
-
     @PostConstruct
     public void init() {
-        scriptExpressionEvaluator.registerActionExecutor(NAME, this);
+        scriptingExpressionEvaluator.registerActionExecutor(NAME, this);
     }
 
     @Override
     public Data execute(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
 
-        boolean noFetch = getArgumentAsBoolean(expression, PARAM_NO_FETCH, input, context, false, result);
+        boolean noFetch = expressionHelper.getArgumentAsBoolean(expression.getParameter(), PARAM_NO_FETCH, input, context, false, NAME, result);
 
         Data output = Data.createEmpty();
 

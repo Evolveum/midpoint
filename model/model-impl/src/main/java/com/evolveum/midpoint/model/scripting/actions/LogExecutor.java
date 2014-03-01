@@ -24,7 +24,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ActionExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -46,14 +45,14 @@ public class LogExecutor extends BaseActionExecutor {
 
     @PostConstruct
     public void init() {
-        scriptExpressionEvaluator.registerActionExecutor(NAME, this);
+        scriptingExpressionEvaluator.registerActionExecutor(NAME, this);
     }
 
     @Override
     public Data execute(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult parentResult) throws ScriptExecutionException {
 
-        String levelAsString = getArgumentAsString(expression, PARAM_LEVEL, input, context, LEVEL_INFO, parentResult);
-        String message = getArgumentAsString(expression, PARAM_MESSAGE, input, context, "Current data: ", parentResult);
+        String levelAsString = expressionHelper.getArgumentAsString(expression.getParameter(), PARAM_LEVEL, input, context, LEVEL_INFO, NAME, parentResult);
+        String message = expressionHelper.getArgumentAsString(expression.getParameter(), PARAM_MESSAGE, input, context, "Current data: ", NAME, parentResult);
         message += "{}";
 
         if (LEVEL_INFO.equals(levelAsString)) {

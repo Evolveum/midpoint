@@ -19,20 +19,19 @@ import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.scripting.Data;
 import com.evolveum.midpoint.model.scripting.ExecutionContext;
-import com.evolveum.midpoint.model.scripting.ScriptExpressionEvaluator;
+import com.evolveum.midpoint.model.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.test.LogfileTestTailer;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ActionExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ActionParameterValueType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ConstantExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionPipelineType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionSequenceType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -40,6 +39,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.util.List;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
@@ -54,10 +54,13 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 	
 	public static final File TEST_DIR = new File("src/test/resources/scripting");
     private static final String DOT_CLASS = TestScriptingBasic.class.getName() + ".";
+    private static final File LOG_FILE = new File(TEST_DIR, "log.xml");
     private static final File SEARCH_FOR_USERS_FILE = new File(TEST_DIR, "search-for-users.xml");
     private static final File SEARCH_FOR_SHADOWS_FILE = new File(TEST_DIR, "search-for-shadows.xml");
+    private static final File SEARCH_FOR_SHADOWS_NOFETCH_FILE = new File(TEST_DIR, "search-for-shadows-nofetch.xml");
     private static final File SEARCH_FOR_RESOURCES_FILE = new File(TEST_DIR, "search-for-resources.xml");
     private static final File SEARCH_FOR_USERS_ACCOUNTS_FILE = new File(TEST_DIR, "search-for-users-accounts.xml");
+    private static final File SEARCH_FOR_USERS_ACCOUNTS_NOFETCH_FILE = new File(TEST_DIR, "search-for-users-accounts-nofetch.xml");
     private static final File DISABLE_JACK_FILE = new File(TEST_DIR, "disable-jack.xml");
     private static final File ENABLE_JACK_FILE = new File(TEST_DIR, "enable-jack.xml");
     private static final File DELETE_AND_ADD_JACK_FILE = new File(TEST_DIR, "delete-and-add-jack.xml");
@@ -65,7 +68,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     private static final File MODIFY_JACK_BACK_FILE = new File(TEST_DIR, "modify-jack-back.xml");
 
     @Autowired
-    private ScriptExpressionEvaluator scriptExpressionEvaluator;
+    private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
 
     @Override
 	public void initSystem(Task initTask, OperationResult initResult)
@@ -85,7 +88,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExpressionSequenceType sequence = new ExpressionSequenceType();
 
         // WHEN
-        ExecutionContext output = scriptExpressionEvaluator.evaluateExpression(sequence, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(sequence, result);
 
         // THEN
         assertNoOutputData(output);
@@ -102,7 +105,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExpressionPipelineType pipeline = new ExpressionPipelineType();
 
         // WHEN
-        ExecutionContext output = scriptExpressionEvaluator.evaluateExpression(pipeline, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(pipeline, result);
 
         // THEN
         assertNoOutputData(output);
@@ -116,22 +119,14 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + "test120Log");
-
-        ActionExpressionType action = new ActionExpressionType();
-        action.setType("log");
-        ConstantExpressionType messageParameterValue = new ConstantExpressionType();
-        messageParameterValue.setValue("Custom message: ");
-        ActionParameterValueType messageParameter = new ActionParameterValueType();
-        messageParameter.setName("message");
-        messageParameter.setExpression(new ObjectFactory().createConstant(messageParameterValue));
-        action.getParameter().add(messageParameter);
+        ExpressionType action = prismContext.getPrismJaxbProcessor().unmarshalElement(LOG_FILE, ExpressionType.class).getValue();
 
         LogfileTestTailer tailer = new LogfileTestTailer();
         tailer.tail();
         tailer.setExpecteMessage("Custom message:");
 
         // WHEN
-        ExecutionContext output = scriptExpressionEvaluator.evaluateExpression(action, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(action, result);
 
         // THEN
         assertNoOutputData(output);
@@ -150,14 +145,14 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(SEARCH_FOR_USERS_FILE, ExpressionType.class).getValue();
 
         // WHEN
-        Data output = scriptExpressionEvaluator.evaluateExpression(expression, result).getFinalOutput();
+        Data output = scriptingExpressionEvaluator.evaluateExpression(expression, result).getFinalOutput();
 
         // THEN
         IntegrationTestTools.display("output", output.getData());
-        assertEquals(2, output.getData().size());
-        //assertEquals("administrator", ((PrismObject<UserType>) output.getData().get(0)).asObjectable().getName().getOrig());
         result.computeStatus();
         TestUtil.assertSuccess(result);
+        assertEquals(2, output.getData().size());
+        //assertEquals("administrator", ((PrismObject<UserType>) output.getData().get(0)).asObjectable().getName().getOrig());
     }
 
     @Test
@@ -169,13 +164,13 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(SEARCH_FOR_RESOURCES_FILE, ExpressionType.class).getValue();
 
         // WHEN
-        Data output = scriptExpressionEvaluator.evaluateExpression(expression, result).getFinalOutput();
+        Data output = scriptingExpressionEvaluator.evaluateExpression(expression, result).getFinalOutput();
 
         // THEN
         IntegrationTestTools.display("output", output.getData());
-        //assertEquals(2, output.getData().size());
         result.computeStatus();
         TestUtil.assertSuccess(result);
+        assertEquals(9, output.getData().size());
     }
 
     @Test
@@ -187,13 +182,33 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(SEARCH_FOR_SHADOWS_FILE, ExpressionType.class).getValue();
 
         // WHEN
-        Data output = scriptExpressionEvaluator.evaluateExpression(expression, result).getFinalOutput();
+        Data output = scriptingExpressionEvaluator.evaluateExpression(expression, result).getFinalOutput();
 
         // THEN
         IntegrationTestTools.display("output", output.getData());
-        //assertEquals(2, output.getData().size());
         result.computeStatus();
         TestUtil.assertSuccess(result);
+        assertEquals(5, output.getData().size());
+        assertAttributesFetched(output.getData());
+    }
+
+    @Test
+    public void test215SearchForShadowsNoFetch() throws Exception {
+        TestUtil.displayTestTile(this, "test215SearchForShadowsNoFetch");
+
+        // GIVEN
+        OperationResult result = new OperationResult(DOT_CLASS + "test215SearchForShadowsNoFetch");
+        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(SEARCH_FOR_SHADOWS_NOFETCH_FILE, ExpressionType.class).getValue();
+
+        // WHEN
+        Data output = scriptingExpressionEvaluator.evaluateExpression(expression, result).getFinalOutput();
+
+        // THEN
+        IntegrationTestTools.display("output", output.getData());
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        assertEquals(5, output.getData().size());
+        assertAttributesNotFetched(output.getData());
     }
 
     @Test
@@ -205,13 +220,33 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(SEARCH_FOR_USERS_ACCOUNTS_FILE, ExpressionType.class).getValue();
 
         // WHEN
-        Data output = scriptExpressionEvaluator.evaluateExpression(expression, result).getFinalOutput();
+        Data output = scriptingExpressionEvaluator.evaluateExpression(expression, result).getFinalOutput();
 
         // THEN
         IntegrationTestTools.display("output", output.getData());
-        //assertEquals(2, output.getData().size());
         result.computeStatus();
         TestUtil.assertSuccess(result);
+        assertEquals(4, output.getData().size());
+        assertAttributesFetched(output.getData());
+    }
+
+    @Test
+    public void test225SearchForUsersAccountsNoFetch() throws Exception {
+        TestUtil.displayTestTile(this, "test225SearchForUsersAccountsNoFetch");
+
+        // GIVEN
+        OperationResult result = new OperationResult(DOT_CLASS + "test225SearchForUsersAccountsNoFetch");
+        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(SEARCH_FOR_USERS_ACCOUNTS_NOFETCH_FILE, ExpressionType.class).getValue();
+
+        // WHEN
+        Data output = scriptingExpressionEvaluator.evaluateExpression(expression, result).getFinalOutput();
+
+        // THEN
+        IntegrationTestTools.display("output", output.getData());
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        assertEquals(4, output.getData().size());
+        assertAttributesNotFetched(output.getData());
     }
 
     @Test
@@ -223,7 +258,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(DISABLE_JACK_FILE, ExpressionType.class).getValue();
 
         // WHEN
-        ExecutionContext output = scriptExpressionEvaluator.evaluateExpression(expression, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, result);
 
         // THEN
         assertNoOutputData(output);
@@ -243,14 +278,14 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(ENABLE_JACK_FILE, ExpressionType.class).getValue();
 
         // WHEN
-        ExecutionContext output = scriptExpressionEvaluator.evaluateExpression(expression, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, result);
 
         // THEN
         assertNoOutputData(output);
         IntegrationTestTools.display("stdout", output.getStdOut());
-        assertEquals("Enabled user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getStdOut());
         result.computeStatus();
         TestUtil.assertSuccess(result);
+        assertEquals("Enabled user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getStdOut());
         assertAdministrativeStatusEnabled(searchObjectByName(UserType.class, "jack"));
     }
 
@@ -263,14 +298,14 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(DELETE_AND_ADD_JACK_FILE, ExpressionType.class).getValue();
 
         // WHEN
-        ExecutionContext output = scriptExpressionEvaluator.evaluateExpression(expression, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, result);
 
         // THEN
         assertNoOutputData(output);
         IntegrationTestTools.display("stdout", output.getStdOut());
-        assertEquals("Deleted user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\nAdded user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getStdOut());
         result.computeStatus();
         TestUtil.assertSuccess(result);
+        assertEquals("Deleted user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\nAdded user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getStdOut());
         assertAdministrativeStatusEnabled(searchObjectByName(UserType.class, "jack"));
     }
 
@@ -283,15 +318,15 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(MODIFY_JACK_FILE, ExpressionType.class).getValue();
 
         // WHEN
-        ExecutionContext output = scriptExpressionEvaluator.evaluateExpression(expression, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, result);
 
         // THEN
         assertNoOutputData(output);
         IntegrationTestTools.display("stdout", output.getStdOut());
         IntegrationTestTools.display(result);
-        assertEquals("Modified user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getStdOut());
         result.computeStatus();
         TestUtil.assertSuccess(result);
+        assertEquals("Modified user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getStdOut());
         assertEquals("Nowhere", searchObjectByName(UserType.class, "jack").asObjectable().getLocality().getOrig());
     }
 
@@ -304,21 +339,40 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(MODIFY_JACK_BACK_FILE, ExpressionType.class).getValue();
 
         // WHEN
-        ExecutionContext output = scriptExpressionEvaluator.evaluateExpression(expression, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, result);
 
         // THEN
         assertNoOutputData(output);
         IntegrationTestTools.display("stdout", output.getStdOut());
         IntegrationTestTools.display(result);
-        assertEquals("Modified user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getStdOut());
         result.computeStatus();
         TestUtil.assertSuccess(result);
+        assertEquals("Modified user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getStdOut());
         assertEquals("Caribbean", searchObjectByName(UserType.class, "jack").asObjectable().getLocality().getOrig());
     }
 
     private void assertNoOutputData(ExecutionContext output) {
         assertTrue("Script returned unexpected data", output.getFinalOutput() == null || output.getFinalOutput().getData().isEmpty());
     }
+
+    // the following tests are a bit crude but for now it should be OK
+
+    private void assertAttributesNotFetched(List<Item> data) {
+        for (Item item : data) {
+            if (((PrismObject<ShadowType>) item).asObjectable().getAttributes().getAny().size() > 2) {
+                throw new AssertionError("There are some unexpected attributes present in " + item.debugDump());
+            }
+        }
+    }
+
+    private void assertAttributesFetched(List<Item> data) {
+        for (Item item : data) {
+            if (((PrismObject<ShadowType>) item).asObjectable().getAttributes().getAny().size() <= 2) {
+                throw new AssertionError("There are no attributes present in " + item.debugDump());
+            }
+        }
+    }
+
 
 
 }
