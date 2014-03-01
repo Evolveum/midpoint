@@ -22,6 +22,8 @@ import com.evolveum.midpoint.model.scripting.ScriptExecutionException;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -37,17 +39,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
 
 /**
+ * Resolves a reference, e.g. a linkRef into a set of accounts.
+ *
  * @author mederly
  */
 @Component
-public class ModifyExecutor extends BaseActionExecutor {
+public class ResolveExecutor extends BaseActionExecutor {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ModifyExecutor.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ResolveExecutor.class);
 
-    private static final String NAME = "modify";
-    private static final String PARAM_DELTA = "delta";
+    private static final String NAME = "resolve";
+    private static final String PARAM_NO_FETCH = "noFetch";
 
     @Autowired
     private OperationsHelper operationsHelper;
@@ -60,22 +65,33 @@ public class ModifyExecutor extends BaseActionExecutor {
     @Override
     public Data execute(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
 
-        ExpressionType deltaExpression = getArgument(expression, PARAM_DELTA, true, true);
-        Data deltaData = scriptExpressionEvaluator.evaluateExpression(deltaExpression, input, context, result);
+        boolean noFetch = getArgumentAsBoolean(expression, PARAM_NO_FETCH, input, context, false, result);
+
+        Data output = Data.createEmpty();
 
         if (input != null) {
             for (Item item : input.getData()) {
-                if (item instanceof PrismObject) {
-                    PrismObject<? extends ObjectType> prismObject = (PrismObject) item;
-                    ObjectType objectType = prismObject.asObjectable();
-                    operationsHelper.applyDelta(createDelta(objectType, deltaData), context, result);
-                    context.println("Modified " + item.toString());
+                if (item instanceof PrismReference) {
+                    PrismReference prismReference = (PrismReference) item;
+                    for (PrismReferenceValue prismReferenceValue : prismReference.getValues()) {
+                        String oid = prismReferenceValue.getOid();
+                        QName targetTypeQName = prismReferenceValue.getTargetType();
+                        if (targetTypeQName == null) {
+                            throw new ScriptExecutionException("Couldn't resolve reference, because target type is unknown: " + prismReferenceValue);
+                        }
+                        Class<? extends ObjectType> typeClass = (Class<? extends ObjectType>) prismContext.getSchemaRegistry().determineCompileTimeClass(targetTypeQName);
+                        if (typeClass == null) {
+                            throw new ScriptExecutionException("Couldn't resolve reference, because target type class is unknown for target type " + targetTypeQName);
+                        }
+                        PrismObject<? extends ObjectType> prismObject = operationsHelper.getObject(typeClass, oid, noFetch, context, result);
+                        output.addItem(prismObject);
+                    }
                 } else {
-                    throw new ScriptExecutionException("Item could not be modified, because it is not a PrismObject: " + item.toString());
+                    throw new ScriptExecutionException("Item could not be resolved, because it is not a PrismReference: " + item.toString());
                 }
             }
         }
-        return null;
+        return output;
     }
 
     private ObjectDelta createDelta(ObjectType objectType, Data deltaData) throws ScriptExecutionException {

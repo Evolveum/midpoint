@@ -19,7 +19,7 @@ import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.scripting.Data;
 import com.evolveum.midpoint.model.scripting.ExecutionContext;
-import com.evolveum.midpoint.model.scripting.RootExpressionEvaluator;
+import com.evolveum.midpoint.model.scripting.ScriptExpressionEvaluator;
 import com.evolveum.midpoint.model.test.LogfileTestTailer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -55,6 +55,9 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 	public static final File TEST_DIR = new File("src/test/resources/scripting");
     private static final String DOT_CLASS = TestScriptingBasic.class.getName() + ".";
     private static final File SEARCH_FOR_USERS_FILE = new File(TEST_DIR, "search-for-users.xml");
+    private static final File SEARCH_FOR_SHADOWS_FILE = new File(TEST_DIR, "search-for-shadows.xml");
+    private static final File SEARCH_FOR_RESOURCES_FILE = new File(TEST_DIR, "search-for-resources.xml");
+    private static final File SEARCH_FOR_USERS_ACCOUNTS_FILE = new File(TEST_DIR, "search-for-users-accounts.xml");
     private static final File DISABLE_JACK_FILE = new File(TEST_DIR, "disable-jack.xml");
     private static final File ENABLE_JACK_FILE = new File(TEST_DIR, "enable-jack.xml");
     private static final File DELETE_AND_ADD_JACK_FILE = new File(TEST_DIR, "delete-and-add-jack.xml");
@@ -62,7 +65,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     private static final File MODIFY_JACK_BACK_FILE = new File(TEST_DIR, "modify-jack-back.xml");
 
     @Autowired
-    private RootExpressionEvaluator rootExpressionEvaluator;
+    private ScriptExpressionEvaluator scriptExpressionEvaluator;
 
     @Override
 	public void initSystem(Task initTask, OperationResult initResult)
@@ -82,7 +85,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExpressionSequenceType sequence = new ExpressionSequenceType();
 
         // WHEN
-        ExecutionContext output = rootExpressionEvaluator.evaluateExpression(sequence, result);
+        ExecutionContext output = scriptExpressionEvaluator.evaluateExpression(sequence, result);
 
         // THEN
         assertNoOutputData(output);
@@ -99,7 +102,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExpressionPipelineType pipeline = new ExpressionPipelineType();
 
         // WHEN
-        ExecutionContext output = rootExpressionEvaluator.evaluateExpression(pipeline, result);
+        ExecutionContext output = scriptExpressionEvaluator.evaluateExpression(pipeline, result);
 
         // THEN
         assertNoOutputData(output);
@@ -128,7 +131,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         tailer.setExpecteMessage("Custom message:");
 
         // WHEN
-        ExecutionContext output = rootExpressionEvaluator.evaluateExpression(action, result);
+        ExecutionContext output = scriptExpressionEvaluator.evaluateExpression(action, result);
 
         // THEN
         assertNoOutputData(output);
@@ -147,12 +150,66 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(SEARCH_FOR_USERS_FILE, ExpressionType.class).getValue();
 
         // WHEN
-        Data output = rootExpressionEvaluator.evaluateExpression(expression, result).getFinalOutput();
+        Data output = scriptExpressionEvaluator.evaluateExpression(expression, result).getFinalOutput();
 
         // THEN
         IntegrationTestTools.display("output", output.getData());
         assertEquals(2, output.getData().size());
         //assertEquals("administrator", ((PrismObject<UserType>) output.getData().get(0)).asObjectable().getName().getOrig());
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+    }
+
+    @Test
+    public void test205SearchForResources() throws Exception {
+        TestUtil.displayTestTile(this, "test205SearchForResources");
+
+        // GIVEN
+        OperationResult result = new OperationResult(DOT_CLASS + "test205SearchForResources");
+        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(SEARCH_FOR_RESOURCES_FILE, ExpressionType.class).getValue();
+
+        // WHEN
+        Data output = scriptExpressionEvaluator.evaluateExpression(expression, result).getFinalOutput();
+
+        // THEN
+        IntegrationTestTools.display("output", output.getData());
+        //assertEquals(2, output.getData().size());
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+    }
+
+    @Test
+    public void test210SearchForShadows() throws Exception {
+        TestUtil.displayTestTile(this, "test210SearchForShadows");
+
+        // GIVEN
+        OperationResult result = new OperationResult(DOT_CLASS + "test210SearchForShadows");
+        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(SEARCH_FOR_SHADOWS_FILE, ExpressionType.class).getValue();
+
+        // WHEN
+        Data output = scriptExpressionEvaluator.evaluateExpression(expression, result).getFinalOutput();
+
+        // THEN
+        IntegrationTestTools.display("output", output.getData());
+        //assertEquals(2, output.getData().size());
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+    }
+
+    @Test
+    public void test220SearchForUsersAccounts() throws Exception {
+        TestUtil.displayTestTile(this, "test220SearchForUsersAccounts");
+
+        // GIVEN
+        OperationResult result = new OperationResult(DOT_CLASS + "test220SearchForUsersAccounts");
+        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(SEARCH_FOR_USERS_ACCOUNTS_FILE, ExpressionType.class).getValue();
+
+        // WHEN
+        Data output = scriptExpressionEvaluator.evaluateExpression(expression, result).getFinalOutput();
+
+        // THEN
+        IntegrationTestTools.display("output", output.getData());
+        //assertEquals(2, output.getData().size());
         result.computeStatus();
         TestUtil.assertSuccess(result);
     }
@@ -166,7 +223,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(DISABLE_JACK_FILE, ExpressionType.class).getValue();
 
         // WHEN
-        ExecutionContext output = rootExpressionEvaluator.evaluateExpression(expression, result);
+        ExecutionContext output = scriptExpressionEvaluator.evaluateExpression(expression, result);
 
         // THEN
         assertNoOutputData(output);
@@ -186,7 +243,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(ENABLE_JACK_FILE, ExpressionType.class).getValue();
 
         // WHEN
-        ExecutionContext output = rootExpressionEvaluator.evaluateExpression(expression, result);
+        ExecutionContext output = scriptExpressionEvaluator.evaluateExpression(expression, result);
 
         // THEN
         assertNoOutputData(output);
@@ -206,7 +263,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(DELETE_AND_ADD_JACK_FILE, ExpressionType.class).getValue();
 
         // WHEN
-        ExecutionContext output = rootExpressionEvaluator.evaluateExpression(expression, result);
+        ExecutionContext output = scriptExpressionEvaluator.evaluateExpression(expression, result);
 
         // THEN
         assertNoOutputData(output);
@@ -226,7 +283,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(MODIFY_JACK_FILE, ExpressionType.class).getValue();
 
         // WHEN
-        ExecutionContext output = rootExpressionEvaluator.evaluateExpression(expression, result);
+        ExecutionContext output = scriptExpressionEvaluator.evaluateExpression(expression, result);
 
         // THEN
         assertNoOutputData(output);
@@ -247,7 +304,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(MODIFY_JACK_BACK_FILE, ExpressionType.class).getValue();
 
         // WHEN
-        ExecutionContext output = rootExpressionEvaluator.evaluateExpression(expression, result);
+        ExecutionContext output = scriptExpressionEvaluator.evaluateExpression(expression, result);
 
         // THEN
         assertNoOutputData(output);

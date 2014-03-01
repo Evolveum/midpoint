@@ -22,22 +22,15 @@ import com.evolveum.midpoint.model.scripting.ScriptExecutionException;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ActionExpressionType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author mederly
@@ -54,7 +47,7 @@ public class DeleteExecutor extends BaseActionExecutor {
 
     @PostConstruct
     public void init() {
-        rootExpressionEvaluator.registerActionExecutor(NAME, this);
+        scriptExpressionEvaluator.registerActionExecutor(NAME, this);
     }
 
     @Override
@@ -68,9 +61,7 @@ public class DeleteExecutor extends BaseActionExecutor {
                     operationsHelper.applyDelta(createDeleteDelta(objectType), context, result);
                     context.println("Deleted " + item.toString());
                 } else {
-                    String m = "Item is not a PrismObject, 'delete' operation skipped: " + item.toString();
-                    LOGGER.warn(m);
-                    context.println(m);
+                    throw new ScriptExecutionException("Item couldn't be deleted, because it is not a PrismObject: " + item.toString());
                 }
             }
         }

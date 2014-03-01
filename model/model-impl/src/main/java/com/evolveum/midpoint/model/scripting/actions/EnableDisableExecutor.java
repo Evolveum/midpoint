@@ -36,8 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author mederly
@@ -55,8 +53,8 @@ public class EnableDisableExecutor extends BaseActionExecutor {
 
     @PostConstruct
     public void init() {
-        rootExpressionEvaluator.registerActionExecutor(NAME_ENABLE, this);
-        rootExpressionEvaluator.registerActionExecutor(NAME_DISABLE, this);
+        scriptExpressionEvaluator.registerActionExecutor(NAME_ENABLE, this);
+        scriptExpressionEvaluator.registerActionExecutor(NAME_DISABLE, this);
     }
 
     @Override
@@ -76,14 +74,10 @@ public class EnableDisableExecutor extends BaseActionExecutor {
                         operationsHelper.applyDelta(createEnableDisableDelta((ShadowType) objectType, isEnable), context, result);
                         context.println((isEnable ? "Enabled " : "Disabled ") + item.toString());
                     } else {
-                        String m = "Item is not a FocusType nor ShadowType, enable/disable operation skipped: " + item.toString();
-                        LOGGER.warn(m);
-                        context.println(m);
+                        throw new ScriptExecutionException("Item could not be enabled/disabled, because it is not a FocusType nor ShadowType: " + item.toString());
                     }
                 } else {
-                    String m = "Item is not a PrismObject, enable/disable operation skipped: " + item.toString();
-                    LOGGER.warn(m);
-                    context.println(m);
+                    throw new ScriptExecutionException("Item could not be enabled/disabled, because it is not a PrismObject: " + item.toString());
                 }
             }
         }

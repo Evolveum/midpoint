@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.model.scripting.expressions;
 
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.scripting.RootExpressionEvaluator;
+import com.evolveum.midpoint.model.scripting.ScriptExpressionEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.task.api.TaskManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +37,6 @@ public class BaseExpressionEvaluator {
     PrismContext prismContext;
 
     @Autowired
-    RootExpressionEvaluator rootExpressionEvaluator;
+    ScriptExpressionEvaluator scriptExpressionEvaluator;
 
 }

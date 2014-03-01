@@ -17,15 +17,16 @@
 package com.evolveum.midpoint.model.scripting.actions;
 
 import com.evolveum.midpoint.model.scripting.ActionExecutor;
+import com.evolveum.midpoint.model.scripting.Data;
+import com.evolveum.midpoint.model.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.scripting.ScriptExecutionException;
-import com.evolveum.midpoint.model.scripting.RootExpressionEvaluator;
+import com.evolveum.midpoint.model.scripting.ScriptExpressionEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ActionExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ActionParameterValueType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionType;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.annotation.PostConstruct;
 
 /**
  * @author mederly
@@ -33,7 +34,7 @@ import javax.annotation.PostConstruct;
 public abstract class BaseActionExecutor implements ActionExecutor {
 
     @Autowired
-    protected RootExpressionEvaluator rootExpressionEvaluator;
+    protected ScriptExpressionEvaluator scriptExpressionEvaluator;
 
     @Autowired
     protected PrismContext prismContext;
@@ -63,6 +64,31 @@ public abstract class BaseActionExecutor implements ActionExecutor {
             return null;
         }
     }
+
+    protected String getArgumentAsString(ActionExpressionType expression, String argumentName, Data input, ExecutionContext context, String defaultValue, OperationResult parentResult) throws ScriptExecutionException {
+        ExpressionType argumentExpression = getArgument(expression, argumentName);
+        if (argumentExpression != null) {
+            Data level = scriptExpressionEvaluator.evaluateExpression(argumentExpression, input, context, parentResult);
+            if (level != null) {
+                return level.getDataAsSingleString();
+            }
+        }
+        return defaultValue;
+    }
+
+    protected Boolean getArgumentAsBoolean(ActionExpressionType expression, String argumentName, Data input, ExecutionContext context, Boolean defaultValue, OperationResult parentResult) throws ScriptExecutionException {
+        String stringValue = getArgumentAsString(expression, argumentName, input, context, null, parentResult);
+        if (stringValue == null) {
+            return defaultValue;
+        } else if ("true".equals(stringValue)) {
+            return Boolean.TRUE;
+        } else if ("false".equals(stringValue)) {
+            return Boolean.FALSE;
+        } else {
+            throw new ScriptExecutionException("Invalid value for a boolean parameter '" + argumentName + "': " + stringValue);
+        }
+    }
+
 
     //protected Data getArgumentValue(ActionExpressionType actionExpression, String parameterName, boolean required) throws ScriptExecutionException {
 

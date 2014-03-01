@@ -44,7 +44,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class SearchEvaluator extends BaseExpressionEvaluator {
 
-    public <T extends ObjectType> Data execute(final SearchExpressionType searchExpression, Data input, final ExecutionContext context, final OperationResult result) throws ScriptExecutionException {
+    public <T extends ObjectType> Data evaluate(final SearchExpressionType searchExpression, Data input, final ExecutionContext context, final OperationResult result) throws ScriptExecutionException {
         Validate.notNull(searchExpression.getType());
 
         Class<T> objectClass = (Class) ObjectTypes.getObjectTypeFromTypeQName(searchExpression.getType()).getClassDefinition();
@@ -79,7 +79,7 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
                     }
                     ExpressionType childExpression = searchExpression.getExpression().getValue();
                     try {
-                        outputData.addAllFrom(rootExpressionEvaluator.evaluateExpression(childExpression, Data.create(object), context, result));
+                        outputData.addAllFrom(scriptExpressionEvaluator.evaluateExpression(childExpression, Data.create(object), context, result));
                     } catch (ScriptExecutionException e) {
                         throw new SystemException(e);           // todo think about this
                     }

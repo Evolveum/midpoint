@@ -360,7 +360,7 @@ public class NodeRegistrar {
 
     private List<PrismObject<NodeType>> findNodesWithGivenName(OperationResult result, PolyStringType name) throws SchemaException {
 
-        ObjectQuery q = ObjectQueryUtil.createNameQuery(name, getPrismContext());
+        ObjectQuery q = ObjectQueryUtil.createOrigNameQuery(name, getPrismContext());
 //    	ObjectQuery q = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(NodeType.F_NAME, NodeType.class, getPrismContext(), null, name));
         return getRepositoryService().searchObjects(NodeType.class, q, null, result);
     }

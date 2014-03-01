@@ -31,8 +31,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author mederly
@@ -49,7 +47,7 @@ public class AddExecutor extends BaseActionExecutor {
 
     @PostConstruct
     public void init() {
-        rootExpressionEvaluator.registerActionExecutor(NAME, this);
+        scriptExpressionEvaluator.registerActionExecutor(NAME, this);
     }
 
     @Override
@@ -63,9 +61,7 @@ public class AddExecutor extends BaseActionExecutor {
                     operationsHelper.applyDelta(createAddDelta(objectType), context, result);
                     context.println("Added " + item.toString());
                 } else {
-                    String m = "Item is not a PrismObject, 'add' operation skipped: " + item.toString();
-                    LOGGER.warn(m);
-                    context.println(m);
+                    throw new ScriptExecutionException("Item couldn't be added, because it is not a PrismObject: " + item.toString());
                 }
             }
         }

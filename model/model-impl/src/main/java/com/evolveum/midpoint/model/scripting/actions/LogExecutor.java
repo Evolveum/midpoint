@@ -46,7 +46,7 @@ public class LogExecutor extends BaseActionExecutor {
 
     @PostConstruct
     public void init() {
-        rootExpressionEvaluator.registerActionExecutor(NAME, this);
+        scriptExpressionEvaluator.registerActionExecutor(NAME, this);
     }
 
     @Override
@@ -72,16 +72,5 @@ public class LogExecutor extends BaseActionExecutor {
             LOGGER.warn("Invalid logging level specified for 'log' scripting action: " + levelAsString);
         }
         return input;
-    }
-
-    private String getArgumentAsString(ActionExpressionType expression, String argumentName, Data input, ExecutionContext context, String defaultValue, OperationResult parentResult) throws ScriptExecutionException {
-        ExpressionType levelExpression = getArgument(expression, argumentName);
-        if (levelExpression != null) {
-            Data level = rootExpressionEvaluator.evaluateExpression(levelExpression, input, context, parentResult);
-            if (level != null) {
-                return level.getDataAsSingleString();
-            }
-        }
-        return defaultValue;
     }
 }

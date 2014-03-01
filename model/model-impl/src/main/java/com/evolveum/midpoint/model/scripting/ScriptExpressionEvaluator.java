@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.model.scripting;
 
 import com.evolveum.midpoint.model.scripting.expressions.SearchEvaluator;
+import com.evolveum.midpoint.model.scripting.expressions.SelectEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -52,16 +53,19 @@ import java.util.Map;
  * @author mederly
  */
 @Component
-public class RootExpressionEvaluator {
+public class ScriptExpressionEvaluator {
 
-    private static final Trace LOGGER = TraceManager.getTrace(RootExpressionEvaluator.class);
-    private static final String DOT_CLASS = RootExpressionEvaluator.class + ".";
+    private static final Trace LOGGER = TraceManager.getTrace(ScriptExpressionEvaluator.class);
+    private static final String DOT_CLASS = ScriptExpressionEvaluator.class + ".";
 
     @Autowired
     private TaskManager taskManager;
 
     @Autowired
-    private SearchEvaluator searchExecutor;
+    private SearchEvaluator searchEvaluator;
+
+    @Autowired
+    private SelectEvaluator selectEvaluator;
 
     @Autowired
     private PrismContext prismContext;
@@ -90,11 +94,11 @@ public class RootExpressionEvaluator {
         } else if (expression instanceof ForeachExpressionType) {
             output = executeForEach((ForeachExpressionType) expression, input, context, result);
         } else if (expression instanceof SelectExpressionType) {
-            output = executeSelect((SelectExpressionType) expression, input, context, result);
+            output = selectEvaluator.evaluate((SelectExpressionType) expression, input, context, result);
         } else if (expression instanceof FilterExpressionType) {
             output = executeFilter((FilterExpressionType) expression, input, context, result);
         } else if (expression instanceof SearchExpressionType) {
-            output = searchExecutor.execute((SearchExpressionType) expression, input, context, result);
+            output = searchEvaluator.evaluate((SearchExpressionType) expression, input, context, result);
         } else if (expression instanceof ActionExpressionType) {
             output = executeAction((ActionExpressionType) expression, input, context, result);
         } else if (expression instanceof ConstantExpressionType) {
@@ -125,10 +129,6 @@ public class RootExpressionEvaluator {
 
 
     private Data executeFilter(FilterExpressionType command, Data input, ExecutionContext context, OperationResult result) {
-        throw new NotImplementedException();
-    }
-
-    private Data executeSelect(SelectExpressionType command, Data input, ExecutionContext context, OperationResult result) {
         throw new NotImplementedException();
     }
 
