@@ -15,16 +15,6 @@
  */
 package com.evolveum.midpoint.prism;
 
-import java.io.File;
-import java.io.IOException;
-
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
-
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -33,10 +23,18 @@ import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * @author semancik
@@ -110,7 +108,7 @@ public class PrismContext {
 		this.prismDomProcessor = prismDomProcessor;
 	}
 
-	public SchemaDefinitionFactory getDefinitionFactory() {
+    public SchemaDefinitionFactory getDefinitionFactory() {
 		if (definitionFactory == null) {
 			definitionFactory = new SchemaDefinitionFactory();
 		}

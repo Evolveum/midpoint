@@ -21,7 +21,6 @@ import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -36,20 +35,16 @@ import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.aspectj.weaver.bcel.TypeAnnotationAccessVar;
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -297,13 +292,18 @@ class DomToSchemaProcessor {
 		ComplexTypeDefinition ctd = definitionFactory.createComplexTypeDefinition(complexType, prismContext, complexType.getAnnotation());
 				
 		XSContentType content = complexType.getContentType();
+        XSContentType explicitContent = complexType.getExplicitContent();
 		if (content != null) {
 			XSParticle particle = content.asParticle();
 			if (particle != null) {
 				XSTerm term = particle.getTerm();
 
 				if (term.isModelGroup()) {
-					addPropertyDefinitionListFromGroup(term.asModelGroup(), ctd);
+                    Boolean inherited = null;
+                    if (explicitContent == null || content == explicitContent) {
+                        inherited = false;
+                    }
+					addPropertyDefinitionListFromGroup(term.asModelGroup(), ctd, inherited, explicitContent);
 				}
 			}
 			
@@ -369,16 +369,20 @@ class DomToSchemaProcessor {
 	 * Creates ComplexTypeDefinition object from a XSModelGroup inside XSD complexType definition.
 	 * This is a recursive method. It can create "anonymous" internal PropertyContainerDefinitions.
 	 * The definitions will be added to the ComplexTypeDefinition provided as parameter.
-	 * @param group XSD XSModelGroup
-	 * @param ctd ComplexTypeDefinition that will hold the definitions
-	 */
-	private void addPropertyDefinitionListFromGroup(XSModelGroup group, ComplexTypeDefinition ctd) throws SchemaException {
+     * @param group XSD XSModelGroup
+     * @param ctd ComplexTypeDefinition that will hold the definitions
+     * @param inherited Are these properties inherited? (null means we don't know and we'll determine that from explicitContent)
+     * @param explicitContent Explicit (i.e. non-inherited) content of the type being parsed - filled-in only for subtypes!
+     */
+	private void addPropertyDefinitionListFromGroup(XSModelGroup group, ComplexTypeDefinition ctd, Boolean inherited, XSContentType explicitContent) throws SchemaException {
 
 		XSParticle[] particles = group.getChildren();
 		for (XSParticle p : particles) {
+            boolean particleInherited =
+                    inherited != null ? inherited : (p != explicitContent);
 			XSTerm pterm = p.getTerm();
 			if (pterm.isModelGroup()) {
-				addPropertyDefinitionListFromGroup(pterm.asModelGroup(), ctd);
+				addPropertyDefinitionListFromGroup(pterm.asModelGroup(), ctd, particleInherited, explicitContent);
 			}
 
 			// xs:element inside complex type
@@ -393,7 +397,7 @@ class DomToSchemaProcessor {
 			
 				if (isObjectReference(xsType, annotation)) {
 				
-					processObjectReferenceDefinition(xsType, elementName, annotation, ctd, p);					
+					processObjectReferenceDefinition(xsType, elementName, annotation, ctd, p, particleInherited);
 				
 				} else if (isObjectDefinition(xsType)) {					
 					// This is object reference. It also has its *Ref equivalent which will get parsed.
@@ -406,10 +410,12 @@ class DomToSchemaProcessor {
 							XSAnnotation containerAnnotation = xsType.getAnnotation();
 							PrismContainerDefinition<?> containerDefinition = createPropertyContainerDefinition(xsType, p,
 									null, containerAnnotation, false);
+                            containerDefinition.setInherited(particleInherited);
 							ctd.addDefinition(containerDefinition);
 						} else {
 							PrismPropertyDefinition propDef = createPropertyDefinition(xsType, elementName, DOMUtil.XSD_ANY,
 									ctd, annotation, p);
+                            propDef.setInherited(particleInherited);
 							ctd.addDefinition(propDef);
 						}
 					}
@@ -441,6 +447,7 @@ class DomToSchemaProcessor {
 						containerDefinition.setRuntimeSchema(true);
 						containerDefinition.setDynamic(true);
 					}
+                    containerDefinition.setInherited(particleInherited);
 					ctd.addDefinition(containerDefinition);
 										
 				} else {
@@ -449,7 +456,7 @@ class DomToSchemaProcessor {
 					QName typeName = new QName(xsType.getTargetNamespace(), xsType.getName());
 
 					PrismPropertyDefinition propDef = createPropertyDefinition(xsType, elementName, typeName, ctd, annotation, p);
-					
+					propDef.setInherited(particleInherited);
 					ctd.add(propDef);
 				}
 			}
@@ -457,7 +464,7 @@ class DomToSchemaProcessor {
 	}
 	
 	private PrismReferenceDefinition processObjectReferenceDefinition(XSType xsType, QName elementName,
-			XSAnnotation annotation, ComplexTypeDefinition containingCtd, XSParticle elementParticle) throws SchemaException {
+			XSAnnotation annotation, ComplexTypeDefinition containingCtd, XSParticle elementParticle, boolean inherited) throws SchemaException {
 		QName typeName = new QName(xsType.getTargetNamespace(), xsType.getName());
 		QName primaryElementName = elementName;
 		Element objRefAnnotationElement = SchemaProcessorUtil.getAnnotationElement(annotation, A_OBJECT_REFERENCE);
@@ -472,6 +479,7 @@ class DomToSchemaProcessor {
 		if (definition == null) {
 			SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
 			definition = definitionFactory.createReferenceDefinition(primaryElementName, typeName, containingCtd, prismContext, annotation, elementParticle);
+            definition.setInherited(inherited);
 			if (containingCtd != null) {
 				containingCtd.add(definition);
 			}
@@ -567,7 +575,7 @@ class DomToSchemaProcessor {
 				} else if (isObjectReference(xsElementDecl, xsType)) {
 						
 						PrismReferenceDefinition refDef = processObjectReferenceDefinition(xsType, elementName, annotation, 
-								null, null);
+								null, null, false);
 
 						schema.getDefinitions().add(refDef);
 					

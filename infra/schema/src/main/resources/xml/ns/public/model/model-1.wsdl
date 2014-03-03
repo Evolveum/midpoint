@@ -279,7 +279,42 @@
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>
-       
+
+            <xsd:element name="executeScripts">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:choice>
+                            <xsd:element name="xmlScripts" type="apit:XmlScriptsType" />
+                            <xsd:element name="mslScripts" type="xsd:string"/>
+                        </xsd:choice>
+                        <xsd:element name="options" type="apit:ExecuteScriptsOptionsType" minOccurs="0" />
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="executeScriptsResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="outputs" type="apit:ScriptOutputsType" />
+                        <xsd:element name="result" type="c:OperationResultType" />
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <!--<xsd:element name="getSchemas">-->
+                <!--<xsd:complexType>-->
+                    <!--<xsd:sequence>-->
+                        <!--<xsd:element name="prefixMapping" type="apit:PrefixMappingType"/>-->
+                    <!--</xsd:sequence>-->
+                <!--</xsd:complexType>-->
+            <!--</xsd:element>-->
+            <!--<xsd:element name="getSchemasResponse">-->
+                <!--<xsd:complexType>-->
+                    <!--<xsd:sequence>-->
+                        <!--<xsd:element name="schemas" type="apit:SchemaFilesType"/>-->
+                    <!--</xsd:sequence>-->
+                <!--</xsd:complexType>-->
+            <!--</xsd:element>-->
+
         </xsd:schema>
     </types>
 
@@ -368,6 +403,20 @@
     <message name="notifyChangeResponse">
         <part name="parameters" element="tns:notifyChangeResponse" />
     </message>
+
+    <message name="executeScripts">
+        <part name="parameters" element="tns:executeScripts" />
+    </message>
+    <message name="executeScriptsResponse">
+        <part name="parameters" element="tns:executeScriptsResponse" />
+    </message>
+
+    <!--<message name="getSchemas">-->
+        <!--<part name="parameters" element="tns:getSchemas" />-->
+    <!--</message>-->
+    <!--<message name="getSchemasResponse">-->
+        <!--<part name="parameters" element="tns:getSchemasResponse" />-->
+    <!--</message>-->
 
     <portType name="modelPortType">
 
@@ -602,6 +651,23 @@
             <output name="notifyChangeOutput" message="tns:notifyChangeResponse"/>
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
+
+        <operation name="executeScripts">
+            <documentation>
+            </documentation>
+            <input name="executeScriptsInput" message="tns:executeScripts"/>
+            <output name="executeScriptsOutput" message="tns:executeScriptsResponse"/>
+            <fault name="fault" message="f:FaultMessage"/>
+        </operation>
+
+        <!--<operation name="getSchemas">-->
+            <!--<documentation>-->
+            <!--</documentation>-->
+            <!--<input name="getSchemasInput" message="tns:getSchemas"/>-->
+            <!--<output name="getSchemasOutput" message="tns:getSchemasResponse"/>-->
+            <!--<fault name="fault" message="f:FaultMessage"/>-->
+        <!--</operation>-->
+
     </portType>
 
     <binding name="modelBinding" type="tns:modelPortType">
@@ -738,6 +804,31 @@
                 <soap:fault name="fault" use="literal"/>
             </fault>
         </operation>
+        <operation name="executeScripts">
+            <soap:operation/>
+            <input name="executeScriptsInput">
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
+            </input>
+            <output name="executeScriptsOutput">
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
+            </output>
+            <fault name="fault">
+                <soap:fault name="fault" use="literal"/>
+            </fault>
+        </operation>
+
+        <!--<operation name="getSchemas">-->
+            <!--<soap:operation/>-->
+            <!--<input name="getSchemasInput">-->
+                <!--<soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>-->
+            <!--</input>-->
+            <!--<output name="getSchemasOutput">-->
+                <!--<soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>-->
+            <!--</output>-->
+            <!--<fault name="fault">-->
+                <!--<soap:fault name="fault" use="literal"/>-->
+            <!--</fault>-->
+        <!--</operation>-->
     </binding>
 </definitions>
 

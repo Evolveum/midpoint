@@ -15,19 +15,6 @@
  */
 package com.evolveum.midpoint.model;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import javax.xml.namespace.QName;
-import javax.xml.ws.Holder;
-
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
@@ -35,17 +22,23 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.api.ModelPort;
+import com.evolveum.midpoint.model.scripting.Data;
+import com.evolveum.midpoint.model.scripting.ExecutionContext;
+import com.evolveum.midpoint.model.scripting.ScriptExecutionException;
+import com.evolveum.midpoint.model.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.util.Utils;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceEventDescription;
-import com.evolveum.midpoint.provisioning.api.ResourceEventListener;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PagingConvertor;
@@ -56,10 +49,9 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -70,14 +62,17 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ExecuteScriptsOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OutputFormatType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ResourceObjectShadowListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ScriptOutputsType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.SingleScriptOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowChangeDescriptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -87,11 +82,29 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectAlreadyExistsFa
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.SystemFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.ExecuteScripts;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.ExecuteScriptsResponse;
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ItemListType;
 import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.w3c.dom.Document;
+
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
+import javax.xml.ws.Holder;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * 
@@ -121,7 +134,10 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	@Autowired(required = true)
 	private Protector protector;
 
-	@Override
+    @Autowired
+    private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
+
+    @Override
 	public void addObject(ObjectType objectType, Holder<String> oidHolder, Holder<OperationResultType> result) throws FaultMessage {
 		notNullArgument(objectType, "Object must not be null.");
 
@@ -192,7 +208,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		}
 	}
 
-	@Override
+    @Override
 	public void searchObjects(String objectTypeUri, QueryType query, OperationOptionsType options,
                   Holder<ObjectListType> objectListHolder, Holder<OperationResultType> result) throws FaultMessage {
 		notNullArgument(query, "Query must not be null.");
@@ -258,7 +274,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		}
 	}
 
-	@Override
+    @Override
 	public void listAccountShadowOwner(String accountOid, Holder<UserType> userHolder, 
 			Holder<OperationResultType> result)
 			throws FaultMessage {
@@ -304,7 +320,90 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		}
 	}
 
-	private void handleOperationResult(OperationResult result, Holder<OperationResultType> holder) {
+    @Override
+    public ExecuteScriptsResponse executeScripts(ExecuteScripts parameters) throws FaultMessage {
+        Task task = createTaskInstance(EXECUTE_SCRIPTS);
+        auditLogin(task);
+        OperationResult result = task.getResult();
+        try {
+            List<ExpressionType> scriptsToExecute = parseScripts(parameters);
+            return doExecuteScripts(scriptsToExecute, parameters.getOptions(), task, result);
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "# MODEL executeScripts() failed", ex);
+            auditLogout(task);
+            throw createSystemFault(ex, null);
+        }
+    }
+
+    private List<ExpressionType> parseScripts(ExecuteScripts parameters) throws JAXBException, SchemaException {
+        List<ExpressionType> scriptsToExecute = new ArrayList<>();
+        if (parameters.getXmlScripts() != null) {
+            for (Object scriptAsObject : parameters.getXmlScripts().getAny()) {
+                if (scriptAsObject instanceof ExpressionType) {
+                    scriptsToExecute.add((ExpressionType) scriptAsObject);
+                } else {
+                    throw new IllegalArgumentException("Invalid script type: " + scriptAsObject.getClass());
+                }
+            }
+        } else {
+            // here comes MSL script decoding (however with a quick hack to allow passing XML as text here)
+            String scriptsAsString = parameters.getMslScripts();
+            if (scriptsAsString.startsWith("<?xml")) {
+                ExpressionType expressionType = prismContext.getPrismJaxbProcessor().unmarshalElement(scriptsAsString, ExpressionType.class).getValue();
+                scriptsToExecute.add(expressionType);
+            }
+        }
+        return scriptsToExecute;
+    }
+
+    private ExecuteScriptsResponse doExecuteScripts(List<ExpressionType> scriptsToExecute, ExecuteScriptsOptionsType options, Task task, OperationResult result) throws ScriptExecutionException, JAXBException, SchemaException {
+        ExecuteScriptsResponse response = new ExecuteScriptsResponse();
+        ScriptOutputsType outputs = new ScriptOutputsType();
+        response.setOutputs(outputs);
+
+        for (ExpressionType script : scriptsToExecute) {
+
+            ExecutionContext outputContext = scriptingExpressionEvaluator.evaluateExpression(script, task, result);
+
+            SingleScriptOutputType output = new SingleScriptOutputType();
+            outputs.getOutput().add(output);
+
+            output.setTextOutput(outputContext.getStdOut());
+            if (options == null || options.getOutputFormat() == null || options.getOutputFormat() == OutputFormatType.XML) {
+                output.setXmlData(prepareXmlData(outputContext.getFinalOutput()));
+            } else {
+                // temporarily we send serialized XML in the case of MSL output
+                ItemListType jaxbOutput = prepareXmlData(outputContext.getFinalOutput());
+                output.setMslData(prismContext.getPrismJaxbProcessor().marshalElementToString(
+                        new JAXBElement<>(
+                                new QName(SchemaConstants.NS_API_TYPES, "itemList"),
+                                ItemListType.class, jaxbOutput)));
+            }
+        }
+        return response;
+    }
+
+    private ItemListType prepareXmlData(Data output) throws JAXBException, SchemaException {
+        ItemListType itemListType = new ItemListType();
+        Document doc = DOMUtil.getDocument();
+        if (output != null) {
+            for (Item item : output.getData()) {
+                for (Object o : item.getValues()) {
+                    if (o instanceof PrismValue) {
+                        PrismValue value = (PrismValue) o;
+                        Object any = prismContext.getPrismJaxbProcessor().toAny(value, doc);
+                        itemListType.getAny().add(any);
+                    } else {
+                        LOGGER.error("Value of " + item + " is not a PrismValue: " + o);
+                    }
+                }
+            }
+        }
+        return itemListType;
+    }
+
+
+    private void handleOperationResult(OperationResult result, Holder<OperationResultType> holder) {
 		result.recordSuccess();
 		OperationResultType resultType = result.createOperationResultType();
 		if (holder.value == null) {

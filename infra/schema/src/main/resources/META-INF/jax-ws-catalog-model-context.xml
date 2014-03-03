@@ -35,6 +35,12 @@
     <public publicId="http://prism.evolveum.com/xml/ns/public/query-2" uri="../../../../../../infra/prism/src/main/resources/xml/ns/public/query-2.xsd" />
     <system systemId="http://prism.evolveum.com/xml/ns/public/query-2" uri="../../../../../../infra/prism/src/main/resources/xml/ns/public/query-2.xsd" />
 
+    <!--<public publicId="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2" uri="../xml/ns/public/model/scripting/scripting-2.xsd" />-->
+    <!--<system systemId="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2" uri="../xml/ns/public/model/scripting/scripting-2.xsd" />-->
+
+    <!--<public publicId="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-2" uri="../xml/ns/public/model/scripting/extension-2.xsd" />-->
+    <!--<system systemId="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-2" uri="../xml/ns/public/model/scripting/extension-2.xsd" />-->
+
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/gui/admin-1" uri="../../../../../../infra/prism/src/main/resources/xml/ns/public/gui/admin-1.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/gui/admin-1" uri="../../../../../../infra/prism/src/main/resources/xml/ns/public/gui/admin-1.xsd" />
 

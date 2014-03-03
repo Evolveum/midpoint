@@ -41,6 +41,7 @@ public abstract class SchemaConstants {
 	public static final String NS_ORG = "http://midpoint.evolveum.com/xml/ns/public/common/org-2";
 	public static final String NS_QUERY = "http://prism.evolveum.com/xml/ns/public/query-2";
 	public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-2";
+    public static final String NS_API_TYPES = "http://midpoint.evolveum.com/xml/ns/public/common/api-types-2";
 	public static final String NS_MIDPOINT_PUBLIC_PREFIX = "http://midpoint.evolveum.com/xml/ns/public/";
 	public static final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 	public static final String NS_C_PREFIX = "c";
@@ -107,8 +108,9 @@ public abstract class SchemaConstants {
 
 	public static final QName T_POLY_STRING_TYPE = new QName(SchemaConstantsGenerated.NS_TYPES, "PolyStringType");
     public static final QName T_OBJECT_DELTA = new QName(SchemaConstantsGenerated.NS_TYPES, "objectDelta");
+    public static final QName T_OBJECT_DELTA_TYPE = new QName(SchemaConstantsGenerated.NS_TYPES, "ObjectDeltaType");
 
-	public static final QName ORG_MANAGER = new QName(NS_ORG, "manager");
+    public static final QName ORG_MANAGER = new QName(NS_ORG, "manager");
 
 	public static final ItemPath PATH_PASSWORD = new ItemPath(C_CREDENTIALS, CredentialsType.F_PASSWORD);
 	public static final ItemPath PATH_PASSWORD_VALUE = new ItemPath(C_CREDENTIALS, CredentialsType.F_PASSWORD,
@@ -174,9 +176,14 @@ public abstract class SchemaConstants {
 
     // OTHER (temporary? [mederly])
 
+    public static final String ICF_CONNECTOR_EXTENSION = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-extension-2";
+    public static final QName ICF_CONNECTOR_USUAL_NAMESPACE_PREFIX = new QName(ICF_CONNECTOR_EXTENSION, "usualNamespacePrefix");
     public static final String MODEL_CONTEXT_NS = "http://midpoint.evolveum.com/xml/ns/public/model/model-context-2";
     public static final QName SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY = new QName(MODEL_CONTEXT_NS, "skipModelContextProcessing");
     public static final QName MODEL_CONTEXT_NAME = new QName(MODEL_CONTEXT_NS, "modelContext");
+
+    public static final String SCRIPTING_EXTENSION_NS = "http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-2";
+    public static final QName SE_EXECUTE_SCRIPT = new QName(SCRIPTING_EXTENSION_NS, "executeScript");
 
     public static final QName C_EVENT = new QName(NS_C, "event");
 

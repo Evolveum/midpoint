@@ -21,5 +21,8 @@
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2" uri="../../../target/midpoint-schema/xml/ns/public/common/api-types-2.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2" uri="../../../target/midpoint-schema/xml/ns/public/common/api-types-2.xsd" />
 
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2" uri="../../../target/midpoint-schema/xml/ns/public/model/scripting/scripting-2.xsd" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2" uri="../../../target/midpoint-schema/xml/ns/public/model/scripting/scripting-2.xsd" />
+
     <nextCatalog catalog="./catalog.xml"/>
 </catalog>

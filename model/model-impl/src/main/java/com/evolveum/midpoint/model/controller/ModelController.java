@@ -782,7 +782,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			try {
                 switch (searchProvider) {
                     case REPOSITORY: cacheRepositoryService.searchObjectsIterative(type, query, internalHandler, options, result); break;
-                    case PROVISIONING: provisioning.searchObjectsIterative(type, query, null, internalHandler, result); break;
+                    case PROVISIONING: provisioning.searchObjectsIterative(type, query, options, internalHandler, result); break;
                     case TASK_MANAGER: throw new UnsupportedOperationException("searchIterative in task manager is currently not supported");
                     case WORKFLOW: throw new UnsupportedOperationException("searchIterative in task manager is currently not supported");
                     default: throw new AssertionError("Unexpected search provider: " + searchProvider);
