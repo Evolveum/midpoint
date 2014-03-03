@@ -77,7 +77,7 @@ public class PageOrgTree extends PageAdminUsers {
                 LOGGER.debug("Loading org. roots for tabs for tabbed panel.");
                 List<PrismObject<OrgType>> roots = loadOrgRoots();
 
-                List<ITab> tabs = new ArrayList<ITab>();
+                List<ITab> tabs = new ArrayList<>();
                 for (PrismObject<OrgType> root : roots) {
                     final String oid = root.getOid();
                     tabs.add(new AbstractTab(createTabTitle(root)) {

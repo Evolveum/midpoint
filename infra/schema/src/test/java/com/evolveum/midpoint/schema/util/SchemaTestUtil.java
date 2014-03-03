@@ -112,5 +112,9 @@ public class SchemaTestUtil {
 		assertFalse("Metadata is dynamic", metadataContainer.isDynamic());
 		assertTrue("Metadata is NOT operational", metadataContainer.isOperational());
 		assertEquals("Metadata size", 8, metadataContainer.getDefinitions().size());
+
+        PrismReferenceDefinition tenantRefDef = complexTypeDefinition.findItemDefinition(UserType.F_TENANT_REF, PrismReferenceDefinition.class);
+        PrismAsserts.assertDefinition(tenantRefDef, UserType.F_TENANT_REF, ObjectReferenceType.COMPLEX_TYPE, 0, 1);
+        assertEquals("Wrong target type in tenantRef", ShadowType.COMPLEX_TYPE, accountRefDef.getTargetTypeName());
 	}
 }

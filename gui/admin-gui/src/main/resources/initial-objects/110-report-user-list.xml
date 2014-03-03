@@ -59,18 +59,6 @@
 			<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
 			<property name="net.sf.jasperreports.export.pdf.force.linebreak.policy" value="true"/>
 			<property name="net.sf.jasperreports.export.csv.exclude.origin.band.1" value="title"/>
-			<style fontName="DejaVu Sans" fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="true" 
-				   name="Base" pdfEncoding="Identity-H" pdfFontName="DejaVuSans.ttf" vAlign="Middle">
-			</style>
-			<style backcolor="#267994" fontSize="26" forecolor="#FFFFFF" isDefault="false"
-                   mode="Opaque" name="Title" style="Base"/> 
-			<style fontSize="12" forecolor="#000000" isDefault="false" name="Page header"
-                   style="Base"/>
-			<style backcolor="#333333" fontSize="12" forecolor="#FFFFFF" hAlign="Center"
-                   isDefault="false" mode="Opaque" name="Column header" style="Base"/>
-			<style isBold="false" isDefault="false" name="Detail" style="Base"/>
-			<style fontSize="9" forecolor="#000000" isDefault="false" name="Page footer"
-                   style="Base"/>
 			<parameter name="role" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
 			<parameter name="org" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
 			<parameter name="account" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
@@ -278,6 +266,28 @@
 			</pageFooter>
 		</jasperReport>
 	</template>
+	<templateStyle>
+		<jasperTemplate xmlns="http://jasperreports.sourceforge.net/dtds/jaspertemplate.dtd">
+			<style fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="false" name="Base"
+				   pdfEncoding="Cp1252"
+				   pdfFontName="Helvetica"
+                   vAlign="Middle"/>
+			<style backcolor="#267994" fontSize="26" forecolor="#FFFFFF" isDefault="false"
+                   mode="Opaque"
+                   name="Title"
+                   style="Base"/>
+			<style fontSize="12" forecolor="#000000" isDefault="false" name="Page header"
+                   style="Base"/>
+			<style backcolor="#333333" fontSize="12" forecolor="#FFFFFF" hAlign="Center"
+                   isDefault="false"
+                   mode="Opaque"
+                   name="Column header"
+                   style="Base"/>
+			<style isBold="false" isDefault="false" name="Detail" style="Base"/>
+			<style fontSize="9" forecolor="#000000" isDefault="false" name="Page footer"
+                   style="Base"/>
+		</jasperTemplate>
+	</templateStyle>
 	<orientation>landscape</orientation>
 	<export>pdf</export>
 	<!-- set to true if report needs hibernate session (e.g. hql query is used) -->

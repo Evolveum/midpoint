@@ -225,9 +225,7 @@ public class TreeTablePanel extends SimplePanel<String> {
         treeContainer.add(tree);
 
         initTable();
-
-        // disabled because it's not possible to search using ObjectType.name and org. hierarchy MID-1152
-        //initSearch();
+        initSearch();
     }
 
     private void initTable() {
@@ -243,11 +241,7 @@ public class TreeTablePanel extends SimplePanel<String> {
 
             @Override
             public ObjectQuery getQuery() {
-                ObjectQuery query = super.getQuery();
-                if (query == null) {
-                    query = createTableQuery();
-                }
-                return query;
+                return createTableQuery();
             }
         };
         tableProvider.setOptions(WebModelUtils.createMinimalOptions());
@@ -259,6 +253,7 @@ public class TreeTablePanel extends SimplePanel<String> {
 
     private void initSearch() {
         Form form = new Form(ID_SEARCH_FORM);
+        form.setOutputMarkupId(true);
         add(form);
 
         BasicSearchPanel basicSearch = new BasicSearchPanel(ID_BASIC_SEARCH, new Model()) {
@@ -664,12 +659,13 @@ public class TreeTablePanel extends SimplePanel<String> {
         PageBase page = getPageBase();
 
         TabbedPanel tabbedPanel = findParent(TabbedPanel.class);
-        tabbedPanel.setSelectedTab(0);
-
         IModel<List<ITab>> tabs = tabbedPanel.getTabs();
+
         if (tabs instanceof LoadableModel) {
             ((LoadableModel) tabs).reset();
         }
+
+        tabbedPanel.setSelectedTab(0);
 
         target.add(tabbedPanel);
         target.add(page.getFeedbackPanel());
@@ -684,12 +680,13 @@ public class TreeTablePanel extends SimplePanel<String> {
     }
 
     private void selectTreeItemPerformed(AjaxRequestTarget target) {
+        BasicSearchPanel<String> basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
+        basicSearch.getModel().setObject(null);
+
         TablePanel table = getTable();
 
-        BaseSortableDataProvider provider = (BaseSortableDataProvider) table.getDataTable().getDataProvider();
-        provider.setQuery(createTableQuery());
-
         target.add(table);
+        target.add(get(ID_SEARCH_FORM));
     }
 
     private ObjectQuery createTableQuery() {
@@ -697,31 +694,30 @@ public class TreeTablePanel extends SimplePanel<String> {
         String oid = dto != null ? dto.getOid() : getModel().getObject();
 
         OrgFilter org = OrgFilter.createOrg(oid, null, 1);
-        return ObjectQuery.createObjectQuery(org);
+//        return ObjectQuery.createObjectQuery(org);
 
-        // MID-1152 disabled search, not possible now
-//        BasicSearchPanel<String> basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
-//        String object = basicSearch.getModelObject();
-//        if (StringUtils.isEmpty(object)) {
-//            return ObjectQuery.createObjectQuery(org);
-//        }
-//
-//        PageBase page = getPageBase();
-//        PrismContext context = page.getPrismContext();
-//
-//        PolyStringNormalizer normalizer = context.getDefaultPolyStringNormalizer();
-//        String normalizedString = normalizer.normalize(object);
-//        if (StringUtils.isEmpty(normalizedString)) {
-//            return ObjectQuery.createObjectQuery(org);
-//        }
-//
-//
-//        SubstringFilter substring =  SubstringFilter.createSubstring(ObjectType.F_NAME, ObjectType.class, context,
-//                PolyStringNormMatchingRule.NAME, normalizedString);
-//
-//        AndFilter and = AndFilter.createAnd(org, substring);
-//
-//        return ObjectQuery.createObjectQuery(and);
+        BasicSearchPanel<String> basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
+        String object = basicSearch.getModelObject();
+        if (StringUtils.isEmpty(object)) {
+            return ObjectQuery.createObjectQuery(org);
+        }
+
+        PageBase page = getPageBase();
+        PrismContext context = page.getPrismContext();
+
+        PolyStringNormalizer normalizer = context.getDefaultPolyStringNormalizer();
+        String normalizedString = normalizer.normalize(object);
+        if (StringUtils.isEmpty(normalizedString)) {
+            return ObjectQuery.createObjectQuery(org);
+        }
+
+
+        SubstringFilter substring =  SubstringFilter.createSubstring(ObjectType.F_NAME, ObjectType.class, context,
+                PolyStringNormMatchingRule.NAME, normalizedString);
+
+        AndFilter and = AndFilter.createAnd(org, substring);
+
+        return ObjectQuery.createObjectQuery(and);
     }
 
     private void collapseAllPerformed(AjaxRequestTarget target) {

@@ -18,14 +18,12 @@ package com.evolveum.midpoint.repo.sql.query.restriction;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryContext;
 import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
 import com.evolveum.midpoint.repo.sql.query.definition.*;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -33,7 +31,6 @@ import org.apache.commons.lang.StringUtils;
 import org.hibernate.criterion.Criterion;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -52,7 +49,6 @@ public class PropertyRestriction extends ItemRestriction<ValueFilter> {
         ValueFilter valFilter = (ValueFilter) filter;
 
         QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
-//        ItemPath fullPath = RUtil.createFullPath(valFilter);
         ItemPath fullPath = valFilter.getFullPath();
 
         PropertyDefinition def = registry.findDefinition(context.getType(), fullPath, PropertyDefinition.class);
@@ -66,15 +62,10 @@ public class PropertyRestriction extends ItemRestriction<ValueFilter> {
         QueryContext context = getContext();
 
         QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
-//        ItemPath fullPath = RUtil.createFullPath(filter);
         ItemPath fullPath = filter.getFullPath();
         PropertyDefinition def = registry.findDefinition(context.getType(), fullPath, PropertyDefinition.class);
         if (def.isLob()) {
             throw new QueryException("Can't query based on clob property value '" + def + "'.");
-        }
-
-        if (ObjectType.class.equals(context.getType()) && new ItemPath(ObjectType.F_NAME).equals(fullPath)) {
-            throw new QueryException("Can't query ObjectType based on " + ObjectType.F_NAME + " property.");
         }
 
         String propertyName = def.getJpaName();

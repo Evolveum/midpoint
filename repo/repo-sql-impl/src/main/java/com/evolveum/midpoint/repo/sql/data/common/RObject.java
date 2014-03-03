@@ -17,14 +17,11 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
-import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
-import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
-import com.evolveum.midpoint.repo.sql.query.definition.VirtualProperty;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -38,6 +35,8 @@ import org.hibernate.annotations.*;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
+import javax.persistence.Table;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -46,12 +45,15 @@ import java.util.Set;
 /**
  * @author lazyman
  */
-@QueryEntity(properties = {@VirtualProperty(jaxbName = @JaxbName(localPart = "name"), jaxbType = PolyString.class,
-        jpaName = "name", jpaType = RPolyString.class)})
 @Entity
+@Table(name = "m_object")
+@org.hibernate.annotations.Table(appliesTo = "m_object",
+        indexes = {@Index(name = "iObjectNameOrig", columnNames = "name_orig"),
+		@Index(name = "iObjectNameNorm", columnNames = "name_norm")})
 @ForeignKey(name = "fk_object")
 public abstract class RObject<T extends ObjectType> extends RContainer {
 
+	private RPolyString name;
     private RAnyContainer extension;
     private int version;
     private Set<ROrgClosure> descendants;
@@ -60,27 +62,24 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
     private Set<RTrigger> trigger;
     private RMetadata metadata;
     private String fullObject;
+    private REmbeddedReference tenantRef;
 
-    @Transient
-    public abstract RPolyString getName();
+    @Embedded
+    public RPolyString getName() {
+        return name;
+    }
 
-    public abstract void setName(RPolyString name);
-
+    public void setName(RPolyString name) {
+        this.name = name;
+    }
 
     @OneToOne(mappedBy = RMetadata.F_OWNER, optional = true, orphanRemoval = true)//, fetch = FetchType.LAZY)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public RMetadata getMetadata() {
-//        if (fieldHandler != null) {
-//            return (RMetadata) fieldHandler.readObject(this, "metadata", metadata);
-//        }
         return metadata;
     }
 
     public void setMetadata(RMetadata metadata) {
-//        if (fieldHandler != null) {
-//            this.metadata = (RMetadata) fieldHandler.writeObject(this, "metadata", this.metadata, metadata);
-//            return;
-//        }
         this.metadata = metadata;
     }
 
@@ -89,7 +88,7 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RTrigger> getTrigger() {
         if (trigger == null) {
-            trigger = new HashSet<RTrigger>();
+            trigger = new HashSet<>();
         }
         return trigger;
     }
@@ -104,7 +103,7 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RObjectReference> getParentOrgRef() {
         if (parentOrgRef == null) {
-            parentOrgRef = new HashSet<RObjectReference>();
+            parentOrgRef = new HashSet<>();
         }
         return parentOrgRef;
     }
@@ -125,7 +124,6 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
     }
 
     @OneToMany(fetch = FetchType.LAZY, targetEntity = ROrgClosure.class, mappedBy = "descendant")
-//, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.DELETE})
     public Set<ROrgClosure> getDescendants() {
         return descendants;
@@ -159,6 +157,11 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
     public void setVersion(int version) {
         this.version = version;
     }
+    
+    @Embedded
+    public REmbeddedReference getTenantRef() {
+		return tenantRef;
+	}
 
     @Lob
     @Type(type = RUtil.LOB_STRING_TYPE)
@@ -170,7 +173,11 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
         this.fullObject = fullObject;
     }
 
-    @Override
+	public void setTenantRef(REmbeddedReference tenantRef) {
+		this.tenantRef = tenantRef;
+	}
+
+	@Override
     public boolean equals(Object o) {
         if (this == o)
             return true;
@@ -181,6 +188,8 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
 
         RObject rObject = (RObject) o;
 
+        if (name != null ? !name.equals(rObject.name) : rObject.name != null)
+            return false;
         if (extension != null ? !extension.equals(rObject.extension) : rObject.extension != null)
             return false;
         if (descendants != null ? !descendants.equals(rObject.descendants) : rObject.descendants != null)
@@ -191,13 +200,16 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
             return false;
         if (trigger != null ? !trigger.equals(rObject.trigger) : rObject.trigger != null)
             return false;
-
+        if (tenantRef != null ? !tenantRef.equals(rObject.tenantRef) : rObject.tenantRef != null)
+            return false;
         return true;
     }
 
     @Override
-    public int hashCode() {
-        return super.hashCode();
+    public int hashCode() {        
+        int result = super.hashCode();
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        return result;
     }
 
     public static <T extends ObjectType> void copyToJAXB(RObject<T> repo, ObjectType jaxb, PrismContext prismContext,
@@ -206,6 +218,7 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
+        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setOid(repo.getOid());
         jaxb.setVersion(Integer.toString(repo.getVersion()));
 
@@ -237,6 +250,12 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
                 jaxb.setMetadata(repo.getMetadata().toJAXB(prismContext));
             }
         }
+        
+        if (SelectorOptions.hasToLoadPath(ObjectType.F_TENANT_REF, options)) {
+        	if (repo.getTenantRef() != null) {
+        		jaxb.setTenantRef(repo.getTenantRef().toJAXB(prismContext));
+        	}
+        }
     }
 
     public static <T extends ObjectType> void copyFromJAXB(ObjectType jaxb, RObject<T> repo, PrismContext prismContext)
@@ -244,6 +263,7 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
 
+        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setOid(jaxb.getOid());
         repo.setId((short) 0); // objects types have default id
 
@@ -276,6 +296,8 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
             RMetadata.copyFromJAXB(jaxb.getMetadata(), metadata, prismContext);
             repo.setMetadata(metadata);
         }
+        
+        repo.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTenantRef(), prismContext));
     }
 
     public abstract T toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)

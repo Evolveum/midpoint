@@ -35,6 +35,7 @@ public class RReportOutput extends RObject<ReportOutputType> {
 	private String reportFilePath;
 	private REmbeddedReference reportRef;	
 
+	@Embedded
 	public RPolyString getName() {
 		return name;
 	}
@@ -84,9 +85,6 @@ public class RReportOutput extends RObject<ReportOutputType> {
 		int result = super.hashCode();
 	      	result = 31 * result + (name != null ? name.hashCode() : 0);
 	        result = 31 * result + (reportFilePath != null ? reportFilePath.hashCode() : 0);
-	        result = 31 * result + (reportRef != null ? reportRef.hashCode() : 0);
-	        
-	        
 	    return result;
 	}
 	

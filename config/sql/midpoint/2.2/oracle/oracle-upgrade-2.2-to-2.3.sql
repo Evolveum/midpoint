@@ -4,12 +4,28 @@ ALTER TABLE m_sync_situation_description ADD fullFlag NUMBER(1, 0);
 ALTER TABLE m_shadow ADD fullSynchronizationTimestamp TIMESTAMP;
 ALTER TABLE m_task ADD expectedTotal NUMBER(19, 0);
 ALTER TABLE m_assignment ADD disableReason VARCHAR2(255 CHAR);
+ALTER TABLE m_assignment ADD tenantRef_description CLOB;
+ALTER TABLE m_assignment ADD tenantRef_filter CLOB;
+ALTER TABLE m_assignment ADD tenantRef_relationLocalPart VARCHAR(100 CHAR);
+ALTER TABLE m_assignment ADD tenantRef_relationNamespace VARCHAR(255 CHAR);
+ALTER TABLE m_assignment ADD tenantRef_targetOid VARCHAR(36 CHAR);
+ALTER TABLE m_assignment ADD tenantRef_type NUMBER(10, 0);
 ALTER TABLE m_focus ADD disableReason VARCHAR2(255 CHAR);
 ALTER TABLE m_shadow ADD disableReason VARCHAR2(255 CHAR);
 ALTER TABLE m_audit_delta ADD context CLOB;
 ALTER TABLE m_audit_delta ADD returns CLOB;
 ALTER TABLE m_operation_result ADD context CLOB;
 ALTER TABLE m_operation_result ADD returns CLOB;
+ALTER TABLE m_object ADD tenantRef_description CLOB;
+ALTER TABLE m_object ADD tenantRef_filter CLOB;
+ALTER TABLE m_object ADD tenantRef_relationLocalPart VARCHAR(100 CHAR);
+ALTER TABLE m_object ADD tenantRef_relationNamespace VARCHAR(255 CHAR);
+ALTER TABLE m_object ADD tenantRef_targetOid VARCHAR(36 CHAR);
+ALTER TABLE m_object ADD tenantRef_type NUMBER(10,0);
+ALTER TABLE m_object ADD name_norm VARCHAR(255 CHAR);
+ALTER TABLE m_object ADD name_orig VARCHAR(255 CHAR);
+ALTER TABLE m_org ADD tenant NUMBER(1, 0);
+
 
 CREATE TABLE m_report (
     configuration CLOB,
@@ -69,3 +85,6 @@ ALTER TABLE m_report_output
 ALTER TABLE m_assignment ADD orderValue NUMBER(10,0);
 
 ALTER TABLE m_user ADD jpegPhoto BLOB;
+CREATE INDEX iObjectNameOrig ON m_object (name_orig) INITRANS 30;
+
+CREATE INDEX iObjectNameNorm ON m_object (name_norm) INITRANS 30;

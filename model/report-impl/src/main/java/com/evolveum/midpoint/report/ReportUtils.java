@@ -3,6 +3,8 @@ package com.evolveum.midpoint.report;
 
 import java.awt.Color;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -16,7 +18,9 @@ import javax.xml.namespace.QName;
 
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRExpression;
+import net.sf.jasperreports.engine.JRReportTemplate;
 import net.sf.jasperreports.engine.JRStyle;
+import net.sf.jasperreports.engine.JRTemplate;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.base.JRBasePen;
@@ -42,14 +46,12 @@ import net.sf.jasperreports.engine.type.SplitTypeEnum;
 import net.sf.jasperreports.engine.type.VerticalAlignEnum;
 import net.sf.jasperreports.engine.type.WhenNoDataTypeEnum;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
+import net.sf.jasperreports.engine.xml.JRXmlTemplateLoader;
+import net.sf.jasperreports.web.servlets.ReportServlet;
 
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
-
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -72,8 +74,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportTemplateStyleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SubreportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
@@ -87,10 +89,10 @@ public class ReportUtils {
     private static String PARAMETER_OBJECT_TYPE = "type";
     private static String PARAMETER_QUERY_FILTER = "filter";
     
-   
-    
+    // parameter for design
     private static String PARAMETER_LOGO = "logoPath";
     private static String PARAMETER_TEMPLATE_STYLES = "baseTemplateStyles";
+    private static String TEMPLATE_STYLE_SCHEMA = "<!DOCTYPE jasperTemplate  PUBLIC \"-//JasperReports//DTD Template//EN\" \"http://jasperreports.sourceforge.net/dtds/jaspertemplate.dtd\">";
     
     private static final Trace LOGGER = TraceManager
 			.getTrace(ReportUtils.class);
@@ -236,7 +238,17 @@ public class ReportUtils {
     	 	LOGGER.trace("load jasper design : {}", jasperDesign);
 		 }
 		 
+		 if (reportType.getTemplateStyle() != null)
+		 {
+			JRDesignReportTemplate templateStyle = new JRDesignReportTemplate(new JRDesignExpression("$P{" + PARAMETER_TEMPLATE_STYLES + "}"));
+			jasperDesign.addTemplate(templateStyle);
+			JRDesignParameter parameter = new JRDesignParameter();
+			parameter.setName(PARAMETER_TEMPLATE_STYLES);
+			parameter.setValueClass(JRTemplate.class);
+			jasperDesign.addParameter(parameter);
+		 } 
 		 jasperReport = JasperCompileManager.compileReport(jasperDesign);
+		 
 		 
 	 } catch (JRException ex){ 
 		 LOGGER.error("Couldn't create jasper report design {}", ex.getMessage());
@@ -250,8 +262,30 @@ public class ReportUtils {
     public static Map<String, Object> getReportParams(ReportType reportType, PrismContainer<Containerable> parameterConfiguration, PrismSchema reportSchema, OperationResult parentResult)
 	{
 		Map<String, Object> params = new HashMap<String, Object>();
+		ReportTemplateStyleType styleType = reportType.getTemplateStyle();
 		
-		
+		if (reportType.getTemplateStyle() != null)
+		{	 
+			String reportTemplateStyle = DOMUtil.serializeDOMToString((Node)reportType.getTemplateStyle().getAny());
+			//FUJ FUJ FUJ must be changed
+			int first = reportTemplateStyle.indexOf(">");
+			int last = reportTemplateStyle.lastIndexOf("<");
+			reportTemplateStyle = "<jasperTemplate>" + reportTemplateStyle.substring(first+1, last) + "</jasperTemplate>";
+			reportTemplateStyle = TEMPLATE_STYLE_SCHEMA + "\n" + reportTemplateStyle;  
+			LOGGER.trace("Style template string {}", reportTemplateStyle);
+	    	InputStream inputStreamJRTX = new ByteArrayInputStream(reportTemplateStyle.getBytes());
+	    	try
+			{    		
+	    		JRTemplate templateStyle = JRXmlTemplateLoader.load(inputStreamJRTX);
+				params.put(PARAMETER_TEMPLATE_STYLES, templateStyle);
+				LOGGER.trace("Style template parameter {}", templateStyle);
+				
+			} catch(Exception ex)
+			{
+				LOGGER.error("Error create style template parameter {}", ex.getMessage());
+			}
+			
+		 } 
 		OperationResult subResult = parentResult.createSubresult("get report parameters");
 		if (parameterConfiguration != null) 	
 		{
