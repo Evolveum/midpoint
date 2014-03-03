@@ -72,9 +72,11 @@ public class ContainerOidGenerator implements IdentifierGenerator {
             return container.getOid();
         }
 
-        String oid = UUID.randomUUID().toString();
-        LOGGER.trace("Created oid='{}' for '{}'.", new Object[]{oid, toString(object)});
-        return oid;
+        throw new RuntimeException("Unknown oid.");
+
+//        String oid = UUID.randomUUID().toString();
+//        LOGGER.trace("Created oid='{}' for '{}'.", new Object[]{oid, toString(object)});
+//        return oid;
     }
 
     private String toString(Object object) {

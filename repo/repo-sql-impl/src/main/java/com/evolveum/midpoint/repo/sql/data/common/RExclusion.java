@@ -26,7 +26,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExclusionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 
@@ -43,7 +42,6 @@ public class RExclusion extends RContainer implements ROwnable {
     private String ownerOid;
     private Short ownerId;
     //exclusion
-    private String description;
     private REmbeddedReference targetRef;
     private RExclusionPolicy policy;
 
@@ -82,12 +80,6 @@ public class RExclusion extends RContainer implements ROwnable {
         return ownerOid;
     }
 
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getDescription() {
-        return description;
-    }
-
     @Enumerated(EnumType.ORDINAL)
     public RExclusionPolicy getPolicy() {
         return policy;
@@ -96,10 +88,6 @@ public class RExclusion extends RContainer implements ROwnable {
     @Embedded
     public REmbeddedReference getTargetRef() {
         return targetRef;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public void setPolicy(RExclusionPolicy policy) {
@@ -136,7 +124,6 @@ public class RExclusion extends RContainer implements ROwnable {
 
         RExclusion that = (RExclusion) o;
 
-        if (description != null ? !description.equals(that.description) : that.description != null) return false;
         if (policy != that.policy) return false;
         if (targetRef != null ? !targetRef.equals(that.targetRef) : that.targetRef != null) return false;
 
@@ -146,7 +133,6 @@ public class RExclusion extends RContainer implements ROwnable {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (description != null ? description.hashCode() : 0);
         result = 31 * result + (policy != null ? policy.hashCode() : 0);
         return result;
     }
@@ -156,7 +142,6 @@ public class RExclusion extends RContainer implements ROwnable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        jaxb.setDescription(repo.getDescription());
         jaxb.setId(RUtil.toLong(repo.getId()));
         if (repo.getPolicy() != null) {
             jaxb.setPolicy(repo.getPolicy().getSchemaValue());
@@ -175,7 +160,6 @@ public class RExclusion extends RContainer implements ROwnable {
         repo.setOid(parent.getOid());
         repo.setId(RUtil.toShort(jaxb.getId()));
 
-        repo.setDescription(jaxb.getDescription());
         repo.setPolicy(RUtil.getRepoEnumValue(jaxb.getPolicy(), RExclusionPolicy.class));
         repo.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTargetRef(), prismContext));
     }

@@ -35,9 +35,5 @@ public interface ObjectReference extends Serializable {
 
     String getRelation();
 
-    String getDescription();
-
-    String getFilter();
-
     RContainerType getType();
 }

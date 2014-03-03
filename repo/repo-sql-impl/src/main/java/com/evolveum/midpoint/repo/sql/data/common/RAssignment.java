@@ -27,14 +27,12 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
-import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 
@@ -66,10 +64,7 @@ public class RAssignment extends RContainer implements ROwnable {
     //extension
     private RAnyContainer extension;
     //assignment fields
-    private String description;
     private RActivation activation;
-    private String accountConstruction;
-    private String construction;
     private REmbeddedReference targetRef;
     private RMetadata metadata;
     private Integer order;
@@ -144,24 +139,6 @@ public class RAssignment extends RContainer implements ROwnable {
         return activation;
     }
 
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getAccountConstruction() {
-        return accountConstruction;
-    }
-
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getConstruction() {
-        return construction;
-    }
-
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getDescription() {
-        return description;
-    }
-
     @Column(name = "orderValue")
     public Integer getOrder() {
         return order;
@@ -169,10 +146,6 @@ public class RAssignment extends RContainer implements ROwnable {
 
     public void setOrder(Integer order) {
         this.order = order;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public void setActivation(RActivation activation) {
@@ -184,14 +157,6 @@ public class RAssignment extends RContainer implements ROwnable {
         if (this.extension != null) {
             this.extension.setOwnerType(RContainerType.ASSIGNMENT);
         }
-    }
-
-    public void setConstruction(String construction) {
-        this.construction = construction;
-    }
-
-    public void setAccountConstruction(String accountConstruction) {
-        this.accountConstruction = accountConstruction;
     }
 
     public void setOwnerId(Short ownerId) {
@@ -231,10 +196,6 @@ public class RAssignment extends RContainer implements ROwnable {
 
         RAssignment that = (RAssignment) o;
 
-        if (accountConstruction != null ? !accountConstruction.equals(that.accountConstruction) : that.accountConstruction != null)
-            return false;
-        if (construction != null ? !construction.equals(that.construction) : that.construction != null)
-            return false;
         if (activation != null ? !activation.equals(that.activation) : that.activation != null) return false;
         if (extension != null ? !extension.equals(that.extension) : that.extension != null) return false;
         if (targetRef != null ? !targetRef.equals(that.targetRef) : that.targetRef != null) return false;
@@ -250,8 +211,6 @@ public class RAssignment extends RContainer implements ROwnable {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (activation != null ? activation.hashCode() : 0);
-        result = 31 * result + (accountConstruction != null ? accountConstruction.hashCode() : 0);
-        result = 31 * result + (construction != null ? construction.hashCode() : 0);
         result = 31 * result + (order != null ? order.hashCode() : 0);
         return result;
     }
@@ -262,7 +221,6 @@ public class RAssignment extends RContainer implements ROwnable {
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
         jaxb.setId(RUtil.toLong(repo.getId()));
-        jaxb.setDescription(repo.getDescription());
         jaxb.setOrder(repo.getOrder());
 
         if (repo.getExtension() != null) {
@@ -272,13 +230,6 @@ public class RAssignment extends RContainer implements ROwnable {
         }
         if (repo.getActivation() != null) {
             jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
-        }
-
-        try {
-            jaxb.setAccountConstruction(RUtil.toJAXB(repo.getAccountConstruction(), ConstructionType.class, ConstructionType.COMPLEX_TYPE, prismContext));
-            jaxb.setConstruction(RUtil.toJAXB(repo.getConstruction(), ConstructionType.class, ConstructionType.COMPLEX_TYPE, prismContext));
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
         }
 
         if (repo.getTargetRef() != null) {
@@ -297,7 +248,6 @@ public class RAssignment extends RContainer implements ROwnable {
 
         repo.setOid(parent.getOid());
         repo.setId(RUtil.toShort(jaxb.getId()));
-        repo.setDescription(jaxb.getDescription());
         repo.setOrder(jaxb.getOrder());
 
         if (jaxb.getExtension() != null) {
@@ -312,13 +262,6 @@ public class RAssignment extends RContainer implements ROwnable {
             RActivation activation = new RActivation();
             RActivation.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
             repo.setActivation(activation);
-        }
-
-        try {
-            repo.setAccountConstruction(RUtil.toRepo(jaxb.getAccountConstruction(), prismContext));
-            repo.setConstruction(RUtil.toRepo(jaxb.getConstruction(), prismContext));
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
         }
 
         if (jaxb.getTarget() != null) {

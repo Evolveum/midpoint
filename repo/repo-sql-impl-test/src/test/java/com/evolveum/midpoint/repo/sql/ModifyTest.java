@@ -514,6 +514,9 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     private RUser createUser(Long lootValue, Timestamp dateValue) {
         RUser user = new RUser();
+        user.setOid(UUID.randomUUID().toString());
+        user.setId((short) 0);
+
         user.setName(new RPolyString("u1", "u1"));
         user.setFullName(new RPolyString("fu1", "fu1"));
         user.setFamilyName(new RPolyString("fa1", "fa1"));
@@ -650,6 +653,8 @@ public class ModifyTest extends BaseSQLRepoTest {
     public void testModifyAccountSynchronizationSituationSimplyfied() {
         //add
         RShadow s1 = new RShadow();
+        s1.setOid(UUID.randomUUID().toString());
+        s1.setId((short) 0);
         s1.setName(new RPolyString("acc", "acc"));
 
         LOGGER.info("add:\n{}", new Object[]{ReflectionToStringBuilder.reflectionToString(s1, ToStringStyle.MULTI_LINE_STYLE)});

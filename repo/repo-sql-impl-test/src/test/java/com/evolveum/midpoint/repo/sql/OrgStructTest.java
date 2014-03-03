@@ -53,10 +53,7 @@ import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -814,6 +811,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
         LOGGER.info("===[test010megaSimpleTest]===");
         try {
             RUser user = new RUser();
+            user.setOid(UUID.randomUUID().toString());
+            user.setId((short) 0);
             user.setName(new RPolyString("vilko", "vilko"));
             Set<RObjectReference> refs = new HashSet<RObjectReference>();
             refs.add(createRef(user, "1", null, null));

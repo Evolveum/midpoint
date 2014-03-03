@@ -72,12 +72,14 @@ public class ContainerIdGenerator implements IdentifierGenerator {
                     + container.getClass().getSimpleName() + "' (should not happen).");
         }
 
-        RContainer parent = ((ROwnable) container).getContainerOwner();
-        Set<RContainer> containers = getChildrenContainers(parent);
+        throw new RuntimeException("Unknown id.");
 
-        Short id = getNextId(containers);
-        LOGGER.trace("Created id='{}' for '{}'.", new Object[]{id, toString(container)});
-        return id;
+//        RContainer parent = ((ROwnable) container).getContainerOwner();
+//        Set<RContainer> containers = getChildrenContainers(parent);
+//
+//        Short id = getNextId(containers);
+//        LOGGER.trace("Created id='{}' for '{}'.", new Object[]{id, toString(container)});
+//        return id;
     }
 
     private String toString(Object object) {

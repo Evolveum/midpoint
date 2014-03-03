@@ -33,7 +33,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -69,7 +68,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
     private RActivation activation;
     private ROperationResult result;
     private REmbeddedReference resourceRef;
-    private String objectChange;
     private Integer attemptNumber;
     private Boolean dead;
     private RFailedOperationType failedOperationType;
@@ -155,13 +153,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         return failedOperationType;
     }
 
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    @Column(nullable = true)
-    public String getObjectChange() {
-        return objectChange;
-    }
-
     @Embedded
     public RPolyString getName() {
         return name;
@@ -216,10 +207,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
 
     public void setFailedOperationType(RFailedOperationType failedOperationType) {
         this.failedOperationType = failedOperationType;
-    }
-
-    public void setObjectChange(String objectChange) {
-        this.objectChange = objectChange;
     }
 
     public void setKind(RShadowKind kind) {
@@ -296,7 +283,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
             return false;
         if (attributes != null ? !attributes.equals(that.attributes) : that.attributes != null) return false;
         if (failedOperationType != that.failedOperationType) return false;
-        if (objectChange != null ? !objectChange.equals(that.objectChange) : that.objectChange != null) return false;
         if (objectClass != null ? !objectClass.equals(that.objectClass) : that.objectClass != null) return false;
         if (resourceRef != null ? !resourceRef.equals(that.resourceRef) : that.resourceRef != null) return false;
         if (result != null ? !result.equals(that.result) : that.result != null) return false;
@@ -323,7 +309,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         result1 = 31 * result1 + (name != null ? name.hashCode() : 0);
         result1 = 31 * result1 + (objectClass != null ? objectClass.hashCode() : 0);
         result1 = 31 * result1 + (activation != null ? activation.hashCode() : 0);
-        result1 = 31 * result1 + (objectChange != null ? objectChange.hashCode() : 0);
         result1 = 31 * result1 + (attemptNumber != null ? attemptNumber.hashCode() : 0);
         result1 = 31 * result1 + (failedOperationType != null ? failedOperationType.hashCode() : 0);
         result1 = 31 * result1 + (intent != null ? intent.hashCode() : 0);
@@ -385,12 +370,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
 
         jaxb.setSynchronizationTimestamp(repo.getSynchronizationTimestamp());
 
-        try {
-            jaxb.setObjectChange(RUtil.toJAXB(repo.getObjectChange(), ObjectDeltaType.class, prismContext));
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
-        }
-
         if (repo.getAttributes() != null) {
             ShadowAttributesType attributes = new ShadowAttributesType();
             jaxb.setAttributes(attributes);
@@ -441,12 +420,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         if (jaxb.getResource() != null) {
             LOGGER.warn("Resource from resource object shadow type won't be saved. It should be " +
                     "translated to resource reference.");
-        }
-
-        try {
-            repo.setObjectChange(RUtil.toRepo(jaxb.getObjectChange(), prismContext));
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
         }
 
         if (jaxb.getAttributes() != null) {

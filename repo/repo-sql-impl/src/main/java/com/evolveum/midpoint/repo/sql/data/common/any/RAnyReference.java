@@ -22,11 +22,8 @@ import com.evolveum.midpoint.repo.sql.data.common.id.RAnyReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.util.DOMUtil;
-import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
-import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 
@@ -51,8 +48,6 @@ public class RAnyReference implements RAnyValue {
 
     //this is target oid
     private String value;
-    private String description;
-    private String filter;
     //this is type attribute
     private RContainerType targetType;
     private String relation;
@@ -130,18 +125,6 @@ public class RAnyReference implements RAnyValue {
         return value;
     }
 
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getDescription() {
-        return description;
-    }
-
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getFilter() {
-        return filter;
-    }
-
     @Enumerated(EnumType.ORDINAL)
     public RContainerType getTargetType() {
         return targetType;
@@ -188,14 +171,6 @@ public class RAnyReference implements RAnyValue {
         this.ownerType = ownerType;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setFilter(String filter) {
-        this.filter = filter;
-    }
-
     public void setTargetType(RContainerType targetType) {
         this.targetType = targetType;
     }
@@ -212,8 +187,6 @@ public class RAnyReference implements RAnyValue {
         RAnyReference that = (RAnyReference) o;
 
         if (dynamic != that.dynamic) return false;
-        if (description != null ? !description.equals(that.description) : that.description != null) return false;
-        if (filter != null ? !filter.equals(that.filter) : that.filter != null) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (relation != null ? !relation.equals(that.relation) : that.relation != null) return false;
         if (targetType != that.targetType) return false;
@@ -231,8 +204,6 @@ public class RAnyReference implements RAnyValue {
         result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (valueType != null ? valueType.hashCode() : 0);
         result = 31 * result + (value != null ? value.hashCode() : 0);
-        result = 31 * result + (description != null ? description.hashCode() : 0);
-        result = 31 * result + (filter != null ? filter.hashCode() : 0);
         result = 31 * result + (targetType != null ? targetType.hashCode() : 0);
         result = 31 * result + (relation != null ? relation.hashCode() : 0);
 
@@ -242,9 +213,6 @@ public class RAnyReference implements RAnyValue {
     public static PrismReferenceValue createReference(RAnyReference repo) {
         PrismReferenceValue value = new PrismReferenceValue();
         value.setOid(repo.getValue());
-        value.setDescription(repo.getDescription());
-        value.setFilter(StringUtils.isNotEmpty(repo.getFilter()) ?
-                DOMUtil.parseDocument(repo.getFilter()).getDocumentElement() : null);
         value.setRelation(RUtil.stringToQName(repo.getRelation()));
         value.setTargetType(ClassMapper.getQNameForHQLType(repo.getTargetType()));
 
@@ -254,8 +222,6 @@ public class RAnyReference implements RAnyValue {
     public static RAnyReference createReference(PrismReferenceValue jaxb) {
         RAnyReference repo = new RAnyReference();
 
-        repo.setDescription(jaxb.getDescription());
-        repo.setFilter(jaxb.getFilter() != null ? DOMUtil.printDom(jaxb.getFilter()).toString() : null);
         repo.setValue(jaxb.getOid());
         repo.setRelation(RUtil.qnameToString(jaxb.getRelation()));
         repo.setTargetType(ClassMapper.getHQLTypeForQName(jaxb.getTargetType()));

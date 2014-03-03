@@ -26,7 +26,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.util.List;
@@ -47,7 +46,6 @@ public class RAuthorization extends RContainer implements ROwnable {
     private String ownerOid;
     private Short ownerId;
     //actual data
-    private String description;
     private RAuthorizationDecision decision;
     private Set<String> action;
 
@@ -102,12 +100,6 @@ public class RAuthorization extends RContainer implements ROwnable {
         return decision;
     }
 
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getDescription() {
-        return description;
-    }
-
     @Transient
     @Override
     public RContainer getContainerOwner() {
@@ -120,10 +112,6 @@ public class RAuthorization extends RContainer implements ROwnable {
 
     public void setDecision(RAuthorizationDecision decision) {
         this.decision = decision;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 
     public void setOwner(RObject owner) {
@@ -148,7 +136,6 @@ public class RAuthorization extends RContainer implements ROwnable {
 
         if (action != null ? !action.equals(that.action) : that.action != null) return false;
         if (decision != that.decision) return false;
-        if (description != null ? !description.equals(that.description) : that.description != null) return false;
 
         return true;
     }
@@ -156,7 +143,6 @@ public class RAuthorization extends RContainer implements ROwnable {
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + (description != null ? description.hashCode() : 0);
         result = 31 * result + (decision != null ? decision.hashCode() : 0);
 
         return result;
@@ -168,7 +154,6 @@ public class RAuthorization extends RContainer implements ROwnable {
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
         jaxb.setId(RUtil.toLong(repo.getId()));
-        jaxb.setDescription(repo.getDescription());
         if (repo.getDecision() != null) {
             jaxb.setDecision(repo.getDecision().getSchemaValue());
         }
@@ -186,7 +171,6 @@ public class RAuthorization extends RContainer implements ROwnable {
 
         repo.setOid(parent.getOid());
         repo.setId(RUtil.toShort(jaxb.getId()));
-        repo.setDescription(jaxb.getDescription());
 
         repo.setDecision(RUtil.getRepoEnumValue(jaxb.getDecision(), RAuthorizationDecision.class));
         repo.setAction(RUtil.listToSet(jaxb.getAction()));

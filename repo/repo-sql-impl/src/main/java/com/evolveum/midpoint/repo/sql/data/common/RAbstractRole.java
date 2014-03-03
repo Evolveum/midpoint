@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RRoleApproverRef;
@@ -30,14 +29,17 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-import org.apache.commons.lang.StringUtils;
-import org.hibernate.annotations.*;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Where;
 
-import javax.persistence.*;
+import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.OneToMany;
+import javax.persistence.Transient;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -59,9 +61,6 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
     private Boolean requestable;
     private Set<RObjectReference> approverRef;
     private String approvalProcess;
-    private String approvalSchema;
-    private String approvalExpression;
-    private String automaticallyApproved;
     private Set<RAuthorization> authorization;
 
     @OneToMany(mappedBy = RAuthorization.F_OWNER, orphanRemoval = true)
@@ -79,29 +78,8 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
     }
 
     @Column(nullable = true)
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getAutomaticallyApproved() {
-        return automaticallyApproved;
-    }
-
-    @Column(nullable = true)
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getApprovalExpression() {
-        return approvalExpression;
-    }
-
-    @Column(nullable = true)
     public String getApprovalProcess() {
         return approvalProcess;
-    }
-
-    @Column(nullable = true)
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getApprovalSchema() {
-        return approvalSchema;
     }
 
     @Transient
@@ -142,18 +120,6 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
         this.approvalProcess = approvalProcess;
     }
 
-    public void setApprovalSchema(String approvalSchema) {
-        this.approvalSchema = approvalSchema;
-    }
-
-    public void setApprovalExpression(String approvalExpression) {
-        this.approvalExpression = approvalExpression;
-    }
-
-    public void setAutomaticallyApproved(String automaticallyApproved) {
-        this.automaticallyApproved = automaticallyApproved;
-    }
-
     public void setRequestable(Boolean requestable) {
         this.requestable = requestable;
     }
@@ -179,12 +145,6 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
             return false;
         if (approvalProcess != null ? !approvalProcess.equals(that.approvalProcess) : that.approvalProcess != null)
             return false;
-        if (approvalSchema != null ? !approvalSchema.equals(that.approvalSchema) : that.approvalSchema != null)
-            return false;
-        if (approvalExpression != null ? !approvalExpression.equals(that.approvalExpression) : that.approvalExpression != null)
-            return false;
-        if (automaticallyApproved != null ? !automaticallyApproved.equals(that.automaticallyApproved) : that.automaticallyApproved != null)
-            return false;
         if (requestable != null ? !requestable.equals(that.requestable) : that.requestable != null)
             return false;
         if (authorization != null ? !authorization.equals(that.authorization) : that.authorization != null)
@@ -197,9 +157,6 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (approvalProcess != null ? approvalProcess.hashCode() : 0);
-        result = 31 * result + (approvalSchema != null ? approvalSchema.hashCode() : 0);
-        result = 31 * result + (approvalExpression != null ? approvalExpression.hashCode() : 0);
-        result = 31 * result + (automaticallyApproved != null ? automaticallyApproved.hashCode() : 0);
         result = 31 * result + (requestable != null ? requestable.hashCode() : 0);
         return result;
     }
@@ -242,25 +199,6 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
         }
 
         jaxb.setApprovalProcess(repo.getApprovalProcess());
-        try {
-            jaxb.setApprovalSchema(RUtil.toJAXB(RoleType.class, new ItemPath(RoleType.F_APPROVAL_SCHEMA),
-                    repo.getApprovalSchema(), ApprovalSchemaType.class, prismContext));
-
-            if (SelectorOptions.hasToLoadPath(AbstractRoleType.F_APPROVER_EXPRESSION, options)) {
-                if (StringUtils.isNotEmpty(repo.getApprovalExpression())) {
-                    List expressions = RUtil.toJAXB(RoleType.class, new ItemPath(RoleType.F_APPROVER_EXPRESSION),
-                            repo.getApprovalExpression(), List.class, prismContext);
-                    jaxb.getApproverExpression().addAll(expressions);
-                }
-            }
-
-            if (StringUtils.isNotEmpty(repo.getAutomaticallyApproved())) {
-                jaxb.setAutomaticallyApproved(RUtil.toJAXB(RoleType.class, new ItemPath(RoleType.F_AUTOMATICALLY_APPROVED),
-                        repo.getAutomaticallyApproved(), ExpressionType.class, prismContext));
-            }
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
-        }
     }
 
     public static <T extends AbstractRoleType> void copyFromJAXB(AbstractRoleType jaxb, RAbstractRole<T> repo,
@@ -297,13 +235,5 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
         }
 
         repo.setApprovalProcess(jaxb.getApprovalProcess());
-        try {
-            repo.setApprovalSchema(RUtil.toRepo(jaxb.getApprovalSchema(), prismContext));
-
-            repo.setApprovalExpression(RUtil.toRepo(jaxb.getApproverExpression(), prismContext));
-            repo.setAutomaticallyApproved(RUtil.toRepo(jaxb.getAutomaticallyApproved(), prismContext));
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
-        }
     }
 }

@@ -52,7 +52,6 @@ import java.util.Set;
 @ForeignKey(name = "fk_object")
 public abstract class RObject<T extends ObjectType> extends RContainer {
 
-    private String description;
     private RAnyContainer extension;
     private int version;
     private Set<ROrgClosure> descendants;
@@ -146,16 +145,6 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
         this.ancestors = ancestors;
     }
 
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
     public void setExtension(RAnyContainer extension) {
         this.extension = extension;
         if (this.extension != null) {
@@ -192,8 +181,6 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
 
         RObject rObject = (RObject) o;
 
-        if (description != null ? !description.equals(rObject.description) : rObject.description != null)
-            return false;
         if (extension != null ? !extension.equals(rObject.extension) : rObject.extension != null)
             return false;
         if (descendants != null ? !descendants.equals(rObject.descendants) : rObject.descendants != null)
@@ -210,9 +197,7 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (description != null ? description.hashCode() : 0);
-        return result;
+        return super.hashCode();
     }
 
     public static <T extends ObjectType> void copyToJAXB(RObject<T> repo, ObjectType jaxb, PrismContext prismContext,
@@ -221,7 +206,6 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        jaxb.setDescription(repo.getDescription());
         jaxb.setOid(repo.getOid());
         jaxb.setVersion(Integer.toString(repo.getVersion()));
 
@@ -260,7 +244,6 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
 
-        repo.setDescription(jaxb.getDescription());
         repo.setOid(jaxb.getOid());
         repo.setId((short) 0); // objects types have default id
 

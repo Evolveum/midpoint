@@ -157,7 +157,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         LOGGER.trace("Transforming data to JAXB type.");
+        //todo just fake stuff, probably will be removed
         PrismObject<T> prismObject = object.toJAXB(getPrismContext(), options).asPrismObject();
+        //read object from fullObject
+        prismObject = updateLoadedObject(object.getFullObject(), session, type);
         validateObjectType(prismObject, type);
 
         return prismObject;
@@ -440,7 +443,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
 
             LOGGER.trace("Translating JAXB to data type.");
-            RObject rObject = createDataObjectFromJAXB(objectType);
+            RObject rObject = createDataObjectFromJAXB(object);
 
             session = beginTransaction();
             if (options.isOverwrite()) {
@@ -513,7 +516,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         RObject merged = (RObject) session.merge(rObject);
 
-        updateFullObject(session, merged);
+        updateFullObject(session, rObject, object);
 
         //update org. unit hierarchy based on modifications
         if (modifications == null || modifications.isEmpty()) {
@@ -534,19 +537,20 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         return merged.getOid();
     }
 
-    private <T extends ObjectType> void updateFullObject(Session session, RObject object)
+    private <T extends ObjectType> void updateFullObject(Session session, RObject object, PrismObject<T> savedObject)
             throws DtoTranslationException, SchemaException {
         LOGGER.debug("Updating full object xml column start.");
         session.flush();
 
-        PrismObject<T> savedObject = object.toJAXB(getPrismContext(), null).asPrismObject();
+        savedObject.setVersion(Integer.toString(object.getVersion()));
+
         PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
         String fullObject = domProcessor.serializeObjectToString(savedObject);
+        LOGGER.trace("Storing full object\n{}", fullObject);
 
-        SQLQuery query = session.createSQLQuery("update m_object set fullObject = :fullObject where id=:id and oid=:oid");
+        SQLQuery query = session.createSQLQuery("update m_object set fullObject = :fullObject where id=0 and oid=:oid");
 
         query.setString("fullObject", fullObject);
-        query.setLong("id", (short) 0);
         query.setString("oid", savedObject.getOid());
         int result = query.executeUpdate();
         if (result != 1) {
@@ -579,7 +583,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         RContainerId containerId = (RContainerId) session.save(rObject);
         String oid = containerId.getOid();
 
-        updateFullObject(session, rObject);
+        updateFullObject(session, rObject, object);
 
         if (objectType instanceof OrgType || !objectType.getParentOrgRef().isEmpty()) {
             long time = System.currentTimeMillis();
@@ -995,16 +999,19 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         String fullObject;
         if (object instanceof String) {
-            fullObject=(String) object;
+            fullObject = (String) object;
         } else {
             Object[] array = (Object[]) object;
-            fullObject = (String)array[2];
+            fullObject = (String) array[2];
         }
 
         PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
         PrismObject<T> prismObject = domProcessor.parseObject(fullObject);
 
         if (ShadowType.class.equals(prismObject.getCompileTimeClass())) {
+            //we store it because provisioning now sends it to repo, but it should be transient
+            prismObject.removeContainer(ShadowType.F_ASSOCIATION);
+
             LOGGER.debug("Loading definitions for shadow attributes.");
 
             Query query = session.createQuery("select stringsCount, longsCount, datesCount, referencesCount, clobsCount,"
@@ -1166,12 +1173,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
             // merge and update user
             LOGGER.trace("Translating JAXB to data type.");
-            RObject rObject = createDataObjectFromJAXB(prismObject.asObjectable());
+            RObject rObject = createDataObjectFromJAXB(prismObject);
             rObject.setVersion(rObject.getVersion() + 1);
 
             session.merge(rObject);
 
-            updateFullObject(session, rObject);
+            updateFullObject(session, rObject, prismObject);
 
             recomputeHierarchy(rObject, session, modifications);
 
@@ -1461,7 +1468,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-    private <T extends ObjectType> RObject createDataObjectFromJAXB(T object) throws SchemaException {
+    private <T extends ObjectType> RObject createDataObjectFromJAXB(PrismObject<T> prismObject) throws SchemaException {
+        PrismIdentifierGenerator generator = new PrismIdentifierGenerator();
+        generator.generate(prismObject);
+
+        T object = prismObject.asObjectable();
 
         RObject rObject;
         Class<? extends RObject> clazz = ClassMapper.getHQLTypeClass(object.getClass());
