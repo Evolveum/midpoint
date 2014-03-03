@@ -444,7 +444,7 @@ This is now the only account type that midPoint can work with. -->
 					<strength>weak</strength>
 					<expression>
 						<description>Expression that assigns a fixed value</description>
-<!-- 						<value>Created by IDM</value> -->
+						<value>Created by IDM</value>
 					</expression>
 				</outbound>
                 <!-- No inbound expression for description. We don't want to synchronize that -->
@@ -519,7 +519,7 @@ This is now the only account type that midPoint can work with. -->
 					<expression>
 						<variable xmlns:my="http://whatever.com/my">
 							<name>my:defaultLocation</name>
-<!-- 							<value xsi:type="xsd:string">middle of nowhere</value> -->
+							<value xsi:type="xsd:string">middle of nowhere</value>
 						</variable>
 						<script>
 							<description>XPath expression that is using a variable declared above</description>
@@ -560,6 +560,10 @@ This is now the only account type that midPoint can work with. -->
                     </inbound>
                 </administrativeStatus>
             </activation>
+            
+            <protected>
+		    	<icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
+		    </protected>
         </accountType>
     </schemaHandling>
 

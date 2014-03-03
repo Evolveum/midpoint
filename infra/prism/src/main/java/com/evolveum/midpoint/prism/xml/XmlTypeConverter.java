@@ -167,7 +167,7 @@ public class XmlTypeConverter {
 
 
     public static Object toJavaValue(Element xmlElement, QName type) throws SchemaException {
-        return toJavaValue(xmlElement, XsdTypeMapper.toJavaType(type));
+        return toJavaValue(xmlElement, XsdTypeMapper.getXsdToJavaMapping(type));
     }
 
     /**

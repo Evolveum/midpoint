@@ -104,6 +104,8 @@ public class PrismBeanConverter {
 			if (field == null) {
 				propertyGetter = findPropertyGetter(beanClass, propName);
 			}
+			
+			
 			Method elementMethod = null;
 			Object objectFactory = null;
 			if (field == null && propertyGetter == null) {
@@ -143,6 +145,7 @@ public class PrismBeanConverter {
 				}
 				Type genericReturnType = getter.getGenericReturnType();
 				Type typeArgument = getTypeArgument(genericReturnType, "for field "+fieldName+" in "+beanClass+", cannot determine collection type");
+	//			System.out.println("type argument " + typeArgument);
 				if (typeArgument instanceof Class) {
 					paramType = (Class<?>) typeArgument;
 				} else if (typeArgument instanceof ParameterizedType) {
@@ -302,7 +305,7 @@ public class PrismBeanConverter {
 			if (propName.equals(xmlElementDecl.name())) {
 				return method;
 			}
-		}
+		}	
 		return null;
 	}
 	
@@ -722,8 +725,9 @@ public class PrismBeanConverter {
 			return marshalItemPath((ItemPathType) value);
 		} else if (value instanceof QueryType){
 			return marshalQueryType((QueryType) value);
-		} else
-		
+		} else if (value instanceof RawType){
+			return marshalRawValue((RawType) value);
+		} else		
 		if (canConvert(value.getClass())) {
 			// This must be a bean
 			return marshall(value);
@@ -738,6 +742,13 @@ public class PrismBeanConverter {
 			xprim.setAttribute(isAttribute);
 			return xprim;
 		}
+	}
+
+	private XNode marshalRawValue(RawType value) {
+		PrimitiveXNode xprim = new PrimitiveXNode();
+		xprim.setTypeQName(value.getType());
+		xprim.setValue(value.getValue());
+		return xprim;
 	}
 
 	private XNode marshalQueryType(QueryType value) {

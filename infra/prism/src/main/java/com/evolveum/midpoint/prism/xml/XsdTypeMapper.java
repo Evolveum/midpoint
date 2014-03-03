@@ -21,7 +21,9 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.XMLConstants;
 import javax.xml.datatype.Duration;
@@ -35,6 +37,7 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
@@ -123,6 +126,16 @@ public class XsdTypeMapper {
     }
     
     public static <T> Class<T> getXsdToJavaMapping(QName xsdType) {
+    	Class clazz = xsdToJavaTypeMap.get(xsdType);
+    	if (clazz == null){
+    		Set<QName> keys = xsdToJavaTypeMap.keySet();
+    		for (Iterator<QName> iterator = keys.iterator(); iterator.hasNext();){
+    			QName key = iterator.next();
+    			if (QNameUtil.match(key, xsdType)){
+    				return xsdToJavaTypeMap.get(key);
+    			}
+    		}
+    	}
     	return xsdToJavaTypeMap.get(xsdType);
     }
 
