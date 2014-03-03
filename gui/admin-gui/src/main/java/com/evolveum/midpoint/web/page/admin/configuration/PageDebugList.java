@@ -37,8 +37,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.RepositoryObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -54,11 +53,8 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.PageDebugDow
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugConfDialogDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugObjectItem;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugSearchDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.session.ConfigurationStorage;
-import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
-import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -79,7 +75,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -109,9 +104,7 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String ID_EXPORT = "export";
     private static final String ID_EXPORT_ALL = "exportAll";
     private static final String ID_SEARCH_FORM = "searchForm";
-    private static final String ID_SEARCH_TEXT = "searchText";
-    private static final String ID_SEARCH_BUTTON = "searchButton";
-    private static final String ID_SEARCH_CLEAR = "searchClear";
+    private static final String ID_BASIC_SEARCH = "basicSearch";
 
     private static final String PRINT_LABEL_USER = "User ";
     private static final String PRINT_LABEL_SHADOW = "Shadow ";
@@ -371,38 +364,24 @@ public class PageDebugList extends PageAdminConfiguration {
             }
         });
 
-        final AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
-                new StringResourceModel("pageDebugList.button.search", this, null)) {
+        BasicSearchPanel<DebugSearchDto> basicSearch = new BasicSearchPanel<DebugSearchDto>(ID_BASIC_SEARCH) {
 
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
+            protected IModel<String> createSearchTextModel() {
+                return new PropertyModel<>(searchModel, DebugSearchDto.F_TEXT);
             }
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void searchPerformed(AjaxRequestTarget target) {
                 listObjectsPerformed(target);
             }
-        };
-        searchForm.add(searchButton);
-
-        final TextField search = new TextField(ID_SEARCH_TEXT, new PropertyModel(searchModel, DebugSearchDto.F_TEXT));
-        search.add(new SearchFormEnterBehavior(searchButton));
-        searchForm.add(search);
-
-        AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form){
-                clearSearchPerformed(target);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
+            protected void clearSearchPerformed(AjaxRequestTarget target) {
+                PageDebugList.this.clearSearchPerformed(target);
             }
         };
-        searchForm.add(clearButton);
+        searchForm.add(basicSearch);
     }
 
     private IModel<List<ObjectTypes>> createChoiceModel(final IChoiceRenderer<ObjectTypes> renderer) {

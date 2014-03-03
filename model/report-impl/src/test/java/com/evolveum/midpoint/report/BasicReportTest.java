@@ -20,6 +20,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Collection;
@@ -27,6 +28,11 @@ import java.util.List;
 
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
+
+import net.sf.jasperreports.engine.JRReportTemplate;
+import net.sf.jasperreports.engine.JRTemplate;
+import net.sf.jasperreports.engine.xml.JRXmlTemplateLoader;
+import net.sf.jasperreports.web.servlets.ReportServlet;
 
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1224,7 +1230,12 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			result.computeStatus();
 			display("Result after good import", result);
 			TestUtil.assertSuccess("Import has failed (result)", result);
+	    	
 			
+			//InputStream inputStreamJRTX = new FileInputStream("src/test/resources/styles/styles_without_doc.jrtx");
+	    	//JRTemplate templateStyle = JRXmlTemplateLoader.load(inputStreamJRTX);
+			//JRTemplate templateStyle = JRXmlTemplateLoader.load(is);
+	    	 //JRReportTemplate template = (JRReportTemplate) templateStyle;
 			//WHEN IMPORT USER LIST
 			TestUtil.displayWhen(TEST_NAME + " - import report user list");			
 			importObjectFromFile(USERLIST_REPORT_FILE);

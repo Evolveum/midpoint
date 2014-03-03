@@ -48,6 +48,7 @@ public class ROrg extends RAbstractRole<OrgType> {
     private Set<String> orgType;
     private String costCenter;
     private RPolyString locality;
+    private Boolean tenant;
 
     @Embedded
     public RPolyString getName() {
@@ -107,7 +108,15 @@ public class ROrg extends RAbstractRole<OrgType> {
         this.orgType = orgType;
     }
 
-    @Override
+    public Boolean getTenant() {
+		return tenant;
+	}
+
+	public void setTenant(Boolean tenant) {
+		this.tenant = tenant;
+	}
+
+	@Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -121,6 +130,7 @@ public class ROrg extends RAbstractRole<OrgType> {
         if (identifier != null ? !identifier.equals(that.identifier) : that.identifier != null) return false;
         if (locality != null ? !locality.equals(that.locality) : that.locality != null) return false;
         if (orgType != null ? !orgType.equals(that.orgType) : that.orgType != null) return false;
+        if (tenant != null ? !tenant.equals(that.tenant) : that.tenant != null) return false;
 
         return true;
     }
@@ -134,6 +144,7 @@ public class ROrg extends RAbstractRole<OrgType> {
         result = 31 * result + (orgType != null ? orgType.hashCode() : 0);
         result = 31 * result + (costCenter != null ? costCenter.hashCode() : 0);
         result = 31 * result + (locality != null ? locality.hashCode() : 0);
+        result = 31 * result + (tenant != null ? tenant.hashCode() : 0);
         return result;
     }
 
@@ -147,6 +158,7 @@ public class ROrg extends RAbstractRole<OrgType> {
         repo.setIdentifier(jaxb.getIdentifier());
         repo.setLocality(RPolyString.copyFromJAXB(jaxb.getLocality()));
         repo.setOrgType(RUtil.listToSet(jaxb.getOrgType()));
+        repo.setTenant(jaxb.isTenant());
     }
 
     public static void copyToJAXB(ROrg repo, OrgType jaxb, PrismContext prismContext,
@@ -159,7 +171,8 @@ public class ROrg extends RAbstractRole<OrgType> {
         jaxb.setDisplayName(RPolyString.copyToJAXB(repo.getDisplayName()));
         jaxb.setIdentifier(repo.getIdentifier());
         jaxb.setLocality(RPolyString.copyToJAXB(repo.getLocality()));
-
+        jaxb.setTenant(repo.getTenant());
+        
         if (SelectorOptions.hasToLoadPath(OrgType.F_ORG_TYPE, options)) {
             jaxb.getOrgType().addAll(RUtil.safeSetToList(repo.getOrgType()));
         }

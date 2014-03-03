@@ -132,6 +132,12 @@
         targetRef_relationNamespace varchar(255),
         targetRef_targetOid varchar(36),
         targetRef_type int4,
+        tenantRef_description text,
+        tenantRef_filter text,
+        tenantRef_relationLocalPart varchar(100),
+        tenantRef_relationNamespace varchar(255),
+        tenantRef_targetOid varchar(36),
+        tenantRef_type int4,
         id int8 not null,
         oid varchar(36) not null,
         extId int8,
@@ -329,6 +335,14 @@
 
     create table m_object (
         description text,
+        name_norm varchar(255),
+        name_orig varchar(255),
+        tenantRef_description text,
+        tenantRef_filter text,
+        tenantRef_relationLocalPart varchar(100),
+        tenantRef_relationNamespace varchar(255),
+        tenantRef_targetOid varchar(36),
+        tenantRef_type int4,
         version int8 not null,
         id int8 not null,
         oid varchar(36) not null,
@@ -376,6 +390,7 @@
         locality_orig varchar(255),
         name_norm varchar(255),
         name_orig varchar(255),
+        tenant boolean,
         id int8 not null,
         oid varchar(36) not null,
         primary key (id, oid),
@@ -438,7 +453,7 @@
         primary key (id, oid),
         unique (name_norm)
     );
-	
+
     create table m_report_output (
         name_norm varchar(255),
         name_orig varchar(255),
@@ -837,6 +852,10 @@
         add constraint fk_node 
         foreign key (id, oid) 
         references m_object;
+
+    create index iObjectNameOrig on m_object (name_orig);
+
+    create index iObjectNameNorm on m_object (name_norm);
 
     alter table m_object 
         add constraint fk_object 

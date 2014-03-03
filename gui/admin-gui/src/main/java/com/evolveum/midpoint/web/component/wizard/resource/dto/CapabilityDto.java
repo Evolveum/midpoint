@@ -26,16 +26,18 @@ import java.io.Serializable;
 public class CapabilityDto<T extends CapabilityType> implements Serializable {
 
     public static final String F_NATIVE_CAPABILITY = "nativeCapability";
-    public static final String F_LABEL = "label";
+    public static final String F_VALUE = "value";
     public static final String F_CAPABILITY = "capability";
+    public static final String F_SELECTED = "selected";
 
+    private boolean selected = false;
     private boolean nativeCapability;
-    private String label;
+    private String value;
     private T capability;
 
-    public CapabilityDto(T capability, String label, boolean nativeCapability) {
+    public CapabilityDto(T capability, String value, boolean nativeCapability) {
         this.nativeCapability = nativeCapability;
-        this.label = label;
+        this.value = value;
         this.capability = capability;
     }
 
@@ -47,12 +49,12 @@ public class CapabilityDto<T extends CapabilityType> implements Serializable {
         this.nativeCapability = nativeCapability;
     }
 
-    public String getLabel() {
-        return label;
+    public String getValue() {
+        return value;
     }
 
-    public void setLabel(String label) {
-        this.label = label;
+    public void setValue(String value) {
+        this.value = value;
     }
 
     public T getCapability() {
@@ -61,5 +63,13 @@ public class CapabilityDto<T extends CapabilityType> implements Serializable {
 
     public void setCapability(T capability) {
         this.capability = capability;
+    }
+
+    public boolean isSelected() {
+        return selected;
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
     }
 }

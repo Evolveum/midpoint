@@ -18,6 +18,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
+
+    <form wicket:id="form">
+        <input wicket:id="fileInput" type="file"/>
+        <a wicket:id="save"/>
+    </form>
+    <hr/>
+
     <ul class="nav nav-tabs">
         <li class="active"><a href="#schema" data-toggle="tab">Schema</a></li>
         <li><a href="#xml" data-toggle="tab">Xml</a></li>

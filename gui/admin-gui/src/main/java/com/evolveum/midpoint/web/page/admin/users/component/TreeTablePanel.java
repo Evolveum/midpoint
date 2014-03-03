@@ -21,8 +21,9 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
+import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -47,22 +48,16 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.page.admin.users.dto.OrgDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
+import com.evolveum.midpoint.web.page.admin.users.dto.*;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.tree.ISortableTreeProvider;
@@ -75,7 +70,6 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -98,11 +92,16 @@ public class TreeTablePanel extends SimplePanel<String> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TreeTablePanel.class);
 
+    private static final int CONFIRM_DELETE = 0;
+    private static final int CONFIRM_DELETE_ROOT = 1;
+
     private static final String DOT_CLASS = TreeTablePanel.class.getName() + ".";
     private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
     private static final String OPERATION_MOVE_OBJECTS = DOT_CLASS + "moveObjects";
     private static final String OPERATION_MOVE_OBJECT = DOT_CLASS + "moveObject";
+    private static final String OPERATION_UPDATE_OBJECTS = DOT_CLASS + "updateObjects";
+    private static final String OPERATION_UPDATE_OBJECT = DOT_CLASS + "updateObject";
 
     private static final String ID_TREE = "tree";
     private static final String ID_TREE_CONTAINER = "treeContainer";
@@ -112,14 +111,14 @@ public class TreeTablePanel extends SimplePanel<String> {
     private static final String ID_MOVE_POPUP = "movePopup";
     private static final String ID_TREE_MENU = "treeMenu";
     private static final String ID_TREE_HEADER = "treeHeader";
-    private static final String ID_SEARCH_FORM="searchForm";
+    private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_BASIC_SEARCH = "basicSearch";
 
     private IModel<OrgTreeDto> selected = new LoadableModel<OrgTreeDto>() {
 
         @Override
         protected OrgTreeDto load() {
-            return loadRoot();
+            return getRootFromProvider();
         }
     };
 
@@ -136,7 +135,15 @@ public class TreeTablePanel extends SimplePanel<String> {
             public void yesPerformed(AjaxRequestTarget target) {
                 close(target);
 
-                deleteConfirmedPerformed(target);
+                switch (getConfirmType()) {
+                    case CONFIRM_DELETE:
+                        deleteConfirmedPerformed(target);
+                        break;
+                    case CONFIRM_DELETE_ROOT:
+                        deleteRootConfirmedPerformed(target);
+                        break;
+                }
+
             }
         });
 
@@ -217,6 +224,11 @@ public class TreeTablePanel extends SimplePanel<String> {
 //        tree.add(AttributeModifier.replace("class", "tree-midpoint"));
         treeContainer.add(tree);
 
+        initTable();
+        initSearch();
+    }
+
+    private void initTable() {
         Form form = new Form(ID_FORM);
         form.setOutputMarkupId(true);
         add(form);
@@ -229,11 +241,7 @@ public class TreeTablePanel extends SimplePanel<String> {
 
             @Override
             public ObjectQuery getQuery() {
-                ObjectQuery query = super.getQuery();
-                if (query == null) {
-                    query = createTableQuery();
-                }
-                return query;
+                return createTableQuery();
             }
         };
         tableProvider.setOptions(WebModelUtils.createMinimalOptions());
@@ -241,15 +249,25 @@ public class TreeTablePanel extends SimplePanel<String> {
         TablePanel table = new TablePanel(ID_TABLE, tableProvider, tableColumns, 10);
         table.setOutputMarkupId(true);
         form.add(table);
-
-        initSearch();
     }
 
     private void initSearch() {
         Form form = new Form(ID_SEARCH_FORM);
+        form.setOutputMarkupId(true);
         add(form);
 
-        BasicSearchPanel basicSearch = new BasicSearchPanel(ID_BASIC_SEARCH, new Model());
+        BasicSearchPanel basicSearch = new BasicSearchPanel(ID_BASIC_SEARCH, new Model()) {
+
+            @Override
+            protected void clearSearchPerformed(AjaxRequestTarget target) {
+                clearTableSearchPerformed(target);
+            }
+
+            @Override
+            protected void searchPerformed(AjaxRequestTarget target) {
+                tableSearchPerformed(target);
+            }
+        };
         form.add(basicSearch);
     }
 
@@ -284,6 +302,15 @@ public class TreeTablePanel extends SimplePanel<String> {
         });
         items.add(item);
 
+        item = new InlineMenuItem(createStringResource("TreeTablePanel.deleteRoot"), new InlineMenuItemAction() {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                deleteRootPerformed(target);
+            }
+        });
+        items.add(item);
+
         return items;
     }
 
@@ -292,13 +319,23 @@ public class TreeTablePanel extends SimplePanel<String> {
 
             @Override
             public String getObject() {
-                return createStringResource("TreeTablePanel.message.deleteObjectConfirm",
-                        WebMiscUtil.getSelectedData(getTable()).size()).getString();
+                ConfirmationDialog dialog = (ConfirmationDialog) TreeTablePanel.this.get(ID_CONFIRM_DELETE_POPUP);
+                switch (dialog.getConfirmType()) {
+                    case CONFIRM_DELETE:
+                        return createStringResource("TreeTablePanel.message.deleteObjectConfirm",
+                                WebMiscUtil.getSelectedData(getTable()).size()).getString();
+                    case CONFIRM_DELETE_ROOT:
+                        OrgTreeDto dto = getRootFromProvider();
+
+                        return createStringResource("TreeTablePanel.message.deleteRootConfirm",
+                                dto.getName(), dto.getDisplayName()).getString();
+                }
+                return null;
             }
         };
     }
 
-    private OrgTreeDto loadRoot() {
+    private OrgTreeDto getRootFromProvider() {
         TableTree<OrgTreeDto, String> tree = getTree();
         ITreeProvider<OrgTreeDto> provider = tree.getProvider();
         Iterator<? extends OrgTreeDto> iterator = provider.getRoots();
@@ -372,7 +409,6 @@ public class TreeTablePanel extends SimplePanel<String> {
                     }
                 }));
         headerMenuItems.add(new InlineMenuItem());
-        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.actionOnSelection")));
         headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addToHierarchy"), true,
                 new HeaderMenuAction(this) {
 
@@ -387,6 +423,22 @@ public class TreeTablePanel extends SimplePanel<String> {
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
                         movePerformed(target, OrgUnitBrowser.Operation.REMOVE);
+                    }
+                }));
+        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.enable"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        updateActivationPerformed(target, true);
+                    }
+                }));
+        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.disable"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        updateActivationPerformed(target, false);
                     }
                 }));
         headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.move"), true,
@@ -468,7 +520,8 @@ public class TreeTablePanel extends SimplePanel<String> {
             return;
         }
 
-        ModalWindow dialog = (ModalWindow) get(ID_CONFIRM_DELETE_POPUP);
+        ConfirmationDialog dialog = (ConfirmationDialog) get(ID_CONFIRM_DELETE_POPUP);
+        dialog.setConfirmType(CONFIRM_DELETE);
         dialog.show(target);
     }
 
@@ -486,12 +539,10 @@ public class TreeTablePanel extends SimplePanel<String> {
         }
         result.computeStatusComposite();
 
-        ObjectDataProvider provider = (ObjectDataProvider) getTable().getDataTable().getDataProvider();
-        provider.clearCache();
-
         page.showResult(result);
         target.add(page.getFeedbackPanel());
-        target.add(getTable());
+
+        refreshTable(target);
     }
 
     private void movePerformed(AjaxRequestTarget target, OrgUnitBrowser.Operation operation) {
@@ -506,7 +557,7 @@ public class TreeTablePanel extends SimplePanel<String> {
                 return;
             }
         } else {
-            objects = new ArrayList<OrgTableDto>();
+            objects = new ArrayList<>();
             objects.add(selected);
         }
 
@@ -601,12 +652,21 @@ public class TreeTablePanel extends SimplePanel<String> {
         page.showResult(result);
         dialog.close(target);
 
+        refreshTabbedPanel(target);
+    }
+
+    private void refreshTabbedPanel(AjaxRequestTarget target) {
+        PageBase page = getPageBase();
+
         TabbedPanel tabbedPanel = findParent(TabbedPanel.class);
-        tabbedPanel.setSelectedTab(0);
         IModel<List<ITab>> tabs = tabbedPanel.getTabs();
+
         if (tabs instanceof LoadableModel) {
             ((LoadableModel) tabs).reset();
         }
+
+        tabbedPanel.setSelectedTab(0);
+
         target.add(tabbedPanel);
         target.add(page.getFeedbackPanel());
     }
@@ -620,20 +680,44 @@ public class TreeTablePanel extends SimplePanel<String> {
     }
 
     private void selectTreeItemPerformed(AjaxRequestTarget target) {
+        BasicSearchPanel<String> basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
+        basicSearch.getModel().setObject(null);
+
         TablePanel table = getTable();
 
-        BaseSortableDataProvider provider = (BaseSortableDataProvider) table.getDataTable().getDataProvider();
-        provider.setQuery(createTableQuery());
-
         target.add(table);
+        target.add(get(ID_SEARCH_FORM));
     }
 
     private ObjectQuery createTableQuery() {
         OrgTreeDto dto = selected.getObject();
         String oid = dto != null ? dto.getOid() : getModel().getObject();
 
-        OrgFilter filter = OrgFilter.createOrg(oid, null, 1);
-        return ObjectQuery.createObjectQuery(filter);
+        OrgFilter org = OrgFilter.createOrg(oid, null, 1);
+//        return ObjectQuery.createObjectQuery(org);
+
+        BasicSearchPanel<String> basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
+        String object = basicSearch.getModelObject();
+        if (StringUtils.isEmpty(object)) {
+            return ObjectQuery.createObjectQuery(org);
+        }
+
+        PageBase page = getPageBase();
+        PrismContext context = page.getPrismContext();
+
+        PolyStringNormalizer normalizer = context.getDefaultPolyStringNormalizer();
+        String normalizedString = normalizer.normalize(object);
+        if (StringUtils.isEmpty(normalizedString)) {
+            return ObjectQuery.createObjectQuery(org);
+        }
+
+
+        SubstringFilter substring =  SubstringFilter.createSubstring(ObjectType.F_NAME, ObjectType.class, context,
+                PolyStringNormMatchingRule.NAME, normalizedString);
+
+        AndFilter and = AndFilter.createAnd(org, substring);
+
+        return ObjectQuery.createObjectQuery(and);
     }
 
     private void collapseAllPerformed(AjaxRequestTarget target) {
@@ -653,9 +737,80 @@ public class TreeTablePanel extends SimplePanel<String> {
     }
 
     private void moveRootPerformed(AjaxRequestTarget target) {
-        OrgTreeDto root = loadRoot();
+        OrgTreeDto root = getRootFromProvider();
         OrgTableDto dto = new OrgTableDto(root.getOid(), root.getType());
         movePerformed(target, OrgUnitBrowser.Operation.MOVE, dto);
+    }
+
+    private void updateActivationPerformed(AjaxRequestTarget target, boolean enable) {
+        List<OrgTableDto> objects = isAnythingSelected(target);
+        if (objects.isEmpty()) {
+            return;
+        }
+
+        PageBase page = getPageBase();
+        OperationResult result = new OperationResult(OPERATION_UPDATE_OBJECTS);
+        for (OrgTableDto object : objects) {
+            if (!(FocusType.class.isAssignableFrom(object.getType()))) {
+                continue;
+            }
+
+            OperationResult subResult = result.createSubresult(OPERATION_UPDATE_OBJECT);
+            ObjectDelta delta = WebModelUtils.createActivationAdminStatusDelta(object.getType(), object.getOid(),
+                    enable, page.getPrismContext());
+
+            WebModelUtils.save(delta, subResult, page);
+        }
+        result.computeStatusComposite();
+
+        page.showResult(result);
+        target.add(page.getFeedbackPanel());
+
+        refreshTable(target);
+    }
+
+    private void refreshTable(AjaxRequestTarget target) {
+        ObjectDataProvider provider = (ObjectDataProvider) getTable().getDataTable().getDataProvider();
+        provider.clearCache();
+
+        target.add(getTable());
+    }
+
+    private void deleteRootPerformed(AjaxRequestTarget target) {
+        if (selected.getObject() == null) {
+            warn(getString("TreeTablePanel.message.nothingSelected"));
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+
+        ConfirmationDialog dialog = (ConfirmationDialog) get(ID_CONFIRM_DELETE_POPUP);
+        dialog.setConfirmType(CONFIRM_DELETE_ROOT);
+        dialog.show(target);
+    }
+
+    private void deleteRootConfirmedPerformed(AjaxRequestTarget target) {
+        OperationResult result = new OperationResult(OPERATION_DELETE_OBJECT);
+
+        PageBase page = getPageBase();
+
+        OrgTreeDto dto = getRootFromProvider();
+        WebModelUtils.deleteObject(OrgType.class, dto.getOid(), result, page);
+
+        result.computeStatusIfUnknown();
+        page.showResultInSession(result);
+
+        refreshTabbedPanel(target);
+    }
+
+    private void clearTableSearchPerformed(AjaxRequestTarget target) {
+        BasicSearchPanel basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
+        basicSearch.getModel().setObject(null);
+
+        refreshTable(target);
+    }
+
+    private void tableSearchPerformed(AjaxRequestTarget target) {
+        refreshTable(target);
     }
 
     private static class TreeStateModel extends AbstractReadOnlyModel<Set<OrgTreeDto>> {

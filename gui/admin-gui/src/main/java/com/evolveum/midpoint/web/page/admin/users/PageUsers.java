@@ -52,6 +52,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -609,10 +610,8 @@ public class PageUsers extends PageAdminUsers {
             try {
                 Task task = createSimpleTask(operation);
 
-                ItemPath path = new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
-                ActivationStatusType status = enabling ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED;
-                ObjectDelta objectDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, user.getOid(),
-                        path, getPrismContext(), status);
+                ObjectDelta objectDelta = WebModelUtils.createActivationAdminStatusDelta(UserType.class, user.getOid(),
+                        enabling, getPrismContext());
 
                 ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
                 ModelExecuteOptions options = executeOptions.createOptions();
