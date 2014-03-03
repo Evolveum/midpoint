@@ -54,19 +54,17 @@ public class DeleteExecutor extends BaseActionExecutor {
     @Override
     public Data execute(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
 
-        if (input != null) {
-            for (Item item : input.getData()) {
-                if (item instanceof PrismObject) {
-                    PrismObject<? extends ObjectType> prismObject = (PrismObject) item;
-                    ObjectType objectType = prismObject.asObjectable();
-                    operationsHelper.applyDelta(createDeleteDelta(objectType), context, result);
-                    context.println("Deleted " + item.toString());
-                } else {
-                    throw new ScriptExecutionException("Item couldn't be deleted, because it is not a PrismObject: " + item.toString());
-                }
+        for (Item item : input.getData()) {
+            if (item instanceof PrismObject) {
+                PrismObject<? extends ObjectType> prismObject = (PrismObject) item;
+                ObjectType objectType = prismObject.asObjectable();
+                operationsHelper.applyDelta(createDeleteDelta(objectType), context, result);
+                context.println("Deleted " + item.toString());
+            } else {
+                throw new ScriptExecutionException("Item couldn't be deleted, because it is not a PrismObject: " + item.toString());
             }
         }
-        return null;
+        return Data.createEmpty();
     }
 
     private ObjectDelta createDeleteDelta(ObjectType objectType) {

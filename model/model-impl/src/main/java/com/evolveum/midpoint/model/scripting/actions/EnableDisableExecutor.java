@@ -63,26 +63,24 @@ public class EnableDisableExecutor extends BaseActionExecutor {
 
         boolean isEnable = NAME_ENABLE.equals(expression.getType());
 
-        if (input != null) {
-            for (Item item : input.getData()) {
-                if (item instanceof PrismObject) {
-                    PrismObject<? extends ObjectType> prismObject = (PrismObject) item;
-                    ObjectType objectType = prismObject.asObjectable();
-                    if (objectType instanceof FocusType) {
-                        operationsHelper.applyDelta(createEnableDisableDelta((FocusType) objectType, isEnable), context, result);
-                        context.println((isEnable ? "Enabled " : "Disabled ") + item.toString());
-                    } else if (objectType instanceof ShadowType) {
-                        operationsHelper.applyDelta(createEnableDisableDelta((ShadowType) objectType, isEnable), context, result);
-                        context.println((isEnable ? "Enabled " : "Disabled ") + item.toString());
-                    } else {
-                        throw new ScriptExecutionException("Item could not be enabled/disabled, because it is not a FocusType nor ShadowType: " + item.toString());
-                    }
+        for (Item item : input.getData()) {
+            if (item instanceof PrismObject) {
+                PrismObject<? extends ObjectType> prismObject = (PrismObject) item;
+                ObjectType objectType = prismObject.asObjectable();
+                if (objectType instanceof FocusType) {
+                    operationsHelper.applyDelta(createEnableDisableDelta((FocusType) objectType, isEnable), context, result);
+                    context.println((isEnable ? "Enabled " : "Disabled ") + item.toString());
+                } else if (objectType instanceof ShadowType) {
+                    operationsHelper.applyDelta(createEnableDisableDelta((ShadowType) objectType, isEnable), context, result);
+                    context.println((isEnable ? "Enabled " : "Disabled ") + item.toString());
                 } else {
-                    throw new ScriptExecutionException("Item could not be enabled/disabled, because it is not a PrismObject: " + item.toString());
+                    throw new ScriptExecutionException("Item could not be enabled/disabled, because it is not a FocusType nor ShadowType: " + item.toString());
                 }
+            } else {
+                throw new ScriptExecutionException("Item could not be enabled/disabled, because it is not a PrismObject: " + item.toString());
             }
         }
-        return null;
+        return Data.createEmpty();
     }
 
     private ObjectDelta createEnableDisableDelta(FocusType focus, boolean isEnable) {

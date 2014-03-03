@@ -64,26 +64,24 @@ public class ResolveExecutor extends BaseActionExecutor {
 
         Data output = Data.createEmpty();
 
-        if (input != null) {
-            for (Item item : input.getData()) {
-                if (item instanceof PrismReference) {
-                    PrismReference prismReference = (PrismReference) item;
-                    for (PrismReferenceValue prismReferenceValue : prismReference.getValues()) {
-                        String oid = prismReferenceValue.getOid();
-                        QName targetTypeQName = prismReferenceValue.getTargetType();
-                        if (targetTypeQName == null) {
-                            throw new ScriptExecutionException("Couldn't resolve reference, because target type is unknown: " + prismReferenceValue);
-                        }
-                        Class<? extends ObjectType> typeClass = (Class<? extends ObjectType>) prismContext.getSchemaRegistry().determineCompileTimeClass(targetTypeQName);
-                        if (typeClass == null) {
-                            throw new ScriptExecutionException("Couldn't resolve reference, because target type class is unknown for target type " + targetTypeQName);
-                        }
-                        PrismObject<? extends ObjectType> prismObject = operationsHelper.getObject(typeClass, oid, noFetch, context, result);
-                        output.addItem(prismObject);
+        for (Item item : input.getData()) {
+            if (item instanceof PrismReference) {
+                PrismReference prismReference = (PrismReference) item;
+                for (PrismReferenceValue prismReferenceValue : prismReference.getValues()) {
+                    String oid = prismReferenceValue.getOid();
+                    QName targetTypeQName = prismReferenceValue.getTargetType();
+                    if (targetTypeQName == null) {
+                        throw new ScriptExecutionException("Couldn't resolve reference, because target type is unknown: " + prismReferenceValue);
                     }
-                } else {
-                    throw new ScriptExecutionException("Item could not be resolved, because it is not a PrismReference: " + item.toString());
+                    Class<? extends ObjectType> typeClass = (Class<? extends ObjectType>) prismContext.getSchemaRegistry().determineCompileTimeClass(targetTypeQName);
+                    if (typeClass == null) {
+                        throw new ScriptExecutionException("Couldn't resolve reference, because target type class is unknown for target type " + targetTypeQName);
+                    }
+                    PrismObject<? extends ObjectType> prismObject = operationsHelper.getObject(typeClass, oid, noFetch, context, result);
+                    output.addItem(prismObject);
                 }
+            } else {
+                throw new ScriptExecutionException("Item could not be resolved, because it is not a PrismReference: " + item.toString());
             }
         }
         return output;

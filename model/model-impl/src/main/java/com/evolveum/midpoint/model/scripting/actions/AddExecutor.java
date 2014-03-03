@@ -54,19 +54,17 @@ public class AddExecutor extends BaseActionExecutor {
     @Override
     public Data execute(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
 
-        if (input != null) {
-            for (Item item : input.getData()) {
-                if (item instanceof PrismObject) {
-                    PrismObject<? extends ObjectType> prismObject = (PrismObject) item;
-                    ObjectType objectType = prismObject.asObjectable();
-                    operationsHelper.applyDelta(createAddDelta(objectType), context, result);
-                    context.println("Added " + item.toString());
-                } else {
-                    throw new ScriptExecutionException("Item couldn't be added, because it is not a PrismObject: " + item.toString());
-                }
+        for (Item item : input.getData()) {
+            if (item instanceof PrismObject) {
+                PrismObject<? extends ObjectType> prismObject = (PrismObject) item;
+                ObjectType objectType = prismObject.asObjectable();
+                operationsHelper.applyDelta(createAddDelta(objectType), context, result);
+                context.println("Added " + item.toString());
+            } else {
+                throw new ScriptExecutionException("Item couldn't be added, because it is not a PrismObject: " + item.toString());
             }
         }
-        return null;            // todo return oid(s) in the future
+        return Data.createEmpty();            // todo return oid(s) in the future
     }
 
     private ObjectDelta createAddDelta(ObjectType objectType) {

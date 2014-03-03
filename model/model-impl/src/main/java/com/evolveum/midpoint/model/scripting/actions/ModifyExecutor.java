@@ -59,19 +59,17 @@ public class ModifyExecutor extends BaseActionExecutor {
         ExpressionType deltaExpression = expressionHelper.getArgument(expression.getParameter(), PARAM_DELTA, true, true, NAME);
         Data deltaData = scriptingExpressionEvaluator.evaluateExpression(deltaExpression, input, context, result);
 
-        if (input != null) {
-            for (Item item : input.getData()) {
-                if (item instanceof PrismObject) {
-                    PrismObject<? extends ObjectType> prismObject = (PrismObject) item;
-                    ObjectType objectType = prismObject.asObjectable();
-                    operationsHelper.applyDelta(createDelta(objectType, deltaData), context, result);
-                    context.println("Modified " + item.toString());
-                } else {
-                    throw new ScriptExecutionException("Item could not be modified, because it is not a PrismObject: " + item.toString());
-                }
+        for (Item item : input.getData()) {
+            if (item instanceof PrismObject) {
+                PrismObject<? extends ObjectType> prismObject = (PrismObject) item;
+                ObjectType objectType = prismObject.asObjectable();
+                operationsHelper.applyDelta(createDelta(objectType, deltaData), context, result);
+                context.println("Modified " + item.toString());
+            } else {
+                throw new ScriptExecutionException("Item could not be modified, because it is not a PrismObject: " + item.toString());
             }
         }
-        return null;
+        return Data.createEmpty();
     }
 
     private ObjectDelta createDelta(ObjectType objectType, Data deltaData) throws ScriptExecutionException {

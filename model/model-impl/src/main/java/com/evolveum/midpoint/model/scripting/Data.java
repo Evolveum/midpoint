@@ -18,17 +18,22 @@ package com.evolveum.midpoint.model.scripting;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -128,5 +133,38 @@ public class Data implements DebugDumpable {
             property.addRealValue(object);
         }
         return create(property);
+    }
+
+    public Collection<ObjectReferenceType> getDataAsReferences(QName defaultTargetType) throws ScriptExecutionException {
+        Collection<ObjectReferenceType> retval = new ArrayList<ObjectReferenceType>(data.size());
+        for (Item item : data) {
+            if (item instanceof PrismObject) {
+                ObjectReferenceType ref = new ObjectReferenceType();
+                ref.setType(item.getDefinition().getTypeName());            // todo check the definition is present
+                ref.setOid(((PrismObject) item).getOid());                  // todo check if oid is present
+                retval.add(ref);
+            } else if (item instanceof PrismProperty) {
+                for (Object value : ((PrismProperty) item).getRealValues()) {
+                    if (value instanceof String) {
+                        ObjectReferenceType ref = new ObjectReferenceType();
+                        ref.setType(defaultTargetType);
+                        ref.setOid((String) value);                         // todo implement search by name
+                        retval.add(ref);
+                    } else if (value instanceof ObjectReferenceType) {
+                        retval.add((ObjectReferenceType) value);
+                    } else {
+                        throw new ScriptExecutionException("Unsupported reference type: " + value.getClass());
+                    }
+                }
+            } else if (item instanceof PrismReference) {
+                PrismReference reference = (PrismReference) item;
+                for (PrismReferenceValue value : reference.getValues()) {
+                    ObjectReferenceType ref = new ObjectReferenceType();
+                    ref.setupReferenceValue(value);
+                    retval.add(ref);
+                }
+            }
+        }
+        return retval;
     }
 }

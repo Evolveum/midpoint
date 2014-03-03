@@ -59,6 +59,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     private static final File SEARCH_FOR_SHADOWS_FILE = new File(TEST_DIR, "search-for-shadows.xml");
     private static final File SEARCH_FOR_SHADOWS_NOFETCH_FILE = new File(TEST_DIR, "search-for-shadows-nofetch.xml");
     private static final File SEARCH_FOR_RESOURCES_FILE = new File(TEST_DIR, "search-for-resources.xml");
+    private static final File SEARCH_FOR_ROLES_FILE = new File(TEST_DIR, "search-for-roles.xml");
     private static final File SEARCH_FOR_USERS_ACCOUNTS_FILE = new File(TEST_DIR, "search-for-users-accounts.xml");
     private static final File SEARCH_FOR_USERS_ACCOUNTS_NOFETCH_FILE = new File(TEST_DIR, "search-for-users-accounts-nofetch.xml");
     private static final File DISABLE_JACK_FILE = new File(TEST_DIR, "disable-jack.xml");
@@ -66,6 +67,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     private static final File DELETE_AND_ADD_JACK_FILE = new File(TEST_DIR, "delete-and-add-jack.xml");
     private static final File MODIFY_JACK_FILE = new File(TEST_DIR, "modify-jack.xml");
     private static final File MODIFY_JACK_BACK_FILE = new File(TEST_DIR, "modify-jack-back.xml");
+    private static final File RECOMPUTE_JACK_FILE = new File(TEST_DIR, "recompute-jack.xml");;
+    private static final File ASSIGN_TO_JACK_FILE = new File(TEST_DIR, "assign-to-jack.xml");
 
     @Autowired
     private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
@@ -171,6 +174,24 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         result.computeStatus();
         TestUtil.assertSuccess(result);
         assertEquals(9, output.getData().size());
+    }
+
+    @Test
+    public void test206SearchForRoles() throws Exception {
+        TestUtil.displayTestTile(this, "test206SearchForRoles");
+
+        // GIVEN
+        OperationResult result = new OperationResult(DOT_CLASS + "test206SearchForRoles");
+        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(SEARCH_FOR_ROLES_FILE, ExpressionType.class).getValue();
+
+        // WHEN
+        Data output = scriptingExpressionEvaluator.evaluateExpression(expression, result).getFinalOutput();
+
+        // THEN
+        IntegrationTestTools.display("output", output.getData());
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        //assertEquals(9, output.getData().size());
     }
 
     @Test
@@ -349,6 +370,50 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         TestUtil.assertSuccess(result);
         assertEquals("Modified user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getStdOut());
         assertEquals("Caribbean", searchObjectByName(UserType.class, "jack").asObjectable().getLocality().getOrig());
+    }
+
+    @Test
+    public void test350RecomputeJack() throws Exception {
+        TestUtil.displayTestTile(this, "test350RecomputeJack");
+
+        // GIVEN
+        OperationResult result = new OperationResult(DOT_CLASS + "test350RecomputeJack");
+        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(RECOMPUTE_JACK_FILE, ExpressionType.class).getValue();
+
+        // WHEN
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, result);
+
+        // THEN
+        assertNoOutputData(output);
+        IntegrationTestTools.display("stdout", output.getStdOut());
+        IntegrationTestTools.display(result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        assertEquals("Recomputed user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getStdOut());
+    }
+
+    @Test
+    public void test360AssignToJack() throws Exception {
+        TestUtil.displayTestTile(this, "test360AssignToJack");
+
+        // GIVEN
+        OperationResult result = new OperationResult(DOT_CLASS + "test360AssignToJack");
+        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(ASSIGN_TO_JACK_FILE, ExpressionType.class).getValue();
+
+        // WHEN
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, result);
+
+        // THEN
+        assertNoOutputData(output);
+        IntegrationTestTools.display("stdout", output.getStdOut());
+        IntegrationTestTools.display(result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        //assertEquals("Recomputed user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getStdOut());
+        PrismObject<UserType> jack = getUser(USER_JACK_OID);
+        IntegrationTestTools.display("jack after assignments creation", jack);
+        assertAssignedAccount(jack, "10000000-0000-0000-0000-000000000104");
+        assertAssignedRole(jack, "12345678-d34d-b33f-f00d-55555555cccc");
     }
 
     private void assertNoOutputData(ExecutionContext output) {

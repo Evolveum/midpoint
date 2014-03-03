@@ -50,10 +50,6 @@ import org.w3c.dom.Element;
 public class SelectEvaluator extends BaseExpressionEvaluator {
 
     public Data evaluate(SelectExpressionType selectExpression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
-        if (input == null) {
-            return null;
-        }
-
         Data output = Data.createEmpty();
 
         Element pathElement = selectExpression.getPath();
