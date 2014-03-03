@@ -109,6 +109,7 @@
 		<definition>
 			  <xsd:schema elementFormDefault="qualified"
 			  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+				xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 					targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
 					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 					xmlns:xsd="http://www.w3.org/2001/XMLSchema">
@@ -185,7 +186,7 @@
 							<xsd:element minOccurs="0" name="preferredDeliveryMethod" type="xsd:string" />
 							<!-- Following definition has a fake type. But it is used to make sure that the namespace
 							     declarations are correctly preserved. -->
-							<xsd:element maxOccurs="unbounded" minOccurs="0" name="userPKCS12" type="c:PasswordType" />
+							<xsd:element maxOccurs="unbounded" minOccurs="0" name="userPKCS12" type="t:ProtectedByteArrayType" />
 							<xsd:element maxOccurs="unbounded" minOccurs="0" name="postalCode" type="xsd:string" />
 							<xsd:element maxOccurs="unbounded" minOccurs="0" name="labeledURI" type="xsd:string" />
 							<xsd:element maxOccurs="unbounded" minOccurs="0" name="telexNumber" type="xsd:string" />

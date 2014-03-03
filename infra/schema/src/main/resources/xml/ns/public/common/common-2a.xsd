@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+            xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
             xmlns:xenc="http://www.w3.org/2001/04/xmlenc#"
@@ -109,6 +110,16 @@
         <xsd:annotation>
             <xsd:documentation>
                 Prism data types.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+    
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" 
+    			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2">
+        <xsd:annotation>
+            <xsd:documentation>
+                This is a hack. It should not be here. And it will be gone as soon as we remove a deprecated functionality
+                in ResourceObjectPatternType.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:import>
@@ -3884,7 +3895,40 @@
      		</xsd:documentation>
      	</xsd:annotation>
      	<xsd:sequence>
-     		<xsd:any namespace="##any" minOccurs="1" maxOccurs="unbounded"/>
+     		<xsd:element name="filter" type="q:FilterType" minOccurs="0" maxOccurs="1">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					The filter used to match the object. If the object mathces then it is regarded to be
+     					protected.
+     					
+     					Although this is minOccurs=0 it is a mandatory attribute for all current practical uses.
+     					The minOccurs=0 is here only for compatibility and it will be changed to minOccurs=1
+     					when the deprecated syntax is removed.
+     				</xsd:documentation>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element ref="icfs:name" minOccurs="0" maxOccurs="1">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					ICF name of the protected object. If the object matches this value then it is considered protected.
+     					DEPRECATED. Use filter instead.
+     				</xsd:documentation>
+     				<xsd:appinfo>
+     					<a:deprecated/>
+     				</xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element ref="icfs:uid" minOccurs="0" maxOccurs="1">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					ICF UID of the protected object. If the object matches this value then it is considered protected.
+     					DEPRECATED. Use filter instead.
+     				</xsd:documentation>
+     				<xsd:appinfo>
+     					<a:deprecated/>
+     				</xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
      	</xsd:sequence>
      </xsd:complexType>
      

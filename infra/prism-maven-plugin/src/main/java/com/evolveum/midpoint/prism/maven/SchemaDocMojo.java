@@ -254,17 +254,30 @@ public class SchemaDocMojo extends AbstractMojo {
             return context;
 
         } catch (SchemaException e) {
-            throw new MojoFailureException(e.getMessage());
+        	handleFailure(e);
+        	// never reached
+        	return null;
         } catch (FileNotFoundException e) {
-            throw new MojoFailureException(e.getMessage());
+        	handleFailure(e);
+        	// never reached
+        	return null;
         } catch (SAXException e) {
-            throw new MojoFailureException(e.getMessage());
+        	handleFailure(e);
+        	// never reached
+        	return null;
         } catch (IOException e) {
-            throw new MojoFailureException(e.getMessage());
+        	handleFailure(e);
+        	// never reached
+        	return null;
         }
     }
 
-    private SchemaRegistry createSchemaRegistry() throws SchemaException {
+    private void handleFailure(Exception e) throws MojoFailureException {
+    	e.printStackTrace();
+    	throw new MojoFailureException(e.getMessage());
+	}
+
+	private SchemaRegistry createSchemaRegistry() throws SchemaException {
 		SchemaRegistry schemaRegistry = new SchemaRegistry();
 		schemaRegistry.setNamespacePrefixMapper(new GlobalDynamicNamespacePrefixMapper());
 		return schemaRegistry;
