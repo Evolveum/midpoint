@@ -1,10 +1,10 @@
 mvn -P -dist clean install -o
 
-cca. 291k selects vs. 540k
+cca. 281k selects vs. 540k
 
-[INFO] Total time: 50:39.248s
-[INFO] Finished at: Sun Feb 23 00:10:14 CET 2014
-[INFO] Final Memory: 75M/743M
+[INFO] Total time: 50:34.438s
+[INFO] Finished at: Tue Mar 04 00:01:27 CET 2014
+[INFO] Final Memory: 75M/729M
 
 *************************************************************************************************************
 *************************************************************************************************************
