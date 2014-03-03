@@ -28,7 +28,7 @@ import org.apache.wicket.util.lang.Bytes;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/trulo", action = {AuthorizationConstants.AUTZ_UI_PERMIT_ALL})
+@PageDescriptor(url = "/admin/test", action = {AuthorizationConstants.AUTZ_DENY_ALL})
 public class PageTest extends PageBase {
 
     public PageTest() {
