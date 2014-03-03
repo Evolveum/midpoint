@@ -294,7 +294,7 @@ public class PageOrgUnit extends PageAdminUsers {
     }
 
     private void backPerformed(AjaxRequestTarget target) {
-
+        setResponsePage(PageOrgTree.class);
     }
 
     private PrismObject<OrgType> buildUnitFromModel() throws SchemaException {
