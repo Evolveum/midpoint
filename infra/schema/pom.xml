@@ -345,7 +345,7 @@
                 <configuration>
                     <schemaFiles>
                         <schemaFile>src/main/resources/xml/ns/public/common/common-2a.xsd</schemaFile>
-                        <schemaFile>src/main/resources/xml/ns/public/common/api-types-2.xsd</schemaFile>
+                        <!--<schemaFile>src/main/resources/xml/ns/public/common/api-types-2.xsd</schemaFile>-->
                     </schemaFiles>
                     <templateDir>src/main/schemadoc/templates</templateDir>
                 </configuration>

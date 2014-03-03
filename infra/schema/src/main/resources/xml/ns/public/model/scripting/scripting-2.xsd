@@ -320,5 +320,24 @@
 
     <xsd:element name="constant" type="tns:ConstantExpressionType" substitutionGroup="tns:expression" />
 
+    <xsd:complexType name="ExecuteScriptType">
+        <xsd:sequence>
+            <xsd:element ref="tns:expression"/>
+            <xsd:element name="input" type="tns:ItemListType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ItemListType">
+        <xsd:sequence>
+            <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
+                <!--<xsd:annotation>-->
+                <!--<xsd:appinfo>-->
+                <!--<jaxb:dom/>-->
+                <!--</xsd:appinfo>-->
+                <!--</xsd:annotation>-->
+            </xsd:any>
+            <!--<xsd:element ref="c:object" minOccurs="0" maxOccurs="unbounded" />          &lt;!&ndash; temporary "solution" &ndash;&gt;-->
+        </xsd:sequence>
+    </xsd:complexType>
 
 </xsd:schema>

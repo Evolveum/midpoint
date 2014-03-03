@@ -157,6 +157,8 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/extension-2.xsd", "taskext");
 
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/connector-extension-2.xsd", "connext");
+
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/scripting/extension-2.xsd", "se");
     }
 	
 	private void setupDebug() {

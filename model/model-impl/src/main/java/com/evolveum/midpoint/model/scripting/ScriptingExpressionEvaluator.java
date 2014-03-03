@@ -18,7 +18,9 @@ package com.evolveum.midpoint.model.scripting;
 
 import com.evolveum.midpoint.model.scripting.expressions.SearchEvaluator;
 import com.evolveum.midpoint.model.scripting.expressions.SelectEvaluator;
+import com.evolveum.midpoint.model.scripting.helpers.JaxbHelper;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -27,11 +29,13 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ActionExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ConstantExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionPipelineType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionSequenceType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.FilterExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ForeachExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.SearchExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.SelectExpressionType;
 import org.apache.commons.lang.NotImplementedException;
@@ -69,6 +73,9 @@ public class ScriptingExpressionEvaluator {
     private SelectEvaluator selectEvaluator;
 
     @Autowired
+    private JaxbHelper jaxbHelper;
+
+    @Autowired
     private PrismContext prismContext;
 
     private Map<String,ActionExecutor> actionExecutors = new HashMap<>();
@@ -80,6 +87,26 @@ public class ScriptingExpressionEvaluator {
     public ExecutionContext evaluateExpression(ExpressionType expression, OperationResult result) throws ScriptExecutionException {
         Task task = taskManager.createTaskInstance();
         return evaluateExpression(expression, task, result);
+    }
+
+    public void evaluateExpressionInBackground(ExpressionType expression, Task task, OperationResult parentResult) throws SchemaException {
+        OperationResult result = parentResult.createSubresult(DOT_CLASS + "evaluateExpressionInBackground");
+        if (!task.isTransient()) {
+            throw new IllegalStateException("Task must be transient");
+        }
+        if (task.getHandlerUri() != null) {
+            throw new IllegalStateException("Task must not have a handler");
+        }
+        ExecuteScriptType executeScriptType = new ExecuteScriptType();
+        executeScriptType.setExpression(jaxbHelper.toJaxbElement(expression));
+        task.setExtensionPropertyValue(SchemaConstants.SE_EXECUTE_SCRIPT, executeScriptType);
+        task.setHandlerUri(ScriptExecutionTaskHandler.HANDLER_URI);
+        taskManager.switchToBackground(task, result);
+        result.computeStatus();
+    }
+
+    public ExecutionContext evaluateExpression(ExecuteScriptType executeScript, Task task, OperationResult result) throws ScriptExecutionException {
+        return evaluateExpression(executeScript.getExpression().getValue(), task, result);
     }
 
     public ExecutionContext evaluateExpression(ExpressionType expression, Task task, OperationResult result) throws ScriptExecutionException {

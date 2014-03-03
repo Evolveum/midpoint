@@ -182,6 +182,9 @@ public abstract class SchemaConstants {
     public static final QName SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY = new QName(MODEL_CONTEXT_NS, "skipModelContextProcessing");
     public static final QName MODEL_CONTEXT_NAME = new QName(MODEL_CONTEXT_NS, "modelContext");
 
+    public static final String SCRIPTING_EXTENSION_NS = "http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-2";
+    public static final QName SE_EXECUTE_SCRIPT = new QName(SCRIPTING_EXTENSION_NS, "executeScript");
+
     public static final QName C_EVENT = new QName(NS_C, "event");
 
     public static final QName C_TRANSPORT_NAME = new QName(NS_C, "transportName");

@@ -69,6 +69,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     private static final File MODIFY_JACK_BACK_FILE = new File(TEST_DIR, "modify-jack-back.xml");
     private static final File RECOMPUTE_JACK_FILE = new File(TEST_DIR, "recompute-jack.xml");;
     private static final File ASSIGN_TO_JACK_FILE = new File(TEST_DIR, "assign-to-jack.xml");
+    private static final File ASSIGN_TO_JACK_2_FILE = new File(TEST_DIR, "assign-to-jack-2.xml");
 
     @Autowired
     private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
@@ -414,6 +415,29 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         IntegrationTestTools.display("jack after assignments creation", jack);
         assertAssignedAccount(jack, "10000000-0000-0000-0000-000000000104");
         assertAssignedRole(jack, "12345678-d34d-b33f-f00d-55555555cccc");
+    }
+
+    @Test
+    public void test370AssignToJackInBackground() throws Exception {
+        TestUtil.displayTestTile(this, "test370AssignToJackInBackground");
+
+        // GIVEN
+        OperationResult result = new OperationResult(DOT_CLASS + "test370AssignToJackInBackground");
+        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(ASSIGN_TO_JACK_2_FILE, ExpressionType.class).getValue();
+
+        // WHEN
+        Task task = taskManager.createTaskInstance();
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        scriptingExpressionEvaluator.evaluateExpressionInBackground(expression, task, result);
+        waitForTaskFinish(task.getOid(), false);
+        task.refresh(result);
+
+        // THEN
+        IntegrationTestTools.display(task.getResult());
+        TestUtil.assertSuccess(task.getResult());
+        PrismObject<UserType> jack = getUser(USER_JACK_OID);
+        IntegrationTestTools.display("jack after assignment creation", jack);
+        assertAssignedRole(jack, "12345678-d34d-b33f-f00d-555555556677");
     }
 
     private void assertNoOutputData(ExecutionContext output) {
