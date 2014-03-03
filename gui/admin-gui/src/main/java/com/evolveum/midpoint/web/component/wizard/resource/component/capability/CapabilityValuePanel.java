@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.wizard.resource.component.CapabilityExperiment;
+package com.evolveum.midpoint.web.component.wizard.resource.component.capability;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;

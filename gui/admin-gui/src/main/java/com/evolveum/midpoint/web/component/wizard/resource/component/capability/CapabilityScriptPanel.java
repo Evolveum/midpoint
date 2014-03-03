@@ -14,30 +14,23 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.wizard.resource.component.CapabilityExperiment;
+package com.evolveum.midpoint.web.component.wizard.resource.component.capability;
 
+import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CapabilityType;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import org.apache.wicket.model.IModel;
 
 /**
  *  @author shood
  * */
-public class CapabilityStepDto implements Serializable{
+public class CapabilityScriptPanel extends SimplePanel {
 
-    public static final String F_CAPABILITIES = "capabilities";
+    private IModel<CapabilityDto> model;
 
-    private List<CapabilityDto> capabilities = new ArrayList<CapabilityDto>();
-
-
-    public List<CapabilityDto> getCapabilities() {
-        return capabilities;
+    public CapabilityScriptPanel(String componentId, IModel<CapabilityDto> model){
+        super(componentId, model);
     }
 
-    public void setCapabilities(List<CapabilityDto> capabilities) {
-        this.capabilities = capabilities;
-    }
+    @Override
+    protected void initLayout(){}
 }
