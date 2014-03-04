@@ -94,3 +94,20 @@ ALTER TABLE m_user ADD jpegPhoto LONGBLOB;
 CREATE INDEX iObjectNameOrig ON m_object (name_orig);
 
 CREATE INDEX iObjectNameNorm ON m_object (name_norm);
+
+
+ UPDATE m_object as o, m_connector as x SET o.name_norm = x.name_norm, o.name_orig = x.name_orig  WHERE x.oid = o.oid;
+ UPDATE m_object as o, m_connector_host as x SET o.name_norm = x.name_norm, o.name_orig = x.name_orig  WHERE x.oid = o.oid;
+ UPDATE m_object as o, m_generic_object as x SET o.name_norm = x.name_norm, o.name_orig = x.name_orig  WHERE x.oid = o.oid;
+ UPDATE m_object as o, m_node as x SET o.name_norm = x.name_norm, o.name_orig = x.name_orig  WHERE x.oid = o.oid;
+ UPDATE m_object as o, m_object_template as x SET o.name_norm = x.name_norm, o.name_orig = x.name_orig  WHERE x.oid = o.oid;
+ UPDATE m_object as o, m_org as x SET o.name_norm = x.name_norm, o.name_orig = x.name_orig  WHERE x.oid = o.oid;
+ UPDATE m_object as o, m_report as x SET o.name_norm = x.name_norm, o.name_orig = x.name_orig  WHERE x.oid = o.oid;
+ UPDATE m_object as o, m_report_output as x SET o.name_norm = x.name_norm, o.name_orig = x.name_orig  WHERE x.oid = o.oid;
+ UPDATE m_object as o, m_resource as x SET o.name_norm = x.name_norm, o.name_orig = x.name_orig  WHERE x.oid = o.oid;
+ UPDATE m_object as o, m_role as x SET o.name_norm = x.name_norm, o.name_orig = x.name_orig  WHERE x.oid = o.oid;
+ UPDATE m_object as o, m_shadow as x SET o.name_norm = x.name_norm, o.name_orig = x.name_orig  WHERE x.oid = o.oid;
+ UPDATE m_object as o, m_system_configuration as x SET o.name_norm = x.name_norm, o.name_orig = x.name_orig  WHERE x.oid = o.oid;
+ UPDATE m_object as o, m_task as x SET o.name_norm = x.name_norm, o.name_orig = x.name_orig  WHERE x.oid = o.oid;
+ UPDATE m_object as o, m_user as x SET o.name_norm = x.name_norm, o.name_orig = x.name_orig  WHERE x.oid = o.oid;
+ UPDATE m_object as o, m_value_policy as x SET o.name_norm = x.name_norm, o.name_orig = x.name_orig  WHERE x.oid = o.oid;
