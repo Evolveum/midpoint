@@ -25,6 +25,7 @@ ALTER TABLE m_object ADD tenantRef_type INT4;
 ALTER TABLE m_object ADD name_norm VARCHAR(255);
 ALTER TABLE m_object ADD name_orig VARCHAR(255);
 ALTER TABLE m_org ADD tenant BOOLEAN;
+ALTER TABLE m_system_configuration ADD objectTemplate TEXT;
 
 CREATE TABLE m_report (
     configuration TEXT,

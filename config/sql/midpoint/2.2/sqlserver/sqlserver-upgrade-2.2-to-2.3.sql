@@ -25,6 +25,7 @@ ALTER TABLE m_object ADD tenantRef_type INT;
 ALTER TABLE m_object ADD name_norm NVARCHAR(255);
 ALTER TABLE m_object ADD name_orig NVARCHAR(255);
 ALTER TABLE m_org ADD tenant BIT;
+ALTER TABLE m_system_configuration ADD objectTemplate NVARCHAR(MAX);
 
 
 CREATE TABLE m_report (
