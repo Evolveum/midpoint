@@ -78,7 +78,8 @@ public class PrismBeanConverter {
 	}
 	
 	public boolean canConvert(Class<?> clazz) {
-		return !clazz.isEnum() && clazz.getAnnotation(XmlType.class) != null;
+//		return !clazz.isEnum() && 
+		return clazz.getAnnotation(XmlType.class) != null;
 	}
 	
 	public <T> T unmarshall(MapXNode xnode, QName typeQName) throws SchemaException {
@@ -559,14 +560,14 @@ public class PrismBeanConverter {
 		}
 		primValue = StringUtils.trim(primValue);
 		
-		String javaEnumString = null;
-		for (Field field: classType.getDeclaredFields()) {
-			XmlEnumValue xmlEnumValue = field.getAnnotation(XmlEnumValue.class);
-			if (xmlEnumValue != null && xmlEnumValue.value() != null && xmlEnumValue.value().equals(primValue)) {
-				javaEnumString = field.getName();
-				break;
-			}
-		}
+		String javaEnumString = findEnumValue(classType, primValue);
+//		for (Field field: classType.getDeclaredFields()) {
+//			XmlEnumValue xmlEnumValue = field.getAnnotation(XmlEnumValue.class);
+//			if (xmlEnumValue != null && xmlEnumValue.value() != null && xmlEnumValue.value().equals(primValue)) {
+//				javaEnumString = field.getName();
+//				break;
+//			}
+//		}
 		
 		if (javaEnumString == null) {
 			for (Field field: classType.getDeclaredFields()) {
@@ -584,6 +585,16 @@ public class PrismBeanConverter {
 		T bean = (T) Enum.valueOf((Class<Enum>)classType, javaEnumString);
 		
 		return bean;
+	}
+	
+	private <T> String findEnumValue(Class classType, T primValue){
+		for (Field field: classType.getDeclaredFields()) {
+			XmlEnumValue xmlEnumValue = field.getAnnotation(XmlEnumValue.class);
+			if (xmlEnumValue != null && xmlEnumValue.value() != null && xmlEnumValue.value().equals(primValue)) {
+				return field.getName();
+			}
+		}
+		return null;
 	}
 	
 	private <T> T postConvertUnmarshall(Object parsedPrimValue) {
@@ -608,8 +619,13 @@ public class PrismBeanConverter {
 		
 		//check for enums
 		if (beanClass.isEnum()){
+			String enumValue = findEnumValue(beanClass, bean);
+			if (StringUtils.isEmpty(enumValue)){
+				enumValue = bean.toString();
+			}
 			QName fieldTypeName = findFieldTypeName(null, beanClass, DEFAULT_NAMESPACE_PLACEHOLDER);
-			return marshallValue(bean, fieldTypeName, false);
+			return createPrimitiveXNode(enumValue, fieldTypeName, false);
+//			return marshallValue(bean, fieldTypeName, false);
 		}
 		
 		XmlType xmlType = beanClass.getAnnotation(XmlType.class);
@@ -733,15 +749,27 @@ public class PrismBeanConverter {
 			return marshall(value);
 		} else {
 			// primitive value
-			PrimitiveXNode<T> xprim = new PrimitiveXNode<T>();
-			if (value.getClass().isEnum()){
-				value = (T) value.toString();
-			}
-			xprim.setValue(value);
-			xprim.setTypeQName(fieldTypeName);
-			xprim.setAttribute(isAttribute);
-			return xprim;
+//			PrimitiveXNode<T> xprim = new PrimitiveXNode<T>();
+////			if (value.getClass().isEnum()){
+////				value = (T) value.toString();
+////			}
+//			xprim.setValue(value);
+//			xprim.setTypeQName(fieldTypeName);
+//			xprim.setAttribute(isAttribute);
+//			return xprim;
+			return createPrimitiveXNode(value, fieldTypeName, isAttribute);
 		}
+	}
+	
+	private <T> PrimitiveXNode<T> createPrimitiveXNode(T value, QName fieldTypeName, boolean isAttribute){
+		PrimitiveXNode<T> xprim = new PrimitiveXNode<T>();
+//		if (value.getClass().isEnum()){
+//			value = (T) value.toString();
+//		}
+		xprim.setValue(value);
+		xprim.setTypeQName(fieldTypeName);
+		xprim.setAttribute(isAttribute);
+		return xprim;
 	}
 
 	private XNode marshalRawValue(RawType value) {
