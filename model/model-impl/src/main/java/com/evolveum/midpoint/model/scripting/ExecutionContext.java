@@ -29,7 +29,7 @@ import java.util.Map;
  */
 public class ExecutionContext {
     private Task task;
-    private StringBuilder stdOut = new StringBuilder();
+    private StringBuilder consoleOutput = new StringBuilder();
     private Map<String, Data> variables = new HashMap<>();
     private Data finalOutput;                                        // used only when passing result to external clients (TODO do this more cleanly)
 
@@ -58,12 +58,12 @@ public class ExecutionContext {
         variables.put(variableName, value);
     }
 
-    public String getStdOut() {
-        return stdOut.toString();
+    public String getConsoleOutput() {
+        return consoleOutput.toString();
     }
 
     public void println(Object o) {
-        stdOut.append(o).append("\n");
+        consoleOutput.append(o).append("\n");
     }
 
     public Data getFinalOutput() {

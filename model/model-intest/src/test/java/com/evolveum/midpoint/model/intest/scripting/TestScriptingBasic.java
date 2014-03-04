@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.test.LogfileTestTailer;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -45,7 +46,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
 /**
- * @author semancik
+ * @author mederly
  *
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
@@ -284,8 +285,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // THEN
         assertNoOutputData(output);
-        IntegrationTestTools.display("stdout", output.getStdOut());
-        assertEquals("Disabled user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getStdOut());
+        IntegrationTestTools.display("stdout", output.getConsoleOutput());
+        assertEquals("Disabled user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getConsoleOutput());
         result.computeStatus();
         TestUtil.assertSuccess(result);
         assertAdministrativeStatusDisabled(searchObjectByName(UserType.class, "jack"));
@@ -304,10 +305,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // THEN
         assertNoOutputData(output);
-        IntegrationTestTools.display("stdout", output.getStdOut());
+        IntegrationTestTools.display("stdout", output.getConsoleOutput());
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        assertEquals("Enabled user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getStdOut());
+        assertEquals("Enabled user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getConsoleOutput());
         assertAdministrativeStatusEnabled(searchObjectByName(UserType.class, "jack"));
     }
 
@@ -324,10 +325,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // THEN
         assertNoOutputData(output);
-        IntegrationTestTools.display("stdout", output.getStdOut());
+        IntegrationTestTools.display("stdout", output.getConsoleOutput());
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        assertEquals("Deleted user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\nAdded user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getStdOut());
+        assertEquals("Deleted user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\nAdded user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getConsoleOutput());
         assertAdministrativeStatusEnabled(searchObjectByName(UserType.class, "jack"));
     }
 
@@ -344,11 +345,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // THEN
         assertNoOutputData(output);
-        IntegrationTestTools.display("stdout", output.getStdOut());
+        IntegrationTestTools.display("stdout", output.getConsoleOutput());
         IntegrationTestTools.display(result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        assertEquals("Modified user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getStdOut());
+        assertEquals("Modified user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getConsoleOutput());
         assertEquals("Nowhere", searchObjectByName(UserType.class, "jack").asObjectable().getLocality().getOrig());
     }
 
@@ -365,11 +366,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // THEN
         assertNoOutputData(output);
-        IntegrationTestTools.display("stdout", output.getStdOut());
+        IntegrationTestTools.display("stdout", output.getConsoleOutput());
         IntegrationTestTools.display(result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        assertEquals("Modified user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getStdOut());
+        assertEquals("Modified user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getConsoleOutput());
         assertEquals("Caribbean", searchObjectByName(UserType.class, "jack").asObjectable().getLocality().getOrig());
     }
 
@@ -386,11 +387,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // THEN
         assertNoOutputData(output);
-        IntegrationTestTools.display("stdout", output.getStdOut());
+        IntegrationTestTools.display("stdout", output.getConsoleOutput());
         IntegrationTestTools.display(result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        assertEquals("Recomputed user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getStdOut());
+        assertEquals("Recomputed user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getConsoleOutput());
     }
 
     @Test
@@ -406,11 +407,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // THEN
         assertNoOutputData(output);
-        IntegrationTestTools.display("stdout", output.getStdOut());
+        IntegrationTestTools.display("stdout", output.getConsoleOutput());
         IntegrationTestTools.display(result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        //assertEquals("Recomputed user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getStdOut());
+        //assertEquals("Recomputed user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getConsoleOutput());
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         IntegrationTestTools.display("jack after assignments creation", jack);
         assertAssignedAccount(jack, "10000000-0000-0000-0000-000000000104");
@@ -440,6 +441,31 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         assertAssignedRole(jack, "12345678-d34d-b33f-f00d-555555556677");
     }
 
+    @Test
+    public void test380DisableJackInBackgroundSimple() throws Exception {
+        TestUtil.displayTestTile(this, "test380DisableJackInBackgroundSimple");
+
+        // GIVEN
+        OperationResult result = new OperationResult(DOT_CLASS + "test380DisableJackInBackgroundSimple");
+
+        // WHEN
+        Task task = taskManager.createTaskInstance();
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        scriptingExpressionEvaluator.evaluateExpressionInBackground(UserType.COMPLEX_TYPE,
+                ObjectQueryUtil.createOrigNameQuery("jack", prismContext).getFilter(),
+                "disable", task, result);
+
+        waitForTaskFinish(task.getOid(), false);
+        task.refresh(result);
+
+        // THEN
+        IntegrationTestTools.display(task.getResult());
+        TestUtil.assertSuccess(task.getResult());
+        PrismObject<UserType> jack = getUser(USER_JACK_OID);
+        IntegrationTestTools.display("jack after disable script", jack);
+        assertAdministrativeStatusDisabled(jack);
+    }
+
     private void assertNoOutputData(ExecutionContext output) {
         assertTrue("Script returned unexpected data", output.getFinalOutput() == null || output.getFinalOutput().getData().isEmpty());
     }
@@ -461,7 +487,5 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
             }
         }
     }
-
-
 
 }

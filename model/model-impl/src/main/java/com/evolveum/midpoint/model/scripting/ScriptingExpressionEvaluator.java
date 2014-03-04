@@ -20,10 +20,13 @@ import com.evolveum.midpoint.model.scripting.expressions.SearchEvaluator;
 import com.evolveum.midpoint.model.scripting.expressions.SelectEvaluator;
 import com.evolveum.midpoint.model.scripting.helpers.JaxbHelper;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -49,6 +52,7 @@ import org.w3c.dom.NodeList;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -78,17 +82,48 @@ public class ScriptingExpressionEvaluator {
     @Autowired
     private PrismContext prismContext;
 
+    private ObjectFactory objectFactory = new ObjectFactory();
+
     private Map<String,ActionExecutor> actionExecutors = new HashMap<>();
 
-    public void registerActionExecutor(String actionName, ActionExecutor executor) {
-        actionExecutors.put(actionName, executor);
+    /**
+     * Asynchronously executes simple scripting expressions, consisting of one search command and one action.
+     *
+     * @param objectType Object type to search (e.g. c:UserType)
+     * @param filter Filter to be applied (ObjectFilter)
+     * @param actionName Action to be executed on objects found (e.g. "disable", "delete", "recompute", etc).
+     * @param task Task in context of which the script should execute. The task should be "clean", i.e.
+     *             (1) transient, (2) without any handler. This method puts the task into background,
+     *             and assigns ScriptExecutionTaskHandler to it, to execute the script.
+     * @param parentResult
+     * @throws SchemaException
+     */
+    public void evaluateExpressionInBackground(QName objectType, ObjectFilter filter, String actionName, Task task, OperationResult parentResult) throws SchemaException {
+        Validate.notNull(objectType);
+        Validate.notNull(actionName);
+        Validate.notNull(task);
+
+        SearchExpressionType search = new SearchExpressionType();
+        search.setType(objectType);
+        if (filter != null) {
+            search.setSearchFilter(QueryConvertor.createFilterType(filter, DOMUtil.getDocument(), prismContext));
+        }
+        ActionExpressionType action = new ActionExpressionType();
+        action.setType(actionName);
+        search.setExpression(objectFactory.createAction(action));
+        evaluateExpressionInBackground(search, task, parentResult);
     }
 
-    public ExecutionContext evaluateExpression(ExpressionType expression, OperationResult result) throws ScriptExecutionException {
-        Task task = taskManager.createTaskInstance();
-        return evaluateExpression(expression, task, result);
-    }
-
+    /**
+     * Asynchronously executes any scripting expression.
+     *
+     * @param expression Expression to be executed.
+     * @param task Task in context of which the script should execute. The task should be "clean", i.e.
+     *             (1) transient, (2) without any handler. This method puts the task into background,
+     *             and assigns ScriptExecutionTaskHandler to it, to execute the script.
+     * @param parentResult
+     * @throws SchemaException
+     */
     public void evaluateExpressionInBackground(ExpressionType expression, Task task, OperationResult parentResult) throws SchemaException {
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "evaluateExpressionInBackground");
         if (!task.isTransient()) {
@@ -105,15 +140,30 @@ public class ScriptingExpressionEvaluator {
         result.computeStatus();
     }
 
-    public ExecutionContext evaluateExpression(ExecuteScriptType executeScript, Task task, OperationResult result) throws ScriptExecutionException {
-        return evaluateExpression(executeScript.getExpression().getValue(), task, result);
-    }
-
+    /**
+     * Entry point to _synchronous_ script execution, with no input data.
+     *
+     * @param expression Scripting expression to execute.
+     * @param task Task in context of which the script should execute (in foreground!)
+     * @param result Operation result
+     * @return ExecutionContext, from which the caller can retrieve the output data via getFinalOutput() method,
+     *         and the console output via getConsoleOutput() method.
+     * @throws ScriptExecutionException
+     */
     public ExecutionContext evaluateExpression(ExpressionType expression, Task task, OperationResult result) throws ScriptExecutionException {
         ExecutionContext context = new ExecutionContext(task);
         Data output = evaluateExpression(expression, Data.createEmpty(), context, result);
         context.setFinalOutput(output);
         return context;
+    }
+
+    public ExecutionContext evaluateExpression(ExecuteScriptType executeScript, Task task, OperationResult result) throws ScriptExecutionException {
+        return evaluateExpression(executeScript.getExpression().getValue(), task, result);
+    }
+
+    public ExecutionContext evaluateExpression(ExpressionType expression, OperationResult result) throws ScriptExecutionException {
+        Task task = taskManager.createTaskInstance();
+        return evaluateExpression(expression, task, result);
     }
 
     public Data evaluateExpression(ExpressionType expression, Data input, ExecutionContext context, OperationResult parentResult) throws ScriptExecutionException {
@@ -216,5 +266,8 @@ public class ScriptingExpressionEvaluator {
         }
     }
 
+    public void registerActionExecutor(String actionName, ActionExecutor executor) {
+        actionExecutors.put(actionName, executor);
+    }
 
 }

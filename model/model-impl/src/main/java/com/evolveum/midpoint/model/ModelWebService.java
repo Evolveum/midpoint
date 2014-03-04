@@ -28,8 +28,6 @@ import com.evolveum.midpoint.model.scripting.ScriptExecutionException;
 import com.evolveum.midpoint.model.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -368,7 +366,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
             SingleScriptOutputType output = new SingleScriptOutputType();
             outputs.getOutput().add(output);
 
-            output.setTextOutput(outputContext.getStdOut());
+            output.setTextOutput(outputContext.getConsoleOutput());
             if (options == null || options.getOutputFormat() == null || options.getOutputFormat() == OutputFormatType.XML) {
                 output.setXmlData(prepareXmlData(outputContext.getFinalOutput()));
             } else {
