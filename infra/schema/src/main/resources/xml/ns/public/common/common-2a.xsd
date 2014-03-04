@@ -6776,18 +6776,48 @@
 
     <xsd:complexType name="EntryType">
         <xsd:sequence>
-            <xsd:any processContents="lax" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Value of the entry. If there is a object that can native XML representation, such representation
-                        should
-                        be used. Otherwise the UnknownJavaObject can be used.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:any>
+        	<xsd:element ref="tns:entryValue" minOccurs="0" />
+<!--             <xsd:any processContents="lax" minOccurs="0"> -->
+<!--                 <xsd:annotation> -->
+<!--                     <xsd:documentation> -->
+<!--                         Value of the entry. If there is a object that can native XML representation, such representation -->
+<!--                         should -->
+<!--                         be used. Otherwise the UnknownJavaObject can be used. -->
+<!--                     </xsd:documentation> -->
+<!--                 </xsd:annotation> -->
+<!--             </xsd:any> -->
         </xsd:sequence>
         <xsd:attribute name="key" type="xsd:string" use="required"/>
     </xsd:complexType>
+    
+    <xsd:element name="entryValue" abstract="true"/>
+    
+    <xsd:element name="paramValue" type="t:RawType" substitutionGroup="tns:entryValue" nillable="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                Static value for the attribute or property.
+
+                Static attribute values. The values in this element should be
+                assigned to the account as-is.
+
+                List of values for the attribute provided in an appropriate XML elements
+                that specify attribute name. (as is usual for properties)
+
+                Only one attribute may be specified here, although it may have multiple
+                values. Multi-valued attributes are expressed by repeating the same XML
+                element multiple times.
+                Hence all the XML elements that match this xsd:any must have the same
+                element names (may have different values of course).
+
+
+                Please note that this is nillable and therefore it may be
+                explicitly set to "nil" value. Doing this means that empty
+                set of values should be constructed. E.g. setting
+                this to "nil" and also setting "authoritative" flag
+                may enforce removal of all attribute values (if used properly).
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
 
     <xsd:simpleType name="OperationResultStatusType">
         <xsd:annotation>
@@ -6872,7 +6902,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:element name="unknownJavaObject" type="tns:UnknownJavaObjectType"/>
+    <xsd:element name="unknownJavaObject" type="tns:UnknownJavaObjectType" substitutionGroup="tns:entryValue"/>
 
     <!-- Configuration types -->
 

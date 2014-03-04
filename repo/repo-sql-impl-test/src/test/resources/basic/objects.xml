@@ -575,6 +575,7 @@
             reactions and similar synchronization settings.
         -->
         <synchronization>
+        <objectSynchronization>
             <!--
                 The synchronization for this resource is enabled.
                 It means that the synchronization will react to changes detected by
@@ -590,16 +591,16 @@
                     The correlation rule always looks for users, so it will not match
                     any other object type.
                 </description>
+                <filter>
                 <equal>
-                    <path>.</path>
+                    <path>name</path>
                     <valueExpression>
-                        <ref>name</ref>
-
                         <code>
                             $c:account/c:attributes/ri:uid
                         </code>
                     </valueExpression>
                 </equal>
+                </filter>
             </correlation>
 
             <!-- Confirmation rule may be here, but as the search above will
@@ -639,7 +640,7 @@
                 </action>
                 <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>-->
             </reaction>
-
+</objectSynchronization>
         </synchronization>
         
          <projection>
@@ -689,8 +690,8 @@
             User Template Object.
             This object is used when creating a new account, to set it up as needed.
         </description>
-        <includeRef oid="1234" type="c:UserType"/>
-        <includeRef oid="12345" type="c:ResourceType"/>
+        <includeRef oid="1234" type="c:ObjectTemplateType"/>
+        <includeRef oid="12345" type="c:ObjectTemplateType"/>
         <mapping>
             <description>
                 Property construction.
@@ -724,7 +725,7 @@
             This object is used when creating a new account, to set it up as needed.
         </description>
 
-        <includeRef oid="12346" type="c:UserType"/>
+        <includeRef oid="12346" type="c:ObjectTemplateType"/>
 
 		<mapping>
             <description>
@@ -767,11 +768,12 @@
             <p:longType>567890</p:longType>
             <p:dateType>2002-05-30T09:10:11.000+02:00</p:dateType>
             <p:decimalType>1234</p:decimalType>
-            <p:locations>
-                <p:location key="home">Here</p:location>
-                <p:location key="work">There</p:location>
-                <p:location key="somewhere">There there over the corner</p:location>
-            </p:locations>
+            <!-- custom run-time properties are not supported -->
+<!--             <p:locations> -->
+<!--                 <p:location key="home">Here</p:location> -->
+<!--                 <p:location key="work">There</p:location> -->
+<!--                 <p:location key="somewhere">There there over the corner</p:location> -->
+<!--             </p:locations> -->
             <p:referenceType oid="12345678-1234-1234-1234-123456789012" type="c:UserType" relation="c:ObjectType">
                 <description>this is some description or something like that, which should be also stored in DB</description>
             </p:referenceType>
@@ -794,7 +796,7 @@
 
 
         <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-2</handlerUri>
-        <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
+        <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
         <recurrence>recurring</recurrence>
         <binding>tight</binding>
         <schedule>
@@ -840,19 +842,19 @@
                         </unknownJavaObject>
                     </entry>
                     <entry key="resourceOid">
-                        <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+                        <c:paramValue xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
                                  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                                  xsi:type="xsd:string">ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff
-                        </c:value>
+                        </c:paramValue>
                     </entry>
                     <entry key="objectClass">
-                        <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+                        <c:paramValue xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
                                  xmlns:qn644="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
                                  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                                  xsi:type="xsd:QName">qn644:AccountObjectClass
-                        </c:value>
+                        </c:paramValue>
                     </entry>
                 </params>
                 <token>1000000000000000611</token>
@@ -861,16 +863,16 @@
                     <operation>com.evolveum.midpoint.model.api.ModelService.getObject</operation>
                     <status>success</status>
                     <params>
-                        <entry key="resolve">
-                            <value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                   xsi:type="PropertyReferenceListType"/>
-                        </entry>
+<!--                         <entry key="resolve"> -->
+<!--                             <paramValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" -->
+<!--                                    xsi:type="PropertyReferenceListType"/> -->
+<!--                         </entry> -->
                         <entry key="oid">
-                            <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+                            <c:paramValue xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
                                      xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                                      xsi:type="xsd:string">ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff
-                            </c:value>
+                            </c:paramValue>
                         </entry>
                         <entry key="class">
                             <unknownJavaObject>
@@ -1091,11 +1093,11 @@
          </logging>
          <objectTemplate>
              <type>c:UserType</type>
-             <objectTemplateRef oid="1234" type="c:UserType"/>
+             <objectTemplateRef oid="1234" type="c:ObjectTemplateType"/>
          </objectTemplate>
          <objectTemplate>
              <type>c:ResourceType</type>
-             <objectTemplateRef oid="5678" type="c:ResourceType"/>
+             <objectTemplateRef oid="5678" type="c:ObjectTemplateType"/>
          </objectTemplate>
          <cleanupPolicy>
              <auditRecords>
@@ -1114,7 +1116,7 @@
         <name>ICF Connector server on admachine:8759</name>
         <hostname>admachine.example.com</hostname>
         <port>8759</port>
-        <sharedSecret>secret</sharedSecret>
+<!--         <sharedSecret>secret</sharedSecret> -->
     </object>
 
     <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"

@@ -132,7 +132,7 @@ public class PrismBeanConverter {
 			Method setter = findSetter(beanClass, fieldName);
 			Method getter = null;
 			boolean wrapInJaxbElement = false;
-			Class<?> paramType;
+			Class<?> paramType = null;
 			if (setter == null) {
 				// No setter. But if the property is multi-value we need to look
 				// for a getter that returns a collection (Collection<Whatever>)
@@ -192,7 +192,43 @@ public class PrismBeanConverter {
 					throw new IllegalArgumentException("EH? "+typeArgument+" "+typeArgument.getClass()+" from "+getterReturnType+" from "+fieldName+" in "+propName+" "+beanClass);
 				}
 			} else {
-				paramType = setter.getParameterTypes()[0];
+				Class<?> setterType = setter.getParameterTypes()[0];
+				if (JAXBElement.class.equals(setterType)){
+//					TODO some handling for the returned generic parameter types
+					Type[] genericTypes = setter.getGenericParameterTypes();
+					if (genericTypes.length != 1){
+						throw new IllegalArgumentException("Too lazy to handle this.");
+					}
+					Type genericType = genericTypes[0];
+					if (genericType instanceof ParameterizedType){
+						Type actualType = getTypeArgument(genericType, "add some description");
+						 if (actualType instanceof WildcardType) {
+								// This is the case of Collection<JAXBElement<?>>
+								// we need to exctract the specific type from the factory method
+								if (elementMethod == null) {
+									throw new IllegalArgumentException("Wildcard type in JAXBElement field specification and no facotry method found for field "+fieldName+" in "+beanClass+", cannot determine collection type (inner type argument)");
+								}
+								Type factoryMethodGenericReturnType = elementMethod.getGenericReturnType();
+								Type factoryMethodTypeArgument = getTypeArgument(factoryMethodGenericReturnType, "in factory method "+elementMethod+" return type for field "+fieldName+" in "+beanClass+", cannot determine collection type");
+								if (factoryMethodTypeArgument instanceof Class) {
+									// This is the case of JAXBElement<Whatever>
+									paramType = (Class<?>) factoryMethodTypeArgument;
+									if (Object.class.equals(paramType)) {
+										throw new IllegalArgumentException("Factory method "+elementMethod+" type argument is Object for field "+
+												fieldName+" in "+beanClass+", property "+propName);
+									}
+								} else {
+									throw new IllegalArgumentException("Cannot determine factory method return type, got "+factoryMethodTypeArgument+" - for field "+fieldName+" in "+beanClass+", cannot determine collection type (inner type argument)");
+								}
+						 }
+					}
+//					Class enclosing = paramType.getEnclosingClass();
+//					Class clazz = paramType.getClass();
+//					Class declaring = paramType.getDeclaringClass();
+					wrapInJaxbElement = true;
+				} else{
+				paramType = setterType;
+				}
 			}
 			
 			if (Element.class.isAssignableFrom(paramType)) {
@@ -202,11 +238,13 @@ public class PrismBeanConverter {
 			if (Object.class.equals(paramType)) {
 				throw new IllegalArgumentException("Object property not supported in field "+fieldName+" in "+beanClass);
 			}
+			
+			
 						
 			String paramNamespace = determineNamespace(paramType);
 			
 			//check for subclasses???
-			if (!(xsubnode instanceof PrimitiveXNode) && xsubnode.getTypeQName()!= null){
+			if (xsubnode.getTypeQName()!= null){
 				Class explicitParamType = schemaRegistry.determineCompileTimeClass(xsubnode.getTypeQName());
 				if (explicitParamType != null && explicitParamType != null){
 					paramType = explicitParamType; 
@@ -675,6 +713,7 @@ public class PrismBeanConverter {
 				}
 				
 				QName fieldTypeName = findFieldTypeName(field, getterResultValue.getClass(), namespace);
+								
 				ListXNode xlist = new ListXNode();
 				boolean isJaxb = false;
 				for (Object element: col) {
@@ -686,7 +725,9 @@ public class PrismBeanConverter {
 						isJaxb = true;
 						continue;
 					}
-					xlist.add(marshallValue(element, fieldTypeName, isAttribute));
+					XNode marshalled = marshallValue(element, fieldTypeName, isAttribute);
+					setExplicitTypeDeclarationIfNeeded(getter, getterResultValue, marshalled, fieldTypeName);
+					xlist.add(marshalled);
 				}
 				if (!isJaxb){
 					xmap.put(elementName, xlist);
@@ -694,10 +735,34 @@ public class PrismBeanConverter {
 			} else {
 				QName fieldTypeName = findFieldTypeName(field, getterResult.getClass(), namespace);
 				xmap.put(elementName, marshallValue(getterResult, fieldTypeName, isAttribute));
+				setExplicitTypeDeclarationIfNeeded(getter, getterResult, xmap, fieldTypeName);
 			}
 		}
 		
 		return xmap;
+	}
+	
+	private void setExplicitTypeDeclarationIfNeeded(Method getter, Object getterResult, XNode xmap, QName fieldTypeName){
+		Class getterReturnType = getter.getReturnType();
+		Class getterType = null;
+		if (Collection.class.isAssignableFrom(getterReturnType)){
+			Type genericReturnType = getter.getGenericReturnType();
+			if (genericReturnType instanceof ParameterizedType){
+				Type actualType = getTypeArgument(genericReturnType, "explicit type declaration");
+				 
+				if (actualType instanceof Class){
+					getterType = (Class) actualType;
+				}
+			}
+		} 
+		if (getterType == null){
+			getterType = getterReturnType;
+		}
+		Class getterResultReturnType = getterResult.getClass();
+		if (getterType != getterResultReturnType && getterType.isAssignableFrom(getterResultReturnType)){
+			xmap.setExplicitTypeDeclaration(true);
+			xmap.setTypeQName(fieldTypeName);
+		}
 	}
 	
 	private boolean isAttribute(Field field, Method getter){
@@ -749,23 +814,12 @@ public class PrismBeanConverter {
 			return marshall(value);
 		} else {
 			// primitive value
-//			PrimitiveXNode<T> xprim = new PrimitiveXNode<T>();
-////			if (value.getClass().isEnum()){
-////				value = (T) value.toString();
-////			}
-//			xprim.setValue(value);
-//			xprim.setTypeQName(fieldTypeName);
-//			xprim.setAttribute(isAttribute);
-//			return xprim;
 			return createPrimitiveXNode(value, fieldTypeName, isAttribute);
 		}
 	}
 	
 	private <T> PrimitiveXNode<T> createPrimitiveXNode(T value, QName fieldTypeName, boolean isAttribute){
 		PrimitiveXNode<T> xprim = new PrimitiveXNode<T>();
-//		if (value.getClass().isEnum()){
-//			value = (T) value.toString();
-//		}
 		xprim.setValue(value);
 		xprim.setTypeQName(fieldTypeName);
 		xprim.setAttribute(isAttribute);
@@ -873,7 +927,7 @@ public class PrismBeanConverter {
 				String propTypeLocalPart = xmlType.name();
 				if (propTypeLocalPart != null) {
 					String propTypeNamespace = xmlType.namespace();
-					if (propTypeNamespace == null) {
+					if (propTypeNamespace == null || propTypeNamespace.equals(DEFAULT_NAMESPACE_PLACEHOLDER)) {
 						propTypeNamespace = schemaNamespace;
 					}
 					propTypeQname = new QName(propTypeNamespace, propTypeLocalPart);

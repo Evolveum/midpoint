@@ -283,11 +283,11 @@ public class RResource extends RObject<ResourceType> {
             jaxb.setConnectorConfiguration(RUtil.toJAXB(ResourceType.class, new ItemPath(
                     ResourceType.F_CONNECTOR_CONFIGURATION), repo.getConfiguration(), ConnectorConfigurationType.class, ResourceType.F_CONNECTOR_CONFIGURATION,
                     prismContext));
-            jaxb.setSchema(RUtil.toJAXB(ResourceType.class, new ItemPath(ResourceType.F_SCHEMA),
+            jaxb.setSchema(RUtil.toJAXB(ResourceType.class, ResourceType.F_SCHEMA,
                     repo.getXmlSchema(), XmlSchemaType.class, prismContext));
-            jaxb.setSchemaHandling(RUtil.toJAXB(ResourceType.class, new ItemPath(ResourceType.F_SCHEMA_HANDLING),
+            jaxb.setSchemaHandling(RUtil.toJAXB(ResourceType.class, ResourceType.F_SCHEMA_HANDLING,
                     repo.getSchemaHandling(), SchemaHandlingType.class, prismContext));
-            jaxb.setSynchronization(RUtil.toJAXB(ResourceType.class, new ItemPath(ResourceType.F_SYNCHRONIZATION),
+            jaxb.setSynchronization(RUtil.toJAXB(ResourceType.class, ResourceType.F_SYNCHRONIZATION,
                     repo.getSynchronization(), SynchronizationType.class, prismContext));
             if (repo.getCapabilities() != null) {
             	PrismContainerDefinition<CapabilitiesType> capabilityDefinition = resourceDef.findContainerDefinition(ResourceType.F_CAPABILITIES);
@@ -353,7 +353,7 @@ public class RResource extends RObject<ResourceType> {
             // repo.setNativeCapabilities(RUtil.toRepo(jaxb.getNativeCapabilities(),
             // prismContext));
             repo.setScripts(RUtil.toRepo(parentDefinition, ResourceType.F_SCRIPTS, jaxb.getScripts(), prismContext));
-            repo.setConsistency(RUtil.toRepo(parentDefinition, ResourceType.COMPLEX_TYPE, jaxb.getConsistency(), prismContext));
+            repo.setConsistency(RUtil.toRepo(parentDefinition, ResourceType.F_CONSISTENCY, jaxb.getConsistency(), prismContext));
             if (jaxb.getBusiness() != null) {
                 ResourceBusinessConfigurationType business = jaxb.getBusiness();
                 repo.getApproverRef().addAll(RUtil.safeListReferenceToSet(business.getApproverRef(),
@@ -367,7 +367,7 @@ public class RResource extends RObject<ResourceType> {
                 repo.setOperationalState(repoOpState);
             }
 
-            repo.setProjection(RUtil.toRepo(parentDefinition, ResourceType.COMPLEX_TYPE, jaxb.getProjection(), prismContext));
+            repo.setProjection(RUtil.toRepo(parentDefinition, ResourceType.F_PROJECTION, jaxb.getProjection(), prismContext));
 
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);

@@ -486,6 +486,7 @@ object.
 	                    The correlation rule always looks for users, so it will not match
 	                    any other object type.
 	                </q:description>
+	                <filter>
 	                <q:equal>
 	                    <q:path>.</q:path>
 	                    <valueExpression>
@@ -496,6 +497,7 @@ object.
 	                        </code>
 	                    </valueExpression>
 	                </q:equal>
+	                </filter>
 	            </correlation>
 	
 	            <!-- Confirmation rule may be here, but as the search above will

@@ -61,6 +61,7 @@ public abstract class SchemaConstants {
 	public static final QName C_OBJECT_TYPE = new QName(NS_C, "ObjectType");
 	public static final QName C_OBJECT_REF = new QName(NS_C, "objectRef");
 	public static final QName C_VALUE = new QName(NS_C, "value");
+	public static final QName C_PARAM_VALUE = new QName(NS_C, "paramValue");
 	public static final QName C_OID_ATTRIBUTE = new QName(NS_C, "oid");
 	public static final QName C_USER_TYPE = new QName(NS_C, "UserType");
 	public static final QName C_TASK_TYPE = new QName(NS_C, "TaskType");
