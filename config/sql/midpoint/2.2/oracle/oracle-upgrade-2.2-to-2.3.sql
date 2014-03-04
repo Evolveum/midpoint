@@ -25,6 +25,7 @@ ALTER TABLE m_object ADD tenantRef_type NUMBER(10,0);
 ALTER TABLE m_object ADD name_norm VARCHAR(255 CHAR);
 ALTER TABLE m_object ADD name_orig VARCHAR(255 CHAR);
 ALTER TABLE m_org ADD tenant NUMBER(1, 0);
+ALTER TABLE m_system_configuration ADD objectTemplate CLOB;
 
 
 CREATE TABLE m_report (
