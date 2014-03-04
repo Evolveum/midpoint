@@ -44,7 +44,7 @@ import org.jvnet.jaxb2_commons.locator.util.LocatorUtils;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "UriFilterType")
 public class UriFilterType
-    extends FilterType
+    extends FilterClauseType
     implements Serializable, Cloneable, Equals, HashCode
 {
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@
     
     <!-- Filters & queries -->
 
-    <xsd:complexType name="FilterType">
+    <xsd:complexType name="FilterClauseType">
         <xsd:annotation>
             <xsd:appinfo>
                  <jaxb:dom/> 
@@ -176,25 +176,34 @@
         <xsd:sequence>
             <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="condition" type="xsd:anyType" minOccurs="0" maxOccurs="1"/>
-            <xsd:element ref="tns:filter"/> 
+            <xsd:element name="filter" type="tns:SearchFilterType"/> 
             <xsd:element name="paging" type="tns:PagingType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:element name="filter" type="tns:FilterType"/>
-    
-    
-    
-    
-    <xsd:complexType name="UriFilterType">
+    <xsd:complexType name="SearchFilterType">
+    	<xsd:sequence>
+			<xsd:element ref="tns:filterClause" minOccurs="1" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:appinfo>
+			        	<jaxb:dom/>
+			        </xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>            	
+    	</xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="filterClause" type="tns:FilterClauseType"/>
+        
+    <xsd:complexType name="UriFilterClauseType">
         <xsd:complexContent>
-            <xsd:extension base="tns:FilterType">
+            <xsd:extension base="tns:FilterClauseType">
                 <xsd:attribute name="uri" type="xsd:anyURI"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:element name="type" substitutionGroup="tns:filter" type="tns:UriFilterType"/>
+    <xsd:element name="type" substitutionGroup="tns:filterClause" type="tns:UriFilterClauseType"/>
 
     <xsd:element name="path" type="t:XPathType">
         <xsd:annotation>
@@ -223,9 +232,9 @@
 
     <xsd:element name="value" type="tns:ValueType"/>
 
-    <xsd:complexType name="PropertyComplexValueFilterType">
+    <xsd:complexType name="PropertyComplexValueFilterClauseType">
         <xsd:complexContent>
-            <xsd:extension base="tns:FilterType">
+            <xsd:extension base="tns:FilterClauseType">
                 <xsd:sequence>
                     <xsd:element ref="tns:path" minOccurs="0" maxOccurs="1"/>
                     <xsd:choice>
@@ -244,9 +253,9 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="PropertySimpleValueFilterType">
+    <xsd:complexType name="PropertySimpleValueFilterClauseType">
         <xsd:complexContent>
-            <xsd:extension base="tns:FilterType">
+            <xsd:extension base="tns:FilterClauseType">
                 <xsd:sequence>
                     <xsd:element name="property" type="t:XPathType">
                         <xsd:annotation>
@@ -281,9 +290,9 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="PropertyNoValueFilterType">
+    <xsd:complexType name="PropertyNoValueFilterClauseType">
         <xsd:complexContent>
-            <xsd:extension base="tns:FilterType">
+            <xsd:extension base="tns:FilterClauseType">
                 <xsd:sequence>
                     <xsd:element name="property" type="t:XPathType"/>
                 </xsd:sequence>
@@ -292,54 +301,54 @@
     </xsd:complexType>
 
 
-    <xsd:element name="equal" substitutionGroup="tns:filter" type="tns:PropertyComplexValueFilterType"/>
-    <xsd:element name="greaterOrEqual" substitutionGroup="tns:filter" type="tns:PropertySimpleValueFilterType"/>
-    <xsd:element name="lessOrEqual" substitutionGroup="tns:filter" type="tns:PropertySimpleValueFilterType"/>
+    <xsd:element name="equal" substitutionGroup="tns:filterClause" type="tns:PropertyComplexValueFilterClauseType"/>
+    <xsd:element name="greaterOrEqual" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
+    <xsd:element name="lessOrEqual" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
 
     <!-- Following element should be constrained a bit more, because their value 
 		is always string respectively. But we don't know how to constrain it now 
 		and we do not have the time to find out. Therefore it should be OK for now. -->
-    <xsd:element name="substring" substitutionGroup="tns:filter" type="tns:PropertySimpleValueFilterType"/>
+    <xsd:element name="substring" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
 
-<xsd:element name="org" substitutionGroup="tns:filter" type="tns:PropertyComplexValueFilterType"/>
-<xsd:element name="orgRef" substitutionGroup="tns:filter" type="tns:PropertySimpleValueFilterType"/>
-<xsd:element name="maxDepth" substitutionGroup="tns:filter" type="tns:PropertySimpleValueFilterType"/>
-<xsd:element name="minDepth" substitutionGroup="tns:filter" type="tns:PropertySimpleValueFilterType"/>
-<xsd:element name="ref" substitutionGroup="tns:filter" type="tns:PropertySimpleValueFilterType"/>
+<xsd:element name="org" substitutionGroup="tns:filterClause" type="tns:PropertyComplexValueFilterClauseType"/>
+<xsd:element name="orgRef" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
+<xsd:element name="maxDepth" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
+<xsd:element name="minDepth" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
+<xsd:element name="ref" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
 
-    <xsd:element name="present" substitutionGroup="tns:filter" type="tns:PropertyNoValueFilterType"/>
-    <xsd:element name="true" substitutionGroup="tns:filter" type="tns:PropertyNoValueFilterType"/>
+    <xsd:element name="present" substitutionGroup="tns:filterClause" type="tns:PropertyNoValueFilterClauseType"/>
+    <xsd:element name="true" substitutionGroup="tns:filterClause" type="tns:PropertyNoValueFilterClauseType"/>
 
-    <xsd:complexType name="LogicalOperatorFilterType" abstract="true">
+    <xsd:complexType name="LogicalOperatorFilterClauseType" abstract="true">
         <xsd:complexContent>
-            <xsd:extension base="tns:FilterType">
+            <xsd:extension base="tns:FilterClauseType">
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="UnaryLogicalOperatorFilterType">
+    <xsd:complexType name="UnaryLogicalOperatorFilterClauseType">
         <xsd:complexContent>
-            <xsd:extension base="tns:LogicalOperatorFilterType">
+            <xsd:extension base="tns:LogicalOperatorFilterClauseType">
                 <xsd:sequence>
-                    <xsd:element ref="tns:filter"/>
+                    <xsd:element ref="tns:filterClause"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="NAryLogicalOperatorFilterType">
+    <xsd:complexType name="NAryLogicalOperatorFilterClauseType">
         <xsd:complexContent>
-            <xsd:extension base="tns:LogicalOperatorFilterType">
+            <xsd:extension base="tns:LogicalOperatorFilterClauseType">
                 <xsd:sequence>
-                    <xsd:element ref="tns:filter" minOccurs="1" maxOccurs="unbounded"/>
+                    <xsd:element ref="tns:filterClause" minOccurs="1" maxOccurs="unbounded"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:element name="and" substitutionGroup="tns:filter" type="tns:NAryLogicalOperatorFilterType"/>
-    <xsd:element name="or" substitutionGroup="tns:filter" type="tns:NAryLogicalOperatorFilterType"/>
-    <xsd:element name="not" substitutionGroup="tns:filter" type="tns:UnaryLogicalOperatorFilterType"/>
+    <xsd:element name="and" substitutionGroup="tns:filterClause" type="tns:NAryLogicalOperatorFilterClauseType"/>
+    <xsd:element name="or" substitutionGroup="tns:filterClause" type="tns:NAryLogicalOperatorFilterClauseType"/>
+    <xsd:element name="not" substitutionGroup="tns:filterClause" type="tns:UnaryLogicalOperatorFilterClauseType"/>
 
 </xsd:schema>
 

@@ -44,7 +44,7 @@ import org.jvnet.jaxb2_commons.locator.ObjectLocator;
     UnaryLogicalOperatorFilterType.class
 })
 public abstract class LogicalOperatorFilterType
-    extends FilterType
+    extends FilterClauseType
     implements Serializable, Cloneable, Equals, HashCode
 {
 

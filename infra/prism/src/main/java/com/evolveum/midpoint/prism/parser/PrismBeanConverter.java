@@ -59,7 +59,7 @@ import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_2.RawType;
 
@@ -723,8 +723,8 @@ public class PrismBeanConverter {
 		}
 		if (value instanceof ItemPathType){
 			return marshalItemPath((ItemPathType) value);
-		} else if (value instanceof QueryType){
-			return marshalQueryType((QueryType) value);
+		} else if (value instanceof SearchFilterType){
+			return marshalSearchFilterType((SearchFilterType) value);
 		} else if (value instanceof RawType){
 			return marshalRawValue((RawType) value);
 		} else		
@@ -751,15 +751,8 @@ public class PrismBeanConverter {
 		return xprim;
 	}
 
-	private XNode marshalQueryType(QueryType value) {
-		MapXNode queryNode = new MapXNode();
-		XNode description = marshallValue(value.getDescription(), DOMUtil.XSD_STRING, false);
-		queryNode.put(new QName(QueryConvertor.NS_QUERY, "description"), description);
-		//TODO: condition + paging
-		MapXNode filterNode = value.getXFilter();
-		queryNode.put(new QName("filter"), filterNode);
-		
-		return queryNode;
+	private XNode marshalSearchFilterType(SearchFilterType value) {
+		return value.getXFilter();
 	}
 
 	private XNode marshalItemPath(ItemPathType itemPath){

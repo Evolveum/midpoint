@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -384,5 +385,11 @@ public class DomParser implements Parser {
 		return serializer.serialize(xroot);
 	}
 
-	
+	public Element serializeSingleElementMapToElement(MapXNode xmap) throws SchemaException {
+		if (xmap == null || xmap.isEmpty()) {
+			return null;
+		}
+		Entry<QName, XNode> subEntry = xmap.getSingleSubEntry(xmap.toString());
+		return serializeToElement((MapXNode) subEntry.getValue(), subEntry.getKey());
+	}
 }

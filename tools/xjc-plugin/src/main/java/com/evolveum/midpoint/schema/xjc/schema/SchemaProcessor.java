@@ -294,7 +294,7 @@ public class SchemaProcessor implements Processor {
         JVar filterClassVar = body.decl(innerFilterType, "filter", JExpr._new(innerFilterType));
         JInvocation getFilterElementInvocation =CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_GET_REFERENCE_FILTER_ELEMENT);
         getFilterElementInvocation.arg(JExpr.invoke(asReferenceValue));
-        JInvocation setFilterInvocation = body.invoke(filterClassVar, "setFilter");
+        JInvocation setFilterInvocation = body.invoke(filterClassVar, "setFilterClause");
         setFilterInvocation.arg(getFilterElementInvocation);
         body._return(filterClassVar);
 
@@ -302,7 +302,7 @@ public class SchemaProcessor implements Processor {
         body = setFilter.body();
         JInvocation invocation = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_SET_REFERENCE_FILTER_ELEMENT);
         invocation.arg(JExpr.invoke(asReferenceValue));
-        invocation.arg(JExpr.invoke(setFilter.listParams()[0],"getFilter"));
+        invocation.arg(JExpr.invoke(setFilter.listParams()[0],"getFilterClause"));
         body.add(invocation);
     }
 
