@@ -40,11 +40,11 @@ public class SystemInfoPanel extends SimplePanel<SystemInfoDto>{
 
     @Override
     protected void initLayout(){
+//        SimplePieChart userPanel = new SimplePieChart(ID_ACTIVE_USERS, new PropertyModel<SimplePieChartDto>(getModel(), "activeUsersDto"));
+//        add(userPanel);
+//        SimplePieChart tasksPanel = new SimplePieChart(ID_ACTIVE_TASKS, new PropertyModel<SimplePieChartDto>(getModel(), "activeTasksDto"));
+//        add(tasksPanel);
 
-        SimplePieChart userPanel = new SimplePieChart(ID_ACTIVE_USERS, new PropertyModel<SimplePieChartDto>(getModel(), "activeUsersDto"));
-        add(userPanel);
-        SimplePieChart tasksPanel = new SimplePieChart(ID_ACTIVE_TASKS, new PropertyModel<SimplePieChartDto>(getModel(), "activeTasksDto"));
-        add(tasksPanel);
         SimplePieChart serverLoadPanel = new SimplePieChart(ID_SERVER_LOAD, new PropertyModel<SimplePieChartDto>(getModel(), "serverLoadDto"));
         add(serverLoadPanel);
         SimplePieChart ramPanel = new SimplePieChart(ID_RAM_USAGE, new PropertyModel<SimplePieChartDto>(getModel(), "usedRamDto"));
