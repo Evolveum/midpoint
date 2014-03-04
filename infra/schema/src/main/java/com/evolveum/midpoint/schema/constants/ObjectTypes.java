@@ -57,8 +57,6 @@ public enum ObjectTypes {
 
     SHADOW(SchemaConstants.C_SHADOW_TYPE, SchemaConstants.C_SHADOW, ShadowType.class, ObjectManager.PROVISIONING, "shadows"),
 
-    OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects"),
-
     ROLE(RoleType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ROLE, RoleType.class, ObjectManager.MODEL, "roles"),
 
     PASSWORD_POLICY(ValuePolicyType.COMPLEX_TYPE, SchemaConstantsGenerated.C_VALUE_POLICY, ValuePolicyType.class,
@@ -76,7 +74,10 @@ public enum ObjectTypes {
     REPORT(ReportType.COMPLEX_TYPE, SchemaConstants.C_REPORT, ReportType.class, ObjectManager.MODEL, "reports"),
 
     REPORT_OUTPUT(ReportOutputType.COMPLEX_TYPE, SchemaConstants.C_REPORT_OUTPUT, ReportOutputType.class,
-                  ObjectManager.MODEL, "reportOutputs");
+                  ObjectManager.MODEL, "reportOutputs"),
+
+    // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType
+    OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects");
     
     public static enum ObjectManager {
         PROVISIONING, TASK_MANAGER, WORKFLOW, MODEL, REPOSITORY;
