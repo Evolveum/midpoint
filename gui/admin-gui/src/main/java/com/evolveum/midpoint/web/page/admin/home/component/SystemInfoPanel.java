@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.page.admin.home.component;
 
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.home.dto.SimplePieChartDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SystemInfoDto;
@@ -29,8 +28,8 @@ import org.apache.wicket.model.PropertyModel;
  * */
 public class SystemInfoPanel extends SimplePanel<SystemInfoDto>{
 
-    private static final String ID_ACTIVE_USERS = "activeUsers";
-    private static final String ID_ACTIVE_TASKS = "activeTasks";
+//    private static final String ID_ACTIVE_USERS = "activeUsers";
+//    private static final String ID_ACTIVE_TASKS = "activeTasks";
     private static final String ID_SERVER_LOAD = "serverLoad";
     private static final String ID_RAM_USAGE = "usedRam";
 
