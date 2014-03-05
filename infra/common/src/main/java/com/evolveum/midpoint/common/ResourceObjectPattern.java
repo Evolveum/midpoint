@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 
 /**
  * @author semancik
@@ -36,6 +37,7 @@ public class ResourceObjectPattern implements Serializable {
 	
 	private Collection<ResourceAttribute<?>> identifiers;
 	private RefinedObjectClassDefinition rOcDef;
+	private SearchFilterType filterType;
 	
 	public ResourceObjectPattern(RefinedObjectClassDefinition rOcDef) {
 		this.rOcDef = rOcDef;
@@ -91,6 +93,10 @@ public class ResourceObjectPattern implements Serializable {
 		}
 		MatchingRule<Object> matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, rAttrDef.getTypeName());
 		return matchingRule.match(identifier.getRealValue(), attributeToMatch.getRealValue());
+	}
+
+	public void addFilter(SearchFilterType filterType) {
+		this.filterType = filterType;
 	}
 
 }

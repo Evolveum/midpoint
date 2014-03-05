@@ -62,11 +62,11 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link FilterType }
+     * Create an instance of {@link FilterClauseType }
      * 
      */
-    public FilterType createFilterType() {
-        return new FilterType();
+    public FilterClauseType createFilterType() {
+        return new FilterClauseType();
     }
 
     /**
@@ -224,12 +224,12 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link FilterType }{@code >}}
+     * Create an instance of {@link JAXBElement }{@code <}{@link FilterClauseType }{@code >}}
      * 
      */
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "filter")
-    public JAXBElement<FilterType> createFilter(FilterType value) {
-        return new JAXBElement<FilterType>(_Filter_QNAME, FilterType.class, null, value);
+    public JAXBElement<FilterClauseType> createFilter(FilterClauseType value) {
+        return new JAXBElement<FilterClauseType>(_Filter_QNAME, FilterClauseType.class, null, value);
     }
 
     /**

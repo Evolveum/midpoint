@@ -47,7 +47,7 @@ import org.w3c.dom.Element;
     "property"
 })
 public class PropertyNoValueFilterType
-    extends FilterType
+    extends FilterClauseType
     implements Serializable, Cloneable, Equals, HashCode
 {
 

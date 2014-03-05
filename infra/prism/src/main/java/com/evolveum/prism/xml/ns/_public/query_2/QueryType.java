@@ -32,31 +32,15 @@ import javax.activation.MimeTypeParseException;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.parser.DomParser;
-import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.prism.xjc.PrismForJAXBUtil;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
-import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
-
-import org.apache.commons.lang.builder.ToStringBuilder;
-import org.jvnet.jaxb2_commons.lang.Equals;
-import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
-import org.jvnet.jaxb2_commons.lang.HashCode;
-import org.jvnet.jaxb2_commons.lang.HashCodeStrategy;
-import org.jvnet.jaxb2_commons.locator.ObjectLocator;
-import org.jvnet.jaxb2_commons.locator.util.LocatorUtils;
 import org.w3c.dom.Element;
+
+import com.evolveum.midpoint.prism.PrismConstants;
 
 
 /**
@@ -92,58 +76,22 @@ import org.w3c.dom.Element;
     "filter",
     "paging"
 })
-public class QueryType implements Serializable, Cloneable, Equals, HashCode
+public class QueryType implements Serializable, Cloneable
 {
-
     private final static long serialVersionUID = 201105211233L;
-    protected String description;
-    protected Object condition;
-    
-    @XmlAnyElement
-    protected Element filter;
-    @XmlTransient
-    protected MapXNode xfilter;
-    
-    protected PagingType paging;
     public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "QueryType");
     public final static QName F_DESCRIPTION = new QName(PrismConstants.NS_QUERY, "description");
     public final static QName F_FILTER = new QName(PrismConstants.NS_QUERY, "filter");
     public final static QName F_CONDITION = new QName(PrismConstants.NS_QUERY, "condition");
     public final static QName F_PAGING = new QName(PrismConstants.NS_QUERY, "paging");
 
-    /**
-     * Creates a new {@code QueryType} instance.
-     * 
-     */
-    public QueryType() {
-        // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        super();
-    }
-
-    /**
-     * Creates a new {@code QueryType} instance by deeply copying a given {@code QueryType} instance.
-     * 
-     * 
-     * @param o
-     *     The instance to copy.
-     * @throws NullPointerException
-     *     if {@code o} is {@code null}.
-     */
-    public QueryType(final QueryType o) {
-        // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        super();
-        if (o == null) {
-            throw new NullPointerException("Cannot create a copy of 'QueryType' from 'null'.");
-        }
-        // CBuiltinLeafInfo: java.lang.String
-        this.description = ((o.description == null)?null:o.getDescription());
-        // CBuiltinLeafInfo: java.lang.Object
-        this.condition = ((o.condition == null)?null:copyOf(o.getCondition()));
-        // CWildcardTypeInfo: org.w3c.dom.Element
-        this.filter = ((o.filter == null)?null:((o.getFilter() == null)?null:((Element) o.getFilter().cloneNode(true))));
-        // CClassInfo: com.evolveum.prism.xml.ns._public.query_2.PagingType
-        this.paging = ((o.paging == null)?null:((o.getPaging() == null)?null:o.getPaging().clone()));
-    }
+    protected String description;
+    protected Object condition;
+    @XmlElement(required = true)
+    protected SearchFilterType filter;
+    protected PagingType paging;
+    
+    
 
     /**
      * Gets the value of the description property.
@@ -198,57 +146,23 @@ public class QueryType implements Serializable, Cloneable, Equals, HashCode
      * 
      * @return
      *     possible object is
-     *     {@link Element }
+     *     {@link SearchFilterType }
      *     
      */
-    public Element getFilter() {
-        if (xfilter != null) {
-        	DomParser domParser = PrismUtil.getDomParser(null);
-        	try {
-				return domParser.serializeToElement(xfilter, F_FILTER);
-			} catch (SchemaException e) {
-				throw new RuntimeException(e.getMessage(), e);
-			}
-        } else {
-        	return filter;
-        }
-    }
-    
-    public MapXNode getXFilter() {
-    	return this.xfilter;
+    public SearchFilterType getFilter() {
+        return filter;
     }
 
     /**
      * Sets the value of the filter property.
      * 
-     * @param element
+     * @param value
      *     allowed object is
-     *     {@link Element }
+     *     {@link SearchFilterType }
      *     
      */
-    public void setFilter(Element element) {
-    	if (element == null) {
-    		this.xfilter = null;
-    	} else {
-    		DomParser domParser = PrismUtil.getDomParser(null);
-    		try {
-				this.xfilter = domParser.parseElementAsMap(element);
-			} catch (SchemaException e) {
-				throw new RuntimeException(e.getMessage(), e);
-			}
-    	}
-    }
-    
-    public void setFilter(XNode xnode) {
-    	if (xnode == null || xnode.isEmpty()) {
-    		this.xfilter = null;
-    	} else {
-    		if (xnode instanceof MapXNode) {
-    			this.xfilter = (MapXNode) xnode;
-	    	} else {
-	    		throw new IllegalArgumentException("Cannot parse filter from "+xnode);
-	    	}
-    	}
+    public void setFilter(SearchFilterType value) {
+        this.filter = value;
     }
 
     /**
@@ -275,98 +189,49 @@ public class QueryType implements Serializable, Cloneable, Equals, HashCode
         this.paging = value;
     }
 
-    /**
-     * Generates a String representation of the contents of this type.
-     * This is an extension method, produced by the 'ts' xjc plugin
-     * 
-     */
-    @Override
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this);
-    }
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((condition == null) ? 0 : condition.hashCode());
+		result = prime * result + ((description == null) ? 0 : description.hashCode());
+		result = prime * result + ((filter == null) ? 0 : filter.hashCode());
+		result = prime * result + ((paging == null) ? 0 : paging.hashCode());
+		return result;
+	}
 
-    public int hashCode(ObjectLocator locator, HashCodeStrategy strategy) {
-        int currentHashCode = 1;
-        {
-            String theDescription;
-            theDescription = this.getDescription();
-            currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "description", theDescription), currentHashCode, theDescription);
-        }
-        {
-            Object theCondition;
-            theCondition = this.getCondition();
-            currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "condition", theCondition), currentHashCode, theCondition);
-        }
-        {
-            Element theFilter;
-            theFilter = this.getFilter();
-            currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "filter", theFilter), currentHashCode, theFilter);
-        }
-        {
-            PagingType thePaging;
-            thePaging = this.getPaging();
-            currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "paging", thePaging), currentHashCode, thePaging);
-        }
-        return currentHashCode;
-    }
-
-    public int hashCode() {
-        final HashCodeStrategy strategy = DomAwareHashCodeStrategy.INSTANCE;
-        return this.hashCode(null, strategy);
-    }
-
-    public boolean equals(ObjectLocator thisLocator, ObjectLocator thatLocator, Object object, EqualsStrategy strategy) {
-        if (!(object instanceof QueryType)) {
-            return false;
-        }
-        if (this == object) {
-            return true;
-        }
-        final QueryType that = ((QueryType) object);
-        {
-            String lhsDescription;
-            lhsDescription = this.getDescription();
-            String rhsDescription;
-            rhsDescription = that.getDescription();
-            if (!strategy.equals(LocatorUtils.property(thisLocator, "description", lhsDescription), LocatorUtils.property(thatLocator, "description", rhsDescription), lhsDescription, rhsDescription)) {
-                return false;
-            }
-        }
-        {
-            Object lhsCondition;
-            lhsCondition = this.getCondition();
-            Object rhsCondition;
-            rhsCondition = that.getCondition();
-            if (!strategy.equals(LocatorUtils.property(thisLocator, "condition", lhsCondition), LocatorUtils.property(thatLocator, "condition", rhsCondition), lhsCondition, rhsCondition)) {
-                return false;
-            }
-        }
-        {
-            Element lhsFilter;
-            lhsFilter = this.getFilter();
-            Element rhsFilter;
-            rhsFilter = that.getFilter();
-            if (!strategy.equals(LocatorUtils.property(thisLocator, "filter", lhsFilter), LocatorUtils.property(thatLocator, "filter", rhsFilter), lhsFilter, rhsFilter)) {
-                return false;
-            }
-        }
-        {
-            PagingType lhsPaging;
-            lhsPaging = this.getPaging();
-            PagingType rhsPaging;
-            rhsPaging = that.getPaging();
-            if (!strategy.equals(LocatorUtils.property(thisLocator, "paging", lhsPaging), LocatorUtils.property(thatLocator, "paging", rhsPaging), lhsPaging, rhsPaging)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public boolean equals(Object object) {
-        final EqualsStrategy strategy = DomAwareEqualsStrategy.INSTANCE;
-        return equals(null, null, object, strategy);
-    }
-
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		QueryType other = (QueryType) obj;
+		if (condition == null) {
+			if (other.condition != null)
+				return false;
+		} else if (!condition.equals(other.condition))
+			return false;
+		if (description == null) {
+			if (other.description != null)
+				return false;
+		} else if (!description.equals(other.description))
+			return false;
+		if (filter == null) {
+			if (other.filter != null)
+				return false;
+		} else if (!filter.equals(other.filter))
+			return false;
+		if (paging == null) {
+			if (other.paging != null)
+				return false;
+		} else if (!paging.equals(other.paging))
+			return false;
+		return true;
+	}
+	
     /**
      * Creates and returns a deep copy of a given object.
      * 
@@ -496,11 +361,11 @@ public class QueryType implements Serializable, Cloneable, Equals, HashCode
                 }
             }
             return null;
-        } catch (URISyntaxException e) {
+        } catch (MimeTypeParseException e) {
             throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ o)+"'.")).initCause(e));
         } catch (MalformedURLException e) {
             throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ o)+"'.")).initCause(e));
-        } catch (MimeTypeParseException e) {
+        } catch (URISyntaxException e) {
             throw((AssertionError) new AssertionError((("Unexpected instance during copying object '"+ o)+"'.")).initCause(e));
         }
     }
@@ -695,26 +560,6 @@ public class QueryType implements Serializable, Cloneable, Equals, HashCode
     }
 
     /**
-     * Creates and returns a deep copy of a given {@code JAXBElement} instance.
-     * 
-     * @param element
-     *     The instance to copy or {@code null}.
-     * @return
-     *     A deep copy of {@code element} or {@code null} if {@code element} is {@code null}.
-     */
-    @SuppressWarnings("unchecked")
-    private static JAXBElement copyOf(final JAXBElement element) {
-        // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        if (element!= null) {
-            final JAXBElement copy = new JAXBElement(element.getName(), element.getDeclaredType(), element.getScope(), element.getValue());
-            copy.setNil(element.isNil());
-            copy.setValue(copyOf(copy.getValue()));
-            return copy;
-        }
-        return null;
-    }
-
-    /**
      * Creates and returns a deep copy of a given {@code Serializable}.
      * 
      * @param serializable
@@ -772,7 +617,7 @@ public class QueryType implements Serializable, Cloneable, Equals, HashCode
                 // CBuiltinLeafInfo: java.lang.Object
                 clone.condition = ((this.condition == null)?null:copyOf(this.getCondition()));
                 // CWildcardTypeInfo: org.w3c.dom.Element
-                clone.filter = ((this.filter == null)?null:((this.getFilter() == null)?null:((Element) this.getFilter().cloneNode(true))));
+                clone.filter = ((this.filter == null)?null:((this.getFilter() == null)?null:((SearchFilterType) this.getFilter().clone())));
                 // CClassInfo: com.evolveum.prism.xml.ns._public.query_2.PagingType
                 clone.paging = ((this.paging == null)?null:((this.getPaging() == null)?null:this.getPaging().clone()));
                 return clone;

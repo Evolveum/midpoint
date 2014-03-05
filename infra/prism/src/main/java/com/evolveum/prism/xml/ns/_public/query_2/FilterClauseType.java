@@ -52,7 +52,7 @@ import org.jvnet.jaxb2_commons.locator.util.LocatorUtils;
     UriFilterType.class,
     LogicalOperatorFilterType.class
 })
-public class FilterType implements Serializable, Cloneable, Equals, HashCode
+public class FilterClauseType implements Serializable, Cloneable, Equals, HashCode
 {
 
     private final static long serialVersionUID = 201105211233L;
@@ -64,7 +64,7 @@ public class FilterType implements Serializable, Cloneable, Equals, HashCode
      * Creates a new {@code FilterType} instance.
      * 
      */
-    public FilterType() {
+    public FilterClauseType() {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
         super();
     }
@@ -78,7 +78,7 @@ public class FilterType implements Serializable, Cloneable, Equals, HashCode
      * @throws NullPointerException
      *     if {@code o} is {@code null}.
      */
-    public FilterType(final FilterType o) {
+    public FilterClauseType(final FilterClauseType o) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
         super();
         if (o == null) {
@@ -138,13 +138,13 @@ public class FilterType implements Serializable, Cloneable, Equals, HashCode
     }
 
     public boolean equals(ObjectLocator thisLocator, ObjectLocator thatLocator, Object object, EqualsStrategy strategy) {
-        if (!(object instanceof FilterType)) {
+        if (!(object instanceof FilterClauseType)) {
             return false;
         }
         if (this == object) {
             return true;
         }
-        final FilterType that = ((FilterType) object);
+        final FilterClauseType that = ((FilterClauseType) object);
         {
             String lhsMatching;
             lhsMatching = this.getMatching();
@@ -170,11 +170,11 @@ public class FilterType implements Serializable, Cloneable, Equals, HashCode
      *     A deep copy of this object.
      */
     @Override
-    public FilterType clone() {
+    public FilterClauseType clone() {
         try {
             {
                 // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-                final FilterType clone = ((FilterType) super.clone());
+                final FilterClauseType clone = ((FilterClauseType) super.clone());
                 // CBuiltinLeafInfo: java.lang.String
                 clone.matching = ((this.matching == null)?null:this.getMatching());
                 return clone;

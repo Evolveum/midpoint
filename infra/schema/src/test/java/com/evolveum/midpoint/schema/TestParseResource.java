@@ -44,6 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeD
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
@@ -430,9 +431,9 @@ public class TestParseResource {
 		ObjectReferenceType connectorRef = resourceType.getConnectorRef();
 		assertNotNull("No connectorRef (JAXB)", connectorRef);
 		assertEquals("Wrong type in connectorRef (JAXB)", ConnectorType.COMPLEX_TYPE, connectorRef.getType());
-		ObjectReferenceType.Filter filter = connectorRef.getFilter();
+		SearchFilterType filter = connectorRef.getFilter();
     	assertNotNull("No filter in connectorRef (JAXB)", filter);
-    	Element filterElement = filter.getFilter();
+    	Element filterElement = filter.getFilterClause();
     	assertNotNull("No filter element in connectorRef (JAXB)", filterElement);
     	
     	XmlSchemaType xmlSchemaType = resourceType.getSchema();

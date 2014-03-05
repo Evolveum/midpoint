@@ -605,23 +605,14 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="filter" minOccurs="0" maxOccurs="1">
-	            <xsd:complexType>
-	            	<xsd:sequence>
-			            <xsd:element ref="q:filter" minOccurs="0">
-			                <xsd:annotation>
-			                    <xsd:documentation>
-			                        Filter that can be used to dynamically lookup the reference OID e.g. during imports.
-			                        It must not be used for normal operations and references with the filter must not
-			                        be stored in the repository.
-			                    </xsd:documentation>
-			                    <xsd:appinfo>
-			                    	<jaxb:dom/>
-			                    </xsd:appinfo>
-			                </xsd:annotation>
-			            </xsd:element>            	
-	            	</xsd:sequence>
-	            </xsd:complexType>
+            <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Filter that can be used to dynamically lookup the reference OID e.g. during imports.
+			            It must not be used for normal operations and references with the filter must not
+			            be stored in the repository.
+			        </xsd:documentation>
+			    </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="oid" type="xsd:string" use="optional">
@@ -3895,7 +3886,7 @@
      		</xsd:documentation>
      	</xsd:annotation>
      	<xsd:sequence>
-     		<xsd:element name="filter" type="q:FilterType" minOccurs="0" maxOccurs="1">
+     		<xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
      			<xsd:annotation>
      				<xsd:documentation>
      					The filter used to match the object. If the object mathces then it is regarded to be
@@ -4885,7 +4876,7 @@
 		        	</xsd:element>
 		        	<xsd:element name="oid" type="xsd:string" minOccurs="0" maxOccurs="1">
 		        	</xsd:element>
-		        	<xsd:element name="query" type="q:QueryType" minOccurs="0" maxOccurs="1">
+		        	<xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
 		        	</xsd:element>
 		        	<xsd:element name="searchOnResource" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
 		        	</xsd:element>
@@ -5053,7 +5044,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="correlation" type="q:QueryType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="correlation" type="q:SearchFilterType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                     	<p>Correlation query expression. Running the query should return a list of candidate focus

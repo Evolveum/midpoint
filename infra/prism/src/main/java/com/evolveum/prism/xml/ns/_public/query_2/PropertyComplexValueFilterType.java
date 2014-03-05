@@ -82,7 +82,7 @@ import org.w3c.dom.Element;
     "any"
 })
 public class PropertyComplexValueFilterType
-    extends FilterType
+    extends FilterClauseType
     implements Serializable, Cloneable, Equals, HashCode
 {
 

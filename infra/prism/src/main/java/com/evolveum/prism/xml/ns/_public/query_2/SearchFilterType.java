@@ -33,12 +33,19 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
+import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.parser.DomParser;
+import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.xjc.PrismForJAXBUtil;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
 import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
 
@@ -52,60 +59,32 @@ import org.jvnet.jaxb2_commons.locator.util.LocatorUtils;
 import org.w3c.dom.Element;
 
 
-/**
- * <p>Java class for PropertySimpleValueFilterType complex type.
- * 
- * <p>The following schema fragment specifies the expected content contained within this class.
- * 
- * <pre>
- * &lt;complexType name="PropertySimpleValueFilterType">
- *   &lt;complexContent>
- *     &lt;extension base="{http://prism.evolveum.com/xml/ns/public/query-2}FilterType">
- *       &lt;sequence>
- *         &lt;element name="property" type="{http://prism.evolveum.com/xml/ns/public/types-2}XPathType"/>
- *         &lt;choice>
- *           &lt;element name="value" type="{http://www.w3.org/2001/XMLSchema}anyType"/>
- *           &lt;any namespace='##other'/>
- *         &lt;/choice>
- *       &lt;/sequence>
- *     &lt;/extension>
- *   &lt;/complexContent>
- * &lt;/complexType>
- * </pre>
- * 
- * 
- */
 @XmlAccessorType(XmlAccessType.FIELD)
-@XmlType(name = "PropertySimpleValueFilterType", propOrder = {
-    "property",
-    "value",
-    "any"
+@XmlType(name = "SearchFilterType", propOrder = {
+    "filterClause",
 })
-public class PropertySimpleValueFilterType
-    extends FilterClauseType
-    implements Serializable, Cloneable, Equals, HashCode
+public class SearchFilterType implements Serializable, Cloneable, Equals, HashCode
 {
-
-    private final static long serialVersionUID = 201105211233L;
+    private final static long serialVersionUID = 201303040000L;
+    
     @XmlAnyElement
-    protected Element property;
-    protected Object value;
-    @XmlAnyElement(lax = true)
-    protected Object any;
-    public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "PropertySimpleValueFilterType");
-    public final static QName F_VALUE = new QName(PrismConstants.NS_QUERY, "value");
+    protected Element filterClause;
+    @XmlTransient
+    protected MapXNode xfilter;
+    
+    public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "SearchFilterType");
 
     /**
-     * Creates a new {@code PropertySimpleValueFilterType} instance.
+     * Creates a new {@code QueryType} instance.
      * 
      */
-    public PropertySimpleValueFilterType() {
+    public SearchFilterType() {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
         super();
     }
 
     /**
-     * Creates a new {@code PropertySimpleValueFilterType} instance by deeply copying a given {@code PropertySimpleValueFilterType} instance.
+     * Creates a new {@code QueryType} instance by deeply copying a given {@code QueryType} instance.
      * 
      * 
      * @param o
@@ -113,90 +92,72 @@ public class PropertySimpleValueFilterType
      * @throws NullPointerException
      *     if {@code o} is {@code null}.
      */
-    public PropertySimpleValueFilterType(final PropertySimpleValueFilterType o) {
+    public SearchFilterType(final SearchFilterType o) {
         // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-        super(o);
+        super();
         if (o == null) {
-            throw new NullPointerException("Cannot create a copy of 'PropertySimpleValueFilterType' from 'null'.");
+            throw new NullPointerException("Cannot create a copy of 'QueryType' from 'null'.");
         }
         // CWildcardTypeInfo: org.w3c.dom.Element
-        this.property = ((o.property == null)?null:((o.getProperty() == null)?null:((Element) o.getProperty().cloneNode(true))));
-        // CBuiltinLeafInfo: java.lang.Object
-        this.value = ((o.value == null)?null:copyOf(o.getValue()));
-        // CBuiltinLeafInfo: java.lang.Object
-        this.any = ((o.any == null)?null:copyOf(o.getAny()));
+        this.filterClause = ((o.filterClause == null)?null:((o.getFilterClause() == null)?null:((Element) o.getFilterClause().cloneNode(true))));
     }
 
     /**
-     * Gets the value of the property property.
+     * Gets the value of the filter property. JAXB method. Only for JAXB compatibility. Do not use directly.
      * 
      * @return
      *     possible object is
      *     {@link Element }
      *     
      */
-    public Element getProperty() {
-        return property;
+    public Element getFilterClause() {
+        if (xfilter != null) {
+        	DomParser domParser = PrismUtil.getDomParser(null);
+        	try {
+				return domParser.serializeSingleElementMapToElement(xfilter);
+			} catch (SchemaException e) {
+				throw new RuntimeException(e.getMessage(), e);
+			}
+        } else {
+        	return filterClause;
+        }
     }
-
+    
+    public MapXNode getXFilter() {
+    	return this.xfilter;
+    }
+    
     /**
-     * Sets the value of the property property.
+     * Sets the value of the filter property. JAXB method. Only for JAXB compatibility. Do not use directly.
      * 
-     * @param value
+     * @param element
      *     allowed object is
      *     {@link Element }
      *     
      */
-    public void setProperty(Element value) {
-        this.property = value;
+    public void setFilterClause(Element element) {
+    	if (element == null) {
+    		this.xfilter = null;
+    	} else {
+    		DomParser domParser = PrismUtil.getDomParser(null);
+    		try {
+				this.xfilter = domParser.parseElementAsMap(element);
+			} catch (SchemaException e) {
+				throw new RuntimeException(e.getMessage(), e);
+			}
+    	}
     }
-
-    /**
-     * Gets the value of the value property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Object }
-     *     
-     */
-    public Object getValue() {
-        return value;
-    }
-
-    /**
-     * Sets the value of the value property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Object }
-     *     
-     */
-    public void setValue(Object value) {
-        this.value = value;
-    }
-
-    /**
-     * Gets the value of the any property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Object }
-     *     
-     */
-    public Object getAny() {
-        return any;
-    }
-
-    /**
-     * Sets the value of the any property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Object }
-     *     
-     */
-    public void setAny(Object value) {
-        this.any = value;
+    
+    public void setXFilter(XNode xnode) {
+    	if (xnode == null || xnode.isEmpty()) {
+    		this.xfilter = null;
+    	} else {
+    		if (xnode instanceof MapXNode) {
+    			this.xfilter = (MapXNode) xnode;
+	    	} else {
+	    		throw new IllegalArgumentException("Cannot parse filter from "+xnode);
+	    	}
+    	}
     }
 
     /**
@@ -210,21 +171,11 @@ public class PropertySimpleValueFilterType
     }
 
     public int hashCode(ObjectLocator locator, HashCodeStrategy strategy) {
-        int currentHashCode = super.hashCode(locator, strategy);
+        int currentHashCode = 1;
         {
-            Element theProperty;
-            theProperty = this.getProperty();
-            currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "property", theProperty), currentHashCode, theProperty);
-        }
-        {
-            Object theValue;
-            theValue = this.getValue();
-            currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "value", theValue), currentHashCode, theValue);
-        }
-        {
-            Object theAny;
-            theAny = this.getAny();
-            currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "any", theAny), currentHashCode, theAny);
+            Element theFilter;
+            theFilter = this.getFilterClause();
+            currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "filter", theFilter), currentHashCode, theFilter);
         }
         return currentHashCode;
     }
@@ -235,40 +186,19 @@ public class PropertySimpleValueFilterType
     }
 
     public boolean equals(ObjectLocator thisLocator, ObjectLocator thatLocator, Object object, EqualsStrategy strategy) {
-        if (!(object instanceof PropertySimpleValueFilterType)) {
+        if (!(object instanceof SearchFilterType)) {
             return false;
         }
         if (this == object) {
             return true;
         }
-        if (!super.equals(thisLocator, thatLocator, object, strategy)) {
-            return false;
-        }
-        final PropertySimpleValueFilterType that = ((PropertySimpleValueFilterType) object);
+        final SearchFilterType that = ((SearchFilterType) object);
         {
-            Element lhsProperty;
-            lhsProperty = this.getProperty();
-            Element rhsProperty;
-            rhsProperty = that.getProperty();
-            if (!strategy.equals(LocatorUtils.property(thisLocator, "property", lhsProperty), LocatorUtils.property(thatLocator, "property", rhsProperty), lhsProperty, rhsProperty)) {
-                return false;
-            }
-        }
-        {
-            Object lhsValue;
-            lhsValue = this.getValue();
-            Object rhsValue;
-            rhsValue = that.getValue();
-            if (!strategy.equals(LocatorUtils.property(thisLocator, "value", lhsValue), LocatorUtils.property(thatLocator, "value", rhsValue), lhsValue, rhsValue)) {
-                return false;
-            }
-        }
-        {
-            Object lhsAny;
-            lhsAny = this.getAny();
-            Object rhsAny;
-            rhsAny = that.getAny();
-            if (!strategy.equals(LocatorUtils.property(thisLocator, "any", lhsAny), LocatorUtils.property(thatLocator, "any", rhsAny), lhsAny, rhsAny)) {
+            Element lhsFilter;
+            lhsFilter = this.getFilterClause();
+            Element rhsFilter;
+            rhsFilter = that.getFilterClause();
+            if (!strategy.equals(LocatorUtils.property(thisLocator, "filter", lhsFilter), LocatorUtils.property(thatLocator, "filter", rhsFilter), lhsFilter, rhsFilter)) {
                 return false;
             }
         }
@@ -675,17 +605,18 @@ public class PropertySimpleValueFilterType
      *     A deep copy of this object.
      */
     @Override
-    public PropertySimpleValueFilterType clone() {
-        {
-            // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
-            final PropertySimpleValueFilterType clone = ((PropertySimpleValueFilterType) super.clone());
-            // CWildcardTypeInfo: org.w3c.dom.Element
-            clone.property = ((this.property == null)?null:((this.getProperty() == null)?null:((Element) this.getProperty().cloneNode(true))));
-            // CBuiltinLeafInfo: java.lang.Object
-            clone.value = ((this.value == null)?null:copyOf(this.getValue()));
-            // CBuiltinLeafInfo: java.lang.Object
-            clone.any = ((this.any == null)?null:copyOf(this.getAny()));
-            return clone;
+    public SearchFilterType clone() {
+        try {
+            {
+                // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
+                final SearchFilterType clone = ((SearchFilterType) super.clone());
+                // CWildcardTypeInfo: org.w3c.dom.Element
+                clone.filterClause = ((this.filterClause == null)?null:((this.getFilterClause() == null)?null:((Element) this.getFilterClause().cloneNode(true))));
+                return clone;
+            }
+        } catch (CloneNotSupportedException e) {
+            // Please report this at https://apps.sourceforge.net/mantisbt/ccxjc/
+            throw new AssertionError(e);
         }
     }
 
