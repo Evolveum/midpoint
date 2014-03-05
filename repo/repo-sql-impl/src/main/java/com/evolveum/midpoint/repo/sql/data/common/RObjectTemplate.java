@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RObjectTemplateType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
@@ -27,13 +28,16 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
+
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.*;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -164,8 +168,8 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
             }
 
             if (StringUtils.isNotEmpty(repo.getMapping())) {
-                ObjectTemplateType holder = RUtil.toJAXB(repo.getMapping(), ObjectTemplateType.class, prismContext);
-                jaxb.getMapping().addAll(holder.getMapping());
+                List holder = (List) RUtil.toJAXB(ObjectTemplateType. class, ObjectTemplateType.F_MAPPING, repo.getMapping(), MappingType.class, prismContext);
+                jaxb.getMapping().addAll(holder);
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
@@ -174,6 +178,9 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
 
     public static void copyFromJAXB(ObjectTemplateType jaxb, RObjectTemplate repo, PrismContext prismContext) throws
             DtoTranslationException {
+    	
+    	PrismObjectDefinition<ObjectTemplateType> templateDefinition = jaxb.asPrismObject().getDefinition();
+    	
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setType(RUtil.getRepoEnumValue(jaxb.asPrismObject().getElementName(), RObjectTemplateType.class));
@@ -196,10 +203,11 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
                 ObjectTemplateType template = new ObjectTemplateType();
                 // template needs name for serialization, in here it doesn't matter if it's objectTemplate
                 // or userTemplate, it's only wrapper for data
-                template.asPrismObject().setElementName(SchemaConstantsGenerated.C_OBJECT_TEMPLATE);
+//                template.asPrismObject().setElementName(SchemaConstantsGenerated.C_OBJECT_TEMPLATE);
 
-                template.getMapping().addAll(jaxb.getMapping());
-                repo.setMapping(RUtil.toRepo(template, prismContext));
+//                template.getMapping().addAll(jaxb.getMapping());
+//                template.asPrismObject().setDefinition(jaxb.asPrismObject().getDefinition());
+                repo.setMapping(RUtil.toRepo(templateDefinition, ObjectTemplateType.F_MAPPING, jaxb.getMapping(), prismContext));
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);

@@ -156,13 +156,15 @@ public class XNodeSerializer {
 		}
 		// There are some cases when we do not have list of all elements in a container.
 		// E.g. in run-time schema. Therefore we must also iterate over items and not just item definitions.
-		for (Item<?> item: containerVal.getItems()) {
-			QName elementName = item.getElementName();
-			if (serializedItems.contains(elementName)) {
-				continue;
+		if (containerVal.getItems() != null){
+			for (Item<?> item : containerVal.getItems()) {
+				QName elementName = item.getElementName();
+				if (serializedItems.contains(elementName)) {
+					continue;
+				}
+				XNode xsubnode = serializeItem(item);
+				xmap.put(elementName, xsubnode);
 			}
-			XNode xsubnode = serializeItem(item);
-			xmap.put(elementName, xsubnode);
 		}
 	}
 	
@@ -211,6 +213,7 @@ public class XNodeSerializer {
 		if (definition.isDynamic()) {
 			xnode.setExplicitTypeDeclaration(true);
 		}
+		System.out.println("item value serialization: \n" + xnode.debugDump());
 		return xnode;
 	}
 	

@@ -43,6 +43,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -72,6 +73,7 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -143,6 +145,7 @@ public final class RUtil {
 		return toJAXB(null, null, value, clazz, type, prismContext);
 	}
 
+	@Deprecated
 	public static <T> T toJAXB(Class<?> parentClass, ItemPath path, String value, Class<T> clazz,
 			PrismContext prismContext) throws SchemaException, JAXBException {
 		return toJAXB(parentClass, path, value, clazz, null, prismContext);
@@ -197,7 +200,13 @@ public final class RUtil {
 		SchemaRegistry registry = prismContext.getSchemaRegistry();
 		 
 			PrismContainerDefinition cDefinition = registry.findContainerDefinitionByCompileTimeClass(parentClass);
-			ItemDefinition definition = cDefinition.findItemDefinition(path);
+			ItemDefinition definition = null;
+			if (cDefinition != null){
+				definition = cDefinition.findItemDefinition(path);
+			} else {
+				definition = registry.findPropertyDefinitionByElementName(SchemaConstantsGenerated.C_OPERATION_RESULT);
+			}
+			
 
 		if (definition == null) {
 			definition = prismContext.getSchemaRegistry().findItemDefinitionByElementName(path);
@@ -239,7 +248,7 @@ public final class RUtil {
 		return null;
 	}
 
-	public static <T> String toRepo(PrismContainerDefinition parentDefinition, QName itemName, T value,
+	public static <T> String toRepo(ItemDefinition parentDefinition, QName itemName, T value,
 			PrismContext prismContext) throws SchemaException, JAXBException {
 		if (value == null) {
 			return null;
@@ -257,15 +266,30 @@ public final class RUtil {
 		// value).asPrismContainerValue(),
 		// itemName, prismContext.LANG_XML);
 		// }
+		ItemDefinition definition = null;
+		if (parentDefinition instanceof PrismContainerDefinition) {
 
-		ItemDefinition definition = parentDefinition.findItemDefinition(itemName);
-		if (definition == null) {
+			definition = ((PrismContainerDefinition)parentDefinition).findItemDefinition(itemName);
+			if (definition == null) {
+				definition = parentDefinition;
+			}
+		} else{
 			definition = parentDefinition;
 		}
 
-		return ValueSerializationUtil.serializeValue(value, definition, prismContext, PrismContext.LANG_XML);
+		return ValueSerializationUtil.serializeValue(value, definition, parentDefinition.getName(), prismContext, PrismContext.LANG_XML);
 	}
 
+	@Deprecated
+	/**
+	 * DEPRECATED use toRepo(definition, itemName, value, prismContext) instead
+	 * @param value
+	 * @param itemName
+	 * @param prismContext
+	 * @return
+	 * @throws SchemaException
+	 * @throws JAXBException
+	 */
 	public static <T> String toRepo(T value, QName itemName, PrismContext prismContext)
 			throws SchemaException, JAXBException {
 		if (value == null) {
@@ -287,12 +311,24 @@ public final class RUtil {
 		}
 		
 		ItemDefinition def = prismContext.getSchemaRegistry().findItemDefinitionByElementName(itemName);
+		if (def == null){
+			ValueSerializationUtil.serializeValue(value, itemName, prismContext, PrismContext.LANG_XML);
+		}
 		
-		
-		return ValueSerializationUtil.serializeValue(value, def, prismContext, PrismContext.LANG_XML);
+		return ValueSerializationUtil.serializeValue(value, def, def.getName(), prismContext, PrismContext.LANG_XML);
 		
 	}
 	
+	@Deprecated
+	/**
+	 * DEPRECATED use toRepo(definition, itemName, value, prismContext) instead
+	 * @param value
+	 * @param itemName
+	 * @param prismContext
+	 * @return
+	 * @throws SchemaException
+	 * @throws JAXBException
+	 */
 	public static <T> String toRepo(T value, PrismContext prismContext)
 			throws SchemaException, JAXBException {
 		if (value == null) {
@@ -314,7 +350,7 @@ public final class RUtil {
 		}
 		
 		
-		return ValueSerializationUtil.serializeValue(value, null, prismContext, PrismContext.LANG_XML);
+		return ValueSerializationUtil.serializeValue(value, new QName("fake"), prismContext, PrismContext.LANG_XML);
 		
 	}
 
@@ -526,23 +562,22 @@ public final class RUtil {
 		jaxb.setToken(repo.getToken());
 
 		try {
-			jaxb.setLocalizedMessage(RUtil.toJAXB(OperationResultType.class, new ItemPath(
-					OperationResultType.F_LOCALIZED_MESSAGE), repo.getLocalizedMessage(),
+			jaxb.setLocalizedMessage(RUtil.toJAXB(OperationResultType.class,
+					OperationResultType.F_LOCALIZED_MESSAGE, repo.getLocalizedMessage(),
 					LocalizedMessageType.class, prismContext));
 			jaxb.setParams(RUtil.toJAXB(OperationResultType.class,
-					new ItemPath(OperationResultType.F_PARAMS), repo.getParams(), ParamsType.class,
+					OperationResultType.F_PARAMS, repo.getParams(), ParamsType.class,
 					prismContext));
 
-			jaxb.setContext(RUtil.toJAXB(OperationResultType.class, new ItemPath(
-					OperationResultType.F_CONTEXT), repo.getContext(), ParamsType.class, prismContext));
+			jaxb.setContext(RUtil.toJAXB(OperationResultType.class, 
+					OperationResultType.F_CONTEXT, repo.getContext(), ParamsType.class, prismContext));
 
-			jaxb.setReturns(RUtil.toJAXB(OperationResultType.class, new ItemPath(
-					OperationResultType.F_RETURNS), repo.getReturns(), ParamsType.class, prismContext));
+			jaxb.setReturns(RUtil.toJAXB(OperationResultType.class, 
+					OperationResultType.F_RETURNS, repo.getReturns(), ParamsType.class, prismContext));
 
 			if (StringUtils.isNotEmpty(repo.getPartialResults())) {
-				OperationResultType result = RUtil.toJAXB(repo.getPartialResults(),
-						OperationResultType.class, prismContext);
-				jaxb.getPartialResults().addAll(result.getPartialResults());
+				List result = (List) RUtil.toJAXB(OperationResultType.class, OperationResultType.F_PARTIAL_RESULTS, repo.getPartialResults(), OperationResultType.class, prismContext);
+				jaxb.getPartialResults().addAll(result);
 			}
 		} catch (Exception ex) {
 			throw new DtoTranslationException(ex.getMessage(), ex);
@@ -560,17 +595,22 @@ public final class RUtil {
 		repo.setOperation(jaxb.getOperation());
 		repo.setStatus(getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
 		repo.setToken(jaxb.getToken());
-
+		PrismPropertyDefinition def = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstantsGenerated.C_OPERATION_RESULT);
+		
+		
+		
 		try {
-			repo.setLocalizedMessage(RUtil.toRepo(jaxb.getLocalizedMessage(), prismContext));
-			repo.setParams(RUtil.toRepo(jaxb.getParams(), prismContext));
-			repo.setContext(RUtil.toRepo(jaxb.getContext(), prismContext));
-			repo.setReturns(RUtil.toRepo(jaxb.getReturns(), prismContext));
+//			String s = ValueSerializationUtil.serializeValue(jaxb, def, OperationResultType.F_PARTIAL_RESULTS, prismContext, PrismContext.LANG_XML);
+//			System.out.println("serialized-===========: " + s);
+			repo.setLocalizedMessage(RUtil.toRepo(def, OperationResultType.F_LOCALIZED_MESSAGE, jaxb.getLocalizedMessage(), prismContext));
+			repo.setParams(RUtil.toRepo(def, OperationResultType.F_PARAMS, jaxb.getParams(), prismContext));
+			repo.setContext(RUtil.toRepo(def, OperationResultType.F_CONTEXT, jaxb.getContext(), prismContext));
+			repo.setReturns(RUtil.toRepo(def, OperationResultType.F_RETURNS, jaxb.getReturns(), prismContext));
 
 			if (!jaxb.getPartialResults().isEmpty()) {
 				OperationResultType result = new OperationResultType();
 				result.getPartialResults().addAll(jaxb.getPartialResults());
-				repo.setPartialResults(RUtil.toRepo(result, prismContext));
+				repo.setPartialResults(RUtil.toRepo(def, OperationResultType.F_PARTIAL_RESULTS, jaxb.getPartialResults(), prismContext));
 			}
 		} catch (Exception ex) {
 			throw new DtoTranslationException(ex.getMessage(), ex);

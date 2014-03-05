@@ -30,6 +30,7 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
@@ -268,17 +269,18 @@ public class RSystemConfiguration extends RObject<SystemConfigurationType> {
                     repo.getNotificationConfiguration(),
                     NotificationConfigurationType.class, prismContext));
             jaxb.setCleanupPolicy(RUtil.toJAXB(SystemConfigurationType.class,
-                    new ItemPath(SystemConfigurationType.F_CLEANUP_POLICY),
+                    SystemConfigurationType.F_CLEANUP_POLICY,
                     repo.getCleanupPolicy(),
                     CleanupPoliciesType.class, prismContext));
             jaxb.setProfilingConfiguration(RUtil.toJAXB(SystemConfigurationType.class,
-                    new ItemPath(SystemConfigurationType.F_PROFILING_CONFIGURATION),
+                    SystemConfigurationType.F_PROFILING_CONFIGURATION,
                     repo.getProfilingConfiguration(),
                     ProfilingConfigurationType.class, prismContext));
 
             if (StringUtils.isNotEmpty(repo.getObjectTemplate())) {
-                SystemConfigurationType holder = RUtil.toJAXB(repo.getObjectTemplate(), SystemConfigurationType.class,
-                        prismContext);
+				SystemConfigurationType holder = RUtil.toJAXB(SystemConfigurationType.class,
+						SystemConfigurationType.F_DEFAULT_USER_TEMPLATE_REF, repo.getObjectTemplate(),SystemConfigurationType.class, 
+						prismContext);
 
                 PrismObject holderPrism = holder.asPrismObject();
                 PrismObject jaxbPrism = jaxb.asPrismObject();
@@ -319,21 +321,22 @@ public class RSystemConfiguration extends RObject<SystemConfigurationType> {
             repo.setModelHooks(RUtil.toRepo(jaxb.getModelHooks(), prismContext));
             repo.setNotificationConfiguration(RUtil.toRepo(jaxb.getNotificationConfiguration(), prismContext));
 
-            repo.setCleanupPolicy(RUtil.toRepo(jaxb.getCleanupPolicy(), prismContext));
-            repo.setProfilingConfiguration(RUtil.toRepo(jaxb.getProfilingConfiguration(), prismContext));
+            repo.setCleanupPolicy(RUtil.toRepo(def, SystemConfigurationType.F_CLEANUP_POLICY, jaxb.getCleanupPolicy(), prismContext));
+            repo.setProfilingConfiguration(RUtil.toRepo(def, SystemConfigurationType.F_PROFILING_CONFIGURATION, jaxb.getProfilingConfiguration(), prismContext));
 
             if (!jaxb.getObjectTemplate().isEmpty()) {
-                SystemConfigurationType holder = new SystemConfigurationType();
-                PrismObject holderPrism = holder.asPrismObject();
-                PrismObject jaxbPrism = jaxb.asPrismObject();
+//                SystemConfigurationType holder = new SystemConfigurationType();
+//                PrismObject holderPrism = holder.asPrismObject();
+//                PrismObject jaxbPrism = jaxb.asPrismObject();
+//
+//                holderPrism.setElementName(SchemaConstantsGenerated.C_SYSTEM_CONFIGURATION);
+//
+//                PrismContainer container = jaxbPrism.findContainer(SystemConfigurationType.F_OBJECT_TEMPLATE);
+//                PrismContainer newContainer = container.clone();
+//                holderPrism.addReplaceExisting(newContainer);
+            	
 
-                holderPrism.setElementName(SchemaConstantsGenerated.C_SYSTEM_CONFIGURATION);
-
-                PrismContainer container = jaxbPrism.findContainer(SystemConfigurationType.F_OBJECT_TEMPLATE);
-                PrismContainer newContainer = container.clone();
-                holderPrism.addReplaceExisting(newContainer);
-
-                repo.setObjectTemplate(RUtil.toRepo(holder, prismContext));
+                repo.setObjectTemplate(RUtil.toRepo(def, SystemConfigurationType.F_OBJECT_TEMPLATE, jaxb.getObjectTemplate(), prismContext));
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);

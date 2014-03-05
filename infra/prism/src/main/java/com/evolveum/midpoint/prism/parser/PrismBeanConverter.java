@@ -162,7 +162,7 @@ public class PrismBeanConverter {
 						} else if (innerTypeArgument instanceof WildcardType) {
 							// This is the case of Collection<JAXBElement<?>>
 							// we need to exctract the specific type from the factory method
-							if (elementMethod == null) {
+							if (elementMethod == null){
 								throw new IllegalArgumentException("Wildcard type in JAXBElement field specification and no facotry method found for field "+fieldName+" in "+beanClass+", cannot determine collection type (inner type argument)");
 							}
 							Type factoryMethodGenericReturnType = elementMethod.getGenericReturnType();
@@ -203,6 +203,10 @@ public class PrismBeanConverter {
 					if (genericType instanceof ParameterizedType){
 						Type actualType = getTypeArgument(genericType, "add some description");
 						 if (actualType instanceof WildcardType) {
+							 if (elementMethod == null) {
+									objectFactory = getObjectFactory(beanClass.getPackage());
+									elementMethod = findElementMethodInObjectFactory(objectFactory, propName);
+								}
 								// This is the case of Collection<JAXBElement<?>>
 								// we need to exctract the specific type from the factory method
 								if (elementMethod == null) {
@@ -717,25 +721,34 @@ public class PrismBeanConverter {
 				ListXNode xlist = new ListXNode();
 				boolean isJaxb = false;
 				for (Object element: col) {
+					Object elementToMarshall = element;
 					if (element instanceof JAXBElement){
 						if (((JAXBElement) element).getName() != null){
 							elementName = ((JAXBElement) element).getName(); 
 						}
-						xmap.put(elementName, marshallValue(((JAXBElement) element).getValue(), fieldTypeName, isAttribute));
-						isJaxb = true;
-						continue;
-					}
-					XNode marshalled = marshallValue(element, fieldTypeName, isAttribute);
+						elementToMarshall = ((JAXBElement) element).getValue();
+//						xmap.put(elementName, marshallValue(elementToMarshall, fieldTypeName, isAttribute));
+//						isJaxb = true;
+//						continue;
+					} 
+					XNode marshalled = marshallValue(elementToMarshall, fieldTypeName, isAttribute);
 					setExplicitTypeDeclarationIfNeeded(getter, getterResultValue, marshalled, fieldTypeName);
 					xlist.add(marshalled);
 				}
-				if (!isJaxb){
+//				if (!isJaxb){
 					xmap.put(elementName, xlist);
-				}
+//				}
 			} else {
 				QName fieldTypeName = findFieldTypeName(field, getterResult.getClass(), namespace);
-				xmap.put(elementName, marshallValue(getterResult, fieldTypeName, isAttribute));
-				setExplicitTypeDeclarationIfNeeded(getter, getterResult, xmap, fieldTypeName);
+				Object valueToMarshall = null;
+				if (getterResult instanceof JAXBElement){
+					valueToMarshall = ((JAXBElement) getterResult).getValue();
+					elementName = ((JAXBElement) getterResult).getName();
+				} else{
+					valueToMarshall = getterResult;
+				}
+				xmap.put(elementName, marshallValue(valueToMarshall, fieldTypeName, isAttribute));
+				setExplicitTypeDeclarationIfNeeded(getter, valueToMarshall, xmap, fieldTypeName);
 			}
 		}
 		

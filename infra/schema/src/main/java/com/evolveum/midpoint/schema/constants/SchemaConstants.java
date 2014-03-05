@@ -76,6 +76,7 @@ public abstract class SchemaConstants {
     public static final QName C_REQUESTEE = new QName(NS_C, "requestee");
     public static final QName C_ASSIGNEE = new QName(NS_C, "assignee");
 	public static final QName C_OBJECT_TEMPLATE = new QName(NS_C, "objectTemplate");
+	public static final QName C_OBJECT_TEMPLATE_REF = new QName(NS_C, "objectTemplateRef");
 	public static final QName C_OBJECT_TEMPLATE_TYPE = new QName(NS_C, "ObjectTemplateType");
 	public static final QName C_GENERIC_OBJECT_TYPE = new QName(NS_C, "GenericObjectType");
 	public static final QName C_GENERIC_OBJECT = new QName(NS_C, "genericObject");

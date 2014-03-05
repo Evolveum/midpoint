@@ -348,11 +348,25 @@ public class XNodeProcessor {
 			return parsePrismPropertyFromMap((MapXNode)xnode, propName, propertyDefinition);
 		} else if (xnode instanceof PrimitiveXNode<?>) {
 			return parsePrismPropertyFromPrimitive((PrimitiveXNode)xnode, propName, propertyDefinition);
+		} else if (xnode instanceof SchemaXNode){
+			return parsePrismPropertyFromSchema((SchemaXNode) xnode, propName, propertyDefinition);
 		} else {
 			throw new IllegalArgumentException("Cannot parse property from " + xnode);
 		}
 	}
 	
+	private <T> PrismProperty<T> parsePrismPropertyFromSchema(SchemaXNode xnode, QName propName,
+			PrismPropertyDefinition<T> propertyDefinition) throws SchemaException {
+		PrismProperty prop = propertyDefinition.instantiate();
+		
+		SchemaDefinitionType schemaDefType = parseSchemaDefinitionType((SchemaXNode) xnode);
+		PrismPropertyValue<SchemaDefinitionType> val = new PrismPropertyValue<>(schemaDefType);
+		prop.add(val);
+		
+		
+		return prop;
+	}
+
 	private <T> PrismProperty<T> parsePrismPropertyFromList(ListXNode xlist, QName propName,
 			PrismPropertyDefinition<T> propertyDefinition) throws SchemaException {
 		if (xlist == null || xlist.isEmpty()) {
@@ -548,6 +562,17 @@ public class XNodeProcessor {
 		if (!(xsub instanceof SchemaXNode)) {
 			throw new SchemaException("Cannot parse schema from "+xsub);
 		}
+//		Element schemaElement = ((SchemaXNode)xsub).getSchemaElement();
+//		if (schemaElement == null) {
+//			throw new SchemaException("Empty schema in "+xsub);
+//		}
+		SchemaDefinitionType schemaDefType = parseSchemaDefinitionType((SchemaXNode) xsub);
+//		new SchemaDefinitionType();
+//		schemaDefType.setSchema(schemaElement);
+		return schemaDefType;
+	}
+	
+	private SchemaDefinitionType parseSchemaDefinitionType(SchemaXNode xsub) throws SchemaException{
 		Element schemaElement = ((SchemaXNode)xsub).getSchemaElement();
 		if (schemaElement == null) {
 			throw new SchemaException("Empty schema in "+xsub);

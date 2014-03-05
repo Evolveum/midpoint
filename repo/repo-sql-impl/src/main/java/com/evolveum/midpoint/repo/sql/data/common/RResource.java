@@ -313,8 +313,7 @@ public class RResource extends RObject<ResourceType> {
             }
             jaxb.setConsistency(RUtil.toJAXB(ResourceType.class, new ItemPath(ResourceType.F_CONSISTENCY),
                     repo.getConsistency(), ResourceConsistencyType.class, prismContext));
-            jaxb.setProjection(RUtil.toJAXB(ResourceType.class, new ItemPath(
-                    ResourceType.F_PROJECTION), repo
+            jaxb.setProjection(RUtil.toJAXB(ResourceType.class, ResourceType.F_PROJECTION, repo
                     .getProjection(), ProjectionPolicyType.class,
                     prismContext));
 

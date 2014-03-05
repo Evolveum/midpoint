@@ -102,8 +102,8 @@ public class ItemDeltaType implements Serializable, Cloneable {
 
     @XmlElement(required = true)
     protected ModificationTypeType modificationType;
-    @XmlAnyElement
-    protected Element path;
+//    @XmlAnyElement
+    protected ItemPathType path;
     @XmlElement(required = true)
     protected ItemDeltaType.Value value;
 
@@ -139,7 +139,7 @@ public class ItemDeltaType implements Serializable, Cloneable {
      *     {@link Element }
      *     
      */
-    public Element getPath() {
+    public ItemPathType getPath() {
         return path;
     }
 
@@ -151,7 +151,7 @@ public class ItemDeltaType implements Serializable, Cloneable {
      *     {@link Element }
      *     
      */
-    public void setPath(Element value) {
+    public void setPath(ItemPathType value) {
         this.path = value;
     }
 
@@ -550,7 +550,7 @@ public class ItemDeltaType implements Serializable, Cloneable {
 		if (path == null) {
 			if (other.path != null)
 				return false;
-		} else if (!DOMUtil.compareElement(path, other.path, false))
+		} else if (!path.equals(other.path))
 			return false;
 		if (value == null) {
 			if (other.value != null)

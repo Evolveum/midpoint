@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UriStack;
+
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -35,6 +37,7 @@ import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -428,7 +431,7 @@ public class RTask extends RObject<TaskType> {
         try {
             jaxb.setOtherHandlersUriStack(RUtil.toJAXB(TaskType.class, new ItemPath(TaskType.F_OTHER_HANDLERS_URI_STACK),
                     repo.getOtherHandlersUriStack(), UriStack.class, prismContext));
-            jaxb.setSchedule(RUtil.toJAXB(TaskType.class, new ItemPath(TaskType.F_SCHEDULE), repo.getSchedule(),
+            jaxb.setSchedule(RUtil.toJAXB(TaskType.class, TaskType.F_SCHEDULE, repo.getSchedule(),
                     ScheduleType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
@@ -438,6 +441,8 @@ public class RTask extends RObject<TaskType> {
     public static void copyFromJAXB(TaskType jaxb, RTask repo, PrismContext prismContext) throws
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
+        
+        PrismObjectDefinition<TaskType> taskDefinition = jaxb.asPrismObject().getDefinition();
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setTaskIdentifier(jaxb.getTaskIdentifier());
@@ -471,7 +476,7 @@ public class RTask extends RObject<TaskType> {
 
         try {
             repo.setOtherHandlersUriStack(RUtil.toRepo(jaxb.getOtherHandlersUriStack(), prismContext));
-            repo.setSchedule(RUtil.toRepo(jaxb.getSchedule(), prismContext));
+            repo.setSchedule(RUtil.toRepo(taskDefinition, TaskType.F_SCHEDULE, jaxb.getSchedule(), prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }

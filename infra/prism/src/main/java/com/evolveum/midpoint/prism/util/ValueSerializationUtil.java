@@ -5,38 +5,102 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import ch.qos.logback.core.pattern.parser.Node;
+
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.prism.parser.XNodeProcessor;
 import com.evolveum.midpoint.prism.parser.XNodeSerializer;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class ValueSerializationUtil {
 	
-	public static <T> String serializeValue(T value, ItemDefinition def, PrismContext prismContext, String language) throws SchemaException{
+	public static <T> String serializeValue(T value, ItemDefinition def, QName parentName, PrismContext prismContext, String language) throws SchemaException{
 		System.out.println("value serialization");
 		if (value == null){
 			return null;
 		}
 		
+		XNodeSerializer serializer = prismContext.getXnodeProcessor().createSerializer();
+		
 		if (value instanceof List){
-			List values = (List) value;
+			List<T> values = (List<T>) value;
 			if (values.isEmpty()){
 				return null;
 			}
+			
+			if (def instanceof PrismPropertyDefinition){
+				PrismProperty prop = (PrismProperty) def.instantiate();
+				for (T val : values){
+					PrismPropertyValue<T> pValue = new PrismPropertyValue<T>(val);
+					prop.add(pValue);
+				}
+				XNode node = serializer.serializeItem(prop);
+				if (node instanceof ListXNode){
+					ListXNode xList = (ListXNode) node;
+					if (xList.size() == 1){
+						XNode sub = xList.iterator().next();
+						if (!(sub instanceof MapXNode)){
+							throw new IllegalArgumentException("must be a map");
+						}
+						
+						String s = prismContext.getParserDom().serializeToString(sub, def.getName());
+						System.out.println("serialized: " + s);
+						return s;
+						
+					}else{
+						MapXNode xmap = new MapXNode();
+						xmap.put(def.getName(), xList);
+						String s = prismContext.getParserDom().serializeToString(xmap, parentName);
+						System.out.println("serialized: " + s);
+						return s;
+//						throw new IllegalArgumentException("Check your data.");
+					}
+					
+//					MapXNode xmap = xList.new MapXNode();
+//					xmap.put(def.getName(), xList);
+					
+				}
+				String s = prismContext.getParserDom().serializeToString(node, def.getName());
+				System.out.println("serialized: " + s);
+				return s;
+			} else if (def instanceof PrismContainerDefinition){
+				PrismContainer pc = (PrismContainer) def.instantiate();
+				for (T val : values){
+//					PrismContainerValue pcVal = new PrismContainerValue<Containerable>((Containerable) val);
+					PrismContainerValue pcVal = ((Containerable) val).asPrismContainerValue();
+					pc.add(pcVal.clone());
+				}
+				XNode node = serializer.serializeItem(pc);
+				if (node instanceof ListXNode){
+					ListXNode xList = (ListXNode) node;
+					MapXNode xmap = new MapXNode();
+					xmap.put(def.getName(), xList);
+					String s = prismContext.getParserDom().serializeToString(xmap, parentName);
+					System.out.println("serialized: " + s);
+					return s;
+				}
+				String s = prismContext.getParserDom().serializeToString(node, def.getName());
+				System.out.println("serialized: " + s);
+				return s;
+			}
+			
 		}
 		
 		PrismValue pVal = null;
@@ -59,8 +123,41 @@ public class ValueSerializationUtil {
 			itemName = def.getName();
 		}
 		
-		XNodeSerializer serializer = prismContext.getXnodeProcessor().createSerializer();
+		
 		XNode node = serializer.serializeItemValue(pVal, def);
+		String s = prismContext.getParserDom().serializeToString(node, itemName);
+		System.out.println("serialized: " + s);
+		return s;
+//		throw new UnsupportedOperationException("need to be implemented");
+	}
+	
+	public static <T> String serializeValue(T value, QName itemName, PrismContext prismContext, String language) throws SchemaException{
+		System.out.println("value serialization");
+		if (value == null){
+			return null;
+		}
+		
+		XNodeSerializer serializer = prismContext.getXnodeProcessor().createSerializer();
+		
+		if (value instanceof List){
+			List<T> values = (List<T>) value;
+			if (values.isEmpty()){
+				return null;
+			}
+			throw new UnsupportedOperationException("take your chance.");			
+		}
+		
+		PrismValue pVal = null;
+		
+		if (value instanceof Containerable){
+			pVal = ((Containerable) value).asPrismContainerValue();
+		} else if (value instanceof Referencable){
+			pVal = ((Referencable) value).asReferenceValue();
+		} else {
+			pVal = new PrismPropertyValue<T>(value);
+		}		
+		
+		XNode node = serializer.serializeItemValue(pVal, null);
 		String s = prismContext.getParserDom().serializeToString(node, itemName);
 		System.out.println("serialized: " + s);
 		return s;
@@ -84,12 +181,16 @@ public class ValueSerializationUtil {
 		
 		System.out.println("xnode: " + xnode.debugDump());
 		
-		MapXNode xmap = null;
+		XNode xmap = null;
 		if (xnode instanceof RootXNode){
-			xmap = (MapXNode) ((RootXNode) xnode).getSubnode();
-		} else if (xnode instanceof MapXNode){
-			xmap = (MapXNode) xnode;
-		}
+			xmap = ((RootXNode) xnode).getSubnode();
+		} 
+//		else if (xnode instanceof MapXNode){
+//			xmap = (MapXNode) xnode;
+//		} else if (xnode instanceof PrimitiveXNode){
+//			xmap = new MapXNode();
+//			xmap.put(itemName, xnode);
+//		}
 		
 		Item item = prismContext.getXnodeProcessor().parseItem(xmap, itemName, itemDef);
 		
@@ -97,7 +198,10 @@ public class ValueSerializationUtil {
 		
 		if (item instanceof PrismProperty){
 			PrismProperty prop = (PrismProperty) item;
-			return (T) prop.getRealValue();
+			if (prop.isSingleValue()){
+				return (T) prop.getRealValue();
+			}
+			return (T) prop.getRealValues();
 		} else if (item instanceof PrismContainer){
 			PrismContainer cont = (PrismContainer) item;
 			return (T) cont.getValue().asContainerable();
@@ -125,6 +229,88 @@ public class ValueSerializationUtil {
 	public static ObjectFilter deserializeFilter(String query, String language){
 		System.out.println("query deserialization");
 		throw new UnsupportedOperationException("need to be implemented");
+	}
+
+	public static <T> String serializeValue(T value, PrismPropertyDefinition def,
+			QName itemName, PrismContext prismContext, String langXml) throws SchemaException{
+		System.out.println("value serialization");
+		if (value == null){
+			return null;
+		}
+		
+		XNodeSerializer serializer = prismContext.getXnodeProcessor().createSerializer();
+		
+		if (value instanceof List){
+			List<T> values = (List<T>) value;
+			if (values.isEmpty()){
+				return null;
+			}
+			
+			if (def instanceof PrismPropertyDefinition){
+				PrismProperty prop = (PrismProperty) def.instantiate();
+				for (T val : values){
+					PrismPropertyValue<T> pValue = new PrismPropertyValue<T>(val);
+					prop.add(pValue);
+				}
+				XNode node = serializer.serializeItem(prop);
+				if (node instanceof ListXNode){
+					ListXNode xList = (ListXNode) node;
+					MapXNode xmap = new MapXNode();
+					xmap.put(def.getName(), xList);
+					String s = prismContext.getParserDom().serializeToString(xmap, def.getName());
+					System.out.println("serialized: " + s);
+					return s;
+				}
+				String s = prismContext.getParserDom().serializeToString(node, def.getName());
+				System.out.println("serialized: " + s);
+				return s;
+			}
+			
+		}
+		
+		PrismValue pVal = null;
+		
+		if (value instanceof Containerable){
+			pVal = ((Containerable) value).asPrismContainerValue();
+		} else if (value instanceof Referencable){
+			pVal = ((Referencable) value).asReferenceValue();
+		} else {
+			PrismProperty pp = def.instantiate();
+			pVal = new PrismPropertyValue<T>(value);
+			pp.add(pVal);
+			XNode xnode = serializer.serializeItemValue(pVal, def);
+			if (xnode == null){
+				throw new IllegalArgumentException("null node after serialization");
+			}
+			MapXNode xmap = null;
+			if (xnode instanceof RootXNode){
+				XNode sub = ((RootXNode) xnode).getSubnode();
+				if (!(sub instanceof MapXNode)){
+					throw new IllegalArgumentException("not uspported yet");
+				}
+				xmap = (MapXNode) sub;
+			} else if (xnode instanceof MapXNode){
+				xmap = (MapXNode) xnode;
+			} else if (xnode instanceof PrimitiveXNode){
+				String s = ((PrimitiveXNode) xnode).getStringValue();
+				return s;
+//				
+			} else{
+				throw new IllegalStateException("hmmm");
+			}
+			
+			XNode node = xmap.get(itemName);
+			String s = prismContext.getParserDom().serializeToString(node, itemName);
+		}
+		
+	
+		
+		XNode node = serializer.serializeItemValue(pVal, def);
+		String s = prismContext.getParserDom().serializeToString(node, itemName);
+		System.out.println("serialized: " + s);
+		return s;
+//		throw new UnsupportedOperationException("need to be implemented");
+		
 	}
 	
 	

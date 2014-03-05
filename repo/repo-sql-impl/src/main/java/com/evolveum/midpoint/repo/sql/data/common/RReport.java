@@ -8,6 +8,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RDataSource;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.Columns;
 import org.hibernate.annotations.ForeignKey;
@@ -15,6 +16,7 @@ import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RExportType;
@@ -24,6 +26,7 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
@@ -229,14 +232,18 @@ public class RReport extends RObject<ReportType> {
             repo.setDataSource(source);
         }
 
+        PrismObjectDefinition<ReportType> reportDef = jaxb.asPrismObject().getDefinition();
+        
         try {
-            repo.setTemplate(RUtil.toRepo(jaxb.getTemplate(), prismContext));
-            repo.setTemplateStyle(RUtil.toRepo(jaxb.getTemplateStyle(), prismContext));
-            repo.setField(RUtil.toRepo(jaxb.getField(), prismContext));
+//            repo.setTemplate(RUtil.toRepo(reportDef, ReportType.F_TEMPLATE, jaxb.getTemplate(), prismContext));
+//            repo.setTemplateStyle(RUtil.toRepo(reportDef, ReportType.F_TEMPLATE_STYLE, jaxb.getTemplateStyle(), prismContext));
+        	repo.setTemplate(jaxb.getTemplate());
+        	repo.setTemplateStyle(jaxb.getTemplateStyle());
+            repo.setField(RUtil.toRepo(reportDef, ReportType.F_FIELD, jaxb.getField(), prismContext));
 
             repo.setConfiguration(RUtil.toRepo(jaxb.getConfiguration(), prismContext));
             repo.setConfigurationSchema(RUtil.toRepo(jaxb.getConfigurationSchema(), prismContext));
-            repo.setSubreport(RUtil.toRepo(jaxb.getSubreport(), prismContext));
+            repo.setSubreport(RUtil.toRepo(reportDef, ReportType.F_SUBREPORT, jaxb.getSubreport(), prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
@@ -263,33 +270,35 @@ public class RReport extends RObject<ReportType> {
 
         try {
             if (StringUtils.isNotEmpty(repo.getTemplate())) {
-                jaxb.setTemplate(RUtil.toJAXB(ReportType.class, new ItemPath(ReportType.F_TEMPLATE),
-                        repo.getTemplate(), ReportTemplateType.class, prismContext));
+//                jaxb.setTemplate(RUtil.toJAXB(ReportType.class, ReportType.F_TEMPLATE,
+//                        repo.getTemplate(), SchemaDefinitionType.class, prismContext));
+            	jaxb.setTemplate(repo.getTemplate());
             }
             if (StringUtils.isNotEmpty(repo.getTemplateStyle())) {
-                jaxb.setTemplateStyle(RUtil.toJAXB(ReportType.class, new ItemPath(ReportType.F_TEMPLATE_STYLE),
-                        repo.getTemplateStyle(), ReportTemplateStyleType.class, prismContext));
+//                jaxb.setTemplateStyle(RUtil.toJAXB(ReportType.class, ReportType.F_TEMPLATE_STYLE,
+//                        repo.getTemplateStyle(), SchemaDefinitionType.class, prismContext));
+            	jaxb.setTemplateStyle(repo.getTemplateStyle());
             }
             if (StringUtils.isNotEmpty(repo.getField())) {
-                List<ReportFieldConfigurationType> reportField = RUtil.toJAXB(ReportType.class, null, repo.getField(), List.class, null,
+                List<ReportFieldConfigurationType> reportField = RUtil.toJAXB(ReportType.class, ReportType.F_FIELD, repo.getField(), List.class,
                         prismContext);
                 jaxb.getField().addAll(reportField);
             }
 
             if (StringUtils.isNotEmpty(repo.getConfigurationSchema())) {
-                jaxb.setConfigurationSchema(RUtil.toJAXB(ReportType.class, new ItemPath(ReportType.F_CONFIGURATION_SCHEMA),
+                jaxb.setConfigurationSchema(RUtil.toJAXB(ReportType.class, ReportType.F_CONFIGURATION_SCHEMA,
                         repo.getConfigurationSchema(), XmlSchemaType.class, prismContext));
             }
 
             if (StringUtils.isNotEmpty(repo.getConfiguration())) {
-                jaxb.setConfiguration(RUtil.toJAXB(ReportType.class, new ItemPath(ReportType.F_CONFIGURATION),
+                jaxb.setConfiguration(RUtil.toJAXB(ReportType.class, ReportType.F_CONFIGURATION,
                         repo.getConfiguration(), ReportConfigurationType.class, prismContext));
             }
 
             if (StringUtils.isNotEmpty(repo.getSubreport())) {
-                List<SubreportType> reportParameter = RUtil.toJAXB(ReportType.class, null, repo.getSubreport(), List.class, null,
-                        prismContext);
-                jaxb.getSubreport().addAll(reportParameter);
+                ReportType reportParameter = RUtil.toJAXB(ReportType.class, ReportType.F_SUBREPORT, repo.getSubreport(), ReportType.class,
+                		prismContext);
+                jaxb.getSubreport().addAll(reportParameter.getSubreport());
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
