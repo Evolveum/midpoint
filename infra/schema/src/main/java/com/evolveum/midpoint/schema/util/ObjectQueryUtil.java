@@ -122,8 +122,8 @@ public class ObjectQueryUtil {
 		}
 		StringBuilder sb = new StringBuilder("Query(");
 		sb.append(query.getDescription()).append("):\n");
-		if (query.getFilter() != null)
-			sb.append(DOMUtil.serializeDOMToString(query.getFilter()));
+		if (query.getFilter() != null && query.getFilter().getFilterClause() != null)
+			sb.append(DOMUtil.serializeDOMToString(query.getFilter().getFilterClause()));
 		else
 			sb.append("(no filter)");
 		return sb.toString();

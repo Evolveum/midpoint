@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 
 /**
  * This is mostly legacy converter between JAXB/DOM representation of queries and filter and the native prism
@@ -48,7 +49,11 @@ public class QueryJaxbConvertor {
 			return null;
 		}
 		
-		Element filterDom = queryType.getFilter();
+		Element filterDom = null;
+		SearchFilterType filterType = queryType.getFilter();
+		if (filterType != null) {
+			filterDom = filterType.getFilterClause();
+		}
 		if (filterDom == null && queryType.getPaging() == null){
 			return null;
 		}
@@ -98,7 +103,9 @@ public class QueryJaxbConvertor {
 			QueryType queryType = new QueryType();
 			if (filter != null){
 				MapXNode filterXnode = QueryConvertor.serializeFilter(filter, prismContext);
-				queryType.setFilter(filterXnode);
+				SearchFilterType filterType = new SearchFilterType();
+				filterType.setXFilter(filterXnode);
+				queryType.setFilter(filterType);
 //				Element filterElement = prismContext.getParserDom().serializeToElement(filterXnode, QueryConvertor.FILTER_ELEMENT_NAME);
 //				queryType.setFilter(filterElement);
 			}

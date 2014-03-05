@@ -58,8 +58,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType.Filter;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
@@ -144,8 +144,8 @@ public class TestJaxbConstruction {
 		ObjectReferenceType accountRefType = new ObjectReferenceType();
 		accountRefType.setOid(USER_ACCOUNT_REF_1_OID);
 		Element filterElement = createFilter();
-		ObjectReferenceType.Filter filter = new ObjectReferenceType.Filter();
-		filter.setFilter(filterElement);
+		SearchFilterType filter = new SearchFilterType();
+		filter.setFilterClause(filterElement);
 		accountRefType.setFilter(filter);
 		userType.getLinkRef().add(accountRefType);
 		
@@ -210,8 +210,8 @@ public class TestJaxbConstruction {
 		accountRefType.setOid(USER_ACCOUNT_REF_1_OID);
 		
 		Element filterElement = createFilter();
-		ObjectReferenceType.Filter filter = new ObjectReferenceType.Filter();
-		filter.setFilter(filterElement);
+		SearchFilterType filter = new SearchFilterType();
+		filter.setFilterClause(filterElement);
 		accountRefType.setFilter(filter);
 		userType.getLinkRef().add(accountRefType);
 		

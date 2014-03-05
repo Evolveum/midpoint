@@ -113,7 +113,7 @@ public class TestQueryConvertor {
 		assertEqualsFilterValue((EqualsFilter) second, createPolyString("someName"));
 
 		QueryType convertedQueryType = toQueryType(query);
-		LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter()));
+		LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClause()));
 
 		// TODO: add some asserts
 	}
@@ -142,7 +142,7 @@ public class TestQueryConvertor {
 		assertEqualsFilterValue((EqualsFilter) second, "uid=jbond,ou=People,dc=example,dc=com");
 
 		QueryType convertedQueryType = toQueryType(query);
-		LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter()));
+		LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClause()));
 
 		// TODO: add some asserts
 	}
@@ -180,7 +180,7 @@ public class TestQueryConvertor {
 		assertRefFilterValue((RefFilter) forth, "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e");
 
 		QueryType convertedQueryType = toQueryType(query);
-		LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter()));
+		LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClause()));
 
 		// TODO: add some asserts
 	}
@@ -292,7 +292,7 @@ public class TestQueryConvertor {
 	}
 
 	private void displayQueryType(QueryType queryType) {
-		LOGGER.info(DOMUtil.serializeDOMToString(queryType.getFilter()));
+		LOGGER.info(DOMUtil.serializeDOMToString(queryType.getFilter().getFilterClause()));
 	}
 
 	@Test
@@ -347,7 +347,7 @@ public class TestQueryConvertor {
 				System.out.println("QUERY Pretty print: " + query.toString());
 
 				QueryType convertedQueryType = QueryJaxbConvertor.createQueryType(query, getPrismContext());
-				LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter()));
+				LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClause()));
 			} catch (SchemaException ex) {
 				LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
 				throw ex;

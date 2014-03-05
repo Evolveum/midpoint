@@ -33,6 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReference
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 
@@ -536,7 +537,11 @@ public class SchemaDebugUtil {
 			return "null";
 		}
 
-		Element filter = query.getFilter();
+		SearchFilterType filterType = query.getFilter();
+		Element filter = null;
+		if (filterType != null) {
+			filter = filterType.getFilterClause();
+		}
 
 		StringBuilder sb = new StringBuilder("Query(");
 
