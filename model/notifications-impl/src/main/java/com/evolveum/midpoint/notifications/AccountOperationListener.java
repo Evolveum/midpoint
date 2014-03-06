@@ -208,8 +208,8 @@ public class AccountOperationListener implements ResourceOperationListener {
             }
         }
 
-        String userOid = task != null ? task.getRequesteeOid() : null;
-        if (userOid == null) {
+        PrismObject<UserType> requestee = task != null ? task.getRequestee() : null;
+        if (requestee == null) {
             LOGGER.warn("There is no owner of account " + accountOid + " (in repo nor in task).");
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Task = " + (task != null ? task.debugDump() : "(null)"));
@@ -217,18 +217,27 @@ public class AccountOperationListener implements ResourceOperationListener {
             return null;
         }
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Requestee OID = " + userOid + " for account " + accountOid);
+            LOGGER.trace("Requestee = " + requestee + " for account " + accountOid);
         }
+        if (requestee.getOid() == null) {
+            return requestee;
+        }
+
+        // let's try to get current value of requestee ... if it exists (it will NOT exist in case of delete operation)
         try {
-            return cacheRepositoryService.getObject(UserType.class, userOid, null, result);
+            return cacheRepositoryService.getObject(UserType.class, requestee.getOid(), null, result);
         } catch (ObjectNotFoundException e) {
-            if (!isDelete) {
-                LoggingUtils.logException(LOGGER, "Cannot find owner of account " + accountOid, e);
-            } else {
-                LOGGER.info("Owner of account " + accountOid + " (user oid " + userOid + ") was probably already deleted.");
-                result.removeLastSubresult();       // to suppress the error message (in GUI + in tests)
+            if (isDelete) {
+                result.removeLastSubresult();           // get rid of this error - it's not an error
             }
-            return null;
+            return requestee;           // returning last known value
+//            if (!isDelete) {
+//                LoggingUtils.logException(LOGGER, "Cannot find owner of account " + accountOid, e);
+//            } else {
+//                LOGGER.info("Owner of account " + accountOid + " (user oid " + userOid + ") was probably already deleted.");
+//                result.removeLastSubresult();       // to suppress the error message (in GUI + in tests)
+//            }
+//            return null;
         } catch (SchemaException e) {
             LoggingUtils.logException(LOGGER, "Cannot find owner of account " + accountOid, e);
             return null;
