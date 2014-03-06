@@ -28,7 +28,7 @@
 
 	<report oid="report01-0000-0000-0000-000000000000">
         <name>report01</name>
-        <description>report01decritpion</description>
+        <description>report01descritpion</description>
     </report>
 	
 	<reportOutput oid="report01-pdf0-0000-0000-output010000">
@@ -37,7 +37,7 @@
 			<createTimestamp>2013-06-01T00:30:00.000+02:00</createTimestamp>
 			<creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
         </metadata>-->
-        <reportFilePath>${midpointhome}/export/reportOutput01.pdf</reportFilePath>
+        <filePath>${midpointhome}/export/reportOutput01.pdf</filePath>
         <reportRef oid="report01-0000-0000-0000-000000000000"/>
      </reportOutput>
 	 
@@ -47,7 +47,7 @@
 			<createTimestamp>2013-07-01T00:30:00.000+02:00</createTimestamp>
 			<creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
         </metadata>-->
-        <reportFilePath>${midpointhome}/export/reportOutput02.pdf</reportFilePath>
+        <filePath>${midpointhome}/export/reportOutput02.pdf</filePath>
         <reportRef oid="report01-0000-0000-0000-000000000000"/>
      </reportOutput>
 	 
@@ -57,7 +57,7 @@
 			<createTimestamp>2013-08-01T00:30:00.000+02:00</createTimestamp>
 			<creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
         </metadata>-->
-        <reportFilePath>${midpointhome}/export/reportOutput03.pdf</reportFilePath>
+        <filePath>${midpointhome}/export/reportOutput03.pdf</filePath>
         <reportRef oid="report01-0000-0000-0000-000000000000"/>
      </reportOutput>
 	 
@@ -67,7 +67,7 @@
 			<createTimestamp>2013-06-01T00:30:00.000+02:00</createTimestamp>
 			<creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
         </metadata>-->
-        <reportFilePath>${midpointhome}/export/reportOutput01.csv</reportFilePath>
+        <filePath>${midpointhome}/export/reportOutput01.csv</filePath>
         <reportRef oid="report01-0000-0000-0000-000000000000"/>
      </reportOutput>
 	 
@@ -77,7 +77,7 @@
 			<createTimestamp>2013-07-01T00:30:00.000+02:00</createTimestamp>
 			<creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
         </metadata>-->
-        <reportFilePath>${midpointhome}/export/reportOutput02.csv</reportFilePath>
+        <filePath>${midpointhome}/export/reportOutput02.csv</filePath>
         <reportRef oid="report01-0000-0000-0000-000000000000"/>
      </reportOutput>
 
