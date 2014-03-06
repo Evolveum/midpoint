@@ -336,29 +336,29 @@ public final class Utils {
 		}
 
     public static void setRequestee(Task task, LensContext context) {
-        String oid;
+        PrismObject<? extends ObjectType> object;
         if (context != null && context.getFocusContext() != null
                 && UserType.class.isAssignableFrom(context.getFocusContext().getObjectTypeClass())) {
-            oid = context.getFocusContext().getOid();
+            object = context.getFocusContext().getObjectAny();
         } else {
-            oid = null;
+            object = null;
         }
-        setRequestee(task, oid);
+        setRequestee(task, object);
     }
 
     public static <F extends ObjectType> void setRequestee(Task task, LensFocusContext<F> context) {
         setRequestee(task, context.getLensContext());
     }
 
-    public static void setRequestee(Task task, String oid) {
-        LOGGER.trace("setting requestee in {} to {}", task, oid);
+    public static void setRequestee(Task task, PrismObject object) {
+        LOGGER.trace("setting requestee in {} to {}", task, object);
         if (task != null) {
-            task.setRequesteeOidTransient(oid);
+            task.setRequesteeTransient(object);
         }
     }
 
     public static void clearRequestee(Task task) {
-        setRequestee(task, (String) null);
+        setRequestee(task, (PrismObject) null);
     }
     
     public static boolean isDryRun(Task task) throws SchemaException{

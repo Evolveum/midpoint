@@ -182,43 +182,6 @@ public class SimpleTaskAdapter implements Task {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
-//    @Override
-//    public PrismReference getRequesteeRef() {
-//        throw new UnsupportedOperationException("not implemented yet.");
-//    }
-//
-//    @Override
-//    public void setRequesteeRef(PrismReferenceValue reference) throws SchemaException {
-//        throw new UnsupportedOperationException("not implemented yet.");
-//    }
-//
-//    @Override
-//    public void setRequesteeRef(PrismObject<UserType> requestee) throws SchemaException {
-//        throw new UnsupportedOperationException("not implemented yet.");
-//    }
-
-    @Override
-    public String getRequesteeOid() {
-        throw new UnsupportedOperationException("not implemented yet.");
-    }
-
-    @Override
-    public void setRequesteeOidTransient(String oid) {
-        throw new UnsupportedOperationException("not implemented yet.");
-    }
-
-
-//    @Override
-//    public void setRequesteeOid(String oid) throws SchemaException {
-//        throw new UnsupportedOperationException("not implemented yet.");
-//    }
-//
-//    @Override
-//    public void setRequesteeOidImmediate(String oid, OperationResult result)
-//            throws SchemaException, ObjectNotFoundException {
-//        throw new UnsupportedOperationException("not implemented yet.");
-//    }
-
     @Override
     public String getChannel() {
         throw new UnsupportedOperationException("not implemented yet.");
@@ -227,6 +190,16 @@ public class SimpleTaskAdapter implements Task {
     @Override
     public void setChannel(String channelUri) {
         throw new UnsupportedOperationException("not implemented yet.");
+    }
+
+    @Override
+    public PrismObject<UserType> getRequestee() {
+        return null;
+    }
+
+    @Override
+    public void setRequesteeTransient(PrismObject<UserType> user) {
+
     }
 
     @Override

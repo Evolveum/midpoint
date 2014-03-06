@@ -895,13 +895,13 @@ public interface Task extends DebugDumpable {
      * It is a temporary feature - will be removed in midPoint 2.3.
      */
 
-    public String getRequesteeOid();
+    public PrismObject<UserType> getRequestee();
 
     /**
      * Sets the requestee OID.
      * @param oid
      */
-    public void setRequesteeOidTransient(String oid);
+    public void setRequesteeTransient(PrismObject<UserType> user);
 
     // ====================================================================================== Other methods
 
