@@ -1,8 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="reportUserList" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
-	<template><![CDATA[$P{BaseTemplateStyles}]]></template>
-	<parameter name="BaseTemplateStyles" class="java.lang.String"/>
-	<parameter name="LOGO_PATH" class="java.lang.String"/>
+<jasperReport 
+	xmlns="http://jasperreports.sourceforge.net/jasperreports" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" 
+	name="reportDataSourceTest" 
+	pageWidth="842" 
+	pageHeight="595" 
+	orientation="Landscape" 
+	whenNoDataType="AllSectionsNoDetail" 
+	columnWidth="802" 
+	leftMargin="20" 
+	rightMargin="20" 
+	topMargin="20" 
+	bottomMargin="20" 
+	uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
+	<template><![CDATA[$P{baseTemplateStyles}]]></template>
+	<parameter name="baseTemplateStyles" class="java.lang.String"/>
+	<parameter name="logoPath" class="java.lang.String"/>
 	<field name="Name" class="java.lang.String"/>
 	<field name="FirstName" class="java.lang.String"/>
 	<field name="LastName" class="java.lang.String"/>
@@ -22,7 +36,7 @@
 				</staticText>
 				<image>
 					<reportElement style="Title" x="589" y="13" width="203" height="45" uuid="b0a76e6a-8f61-4d60-8dcd-3e51adb4cd4c"/>
-					<imageExpression><![CDATA[$P{LOGO_PATH}]]></imageExpression>
+					<imageExpression><![CDATA[$P{logoPath}]]></imageExpression>
 				</image>
 			</frame>
 			<staticText>
