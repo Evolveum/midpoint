@@ -130,7 +130,7 @@ public class RunScript {
             request.setOptions(optionsType);
 
             if (!cmdline.hasOption(OPT_HIDE_SCRIPT)) {
-                System.out.println("Script to execute: " + script);
+                System.out.println("\nScript to execute:\n" + script);
             }
             System.out.println("=================================================================");
 
@@ -175,7 +175,7 @@ public class RunScript {
         if (result == null) {
             return "(null)";
         } else {
-            return result.getStatus() + ": " + result.getMessage();
+            return result.getStatus() + (result.getMessage() != null ? (": " + result.getMessage()) : "");
         }
     }
 

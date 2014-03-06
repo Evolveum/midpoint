@@ -38,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.SearchExpressionType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang.mutable.MutableBoolean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -83,9 +84,12 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
 
         final Data outputData = Data.createEmpty();
 
+        final MutableBoolean atLeastOne = new MutableBoolean(false);
+
         ResultHandler<T> handler = new ResultHandler<T>() {
             @Override
             public boolean handle(PrismObject<T> object, OperationResult parentResult) {
+                atLeastOne.setValue(true);
                 if (searchExpression.getExpression() != null) {
                     if (variableName != null) {
                         context.setVariable(variableName, object);
@@ -107,6 +111,10 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
             modelService.searchObjectsIterative(objectClass, objectQuery, handler, operationsHelper.createGetOptions(noFetch), context.getTask(), result);
         } catch (SchemaException | ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException e) {
             throw new ScriptExecutionException("Couldn't execute searchObjects operation: " + e.getMessage(), e);
+        }
+
+        if (atLeastOne.isFalse()) {
+            context.println("Warning: no " + searchExpression.getType().getLocalPart() + " object found");          // temporary hack, this will be configurable
         }
 
         if (variableName != null) {

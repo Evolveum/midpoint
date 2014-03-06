@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionPipelineType;
@@ -71,6 +72,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     private static final File RECOMPUTE_JACK_FILE = new File(TEST_DIR, "recompute-jack.xml");;
     private static final File ASSIGN_TO_JACK_FILE = new File(TEST_DIR, "assign-to-jack.xml");
     private static final File ASSIGN_TO_JACK_2_FILE = new File(TEST_DIR, "assign-to-jack-2.xml");
+    private static final File PURGE_DUMMY_BLACK_SCHEMA_FILE = new File(TEST_DIR, "purge-dummy-black-schema.xml");
+    private static final File TEST_DUMMY_RESOURCE_FILE = new File(TEST_DIR, "test-dummy-resource.xml");
 
     @Autowired
     private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
@@ -464,6 +467,65 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         IntegrationTestTools.display("jack after disable script", jack);
         assertAdministrativeStatusDisabled(jack);
+    }
+
+    @Test(enabled = true)
+    public void test400PurgeSchema() throws Exception {
+        TestUtil.displayTestTile(this, "test400PurgeSchema");
+
+        // GIVEN
+        OperationResult result = new OperationResult(DOT_CLASS + "test400PurgeSchema");
+        Task task = taskManager.createTaskInstance();
+        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(PURGE_DUMMY_BLACK_SCHEMA_FILE, ExpressionType.class).getValue();
+
+//        ResourceType dummy = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_BLACK_OID, null, task, result).asObjectable();
+//        IntegrationTestTools.display("dummy resource before purge schema", dummy.asPrismObject());
+//        IntegrationTestTools.display("elements: " + dummy.getSchema().getDefinition().getAny().get(0).getElementsByTagName("*").getLength());
+//        IntegrationTestTools.display("schema as XML: " + DOMUtil.printDom(dummy.getSchema().getDefinition().getAny().get(0)));
+
+        // WHEN
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, result);
+
+        // THEN
+        IntegrationTestTools.display("output", output.getFinalOutput());
+        IntegrationTestTools.display("stdout", output.getConsoleOutput());
+        IntegrationTestTools.display(result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        assertEquals(1, output.getFinalOutput().getData().size());
+
+//        dummy = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_BLACK_OID, null, result).asObjectable();
+//        IntegrationTestTools.display("dummy resource from repo", dummy.asPrismObject());
+//        IntegrationTestTools.display("elements: " + dummy.getSchema().getDefinition().getAny().get(0).getElementsByTagName("*").getLength());
+//        IntegrationTestTools.display("schema as XML: " + DOMUtil.printDom(dummy.getSchema().getDefinition().getAny().get(0)));
+
+        //AssertJUnit.assertNull("Schema is still present", dummy.getSchema());
+        // actually, schema gets downloaded just after purging it
+        assertEquals("Purged schema information from resource:10000000-0000-0000-0000-000000000305(Dummy Resource Black)\n", output.getConsoleOutput());
+    }
+
+
+    @Test
+    public void test410TestResource() throws Exception {
+        TestUtil.displayTestTile(this, "test410TestResource");
+
+        // GIVEN
+        OperationResult result = new OperationResult(DOT_CLASS + "test410TestResource");
+        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(TEST_DUMMY_RESOURCE_FILE, ExpressionType.class).getValue();
+
+        // WHEN
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, result);
+
+        // THEN
+        IntegrationTestTools.display("output", output.getFinalOutput());
+        IntegrationTestTools.display("stdout", output.getConsoleOutput());
+        ResourceType dummy = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, taskManager.createTaskInstance(), result).asObjectable();
+        IntegrationTestTools.display("dummy resource after test connection", dummy.asPrismObject());
+        IntegrationTestTools.display(result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        assertEquals(1, output.getFinalOutput().getData().size());
+        assertEquals("Tested resource:10000000-0000-0000-0000-000000000004(Dummy Resource): SUCCESS\n", output.getConsoleOutput());
     }
 
     private void assertNoOutputData(ExecutionContext output) {
