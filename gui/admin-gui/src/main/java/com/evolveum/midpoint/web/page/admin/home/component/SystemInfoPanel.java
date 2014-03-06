@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.page.admin.home.component;
 
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.home.dto.SimplePieChartDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SystemInfoDto;
@@ -29,8 +28,8 @@ import org.apache.wicket.model.PropertyModel;
  * */
 public class SystemInfoPanel extends SimplePanel<SystemInfoDto>{
 
-    private static final String ID_ACTIVE_USERS = "activeUsers";
-    private static final String ID_ACTIVE_TASKS = "activeTasks";
+//    private static final String ID_ACTIVE_USERS = "activeUsers";
+//    private static final String ID_ACTIVE_TASKS = "activeTasks";
     private static final String ID_SERVER_LOAD = "serverLoad";
     private static final String ID_RAM_USAGE = "usedRam";
 
@@ -40,11 +39,11 @@ public class SystemInfoPanel extends SimplePanel<SystemInfoDto>{
 
     @Override
     protected void initLayout(){
+//        SimplePieChart userPanel = new SimplePieChart(ID_ACTIVE_USERS, new PropertyModel<SimplePieChartDto>(getModel(), "activeUsersDto"));
+//        add(userPanel);
+//        SimplePieChart tasksPanel = new SimplePieChart(ID_ACTIVE_TASKS, new PropertyModel<SimplePieChartDto>(getModel(), "activeTasksDto"));
+//        add(tasksPanel);
 
-        SimplePieChart userPanel = new SimplePieChart(ID_ACTIVE_USERS, new PropertyModel<SimplePieChartDto>(getModel(), "activeUsersDto"));
-        add(userPanel);
-        SimplePieChart tasksPanel = new SimplePieChart(ID_ACTIVE_TASKS, new PropertyModel<SimplePieChartDto>(getModel(), "activeTasksDto"));
-        add(tasksPanel);
         SimplePieChart serverLoadPanel = new SimplePieChart(ID_SERVER_LOAD, new PropertyModel<SimplePieChartDto>(getModel(), "serverLoadDto"));
         add(serverLoadPanel);
         SimplePieChart ramPanel = new SimplePieChart(ID_RAM_USAGE, new PropertyModel<SimplePieChartDto>(getModel(), "usedRamDto"));

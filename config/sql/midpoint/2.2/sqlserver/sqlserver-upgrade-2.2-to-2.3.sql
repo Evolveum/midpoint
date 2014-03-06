@@ -25,6 +25,7 @@ ALTER TABLE m_object ADD tenantRef_type INT;
 ALTER TABLE m_object ADD name_norm NVARCHAR(255);
 ALTER TABLE m_object ADD name_orig NVARCHAR(255);
 ALTER TABLE m_org ADD tenant BIT;
+ALTER TABLE m_system_configuration ADD objectTemplate NVARCHAR(MAX);
 
 
 CREATE TABLE m_report (
@@ -89,3 +90,20 @@ ALTER TABLE m_user ADD jpegPhoto VARBINARY(MAX);
 CREATE INDEX iObjectNameOrig ON m_object (name_orig);
 
 CREATE INDEX iObjectNameNorm ON m_object (name_norm);
+
+
+ UPDATE m_object SET name_norm = x.name_norm, name_orig = x.name_orig FROM m_connector as x WHERE x.oid = m_object.oid;
+ UPDATE m_object SET name_norm = x.name_norm, name_orig = x.name_orig FROM m_connector_host as x WHERE x.oid = m_object.oid;
+ UPDATE m_object SET name_norm = x.name_norm, name_orig = x.name_orig FROM m_generic_object as x WHERE x.oid = m_object.oid;
+ UPDATE m_object SET name_norm = x.name_norm, name_orig = x.name_orig FROM m_node as x WHERE x.oid = m_object.oid;
+ UPDATE m_object SET name_norm = x.name_norm, name_orig = x.name_orig FROM m_object_template as x WHERE x.oid = m_object.oid;
+ UPDATE m_object SET name_norm = x.name_norm, name_orig = x.name_orig FROM m_org as x WHERE x.oid = m_object.oid;
+ UPDATE m_object SET name_norm = x.name_norm, name_orig = x.name_orig FROM m_report as x WHERE x.oid = m_object.oid;
+ UPDATE m_object SET name_norm = x.name_norm, name_orig = x.name_orig FROM m_report_output as x WHERE x.oid = m_object.oid;
+ UPDATE m_object SET name_norm = x.name_norm, name_orig = x.name_orig FROM m_resource as x WHERE x.oid = m_object.oid;
+ UPDATE m_object SET name_norm = x.name_norm, name_orig = x.name_orig FROM m_role as x WHERE x.oid = m_object.oid;
+ UPDATE m_object SET name_norm = x.name_norm, name_orig = x.name_orig FROM m_shadow as x WHERE x.oid = m_object.oid;
+ UPDATE m_object SET name_norm = x.name_norm, name_orig = x.name_orig FROM m_system_configuration as x WHERE x.oid = m_object.oid;
+ UPDATE m_object SET name_norm = x.name_norm, name_orig = x.name_orig FROM m_task as x WHERE x.oid = m_object.oid;
+ UPDATE m_object SET name_norm = x.name_norm, name_orig = x.name_orig FROM m_user as x WHERE x.oid = m_object.oid;
+ UPDATE m_object SET name_norm = x.name_norm, name_orig = x.name_orig FROM m_value_policy as x WHERE x.oid = m_object.oid;
