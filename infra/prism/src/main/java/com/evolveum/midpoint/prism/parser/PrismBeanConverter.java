@@ -516,14 +516,8 @@ public class PrismBeanConverter {
 		}
 		
 		if (RawType.class.isAssignableFrom(classType)) {
-			QName typeQName = xprim.getTypeQName();
-			if (typeQName == null) {
-				typeQName = DOMUtil.XSD_STRING;
-			}
-			Object parsedValue = xprim.getParsedValue(typeQName);
 			RawType rawType = new RawType();
-			rawType.setType(typeQName);
-			rawType.setValue(parsedValue);
+			rawType.setXnode(xprim);
 			return (T) rawType;
 		}
 		
@@ -745,10 +739,7 @@ public class PrismBeanConverter {
 	}
 
 	private XNode marshalRawValue(RawType value) {
-		PrimitiveXNode xprim = new PrimitiveXNode();
-		xprim.setTypeQName(value.getType());
-		xprim.setValue(value.getValue());
-		return xprim;
+		return value.getXnode();
 	}
 
 	private XNode marshalSearchFilterType(SearchFilterType value) {

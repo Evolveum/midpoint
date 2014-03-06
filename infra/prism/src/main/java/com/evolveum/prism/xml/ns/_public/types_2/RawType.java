@@ -22,6 +22,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.collections.CollectionUtils;
 
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.MiscUtil;
 
 
@@ -53,31 +54,21 @@ import com.evolveum.midpoint.util.MiscUtil;
     "content"
 })
 public class RawType implements Serializable{
-	
-	@XmlTransient
-	private Object value;
-	
-	@XmlTransient
-	private QName type;
+	private static final long serialVersionUID = 4430291958902286779L;
 
+	@XmlTransient
+	private XNode xnode;
+	
     @XmlMixed
     @XmlAnyElement(lax = true)
     protected List<Object> content;
 
-    public Object getValue() {
-		return value;
+	public XNode getXnode() {
+		return xnode;
 	}
 
-	public void setValue(Object value) {
-		this.value = value;
-	}
-
-	public QName getType() {
-		return type;
-	}
-
-	public void setType(QName type) {
-		this.type = type;
+	public void setXnode(XNode xnode) {
+		this.xnode = xnode;
 	}
 
 	/**
@@ -112,30 +103,36 @@ public class RawType implements Serializable{
         return this.content;
     }
 
+    // Shallow clone. Do we need deep clone?
     public RawType clone() {
     	RawType clone = new RawType();
-    	clone.getContent().addAll(content);
+    	clone.setXnode(xnode);
     	return clone;
     }
     
-    @Override
-    public boolean equals(Object obj) {
-    	if (!(obj instanceof RawType)){
-    		return false;
-    	}
-    	
-    	RawType other = (RawType) obj;
-    	
-    	return MiscUtil.unorderedCollectionEquals(getContent(), other.getContent());
-    }
-    
-    @Override
-    public int hashCode() {
-    	final int prime = 31;
+	@Override
+	public int hashCode() {
+		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((value == null) ? 0 : value.hashCode());
-		result = prime * result + ((type == null) ? 0 : type.hashCode());
+		result = prime * result + ((xnode == null) ? 0 : xnode.hashCode());
 		return result;
-    }
-    
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		RawType other = (RawType) obj;
+		if (xnode == null) {
+			if (other.xnode != null)
+				return false;
+		} else if (!xnode.equals(other.xnode))
+			return false;
+		return true;
+	}
+
 }

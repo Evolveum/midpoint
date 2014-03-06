@@ -31,6 +31,8 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.parser.XNodeProcessor;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -97,6 +99,7 @@ public class StaticExpressionUtil {
 			String contextDescription, PrismContext prismContext) throws SchemaException {
 		
 		Item<V> output = null;
+		XNodeProcessor xnodeProcessor = prismContext.getXnodeProcessor();
 		
 		for (Object valueElement: valueElements) {
 			if (!(valueElement instanceof JAXBElement<?>)) {
@@ -116,8 +119,7 @@ public class StaticExpressionUtil {
 			
 			RawType rawType = (RawType)jaxbElement.getValue();
 			
-			
-			Item<V> elementItem = domProcessor.parseValueElement(valueDomElement, outputDefinition);
+			Item<V> elementItem = xnodeProcessor.parseItem(rawType.getXnode(), outputDefinition.getName(), outputDefinition);
 			if (output == null) {
 				output = elementItem;
 			} else {
@@ -131,11 +133,13 @@ public class StaticExpressionUtil {
 		if (item == null) {
 			return null;
 		}
-		PrismDomProcessor domProcessor = item.getPrismContext().getPrismDomProcessor();
+		XNodeProcessor xnodeProcessor = item.getPrismContext().getXnodeProcessor();
 		List<Object> elements = new ArrayList<Object>(1);
-		Element valueElement = DOMUtil.createElement(DOMUtil.getDocument(), SchemaConstants.C_VALUE);
-		domProcessor.serializeItemToDom(item, valueElement);
-		elements.add(valueElement);
+		XNode xnode = xnodeProcessor.serializeItem(item);
+		RawType rawType = new RawType();
+		rawType.setXnode(xnode);
+		JAXBElement<RawType> jaxbElement = new JAXBElement<RawType>(SchemaConstants.C_VALUE, RawType.class, rawType);
+		elements.add(jaxbElement);
 		return elements;
 	}
 
