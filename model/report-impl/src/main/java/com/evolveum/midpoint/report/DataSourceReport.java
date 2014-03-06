@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.QueryConvertor;
@@ -45,29 +46,35 @@ public class DataSourceReport implements JRDataSource
 	private List<PrismObject<ObjectType>> data;
 	private OperationResult result = null;
 	private OperationResult subResult = null;
-	private PagingType paging = null;
+	private ObjectPaging paging = null;
 	private ItemPath fieldPath = null;
 	private int rowCounter = -1;
 	private int pageOffset = 0;
 	private int rowCount = 0;
+	private ObjectQuery objectQuery = null;
+	private Class clazz = null;
 
 	
-	public DataSourceReport(ReportType reportType, OperationResult result, PrismContext prismContext, ModelService modelService)
+	public DataSourceReport(ReportType reportType, ObjectQuery objectQuery, Class clazz, OperationResult result, PrismContext prismContext, ModelService modelService)
 	{
 		this.reportType = reportType;
 		this.result = result;
 		this.prismContext = prismContext;
 		this.modelService = modelService;
+		this.objectQuery = objectQuery;
+		this.clazz = clazz;
 		initialize();
 	}
 	
+	public DataSourceReport() {
+		// TODO Auto-generated constructor stub
+	}
+
 	private void initialize()
 	{	
 		subResult = result.createSubresult("Initialize");	
-		paging = new PagingType();
-		paging.setOffset(0);
-		paging.setMaxSize(50);
-		//reportType.getQuery().setPaging(paging);
+		paging = ObjectPaging.createPaging(0, 50);
+		objectQuery.setPaging(paging);		
 		rowCount = paging.getMaxSize();
 		rowCounter = rowCount - 1;
 		fieldsPair = getFieldsPair();
@@ -90,14 +97,10 @@ public class DataSourceReport implements JRDataSource
 	{
 		List<PrismObject<T>> listReportObjects =  new ArrayList<PrismObject<T>>();;
 		try
-		{
-			
-			
-			//Class<T> clazz = ReportUtils.getObjectTypeClass(reportType);
-			//ObjectQuery objectQuery = QueryConvertor.createObjectQuery(clazz, reportType.getQuery(), prismContext);
+		{			
 			LOGGER.trace("Search report objects {}:", reportType);
 			
-			//listReportObjects = modelService.searchObjects(clazz, objectQuery, SelectorOptions.createCollection(GetOperationOptions.createRaw()), null, result);
+			listReportObjects = modelService.searchObjects(clazz, objectQuery, SelectorOptions.createCollection(GetOperationOptions.createRaw()), null, result);
 			return listReportObjects;
 		}
 		catch (Exception ex) 
@@ -119,14 +122,10 @@ public class DataSourceReport implements JRDataSource
 				LOGGER.trace("Select next report objects {}:", data);
 				pageOffset += paging.getMaxSize();
 				paging.setOffset(pageOffset);
-				//reportType.getQuery().setPaging(paging);
+				objectQuery.setPaging(paging);
 				rowCounter = 0;
 				rowCount  = Math.min(paging.getMaxSize(), data.size());
 				LOGGER.trace("Set next select paging {}:", paging);
-				if (pageOffset == 5950)
-				{
-					String blb = "blb";
-				}
 			}
 			else rowCounter++; 
 				
@@ -149,7 +148,11 @@ public class DataSourceReport implements JRDataSource
 		{
 			PrismObject<ObjectType> record = data.get(rowCounter);
 			PrismProperty<?> fieldValue = record.findProperty(fieldPath);
-			LOGGER.trace("Select next field value {}:", fieldValue);
+			if (fieldValue != null) {
+				LOGGER.trace("Select next field value : {}, real value : {}", fieldValue, fieldValue.getRealValue().toString());
+			} else {
+				LOGGER.trace("Select next field value : {}", fieldValue);
+			}
 			return  fieldValue != null ? fieldValue.getRealValue().toString() : "";
 		}
 		else return "";

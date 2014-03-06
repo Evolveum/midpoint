@@ -19,44 +19,75 @@ package com.evolveum.midpoint.report;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 
 import net.sf.jasperreports.engine.JRReportTemplate;
 import net.sf.jasperreports.engine.JRTemplate;
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.design.JasperDesign;
+import net.sf.jasperreports.engine.query.JRHibernateQueryExecuterFactory;
+import net.sf.jasperreports.engine.xml.JRXmlLoader;
 import net.sf.jasperreports.engine.xml.JRXmlTemplateLoader;
 import net.sf.jasperreports.web.servlets.ReportServlet;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
+import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -65,14 +96,23 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrientationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportTemplateStyleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.prism.xml.ns._public.query_2.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
@@ -159,6 +199,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	private static final String REPORT_OID_001 = "00000000-3333-3333-0000-100000000001";
 	private static final String REPORT_OID_002 = "00000000-3333-3333-0000-100000000002";
 	private static final String REPORT_OID_TEST = "00000000-3333-3333-TEST-10000000000";
+	private static final String TEST_WITHOUT_DESIGN_REPORT_OID = "00000000-3333-3333-TEST-20000000000";
 	private static final String TASK_REPORT_OID = "00000000-3333-3333-TASK-10000000000";
 	private static final String AUDITLOGS_REPORT_OID = "AUDITLOG-3333-3333-TEST-10000000000";
 	private static final String RECONCILIATION_REPORT_OID = "RECONCIL-3333-3333-TEST-10000000000";
@@ -338,7 +379,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         return policy;
     }
 
-/*
+
 	@Test
 	public void test001CreateReport() throws Exception {
 		// import vo for cycle cez usertype zrusit vsetky RTable
@@ -356,108 +397,34 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		reportType.setDescription("TEST Report with DataSource parameter.");
 
 		// file templates
-		String jrxmlFile = FileUtils.readFileToString(REPORT_DATASOURCE_TEST, "UTF-8");// readFile(REPORT_DATASOURCE_TEST, StandardCharsets.UTF_8);
+		String template = FileUtils.readFileToString(REPORT_DATASOURCE_TEST, "UTF-8");
+		
 		ReportTemplateType reportTemplate = new ReportTemplateType();
-		reportTemplate.setAny(DOMUtil.parseDocument(jrxmlFile).getDocumentElement());
-		reportType.setReportTemplate(reportTemplate);
+		reportTemplate.setAny(DOMUtil.parseDocument(template).getDocumentElement());
+		reportType.setTemplate(reportTemplate);
 
-		String jrtxFile = FileUtils.readFileToString(STYLE_TEMPLATE_DEFAULT, "UTF-8"); //readFile(STYLE_TEMPLATE_DEFAULT, StandardCharsets.UTF_8);
+		String templateStyle = FileUtils.readFileToString(STYLE_TEMPLATE_DEFAULT, "UTF-8"); //readFile(STYLE_TEMPLATE_DEFAULT, StandardCharsets.UTF_8);
 		ReportTemplateStyleType reportTemplateStyle = new ReportTemplateStyleType();
-		reportTemplateStyle.setAny(DOMUtil.parseDocument(jrtxFile).getDocumentElement());
-		reportType.setReportTemplateStyle(reportTemplateStyle);
+		reportTemplateStyle.setAny(DOMUtil.parseDocument(templateStyle).getDocumentElement());
+		reportType.setTemplateStyle(reportTemplateStyle);
+/*
+		String config_schema = FileUtils.readFileToString(REPORT_DATASOURCE_TEST, "UTF-8");
+		
+		ReportConfigurationType parameters = new ReportConfigurationType();
+		parameters.getAny().add(arg0)
+		reportType.setConfiguration(parameters);
 
-		// orientation
-		reportType.setReportOrientation(OrientationType.LANDSCAPE);
-
-		// export
-		reportType.setReportExport(ExportType.PDF);
-
+ * reportType.s
+		PrismContainer<Containerable> configuration = new PrismContainer(null);
 		// object class
-		reportType.setObjectClass(ObjectTypes.getObjectType(UserType.class)
-				.getTypeQName());
+				reportType.setObjectClass(ObjectTypes.getObjectType(UserType.class)
+						.getTypeQName());
 
-		// object query
-		ObjectPaging paging = ObjectPaging.createPaging(0, 10);
-		ObjectQuery query = ObjectQuery.createObjectQuery(paging);
-		QueryType queryType = QueryConvertor.createQueryType(query, prismContext);		
-		reportType.setQuery(queryType);
-
-		// fields
-		List<ReportFieldConfigurationType> reportFields = new ArrayList<ReportFieldConfigurationType>();
-
-		ReportFieldConfigurationType field = new ReportFieldConfigurationType();
-		ItemPath itemPath;
-		XPathHolder xpath;
-		Element element;
-		ItemDefinition itemDef;
-		SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
-
-		PrismObjectDefinition<UserType> userDefinition = schemaRegistry
-				.findObjectDefinitionByCompileTimeClass(UserType.class);
-
-		field.setNameHeaderField("Name");
-		field.setNameReportField("Name");
-		itemPath = new ItemPath(UserType.F_NAME);
-		xpath = new XPathHolder(itemPath);
-		element = xpath.toElement(SchemaConstants.C_ITEM_PATH_FIELD,
-				DOMUtil.getDocument());// (SchemaConstantsGenerated.NS_COMMON,
-										// "itemPathField");
-		field.setItemPathField(element);
-		field.setSortOrderNumber(1);
-		field.setSortOrder(OrderDirectionType.ASCENDING);
-		itemDef = userDefinition.findItemDefinition(itemPath);
-		field.setWidthField(25);
-		field.setClassTypeField(itemDef.getTypeName());
-		reportFields.add(field);
-
-		field = new ReportFieldConfigurationType();
-		field.setNameHeaderField("First Name");
-		field.setNameReportField("FirstName");
-		itemPath = new ItemPath(UserType.F_GIVEN_NAME);
-		xpath = new XPathHolder(itemPath);
-		element = xpath.toElement(SchemaConstants.C_ITEM_PATH_FIELD,
-				DOMUtil.getDocument());
-		field.setItemPathField(element);
-		field.setSortOrderNumber(null);
-		field.setSortOrder(null);
-		itemDef = userDefinition.findItemDefinition(itemPath);
-		field.setWidthField(25);
-		field.setClassTypeField(itemDef.getTypeName());
-		reportFields.add(field);
-
-		field = new ReportFieldConfigurationType();
-		field.setNameHeaderField("Last Name");
-		field.setNameReportField("LastName");
-		itemPath = new ItemPath(UserType.F_FAMILY_NAME);
-		xpath = new XPathHolder(itemPath);
-		element = xpath.toElement(SchemaConstants.C_ITEM_PATH_FIELD,
-				DOMUtil.getDocument());
-		field.setItemPathField(element);
-		field.setSortOrderNumber(null);
-		field.setSortOrder(null);
-		itemDef = userDefinition.findItemDefinition(itemPath);
-		field.setWidthField(25);
-		field.setClassTypeField(itemDef.getTypeName());
-		reportFields.add(field);
-
-		field = new ReportFieldConfigurationType();
-		field.setNameHeaderField("Activation");
-		field.setNameReportField("Activation");
-		itemPath = new ItemPath(UserType.F_ACTIVATION,
-				ActivationType.F_ADMINISTRATIVE_STATUS);
-		xpath = new XPathHolder(itemPath);
-		element = xpath.toElement(SchemaConstants.C_ITEM_PATH_FIELD,
-				DOMUtil.getDocument());
-		field.setItemPathField(element);
-		field.setSortOrderNumber(null);
-		field.setSortOrder(null);
-		itemDef = userDefinition.findItemDefinition(itemPath);
-		field.setWidthField(25);
-		field.setClassTypeField(itemDef.getTypeName());
-		reportFields.add(field);
-
-		reportType.getReportField().addAll(reportFields);
-
+				// object query
+				ObjectPaging paging = ObjectPaging.createPaging(0, 10);
+				ObjectQuery query = ObjectQuery.createObjectQuery(paging);
+				QueryType queryType = QueryConvertor.createQueryType(query, prismContext);		
+				reportType.setQuery(queryType);
 		// parameters
 		List<ReportParameterConfigurationType> reportParameters = new ArrayList<ReportParameterConfigurationType>();
 
@@ -474,7 +441,92 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		reportParameters.add(parameter);
 
 		reportType.getReportParameter().addAll(reportParameters);
+*/
+ 
+		//use hibernate session
+		reportType.setUseHibernateSession(false);
+		
+		// orientation
+		reportType.setOrientation(OrientationType.LANDSCAPE);
 
+		// export
+		reportType.setExport(ExportType.PDF);
+
+		// fields
+		List<ReportFieldConfigurationType> reportFields = new ArrayList<ReportFieldConfigurationType>();
+
+		ReportFieldConfigurationType field = new ReportFieldConfigurationType();
+		ItemPath itemPath;
+		XPathHolder xpath;
+		Element element;
+		ItemDefinition itemDef;
+		SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
+
+		PrismObjectDefinition<UserType> userDefinition = schemaRegistry
+				.findObjectDefinitionByCompileTimeClass(UserType.class);
+
+		field.setNameHeader("Name");
+		field.setNameReport("Name");
+		itemPath = new ItemPath(UserType.F_NAME);
+		xpath = new XPathHolder(itemPath);
+		element = xpath.toElement(SchemaConstants.C_ITEM_PATH_FIELD,
+				DOMUtil.getDocument());
+		field.setItemPath(element);
+		field.setSortOrderNumber(1);
+		field.setSortOrder(OrderDirectionType.ASCENDING);
+		itemDef = userDefinition.findItemDefinition(itemPath);
+		field.setWidth(25);
+		field.setClassType(itemDef.getTypeName());
+		reportFields.add(field);
+
+		field = new ReportFieldConfigurationType();
+		field.setNameHeader("First Name");
+		field.setNameReport("FirstName");
+		itemPath = new ItemPath(UserType.F_GIVEN_NAME);
+		xpath = new XPathHolder(itemPath);
+		element = xpath.toElement(SchemaConstants.C_ITEM_PATH_FIELD,
+				DOMUtil.getDocument());
+		field.setItemPath(element);
+		field.setSortOrderNumber(null);
+		field.setSortOrder(null);
+		itemDef = userDefinition.findItemDefinition(itemPath);
+		field.setWidth(25);
+		field.setClassType(itemDef.getTypeName());
+		reportFields.add(field);
+
+		field = new ReportFieldConfigurationType();
+		field.setNameHeader("Last Name");
+		field.setNameReport("LastName");
+		itemPath = new ItemPath(UserType.F_FAMILY_NAME);
+		xpath = new XPathHolder(itemPath);
+		element = xpath.toElement(SchemaConstants.C_ITEM_PATH_FIELD,
+				DOMUtil.getDocument());
+		field.setItemPath(element);
+		field.setSortOrderNumber(null);
+		field.setSortOrder(null);
+		itemDef = userDefinition.findItemDefinition(itemPath);
+		field.setWidth(25);
+		field.setClassType(itemDef.getTypeName());
+		reportFields.add(field);
+
+		field = new ReportFieldConfigurationType();
+		field.setNameHeader("Activation");
+		field.setNameReport("Activation");
+		itemPath = new ItemPath(UserType.F_ACTIVATION,
+				ActivationType.F_ADMINISTRATIVE_STATUS);
+		xpath = new XPathHolder(itemPath);
+		element = xpath.toElement(SchemaConstants.C_ITEM_PATH_FIELD,
+				DOMUtil.getDocument());
+		field.setItemPath(element);
+		field.setSortOrderNumber(null);
+		field.setSortOrder(null);
+		itemDef = userDefinition.findItemDefinition(itemPath);
+		field.setWidth(25);
+		field.setClassType(itemDef.getTypeName());
+		reportFields.add(field);
+
+		reportType.getField().addAll(reportFields);
+		
 		Task task = taskManager.createTaskInstance(CREATE_REPORT);
 		OperationResult result = task.getResult();
 		result.addParams(new String[] { "task" }, task.getResult());
@@ -528,40 +580,42 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	 	//AssertJUnit.assertEquals(jasperDesign, jasperDesignRepo);
 		//AssertJUnit.assertEquals(reportTemplateStyle.getAny(), reportType.getReportTemplateStyle().getAny());
 		AssertJUnit.assertEquals(OrientationType.LANDSCAPE,
-				reportType.getReportOrientation());
-		AssertJUnit.assertEquals(ExportType.PDF, reportType.getReportExport());
-		AssertJUnit.assertEquals(ObjectTypes.getObjectType(UserType.class)
+				reportType.getOrientation());
+		AssertJUnit.assertEquals(ExportType.PDF, reportType.getExport());
+
+		/*
+		 AssertJUnit.assertEquals(ObjectTypes.getObjectType(UserType.class)
 				.getTypeQName(), reportType.getObjectClass());
 		AssertJUnit.assertEquals(queryType, reportType.getQuery());
-
+*/
 		int fieldCount = reportFields.size();
 		List<ReportFieldConfigurationType> fieldsRepo = reportType
-				.getReportField();
+				.getField();
 
 		ReportFieldConfigurationType fieldRepo = null;
 		AssertJUnit.assertEquals(fieldCount, fieldsRepo.size());
 		for (int i = 0; i < fieldCount; i++) {
 			fieldRepo = fieldsRepo.get(i);
 			field = reportFields.get(i);
-			AssertJUnit.assertEquals(field.getNameHeaderField(),
-					fieldRepo.getNameHeaderField());
-			AssertJUnit.assertEquals(field.getNameReportField(),
-					fieldRepo.getNameReportField());
-			ItemPath fieldPath = new XPathHolder(field.getItemPathField())
+			AssertJUnit.assertEquals(field.getNameHeader(),
+					fieldRepo.getNameHeader());
+			AssertJUnit.assertEquals(field.getNameReport(),
+					fieldRepo.getNameReport());
+			ItemPath fieldPath = new XPathHolder(field.getItemPath())
 					.toItemPath();
 			ItemPath fieldRepoPath = new XPathHolder(
-					fieldRepo.getItemPathField()).toItemPath();
+					fieldRepo.getItemPath()).toItemPath();
 			AssertJUnit.assertEquals(fieldPath, fieldRepoPath);
 			AssertJUnit.assertEquals(field.getSortOrder(),
 					fieldRepo.getSortOrder());
 			AssertJUnit.assertEquals(field.getSortOrderNumber(),
 					fieldRepo.getSortOrderNumber());
-			AssertJUnit.assertEquals(field.getWidthField(),
-					fieldRepo.getWidthField());
-			AssertJUnit.assertEquals(field.getClassTypeField(),
-					fieldRepo.getClassTypeField());
+			AssertJUnit.assertEquals(field.getWidth(),
+					fieldRepo.getWidth());
+			AssertJUnit.assertEquals(field.getClassType(),
+					fieldRepo.getClassType());
 		}
-
+/*
 		int parameterCount = reportParameters.size();
 		List<ReportParameterConfigurationType> parametersRepo = reportType
 				.getReportParameter();
@@ -577,9 +631,9 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 					parameterRepo.getValueParameter());
 			AssertJUnit.assertEquals(parameter.getClassTypeParameter(),
 					parameterRepo.getClassTypeParameter());
-		}
+		}*/
 	}
-*//*
+
 	@Test 
 	public void test002CreateReportFromFile() throws Exception {
 		
@@ -600,8 +654,8 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         result.computeStatus();
         display(result);
         TestUtil.assertSuccess(result);
-	}*/
-/*
+	}
+
 	@Test
 	public void test003CopyReportWithoutDesign() throws Exception {
 		final String TEST_NAME = "test003CopyReportWithoutDesign";
@@ -614,8 +668,8 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 
 		reportType = reportType.clone();
 		reportType.setOid(REPORT_OID_002);
-		reportType.setReportTemplate(null);
-		reportType.setReportTemplateStyle(null);
+		reportType.setTemplate(null);
+		reportType.setTemplateStyle(null);
 		reportType.setName(new PolyStringType("Test report - Datasource2"));
 
 		ObjectDelta<ReportType> objectDelta = ObjectDelta
@@ -654,7 +708,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         //OperationResult subresult = result.getLastSubresult();
         //TestUtil.assertInProgress("create report result", subresult);
         
-        waitForTaskFinish(task.getOid(), false);
+        waitForTaskFinish(task.getOid(), false, 50000);
         
      // Task result
         PrismObject<TaskType> reportTaskAfter = getTask(task.getOid());
@@ -678,17 +732,17 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         ReportType reportType = getReport(REPORT_OID_TEST).asObjectable();
         LOGGER.trace("read report {}", reportType);
         
-        String output = ReportUtils.getReportOutputFilePath(reportType);
+       // String output = ReportUtils.getReportOutputFilePath(reportType);
         
         AssertJUnit.assertNotNull(reportOutputType);
         assertEquals("Unexpected report reference", MiscSchemaUtil.createObjectReference(reportType.getOid(), ReportType.COMPLEX_TYPE), reportOutputType.getReportRef());
-        assertEquals("Unexpected report file path", output, reportOutputType.getReportFilePath());
+       // assertEquals("Unexpected report file path", output, reportOutputType.getFilePath());
        
         BufferedReader br = null;  
         String line = "";  
         String splitBy = ",";  
         
-        br = new BufferedReader(new FileReader(reportOutputType.getReportFilePath()));  
+        br = new BufferedReader(new FileReader(reportOutputType.getFilePath()));  
         int count = 0;
         while ((line = br.readLine()) != null) {  
         	count++;
@@ -763,16 +817,20 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance(RUN_TASK);
 		OperationResult result = task.getResult();
 		 
-        PrismObject<? extends Objectable> reportType=  prismContext.getPrismDomProcessor().parseObject(TEST_REPORT_WITHOUT_DESIGN_FILE);
+        /*PrismObject<? extends Objectable> reportType=  prismContext.getPrismDomProcessor().parseObject(TEST_REPORT_WITHOUT_DESIGN_FILE);
 		 
 		ObjectDelta<ReportType> objectDelta =
 		ObjectDelta.createAddDelta((PrismObject<ReportType>) reportType);
 		Collection<ObjectDelta<? extends ObjectType>> deltas =
 		MiscSchemaUtil.createCollection(objectDelta);
 		
-		//WHEN 	
-		TestUtil.displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
+		*/
+		//WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		importObjectFromFile(TEST_REPORT_WITHOUT_DESIGN_FILE);
+		
+		ReportType reportType = getReport(TEST_WITHOUT_DESIGN_REPORT_OID).asObjectable();
 		
 		LOGGER.trace("import report task {}", TASK_REPORT_FILE.getPath());
         importObjectFromFile(TASK_REPORT_FILE);
@@ -791,20 +849,20 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         ReportOutputType reportOutputType = searchReportOutput(reportType.getOid()).get(0).asObjectable();
         LOGGER.trace("read report output {}", reportOutputType);
         
-        ReportType report = getReport(reportType.getOid()).asObjectable();
-        LOGGER.trace("read report {}", report);
+        //ReportType report = getReport(reportType.getOid()).asObjectable();
+        LOGGER.trace("read report {}", reportType);
         
-        String output = ReportUtils.getReportOutputFilePath(report);
+        //String output = ReportUtils.getReportOutputFilePath(reportType);
         
         AssertJUnit.assertNotNull(reportOutputType);
         assertEquals("Unexpected report reference", MiscSchemaUtil.createObjectReference(reportType.getOid(), ReportType.COMPLEX_TYPE), reportOutputType.getReportRef());
-        assertEquals("Unexpected report file path", output, reportOutputType.getReportFilePath());
+        //assertEquals("Unexpected report file path", output, reportOutputType.getFilePath());
            
         BufferedReader br = null;  
         String line = "";  
         String splitBy = ",";  
         
-        br = new BufferedReader(new FileReader(reportOutputType.getReportFilePath()));  
+        br = new BufferedReader(new FileReader(reportOutputType.getFilePath()));  
         int count = 0;
         while ((line = br.readLine()) != null) {  
         	count++;
@@ -813,25 +871,25 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         	{
         		case 1:  assertEquals("Unexpected name of report", "DataSource Report", lineDetails[2]);
         			break;
-        		case 2:  assertEquals("Unexpected second line of report", "Report generated on:", lineDetails[4]);
+        		case 2:  assertEquals("Unexpected second line of report", "Report generated on:", lineDetails[6]);
     				break;
         		case 3:  {
-        			assertEquals("Unexpected third line of report", "Number of records:", lineDetails[4]);
-        			assertEquals("Unexpected number of records", countUsers, Integer.parseInt(lineDetails[5]));
+        			assertEquals("Unexpected third line of report", "Number of records:", lineDetails[6]);
+        			assertEquals("Unexpected number of records", countUsers, Integer.parseInt(lineDetails[7]));
         			}
     				break;
         		case 4: {
         			assertEquals("Unexpected column header of report - name", "Name", lineDetails[0]);
         			assertEquals("Unexpected column header of report - first name", "First Name", lineDetails[3]);
         			assertEquals("Unexpected column header of report - last name", "Last Name", lineDetails[4]);
-        			assertEquals("Unexpected column header of report - activation", "Activation", lineDetails[6]);
+        			assertEquals("Unexpected column header of report - activation", "Activation", lineDetails[5]);
         			}
     				break;
-        		case 5:	LOGGER.trace("USERS [name= " + lineDetails[0] + " , first name=" + lineDetails[3] + " , last name=" + lineDetails[4] + " , activation=" + lineDetails[6] + "]");
+        		case 5:	LOGGER.trace("USERS [name= " + lineDetails[0] + " , first name=" + lineDetails[3] + " , last name=" + lineDetails[4] + " , activation=" + lineDetails[5] + "]");
         			break;
         		case 16: {
-        			assertEquals("Unexpected text", "Page 1 of", lineDetails[7]);
-        			assertEquals("Unexpected count pages", 1, Integer.parseInt(lineDetails[8].replace("\\s", "")));
+        			assertEquals("Unexpected text", "Page 1 of", lineDetails[8]);
+        			assertEquals("Unexpected count pages", 1, Integer.parseInt(lineDetails[9].replace("\\s", "")));
         			}
         			break;
         		default: LOGGER.trace("USERS [name= " + lineDetails[0] + "]");//LOGGER.trace("incorrect]");
@@ -901,7 +959,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 
 			ReportType reportType = getReport(REPORT_OID_001).asObjectable();
 
-			reportType.setReportExport(ExportType.CSV);
+			reportType.setExport(ExportType.CSV);
 
 			Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 			PrismObject<ReportType> reportTypeOld = modelService.getObject(
@@ -919,7 +977,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			TestUtil.assertSuccess(result);	
 			
 			reportType = getReport(REPORT_OID_001).asObjectable();
-			assertEquals("Unexpected export type", ExportType.CSV, reportType.getReportExport());
+			assertEquals("Unexpected export type", ExportType.CSV, reportType.getExport());
 		}
 		
 		
@@ -980,7 +1038,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	            if (objectDelta.getObjectTypeClass() != ReportType.class)
 	            {
 	            	ReportOutputType reportOutput = getReportOutput(oid).asObjectable();
-	            	reportOutput.setReportFilePath(reportOutput.getReportFilePath().replace("${midpointhome}", MIDPOINT_HOME));
+	            	reportOutput.setFilePath(reportOutput.getFilePath().replace("${midpointhome}", MIDPOINT_HOME));
 	            	
 	            	MetadataType metadata = new MetadataType();
 	            	Date date = new Date();
@@ -1009,7 +1067,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 				
 	            	modelService.executeChanges(deltas, null, task, result);
 	            	
-	            	File file = new File(reportOutput.getReportFilePath());
+	            	File file = new File(reportOutput.getFilePath());
 	            	boolean blnCreated = false;
 	                try
 	                {
@@ -1114,7 +1172,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	      
 	       session.getTransaction().commit();
 	       session.close();			
-		}*/
+		}
 
 		@Test 
 		public void test013CreateAuditLogsReportFromFile() throws Exception {
@@ -1144,7 +1202,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			// THEN
 	        TestUtil.displayThen(TEST_NAME);
 	        
-	        waitForTaskFinish(task.getOid(), false, 75000);
+	        waitForTaskFinish(task.getOid(), false, 150000);
 	        
 	     // Task result
 	        PrismObject<TaskType> reportTaskAfter = getTask(task.getOid());
@@ -1231,11 +1289,6 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			display("Result after good import", result);
 			TestUtil.assertSuccess("Import has failed (result)", result);
 	    	
-			
-			//InputStream inputStreamJRTX = new FileInputStream("src/test/resources/styles/styles_without_doc.jrtx");
-	    	//JRTemplate templateStyle = JRXmlTemplateLoader.load(inputStreamJRTX);
-			//JRTemplate templateStyle = JRXmlTemplateLoader.load(is);
-	    	 //JRReportTemplate template = (JRReportTemplate) templateStyle;
 			//WHEN IMPORT USER LIST
 			TestUtil.displayWhen(TEST_NAME + " - import report user list");			
 			importObjectFromFile(USERLIST_REPORT_FILE);
@@ -1316,7 +1369,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			//WHEN 	
 			TestUtil.displayWhen(TEST_NAME);
 			
-			ReportType reportType = getReport(AUDITLOGS_REPORT_OID).asObjectable();			
+			ReportType reportType = getReport(USERLIST_REPORT_OID).asObjectable();			
 			ReportOutputType reportOutputType = searchReportOutput(reportType.getOid()).get(0).asObjectable();
 			AssertJUnit.assertNotNull(reportOutputType);
 
