@@ -37,6 +37,7 @@ import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionReturnMultiplicityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
 
 /**
  * Utility class for manipulation of static values in expressions. This is not
@@ -95,24 +96,26 @@ public class StaticExpressionUtil {
 	public static <V extends PrismValue> Item<V> parseValueElements(Collection<?> valueElements, ItemDefinition outputDefinition, 
 			String contextDescription, PrismContext prismContext) throws SchemaException {
 		
-		PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
 		Item<V> output = null;
 		
 		for (Object valueElement: valueElements) {
+			if (!(valueElement instanceof JAXBElement<?>)) {
+				throw new SchemaException("Literal expression cannot handle element "+valueElement+" "+valueElement.getClass().getName()+" in "
+						+contextDescription);
+			}
 			QName valueElementName = JAXBUtil.getElementQName(valueElement);
 			if (!valueElementName.equals(SchemaConstants.C_VALUE)) {
 				throw new SchemaException("Literal expression cannot handle element <"+valueElementName + "> in "+ contextDescription);
 			}
 			
-			if (valueElement instanceof JAXBElement<?>) {
-				valueElement = ((JAXBElement<?>)valueElement).getValue();
-			}
-			
-			if (!(valueElement instanceof Element)) {
-				throw new SchemaException("Literal expression can only handle DOM elements, but got "+valueElement.getClass().getName()+" in "
+			JAXBElement<?> jaxbElement = (JAXBElement<?>)valueElement;
+			if (!RawType.class.isAssignableFrom(jaxbElement.getDeclaredType())) {
+				throw new SchemaException("Literal expression cannot handle JAXBElement value type "+jaxbElement.getDeclaredType()+" in "
 						+contextDescription);
 			}
-			Element valueDomElement = (Element)valueElement;
+			
+			RawType rawType = (RawType)jaxbElement.getValue();
+			
 			
 			Item<V> elementItem = domProcessor.parseValueElement(valueDomElement, outputDefinition);
 			if (output == null) {
