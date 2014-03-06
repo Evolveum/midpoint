@@ -17,31 +17,14 @@ package com.evolveum.midpoint.testing.model.client.sample;
 
 import com.evolveum.midpoint.model.client.ModelClientUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ExecuteScriptsOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OutputFormatType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.SingleScriptOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ExecuteScripts;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ExecuteScriptsResponse;
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelService;
-import com.evolveum.prism.xml.ns._public.query_2.PagingType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
-import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -53,26 +36,25 @@ import org.apache.cxf.frontend.ClientProxy;
 import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
 import org.apache.ws.security.WSConstants;
 import org.apache.ws.security.handler.WSHandlerConstants;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.namespace.QName;
 import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Holder;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
+import java.io.StringWriter;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -85,23 +67,45 @@ public class RunScript {
 	// Configuration
 	public static final String ADM_USERNAME = "administrator";
 	public static final String ADM_PASSWORD = "5ecr3t";
-	private static final String DEFAULT_ENDPOINT_URL = "http://localhost:8080/midpoint/model/model-1";
+    private static final String DEFAULT_ENDPOINT_URL = "http://localhost:8080/midpoint/model/model-1";
 
     private static final String PROPERTY_PREFIX = "[[!!";
     private static final String PROPERTY_SUFFIX = "!!]]";
 
-	/**
+    private static final String OPT_HELP = "h";
+    public static final String OPT_SCRIPT = "s";
+    public static final String OPT_URL = "url";
+    public static final String OPT_USER = "u";
+    public static final String OPT_PASSWORD = "p";
+    public static final String OPT_FILE_FOR_DATA = "fd";
+    public static final String OPT_FILE_FOR_CONSOLE = "fc";
+    public static final String OPT_FILE_FOR_RESULT = "fr";
+    public static final String OPT_HIDE_DATA = "hd";
+    public static final String OPT_HIDE_SCRIPT = "hs";
+    public static final String OPT_HIDE_CONSOLE = "hc";
+    public static final String OPT_HIDE_RESULT = "hr";
+    public static final String OPT_SHOW_RESULT = "sr";
+
+    /**
 	 * @param args
 	 */
 	public static void main(String[] args) {
 		try {
 
             Options options = new Options();
-            options.addOption("h", "help", false, "Print this help information");
-            options.addOption("s", "script", true, "Script file (XML for the moment)");
-            options.addOption("url", true, "Endpoint URL (default: " + DEFAULT_ENDPOINT_URL + ")");
-            options.addOption("u", "user", true, "User name (default: " + ADM_USERNAME + ")");
-            options.addOption("p", "password", true, "Password");
+            options.addOption(OPT_HELP, "help", false, "Print this help information");
+            options.addOption(OPT_SCRIPT, "script", true, "Script file (XML for the moment)");
+            options.addOption(OPT_URL, true, "Endpoint URL (default: " + DEFAULT_ENDPOINT_URL + ")");
+            options.addOption(OPT_USER, "user", true, "User name (default: " + ADM_USERNAME + ")");
+            options.addOption(OPT_PASSWORD, "password", true, "Password");
+            options.addOption(OPT_FILE_FOR_DATA, "file-for-data", true, "Name of the file to write resulting XML data into");
+            options.addOption(OPT_FILE_FOR_CONSOLE, "file-for-console", true, "Name of the file to write resulting console output into");
+            options.addOption(OPT_FILE_FOR_RESULT, "file-for-result", true, "Name of the file to write operation result into");
+            options.addOption(OPT_HIDE_DATA, "hide-data", false, "Don't display data output");
+            options.addOption(OPT_HIDE_SCRIPT, "hide-script", false, "Don't display input script");
+            options.addOption(OPT_HIDE_CONSOLE, "hide-console", false, "Don't display console output");
+            options.addOption(OPT_HIDE_RESULT, "hide-result", false, "Don't display detailed operation result (default: showing if not SUCCESS)");
+            options.addOption(OPT_SHOW_RESULT, "show-result", false, "Always show detailed operation result (default: showing if not SUCCESS)");
             options.addOption(
                     OptionBuilder.withArgName("property=value")
                         .hasArgs(2)
@@ -111,36 +115,77 @@ public class RunScript {
             CommandLineParser parser = new GnuParser();
             CommandLine cmdline = parser.parse(options, args);
 
-            if (!cmdline.hasOption("s") || cmdline.hasOption("h")) {
+            if (!cmdline.hasOption(OPT_SCRIPT) || cmdline.hasOption("h")) {
                 HelpFormatter helpFormatter = new HelpFormatter();
                 helpFormatter.printHelp("runscript", options);
                 System.exit(0);
             }
 
             ExecuteScripts request = new ExecuteScripts();
-            String script = readXmlFile(cmdline.getOptionValue("s"));
+            String script = readXmlFile(cmdline.getOptionValue(OPT_SCRIPT));
             script = replaceParameters(script, cmdline.getOptionProperties("D"));
             request.setMslScripts(script);          // todo fix this hack
             ExecuteScriptsOptionsType optionsType = new ExecuteScriptsOptionsType();
             optionsType.setOutputFormat(OutputFormatType.MSL);      // todo fix this hack
             request.setOptions(optionsType);
 
-            System.out.println("Script to execute: " + script);
+            if (!cmdline.hasOption(OPT_HIDE_SCRIPT)) {
+                System.out.println("Script to execute: " + script);
+            }
             System.out.println("=================================================================");
 
             ModelPortType modelPort = createModelPort(cmdline);
 
             ExecuteScriptsResponse response = modelPort.executeScripts(request);
 
+            System.out.println("=================================================================");
+
             for (SingleScriptOutputType output : response.getOutputs().getOutput()) {
-                System.out.println("Data: " + output.getMslData());
-                System.out.println("Console output: " + output.getTextOutput());
+                if (!cmdline.hasOption(OPT_HIDE_DATA)) {
+                    System.out.println("Data:\n" + output.getMslData());
+                    System.out.println("-----------------------------------------------------------------");
+                }
+                if (cmdline.hasOption(OPT_FILE_FOR_DATA)) {
+                    IOUtils.write(output.getMslData(), new FileOutputStream(cmdline.getOptionValue(OPT_FILE_FOR_DATA)), "UTF-8");
+                }
+                if (!cmdline.hasOption(OPT_HIDE_CONSOLE)) {
+                    System.out.println("Console output:\n" + output.getTextOutput());
+                }
+                if (cmdline.hasOption(OPT_HIDE_CONSOLE)) {
+                    IOUtils.write(output.getMslData(), new FileWriter(cmdline.getOptionValue(OPT_FILE_FOR_CONSOLE)));
+                }
             }
+
+            System.out.println("=================================================================");
+            System.out.println("Operation result: " + getResultStatus(response.getResult()));
+            if (!cmdline.hasOption(OPT_HIDE_RESULT) && (cmdline.hasOption(OPT_SHOW_RESULT) || response.getResult() == null || response.getResult().getStatus() != OperationResultStatusType.SUCCESS)) {
+                System.out.println("\n\n" + marshalResult(response.getResult()));
+            }
+            if (cmdline.hasOption(OPT_FILE_FOR_RESULT)) {
+                IOUtils.write(marshalResult(response.getResult()), new FileWriter(cmdline.getOptionValue(OPT_FILE_FOR_RESULT)));
+            }
+
         } catch (Exception e) {
 			e.printStackTrace();
 			System.exit(-1);
 		}
 	}
+
+    private static String getResultStatus(OperationResultType result) {
+        if (result == null) {
+            return "(null)";
+        } else {
+            return result.getStatus() + ": " + result.getMessage();
+        }
+    }
+
+    private static String marshalResult(OperationResultType result) throws JAXBException, FileNotFoundException {
+        if (result == null) {
+            return "";
+        } else {
+            return marshalObject(new JAXBElement<>(new QName("result"), OperationResultType.class, result));
+        }
+    }
 
     private static String replaceParameters(String script, Properties properties) {
         for (Map.Entry entry : properties.entrySet()) {
@@ -213,7 +258,7 @@ public class RunScript {
     }
 
     private static <T> T unmarshalFile(File file) throws JAXBException, FileNotFoundException {
-		JAXBContext jc = ModelClientUtil.instantiateJaxbContext();
+		JAXBContext jc = getJaxbContext();
 		Unmarshaller unmarshaller = jc.createUnmarshaller(); 
 		 
 		InputStream is = null;
@@ -231,9 +276,29 @@ public class RunScript {
 		}
 		return element.getValue();
 	}
-	
-	private static <T> T unmarshallResouce(String path) throws JAXBException, FileNotFoundException {
-		JAXBContext jc = ModelClientUtil.instantiateJaxbContext();
+
+    private static JAXBContext jaxbContext = null;
+
+    private static JAXBContext getJaxbContext() throws JAXBException {
+        if (jaxbContext == null) {
+            jaxbContext = ModelClientUtil.instantiateJaxbContext();
+        }
+        return jaxbContext;
+    }
+
+    private static String marshalObject(Object object) throws JAXBException, FileNotFoundException {
+        JAXBContext jc = getJaxbContext();
+        Marshaller marshaller = jc.createMarshaller();
+        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+
+        StringWriter sw = new StringWriter();
+        marshaller.marshal(object, sw);
+        return sw.toString();
+    }
+
+
+    private static <T> T unmarshallResouce(String path) throws JAXBException, FileNotFoundException {
+		JAXBContext jc = getJaxbContext();
 		Unmarshaller unmarshaller = jc.createUnmarshaller(); 
 		 
 		InputStream is = null;
@@ -256,9 +321,9 @@ public class RunScript {
 	}
 
 	public static ModelPortType createModelPort(CommandLine cmdLine) {
-		String endpointUrl = cmdLine.getOptionValue("url", DEFAULT_ENDPOINT_URL);
-        String user = cmdLine.getOptionValue("u", ADM_USERNAME);
-		ClientPasswordHandler.setPassword(cmdLine.getOptionValue("p", ADM_PASSWORD));
+		String endpointUrl = cmdLine.getOptionValue(OPT_URL, DEFAULT_ENDPOINT_URL);
+        String user = cmdLine.getOptionValue(OPT_USER, ADM_USERNAME);
+		ClientPasswordHandler.setPassword(cmdLine.getOptionValue(OPT_PASSWORD, ADM_PASSWORD));
 		System.out.println("Endpoint URL: " + endpointUrl);
 		
 		ModelService modelService = new ModelService();

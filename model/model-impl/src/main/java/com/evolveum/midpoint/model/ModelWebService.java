@@ -359,25 +359,32 @@ public class ModelWebService implements ModelPortType, ModelPort {
         ScriptOutputsType outputs = new ScriptOutputsType();
         response.setOutputs(outputs);
 
-        for (ExpressionType script : scriptsToExecute) {
+        try {
+            for (ExpressionType script : scriptsToExecute) {
 
-            ExecutionContext outputContext = scriptingExpressionEvaluator.evaluateExpression(script, task, result);
+                ExecutionContext outputContext = scriptingExpressionEvaluator.evaluateExpression(script, task, result);
 
-            SingleScriptOutputType output = new SingleScriptOutputType();
-            outputs.getOutput().add(output);
+                SingleScriptOutputType output = new SingleScriptOutputType();
+                outputs.getOutput().add(output);
 
-            output.setTextOutput(outputContext.getConsoleOutput());
-            if (options == null || options.getOutputFormat() == null || options.getOutputFormat() == OutputFormatType.XML) {
-                output.setXmlData(prepareXmlData(outputContext.getFinalOutput()));
-            } else {
-                // temporarily we send serialized XML in the case of MSL output
-                ItemListType jaxbOutput = prepareXmlData(outputContext.getFinalOutput());
-                output.setMslData(prismContext.getPrismJaxbProcessor().marshalElementToString(
-                        new JAXBElement<>(
-                                new QName(SchemaConstants.NS_API_TYPES, "itemList"),
-                                ItemListType.class, jaxbOutput)));
+                output.setTextOutput(outputContext.getConsoleOutput());
+                if (options == null || options.getOutputFormat() == null || options.getOutputFormat() == OutputFormatType.XML) {
+                    output.setXmlData(prepareXmlData(outputContext.getFinalOutput()));
+                } else {
+                    // temporarily we send serialized XML in the case of MSL output
+                    ItemListType jaxbOutput = prepareXmlData(outputContext.getFinalOutput());
+                    output.setMslData(prismContext.getPrismJaxbProcessor().marshalElementToString(
+                            new JAXBElement<>(
+                                    new QName(SchemaConstants.NS_API_TYPES, "itemList"),
+                                    ItemListType.class, jaxbOutput)));
+                }
             }
+            result.computeStatusIfUnknown();
+        } catch (Exception e) {         // FIXME little bit brutal treatment
+            result.recordFatalError(e.getMessage(), e);
         }
+        result.summarize();
+        response.setResult(result.createOperationResultType());
         return response;
     }
 

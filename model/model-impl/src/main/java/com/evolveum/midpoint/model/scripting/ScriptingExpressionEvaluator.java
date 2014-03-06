@@ -153,6 +153,7 @@ public class ScriptingExpressionEvaluator {
     public ExecutionContext evaluateExpression(ExpressionType expression, Task task, OperationResult result) throws ScriptExecutionException {
         ExecutionContext context = new ExecutionContext(task);
         Data output = evaluateExpression(expression, Data.createEmpty(), context, result);
+        result.computeStatusIfUnknown();
         context.setFinalOutput(output);
         return context;
     }
