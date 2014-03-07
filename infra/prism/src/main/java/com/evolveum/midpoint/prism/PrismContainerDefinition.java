@@ -23,8 +23,12 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.QNameUtil;
 
 import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
+
 import java.util.*;
 
 /**
@@ -172,7 +176,20 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
         if (path.isEmpty()) {
             return (T) this;
         }
+        
         QName firstName = ((NameItemPathSegment)path.first()).getName();
+        
+		// we need to be compatible with older versions..soo if the path does
+		// not contains qnames with namespaces defined (but the prefix was
+		// specified) match definition according to the local name
+        if (StringUtils.isEmpty(firstName.getNamespaceURI())) {
+        	for (ItemDefinition def : getDefinitions()){
+        		if (QNameUtil.match(firstName, def.getName())){
+        			return def.findItemDefinition(path.rest(), clazz);
+        		}
+        	}
+        }
+        
         for (ItemDefinition def : getDefinitions()) {
             if (firstName.equals(def.getName())) {
                 return def.findItemDefinition(path.rest(), clazz);

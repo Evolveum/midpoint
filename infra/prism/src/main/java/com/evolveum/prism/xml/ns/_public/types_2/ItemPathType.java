@@ -88,6 +88,12 @@ public class ItemPathType implements Serializable, Equals{
 
     public ItemPathType() {
     	// Nothing to do
+    	System.out.println("itempath construction");
+    	System.out.println("content: " + content);
+    	if (content == null){
+    		content = new ContentList();
+    	}
+    	System.out.println("content after: " + content);
     }
     
     public ItemPathType(ItemPath itemPath) {
@@ -95,6 +101,9 @@ public class ItemPathType implements Serializable, Equals{
 	}
 
 	public ItemPath getItemPath() {
+		if (itemPath == null){
+			getContent();
+		}
 		return itemPath;
 	}
 	
@@ -130,155 +139,7 @@ public class ItemPathType implements Serializable, Equals{
      */
     public List<Object> getContent() {
         if (content == null) {
-            content = new List<Object>() {
-
-				@Override
-				public int size() {
-					if (itemPath != null){
-						return 1;
-					}
-					return 0;
-				}
-
-				@Override
-				public boolean isEmpty() {
-					return itemPath == null;
-//					throw new UnsupportedOperationException("nto supported yet");
-				}
-
-				@Override
-				public boolean contains(Object o) {
-					throw new UnsupportedOperationException("nto supported yet");
-				}
-
-				@Override
-				public Iterator<Object> iterator() {
-					return new Iterator<Object>() {
-						int i = 0;
-						@Override
-						public boolean hasNext() {
-							return i==0;
-						}
-
-						@Override
-						public Object next() {
-							if (i== 0){
-								i++;
-								XPathHolder holder = new XPathHolder(itemPath);	
-								return new JAXBElement<String>(F_PATH, String.class, holder.getXPath());
-//								return itemPath;
-							} 
-							return null;
-						}
-
-						@Override
-						public void remove() {
-							throw new UnsupportedOperationException("nto supported yet");
-						}
-						
-					};
-//					throw new UnsupportedOperationException("nto supported yet");
-				}
-
-				@Override
-				public Object[] toArray() {
-					throw new UnsupportedOperationException("nto supported yet");
-				}
-
-				@Override
-				public <T> T[] toArray(T[] a) {
-					throw new UnsupportedOperationException("nto supported yet");
-				}
-
-				@Override
-				public boolean add(Object e) {
-//					XPathHolder holder = new XPathHolder(e.toString());
-//					itemPath = holder.toItemPath();
-//					return true;
-					throw new IllegalArgumentException("PATH ADD: "+e+" "+e.getClass());
-				}
-
-				@Override
-				public boolean remove(Object o) {
-					throw new UnsupportedOperationException("nto supported yet");
-				}
-
-				@Override
-				public boolean containsAll(Collection<?> c) {
-					throw new UnsupportedOperationException("nto supported yet");
-				}
-
-				@Override
-				public boolean addAll(Collection<? extends Object> c) {
-					throw new UnsupportedOperationException("nto supported yet");
-				}
-
-				@Override
-				public boolean addAll(int index, Collection<? extends Object> c) {
-					throw new UnsupportedOperationException("nto supported yet");
-				}
-
-				@Override
-				public boolean removeAll(Collection<?> c) {
-					throw new UnsupportedOperationException("nto supported yet");
-				}
-
-				@Override
-				public boolean retainAll(Collection<?> c) {
-					throw new UnsupportedOperationException("nto supported yet");
-				}
-
-				@Override
-				public void clear() {
-					throw new UnsupportedOperationException("nto supported yet");
-				}
-
-				@Override
-				public Object get(int index) {
-					throw new UnsupportedOperationException("nto supported yet");
-				}
-
-				@Override
-				public Object set(int index, Object element) {
-					throw new UnsupportedOperationException("nto supported yet");
-				}
-
-				@Override
-				public void add(int index, Object element) {
-					throw new UnsupportedOperationException("nto supported yet");
-				}
-
-				@Override
-				public Object remove(int index) {
-					throw new UnsupportedOperationException("nto supported yet");
-				}
-
-				@Override
-				public int indexOf(Object o) {
-					throw new UnsupportedOperationException("nto supported yet");
-				}
-
-				@Override
-				public int lastIndexOf(Object o) {
-					throw new UnsupportedOperationException("nto supported yet");
-				}
-
-				@Override
-				public ListIterator<Object> listIterator() {
-					throw new UnsupportedOperationException("nto supported yet");
-				}
-
-				@Override
-				public ListIterator<Object> listIterator(int index) {
-					throw new UnsupportedOperationException("nto supported yet");
-				}
-
-				@Override
-				public List<Object> subList(int fromIndex, int toIndex) {
-					throw new UnsupportedOperationException("nto supported yet");
-				}
-            	
-            };
+            content = new ContentList();
         }
         return this.content;
     }
@@ -325,6 +186,159 @@ public class ItemPathType implements Serializable, Equals{
 		int result = 1;
 		result = prime * result + ((itemPath == null) ? 0 : itemPath.hashCode());
 		return result;
+	}
+	
+	class ContentList implements List<Object>{
+
+			@Override
+			public int size() {
+				if (itemPath != null){
+					return 1;
+				}
+				return 0;
+			}
+
+			@Override
+			public boolean isEmpty() {
+				return itemPath == null;
+//				throw new UnsupportedOperationException("nto supported yet");
+			}
+
+			@Override
+			public boolean contains(Object o) {
+				throw new UnsupportedOperationException("nto supported yet");
+			}
+
+			@Override
+			public Iterator<Object> iterator() {
+				return new Iterator<Object>() {
+					int i = 0;
+					@Override
+					public boolean hasNext() {
+						return i==0;
+					}
+
+					@Override
+					public Object next() {
+						if (i== 0){
+							i++;
+							XPathHolder holder = new XPathHolder(itemPath);	
+							return new JAXBElement<String>(F_PATH, String.class, holder.getXPath());
+//							return itemPath;
+						} 
+						return null;
+					}
+
+					@Override
+					public void remove() {
+						throw new UnsupportedOperationException("nto supported yet");
+					}
+					
+				};
+//				throw new UnsupportedOperationException("nto supported yet");
+			}
+
+			@Override
+			public Object[] toArray() {
+				throw new UnsupportedOperationException("nto supported yet");
+			}
+
+			@Override
+			public <T> T[] toArray(T[] a) {
+				throw new UnsupportedOperationException("nto supported yet");
+			}
+
+			@Override
+			public boolean add(Object e) {
+				if (e instanceof String){
+					XPathHolder holder = new XPathHolder((String) e);
+					itemPath = holder.toItemPath();
+					return true;
+				}
+				throw new IllegalArgumentException("PATH ADD: "+e+" "+e.getClass());
+			}
+
+			@Override
+			public boolean remove(Object o) {
+				throw new UnsupportedOperationException("nto supported yet");
+			}
+
+			@Override
+			public boolean containsAll(Collection<?> c) {
+				throw new UnsupportedOperationException("nto supported yet");
+			}
+
+			@Override
+			public boolean addAll(Collection<? extends Object> c) {
+				throw new UnsupportedOperationException("nto supported yet");
+			}
+
+			@Override
+			public boolean addAll(int index, Collection<? extends Object> c) {
+				throw new UnsupportedOperationException("nto supported yet");
+			}
+
+			@Override
+			public boolean removeAll(Collection<?> c) {
+				throw new UnsupportedOperationException("nto supported yet");
+			}
+
+			@Override
+			public boolean retainAll(Collection<?> c) {
+				throw new UnsupportedOperationException("nto supported yet");
+			}
+
+			@Override
+			public void clear() {
+				itemPath = null;
+			}
+
+			@Override
+			public Object get(int index) {
+				throw new UnsupportedOperationException("nto supported yet");
+			}
+
+			@Override
+			public Object set(int index, Object element) {
+				throw new UnsupportedOperationException("nto supported yet");
+			}
+
+			@Override
+			public void add(int index, Object element) {
+				throw new UnsupportedOperationException("nto supported yet");
+			}
+
+			@Override
+			public Object remove(int index) {
+				throw new UnsupportedOperationException("nto supported yet");
+			}
+
+			@Override
+			public int indexOf(Object o) {
+				throw new UnsupportedOperationException("nto supported yet");
+			}
+
+			@Override
+			public int lastIndexOf(Object o) {
+				throw new UnsupportedOperationException("nto supported yet");
+			}
+
+			@Override
+			public ListIterator<Object> listIterator() {
+				throw new UnsupportedOperationException("nto supported yet");
+			}
+
+			@Override
+			public ListIterator<Object> listIterator(int index) {
+				throw new UnsupportedOperationException("nto supported yet");
+			}
+
+			@Override
+			public List<Object> subList(int fromIndex, int toIndex) {
+				throw new UnsupportedOperationException("nto supported yet");
+			}
+        	
+        
 	}
 
 //	@Override

@@ -17,8 +17,11 @@ package com.evolveum.midpoint.prism.path;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.QNameUtil;
 
 import java.io.Serializable;
 
@@ -84,6 +87,10 @@ public class NameItemPathSegment extends ItemPathSegment {
 		if (name == null) {
 			if (other.name != null)
 				return false;
+		} else if (StringUtils.isEmpty(name.getNamespaceURI()) || StringUtils.isEmpty(other.name.getNamespaceURI())){
+			if (!QNameUtil.match(name, other.name)){
+				return false;
+			}
 		} else if (!name.equals(other.name))
 			return false;
 		return true;
