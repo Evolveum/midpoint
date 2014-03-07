@@ -812,6 +812,11 @@ public class XNodeProcessor {
 		XNodeSerializer serializer = createSerializer();
 		return serializer.serializeContainerValueRoot(cval);
 	}
+	
+	public <V extends PrismValue> XNode serializeItem(Item<V> item) throws SchemaException {
+		XNodeSerializer serializer = createSerializer();
+		return serializer.serializeItem(item);
+	}
 
 	public XNodeSerializer createSerializer() {
 		return new XNodeSerializer(PrismUtil.getBeanConverter(prismContext));
