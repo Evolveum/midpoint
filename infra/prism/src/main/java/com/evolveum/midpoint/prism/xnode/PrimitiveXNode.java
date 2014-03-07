@@ -39,6 +39,15 @@ public class PrimitiveXNode<T> extends XNode {
 	 */
 	private boolean isAttribute = false;
 		
+	public PrimitiveXNode() {
+		super();
+	}
+
+	public PrimitiveXNode(T value) {
+		super();
+		this.value = value;
+	}
+
 	public void parseValue(QName typeName) throws SchemaException {
 		if (valueParser != null) {
 			value = valueParser.parse(typeName);
