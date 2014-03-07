@@ -41,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificatio
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
@@ -272,8 +273,10 @@ public class TestDeltaConverter {
     	assertEquals("Wrong number of modifications", 1, modifications.size());
     	ItemDeltaType mod1 = modifications.iterator().next();
     	assertEquals("Wrong mod type", ModificationTypeType.REPLACE, mod1.getModificationType());
-    	XPathHolder xpath = new XPathHolder(mod1.getPath());
-    	assertEquals("Wrong path", path.allExceptLast(), xpath.toItemPath());
+//    	XPathHolder xpath = new XPathHolder(mod1.getPath());
+    	ItemPathType itemPathType = mod1.getPath();
+    	assertNotNull("Wrong path (must not be null)", itemPathType);
+    	assertEquals("Wrong path", path.allExceptLast(), itemPathType.getItemPath());
     	List<Object> valueElements = mod1.getValue().getAny();
     	assertEquals("Wrong number of value elements", 1, valueElements.size());
     	JAXBElement<ProtectedStringType> valueElement = (JAXBElement<ProtectedStringType>)valueElements.iterator().next();
@@ -308,8 +311,10 @@ public class TestDeltaConverter {
     	assertEquals("Wrong number of modifications", 1, modifications.size());
     	ItemDeltaType mod1 = modifications.iterator().next();
     	assertEquals("Wrong mod type", ModificationTypeType.REPLACE, mod1.getModificationType());
-    	XPathHolder xpath = new XPathHolder(mod1.getPath());
-    	assertTrue("Wrong path: "+xpath, xpath.toItemPath().isEmpty());
+//    	XPathHolder xpath = new XPathHolder(mod1.getPath());
+    	ItemPathType itemPathType = mod1.getPath();
+    	assertNotNull("Wrong path (must not be null)", itemPathType);
+    	assertTrue("Wrong path: "+itemPathType, itemPathType.getItemPath().isEmpty());
     	List<Object> valueElements = mod1.getValue().getAny();
     	assertEquals("Wrong number of value elements", 1, valueElements.size());
     	Element valueElement = (Element)valueElements.iterator().next();

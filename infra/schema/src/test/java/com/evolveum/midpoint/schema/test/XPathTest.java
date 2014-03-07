@@ -25,6 +25,7 @@ import org.testng.AssertJUnit;
 import com.evolveum.midpoint.prism.parser.TrivialXPathParser;
 import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.parser.XPathSegment;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectFactory;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -98,20 +100,20 @@ public class XPathTest {
     			ObjectModificationType.class);
 
         for (ItemDeltaType change : objectModification.getModification()) {
-            Element path = change.getPath();
-            System.out.println("  path=" + path + " (" + path.getClass().getName() + ") " + path.getLocalName() + " = " + path.getTextContent());
-            NamedNodeMap attributes = path.getAttributes();
-            for (int i = 0; i < attributes.getLength(); i++) {
-                Node n = attributes.item(i);
-                System.out.println("   A: " + n.getClass().getName() + " " + n.getNodeName() + "(" + n.getPrefix() + " : " + n.getLocalName() + ") = " + n.getNodeValue());
-            }
-            List<Object> any = change.getValue().getAny();
-            for (Object e : any) {
-                if (e instanceof Element) {
-                    System.out.println("  E: " + ((Element) e).getLocalName());
-                }
-            }
-
+            ItemPathType pathType = change.getPath();
+            System.out.println("  path=" + pathType + " (" + pathType.getClass().getName() + ") " + pathType.toString());
+//            NamedNodeMap attributes = path.getAttributes();
+//            for (int i = 0; i < attributes.getLength(); i++) {
+//                Node n = attributes.item(i);
+//                System.out.println("   A: " + n.getClass().getName() + " " + n.getNodeName() + "(" + n.getPrefix() + " : " + n.getLocalName() + ") = " + n.getNodeValue());
+//            }
+//            List<Object> any = change.getValue().getAny();
+//            for (Object e : any) {
+//                if (e instanceof Element) {
+//                    System.out.println("  E: " + ((Element) e).getLocalName());
+//                }
+//            }
+            ItemPath path = pathType.getItemPath();
             XPathHolder xpath = new XPathHolder(path);
 
             AssertJUnit.assertEquals("/c:extension/piracy:ship[2]/c:name", xpath.getXPath());

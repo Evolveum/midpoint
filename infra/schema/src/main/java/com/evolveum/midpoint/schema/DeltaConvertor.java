@@ -51,6 +51,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificatio
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_2.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
@@ -254,8 +255,14 @@ public class DeltaConvertor {
 
     public static <V extends PrismValue> ItemDelta<V> createItemDelta(ItemDeltaType propMod, PrismContainerDefinition<?> pcDef) throws
             SchemaException {
-    	XPathHolder xpath = new XPathHolder(propMod.getPath());
-        ItemPath parentPath = xpath.toItemPath();
+//    	XPathHolder xpath = new XPathHolder(propMod.getPath());
+    	ItemPathType parentPathType = propMod.getPath();
+    	ItemPath parentPath = null;
+    	if (parentPathType != null){
+    		parentPath = parentPathType.getItemPath();
+    	} else {
+    		parentPath = new ItemPath();
+    	}
         if (propMod.getValue() == null) {
             throw new IllegalArgumentException("No value in item delta (path: " + parentPath + ") while creating a property delta");
         }
@@ -294,12 +301,13 @@ public class DeltaConvertor {
     public static Collection<ItemDeltaType> toPropertyModificationTypes(ItemDelta delta) throws SchemaException {
     	delta.checkConsistence();
         Collection<ItemDeltaType> mods = new ArrayList<ItemDeltaType>();
-        XPathHolder xpath = new XPathHolder(delta.getParentPath());
+//        XPathHolder xpath = new XPathHolder(delta.getParentPath());
         Document document = DOMUtil.getDocument();
-        Element xpathElement = xpath.toElement(PATH_ELEMENT_NAME, document);
+        ItemPathType path = new ItemPathType(delta.getParentPath());
+//        Element xpathElement = xpath.toElement(PATH_ELEMENT_NAME, document);
         if (delta.getValuesToReplace() != null) {
             ItemDeltaType mod = new ItemDeltaType();
-            mod.setPath(xpathElement);
+            mod.setPath(path);
             mod.setModificationType(ModificationTypeType.REPLACE);
             try {
                 addModValues(delta, mod, delta.getValuesToReplace(), document);
@@ -310,7 +318,7 @@ public class DeltaConvertor {
         }
         if (delta.getValuesToAdd() != null) {
             ItemDeltaType mod = new ItemDeltaType();
-            mod.setPath(xpathElement);
+            mod.setPath(path);
             mod.setModificationType(ModificationTypeType.ADD);
             try {
                 addModValues(delta, mod, delta.getValuesToAdd(), document);
@@ -321,7 +329,7 @@ public class DeltaConvertor {
         }
         if (delta.getValuesToDelete() != null) {
             ItemDeltaType mod = new ItemDeltaType();
-            mod.setPath(xpathElement);
+            mod.setPath(path);
             mod.setModificationType(ModificationTypeType.DELETE);
             try {
                 addModValues(delta, mod, delta.getValuesToDelete(), document);

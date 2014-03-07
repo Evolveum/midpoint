@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.parser.XPathSegment;
+import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
@@ -257,17 +259,22 @@ public class ObjectTypeUtil {
         return isModificationOf(modification, elementName, null);
     }
 
-    public static boolean isModificationOf(ItemDeltaType modification, QName elementName, XPathHolder path) {
+    public static boolean isModificationOf(ItemDeltaType modification, QName elementName, ItemPathType path) {
 
-        if (path == null && XPathHolder.isDefault(modification.getPath())) {
-            return (elementName.equals(ObjectTypeUtil.getElementName(modification)));
+//        if (path == null && XPathHolder.isDefault(modification.getPath())) {
+//            return (elementName.equals(ObjectTypeUtil.getElementName(modification)));
+//        }
+    	ItemPathType modificationPath = modification.getPath();
+    	  if (path == null && ItemPathUtil.isDefault(modificationPath)) {
+            return (elementName.equals(getElementName(modification)));
         }
+    	
         if (path == null) {
             return false;
         }
-        XPathHolder modPath = new XPathHolder(modification.getPath());
-        if (path.equals(modPath)) {
-            return (elementName.equals(ObjectTypeUtil.getElementName(modification)));
+//        XPathHolder modPath = new XPathHolder(modification.getPath());
+        if (path.equals(modificationPath)) {
+            return (elementName.equals(getElementName(modification)));
         }
         return false;
     }
