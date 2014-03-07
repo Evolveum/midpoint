@@ -204,6 +204,31 @@ public class MapXNode extends XNode implements Map<QName,XNode> {
 		PrimitiveXNode<T> xprim = (PrimitiveXNode<T>)xnode;
 		return xprim.getParsedValue(typeName);
 	}
+	
+	public void merge(MapXNode other) {
+		for (java.util.Map.Entry<QName, XNode> otherEntry: other.entrySet()) {
+			QName otherKey = otherEntry.getKey();
+			XNode otherValue = otherEntry.getValue();
+			XNode myValue = get(otherKey);
+			if (myValue == null) {
+				put(otherKey, otherValue);
+			} else {
+				ListXNode myList;
+				if (myValue instanceof ListXNode) {
+					myList = (ListXNode)myValue;
+				} else {
+					myList = new ListXNode();
+					myList.add(myValue);
+					put(otherKey, myList);
+				}
+				if (otherValue instanceof ListXNode) {
+					myList.addAll((ListXNode)otherValue);
+				} else {
+					myList.add(otherValue);
+				}
+			}
+		}
+	}
 
 	public boolean equals(Object o) {
 		if (!(o instanceof MapXNode)){

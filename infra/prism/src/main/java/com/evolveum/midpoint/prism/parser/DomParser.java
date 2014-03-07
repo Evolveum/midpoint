@@ -375,21 +375,48 @@ public class DomParser implements Parser {
 		return null;
 	}
 	
-	public Element serializeToElement(MapXNode xmap, QName elementName) throws SchemaException {
+	public Element serializeXMapToElement(MapXNode xmap, QName elementName) throws SchemaException {
 		DomSerializer serializer = new DomSerializer(this, schemaRegistry);
 		return serializer.serializeToElement(xmap, elementName);
 	}
 	
-	public Element serializeToElement(RootXNode xroot) throws SchemaException {
+	public Element serializeXPrimitiveToElement(PrimitiveXNode<?> xprim, QName elementName) throws SchemaException {
+		DomSerializer serializer = new DomSerializer(this, schemaRegistry);
+		return serializer.serializeXPrimitiveToElement(xprim, elementName);
+	}
+	
+	public Element serializeXRootToElement(RootXNode xroot) throws SchemaException {
 		DomSerializer serializer = new DomSerializer(this, schemaRegistry);
 		return serializer.serialize(xroot);
 	}
 
+	public Element serializeToElement(XNode xnode, QName elementName) throws SchemaException {
+		if (xnode instanceof MapXNode) {
+			return serializeXMapToElement((MapXNode) xnode, elementName);
+		} else if (xnode instanceof PrimitiveXNode<?>) {
+			return serializeXPrimitiveToElement((PrimitiveXNode<?>) xnode, elementName);
+		} else if (xnode instanceof RootXNode) {
+			return serializeXRootToElement((RootXNode)xnode);
+		} else if (xnode instanceof ListXNode) {
+			ListXNode xlist = (ListXNode) xnode;
+			if (xlist.size() == 0) {
+				return null;
+			} else if (xlist.size() > 1) {
+				throw new IllegalArgumentException("Cannot serialize list xnode with more than one item: "+xlist);
+			} else {
+				return serializeToElement(xlist.get(0), elementName);
+			}
+		} else {
+			throw new IllegalArgumentException("Cannot serialized "+xnode+" to element");
+		}
+	}
+	
 	public Element serializeSingleElementMapToElement(MapXNode xmap) throws SchemaException {
 		if (xmap == null || xmap.isEmpty()) {
 			return null;
 		}
 		Entry<QName, XNode> subEntry = xmap.getSingleSubEntry(xmap.toString());
-		return serializeToElement((MapXNode) subEntry.getValue(), subEntry.getKey());
+		Element parent = serializeToElement(xmap, subEntry.getKey());
+		return DOMUtil.getFirstChildElement(parent);
 	}
 }

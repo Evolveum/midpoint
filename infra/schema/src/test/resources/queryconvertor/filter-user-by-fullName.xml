@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,13 +14,11 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<object xsi:type="QueryType"
-	xmlns="http://prism.evolveum.com/xml/ns/public/query-2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<!-- <and> -->
-	<equal>
-		<path>c:connectorType</path>
-		<value>org.identityconnectors.ldap.LdapConnector</value>
-	</equal>
-	<!-- </and> -->
-</object>
+<filter xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+       xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
+
+    <equal>
+    <path>c:fullName</path>
+        <value>cpt jack sparrow</value>
+    </equal>
+</filter>

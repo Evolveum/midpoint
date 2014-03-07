@@ -178,6 +178,12 @@ public class DomSerializer {
     		parentElement.setAttribute(attributeName.getLocalPart(), value);
     	}		
 	}
+	
+	public Element serializeXPrimitiveToElement(PrimitiveXNode<?> xprim, QName elementName) throws SchemaException {
+		Element parent = DOMUtil.createElement(new QName("fake","fake"));
+		serializePrimitiveElement(xprim, parent, elementName);
+		return DOMUtil.getFirstChildElement(parent);
+	}
 
 	private void serializePrimitiveElement(PrimitiveXNode<?> xprim, Element parentElement, QName elementName) {
 		QName typeQName = xprim.getTypeQName();

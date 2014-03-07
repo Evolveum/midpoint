@@ -446,7 +446,7 @@ public final class PrismForJAXBUtil {
 				throw new IllegalArgumentException("Unexpected map in filter processing, it has "+filterXmap.size()+" entries");
 			}
 			Entry<QName, XNode> entry = filterXmap.entrySet().iterator().next();
-			filterElement = parser.serializeToElement((MapXNode) entry.getValue(), entry.getKey());
+			filterElement = parser.serializeXMapToElement((MapXNode) entry.getValue(), entry.getKey());
 		} catch (SchemaException e) {
 			throw new SystemException("Error serializing filter: "+e.getMessage(),e);
 		}

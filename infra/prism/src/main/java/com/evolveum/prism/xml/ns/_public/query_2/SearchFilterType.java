@@ -45,6 +45,8 @@ import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xjc.PrismForJAXBUtil;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
 import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
@@ -61,12 +63,14 @@ import org.w3c.dom.Element;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "SearchFilterType", propOrder = {
+	"description",
     "filterClause",
 })
-public class SearchFilterType implements Serializable, Cloneable, Equals, HashCode
+public class SearchFilterType implements Serializable, Cloneable, Equals, HashCode, DebugDumpable
 {
     private final static long serialVersionUID = 201303040000L;
     
+    protected String description;
     @XmlAnyElement
     protected Element filterClause;
     @XmlTransient
@@ -102,7 +106,15 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
         this.filterClause = ((o.filterClause == null)?null:((o.getFilterClause() == null)?null:((Element) o.getFilterClause().cloneNode(true))));
     }
 
-    /**
+    public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	/**
      * Gets the value of the filter property. JAXB method. Only for JAXB compatibility. Do not use directly.
      * 
      * @return
@@ -619,5 +631,30 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
             throw new AssertionError(e);
         }
     }
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("SearchFilterType");
+		if (description != null) {
+			sb.append("\n");
+			DebugUtil.debugDumpWithLabel(sb, "description", description, indent + 1);
+		}
+		if (filterClause != null) {
+			sb.append("\n");
+			DebugUtil.debugDumpWithLabel(sb, "condition", filterClause.toString(), indent + 1);
+		}
+		if (xfilter != null) {
+			sb.append("\n");
+			DebugUtil.debugDumpWithLabel(sb, "xfilter", (DebugDumpable)xfilter, indent + 1);
+		}
+		return sb.toString();
+	}
 
 }

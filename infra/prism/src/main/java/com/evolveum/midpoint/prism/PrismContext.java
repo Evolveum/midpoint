@@ -354,7 +354,7 @@ public class PrismContext {
 	@Deprecated
 	public <O extends Objectable> Element serializeToDom(PrismObject<O> object) throws SchemaException {
 		RootXNode xroot = xnodeProcessor.serializeObject(object);
-		return parserDom.serializeToElement(xroot);
+		return parserDom.serializeXRootToElement(xroot);
 	}
 
     /**

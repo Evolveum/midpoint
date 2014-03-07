@@ -137,7 +137,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link PropertyNoValueFilterType }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "present", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filter")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "present", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filterClause")
     public JAXBElement<PropertyNoValueFilterType> createPresent(PropertyNoValueFilterType value) {
         return new JAXBElement<PropertyNoValueFilterType>(_Present_QNAME, PropertyNoValueFilterType.class, null, value);
     }
@@ -146,7 +146,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link UnaryLogicalOperatorFilterType }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "not", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filter")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "not", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filterClause")
     public JAXBElement<UnaryLogicalOperatorFilterType> createNot(UnaryLogicalOperatorFilterType value) {
         return new JAXBElement<UnaryLogicalOperatorFilterType>(_Not_QNAME, UnaryLogicalOperatorFilterType.class, null, value);
     }
@@ -155,7 +155,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link NAryLogicalOperatorFilterType }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "or", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filter")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "or", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filterClause")
     public JAXBElement<NAryLogicalOperatorFilterType> createOr(NAryLogicalOperatorFilterType value) {
         return new JAXBElement<NAryLogicalOperatorFilterType>(_Or_QNAME, NAryLogicalOperatorFilterType.class, null, value);
     }
@@ -164,7 +164,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link PropertySimpleValueFilterType }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "substring", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filter")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "substring", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filterClause")
     public JAXBElement<PropertySimpleValueFilterType> createSubstring(PropertySimpleValueFilterType value) {
         return new JAXBElement<PropertySimpleValueFilterType>(_Substring_QNAME, PropertySimpleValueFilterType.class, null, value);
     }
@@ -173,7 +173,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link PropertySimpleValueFilterType }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "ref", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filter")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "ref", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filterClause")
     public JAXBElement<PropertySimpleValueFilterType> createRef(PropertySimpleValueFilterType value) {
         return new JAXBElement<PropertySimpleValueFilterType>(_Ref_QNAME, PropertySimpleValueFilterType.class, null, value);
     }
@@ -182,7 +182,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link PropertyNoValueFilterType }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "true", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filter")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "true", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filterClause")
     public JAXBElement<PropertyNoValueFilterType> createTrue(PropertyNoValueFilterType value) {
         return new JAXBElement<PropertyNoValueFilterType>(_True_QNAME, PropertyNoValueFilterType.class, null, value);
     }
@@ -191,7 +191,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link PropertySimpleValueFilterType }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "minDepth", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filter")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "minDepth", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filterClause")
     public JAXBElement<PropertySimpleValueFilterType> createMinDepth(PropertySimpleValueFilterType value) {
         return new JAXBElement<PropertySimpleValueFilterType>(_MinDepth_QNAME, PropertySimpleValueFilterType.class, null, value);
     }
@@ -200,7 +200,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link PropertyComplexValueFilterType }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "org", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filter")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "org", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filterClause")
     public JAXBElement<PropertyComplexValueFilterType> createOrg(PropertyComplexValueFilterType value) {
         return new JAXBElement<PropertyComplexValueFilterType>(_Org_QNAME, PropertyComplexValueFilterType.class, null, value);
     }
@@ -213,12 +213,17 @@ public class ObjectFactory {
     public JAXBElement<QueryType> createQuery(QueryType value) {
         return new JAXBElement<QueryType>(_Query_QNAME, QueryType.class, null, value);
     }
+    
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "filter")
+    public JAXBElement<SearchFilterType> createFilter(SearchFilterType value) {
+        return new JAXBElement<SearchFilterType>(_Filter_QNAME, SearchFilterType.class, null, value);
+    }
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link PropertySimpleValueFilterType }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "greaterOrEqual", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filter")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "greaterOrEqual", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filterClause")
     public JAXBElement<PropertySimpleValueFilterType> createGreaterOrEqual(PropertySimpleValueFilterType value) {
         return new JAXBElement<PropertySimpleValueFilterType>(_GreaterOrEqual_QNAME, PropertySimpleValueFilterType.class, null, value);
     }
@@ -227,8 +232,8 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link FilterClauseType }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "filter")
-    public JAXBElement<FilterClauseType> createFilter(FilterClauseType value) {
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "filterClause")
+    public JAXBElement<FilterClauseType> createFilterClause(FilterClauseType value) {
         return new JAXBElement<FilterClauseType>(_Filter_QNAME, FilterClauseType.class, null, value);
     }
 
@@ -245,7 +250,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link NAryLogicalOperatorFilterType }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "and", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filter")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "and", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filterClause")
     public JAXBElement<NAryLogicalOperatorFilterType> createAnd(NAryLogicalOperatorFilterType value) {
         return new JAXBElement<NAryLogicalOperatorFilterType>(_And_QNAME, NAryLogicalOperatorFilterType.class, null, value);
     }
@@ -254,7 +259,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link PropertySimpleValueFilterType }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "lessOrEqual", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filter")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "lessOrEqual", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filterClause")
     public JAXBElement<PropertySimpleValueFilterType> createLessOrEqual(PropertySimpleValueFilterType value) {
         return new JAXBElement<PropertySimpleValueFilterType>(_LessOrEqual_QNAME, PropertySimpleValueFilterType.class, null, value);
     }
@@ -272,7 +277,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link UriFilterType }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "type", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filter")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "type", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filterClause")
     public JAXBElement<UriFilterType> createType(UriFilterType value) {
         return new JAXBElement<UriFilterType>(_Type_QNAME, UriFilterType.class, null, value);
     }
@@ -281,7 +286,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link PropertySimpleValueFilterType }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "maxDepth", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filter")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "maxDepth", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filterClause")
     public JAXBElement<PropertySimpleValueFilterType> createMaxDepth(PropertySimpleValueFilterType value) {
         return new JAXBElement<PropertySimpleValueFilterType>(_MaxDepth_QNAME, PropertySimpleValueFilterType.class, null, value);
     }
@@ -290,7 +295,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link PropertyComplexValueFilterType }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "equal", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filter")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "equal", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filterClause")
     public JAXBElement<PropertyComplexValueFilterType> createEqual(PropertyComplexValueFilterType value) {
         return new JAXBElement<PropertyComplexValueFilterType>(_Equal_QNAME, PropertyComplexValueFilterType.class, null, value);
     }
@@ -299,7 +304,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link PropertySimpleValueFilterType }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "orgRef", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filter")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "orgRef", substitutionHeadNamespace = "http://prism.evolveum.com/xml/ns/public/query-2", substitutionHeadName = "filterClause")
     public JAXBElement<PropertySimpleValueFilterType> createOrgRef(PropertySimpleValueFilterType value) {
         return new JAXBElement<PropertySimpleValueFilterType>(_OrgRef_QNAME, PropertySimpleValueFilterType.class, null, value);
     }

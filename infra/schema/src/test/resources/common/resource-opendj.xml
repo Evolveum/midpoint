@@ -614,11 +614,9 @@ This is now the only account type that midPoint can work with. -->
 	                    The correlation rule always looks for users, so it will not match
 	                    any other object type.
 	                </q:description>
-	                <filter>
 		            <q:equal>
 	                    <q:path>c:name</q:path>
 	                    <expression>
-	                        <ref>name</ref>
 							<script>
 								<language>http://www.w3.org/TR/xpath/</language>
 		                        <code>
@@ -627,7 +625,6 @@ This is now the only account type that midPoint can work with. -->
 	                        </script>
 	                    </expression>
 	                </q:equal>
-	                </filter>
 	        </correlation>
 	
 	        <!-- Confirmation rule may be here, but as the search above will

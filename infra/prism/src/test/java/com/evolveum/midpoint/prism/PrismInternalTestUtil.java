@@ -243,6 +243,8 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		schemaRegistry.setNamespacePrefixMapper(prefixMapper);
 		schemaRegistry.registerPrismDefaultSchemaResource("xml/ns/test/foo-1.xsd", "foo", ObjectFactory.class.getPackage());
 		schemaRegistry.registerPrismSchemaResource("xml/ns/test/foo-types-1.xsd", "foot", null);
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/types-2.xsd", "t", com.evolveum.prism.xml.ns._public.types_2.ObjectFactory.class.getPackage());
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/query-2.xsd", "q", com.evolveum.prism.xml.ns._public.query_2.ObjectFactory.class.getPackage());
 		schemaRegistry.registerSchemaResource("xml/ns/standard/XMLSchema.xsd", "xsd");
 		schemaRegistry.registerPrismSchemasFromDirectory(SCHEMA_DIR);
 		if (extraSchema != null){

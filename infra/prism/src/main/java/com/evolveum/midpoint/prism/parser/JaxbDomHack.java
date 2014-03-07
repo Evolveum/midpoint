@@ -282,7 +282,7 @@ public class JaxbDomHack {
 				if (rawElement instanceof Element) {
 					return ((Element)rawElement).cloneNode(true);
 				} else if (rawElement instanceof MapXNode) {
-					return domParser.serializeToElement((MapXNode)rawElement, elementName);
+					return domParser.serializeXMapToElement((MapXNode)rawElement, elementName);
 				} else if (rawElement instanceof PrimitiveXNode<?>) {
 					PrimitiveXNode<?> xprim = (PrimitiveXNode<?>)rawElement;
 					String stringValue = xprim.getStringValue();
@@ -336,7 +336,7 @@ public class JaxbDomHack {
 		
 	public <O extends Objectable> Element serializeObjectToJaxb(PrismObject<O> object) throws SchemaException {
 		RootXNode xroot = prismContext.getXnodeProcessor().serializeObject(object);
-		return domParser.serializeToElement(xroot);
+		return domParser.serializeXRootToElement(xroot);
 	}
 	
 	public <T> Element marshalJaxbObjectToDom(T jaxbObject, QName elementQName) throws JAXBException {
