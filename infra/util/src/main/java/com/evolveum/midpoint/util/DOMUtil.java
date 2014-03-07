@@ -835,6 +835,10 @@ public class DOMUtil {
 		}
 		return null;
 	}
+	
+	public static Element getChildElement(Element element, int index) {
+		return listChildElements(element).get(index);
+	}
 
 	public static Element getOrCreateAsFirstElement(Element parentElement, QName elementQName) {
 		Element element = getChildElement(parentElement, elementQName);

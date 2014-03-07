@@ -521,12 +521,11 @@ public class QueryConvertor {
 		return map;	
 	}
 	
-	private static ListXNode serializeNaryLogicalSubfilters(List<ObjectFilter> objectFilters, XNodeSerializer xnodeSerilizer) throws SchemaException{
-		ListXNode filters = new ListXNode();
+	private static MapXNode serializeNaryLogicalSubfilters(List<ObjectFilter> objectFilters, XNodeSerializer xnodeSerilizer) throws SchemaException{
+		MapXNode filters = new MapXNode();
 		for (ObjectFilter of : objectFilters) {
 			MapXNode subFilter = serializeFilter(of, xnodeSerilizer);
-			filters.add(subFilter);
-			
+			filters.merge(subFilter);
 		}
 		return filters;
 	}

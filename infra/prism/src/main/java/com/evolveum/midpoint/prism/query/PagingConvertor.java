@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.schema;
+package com.evolveum.midpoint.prism.query;
 
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.prism.xml.ns._public.query_2.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 
@@ -73,8 +71,7 @@ public class PagingConvertor {
 		pagingType.setMaxSize(paging.getMaxSize());
 		pagingType.setOffset(paging.getOffset());
 		if (paging.getOrderBy() != null) {
-			Element orderBy = DOMUtil.createElement(new QName(
-					SchemaConstantsGenerated.NS_QUERY, "orderBy"));
+			Element orderBy = DOMUtil.createElement(PrismConstants.Q_ORDER_BY);
 			DOMUtil.setQNameValue(orderBy, paging.getOrderBy());
 			pagingType.setOrderBy(orderBy);
 		}

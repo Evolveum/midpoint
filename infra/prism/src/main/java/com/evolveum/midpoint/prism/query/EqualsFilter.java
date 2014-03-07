@@ -54,11 +54,9 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class EqualsFilter<T extends Object> extends PropertyValueFilter<PrismPropertyValue<T>> implements Itemable{
-
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 3284478412180258355L;
+	
+	public static final QName ELEMENT_NAME = new QName(PrismConstants.NS_QUERY, "equal");
 
 	//constructors
 	EqualsFilter(){	

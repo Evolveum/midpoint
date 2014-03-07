@@ -463,6 +463,9 @@ public class JaxbTestUtil {
 		}
 		T value = element.getValue();
 		// adopt not needed, already adopted in unmarshalElement call above
+		if (!type.isAssignableFrom(value.getClass())) {
+			throw new IllegalArgumentException("Unmarshalled "+value.getClass()+" from file "+file+" while "+type+" was expected");
+		}
 		return value;
 	}
 	

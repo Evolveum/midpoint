@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.prism;
+package com.evolveum.midpoint.prism.query;
 
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.DEFAULT_NAMESPACE_PREFIX;
 
@@ -27,6 +27,8 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.PrismInternalTestUtil;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistryFactory;

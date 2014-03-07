@@ -60,7 +60,15 @@ import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xnode.ListXNode;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -766,6 +774,61 @@ public class PrismAsserts {
 		} else {
 			throw new IllegalArgumentException("Unknown element type "+element);
 		}
+	}
+	
+	// XNode asserts
+	
+	public static void assertSize(MapXNode xmap, int expectedSize) {
+		assertEquals("Wrong size of "+xmap, expectedSize, xmap.size());
+	}
+	
+	public static void assertSize(ListXNode xlist, int expectedSize) {
+		assertEquals("Wrong size of "+xlist, expectedSize, xlist.size());
+	}
+	
+	public static void assertSubnode(MapXNode xmap, QName key, Class expectedClass) {
+		XNode xsubnode = xmap.get(key);
+		assert xsubnode != null : "No subnode "+key+" in "+xmap;
+		assert expectedClass.isAssignableFrom(xsubnode.getClass()) : "Wrong class of subnode "+key+" in "+xmap+"; expected "+expectedClass+", got "+xsubnode.getClass();
+	}
+	
+	// Query asserts
+	
+	public static void assertOrFilter(ObjectFilter filter, int conditions) {
+		assertEquals("Wrong filter class", OrFilter.class, filter.getClass());
+		assertEquals("Wrong number of filter conditions", conditions, ((OrFilter) filter).getCondition().size());
+	}
+
+	public static void assertAndFilter(ObjectFilter filter, int conditions) {
+		assertEquals("Wrong filter class", AndFilter.class, filter.getClass());
+		assertEquals("Wrong number of filter conditions", conditions, ((AndFilter) filter).getCondition().size());
+	}
+	
+	public static void assertEqualsFilter(ObjectFilter objectFilter, QName expectedFilterDef,
+			QName expectedTypeName, ItemPath path) {
+		assertEquals("Wrong filter class", EqualsFilter.class, objectFilter.getClass());
+		EqualsFilter filter = (EqualsFilter) objectFilter;
+		assertEquals("Wrong filter definition element name", expectedFilterDef, filter.getDefinition().getName());
+		assertEquals("Wrong filter definition type", expectedTypeName, filter.getDefinition().getTypeName());
+		assertEquals("Wrong filter path", path, filter.getFullPath());
+	}
+	
+	public static <T> void assertEqualsFilterValue(EqualsFilter filter, T value) {
+		List<? extends PrismValue> values = filter.getValues();
+		assertEquals("Wrong number of filter values", 1, values.size());
+		assertEquals("Wrong filter value class", PrismPropertyValue.class, values.get(0).getClass());
+		PrismPropertyValue val = (PrismPropertyValue) values.get(0);
+		assertEquals("Wrong filter value", value, val.getValue());
+	}
+
+	
+	public static void assertRefFilter(ObjectFilter objectFilter, QName expectedFilterDef, QName expectedTypeName,
+			ItemPath path) {
+		assertEquals("Wrong filter class", RefFilter.class, objectFilter.getClass());
+		RefFilter filter = (RefFilter) objectFilter;
+		assertEquals("Wrong filter definition element name", expectedFilterDef, filter.getDefinition().getName());
+		assertEquals("Wrong filter definition type", expectedTypeName, filter.getDefinition().getTypeName());
+		assertEquals("Wrong filter path", path, filter.getFullPath());
 	}
 	
 	// Local version of JUnit assers to avoid pulling JUnit dependecy to main

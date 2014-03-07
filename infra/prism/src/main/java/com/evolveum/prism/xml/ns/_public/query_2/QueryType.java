@@ -41,6 +41,8 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 
 
 /**
@@ -76,7 +78,7 @@ import com.evolveum.midpoint.prism.PrismConstants;
     "filter",
     "paging"
 })
-public class QueryType implements Serializable, Cloneable
+public class QueryType implements Serializable, Cloneable, DebugDumpable
 {
     private final static long serialVersionUID = 201105211233L;
     public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "QueryType");
@@ -627,5 +629,34 @@ public class QueryType implements Serializable, Cloneable
             throw new AssertionError(e);
         }
     }
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("QueryType");
+		if (description != null) {
+			sb.append("\n");
+			DebugUtil.debugDumpWithLabel(sb, "description", description, indent + 1);
+		}
+		if (condition != null) {
+			sb.append("\n");
+			DebugUtil.debugDumpWithLabel(sb, "condition", condition.toString(), indent + 1);
+		}
+		if (filter != null) {
+			sb.append("\n");
+			DebugUtil.debugDumpWithLabel(sb, "filter", filter, indent + 1);
+		}
+		if (paging != null) {
+			sb.append("\n");
+			DebugUtil.debugDumpWithLabel(sb, "paging", paging.toString(), indent + 1);
+		}
+		return sb.toString();
+	}
 
 }

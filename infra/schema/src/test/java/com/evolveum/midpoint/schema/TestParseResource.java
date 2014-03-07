@@ -463,7 +463,7 @@ public class TestParseResource {
 		DomParser domParser = PrismTestUtil.getPrismContext().getParserDom();
 		XNodeProcessor xnodeProcessor = PrismTestUtil.getPrismContext().getXnodeProcessor();
 		RootXNode xnode = xnodeProcessor.serializeObject(resource);
-		Element domElement = domParser.serializeToElement(xnode);
+		Element domElement = domParser.serializeXRootToElement(xnode);
 		assertNotNull("Null resulting DOM element after DOM serialization", domElement);
 	}
 

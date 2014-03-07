@@ -21,8 +21,17 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.LogicalFilter;
+import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import org.w3c.dom.Document;
@@ -52,6 +61,8 @@ public class PrismTestUtil {
 
     private static final QName DEFAULT_ELEMENT_NAME = new QName("http://midpoint.evolveum.com/xml/ns/test/whatever-1.xsd", "whatever");
 
+    private static final Trace LOGGER = TraceManager.getTrace(PrismTestUtil.class);
+    
     private static PrismContext prismContext;
     private static PrismContextFactory prismContextFactory;
     // This is just for testing
@@ -219,5 +230,34 @@ public class PrismTestUtil {
 
 	public static void displayTestTitle(String testName) {
 		System.out.println("\n\n===[ "+testName+" ]===\n");
+		LOGGER.info("===[ {} ]===",testName);
+	}
+	
+	public static QueryType unmarshalQuery(File file) throws Exception {
+		return getJaxbUtil().unmarshalObject(file, QueryType.class);
+	}
+	
+	public static SearchFilterType unmarshalFilter(File file) throws Exception {
+		return getJaxbUtil().unmarshalObject(file, SearchFilterType.class);
+	}
+	
+	public static ObjectFilter getFilterCondition(ObjectFilter filter, int index) {
+		if (!(filter instanceof NaryLogicalFilter)) {
+			throw new IllegalArgumentException("Filter not an instance of n-ary logical filter.");
+		}
+		return ((LogicalFilter) filter).getCondition().get(index);
+	}
+	
+	public static void displayQuery(ObjectQuery query) {
+		LOGGER.trace("object query: {}", query);
+		System.out.println("object query: " + query);
+		if (query != null) {
+			LOGGER.trace("QUERY DUMP: {}", query.debugDump());
+			System.out.println("QUERY DUMP: " + query.debugDump());
+		}
+	}
+
+	public static void displayQueryType(QueryType queryType) {
+		LOGGER.info(DOMUtil.serializeDOMToString(queryType.getFilter().getFilterClause()));
 	}
 }
