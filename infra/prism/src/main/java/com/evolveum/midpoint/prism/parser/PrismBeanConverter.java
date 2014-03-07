@@ -742,7 +742,7 @@ public class PrismBeanConverter {
 					valueToMarshall = getterResult;
 				}
 				xmap.put(elementName, marshallValue(valueToMarshall, fieldTypeName, isAttribute));
-				setExplicitTypeDeclarationIfNeeded(getter, valueToMarshall, xmap, fieldTypeName);
+//				setExplicitTypeDeclarationIfNeeded(getter, valueToMarshall, xmap, fieldTypeName);
 			}
 		}
 		
