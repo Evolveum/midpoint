@@ -869,7 +869,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         	String[] lineDetails = line.split(splitBy); 
         	switch (count)
         	{
-        		case 1:  assertEquals("Unexpected name of report", "DataSource Report", lineDetails[2]);
+        		case 1:  assertEquals("Unexpected name of report", true, lineDetails[2].indexOf("DataSource")!=-1);
         			break;
         		case 2:  assertEquals("Unexpected second line of report", "Report generated on:", lineDetails[6]);
     				break;
