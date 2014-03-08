@@ -48,7 +48,12 @@ public class ObjectQueryUtil {
     	PolyString polyName = new PolyString(name);
     	return createNameQuery(polyName, prismContext);
     }
-    
+
+    public static ObjectQuery createOrigNameQuery(String name, PrismContext prismContext) throws SchemaException {
+        PolyString polyName = new PolyString(name);
+        return createOrigNameQuery(polyName, prismContext);
+    }
+
     public static ObjectQuery createNameQuery(PolyStringType name, PrismContext prismContext) throws SchemaException {
     	return createNameQuery(name.toPolyString(), prismContext);
     }

@@ -16,11 +16,13 @@
 
 package com.evolveum.midpoint.model.scripting.actions;
 
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.scripting.ActionExecutor;
 import com.evolveum.midpoint.model.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.scripting.helpers.ExpressionHelper;
 import com.evolveum.midpoint.model.scripting.helpers.OperationsHelper;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -39,6 +41,12 @@ public abstract class BaseActionExecutor implements ActionExecutor {
 
     @Autowired
     protected ExpressionHelper expressionHelper;
+
+    @Autowired
+    protected ProvisioningService provisioningService;
+
+    @Autowired
+    protected ModelService modelService;
 
     //protected Data getArgumentValue(ActionExpressionType actionExpression, String parameterName, boolean required) throws ScriptExecutionException {
 

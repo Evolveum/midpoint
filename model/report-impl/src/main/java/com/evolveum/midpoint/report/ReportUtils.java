@@ -57,11 +57,16 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -71,12 +76,16 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportTemplateStyleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
+import com.evolveum.prism.xml.ns._public.query_2.FilterType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 
@@ -245,6 +254,7 @@ public class ReportUtils {
 			JRDesignParameter parameter = new JRDesignParameter();
 			parameter.setName(PARAMETER_TEMPLATE_STYLES);
 			parameter.setValueClass(JRTemplate.class);
+			parameter.setForPrompting(false);
 			jasperDesign.addParameter(parameter);
 		 } 
 		 jasperReport = JasperCompileManager.compileReport(jasperDesign);
@@ -259,7 +269,7 @@ public class ReportUtils {
  }
     		
     
-    public static Map<String, Object> getReportParams(ReportType reportType, PrismContainer<Containerable> parameterConfiguration, PrismSchema reportSchema, OperationResult parentResult)
+    public static Map<String, Object> getReportParameters(ReportType reportType, PrismContainer<Containerable> parameterConfiguration, PrismSchema reportSchema, OperationResult parentResult)
 	{
 		Map<String, Object> params = new HashMap<String, Object>();
 		ReportTemplateStyleType styleType = reportType.getTemplateStyle();
@@ -267,7 +277,8 @@ public class ReportUtils {
 		if (reportType.getTemplateStyle() != null)
 		{	 
 			String reportTemplateStyle = DOMUtil.serializeDOMToString((Node)reportType.getTemplateStyle().getAny());
-			//FUJ FUJ FUJ must be changed
+			//TODO must be changed
+			//without replace strings, without xmlns namespace, with insert into schema special xml element DOCTYPE
 			int first = reportTemplateStyle.indexOf(">");
 			int last = reportTemplateStyle.lastIndexOf("<");
 			reportTemplateStyle = "<jasperTemplate>" + reportTemplateStyle.substring(first+1, last) + "</jasperTemplate>";
@@ -328,7 +339,7 @@ public class ReportUtils {
 		return params;
 	}
     
-	public static Class getObjectTypeClass(ReportType reportType, PrismContainer<Containerable> parameterConfiguration, String namespace)
+	public static Class getObjectTypeClass(PrismContainer<Containerable> parameterConfiguration, String namespace)
 			throws SchemaException, ObjectNotFoundException {
 		
 		PrismProperty objectTypeProp = getParameter(PARAMETER_OBJECT_TYPE, parameterConfiguration, namespace);
@@ -386,6 +397,7 @@ public class ReportUtils {
 		JRDesignParameter parameter = new JRDesignParameter();
 		parameter.setName(parameterConfig.getElementName().getLocalPart());
 		parameter.setValueClass(getClassType(parameterConfig.getDefinition().getTypeName(), reportSchema.getNamespace()));
+		parameter.setForPrompting(false);
 		return parameter;
 	}
     
@@ -850,4 +862,24 @@ public class ReportUtils {
     	return deltaAudit;
     }
     
+    public static ObjectQuery getObjectQuery(PrismContainer<Containerable> parameterConfiguration, String namespace)
+    throws SchemaException
+    {
+    	PrismProperty<FilterType> filterProp = getParameter(PARAMETER_QUERY_FILTER, parameterConfiguration, namespace);
+    	
+    	PrismContainerDefinition def = parameterConfiguration.getDefinition();
+    	ObjectQuery dataQuery = new ObjectQuery();
+    	if (filterProp != null)
+    	{
+    		try
+    		{
+    			ObjectFilter objectFilter = QueryConvertor.parseFilter(def,(Node)filterProp);
+    			dataQuery = ObjectQuery.createObjectQuery(objectFilter);
+    		} catch(SchemaException ex){
+    			LOGGER.error("Couldn't create object query : {}", ex.getMessage());
+    			throw ex;
+    		}
+    	}
+    	return dataQuery;
+    }
 }

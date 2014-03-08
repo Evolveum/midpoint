@@ -52,6 +52,7 @@ import net.sf.jasperreports.engine.query.JRHibernateQueryExecuterFactory;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.BooleanUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +66,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.result.OperationConstants;
@@ -88,6 +90,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SubreportType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 
 /**
  * @author lazyman
@@ -147,7 +150,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
 			PrismSchema reportSchema = ReportUtils.getParametersSchema(reportType, prismContext);
     		PrismContainer<Containerable> parameterConfiguration = ReportUtils.getParametersContainer(reportType, reportSchema);    		
 
-    		Map<String, Object> parameters = ReportUtils.getReportParams(reportType, parameterConfiguration, reportSchema, subResult);
+    		Map<String, Object> parameters = ReportUtils.getReportParameters(reportType, parameterConfiguration, reportSchema, subResult);
 			subreports.putAll(parameters);
 		   	
 		   	JasperReport jasperReport = ReportUtils.getJasperReport(reportType, parameterConfiguration, reportSchema);
@@ -226,7 +229,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
     		PrismSchema reportSchema = ReportUtils.getParametersSchema(reportType, prismContext);
     		PrismContainer<Containerable> parameterConfiguration = ReportUtils.getParametersContainer(reportType, reportSchema);    		
 
-    		Map<String, Object> parameters = ReportUtils.getReportParams(reportType, parameterConfiguration, reportSchema, subResult);
+    		Map<String, Object> parameters = ReportUtils.getReportParameters(reportType, parameterConfiguration, reportSchema, subResult);
     		params.putAll(parameters);
     		LOGGER.trace("create report params : {}", parameters);
     		
@@ -247,14 +250,16 @@ public class ReportCreateTaskHandler implements TaskHandler {
     		Session session = sessionFactory.openSession();
 			session.beginTransaction();
 			
-    		if (reportType.isUseHibernateSession())
+    		if (BooleanUtils.isTrue(reportType.isUseHibernateSession()))
     		{	     
     			params.put(JRHibernateQueryExecuterFactory.PARAMETER_HIBERNATE_SESSION, session);
     		}
     		else
     		{
     			LOGGER.trace("create report datasource : {}", reportType);
-    			DataSourceReport reportDataSource = new DataSourceReport(reportType, subResult, prismContext, modelService);
+    			ObjectQuery dataQuery = ReportUtils.getObjectQuery(parameterConfiguration, reportSchema.getNamespace());
+    			Class<?> clazz = ReportUtils.getObjectTypeClass(parameterConfiguration, reportSchema.getNamespace());
+    			DataSourceReport reportDataSource = new DataSourceReport(reportType, dataQuery, clazz, subResult, prismContext, modelService);
     		
     			params.put(JRParameter.REPORT_DATA_SOURCE, reportDataSource);
     		}	
@@ -324,7 +329,11 @@ public class ReportCreateTaskHandler implements TaskHandler {
         {
         	case PDF : pdf(jasperPrint, output);
           		break;
-          	case CSV : csv(jasperPrint, output);
+          	case CSV : {
+          			csv(jasperPrint, output);
+          			//pdf(jasperPrint, output.substring(0, output.lastIndexOf(".")) + ".pdf");
+          	}
+          	
           		break;
           	case XML : xml(jasperPrint, output);
           		break;

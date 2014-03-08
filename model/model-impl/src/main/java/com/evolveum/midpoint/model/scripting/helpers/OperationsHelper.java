@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.model.scripting.helpers;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.scripting.ExecutionContext;
@@ -53,8 +54,12 @@ public class OperationsHelper {
     private ModelService modelService;
 
     public void applyDelta(ObjectDelta delta, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+        applyDelta(delta, null, context, result);
+    }
+
+    public void applyDelta(ObjectDelta delta, ModelExecuteOptions options, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
         try {
-            modelService.executeChanges((Collection) Collections.singleton(delta), null, context.getTask(), result);
+            modelService.executeChanges((Collection) Collections.singleton(delta), options, context.getTask(), result);
         } catch (ObjectAlreadyExistsException|ObjectNotFoundException|SchemaException|ExpressionEvaluationException|CommunicationException|ConfigurationException|PolicyViolationException|SecurityViolationException e) {
             throw new ScriptExecutionException("Couldn't modify object: " + e.getMessage(), e);
         }

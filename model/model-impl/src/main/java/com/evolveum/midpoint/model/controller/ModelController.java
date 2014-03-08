@@ -787,7 +787,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
                     case WORKFLOW: throw new UnsupportedOperationException("searchIterative in task manager is currently not supported");
                     default: throw new AssertionError("Unexpected search provider: " + searchProvider);
                 }
-				result.recordSuccess();
+				result.computeStatusIfUnknown();
 				result.cleanupResult();
 			} catch (CommunicationException e) {
 				processSearchException(e, rootOptions, searchProvider, result);

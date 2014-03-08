@@ -24,9 +24,11 @@ import com.evolveum.midpoint.model.test.LogfileTestTailer;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionPipelineType;
@@ -45,7 +47,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
 /**
- * @author semancik
+ * @author mederly
  *
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
@@ -70,6 +72,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
     private static final File RECOMPUTE_JACK_FILE = new File(TEST_DIR, "recompute-jack.xml");;
     private static final File ASSIGN_TO_JACK_FILE = new File(TEST_DIR, "assign-to-jack.xml");
     private static final File ASSIGN_TO_JACK_2_FILE = new File(TEST_DIR, "assign-to-jack-2.xml");
+    private static final File PURGE_DUMMY_BLACK_SCHEMA_FILE = new File(TEST_DIR, "purge-dummy-black-schema.xml");
+    private static final File TEST_DUMMY_RESOURCE_FILE = new File(TEST_DIR, "test-dummy-resource.xml");
 
     @Autowired
     private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
@@ -284,8 +288,8 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // THEN
         assertNoOutputData(output);
-        IntegrationTestTools.display("stdout", output.getStdOut());
-        assertEquals("Disabled user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getStdOut());
+        IntegrationTestTools.display("stdout", output.getConsoleOutput());
+        assertEquals("Disabled user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getConsoleOutput());
         result.computeStatus();
         TestUtil.assertSuccess(result);
         assertAdministrativeStatusDisabled(searchObjectByName(UserType.class, "jack"));
@@ -304,10 +308,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // THEN
         assertNoOutputData(output);
-        IntegrationTestTools.display("stdout", output.getStdOut());
+        IntegrationTestTools.display("stdout", output.getConsoleOutput());
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        assertEquals("Enabled user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getStdOut());
+        assertEquals("Enabled user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getConsoleOutput());
         assertAdministrativeStatusEnabled(searchObjectByName(UserType.class, "jack"));
     }
 
@@ -324,10 +328,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // THEN
         assertNoOutputData(output);
-        IntegrationTestTools.display("stdout", output.getStdOut());
+        IntegrationTestTools.display("stdout", output.getConsoleOutput());
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        assertEquals("Deleted user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\nAdded user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getStdOut());
+        assertEquals("Deleted user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\nAdded user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getConsoleOutput());
         assertAdministrativeStatusEnabled(searchObjectByName(UserType.class, "jack"));
     }
 
@@ -344,11 +348,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // THEN
         assertNoOutputData(output);
-        IntegrationTestTools.display("stdout", output.getStdOut());
+        IntegrationTestTools.display("stdout", output.getConsoleOutput());
         IntegrationTestTools.display(result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        assertEquals("Modified user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getStdOut());
+        assertEquals("Modified user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getConsoleOutput());
         assertEquals("Nowhere", searchObjectByName(UserType.class, "jack").asObjectable().getLocality().getOrig());
     }
 
@@ -365,11 +369,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // THEN
         assertNoOutputData(output);
-        IntegrationTestTools.display("stdout", output.getStdOut());
+        IntegrationTestTools.display("stdout", output.getConsoleOutput());
         IntegrationTestTools.display(result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        assertEquals("Modified user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getStdOut());
+        assertEquals("Modified user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getConsoleOutput());
         assertEquals("Caribbean", searchObjectByName(UserType.class, "jack").asObjectable().getLocality().getOrig());
     }
 
@@ -386,11 +390,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // THEN
         assertNoOutputData(output);
-        IntegrationTestTools.display("stdout", output.getStdOut());
+        IntegrationTestTools.display("stdout", output.getConsoleOutput());
         IntegrationTestTools.display(result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        assertEquals("Recomputed user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getStdOut());
+        assertEquals("Recomputed user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getConsoleOutput());
     }
 
     @Test
@@ -406,11 +410,11 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // THEN
         assertNoOutputData(output);
-        IntegrationTestTools.display("stdout", output.getStdOut());
+        IntegrationTestTools.display("stdout", output.getConsoleOutput());
         IntegrationTestTools.display(result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        //assertEquals("Recomputed user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getStdOut());
+        //assertEquals("Recomputed user:c0c010c0-d34d-b33f-f00d-111111111111(jack)\n", output.getConsoleOutput());
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
         IntegrationTestTools.display("jack after assignments creation", jack);
         assertAssignedAccount(jack, "10000000-0000-0000-0000-000000000104");
@@ -440,6 +444,90 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         assertAssignedRole(jack, "12345678-d34d-b33f-f00d-555555556677");
     }
 
+    @Test
+    public void test380DisableJackInBackgroundSimple() throws Exception {
+        TestUtil.displayTestTile(this, "test380DisableJackInBackgroundSimple");
+
+        // GIVEN
+        OperationResult result = new OperationResult(DOT_CLASS + "test380DisableJackInBackgroundSimple");
+
+        // WHEN
+        Task task = taskManager.createTaskInstance();
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        scriptingExpressionEvaluator.evaluateExpressionInBackground(UserType.COMPLEX_TYPE,
+                ObjectQueryUtil.createOrigNameQuery("jack", prismContext).getFilter(),
+                "disable", task, result);
+
+        waitForTaskFinish(task.getOid(), false);
+        task.refresh(result);
+
+        // THEN
+        IntegrationTestTools.display(task.getResult());
+        TestUtil.assertSuccess(task.getResult());
+        PrismObject<UserType> jack = getUser(USER_JACK_OID);
+        IntegrationTestTools.display("jack after disable script", jack);
+        assertAdministrativeStatusDisabled(jack);
+    }
+
+    @Test(enabled = true)
+    public void test400PurgeSchema() throws Exception {
+        TestUtil.displayTestTile(this, "test400PurgeSchema");
+
+        // GIVEN
+        OperationResult result = new OperationResult(DOT_CLASS + "test400PurgeSchema");
+        Task task = taskManager.createTaskInstance();
+        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(PURGE_DUMMY_BLACK_SCHEMA_FILE, ExpressionType.class).getValue();
+
+//        ResourceType dummy = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_BLACK_OID, null, task, result).asObjectable();
+//        IntegrationTestTools.display("dummy resource before purge schema", dummy.asPrismObject());
+//        IntegrationTestTools.display("elements: " + dummy.getSchema().getDefinition().getAny().get(0).getElementsByTagName("*").getLength());
+//        IntegrationTestTools.display("schema as XML: " + DOMUtil.printDom(dummy.getSchema().getDefinition().getAny().get(0)));
+
+        // WHEN
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, result);
+
+        // THEN
+        IntegrationTestTools.display("output", output.getFinalOutput());
+        IntegrationTestTools.display("stdout", output.getConsoleOutput());
+        IntegrationTestTools.display(result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        assertEquals(1, output.getFinalOutput().getData().size());
+
+//        dummy = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_BLACK_OID, null, result).asObjectable();
+//        IntegrationTestTools.display("dummy resource from repo", dummy.asPrismObject());
+//        IntegrationTestTools.display("elements: " + dummy.getSchema().getDefinition().getAny().get(0).getElementsByTagName("*").getLength());
+//        IntegrationTestTools.display("schema as XML: " + DOMUtil.printDom(dummy.getSchema().getDefinition().getAny().get(0)));
+
+        //AssertJUnit.assertNull("Schema is still present", dummy.getSchema());
+        // actually, schema gets downloaded just after purging it
+        assertEquals("Purged schema information from resource:10000000-0000-0000-0000-000000000305(Dummy Resource Black)\n", output.getConsoleOutput());
+    }
+
+
+    @Test
+    public void test410TestResource() throws Exception {
+        TestUtil.displayTestTile(this, "test410TestResource");
+
+        // GIVEN
+        OperationResult result = new OperationResult(DOT_CLASS + "test410TestResource");
+        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(TEST_DUMMY_RESOURCE_FILE, ExpressionType.class).getValue();
+
+        // WHEN
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, result);
+
+        // THEN
+        IntegrationTestTools.display("output", output.getFinalOutput());
+        IntegrationTestTools.display("stdout", output.getConsoleOutput());
+        ResourceType dummy = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, taskManager.createTaskInstance(), result).asObjectable();
+        IntegrationTestTools.display("dummy resource after test connection", dummy.asPrismObject());
+        IntegrationTestTools.display(result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        assertEquals(1, output.getFinalOutput().getData().size());
+        assertEquals("Tested resource:10000000-0000-0000-0000-000000000004(Dummy Resource): SUCCESS\n", output.getConsoleOutput());
+    }
+
     private void assertNoOutputData(ExecutionContext output) {
         assertTrue("Script returned unexpected data", output.getFinalOutput() == null || output.getFinalOutput().getData().isEmpty());
     }
@@ -461,7 +549,5 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
             }
         }
     }
-
-
 
 }

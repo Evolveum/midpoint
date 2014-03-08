@@ -58,7 +58,6 @@ public class SimpleUserNotifier extends GeneralNotifier {
         }
     }
 
-
     @Override
     protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
         List<ObjectDelta<UserType>> deltas = ((ModelEvent) event).getUserDeltas();
@@ -135,7 +134,6 @@ public class SimpleUserNotifier extends GeneralNotifier {
         } else if (delta.isModify()) {
             body.append("The user record was " + attemptedTo + "modified. Modified attributes are:\n");
             body.append(textFormatter.formatObjectModificationDelta(delta, hiddenPaths, isWatchAuxiliaryAttributes(generalNotifierType)));
-//            appendModifications(body, delta, hiddenPaths, generalNotifierType.isShowModifiedValues());
             body.append("\n");
         } else if (delta.isDelete()) {
             body.append("The user record was " + attemptedTo + "removed.\n\n");

@@ -213,12 +213,9 @@ public class TextFormatter {
         }
 
         if (object != null) {
-            return PolyString.getOrig(object.asObjectable().getName()) + qualifier;
-//                    + " ("
-//                    + localPartOfType(object)
-//                    + ", oid "
-//                    + object.getOid()
-//                    + ")";
+            return PolyString.getOrig(object.asObjectable().getName()) +
+                    " (" + object.toDebugType() + ")" +
+                    qualifier;
         } else {
             if (mightBeRemoved) {
                 return "(cannot display the name of " + localPart(value.getTargetType()) + ":" + value.getOid() + ", as it might be already removed)";
