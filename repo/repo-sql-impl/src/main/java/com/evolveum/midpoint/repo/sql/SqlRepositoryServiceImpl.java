@@ -128,39 +128,43 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
         }
 
+        Object fullObject;
         if (!lockForUpdate) {
             //we're not doing update after, so this is faster way to load full object
-            Query query = session.createQuery("select o.fullObject from RObject as o where o.id = :id and o.oid = :oid");
-            query.setLong("id", (short) 0);
+            Query query = session.createQuery("select o.fullObject from RObject as o where o.id=0 and o.oid=:oid");
             query.setString("oid", oid);
 
             query.setLockOptions(lockOptions);
-            String object = (String) query.uniqueResult();
+            fullObject = query.uniqueResult();
+
+            LOGGER.trace("Got it.");
+            if (fullObject == null) {
+                throwObjectNotFoundException(type, oid);
+            }
+        } else {
+            // we're doing update after this get, therefore we load full object right now
+            // (it would be loaded during merge anyway)
+            Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
+            criteria.add(Restrictions.eq("id", (short) 0));
+            criteria.add(Restrictions.eq("oid", oid));
+
+            criteria.setLockMode(lockOptions.getLockMode());
+            RObject object = (RObject) criteria.uniqueResult();
 
             LOGGER.trace("Got it.");
             if (object == null) {
                 throwObjectNotFoundException(type, oid);
             }
-            return updateLoadedObject(object, session, type);
-        }
 
-        //we're doing update after this get, therefore we load full object right now (it would be loaded during merge anyway)
-        Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
-        criteria.add(Restrictions.eq("id", (short) 0));
-        criteria.add(Restrictions.eq("oid", oid));
+            // this just loads object to hibernate session, probably will be removed later. Merge after this get
+            // will be faster. Read and use object only from fullObject column anyway.
+            object.toJAXB(getPrismContext(), options).asPrismObject();
 
-        criteria.setLockMode(lockOptions.getLockMode());
-        RObject object = (RObject) criteria.uniqueResult();
-
-        if (object == null) {
-            throwObjectNotFoundException(type, oid);
+            fullObject = object.getFullObject();
         }
 
         LOGGER.trace("Transforming data to JAXB type.");
-        //todo just fake stuff, probably will be removed
-        PrismObject<T> prismObject = object.toJAXB(getPrismContext(), options).asPrismObject();
-        //read object from fullObject
-        prismObject = updateLoadedObject(object.getFullObject(), session, type);
+        PrismObject<T> prismObject = updateLoadedObject(fullObject, session, type);
         validateObjectType(prismObject, type);
 
         return prismObject;
