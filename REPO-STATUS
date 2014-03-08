@@ -30,3 +30,17 @@ Still needs to be done:
 - object hash and removing clob and all non searchable columns
 
 repo-sql-impl-test: 3739
+
+******************************
+******************************
+******************************
+Org. closure test
+
+cca. 117k original
+
+final int[] TREE_SIZE = {1, 5, 5, 7};
+loadOrgStructure(null, TREE_SIZE, 20, "", opResult);
+
+[INFO] Total time: 6:07.215s
+[INFO] Finished at: Sat Mar 08 20:17:37 CET 2014
+[INFO] Final Memory: 29M/343M

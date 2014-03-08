@@ -59,7 +59,11 @@ public class OrgClosureTest extends BaseSQLRepoTest {
         OperationResult opResult = new OperationResult("===[ addOrgStruct ]===");
 
         //109100 users and 5455 org. units
-        final int[] TREE_SIZE = {1, 5, 5, 7, 3, 3, 2};
+//        final int[] TREE_SIZE = {1, 5, 5, 7, 3, 3, 2};
+//        loadOrgStructure(null, TREE_SIZE, 20, "", opResult);
+
+        //4120 users and 206 org. units
+        final int[] TREE_SIZE = {1, 5, 5, 7};
         loadOrgStructure(null, TREE_SIZE, 20, "", opResult);
 
         //total 44 objects
