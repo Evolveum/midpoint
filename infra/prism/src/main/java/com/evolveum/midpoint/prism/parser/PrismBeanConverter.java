@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBElement;
@@ -45,6 +46,7 @@ import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -88,6 +90,9 @@ public class PrismBeanConverter {
 	}
 	
 	public <T> T unmarshall(MapXNode xnode, Class<T> beanClass) throws SchemaException {
+		if (beanClass == SearchFilterType.class) {
+			return (T) unmarshalSearchFilterType(xnode);
+		}
 		T bean;
 		try {
 			bean = beanClass.newInstance();
@@ -307,6 +312,50 @@ public class PrismBeanConverter {
 		
 		return bean;
 	}
+	
+	private SearchFilterType unmarshalSearchFilterType(MapXNode xmap) throws SchemaException {
+		if (xmap == null) {
+			return null;
+		}
+		SearchFilterType filterType = new SearchFilterType();
+		MapXNode xfilter = xmap;
+		XNode xdesc = xmap.get(SearchFilterType.F_DESCRIPTION);
+		if (xdesc != null) {
+			if (xdesc instanceof PrimitiveXNode<?>) {
+				String desc = ((PrimitiveXNode<String>)xdesc).getParsedValue(DOMUtil.XSD_STRING);
+				filterType.setDescription(desc);
+			}
+			xfilter = new MapXNode();
+			for (Entry<QName,XNode> entry: xmap.entrySet()) {
+				if (!QNameUtil.match(entry.getKey(), SearchFilterType.F_DESCRIPTION)) {
+					xfilter.put(entry.getKey(), entry.getValue());
+				}
+			}
+		}
+		filterType.setXFilter(xfilter);
+		return filterType;
+	}
+	
+	private XNode marshalSearchFilterType(SearchFilterType value) {
+		if (value == null) {
+			return null;
+		}
+		MapXNode xfilter = value.getXFilter();
+		if (value.getDescription() == null) {
+			return xfilter;
+		}
+		MapXNode xmap = new MapXNode();
+		if (xfilter != null) {
+			for (Entry<QName,XNode> entry: xfilter.entrySet()) {
+				if (!QNameUtil.match(entry.getKey(), SearchFilterType.F_DESCRIPTION)) {
+					xmap.put(entry.getKey(), entry.getValue());
+				}
+			}
+		}
+		xmap.put(SearchFilterType.F_DESCRIPTION, new PrimitiveXNode<String>(value.getDescription()));
+		return xmap;
+	}
+
 	
 	private Type getTypeArgument(Type origType, String desc) {
 		if (!(origType instanceof ParameterizedType)) {
@@ -577,6 +626,10 @@ public class PrismBeanConverter {
 			return (T) primValue;
 		}
 		
+		if (SearchFilterType.class.isAssignableFrom(classType)){
+			throw new SchemaException("Cannot unmarshall search filter from "+xprim);
+		}
+		
 		if (xprim.isEmpty() && !classType.isEnum()) {
 			// Special case. Just return empty object
 			try {
@@ -835,10 +888,6 @@ public class PrismBeanConverter {
 
 	private XNode marshalRawValue(RawType value) {
 		return value.getXnode();
-	}
-
-	private XNode marshalSearchFilterType(SearchFilterType value) {
-		return value.getXFilter();
 	}
 
 	private XNode marshalItemPath(ItemPathType itemPath){

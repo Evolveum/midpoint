@@ -77,6 +77,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
     protected MapXNode xfilter;
     
     public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "SearchFilterType");
+	public static final QName F_DESCRIPTION = new QName(PrismConstants.NS_QUERY, "description");
 
     /**
      * Creates a new {@code QueryType} instance.
