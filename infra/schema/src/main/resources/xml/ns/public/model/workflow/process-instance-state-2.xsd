@@ -54,19 +54,67 @@
                 <a:object/>
             </xsd:appinfo>
             <xsd:documentation>
-                TODO
+                Generic process instance state, common to all workflow processes.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
-                    <xsd:element name="processInstanceName" type="xsd:string"/>
-                    <xsd:element name="startTime" type="xsd:dateTime"/>
-                    <xsd:element name="midPointTaskOid" type="xsd:string" minOccurs="0"/>
-                    <xsd:element name="midPointChangeProcessor" type="xsd:string"/>
-                    <xsd:element name="midPointRequesterOid" type="xsd:string"/>
-                    <xsd:element name="midPointState" type="xsd:string"/>
-                    <xsd:element name="midPointAnswer" type="xsd:string"/>
+                    <xsd:element name="processInstanceName" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of the process instance. It is defined by the code that starts
+                                the process instance and should describe the purpose of the process
+                                instance as precisely as possible. An example: "Approving adding Webmaster to JoeDoe".
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="startTime" type="xsd:dateTime">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                When the particular process instance started.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="shadowTaskOid" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                OID of process instance shadowing task in midPoint. (Process variable midPointTaskOid).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="changeProcessor" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Class name of the midPoint change processor that manages this particular change request.
+                                (Process variable midPointChangeProcessor.)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="requesterOid" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                OID of the change requester. (Process variable midPointRequesterOid.)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="state" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Value of process variable "midPointState" that should describe current state of
+                                the process instance (e.g. "Request was approved by Engineering, passed now to
+                                the Management Group").
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="answer" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Value of process variable "midPointAnswer" that should describe overall outcome
+                                of the process instance.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

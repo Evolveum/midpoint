@@ -47,12 +47,14 @@ import java.util.Map;
  *  - ...
  *
  * Process wrapper plays a role on these occasions:
- *  1) when a change arrives - process wrapper tries to recognize whether the change contains relevant
- *     delta(s); if so, it prepares instruction(s) to start related workflow approval process(es)
- *  2) when a process instance finishes - process wrapper modifies the delta(s) related to particular
- *     process instance and passes them along, to be executed
- *  3) when a user wants to approve the item or asks about the state of process instance(s) -
- *     it prepares the data that is specific to individual process.
+ * 1) When a change arrives - process wrapper tries to recognize whether the change
+ *    contains relevant delta(s); if so, it prepares instruction(s) to start related workflow approval process(es).
+ * 2) When a process instance finishes, process wrapper:
+ *     - modifies the delta(s) related to particular process instance and passes them along, to be executed,
+ *     - provides a list of approvers that is to be stored in modified object's metadata.
+ * 3) When a user wants to work on his task, the wrapper prepares a form to be presented to the user.
+ * 4) When a user asks about the state of process instance(s), the wrapper prepares that part of the
+ *    answer that is specific to individual process.
  *
  * @author mederly
  */
@@ -114,7 +116,7 @@ public interface PrimaryApprovalProcessWrapper {
      * @throws SchemaException if any of key objects cannot be retrieved because of schema exception
      * @throws ObjectNotFoundException if any of key objects cannot be found
      */
-    PrismObject<? extends QuestionFormType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException;
+    PrismObject<? extends QuestionFormType> getQuestionForm(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Returns a object related to the work item at hand. E.g. for 'approve role addition' process this method returns corresponding role object.
@@ -127,15 +129,6 @@ public interface PrimaryApprovalProcessWrapper {
      * @throws ObjectNotFoundException if the object cannot be found
      */
     PrismObject<? extends ObjectType> getRelatedObject(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException;
-
-    /**
-     * Returns the name of process instance details GUI panel class name.
-     *
-     * @return Fully qualified class name used to implement process-specific instance state panel.
-     *
-     * @see com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalPanel
-     */
-    String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance);
 
     PrismObject<? extends PrimaryApprovalProcessInstanceState> externalizeInstanceState(Map<String, Object> variables);
 }

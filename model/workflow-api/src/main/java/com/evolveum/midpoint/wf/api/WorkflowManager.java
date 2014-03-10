@@ -133,8 +133,6 @@ public interface WorkflowManager {
     // TODO remove this
     PrismContext getPrismContext();
 
-    String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance);
-
     void registerProcessListener(ProcessListener processListener);
 
     void registerWorkItemListener(WorkItemListener workItemListener);

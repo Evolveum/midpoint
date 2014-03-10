@@ -9025,6 +9025,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="changeProcessor" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Class name of change processor that manages workflow process instance that contains this work item.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="assignee" type="tns:UserType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -9338,6 +9345,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    <xsd:element name="wfProcessInstance" type="tns:WfProcessInstanceType" />
 
     <xsd:complexType name="DecisionType">
         <xsd:annotation>

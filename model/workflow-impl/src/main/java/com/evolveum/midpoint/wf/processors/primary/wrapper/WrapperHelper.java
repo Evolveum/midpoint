@@ -40,13 +40,13 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
-import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.common.StringHolder;
 import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.processes.itemApproval.Decision;
 import com.evolveum.midpoint.wf.processes.itemApproval.ProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.primary.PcpChildJobCreationInstruction;
 import com.evolveum.midpoint.wf.processors.primary.PcpJob;
+import com.evolveum.midpoint.wf.processors.primary.PcpProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ApprovalSchemaType;
@@ -93,7 +93,7 @@ public class WrapperHelper {
 
         instruction.setExecuteApprovedChangeImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
 
-        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_WRAPPER, wrapper.getClass().getName());
+        instruction.addProcessVariable(PcpProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_WRAPPER, wrapper.getClass().getName());
         instruction.addTaskVariable(wfTaskUtil.getWfProcessWrapperPropertyDefinition(), wrapper.getClass().getName());
 
         if (instruction.isExecuteApprovedChangeImmediately()) {
@@ -105,7 +105,7 @@ public class WrapperHelper {
 
     public void setDeltaProcessAndTaskVariables(PcpChildJobCreationInstruction instruction, ObjectDelta delta) {
         try {
-            instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_DELTA, new StringHolder(DeltaConvertor.toObjectDeltaTypeXml(delta)));
+            instruction.addProcessVariable(PcpProcessVariableNames.VARIABLE_MIDPOINT_DELTA, new StringHolder(DeltaConvertor.toObjectDeltaTypeXml(delta)));
         } catch(JAXBException e) {
             throw new SystemException("Couldn't store primary delta into the process variable due to JAXB exception", e);
         } catch (SchemaException e) {

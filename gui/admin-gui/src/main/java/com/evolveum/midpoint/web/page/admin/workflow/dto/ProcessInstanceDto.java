@@ -25,6 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
+import org.apache.commons.lang3.Validate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +41,7 @@ public class ProcessInstanceDto extends Selectable {
     ProcessInstanceState processInstanceState;
 
     public ProcessInstanceDto(WfProcessInstanceType processInstance) {
+        Validate.notNull(processInstance);
         this.processInstance = processInstance;
         this.processInstanceState = (ProcessInstanceState) processInstance.getState();
     }
@@ -75,7 +77,7 @@ public class ProcessInstanceDto extends Selectable {
     }
 
     public String getAnswer() {
-        return processInstanceState.getMidPointAnswer();
+        return processInstance.getAnswer();
     }
 
     public boolean isAnswered() {
@@ -92,7 +94,7 @@ public class ProcessInstanceDto extends Selectable {
     }
 
     public String getWatchingTaskOid() {
-        return processInstanceState.getMidPointTaskOid();
+        return processInstanceState.getShadowTaskOid();
     }
 
     public ObjectType getInstanceState() {

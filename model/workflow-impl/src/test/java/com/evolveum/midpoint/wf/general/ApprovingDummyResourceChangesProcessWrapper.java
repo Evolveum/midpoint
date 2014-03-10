@@ -26,7 +26,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.processors.general.DefaultGcpProcessWrapper;
+import com.evolveum.midpoint.wf.processors.general.wrapper.DefaultGcpProcessWrapper;
 import com.evolveum.midpoint.wf.util.JaxbValueContainer;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
