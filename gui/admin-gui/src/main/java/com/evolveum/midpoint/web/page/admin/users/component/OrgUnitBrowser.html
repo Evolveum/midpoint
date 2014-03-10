@@ -15,13 +15,14 @@
   -->
 
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
+    <div wicket:id="feedback" />
+
     <div wicket:id="content">
+
         <form wicket:id="mainForm" class="form-inline pull-right"
                 style="padding: 5px;">
-            <div class="form-group">
-                <input type="text" class="form-control input-sm" wicket:id="searchText"/>
-            </div>
-            <a class="btn btn-sm btn-default" wicket:id="search"/>
+
+            <div wicket:id="basicSearch" />
         </form>
 
         <div class="clearfix">

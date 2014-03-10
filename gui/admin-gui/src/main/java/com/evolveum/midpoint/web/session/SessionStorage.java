@@ -49,6 +49,7 @@ public class SessionStorage implements Serializable {
     private RolesStorage roles;
     private TasksStorage tasks;
     private ResourceContentStorage resourceContent;
+    private OrgUnitStorage orgUnitStorage;
 
     public Class<? extends WebPage> getPreviousPage() {
         return previousPage;
@@ -120,5 +121,12 @@ public class SessionStorage implements Serializable {
             reports = new ReportsStorage();
         }
         return reports;
+    }
+
+    public OrgUnitStorage getOrgUnits(){
+        if(orgUnitStorage == null){
+            orgUnitStorage = new OrgUnitStorage();
+        }
+        return orgUnitStorage;
     }
 }

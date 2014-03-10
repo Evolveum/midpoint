@@ -63,11 +63,11 @@ public class MyAssignmentsPanel extends SimplePanel<List<AssignmentItemDto>> {
 
                         switch (item.getType()) {
                             case ACCOUNT_CONSTRUCTION:
-                                return "silk-medal_silver_2";
+                                return "silk-drive";
                             case ORG_UNIT:
                                 return "silk-building";
                             case ROLE:
-                                return "silk-medal_gold_3";
+                                return "silk-user_suit";
                             default:
                                 return "silk-error";
                         }
