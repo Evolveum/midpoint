@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.processors.general;
+package com.evolveum.midpoint.wf.processors.general.wrapper;
 
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.wf.processors.general.GcpExternalizationHelper;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralChangeProcessorScenarioType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.WorkItemContents;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 import org.activiti.engine.task.Task;
@@ -42,7 +45,12 @@ public class DefaultGcpProcessWrapper implements GcpProcessWrapper {
     private GcpExternalizationHelper gcpExternalizationHelper;
 
     @Override
-    public PrismObject<? extends WorkItemContents> prepareWorkItemContents(Task task, Map<String, Object> processInstanceVariables, OperationResult result) throws JAXBException, ObjectNotFoundException, SchemaException {
+    public boolean determineActivation(GeneralChangeProcessorScenarioType scenarioType, ModelContext context, com.evolveum.midpoint.task.api.Task taskFromModel, OperationResult result) {
+        return true;
+    }
+
+    @Override
+    public PrismObject<? extends WorkItemContents> externalizeWorkItemContents(Task task, Map<String, Object> processInstanceVariables, OperationResult result) throws JAXBException, ObjectNotFoundException, SchemaException {
         PrismObject<? extends WorkItemContents> prism = gcpExternalizationHelper.createNewWorkItemContents();
         gcpExternalizationHelper.fillInQuestionForm(prism.asObjectable().getQuestionForm().asPrismObject(), task, processInstanceVariables, result);
         return prism;

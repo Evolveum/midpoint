@@ -18,18 +18,12 @@ package com.evolveum.midpoint.wf.jobs;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -43,19 +37,23 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConfiguration;
 import com.evolveum.midpoint.wf.activiti.ActivitiInterface;
+import com.evolveum.midpoint.wf.activiti.dao.WorkItemProvider;
 import com.evolveum.midpoint.wf.api.ProcessListener;
 import com.evolveum.midpoint.wf.api.WorkItemListener;
+import com.evolveum.midpoint.wf.api.WorkflowException;
+import com.evolveum.midpoint.wf.messages.ActivitiToMidPointMessage;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.messages.ProcessFinishedEvent;
 import com.evolveum.midpoint.wf.messages.ProcessStartedEvent;
 import com.evolveum.midpoint.wf.messages.StartProcessCommand;
+import com.evolveum.midpoint.wf.messages.TaskCompletedEvent;
+import com.evolveum.midpoint.wf.messages.TaskCreatedEvent;
+import com.evolveum.midpoint.wf.messages.TaskEvent;
 import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
-import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -64,7 +62,6 @@ import javax.xml.bind.JAXBException;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -85,6 +82,7 @@ public class JobController {
 
     private static final long TASK_START_DELAY = 5000L;
     private static final boolean USE_WFSTATUS = true;
+    private static final Object DOT_CLASS = JobController.class.getName() + ".";
 
     private Set<ProcessListener> processListeners = new HashSet<>();
     private Set<WorkItemListener> workItemListeners = new HashSet<>();
@@ -110,6 +108,9 @@ public class JobController {
 
     @Autowired
     private WfConfiguration wfConfiguration;
+
+    @Autowired
+    private WorkItemProvider workItemProvider;
     //endregion
 
     //region Job creation & re-creation
@@ -306,12 +307,49 @@ public class JobController {
      * replies after sending - i.e. in a thread that requested the operation), or asynchronously
      * (directly from activiti2midpoint, in a separate thread).
      *
-     * @param event an event got from workflow engine
-     * @param task a wf-monitoring task instance (should be as current as possible)
+     * @param message an event got from workflow engine
+     * @param task
+     * @param asynchronous
      * @param result
      * @throws Exception
      */
-    public void processWorkflowMessage(ProcessEvent event, Task task, OperationResult result) throws Exception {
+    // TODO fix exceptions list
+    public void processWorkflowMessage(ActivitiToMidPointMessage message, Task task, boolean asynchronous, OperationResult result) throws SchemaException, ObjectNotFoundException, WorkflowException, ObjectAlreadyExistsException, JAXBException {
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Received ActivitiToMidPointMessage: " + message);
+        }
+        if (message instanceof ProcessEvent) {
+            Task task1 = getTaskFromEvent((ProcessEvent) message, task, result);
+            if (asynchronous && task1.getExecutionStatus() != TaskExecutionStatus.WAITING) {
+                LOGGER.trace("Asynchronous message received in a state different from WAITING ({}), ignoring it. Task = {}", task1.getExecutionStatus(), task1);
+            } else {
+                processProcessEvent((ProcessEvent) message, task1, result);
+            }
+        } else if (message instanceof TaskEvent) {
+            processTaskEvent((TaskEvent) message, result);
+        } else {
+            throw new IllegalStateException("Unknown kind of event from Activiti: " + message.getClass());
+        }
+    }
+
+    private Task getTaskFromEvent(ProcessEvent event, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
+
+        String taskOid = event.getTaskOid();
+        if (taskOid == null) {
+            throw new IllegalStateException("Got a workflow message without taskOid: " + event.toString());
+        }
+
+        if (task != null) {
+            if (!taskOid.equals(task.getOid())) {
+                throw new IllegalStateException("TaskOid received from the workflow (" + taskOid + ") is different from current task OID (" + task + "): " + event.toString());
+            }
+        } else {
+            task = taskManager.getTask(taskOid, result);
+        }
+        return task;
+    }
+
+    private void processProcessEvent(ProcessEvent event, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, JAXBException {
 
         Job job = recreateJob(task);
 
@@ -425,6 +463,48 @@ public class JobController {
         return wfConfiguration.findChangeProcessor(cpName);
     }
 
+    private ChangeProcessor getChangeProcessor(WorkItemType workItemType) {
+        String cpName = workItemType.getChangeProcessor();
+        Validate.notNull(cpName, "Change processor is not defined among process instance variables");
+        return wfConfiguration.findChangeProcessor(cpName);
+    }
+
+    private ChangeProcessor getChangeProcessor(TaskEvent taskEvent) {
+        return getChangeProcessor(taskEvent.getVariables());
+    }
+
+    //endregion
+
+    //region Processing work item (task) events
+    private void processTaskEvent(TaskEvent taskEvent, OperationResult result) throws WorkflowException {
+
+        // auditing & notifications
+
+        if (taskEvent instanceof TaskCreatedEvent) {
+            auditWorkItemEvent(taskEvent, AuditEventStage.REQUEST, result);
+            try {
+                notifyWorkItemCreated(
+                        taskEvent.getTaskName(),
+                        taskEvent.getAssigneeOid(),
+                        taskEvent.getProcessInstanceName(),
+                        taskEvent.getVariables());
+            } catch (JAXBException|SchemaException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't send notification about work item create event", e);
+            }
+        } else if (taskEvent instanceof TaskCompletedEvent) {
+            auditWorkItemEvent(taskEvent, AuditEventStage.EXECUTION, result);
+            try {
+                notifyWorkItemCompleted(
+                        taskEvent.getTaskName(),
+                        taskEvent.getAssigneeOid(),
+                        taskEvent.getProcessInstanceName(),
+                        taskEvent.getVariables(),
+                        (String) taskEvent.getVariables().get(CommonProcessVariableNames.FORM_FIELD_DECISION));
+            } catch (JAXBException|SchemaException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't audit work item complete event", e);
+            }
+        }
+    }
     //endregion
 
     //region Auditing and notifications
@@ -437,51 +517,8 @@ public class JobController {
     }
 
     private void auditProcessStartEnd(Map<String,Object> variables, Job job, AuditEventStage stage, OperationResult result) {
-
-        Task task = job.getTask();
-
-        AuditEventRecord auditEventRecord = new AuditEventRecord();
-        auditEventRecord.setEventType(AuditEventType.WORKFLOW_PROCESS_INSTANCE);
-        auditEventRecord.setEventStage(stage);
-
-        String requesterOid = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID);
-        if (requesterOid != null) {
-            try {
-                auditEventRecord.setInitiator(miscDataUtil.getRequester(variables, result));
-            } catch (SchemaException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't retrieve the workflow process instance requester information", e);
-            } catch (ObjectNotFoundException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't retrieve the workflow process instance requester information", e);
-            }
-        }
-
-        PrismObject<GenericObjectType> processInstanceObject = new PrismObject<GenericObjectType>(GenericObjectType.COMPLEX_TYPE, GenericObjectType.class);
-        processInstanceObject.asObjectable().setName(new PolyStringType((String) variables.get(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME)));
-        processInstanceObject.asObjectable().setOid(job.getActivitiId());
-        auditEventRecord.setTarget(processInstanceObject);
-
-        // todo try to retrieve delta(s) only if applicable (e.g. not when using GeneralChangeProcessor)
-        List<ObjectDelta<Objectable>> deltas = null;
-        try {
-            if (stage == AuditEventStage.REQUEST) {
-                deltas = wfTaskUtil.retrieveDeltasToProcess(task);
-            } else {
-                deltas = wfTaskUtil.retrieveResultingDeltas(task);
-            }
-        } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't retrieve delta(s) from task " + task, e);
-        }
-        if (deltas != null) {
-            for (ObjectDelta delta : deltas) {
-                auditEventRecord.addDelta(new ObjectDeltaOperation(delta));
-            }
-        }
-
-        if (stage == AuditEventStage.EXECUTION) {
-            auditEventRecord.setResult((String) variables.get(CommonProcessVariableNames.VARIABLE_WF_ANSWER));
-        }
-        auditEventRecord.setOutcome(OperationResultStatus.SUCCESS);
-        auditService.audit(auditEventRecord, task);
+        AuditEventRecord auditEventRecord = getChangeProcessor(variables).prepareProcessInstanceAuditRecord(variables, job, stage, result);
+        auditService.audit(auditEventRecord, job.getTask());
     }
 
     private void notifyProcessStart(StartProcessCommand spc, Job job, OperationResult result) throws JAXBException, SchemaException {
@@ -498,7 +535,7 @@ public class JobController {
         }
     }
 
-    public void notifyWorkItemCreated(String workItemName, String assigneeOid, String processInstanceName, Map<String,Object> processVariables) throws JAXBException, SchemaException {
+    private void notifyWorkItemCreated(String workItemName, String assigneeOid, String processInstanceName, Map<String,Object> processVariables) throws JAXBException, SchemaException {
         ChangeProcessor cp = getChangeProcessor(processVariables);
         PrismObject<? extends ProcessInstanceState> state = cp.externalizeInstanceState(processVariables);
         for (WorkItemListener workItemListener : workItemListeners) {
@@ -506,7 +543,7 @@ public class JobController {
         }
     }
 
-    public void notifyWorkItemCompleted(String workItemName, String assigneeOid, String processInstanceName, Map<String,Object> processVariables, String decision) throws JAXBException, SchemaException {
+    private void notifyWorkItemCompleted(String workItemName, String assigneeOid, String processInstanceName, Map<String,Object> processVariables, String decision) throws JAXBException, SchemaException {
         ChangeProcessor cp = getChangeProcessor(processVariables);
         PrismObject<? extends ProcessInstanceState> state = cp.externalizeInstanceState(processVariables);
         for (WorkItemListener workItemListener : workItemListeners) {
@@ -514,71 +551,30 @@ public class JobController {
         }
     }
 
-    public void auditWorkItemEvent(Map<String,Object> variables, String taskId, String workItemName, String assigneeOid, AuditEventStage stage, OperationResult result) {
+    private void auditWorkItemEvent(TaskEvent taskEvent, AuditEventStage stage, OperationResult result) throws WorkflowException {
 
-        AuditEventRecord auditEventRecord = new AuditEventRecord();
-        auditEventRecord.setEventType(AuditEventType.WORK_ITEM);
-        auditEventRecord.setEventStage(stage);
-
-        String requesterOid = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID);
-        if (requesterOid != null) {
-            try {
-                auditEventRecord.setInitiator(miscDataUtil.getRequester(variables, result));
-            } catch (SchemaException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't retrieve the workflow process instance requester information", e);
-            } catch (ObjectNotFoundException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't retrieve the workflow process instance requester information", e);
-            }
-        }
-
-        PrismObject<GenericObjectType> workItemObject = new PrismObject<GenericObjectType>(GenericObjectType.COMPLEX_TYPE, GenericObjectType.class);
-        workItemObject.asObjectable().setName(new PolyStringType(workItemName));
-        workItemObject.asObjectable().setOid(taskId);
-        auditEventRecord.setTarget(workItemObject);
-
-        if (stage == AuditEventStage.REQUEST) {
-            if (assigneeOid != null) {
-                try {
-                    auditEventRecord.setTargetOwner(repositoryService.getObject(UserType.class, assigneeOid, null, result));
-                } catch (ObjectNotFoundException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't retrieve the work item assignee information", e);
-                } catch (SchemaException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't retrieve the work item assignee information", e);
-                }
-            }
-        } else {
-            MidPointPrincipal principal = MiscDataUtil.getPrincipalUser();
-            if (principal != null && principal.getUser() != null) {
-                auditEventRecord.setTargetOwner(principal.getUser().asPrismObject());
-            }
-        }
-
-        ObjectDelta delta;
+        Task shadowTask;
         try {
-            delta = miscDataUtil.getObjectDelta(variables, true);
-            if (delta != null) {
-                auditEventRecord.addDelta(new ObjectDeltaOperation(delta));
+            String taskOid = (String) taskEvent.getVariables().get(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID);
+            if (taskOid == null) {
+                LOGGER.error("Shadow task OID is unknown for work item " + taskEvent.getDebugName() + ", no audit record will be produced.");
+                return;
             }
-        } catch (JAXBException|SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Couldn't retrieve delta to be approved", e);
-        }
-
-        auditEventRecord.setOutcome(OperationResultStatus.SUCCESS);
-        if (stage == AuditEventStage.EXECUTION) {
-            auditEventRecord.setResult((String) variables.get(CommonProcessVariableNames.FORM_FIELD_DECISION));
-            auditEventRecord.setMessage((String) variables.get(CommonProcessVariableNames.FORM_FIELD_COMMENT));
-        }
-
-        Task shadowTask = null;
-        try {
-            shadowTask = miscDataUtil.getShadowTask(variables, result);
+            shadowTask = taskManager.getTask(taskOid, result);
         } catch (SchemaException e) {
             LoggingUtils.logException(LOGGER, "Couldn't retrieve workflow-related task", e);
+            return;
         } catch (ObjectNotFoundException e) {
             LoggingUtils.logException(LOGGER, "Couldn't retrieve workflow-related task", e);
+            return;
         }
 
+        AuditEventRecord auditEventRecord = getChangeProcessor(taskEvent).prepareWorkItemAuditRecord(taskEvent, stage, result);
         auditService.audit(auditEventRecord, shadowTask);
+    }
+
+    private String getDebugName(WorkItemType workItemType) {
+        return workItemType.getName() + " (id " + workItemType.getWorkItemId() + ")";
     }
 
     public void registerProcessListener(ProcessListener processListener) {

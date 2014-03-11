@@ -71,7 +71,7 @@ public class DefaultWorkflowEventCreator implements WorkflowEventCreator {
 
     private WorkflowProcessEvent createWorkflowProcessEvent(PrismObject<? extends ProcessInstanceState> instanceState, ChangeType changeType, OperationResult result) {
         WorkflowProcessEvent event = new WorkflowProcessEvent(lightweightIdentifierGenerator, changeType);
-        fillInEvent(event, instanceState.asObjectable().getProcessInstanceName(), instanceState, instanceState.asObjectable().getMidPointAnswer(), result);
+        fillInEvent(event, instanceState.asObjectable().getProcessInstanceName(), instanceState, instanceState.asObjectable().getAnswer(), result);
         return event;
     }
 
@@ -79,7 +79,7 @@ public class DefaultWorkflowEventCreator implements WorkflowEventCreator {
         event.setProcessInstanceName(instanceName);
         event.setOperationStatusCustom(decision);
         event.setProcessInstanceState(instanceState);
-        event.setRequester(new SimpleObjectRefImpl(notificationsUtil, instanceState.asObjectable().getMidPointRequesterOid()));
+        event.setRequester(new SimpleObjectRefImpl(notificationsUtil, instanceState.asObjectable().getRequesterOid()));
 
         // fill-in requestee (for primary approval process variables)
 

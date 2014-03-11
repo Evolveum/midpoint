@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.processors.general;
+package com.evolveum.midpoint.wf.processors.general.wrapper;
 
+import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralChangeProcessorScenarioType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.WorkItemContents;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 
@@ -31,7 +34,19 @@ import java.util.Map;
  */
 public interface GcpProcessWrapper {
 
-    PrismObject<? extends WorkItemContents> prepareWorkItemContents(org.activiti.engine.task.Task task, Map<String, Object> processInstanceVariables, OperationResult result) throws JAXBException, ObjectNotFoundException, SchemaException;
+    /**
+     * Determines whether the process should be run in a given situation.
+     * (Is applied only if activation condition is null or evaluates to TRUE.)
+     *
+     * @param scenarioType
+     * @param context
+     * @param taskFromModel
+     * @param result
+     * @return
+     */
+    boolean determineActivation(GeneralChangeProcessorScenarioType scenarioType, ModelContext context, Task taskFromModel, OperationResult result);
+
+    PrismObject<? extends WorkItemContents> externalizeWorkItemContents(org.activiti.engine.task.Task task, Map<String, Object> processInstanceVariables, OperationResult result) throws JAXBException, ObjectNotFoundException, SchemaException;
 
     PrismObject<? extends ProcessInstanceState> externalizeInstanceState(Map<String, Object> variables) throws SchemaException;
 
