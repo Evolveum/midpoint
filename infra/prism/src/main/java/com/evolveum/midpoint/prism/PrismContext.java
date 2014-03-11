@@ -92,7 +92,7 @@ public class PrismContext {
 		schemaRegistry.setPrismContext(prismContext);
 
 		prismContext.xnodeProcessor = new XNodeProcessor(prismContext);
-		prismContext.beanConverter = new PrismBeanConverter(schemaRegistry);
+		prismContext.beanConverter = new PrismBeanConverter(prismContext);
 
 		prismContext.parserMap = new HashMap<String, Parser>();
 		DomParser parserDom = new DomParser(schemaRegistry);

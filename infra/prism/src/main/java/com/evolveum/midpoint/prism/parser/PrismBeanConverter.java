@@ -47,6 +47,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -69,14 +70,29 @@ public class PrismBeanConverter {
 	
 	public static final String DEFAULT_NAMESPACE_PLACEHOLDER = "##default";
 	
-	private SchemaRegistry schemaRegistry;
+	private PrismContext prismContext;
 
-	public PrismBeanConverter(SchemaRegistry schemaRegistry) {
-		this.schemaRegistry = schemaRegistry;
+	public PrismBeanConverter(PrismContext prismContext) {
+		this.prismContext = prismContext;
+	}
+	
+	public PrismContext getPrismContext() {
+		return prismContext;
+	}
+
+	public void setPrismContext(PrismContext prismContext) {
+		this.prismContext = prismContext;
+	}
+
+	private SchemaRegistry getSchemaRegistry() {
+		if (prismContext == null) {
+			return null;
+		}
+		return prismContext.getSchemaRegistry();
 	}
 
 	public boolean canConvert(QName typeName) {
-		return schemaRegistry.determineCompileTimeClass(typeName) != null; 
+		return getSchemaRegistry().determineCompileTimeClass(typeName) != null; 
 	}
 	
 	public boolean canConvert(Class<?> clazz) {
@@ -85,7 +101,7 @@ public class PrismBeanConverter {
 	}
 	
 	public <T> T unmarshall(MapXNode xnode, QName typeQName) throws SchemaException {
-		Class<T> classType = schemaRegistry.determineCompileTimeClass(typeQName);
+		Class<T> classType = getSchemaRegistry().determineCompileTimeClass(typeQName);
 		return unmarshall(xnode, classType);
 	}
 	
@@ -254,7 +270,7 @@ public class PrismBeanConverter {
 			
 			//check for subclasses???
 			if (xsubnode.getTypeQName()!= null){
-				Class explicitParamType = schemaRegistry.determineCompileTimeClass(xsubnode.getTypeQName());
+				Class explicitParamType = getSchemaRegistry().determineCompileTimeClass(xsubnode.getTypeQName());
 				if (explicitParamType != null && explicitParamType != null){
 					paramType = explicitParamType; 
 				}
@@ -318,42 +334,15 @@ public class PrismBeanConverter {
 			return null;
 		}
 		SearchFilterType filterType = new SearchFilterType();
-		MapXNode xfilter = xmap;
-		XNode xdesc = xmap.get(SearchFilterType.F_DESCRIPTION);
-		if (xdesc != null) {
-			if (xdesc instanceof PrimitiveXNode<?>) {
-				String desc = ((PrimitiveXNode<String>)xdesc).getParsedValue(DOMUtil.XSD_STRING);
-				filterType.setDescription(desc);
-			}
-			xfilter = new MapXNode();
-			for (Entry<QName,XNode> entry: xmap.entrySet()) {
-				if (!QNameUtil.match(entry.getKey(), SearchFilterType.F_DESCRIPTION)) {
-					xfilter.put(entry.getKey(), entry.getValue());
-				}
-			}
-		}
-		filterType.setXFilter(xfilter);
+		filterType.parseFromXNode(xmap, prismContext);
 		return filterType;
 	}
 	
-	private XNode marshalSearchFilterType(SearchFilterType value) {
+	private XNode marshalSearchFilterType(SearchFilterType value) throws SchemaException {
 		if (value == null) {
 			return null;
 		}
-		MapXNode xfilter = value.getXFilter();
-		if (value.getDescription() == null) {
-			return xfilter;
-		}
-		MapXNode xmap = new MapXNode();
-		if (xfilter != null) {
-			for (Entry<QName,XNode> entry: xfilter.entrySet()) {
-				if (!QNameUtil.match(entry.getKey(), SearchFilterType.F_DESCRIPTION)) {
-					xmap.put(entry.getKey(), entry.getValue());
-				}
-			}
-		}
-		xmap.put(SearchFilterType.F_DESCRIPTION, new PrimitiveXNode<String>(value.getDescription()));
-		return xmap;
+		return value.serializeToXNode(prismContext);
 	}
 
 	
@@ -595,7 +584,7 @@ public class PrismBeanConverter {
 
 	
 	public <T> T unmarshallPrimitive(PrimitiveXNode<?> xprim, QName typeQName) throws SchemaException {
-		Class<T> classType = schemaRegistry.determineCompileTimeClass(typeQName);
+		Class<T> classType = getSchemaRegistry().determineCompileTimeClass(typeQName);
 		return unmarshallPrimitive(xprim, classType);
 	}
 	
@@ -697,7 +686,7 @@ public class PrismBeanConverter {
 		}
 	}
 
-	public <T> XNode marshall(T bean) {
+	public <T> XNode marshall(T bean) throws SchemaException {
 		if (bean == null) {
 			return null;
 		}
@@ -858,7 +847,7 @@ public class PrismBeanConverter {
 		return namespace;
 	}
 
-	private <T> XNode marshallValue(T value, QName fieldTypeName, boolean isAttribute) {
+	private <T> XNode marshallValue(T value, QName fieldTypeName, boolean isAttribute) throws SchemaException {
 		if (value == null) {
 			return null;
 		}

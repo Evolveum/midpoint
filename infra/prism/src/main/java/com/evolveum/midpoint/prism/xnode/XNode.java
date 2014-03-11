@@ -23,6 +23,8 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Visitable;
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Transformer;
 
@@ -30,7 +32,7 @@ import com.evolveum.midpoint.util.Transformer;
  * @author semancik
  *
  */
-public abstract class XNode implements DebugDumpable {
+public abstract class XNode implements DebugDumpable, Visitable {
 	
 	public static final QName KEY_OID = new QName(null, "oid");
 	public static final QName KEY_VERSION = new QName(null, "version");
@@ -120,6 +122,8 @@ public abstract class XNode implements DebugDumpable {
 	public void setExplicitTypeDeclaration(boolean explicitTypeDeclaration) {
 		this.explicitTypeDeclaration = explicitTypeDeclaration;
 	}
+	
+	public abstract void accept(Visitor visitor);
 	
 	public XNode cloneTransformKeys(Transformer<QName> keyTransformer) {
 		return cloneTransformKeys(keyTransformer, this);

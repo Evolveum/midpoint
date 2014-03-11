@@ -90,8 +90,6 @@ public class QueryConvertor {
 	private static final QName KEY_FILTER_EQUALS_PATH = new QName(NS_QUERY, "path");
 	private static final QName KEY_FILTER_EQUALS_MATCHING = new QName(NS_QUERY, "matching");
 	private static final QName KEY_FILTER_EQUALS_VALUE = new QName(NS_QUERY, "value");
-	private static final QName KEY_FILTER_EQUALS_EXPRESSION = new QName(NS_QUERY, "expression");
-	private static final QName KEY_FILTER_EQUALS_VALUE_EXPRESSION = new QName(NS_QUERY, "valueExpression"); // deprecated
 	
 	public static final QName KEY_FILTER_ORG_REF = new QName(NS_QUERY, "orgRef");
 	public static final QName KEY_FILTER_ORG_REF_OID = new QName(NS_QUERY, "oid");
@@ -279,9 +277,13 @@ public class QueryConvertor {
 			return EqualsFilter.createEqual(itemPath, (PrismProperty) item, matchingRule);
 			
 		} else {
-			XNode expressionXnode = xmap.get(KEY_FILTER_EQUALS_EXPRESSION);
-			if (expressionXnode == null) {
-				expressionXnode = xmap.get(KEY_FILTER_EQUALS_VALUE_EXPRESSION);
+			MapXNode expressionXnode = null;
+			
+			Entry<QName,XNode> expressionEntry = xmap.getSingleEntryThatDoesNotMatch(
+					KEY_FILTER_EQUALS_VALUE, KEY_FILTER_EQUALS_MATCHING, KEY_FILTER_EQUALS_PATH);
+			if (expressionEntry != null) {
+				expressionXnode = new MapXNode();
+				expressionXnode.put(expressionEntry.getKey(), expressionEntry.getValue());
 			}
 			
 			return EqualsFilter.createEqual(itemPath, (PrismPropertyDefinition) itemDefinition, matchingRule, expressionXnode);
@@ -326,10 +328,7 @@ public class QueryConvertor {
 			throw new IllegalStateException("No values to search specified for item " + itemName);
 		}
 
-		XNode expressionXnode = xmap.get(KEY_FILTER_EQUALS_EXPRESSION);
-		if (expressionXnode == null) {
-			expressionXnode = xmap.get(KEY_FILTER_EQUALS_VALUE_EXPRESSION);
-		}
+		MapXNode expressionXnode = null;
 		
 		return RefFilter.createReferenceEqual(itemPath, ref, expressionXnode);
 	}
@@ -543,7 +542,7 @@ public class QueryConvertor {
 		return map;
 	}
 	
-	private static <T extends PrismValue> MapXNode serializeValueFilter(PropertyValueFilter<T> filter, XNodeSerializer xnodeSerializer) throws SchemaException{
+	private static <T extends PrismValue> MapXNode serializeValueFilter(PropertyValueFilter<T> filter, XNodeSerializer xnodeSerializer) throws SchemaException {
 		MapXNode map = new MapXNode();
 		serializeMatchingRule(filter, map);
 		
@@ -551,18 +550,26 @@ public class QueryConvertor {
 
 		ListXNode valuesNode = new ListXNode();
 		
-		for (T val : filter.getValues()) {
-			if (val.getParent() == null) {
-				val.setParent(filter);
+		List<T> values = filter.getValues();
+		if (values != null) {
+			for (T val : values) {
+				if (val.getParent() == null) {
+					val.setParent(filter);
+				}
+				XNode valNode = null;
+				
+				valNode = xnodeSerializer.serializeItemValue(val, filter.getDefinition());
+				
+				valuesNode.add(valNode);
 			}
-			XNode valNode = null;
 			
-			valNode = xnodeSerializer.serializeItemValue(val, filter.getDefinition());
-			
-			valuesNode.add(valNode);
+			map.put(KEY_FILTER_EQUALS_VALUE, valuesNode);
 		}
 		
-		map.put(KEY_FILTER_EQUALS_VALUE, valuesNode);
+		MapXNode xexpression = filter.getExpression();
+		if (xexpression != null) {
+			map.merge(xexpression);
+		}
 		
 		return map;
 	}

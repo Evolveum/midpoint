@@ -68,6 +68,7 @@ import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -792,6 +793,18 @@ public class PrismAsserts {
 		assert expectedClass.isAssignableFrom(xsubnode.getClass()) : "Wrong class of subnode "+key+" in "+xmap+"; expected "+expectedClass+", got "+xsubnode.getClass();
 	}
 	
+	public static void assertAllParsedNodes(XNode xnode) {
+		Visitor visitor = new Visitor() {
+			@Override
+			public void visit(Visitable visitable) {
+				if ((visitable instanceof PrimitiveXNode<?>)) {
+					assert ((PrimitiveXNode<?>)visitable).isParsed() : "Xnode "+visitable+" is not parsed";
+				}
+			}
+		};
+		xnode.accept(visitor);
+	}
+	
 	// Query asserts
 	
 	public static void assertOrFilter(ObjectFilter filter, int conditions) {
@@ -887,6 +900,14 @@ public class PrismAsserts {
 		List<T> expectedCollection = Arrays.asList(expectedValues);
 		assert MiscUtil.unorderedCollectionEquals(actualCollection, expectedCollection) : message + ": expected "+expectedCollection+
 			"; was "+actualCollection;
+	}
+
+	public static void assertAssignableFrom(Class<?> expected, Class<?> actual) {
+		assert expected.isAssignableFrom(actual) : "Expected "+expected+" but got "+actual;
+	}
+
+	public static void assertAssignableFrom(Class<?> expected, Object actualObject) {
+		assert expected.isAssignableFrom(actualObject.getClass()) : "Expected "+expected+" but got "+actualObject.getClass();
 	}
 
 }

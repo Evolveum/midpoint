@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,48 +30,21 @@ import com.evolveum.midpoint.util.DebugDumpable;
 
 
 
-public abstract class ObjectFilter implements DebugDumpable, Serializable{
-
-//	private ItemPath fullPath;
-	private XNode expression;
-
-	ObjectFilter(XNode expression) {
-		this.expression = expression;
-	}
+public abstract class ObjectFilter implements DebugDumpable, Serializable {
 	
 	ObjectFilter() {
+		// Nothing to do
 	}
-	
-	public XNode getExpression() {
-		return expression;
-	}
-
-	public void setExpression(XNode expression) {
-		this.expression = expression;
-	}
-	
+		
 	public abstract ObjectFilter clone();
 	
 	public abstract <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry);
 	
 	protected void cloneValues(ObjectFilter clone) {
-		clone.expression = this.expression;
 	}
 	
 	public void accept(Visitor visitor) {
 		visitor.visit(this);
 	}
-	
-//	public ItemPath getFullPath() {
-//		return fullPath;
-//	}
-//	
-//	public ItemPath getParentPath(){
-//		if (fullPath == null){
-//			return null;
-//		}
-//		
-//		return fullPath.allExceptLast();
-//	}
-	
+		
 }

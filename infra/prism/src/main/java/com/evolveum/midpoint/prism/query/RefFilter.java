@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,22 +36,19 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class RefFilter extends PropertyValueFilter<PrismReferenceValue>{
-	
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
-	RefFilter(ItemPath path, PrismReferenceDefinition definition, XNode expression, List<PrismReferenceValue> values) {
+	RefFilter(ItemPath path, PrismReferenceDefinition definition, MapXNode expression, List<PrismReferenceValue> values) {
 		super(path, definition, expression, values);
 	}
 		
-	RefFilter(ItemPath path, PrismReferenceDefinition definition, XNode expression) {
+	RefFilter(ItemPath path, PrismReferenceDefinition definition, MapXNode expression) {
 		super(path, definition, expression);
 	}
 	
@@ -67,11 +64,11 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue>{
 		return new RefFilter(path, definition, null, Arrays.asList(values));
 	}
 	
-	public static RefFilter createReferenceEqual(ItemPath path, PrismReference item, XNode expression){
+	public static RefFilter createReferenceEqual(ItemPath path, PrismReference item, MapXNode expression){
 		return new RefFilter(path, item.getDefinition(), expression, item.getValues());
 	}
 	
-	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, XNode expression){
+	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, MapXNode expression){
 		return new RefFilter(path, definition, expression);
 	}
 		
