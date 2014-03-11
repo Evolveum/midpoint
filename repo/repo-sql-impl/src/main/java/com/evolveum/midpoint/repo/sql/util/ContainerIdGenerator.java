@@ -57,11 +57,6 @@ public class ContainerIdGenerator implements IdentifierGenerator {
     }
 
     private Short generate(RContainer container) {
-        if (container instanceof RObject) {
-            LOGGER.trace("Created id='0' for '{}'.", new Object[]{toString(container)});
-            return 0;
-        }
-
         if (container.getId() != null && container.getId() != 0) {
             LOGGER.trace("Created id='{}' for '{}'.", new Object[]{container.getId(), toString(container)});
             return container.getId();
@@ -82,15 +77,13 @@ public class ContainerIdGenerator implements IdentifierGenerator {
 //        return id;
     }
 
-    private String toString(Object object) {
-        RContainer container = (RContainer) object;
-
+    private String toString(RContainer object) {
         StringBuilder builder = new StringBuilder();
         builder.append(object.getClass().getSimpleName());
         builder.append("[");
-        builder.append(container.getOid());
+        builder.append(object.getOwnerOid());
         builder.append(",");
-        builder.append(container.getId());
+        builder.append(object.getId());
         builder.append("]");
 
         return builder.toString();
@@ -121,8 +114,6 @@ public class ContainerIdGenerator implements IdentifierGenerator {
             return;
         }
 
-        container.setId((short) 0);
-
         Set<RContainer> containers = getChildrenContainers(container);
         Set<Short> usedIds = new HashSet<>();
         for (RContainer c : containers) {
@@ -146,11 +137,9 @@ public class ContainerIdGenerator implements IdentifierGenerator {
         }
     }
 
-    private Set<RContainer> getChildrenContainers(RContainer parent) {
+    private Set<RContainer> getChildrenContainers(RObject parent) {
         Set<RContainer> containers = new HashSet<>();
-        if (parent instanceof RObject) {
-            containers.addAll(((RObject) parent).getTrigger());
-        }
+        containers.addAll(parent.getTrigger());
 
         if (parent instanceof RFocus) {
             containers.addAll(((RFocus) parent).getAssignments());

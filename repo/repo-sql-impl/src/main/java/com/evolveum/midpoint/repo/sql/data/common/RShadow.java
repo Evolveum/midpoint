@@ -227,9 +227,10 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
 
     public void setAttributes(RAnyContainer attributes) {
         this.attributes = attributes;
-        if (this.attributes != null) {
-            this.attributes.setOwnerType(RContainerType.SHADOW);
-        }
+        //todo fix
+//        if (this.attributes != null) {
+//            this.attributes.setOwnerType(RContainerType.SHADOW);
+//        }
     }
 
     public void setObjectClass(String objectClass) {
@@ -422,13 +423,14 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
                     "translated to resource reference.");
         }
 
-        if (jaxb.getAttributes() != null) {
-            RAnyContainer attributes = new RAnyContainer();
-            attributes.setOwner(repo);
-
-            repo.setAttributes(attributes);
-            RAnyContainer.copyFromJAXB(jaxb.getAttributes(), attributes, prismContext);
-        }
+        //todo fix
+//        if (jaxb.getAttributes() != null) {
+//            RAnyContainer attributes = new RAnyContainer();
+//            attributes.setOwner(repo);
+//
+//            repo.setAttributes(attributes);
+//            RAnyContainer.copyFromJAXB(jaxb.getAttributes(), attributes, prismContext);
+//        }
     }
 
     @Override

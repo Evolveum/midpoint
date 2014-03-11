@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.id.RObjectReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -47,15 +48,12 @@ public class RObjectReference implements ObjectReference {
     public static final String F_OWNER = "owner";
 
     //owner
-    private RContainer owner;
+    private RObject owner;
     private String ownerOid;
-    private Short ownerId;
     //other primary key fields
     private String targetOid;
     private String relation;
-
-    //other fields
-    private RContainerType type;
+    private RObjectType type;
 
     public RObjectReference() {
     }
@@ -63,11 +61,7 @@ public class RObjectReference implements ObjectReference {
     @ForeignKey(name = "fk_reference_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
-    @PrimaryKeyJoinColumns({
-            @PrimaryKeyJoinColumn(name = "owner_oid", referencedColumnName = "oid"),
-            @PrimaryKeyJoinColumn(name = "owner_id", referencedColumnName = "id")
-    })
-    public RContainer getOwner() {
+    public RObject getOwner() {
         return owner;
     }
 
@@ -78,15 +72,6 @@ public class RObjectReference implements ObjectReference {
             ownerOid = owner.getOid();
         }
         return ownerOid;
-    }
-
-    @Id
-    @Column(name = "owner_id")
-    public Short getOwnerId() {
-        if (ownerId == null && owner != null) {
-            ownerId = owner.getId();
-        }
-        return ownerId;
     }
 
     @Id
@@ -105,23 +90,19 @@ public class RObjectReference implements ObjectReference {
     /**
      * Represents {@link javax.xml.namespace.QName} type attribute in reference e.g.
      * {@link com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType} represented
-     * as enum {@link RContainerType#USER}
+     * as enum {@link com.evolveum.midpoint.repo.sql.data.common.other.RObjectType#USER}
      *
-     * @return null if not defined, otherwise value from {@link RContainerType} enum
+     * @return null if not defined, otherwise value from {@link com.evolveum.midpoint.repo.sql.data.common.other.RObjectType} enum
      */
     @Column(name = "containerType")
     @Enumerated(EnumType.ORDINAL)
     @Override
-    public RContainerType getType() {
+    public RObjectType getType() {
         return type;
     }
 
-    public void setOwner(RContainer owner) {
+    public void setOwner(RObject owner) {
         this.owner = owner;
-    }
-
-    public void setOwnerId(Short ownerId) {
-        this.ownerId = ownerId;
     }
 
     public void setOwnerOid(String ownerOid) {
@@ -136,7 +117,7 @@ public class RObjectReference implements ObjectReference {
         this.targetOid = targetOid;
     }
 
-    public void setType(RContainerType type) {
+    public void setType(RObjectType type) {
         this.type = type;
     }
 

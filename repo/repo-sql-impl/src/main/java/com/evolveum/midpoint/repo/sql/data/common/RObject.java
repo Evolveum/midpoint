@@ -20,8 +20,12 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.type.RCreateApproverRef;
+import com.evolveum.midpoint.repo.sql.data.common.type.RModifyApproverRef;
 import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
+import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -36,7 +40,9 @@ import org.hibernate.annotations.*;
 import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.xml.datatype.XMLGregorianCalendar;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -51,36 +57,43 @@ import java.util.Set;
         indexes = {@Index(name = "iObjectNameOrig", columnNames = "name_orig"),
 		@Index(name = "iObjectNameNorm", columnNames = "name_norm")})
 @ForeignKey(name = "fk_object")
-public abstract class RObject<T extends ObjectType> extends RContainer {
+@Inheritance(strategy = InheritanceType.JOINED)
+public abstract class RObject<T extends ObjectType> implements Metadata<RObjectReference>, Serializable {
 
-	private RPolyString name;
-    private RAnyContainer extension;
+    private String oid;
     private int version;
+    //full XML
+    private String fullObject;
+    //org. closure table
     private Set<ROrgClosure> descendants;
     private Set<ROrgClosure> ancestors;
+    //ObjectType
+	private RPolyString name;
+    private RAnyContainer extension;
     private Set<RObjectReference> parentOrgRef;
     private Set<RTrigger> trigger;
-    private RMetadata metadata;
-    private String fullObject;
     private REmbeddedReference tenantRef;
+    //Metadata
+    private XMLGregorianCalendar createTimestamp;
+    private REmbeddedReference creatorRef;
+    private Set<RObjectReference> createApproverRef;
+    private String createChannel;
+    private XMLGregorianCalendar modifyTimestamp;
+    private REmbeddedReference modifierRef;
+    private Set<RObjectReference> modifyApproverRef;
+    private String modifyChannel;
+
+    @Id
+    @GeneratedValue(generator = "ContainerOidGenerator")
+    @GenericGenerator(name = "ContainerOidGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ObjectOidGenerator")
+    @Column(name = "oid", nullable = false, updatable = false, length = RUtil.COLUMN_LENGTH_OID)
+    public String getOid() {
+        return oid;
+    }
 
     @Embedded
     public RPolyString getName() {
         return name;
-    }
-
-    public void setName(RPolyString name) {
-        this.name = name;
-    }
-
-    @OneToOne(mappedBy = RMetadata.F_OWNER, optional = true, orphanRemoval = true)//, fetch = FetchType.LAZY)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public RMetadata getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(RMetadata metadata) {
-        this.metadata = metadata;
     }
 
     @ForeignKey(name = "none")
@@ -93,10 +106,6 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
         return trigger;
     }
 
-    public void setTrigger(Set<RTrigger> trigger) {
-        this.trigger = trigger;
-    }
-
     @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RParentOrgRef.DISCRIMINATOR)
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
     @ForeignKey(name = "none")
@@ -106,10 +115,6 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
             parentOrgRef = new HashSet<>();
         }
         return parentOrgRef;
-    }
-
-    public void setParentOrgRef(Set<RObjectReference> parentOrgRef) {
-        this.parentOrgRef = parentOrgRef;
     }
 
     @com.evolveum.midpoint.repo.sql.query.definition.Any(jaxbNameLocalPart = "extension")
@@ -135,27 +140,8 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
         return ancestors;
     }
 
-    public void setDescendants(Set<ROrgClosure> descendants) {
-        this.descendants = descendants;
-    }
-
-    public void setAncestors(Set<ROrgClosure> ancestors) {
-        this.ancestors = ancestors;
-    }
-
-    public void setExtension(RAnyContainer extension) {
-        this.extension = extension;
-        if (this.extension != null) {
-            this.extension.setOwnerType(RContainerType.OBJECT);
-        }
-    }
-
     public int getVersion() {
         return version;
-    }
-
-    public void setVersion(int version) {
-        this.version = version;
     }
     
     @Embedded
@@ -169,15 +155,130 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
         return fullObject;
     }
 
+    @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RCreateApproverRef.DISCRIMINATOR)
+    @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RObjectReference> getCreateApproverRef() {
+        if (createApproverRef == null) {
+            createApproverRef = new HashSet<RObjectReference>();
+        }
+        return createApproverRef;
+    }
+
+    public String getCreateChannel() {
+        return createChannel;
+    }
+
+    public XMLGregorianCalendar getCreateTimestamp() {
+        return createTimestamp;
+    }
+
+    @Embedded
+    public REmbeddedReference getCreatorRef() {
+        return creatorRef;
+    }
+
+    @Embedded
+    public REmbeddedReference getModifierRef() {
+        return modifierRef;
+    }
+
+    @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RModifyApproverRef.DISCRIMINATOR)
+    @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RObjectReference> getModifyApproverRef() {
+        if (modifyApproverRef == null) {
+            modifyApproverRef = new HashSet<RObjectReference>();
+        }
+        return modifyApproverRef;
+    }
+
+    public String getModifyChannel() {
+        return modifyChannel;
+    }
+
+    public XMLGregorianCalendar getModifyTimestamp() {
+        return modifyTimestamp;
+    }
+
+    public void setCreateApproverRef(Set<RObjectReference> createApproverRef) {
+        this.createApproverRef = createApproverRef;
+    }
+
+    public void setCreateChannel(String createChannel) {
+        this.createChannel = createChannel;
+    }
+
+    public void setCreateTimestamp(XMLGregorianCalendar createTimestamp) {
+        this.createTimestamp = createTimestamp;
+    }
+
+    public void setCreatorRef(REmbeddedReference creatorRef) {
+        this.creatorRef = creatorRef;
+    }
+
+    public void setModifierRef(REmbeddedReference modifierRef) {
+        this.modifierRef = modifierRef;
+    }
+
+    public void setModifyApproverRef(Set<RObjectReference> modifyApproverRef) {
+        this.modifyApproverRef = modifyApproverRef;
+    }
+
+    public void setModifyChannel(String modifyChannel) {
+        this.modifyChannel = modifyChannel;
+    }
+
+    public void setModifyTimestamp(XMLGregorianCalendar modifyTimestamp) {
+        this.modifyTimestamp = modifyTimestamp;
+    }
+
     public void setFullObject(String fullObject) {
         this.fullObject = fullObject;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
     }
 
 	public void setTenantRef(REmbeddedReference tenantRef) {
 		this.tenantRef = tenantRef;
 	}
 
-	@Override
+    public void setName(RPolyString name) {
+        this.name = name;
+    }
+
+    public void setOid(String oid) {
+        this.oid = oid;
+    }
+
+    public void setTrigger(Set<RTrigger> trigger) {
+        this.trigger = trigger;
+    }
+
+    public void setDescendants(Set<ROrgClosure> descendants) {
+        this.descendants = descendants;
+    }
+
+    public void setAncestors(Set<ROrgClosure> ancestors) {
+        this.ancestors = ancestors;
+    }
+
+    public void setExtension(RAnyContainer extension) {
+        this.extension = extension;
+        if (this.extension != null) {
+//            this.extension.setOwnerType(RContainerType.OBJECT);
+        }
+    }
+
+    public void setParentOrgRef(Set<RObjectReference> parentOrgRef) {
+        this.parentOrgRef = parentOrgRef;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o)
             return true;
@@ -209,6 +310,13 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
     public int hashCode() {        
         int result = super.hashCode();
         result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (createTimestamp != null ? createTimestamp.hashCode() : 0);
+        result = 31 * result + (creatorRef != null ? creatorRef.hashCode() : 0);
+        result = 31 * result + (createChannel != null ? createChannel.hashCode() : 0);
+        result = 31 * result + (modifyTimestamp != null ? modifyTimestamp.hashCode() : 0);
+        result = 31 * result + (modifierRef != null ? modifierRef.hashCode() : 0);
+        result = 31 * result + (modifyChannel != null ? modifyChannel.hashCode() : 0);
+
         return result;
     }
 
@@ -246,9 +354,11 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
         }
 
         if (SelectorOptions.hasToLoadPath(ObjectType.F_METADATA, options)) {
-            if (repo.getMetadata() != null) {
-                jaxb.setMetadata(repo.getMetadata().toJAXB(prismContext));
-            }
+            //todo fix
+//            MetadataFactory.copyToJAXB(this, );
+//            if (repo.getMetadata() != null) {
+//                jaxb.setMetadata(repo.getMetadata().toJAXB(prismContext));
+//            }
         }
         
         if (SelectorOptions.hasToLoadPath(ObjectType.F_TENANT_REF, options)) {
@@ -265,20 +375,20 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setOid(jaxb.getOid());
-        repo.setId((short) 0); // objects types have default id
 
         String strVersion = jaxb.getVersion();
         int version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*") ? Integer.parseInt(jaxb
                 .getVersion()) : 0;
         repo.setVersion(version);
 
-        if (jaxb.getExtension() != null) {
-            RAnyContainer extension = new RAnyContainer();
-            extension.setOwner(repo);
-
-            repo.setExtension(extension);
-            RAnyContainer.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
-        }
+        //todo fix
+//        if (jaxb.getExtension() != null) {
+//            RAnyContainer extension = new RAnyContainer();
+//            extension.setOwner(repo);
+//
+//            repo.setExtension(extension);
+//            RAnyContainer.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
+//        }
 
         repo.getParentOrgRef().addAll(RUtil.safeListReferenceToSet(jaxb.getParentOrgRef(), prismContext,
                 repo, RReferenceOwner.OBJECT_PARENT_ORG));
@@ -290,12 +400,13 @@ public abstract class RObject<T extends ObjectType> extends RContainer {
             repo.getTrigger().add(rTrigger);
         }
 
-        if (jaxb.getMetadata() != null) {
-            RMetadata metadata = new RMetadata();
-            metadata.setOwner(repo);
-            RMetadata.copyFromJAXB(jaxb.getMetadata(), metadata, prismContext);
-            repo.setMetadata(metadata);
-        }
+        //todo fix
+//        if (jaxb.getMetadata() != null) {
+//            RMetadata metadata = new RMetadata();
+//            metadata.setOwner(repo);
+//            RMetadata.copyFromJAXB(jaxb.getMetadata(), metadata, prismContext);
+//            repo.setMetadata(metadata);
+//        }
         
         repo.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTenantRef(), prismContext));
     }

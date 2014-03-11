@@ -18,10 +18,10 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import org.hibernate.annotations.*;
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
-import javax.persistence.Entity;
 import java.io.Serializable;
 
 /**
@@ -29,11 +29,28 @@ import java.io.Serializable;
  */
 @Entity
 @IdClass(RContainerId.class)
-@Inheritance(strategy = InheritanceType.JOINED)
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public abstract class RContainer implements Serializable {
 
-    private String oid;
+    private RObject owner;
+    private String ownerOid;
     private Short id;
+
+    @Id
+    @ForeignKey(name = "fk_container_owner")
+    @MapsId("owner")
+    @ManyToOne(fetch = FetchType.LAZY)
+    public RObject getOwner() {
+        return owner;
+    }
+
+    @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
+    public String getOwnerOid() {
+        if (owner != null && ownerOid == null) {
+            ownerOid = owner.getOid();
+        }
+        return ownerOid;
+    }
 
     @Id
     @GeneratedValue(generator = "ContainerIdGenerator")
@@ -43,16 +60,13 @@ public abstract class RContainer implements Serializable {
         return id;
     }
 
-    @Id
-    @GeneratedValue(generator = "ContainerOidGenerator")
-    @GenericGenerator(name = "ContainerOidGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerOidGenerator")
-    @Column(name = "oid", nullable = false, updatable = false, length = RUtil.COLUMN_LENGTH_OID)
-    public String getOid() {
-        return oid;
+
+    public void setOwner(RObject owner) {
+        this.owner = owner;
     }
 
-    public void setOid(String oid) {
-        this.oid = oid;
+    public void setOwnerOid(String ownerOid) {
+        this.ownerOid = ownerOid;
     }
 
     public void setId(Short id) {
@@ -60,25 +74,7 @@ public abstract class RContainer implements Serializable {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        RContainer container = (RContainer) o;
-
-        if (id != null ? !id.equals(container.id) : container.id != null) return false;
-        if (oid != null ? !oid.equals(container.oid) : container.oid != null) return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        return super.hashCode();
-    }
-
-    @Override
     public String toString() {
-        return "RContainer{" + oid + ", " + id + "}";
+        return "RContainer{" + ownerOid + ", " + id + "}";
     }
 }

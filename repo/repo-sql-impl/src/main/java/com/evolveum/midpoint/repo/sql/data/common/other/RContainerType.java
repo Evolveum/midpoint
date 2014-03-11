@@ -25,26 +25,7 @@ public enum RContainerType {
 
     ASSIGNMENT(RAssignment.class),
     EXCLUSION(RExclusion.class),
-    ACCOUNT(RShadow.class),
-    CONNECTOR(RConnector.class),
-    CONNECTOR_HOST(RConnectorHost.class),
-    GENERIC_OBJECT(RGenericObject.class),
-    OBJECT(RObject.class),
-    VALUE_POLICY(RValuePolicy.class),
-    RESOURCE(RResource.class),
-    SHADOW(RShadow.class),
-    ROLE(RRole.class),
-    SYSTEM_CONFIGURATION(RSystemConfiguration.class),
-    TASK(RTask.class),
-    USER(RUser.class),
-    REPORT(RReport.class),
-    REPORT_OUTPUT(RReportOutput.class),
-    OBJECT_TEMPLATE(RObjectTemplate.class),
-    NODE(RNode.class),
-    ORG(ROrg.class),
-    ABSTRACT_ROLE(RAbstractRole.class),
     AUTHORIZATION(RAuthorization.class),
-    FOCUS(RFocus.class),
     TRIGGER(RTrigger.class);
 
     private Class<? extends RContainer> clazz;

@@ -10,7 +10,8 @@ import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 @JaxbType(type = TriggerType.class)
@@ -18,15 +19,10 @@ import javax.xml.datatype.XMLGregorianCalendar;
 @ForeignKey(name = "fk_trigger")
 @org.hibernate.annotations.Table(appliesTo = "m_trigger",
         indexes = {@Index(name = "iTriggerTimestamp", columnNames = RTrigger.C_TIMESTAMP)})
-public class RTrigger extends RContainer implements ROwnable {
+public class RTrigger extends RContainer {
 
     public static final String C_TIMESTAMP = "timestampValue";
     public static final String F_OWNER = "owner";
-
-    //owner
-    private RObject owner;
-    private String ownerOid;
-    private Short ownerId;
 
     private String handlerUri;
     private XMLGregorianCalendar timestamp;
@@ -36,34 +32,7 @@ public class RTrigger extends RContainer implements ROwnable {
     }
 
     public RTrigger(RObject owner) {
-        this.owner = owner;
-    }
-
-    @ForeignKey(name = "fk_trigger_owner")
-    @MapsId("owner")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumns({
-            @JoinColumn(name = "owner_oid", referencedColumnName = "oid"),
-            @JoinColumn(name = "owner_id", referencedColumnName = "id")
-    })
-    public RObject getOwner() {
-        return owner;
-    }
-
-    @Column(name = "owner_id", nullable = false)
-    public Short getOwnerId() {
-        if (ownerId == null && owner != null) {
-            ownerId = owner.getId();
-        }
-        return ownerId;
-    }
-
-    @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
-    public String getOwnerOid() {
-        if (ownerOid == null && owner != null) {
-            ownerOid = owner.getOid();
-        }
-        return ownerOid;
+        setOwner(owner);
     }
 
     public String getHandlerUri() {
@@ -81,24 +50,6 @@ public class RTrigger extends RContainer implements ROwnable {
 
     public void setHandlerUri(String handlerUri) {
         this.handlerUri = handlerUri;
-    }
-
-    public void setOwner(RObject owner) {
-        this.owner = owner;
-    }
-
-    public void setOwnerId(Short ownerId) {
-        this.ownerId = ownerId;
-    }
-
-    public void setOwnerOid(String ownerOid) {
-        this.ownerOid = ownerOid;
-    }
-
-    @Transient
-    @Override
-    public RContainer getContainerOwner() {
-        return getOwner();
     }
 
     @Override
@@ -140,7 +91,7 @@ public class RTrigger extends RContainer implements ROwnable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        repo.setOid(parent.getOid());
+        repo.setOwnerOid(parent.getOid());
         repo.setId(RUtil.toShort(jaxb.getId()));
 
         repo.setHandlerUri(jaxb.getHandlerUri());

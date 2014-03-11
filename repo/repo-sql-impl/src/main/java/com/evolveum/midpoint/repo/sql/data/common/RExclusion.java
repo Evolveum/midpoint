@@ -27,7 +27,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.ForeignKey;
 
-import javax.persistence.*;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 
 /**
  * @author lazyman
@@ -35,12 +38,8 @@ import javax.persistence.*;
 @JaxbType(type = ExclusionType.class)
 @Entity
 @ForeignKey(name = "fk_exclusion")
-public class RExclusion extends RContainer implements ROwnable {
+public class RExclusion extends RContainer {
 
-    //owner
-    private RObject owner;
-    private String ownerOid;
-    private Short ownerId;
     //exclusion
     private REmbeddedReference targetRef;
     private RExclusionPolicy policy;
@@ -50,34 +49,7 @@ public class RExclusion extends RContainer implements ROwnable {
     }
 
     public RExclusion(RObject owner) {
-        this.owner = owner;
-    }
-
-    @ForeignKey(name = "fk_exclusion_owner")
-    @MapsId("owner")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumns({
-            @JoinColumn(name = "owner_oid", referencedColumnName = "oid"),
-            @JoinColumn(name = "owner_id", referencedColumnName = "id")
-    })
-    public RObject getOwner() {
-        return owner;
-    }
-
-    @Column(name = "owner_id", nullable = false)
-    public Short getOwnerId() {
-        if (ownerId == null && owner != null) {
-            ownerId = owner.getId();
-        }
-        return ownerId;
-    }
-
-    @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
-    public String getOwnerOid() {
-        if (ownerOid == null && owner != null) {
-            ownerOid = owner.getOid();
-        }
-        return ownerOid;
+        setOwner(owner);
     }
 
     @Enumerated(EnumType.ORDINAL)
@@ -96,24 +68,6 @@ public class RExclusion extends RContainer implements ROwnable {
 
     public void setTargetRef(REmbeddedReference targetRef) {
         this.targetRef = targetRef;
-    }
-
-    public void setOwner(RObject owner) {
-        this.owner = owner;
-    }
-
-    public void setOwnerId(Short ownerId) {
-        this.ownerId = ownerId;
-    }
-
-    public void setOwnerOid(String ownerOid) {
-        this.ownerOid = ownerOid;
-    }
-
-    @Transient
-    @Override
-    public RContainer getContainerOwner() {
-        return getOwner();
     }
 
     @Override
@@ -157,7 +111,7 @@ public class RExclusion extends RContainer implements ROwnable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        repo.setOid(parent.getOid());
+        repo.setOwnerOid(parent.getOid());
         repo.setId(RUtil.toShort(jaxb.getId()));
 
         repo.setPolicy(RUtil.getRepoEnumValue(jaxb.getPolicy(), RExclusionPolicy.class));

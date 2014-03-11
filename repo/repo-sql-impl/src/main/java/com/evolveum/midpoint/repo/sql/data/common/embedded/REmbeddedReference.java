@@ -18,7 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
-import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
@@ -41,7 +41,7 @@ public class REmbeddedReference implements ObjectReference {
     //target
     private String targetOid;
     //other fields
-    private RContainerType type;
+    private RObjectType type;
     //relation qname
     private String relation;
 
@@ -59,7 +59,7 @@ public class REmbeddedReference implements ObjectReference {
 
     @Enumerated(EnumType.ORDINAL)
     @Override
-    public RContainerType getType() {
+    public RObjectType getType() {
         return type;
     }
 
@@ -71,7 +71,7 @@ public class REmbeddedReference implements ObjectReference {
         this.targetOid = targetOid;
     }
 
-    public void setType(RContainerType type) {
+    public void setType(RObjectType type) {
         this.type = type;
     }
 

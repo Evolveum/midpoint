@@ -31,6 +31,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -329,7 +330,7 @@ public final class RUtil {
     }
 
     public static Set<RObjectReference> safeListReferenceToSet(List<ObjectReferenceType> list, PrismContext prismContext,
-                                                               RContainer owner, RReferenceOwner refOwner) {
+                                                               RObject owner, RReferenceOwner refOwner) {
         Set<RObjectReference> set = new HashSet<RObjectReference>();
         if (list == null || list.isEmpty()) {
             return set;
@@ -345,7 +346,7 @@ public final class RUtil {
     }
 
     public static RObjectReference jaxbRefToRepo(ObjectReferenceType reference, PrismContext prismContext,
-                                                 RContainer owner, RReferenceOwner refOwner) {
+                                                 RObject owner, RReferenceOwner refOwner) {
         if (reference == null) {
             return null;
         }
@@ -407,7 +408,7 @@ public final class RUtil {
         fixCompositeIdentifierInMetaModel(sessionFactory, RAuthorization.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RExclusion.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RTrigger.class);
-        for (RContainerType type : ClassMapper.getKnownTypes()) {
+        for (RObjectType type : ClassMapper.getKnownTypes()) {
             fixCompositeIdentifierInMetaModel(sessionFactory, type.getClazz());
         }
     }

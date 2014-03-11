@@ -29,18 +29,16 @@ import java.io.Serializable;
 @Entity
 @Table(name = "m_org_closure")
 @org.hibernate.annotations.Table(appliesTo = "m_org_closure",
-        indexes = {@Index(name = "iAncestorDepth", columnNames = {"ancestor_id","ancestor_oid","depthValue"})})
+        indexes = {@Index(name = "iAncestorDepth", columnNames = {"ancestor_id", "ancestor_oid", "depthValue"})})
 public class ROrgClosure implements Serializable {
 
     private Long id;
 
     private RObject ancestor;
     private String ancestorOid;
-    private Short ancestorId;
 
     private RObject descendant;
     private String descendantOid;
-    private Short descendantId;
 
     private int depth;
 
@@ -50,11 +48,9 @@ public class ROrgClosure implements Serializable {
     public ROrgClosure(String ancestorOid, String descendantOid, int depth) {
         if (ancestorOid != null) {
             this.ancestorOid = ancestorOid;
-            this.ancestorId = 0;
         }
         if (descendantOid != null) {
             this.descendantOid = descendantOid;
-            this.descendantId = 0;
         }
         this.depth = depth;
     }
@@ -83,14 +79,6 @@ public class ROrgClosure implements Serializable {
         return ancestor;
     }
 
-    @Column(name = "ancestor_id", insertable = false, updatable = false)
-    public Short getAncestorId() {
-        if (ancestorId == null && ancestor != null) {
-            ancestorId = ancestor.getId();
-        }
-        return ancestorId;
-    }
-
     @Column(name = "ancestor_oid", length = RUtil.COLUMN_LENGTH_OID, insertable = false, updatable = false)
     public String getAncestorOid() {
         if (ancestorOid == null && ancestor.getOid() != null) {
@@ -109,14 +97,6 @@ public class ROrgClosure implements Serializable {
     @ForeignKey(name = "fk_descendant")
     public RObject getDescendant() {
         return descendant;
-    }
-
-    @Column(name = "descendant_id", insertable = false, updatable = false)
-    public Short getDescendantId() {
-        if (descendantId == null && descendant != null) {
-            descendantId = descendant.getId();
-        }
-        return descendantId;
     }
 
     @Column(name = "descendant_oid", length = RUtil.COLUMN_LENGTH_OID, insertable = false, updatable = false)
@@ -140,16 +120,8 @@ public class ROrgClosure implements Serializable {
         this.depth = depth;
     }
 
-    public void setAncestorId(Short ancestorId) {
-        this.ancestorId = ancestorId;
-    }
-
     public void setAncestorOid(String ancestorOid) {
         this.ancestorOid = ancestorOid;
-    }
-
-    public void setDescendantId(Short descendantId) {
-        this.descendantId = descendantId;
     }
 
     public void setDescendantOid(String descendantOid) {

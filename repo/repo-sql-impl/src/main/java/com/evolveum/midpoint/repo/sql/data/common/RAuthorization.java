@@ -37,14 +37,10 @@ import java.util.Set;
 @JaxbType(type = AuthorizationType.class)
 @Entity
 @ForeignKey(name = "fk_authorization")
-public class RAuthorization extends RContainer implements ROwnable {
+public class RAuthorization extends RContainer {
 
     public static final String F_OWNER = "owner";
 
-    //owner
-    private RObject owner;
-    private String ownerOid;
-    private Short ownerId;
     //actual data
     private RAuthorizationDecision decision;
     private Set<String> action;
@@ -54,34 +50,7 @@ public class RAuthorization extends RContainer implements ROwnable {
     }
 
     public RAuthorization(RObject owner) {
-        this.owner = owner;
-    }
-
-    @ForeignKey(name = "fk_authorization_owner")
-    @MapsId("owner")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumns({
-            @JoinColumn(name = "owner_oid", referencedColumnName = "oid"),
-            @JoinColumn(name = "owner_id", referencedColumnName = "id")
-    })
-    public RObject getOwner() {
-        return owner;
-    }
-
-    @Column(name = "owner_id", nullable = false)
-    public Short getOwnerId() {
-        if (ownerId == null && owner != null) {
-            ownerId = owner.getId();
-        }
-        return ownerId;
-    }
-
-    @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
-    public String getOwnerOid() {
-        if (ownerOid == null && owner != null) {
-            ownerOid = owner.getOid();
-        }
-        return ownerOid;
+        setOwner(owner);
     }
 
     @ElementCollection
@@ -100,30 +69,12 @@ public class RAuthorization extends RContainer implements ROwnable {
         return decision;
     }
 
-    @Transient
-    @Override
-    public RContainer getContainerOwner() {
-        return getOwner();
-    }
-
     public void setAction(Set<String> action) {
         this.action = action;
     }
 
     public void setDecision(RAuthorizationDecision decision) {
         this.decision = decision;
-    }
-
-    public void setOwner(RObject owner) {
-        this.owner = owner;
-    }
-
-    public void setOwnerId(Short ownerId) {
-        this.ownerId = ownerId;
-    }
-
-    public void setOwnerOid(String ownerOid) {
-        this.ownerOid = ownerOid;
     }
 
     @Override
@@ -169,7 +120,7 @@ public class RAuthorization extends RContainer implements ROwnable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        repo.setOid(parent.getOid());
+        repo.setOwnerOid(parent.getOid());
         repo.setId(RUtil.toShort(jaxb.getId()));
 
         repo.setDecision(RUtil.getRepoEnumValue(jaxb.getDecision(), RAuthorizationDecision.class));

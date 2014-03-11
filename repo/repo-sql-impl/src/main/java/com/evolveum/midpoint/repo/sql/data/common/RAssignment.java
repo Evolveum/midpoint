@@ -21,6 +21,8 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
+import com.evolveum.midpoint.repo.sql.data.common.type.RCreateApproverRef;
+import com.evolveum.midpoint.repo.sql.data.common.type.RModifyApproverRef;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -33,8 +35,12 @@ import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author lazyman
@@ -45,7 +51,7 @@ import javax.persistence.*;
         indexes = {@Index(name = "iAssignmentAdministrative", columnNames = "administrativeStatus"),
                 @Index(name = "iAssignmentEffective", columnNames = "effectiveStatus")})
 @ForeignKey(name = "fk_assignment")
-public class RAssignment extends RContainer implements ROwnable {
+public class RAssignment extends RContainer {
 
     public static final String F_OWNER = "owner";
     /**
@@ -56,49 +62,36 @@ public class RAssignment extends RContainer implements ROwnable {
 
     private static final Trace LOGGER = TraceManager.getTrace(RAssignment.class);
 
-    //owner
-    private RObject owner;
-    private String ownerOid;
-    private Short ownerId;
     private RAssignmentOwner assignmentOwner;
     //extension
     private RAnyContainer extension;
     //assignment fields
     private RActivation activation;
     private REmbeddedReference targetRef;
-    private RMetadata metadata;
     private Integer order;
     private REmbeddedReference tenantRef;
+    //metadata
+    private XMLGregorianCalendar createTimestamp;
+    private REmbeddedReference creatorRef;
+    private Set<RObjectReference> createApproverRef;
+    private String createChannel;
+    private XMLGregorianCalendar modifyTimestamp;
+    private REmbeddedReference modifierRef;
+    private Set<RObjectReference> modifyApproverRef;
+    private String modifyChannel;
 
 	public RAssignment() {
         this(null, null);
     }
 
     public RAssignment(RObject owner, RAssignmentOwner assignmentOwner) {
-        this.owner = owner;
+        this.setOwner(owner);
         this.assignmentOwner = assignmentOwner;
     }
 
     @Enumerated(EnumType.ORDINAL)
     public RAssignmentOwner getAssignmentOwner() {
         return assignmentOwner;
-    }
-
-    @OneToOne(mappedBy = RMetadata.F_OWNER, optional = true, orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public RMetadata getMetadata() {
-        return metadata;
-    }
-
-    @ForeignKey(name = "fk_assignment_owner")
-    @MapsId("owner")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumns({
-            @JoinColumn(name = "owner_oid", referencedColumnName = "oid"),
-            @JoinColumn(name = "owner_id", referencedColumnName = "id")
-    })
-    public RObject getOwner() {
-        return owner;
     }
 
     @Embedded
@@ -110,22 +103,6 @@ public class RAssignment extends RContainer implements ROwnable {
     public REmbeddedReference getTenantRef() {
 		return tenantRef;
 	}
-
-    @Column(name = "owner_id", nullable = false)
-    public Short getOwnerId() {
-        if (ownerId == null && owner != null) {
-            ownerId = owner.getId();
-        }
-        return ownerId;
-    }
-
-    @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
-    public String getOwnerOid() {
-        if (ownerOid == null && owner != null) {
-            ownerOid = owner.getOid();
-        }
-        return ownerOid;
-    }
 
     @com.evolveum.midpoint.repo.sql.query.definition.Any(jaxbNameLocalPart = "extension")
     @OneToOne(optional = true, orphanRemoval = true)
@@ -150,6 +127,86 @@ public class RAssignment extends RContainer implements ROwnable {
         return order;
     }
 
+    @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RCreateApproverRef.DISCRIMINATOR)
+    @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RObjectReference> getCreateApproverRef() {
+        if (createApproverRef == null) {
+            createApproverRef = new HashSet<RObjectReference>();
+        }
+        return createApproverRef;
+    }
+
+    public String getCreateChannel() {
+        return createChannel;
+    }
+
+    public XMLGregorianCalendar getCreateTimestamp() {
+        return createTimestamp;
+    }
+
+    @Embedded
+    public REmbeddedReference getCreatorRef() {
+        return creatorRef;
+    }
+
+    @Embedded
+    public REmbeddedReference getModifierRef() {
+        return modifierRef;
+    }
+
+    @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RModifyApproverRef.DISCRIMINATOR)
+    @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RObjectReference> getModifyApproverRef() {
+        if (modifyApproverRef == null) {
+            modifyApproverRef = new HashSet<RObjectReference>();
+        }
+        return modifyApproverRef;
+    }
+
+    public String getModifyChannel() {
+        return modifyChannel;
+    }
+
+    public XMLGregorianCalendar getModifyTimestamp() {
+        return modifyTimestamp;
+    }
+
+    public void setCreateApproverRef(Set<RObjectReference> createApproverRef) {
+        this.createApproverRef = createApproverRef;
+    }
+
+    public void setCreateChannel(String createChannel) {
+        this.createChannel = createChannel;
+    }
+
+    public void setCreateTimestamp(XMLGregorianCalendar createTimestamp) {
+        this.createTimestamp = createTimestamp;
+    }
+
+    public void setCreatorRef(REmbeddedReference creatorRef) {
+        this.creatorRef = creatorRef;
+    }
+
+    public void setModifierRef(REmbeddedReference modifierRef) {
+        this.modifierRef = modifierRef;
+    }
+
+    public void setModifyApproverRef(Set<RObjectReference> modifyApproverRef) {
+        this.modifyApproverRef = modifyApproverRef;
+    }
+
+    public void setModifyChannel(String modifyChannel) {
+        this.modifyChannel = modifyChannel;
+    }
+
+    public void setModifyTimestamp(XMLGregorianCalendar modifyTimestamp) {
+        this.modifyTimestamp = modifyTimestamp;
+    }
+
     public void setOrder(Integer order) {
         this.order = order;
     }
@@ -165,40 +222,17 @@ public class RAssignment extends RContainer implements ROwnable {
         }
     }
 
-    public void setOwnerId(Short ownerId) {
-        this.ownerId = ownerId;
-    }
-
-    public void setOwnerOid(String ownerOid) {
-        this.ownerOid = ownerOid;
-    }
-
     public void setTargetRef(REmbeddedReference targetRef) {
         this.targetRef = targetRef;
-    }
-
-    public void setOwner(RObject owner) {
-        this.owner = owner;
-    }
-
-    public void setMetadata(RMetadata metadata) {
-        this.metadata = metadata;
     }
 
     public void setAssignmentOwner(RAssignmentOwner assignmentOwner) {
         this.assignmentOwner = assignmentOwner;
     }
 
-   
 	public void setTenantRef(REmbeddedReference tenantRef) {
 		this.tenantRef = tenantRef;
 	}
-	
-    @Transient
-    @Override
-    public RContainer getContainerOwner() {
-        return getOwner();
-    }
 
     @Override
     public boolean equals(Object o) {
@@ -216,6 +250,8 @@ public class RAssignment extends RContainer implements ROwnable {
             return false;
         if (tenantRef != null ? !tenantRef.equals(that.tenantRef) : that.tenantRef != null) return false;
 
+        //todo fix metadata
+
         return true;
     }
 
@@ -224,6 +260,14 @@ public class RAssignment extends RContainer implements ROwnable {
         int result = super.hashCode();
         result = 31 * result + (activation != null ? activation.hashCode() : 0);
         result = 31 * result + (order != null ? order.hashCode() : 0);
+
+        result = 31 * result + (createTimestamp != null ? createTimestamp.hashCode() : 0);
+        result = 31 * result + (creatorRef != null ? creatorRef.hashCode() : 0);
+        result = 31 * result + (createChannel != null ? createChannel.hashCode() : 0);
+        result = 31 * result + (modifyTimestamp != null ? modifyTimestamp.hashCode() : 0);
+        result = 31 * result + (modifierRef != null ? modifierRef.hashCode() : 0);
+        result = 31 * result + (modifyChannel != null ? modifyChannel.hashCode() : 0);
+
         return result;
     }
 
@@ -250,9 +294,10 @@ public class RAssignment extends RContainer implements ROwnable {
         if (repo.getTenantRef() != null) {
             jaxb.setTenantRef(repo.getTenantRef().toJAXB(prismContext));
         }
-        if (repo.getMetadata() != null) {
-            jaxb.setMetadata(repo.getMetadata().toJAXB(prismContext));
-        }
+        //todo fix
+//        if (repo.getMetadata() != null) {
+//            jaxb.setMetadata(repo.getMetadata().toJAXB(prismContext));
+//        }
     }
 
     public static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, ObjectType parent, PrismContext prismContext)
@@ -260,7 +305,7 @@ public class RAssignment extends RContainer implements ROwnable {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        repo.setOid(parent.getOid());
+        repo.setOwnerOid(parent.getOid());
         repo.setId(RUtil.toShort(jaxb.getId()));
         repo.setOrder(jaxb.getOrder());
 
@@ -285,16 +330,14 @@ public class RAssignment extends RContainer implements ROwnable {
         repo.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTargetRef(), prismContext));
         
         repo.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTenantRef(), prismContext));
-        
-        if (jaxb.getMetadata() != null) {
-            RMetadata metadata = new RMetadata();
-            metadata.setOwner(repo);
-            RMetadata.copyFromJAXB(jaxb.getMetadata(), metadata, prismContext);
-            repo.setMetadata(metadata);
-        }
 
-//        ContainerIdGenerator gen = new ContainerIdGenerator();
-//        repo.setId((Long) gen.generate(null, repo));
+        //todo fix
+//        if (jaxb.getMetadata() != null) {
+//            RMetadata metadata = new RMetadata();
+//            metadata.setOwner(repo);
+//            RMetadata.copyFromJAXB(jaxb.getMetadata(), metadata, prismContext);
+//            repo.setMetadata(metadata);
+//        }
     }
 
     public AssignmentType toJAXB(PrismContext prismContext) throws DtoTranslationException {
