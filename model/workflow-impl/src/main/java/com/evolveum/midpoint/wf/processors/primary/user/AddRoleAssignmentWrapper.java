@@ -255,7 +255,7 @@ public class AddRoleAssignmentWrapper extends BaseWrapper {
     // ------------------------------------------------------------ Things that execute on when item is being approved
 
     @Override
-    public PrismObject<? extends QuestionFormType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public PrismObject<? extends QuestionFormType> getQuestionForm(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("getRequestSpecific starting: execution id " + task.getExecutionId() + ", pid " + task.getProcessInstanceId() + ", variables = " + variables);

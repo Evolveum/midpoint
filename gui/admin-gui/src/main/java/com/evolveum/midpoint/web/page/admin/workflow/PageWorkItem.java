@@ -520,11 +520,9 @@ public class PageWorkItem extends PageAdminWorkItems {
         LOGGER.trace("processInstanceDtoModel = {}, loaded = {}", processInstanceDtoModel, processInstanceDtoModel.isLoaded());
         ProcessInstanceDto processInstanceDto = processInstanceDtoModel.getObject();
         WfProcessInstanceType processInstance = processInstanceDto.getProcessInstance();
-        String detailsPageClassName = getWorkflowManager().getProcessInstanceDetailsPanelName(processInstance);
-
         additionalInfoAccordion.getBodyContainer().add(createAccordionItem(ID_PROCESS_INSTANCE_ACCORDION_INFO,
                 "pageWorkItem.accordionLabel.processInstance",
-                new ProcessInstancePanel(ID_PROCESS_INSTANCE_PANEL, processInstanceDtoModel, detailsPageClassName), true));
+                new ProcessInstancePanel(ID_PROCESS_INSTANCE_PANEL, processInstanceDtoModel), true));
         initButtons(mainForm);
     }
 

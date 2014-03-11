@@ -76,6 +76,10 @@ public enum ObjectTypes {
     REPORT_OUTPUT(ReportOutputType.COMPLEX_TYPE, SchemaConstants.C_REPORT_OUTPUT, ReportOutputType.class,
                   ObjectManager.MODEL, "reportOutputs"),
 
+    // as for now, this has to remain disabled (they could be used e.g. in audit logs, when the repo will support them)
+    //WORK_ITEM(WorkItemType.COMPLEX_TYPE, SchemaConstants.C_WORK_ITEM, WorkItemType.class, ObjectManager.WORKFLOW, "workItems"),
+    //WF_PROCESS_INSTANCE(WfProcessInstanceType.COMPLEX_TYPE, SchemaConstants.C_WF_PROCESS_INSTANCE, WfProcessInstanceType.class, ObjectManager.WORKFLOW, "wfProcessInstances"),
+
     // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType
     OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects");
     

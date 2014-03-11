@@ -26,7 +26,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
-import com.evolveum.midpoint.wf.processes.itemApproval.Constants;
 import com.evolveum.midpoint.wf.processors.primary.PcpJob;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
@@ -46,7 +45,6 @@ public abstract class BaseWrapper implements PrimaryApprovalProcessWrapper {
     private static final Trace LOGGER = TraceManager.getTrace(BaseWrapper.class);
 
     public static final String GENERAL_APPROVAL_PROCESS = "ItemApproval";
-    private static final String DEFAULT_PROCESS_INSTANCE_DETAILS_PANEL_NAME = Constants.DEFAULT_PANEL_NAME;
 
     @Autowired
     protected RepositoryService repositoryService;
@@ -72,11 +70,6 @@ public abstract class BaseWrapper implements PrimaryApprovalProcessWrapper {
 
     public PrimaryChangeProcessor getChangeProcessor() {
         return changeProcessor;
-    }
-
-    @Override
-    public String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance) {
-        return DEFAULT_PROCESS_INSTANCE_DETAILS_PANEL_NAME;
     }
 
     @Override

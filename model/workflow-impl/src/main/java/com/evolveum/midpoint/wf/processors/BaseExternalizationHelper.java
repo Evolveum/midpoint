@@ -38,13 +38,12 @@ public class BaseExternalizationHelper {
     public void externalizeState(PrismObject<? extends ProcessInstanceState> statePrism, Map<String, Object> variables) {
         ProcessInstanceState state = statePrism.asObjectable();
         state.setProcessInstanceName((String) variables.get(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME));
-        state.setMidPointAnswer((String) variables.get(CommonProcessVariableNames.VARIABLE_WF_ANSWER));
+        state.setAnswer((String) variables.get(CommonProcessVariableNames.VARIABLE_WF_ANSWER));
         state.setStartTime(XmlTypeConverter.createXMLGregorianCalendar((Date) variables.get(CommonProcessVariableNames.VARIABLE_START_TIME)));
-        state.setMidPointTaskOid((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID));
-        state.setMidPointChangeProcessor((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR));
-        state.setMidPointRequesterOid((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID));
-        state.setMidPointState((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_STATE));
-        state.setMidPointAnswer((String) variables.get(CommonProcessVariableNames.VARIABLE_WF_ANSWER));
+        state.setShadowTaskOid((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID));
+        state.setChangeProcessor((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR));
+        state.setRequesterOid((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID));
+        state.setState((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_STATE));
     }
 
 }

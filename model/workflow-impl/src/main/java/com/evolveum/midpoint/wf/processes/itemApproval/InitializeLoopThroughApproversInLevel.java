@@ -33,9 +33,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
+import com.evolveum.midpoint.wf.processes.common.SpringApplicationContextHolder;
 import com.evolveum.midpoint.wf.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.processes.common.LightweightObjectRefImpl;
+import com.evolveum.midpoint.wf.processors.primary.PcpProcessVariableNames;
+import com.evolveum.midpoint.wf.processors.primary.PcpRepoAccessHelper;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
@@ -201,7 +203,6 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
         RepositoryService repositoryService = SpringApplicationContextHolder.getRepositoryService();
         MiscDataUtil miscDataUtil = SpringApplicationContextHolder.getMiscDataUtil();
-        PrismContext prismContext = SpringApplicationContextHolder.getPrismContext();
 
         ExpressionVariables variables = new ExpressionVariables();
 
@@ -213,20 +214,18 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
             throw new ObjectNotFoundException("Couldn't get requester object due to object not found exception", e);
         }
 
-        PrismObject<? extends ObjectType> objectToBeAdded = (PrismObject<? extends ObjectType>) execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED);
+        PrismObject<? extends ObjectType> objectToBeAdded = (PrismObject<? extends ObjectType>) execution.getVariable(PcpProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED);
         if (objectToBeAdded != null) {
             variables.addVariableDefinition(SchemaConstants.C_OBJECT, objectToBeAdded);
         } else {
             String objectOid = (String) execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID);
             if (objectOid != null) {
                 try {
-                    variables.addVariableDefinition(SchemaConstants.C_OBJECT, miscDataUtil.getObjectBefore(execution.getVariables(), prismContext, result));
+                    variables.addVariableDefinition(SchemaConstants.C_OBJECT, repositoryService.getObject(ObjectType.class, objectOid, null, result));
                 } catch (SchemaException e) {
                     throw new SchemaException("Couldn't get requester object due to schema exception", e);  // todo do we really want to skip the whole processing? perhaps yes, otherwise we could get NPEs
                 } catch (ObjectNotFoundException e) {
                     throw new ObjectNotFoundException("Couldn't get requester object due to object not found exception", e);
-                } catch (JAXBException e) {
-                    throw new SystemException("Couldn't get requester object due to JAXB exception", e);
                 }
             }
         }

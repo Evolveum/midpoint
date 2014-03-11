@@ -16,17 +16,19 @@
 
 package com.evolveum.midpoint.wf.processors.primary;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -37,25 +39,24 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.wf.jobs.Job;
 import com.evolveum.midpoint.wf.jobs.JobController;
 import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
+import com.evolveum.midpoint.wf.messages.TaskEvent;
 import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.processors.BaseAuditHelper;
 import com.evolveum.midpoint.wf.processors.BaseChangeProcessor;
 import com.evolveum.midpoint.wf.processors.BaseExternalizationHelper;
 import com.evolveum.midpoint.wf.processors.BaseModelInvocationProcessingHelper;
 import com.evolveum.midpoint.wf.processors.primary.wrapper.PrimaryApprovalProcessWrapper;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.GeneralChangeApprovalWorkItemContents;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.QuestionFormType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.WorkItemContents;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.PrimaryApprovalProcessInstanceState;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
-import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
@@ -82,6 +83,9 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     private BaseExternalizationHelper baseExternalizationHelper;
 
     @Autowired
+    private BaseAuditHelper baseAuditHelper;
+
+    @Autowired
     private PcpExternalizationHelper pcpExternalizationHelper;
 
     @Autowired
@@ -95,6 +99,9 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     @Autowired
     private MiscDataUtil miscDataUtil;
+
+    @Autowired
+    private PcpRepoAccessHelper pcpRepoAccessHelper;
 
     public static final String UNKNOWN_OID = "?";
 
@@ -168,7 +175,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
                 throw new SystemException("Couldn't serialize object to be added to XML", e);
             }
             for (PcpChildJobCreationInstruction instruction : startProcessInstructions) {
-                instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED, objectToBeAdded);
+                instruction.addProcessVariable(PcpProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED, objectToBeAdded);
             }
         }
 
@@ -337,14 +344,14 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     //endregion
 
     //region User interaction
-    @Override
-    public String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance) {
-        PrimaryApprovalProcessInstanceState state = (PrimaryApprovalProcessInstanceState) processInstance.getState();
-        String wrapperName = state.getMidPointProcessWrapper();
-        Validate.notNull(wrapperName, "There's no change processor name among the process instance variables");
-        PrimaryApprovalProcessWrapper wrapper = findProcessWrapper(wrapperName);
-        return wrapper.getProcessInstanceDetailsPanelName(processInstance);
-    }
+//    @Override
+//    public String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance) {
+//        PrimaryApprovalProcessInstanceState state = (PrimaryApprovalProcessInstanceState) processInstance.getState();
+//        String wrapperName = state.getMidPointProcessWrapper();
+//        Validate.notNull(wrapperName, "There's no change processor name among the process instance variables");
+//        PrimaryApprovalProcessWrapper wrapper = findProcessWrapper(wrapperName);
+//        return wrapper.getProcessInstanceDetailsPanelName(processInstance);
+//    }
 
     @Override
     public PrismObject<? extends ProcessInstanceState> externalizeInstanceState(Map<String, Object> variables) throws JAXBException, SchemaException {
@@ -355,9 +362,54 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     }
 
     @Override
-    public PrismObject<? extends WorkItemContents> prepareWorkItemContents(org.activiti.engine.task.Task task, Map<String, Object> processInstanceVariables, OperationResult result) throws JAXBException, ObjectNotFoundException, SchemaException {
-        return pcpExternalizationHelper.prepareWorkItemContents(task, processInstanceVariables, result);
+    public PrismObject<? extends WorkItemContents> externalizeWorkItemContents(org.activiti.engine.task.Task task, Map<String, Object> processInstanceVariables, OperationResult result) throws JAXBException, ObjectNotFoundException, SchemaException {
+        return pcpExternalizationHelper.externalizeWorkItemContents(task, processInstanceVariables, result);
     }
+    //endregion
+
+    //region Auditing
+    @Override
+    public AuditEventRecord prepareProcessInstanceAuditRecord(Map<String, Object> variables, Job job, AuditEventStage stage, OperationResult result) {
+        AuditEventRecord auditEventRecord = baseAuditHelper.prepareProcessInstanceAuditRecord(variables, job, stage, result);
+
+        List<ObjectDelta<Objectable>> deltas = null;
+        try {
+            if (stage == AuditEventStage.REQUEST) {
+                deltas = wfTaskUtil.retrieveDeltasToProcess(job.getTask());
+            } else {
+                deltas = wfTaskUtil.retrieveResultingDeltas(job.getTask());
+            }
+        } catch (SchemaException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't retrieve delta(s) from task " + job.getTask(), e);
+        }
+        if (deltas != null) {
+            for (ObjectDelta delta : deltas) {
+                auditEventRecord.addDelta(new ObjectDeltaOperation(delta));
+            }
+        }
+
+        if (stage == AuditEventStage.EXECUTION) {
+            auditEventRecord.setResult((String) variables.get(CommonProcessVariableNames.VARIABLE_WF_ANSWER));
+        }
+
+        return auditEventRecord;
+    }
+
+    @Override
+    public AuditEventRecord prepareWorkItemAuditRecord(TaskEvent taskEvent, AuditEventStage stage, OperationResult result) throws WorkflowException {
+        AuditEventRecord auditEventRecord = baseAuditHelper.prepareWorkItemAuditRecord(taskEvent, stage, result);
+        ObjectDelta delta;
+        try {
+            delta = pcpRepoAccessHelper.getObjectDelta(taskEvent.getVariables(), true);
+            if (delta != null) {
+                auditEventRecord.addDelta(new ObjectDeltaOperation(delta));
+            }
+        } catch (JAXBException|SchemaException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't retrieve delta to be approved", e);
+        }
+        return auditEventRecord;
+    }
+
     //endregion
 
     //region Getters and setters
@@ -366,7 +418,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     }
 
     PrimaryApprovalProcessWrapper getProcessWrapper(Map<String, Object> variables) {
-        String wrapperClassName = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_WRAPPER);
+        String wrapperClassName = (String) variables.get(PcpProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_WRAPPER);
         return findProcessWrapper(wrapperClassName);
     }
 
@@ -388,4 +440,5 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         return wfTaskUtil;
     }
     //endregion
+
 }
