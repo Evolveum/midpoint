@@ -26,12 +26,11 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.wf.WorkflowManagerImpl;
 import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.wf.jobs.Job;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.messages.TaskEvent;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.WorkItemContents;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 
@@ -51,7 +50,7 @@ import java.util.Map;
  * However, a change processor has many more duties, e.g.
  *
  * (1) recognizes the instance (instances) of given kind of change within model operation context,
- * (2) processes the result of the workflow(s) process instances when they are finished,
+ * (2) processes the result of the workflow process instances when they are finished,
  * (3) presents (externalizes) the content of process instances to outside world: to the GUI, auditing, and notifications.
  *
  * Currently, there are the following change processors implemented or planned:
@@ -107,12 +106,12 @@ public interface ChangeProcessor {
      * @param variables internal process state represented by a map
      * @return external representation in the form of PrismObject
      */
-    PrismObject<? extends ProcessInstanceState> externalizeInstanceState(Map<String, Object> variables) throws JAXBException, SchemaException;
+    PrismObject<? extends ProcessInstanceState> externalizeProcessInstanceState(Map<String, Object> variables) throws JAXBException, SchemaException;
 
     /**
      * Prepares a displayable work item contents. For example, in case of primary change processor,
      * it returns a GeneralChangeApprovalWorkItemContents containing original object state
-     * (objectOld), to-be object state (objectNew), delta, additional object, and a wrapper-specific
+     * (objectOld), to-be object state (objectNew), delta, additional object, and a situation-specific
      * question form.
      *
      * @param task activiti task corresponding to the work item for which the contents is to be prepared
@@ -145,5 +144,12 @@ public interface ChangeProcessor {
      * @return
      */
     AuditEventRecord prepareWorkItemAuditRecord(TaskEvent taskEvent, AuditEventStage stage, OperationResult result) throws WorkflowException;
+
+    /**
+     * Auxiliary method to access autowired Spring beans from within non-spring java objects.
+     *
+     * @return
+     */
+    WorkflowManagerImpl getWorkflowManager();
 }
 

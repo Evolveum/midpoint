@@ -23,8 +23,8 @@ package com.evolveum.midpoint.wf.processors.primary;
  */
 public class PcpProcessVariableNames {
 
-    // Java class name of the process wrapper (the same as wf:processWrapper task property) [String]
-    public static final String VARIABLE_MIDPOINT_PROCESS_WRAPPER = "midPointProcessWrapper";
+    // Java class name of the process aspect (the same as wf:processWrapper task property) [String]
+    public static final String VARIABLE_MIDPOINT_CHANGE_ASPECT = "midPointChangeAspect";
 
     // Object that is about to be added (for ADD operation). [ObjectType]
     public static final String VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED = "midPointObjectToBeAdded";

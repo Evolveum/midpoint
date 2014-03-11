@@ -35,7 +35,7 @@ public class PcpTaskExtensionItemsNames {
     // that deltaOut(i) = either deltaIn(i) (if approved), or null/empty delta (if rejected).
     public static final QName WFRESULTING_DELTA_PROPERTY_NAME = new QName(WfTaskExtensionItemsNames.WORKFLOW_EXTENSION_NS, "resultingDelta");
 
-    // Contains a set of approvers who approved the delta(s). The wrapper should put here those approvers that
+    // Contains a set of approvers who approved the delta(s). The change aspect should put here those approvers that
     // will be stored into approvers list in metadata when the operation is really executed.
     public static final QName WFAPPROVED_BY_REFERENCE_NAME = new QName(WfTaskExtensionItemsNames.WORKFLOW_EXTENSION_NS, "approvedBy");
 

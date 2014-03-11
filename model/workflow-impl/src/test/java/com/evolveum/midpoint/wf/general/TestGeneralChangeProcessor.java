@@ -57,6 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.QuestionFormType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.WorkItemContents;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -222,7 +223,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
                 PrismObject<? extends QuestionFormType> questionFormPrism = workItemContents.asObjectable().getQuestionForm().asPrismObject();
 
                 WfProcessInstanceType instance = workflowServiceImpl.getProcessInstanceById(workItem.getProcessInstanceId(), false, true, result);
-                PrismProperty<ObjectDeltaType> dummyResourceDelta = instance.getState().asPrismObject().findProperty(ApprovingDummyResourceChangesProcessWrapper.DUMMY_RESOURCE_DELTA_QNAME);
+                PrismProperty<ObjectDeltaType> dummyResourceDelta = ((ProcessInstanceState) instance.getState()).getProcessSpecificState().asPrismContainerValue().findProperty(ApprovingDummyResourceChangesScenarioBean.DUMMY_RESOURCE_DELTA_QNAME);
                 ObjectDeltaType deltaType = dummyResourceDelta.getRealValue();
                 display("dummyResourceDelta", DeltaConvertor.createObjectDelta(deltaType, prismContext));
 
@@ -250,7 +251,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
         });
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void test030AddAccountApproved() throws Exception {
         TestUtil.displayTestTile(this, "test030AddAccountApproved");
 
@@ -282,7 +283,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
                 PrismObject<? extends QuestionFormType> questionFormPrism = workItemContents.asObjectable().getQuestionForm().asPrismObject();
 
                 WfProcessInstanceType instance = workflowServiceImpl.getProcessInstanceById(workItem.getProcessInstanceId(), false, true, result);
-                PrismProperty<ObjectDeltaType> dummyResourceDelta = instance.getState().asPrismObject().findProperty(ApprovingDummyResourceChangesProcessWrapper.DUMMY_RESOURCE_DELTA_QNAME);
+                PrismProperty<ObjectDeltaType> dummyResourceDelta = ((ProcessInstanceState) instance.getState()).getProcessSpecificState().asPrismContainerValue().findProperty(ApprovingDummyResourceChangesScenarioBean.DUMMY_RESOURCE_DELTA_QNAME);
                 ObjectDeltaType deltaType = dummyResourceDelta.getRealValue();
                 display("dummyResourceDelta", DeltaConvertor.createObjectDelta(deltaType, prismContext));
 

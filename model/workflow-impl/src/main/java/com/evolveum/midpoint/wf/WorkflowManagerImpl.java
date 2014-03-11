@@ -170,16 +170,9 @@ public class WorkflowManagerImpl implements WorkflowManager {
         return prismContext;
     }
 
-//    @Override
-//    public String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance) {
-//
-//        String processor = ((ProcessInstanceState) processInstance.getState()).getMidPointChangeProcessor();
-//        if (processor == null) {
-//            LOGGER.error("There's no change processor name among the process instance variables; processInstance = {}", processInstance.asPrismObject().debugDump());
-//            throw new IllegalStateException("There's no change processor name among the process instance variables");
-//        }
-//        return wfConfiguration.findChangeProcessor(processor).getProcessInstanceDetailsPanelName(processInstance);
-//    }
+    public WfTaskUtil getWfTaskUtil() {
+        return wfTaskUtil;
+    }
 
     @Override
     public void registerProcessListener(ProcessListener processListener) {

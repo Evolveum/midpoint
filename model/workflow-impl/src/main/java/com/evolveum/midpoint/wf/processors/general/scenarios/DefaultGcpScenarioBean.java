@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.processors.general;
+package com.evolveum.midpoint.wf.processors.general.scenarios;
+
+import org.springframework.stereotype.Component;
 
 /**
- * Process variables to be used in processes used with the GeneralChangeProcessor.
+ * The implementation that is used when no scenario bean is specified.
  *
  * @author mederly
  */
-public class GcpProcessVariableNames {
+@Component
+public class DefaultGcpScenarioBean extends BaseGcpScenarioBean {
 
-    // Java class name of the scenario scenarios [String]
-    public static final String VARIABLE_MIDPOINT_SCENARIO_BEAN_NAME = "midPointScenarioBeanName";
-
-    public static final String VARIABLE_MODEL_CONTEXT = "modelContext";
 }

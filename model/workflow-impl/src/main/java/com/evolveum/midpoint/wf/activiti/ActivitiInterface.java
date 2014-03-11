@@ -34,7 +34,9 @@ import com.evolveum.midpoint.wf.messages.StartProcessCommand;
 import com.evolveum.midpoint.wf.messages.TaskCompletedEvent;
 import com.evolveum.midpoint.wf.messages.TaskCreatedEvent;
 import com.evolveum.midpoint.wf.messages.TaskEvent;
+import com.evolveum.midpoint.wf.processes.ProcessMidPointInterface;
 import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.processes.ProcessInterfaceFinder;
 import org.activiti.engine.HistoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.delegate.DelegateExecution;
@@ -69,6 +71,9 @@ public class ActivitiInterface {
 
     @Autowired
     private JobController jobController;
+
+    @Autowired
+    private ProcessInterfaceFinder processInterfaceFinder;
 
     /**
      * Processes a message coming from midPoint to activiti. Although currently activiti is co-located with midPoint,
@@ -237,6 +242,9 @@ public class ActivitiInterface {
         event.setRunning(true);
         event.setTaskOid((String) execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID));
         event.setVariablesFrom(execution.getVariables());
+        ProcessMidPointInterface processInterface = processInterfaceFinder.getProcessInterface(execution.getVariables());
+        event.setAnswer(processInterface.getAnswer(execution.getVariables()));
+        event.setState(processInterface.getState(execution.getVariables()));
         activiti2midpoint(event, null, true, new OperationResult(DOT_CLASS + "notifyMidpointAboutProcessEvent"));
     }
 
@@ -273,6 +281,6 @@ public class ActivitiInterface {
             result.recordFatalError(message, e);
         }
     }
-    //endregion
 
+    //endregion
 }

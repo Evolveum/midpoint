@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.processors.general;
+package com.evolveum.midpoint.web.component.wf.processes;
+
+import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
+import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.IModel;
 
 /**
- * Process variables to be used in processes used with the GeneralChangeProcessor.
- *
  * @author mederly
  */
-public class GcpProcessVariableNames {
+public class EmptyProcessDetailsPanel extends Panel {
 
-    // Java class name of the scenario scenarios [String]
-    public static final String VARIABLE_MIDPOINT_SCENARIO_BEAN_NAME = "midPointScenarioBeanName";
+    public EmptyProcessDetailsPanel(String id, IModel<ProcessInstanceDto> model) {
+        super(id);
+    }
 
-    public static final String VARIABLE_MODEL_CONTEXT = "modelContext";
 }
