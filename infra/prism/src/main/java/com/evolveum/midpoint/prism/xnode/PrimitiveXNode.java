@@ -20,6 +20,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -123,6 +124,11 @@ public class PrimitiveXNode<T> extends XNode {
 			return QNameUtil.qNameToUri((QName)value);
 		}
 		return XmlTypeConverter.toXmlTextContent(value, null);
+	}
+	
+	@Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
 	}
 	
 	@Override

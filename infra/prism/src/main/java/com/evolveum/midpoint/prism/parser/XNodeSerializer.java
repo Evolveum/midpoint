@@ -64,6 +64,7 @@ import com.evolveum.midpoint.prism.xnode.SchemaXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.prism.xml.ns._public.types_2.EncryptedDataType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
@@ -201,6 +202,24 @@ public class XNodeSerializer {
 		if (definition == null){
 			return serializePropertyRawValue((PrismPropertyValue<?>) itemValue);
 		}
+		if (beanConverter.getPrismContext() == null) {
+			// HACK. Ugly hack. We need to make sure that the bean converter has a prism context.
+			// If it does not then it cannot serialize any values and the subsequent calls may fail.
+			// The bean converter usually has a context. The context may be missing if it was initialized
+			// inside one of the JAXB getters/setters.
+			// We need to get rid of JAXB entirelly to get rid of hacks like this
+			PrismContext context = null;
+			if (definition != null) {
+				context = definition.getPrismContext();
+			}
+			if (context == null && itemValue.getParent() != null) {
+				context = itemValue.getParent().getPrismContext();
+			}
+			if (context == null) {
+				throw new SystemException("Cannot determine prism context when serializing "+itemValue);
+			}
+			beanConverter.setPrismContext(context);
+		}
 		if (itemValue instanceof PrismReferenceValue) {
 			xnode = serializeReferenceValue((PrismReferenceValue)itemValue, (PrismReferenceDefinition) definition);
 		} else if (itemValue instanceof PrismPropertyValue<?>) {
@@ -293,7 +312,7 @@ public class XNodeSerializer {
 		return xprim;
 	}
 
-	private <T> MapXNode serializeProtectedDataType(ProtectedDataType<T> protectedType) {
+	private <T> MapXNode serializeProtectedDataType(ProtectedDataType<T> protectedType) throws SchemaException {
 		MapXNode xmap = new MapXNode();
 		if (protectedType.getEncryptedDataType() != null) {
 			EncryptedDataType encryptedDataType = protectedType.getEncryptedDataType();

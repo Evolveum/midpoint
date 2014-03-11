@@ -24,11 +24,13 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.parser.DomParser;
 import com.evolveum.midpoint.prism.parser.XNodeProcessor;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -39,10 +41,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SchemaHandlingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
@@ -126,11 +130,10 @@ public class TestParseResource {
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		
-//		Document document = DOMUtil.parseFile(RESOURCE_FILE);
-//		Element resourceElement = DOMUtil.getFirstChildElement(document);
-		
 		// WHEN
-		PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_FILE);
+		DomParser parserDom = prismContext.getParserDom();
+		XNode xnode = parserDom.parse(RESOURCE_FILE);
+		PrismObject<ResourceType> resource = prismContext.getXnodeProcessor().parseObject(xnode);
 		
 		// THEN
 		System.out.println("Parsed resource:");
@@ -417,6 +420,27 @@ public class TestParseResource {
 		} else {
 			assertNotNull("No schemaHandling property", schemaHandlingProperty);
 		}
+
+		if (!isSimple) {
+			PrismProperty<SynchronizationType> synchronizationProp = resource.findProperty(ResourceType.F_SYNCHRONIZATION);
+			SynchronizationType synchronizationType = synchronizationProp.getRealValue();
+			ObjectSynchronizationType objectSynchronizationType = synchronizationType.getObjectSynchronization().get(0);
+			List<SearchFilterType> correlations = objectSynchronizationType.getCorrelation();
+			assertEquals("Wrong number of correlation expressions", 1, correlations.size());
+			SearchFilterType correlationFilterType = correlations.get(0);
+			System.out.println("\nCorrelation filter");
+			System.out.println(correlationFilterType.debugDump());
+			ObjectFilter objectFilter = correlationFilterType.getSearchFilter();
+			PrismAsserts.assertAssignableFrom(EqualsFilter.class, objectFilter);
+			EqualsFilter equalsFilter = (EqualsFilter)objectFilter;
+			equalsFilter.getFullPath();
+			assertNull("Unexpected values in correlation expression", equalsFilter.getValues());
+			XNode expression = equalsFilter.getExpression();
+			assertNotNull("No expressions in correlation expression", expression);
+			PrismAsserts.assertAllParsedNodes(expression);
+			// TODO
+		}
+
 	}
 	
 	private void assertResourceJaxb(ResourceType resourceType, boolean isSimple) {

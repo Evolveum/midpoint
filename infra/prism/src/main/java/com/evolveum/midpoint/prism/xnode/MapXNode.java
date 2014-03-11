@@ -27,6 +27,7 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -120,6 +121,23 @@ public class MapXNode extends XNode implements Map<QName,XNode> {
 		}
 		
 		return subnodes.get(0);
+	}
+	
+	public Entry getSingleEntryThatDoesNotMatch(QName... excludedKeys) throws SchemaException {
+		Entry found = null;
+		OUTER: for (Entry subentry: subnodes) {
+			for (QName excludedKey: excludedKeys) {
+				if (QNameUtil.match(subentry.getKey(), excludedKey)) {
+					continue OUTER;
+				}
+			}
+			if (found != null) {
+				throw new SchemaException("More than one extension subnode found under "+this+": "+found.getKey()+" and "+subentry.getKey());
+			} else {
+				found = subentry;
+			}
+		}
+		return found;
 	}
 
 	public Set<java.util.Map.Entry<QName, XNode>> entrySet() {
@@ -230,6 +248,14 @@ public class MapXNode extends XNode implements Map<QName,XNode> {
 		}
 	}
 
+	@Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
+		for(Entry subentry: subnodes) {
+			subentry.value.accept(visitor);
+		}
+	}
+	
 	public boolean equals(Object o) {
 		if (!(o instanceof MapXNode)){
 			return false;

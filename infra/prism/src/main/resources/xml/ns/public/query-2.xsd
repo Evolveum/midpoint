@@ -32,7 +32,7 @@
         <xsd:documentation>
             TODO
             
-            Version: 2.0
+            Version: 2.3-SNAPSHOT
             Recommended namespace prefix: q
         </xsd:documentation>
     </xsd:annotation>
@@ -216,24 +216,7 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:complexType name="ValueType" mixed="true">
-        <xsd:sequence>
-           	<xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
-               	<xsd:annotation>
-                   	<xsd:documentation>
-                       	The elements and values of queried properties.
-                       	Multi-valued properties are not allowed here.
-                       	Use "and" or "or" clauses if needed.
-                   	</xsd:documentation>
-                    <xsd:appinfo>
-       	                <xjc:dom/>
-           	        </xsd:appinfo>
-               	</xsd:annotation>
-           	</xsd:any>
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:element name="value" type="tns:ValueType"/>
+    <xsd:element name="value" type="t:RawType"/>
 
     <xsd:complexType name="PropertyComplexValueFilterClauseType">
         <xsd:complexContent>
@@ -313,11 +296,11 @@
 		and we do not have the time to find out. Therefore it should be OK for now. -->
     <xsd:element name="substring" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
 
-<xsd:element name="org" substitutionGroup="tns:filterClause" type="tns:PropertyComplexValueFilterClauseType"/>
-<xsd:element name="orgRef" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
-<xsd:element name="maxDepth" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
-<xsd:element name="minDepth" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
-<xsd:element name="ref" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
+	<xsd:element name="org" substitutionGroup="tns:filterClause" type="tns:PropertyComplexValueFilterClauseType"/>
+	<xsd:element name="orgRef" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
+	<xsd:element name="maxDepth" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
+	<xsd:element name="minDepth" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
+	<xsd:element name="ref" substitutionGroup="tns:filterClause" type="tns:PropertySimpleValueFilterClauseType"/>
 
     <xsd:element name="present" substitutionGroup="tns:filterClause" type="tns:PropertyNoValueFilterClauseType"/>
     <xsd:element name="true" substitutionGroup="tns:filterClause" type="tns:PropertyNoValueFilterClauseType"/>

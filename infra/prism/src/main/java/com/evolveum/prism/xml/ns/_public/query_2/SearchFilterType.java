@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.UUID;
+import java.util.Map.Entry;
 
 import javax.activation.MimeType;
 import javax.activation.MimeTypeParseException;
@@ -40,13 +41,21 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.parser.DomParser;
+import com.evolveum.midpoint.prism.parser.PrismBeanConverter;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.parser.XNodeSerializer;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xjc.PrismForJAXBUtil;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
 import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
@@ -74,7 +83,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
     @XmlAnyElement
     protected Element filterClause;
     @XmlTransient
-    protected MapXNode xfilter;
+    protected ObjectFilter searchFilter;
     
     public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "SearchFilterType");
 	public static final QName F_DESCRIPTION = new QName(PrismConstants.NS_QUERY, "description");
@@ -104,7 +113,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
             throw new NullPointerException("Cannot create a copy of 'QueryType' from 'null'.");
         }
         // CWildcardTypeInfo: org.w3c.dom.Element
-        this.filterClause = ((o.filterClause == null)?null:((o.getFilterClause() == null)?null:((Element) o.getFilterClause().cloneNode(true))));
+        this.filterClause = ((o.filterClause == null)?null:((o.filterClause == null)?null:((Element) o.filterClause.cloneNode(true))));
     }
 
     public String getDescription() {
@@ -124,9 +133,12 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
      *     
      */
     public Element getFilterClause() {
-        if (xfilter != null) {
-        	DomParser domParser = PrismUtil.getDomParser(null);
+        if (searchFilter != null) {
         	try {
+	        	PrismBeanConverter beanConverter = new PrismBeanConverter(null);
+				XNodeSerializer xnodeSerilizer = new XNodeSerializer(beanConverter);
+				MapXNode xfilter = QueryConvertor.serializeFilter(searchFilter, xnodeSerilizer);
+	        	DomParser domParser = PrismUtil.getDomParser(null);
 				return domParser.serializeSingleElementMapToElement(xfilter);
 			} catch (SchemaException e) {
 				throw new RuntimeException(e.getMessage(), e);
@@ -134,10 +146,6 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
         } else {
         	return filterClause;
         }
-    }
-    
-    public MapXNode getXFilter() {
-    	return this.xfilter;
     }
     
     /**
@@ -149,28 +157,101 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
      *     
      */
     public void setFilterClause(Element element) {
+    	// This method CANNOT parse the element to filter yet. The element may not be complete
+    	// at this stage. We must do the on-demand parsing instead
     	if (element == null) {
-    		this.xfilter = null;
+    		this.filterClause = null;
+    		this.searchFilter = null;
     	} else {
-    		DomParser domParser = PrismUtil.getDomParser(null);
-    		try {
-				this.xfilter = domParser.parseElementAsMap(element);
-			} catch (SchemaException e) {
-				throw new RuntimeException(e.getMessage(), e);
-			}
+    		this.filterClause = element;
+    		this.searchFilter = null;
     	}
     }
     
-    public void setXFilter(XNode xnode) {
-    	if (xnode == null || xnode.isEmpty()) {
-    		this.xfilter = null;
+    public ObjectFilter getSearchFilter() {
+    	try {
+			return getSearchFilter(null);
+		} catch (SchemaException e) {
+			throw new RuntimeException(e.getMessage(), e);
+		}
+    }
+    
+    public ObjectFilter getSearchFilter(PrismContext prismContext) throws SchemaException {
+    	if (searchFilter != null) {
+    		return searchFilter;
+    	} else if (filterClause == null) {
+    		return null;
     	} else {
-    		if (xnode instanceof MapXNode) {
-    			this.xfilter = (MapXNode) xnode;
-	    	} else {
-	    		throw new IllegalArgumentException("Cannot parse filter from "+xnode);
-	    	}
+    		DomParser domParser;
+    		if (prismContext != null) {
+    			domParser = prismContext.getParserDom();
+    		} else {
+    			domParser = PrismUtil.getDomParser(null);
+    		}
+			MapXNode xnode = domParser.parseElementAsMap(filterClause);
+    		searchFilter = QueryConvertor.parseFilter(xnode, prismContext);
+    		filterClause = null;
+    		return searchFilter;
     	}
+	}
+
+	public void setSearchFilter(ObjectFilter searchFilter) {
+		this.searchFilter = searchFilter;
+		filterClause = null;
+	}
+
+	public void parseFromXNode(XNode xnode, PrismContext prismContext) throws SchemaException {
+    	this.filterClause = null;
+    	if (xnode == null || xnode.isEmpty()) {
+    		this.searchFilter = null;
+    		this.description = null;
+    	} else {
+    		if (!(xnode instanceof MapXNode)) {
+    			throw new SchemaException("Cannot parse filter from "+xnode);
+    		}
+    		MapXNode xmap = (MapXNode)xnode;
+    		MapXNode xfilter = xmap;
+    		XNode xdesc = xmap.get(SearchFilterType.F_DESCRIPTION);
+    		if (xdesc != null) {
+    			if (xdesc instanceof PrimitiveXNode<?>) {
+    				String desc = ((PrimitiveXNode<String>)xdesc).getParsedValue(DOMUtil.XSD_STRING);
+    				setDescription(desc);
+    			}
+    			xfilter = new MapXNode();
+    			for (Entry<QName,XNode> entry: xmap.entrySet()) {
+    				if (!QNameUtil.match(entry.getKey(), SearchFilterType.F_DESCRIPTION)) {
+    					xfilter.put(entry.getKey(), entry.getValue());
+    				}
+    			}
+    		}
+    		this.searchFilter = QueryConvertor.parseFilter(xfilter, prismContext);
+    	}
+    }
+    
+    public MapXNode serializeToXNode(PrismContext prismContext) throws SchemaException {
+    	MapXNode xmap;
+    	if (this.filterClause == null && this.searchFilter == null) {
+    		xmap = null;
+    	} else if (this.filterClause == null) {
+    		xmap = QueryConvertor.serializeFilter(searchFilter, prismContext);
+    	} else {
+    		DomParser domParser;
+    		if (prismContext != null) {
+    			domParser = prismContext.getParserDom();
+    		} else {
+    			domParser = PrismUtil.getDomParser(null);
+    		}
+    		xmap = domParser.parseElementAsMap(filterClause);
+    	}
+    	if (description == null) {
+    		return xmap;
+    	} else {
+    		if (xmap == null) {
+    			xmap = new MapXNode();
+    		}
+    		xmap.put(SearchFilterType.F_DESCRIPTION, new PrimitiveXNode<String>(description));
+    	}
+    	return xmap;
     }
 
     /**
@@ -187,7 +268,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
         int currentHashCode = 1;
         {
             Element theFilter;
-            theFilter = this.getFilterClause();
+            theFilter = this.filterClause;
             currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "filter", theFilter), currentHashCode, theFilter);
         }
         return currentHashCode;
@@ -208,9 +289,9 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
         final SearchFilterType that = ((SearchFilterType) object);
         {
             Element lhsFilter;
-            lhsFilter = this.getFilterClause();
+            lhsFilter = this.filterClause;
             Element rhsFilter;
-            rhsFilter = that.getFilterClause();
+            rhsFilter = that.filterClause;
             if (!strategy.equals(LocatorUtils.property(thisLocator, "filter", lhsFilter), LocatorUtils.property(thatLocator, "filter", rhsFilter), lhsFilter, rhsFilter)) {
                 return false;
             }
@@ -624,7 +705,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
                 // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
                 final SearchFilterType clone = ((SearchFilterType) super.clone());
                 // CWildcardTypeInfo: org.w3c.dom.Element
-                clone.filterClause = ((this.filterClause == null)?null:((this.getFilterClause() == null)?null:((Element) this.getFilterClause().cloneNode(true))));
+                clone.filterClause = ((this.filterClause == null)?null:((this.filterClause == null)?null:((Element) this.filterClause.cloneNode(true))));
                 return clone;
             }
         } catch (CloneNotSupportedException e) {
@@ -651,9 +732,9 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
 			sb.append("\n");
 			DebugUtil.debugDumpWithLabel(sb, "condition", filterClause.toString(), indent + 1);
 		}
-		if (xfilter != null) {
+		if (searchFilter != null) {
 			sb.append("\n");
-			DebugUtil.debugDumpWithLabel(sb, "xfilter", (DebugDumpable)xfilter, indent + 1);
+			DebugUtil.debugDumpWithLabel(sb, "searchFilter", searchFilter, indent + 1);
 		}
 		return sb.toString();
 	}

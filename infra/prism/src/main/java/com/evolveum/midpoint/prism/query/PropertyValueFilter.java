@@ -44,17 +44,19 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
-public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFilter implements Itemable{
+public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFilter implements Itemable {
 
+	private MapXNode expression;
 	private List<T> values;
 
-	PropertyValueFilter(){
-		
+	PropertyValueFilter() {
+		super();
 	}
 	
 	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule, List<T> values) {
@@ -72,16 +74,19 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 		this.values = null;
 	}
 	
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, XNode expression) {
-		super(path, definition, expression);
+	PropertyValueFilter(ItemPath path, ItemDefinition definition, MapXNode expression) {
+		super(path, definition);
+		this.expression = expression;
 	}
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, XNode expression, List<T> values) {
-		super(path, definition, expression);
+	PropertyValueFilter(ItemPath path, ItemDefinition definition, MapXNode expression, List<T> values) {
+		super(path, definition);
 		this.values = values;
+		this.expression = expression;
 	}
 	
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule, XNode expression) {
-		super(path, definition, matchingRule, expression);
+	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule, MapXNode expression) {
+		super(path, definition, matchingRule);
+		this.expression = expression;
 	}
 	
 	static <T> List<PrismPropertyValue<T>> createPropertyList(PrismPropertyDefinition itemDefinition, PrismPropertyValue<T> values) {
@@ -106,7 +111,6 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 		
 		return pValues;
 	}
-	
 	
 	 static <T> List<PrismPropertyValue<T>> createPropertyList(PrismPropertyDefinition itemDefinition, T realValue){
 		List<PrismPropertyValue<T>> pVals = new ArrayList<PrismPropertyValue<T>>();
@@ -183,6 +187,14 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 		return filterItem;
 	}
 	
+	public MapXNode getExpression() {
+		return expression;
+	}
+
+	public void setExpression(MapXNode expression) {
+		this.expression = expression;
+	}
+
 	@Override
 	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry){
 //		if (getObjectItem(object) == null && getValues() == null) {
@@ -234,26 +246,34 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 			sb.append("null");
 		}
 		
-		sb.append("\n");
-		DebugUtil.indentDebugDump(sb, indent+1);
-		sb.append("VALUE:");
-		if (getValues() != null) {
+		List<T> values = getValues();
+		if (values != null) {
+			sb.append("\n");
+			DebugUtil.indentDebugDump(sb, indent+1);
+			sb.append("VALUE:");
 			sb.append("\n");
 			for (PrismValue val : getValues()) {
 				sb.append(DebugUtil.debugDump(val, indent + 2));
 			}
-		} else {
-			sb.append(" null");
+		}
+
+		XNode expression = getExpression();
+		if (expression != null) {
+			sb.append("\n");
+			DebugUtil.indentDebugDump(sb, indent+1);
+			sb.append("EXPRESSION:");
+			sb.append("\n");
+			sb.append(DebugUtil.debugDump(expression, indent + 2));
+		}
+
+		QName matchingRule = getMatchingRule();
+		if (matchingRule != null) {
+			sb.append("\n");
+			DebugUtil.indentDebugDump(sb, indent+1);
+			sb.append("MATCHING: ");
+			sb.append(matchingRule);
 		}
 		
-		sb.append("\n");
-		DebugUtil.indentDebugDump(sb, indent+1);
-		sb.append("MATCHING: ");
-		if (getMatchingRule() != null) {
-			sb.append(getMatchingRule());
-		} else {
-			sb.append("default");
-		}
 		return sb.toString();
 	}
 	

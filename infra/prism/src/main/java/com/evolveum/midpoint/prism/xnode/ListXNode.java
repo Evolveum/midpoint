@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.util.DebugUtil;
 
 public class ListXNode extends XNode implements List<XNode> {
@@ -140,6 +141,14 @@ public class ListXNode extends XNode implements List<XNode> {
 	@Override
 	public List<XNode> subList(int fromIndex, int toIndex) {
 		return subnodes.subList(fromIndex, toIndex);
+	}
+	
+	@Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
+		for (XNode subnode: subnodes) {
+			subnode.accept(visitor);
+		}
 	}
 
 	@Override

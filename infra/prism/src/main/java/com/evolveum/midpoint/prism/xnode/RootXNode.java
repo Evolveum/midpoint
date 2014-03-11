@@ -21,6 +21,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.util.DebugUtil;
 
 public class RootXNode extends XNode {
@@ -58,6 +59,14 @@ public class RootXNode extends XNode {
 		return (subnode == null);
 	}
 
+	@Override
+	public void accept(Visitor visitor) {
+		visitor.visit(this);
+		if (subnode != null) {
+			subnode.accept(visitor);
+		}
+	}
+	
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();

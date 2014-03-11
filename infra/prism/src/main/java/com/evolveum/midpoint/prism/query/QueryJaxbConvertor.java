@@ -169,24 +169,16 @@ public class QueryJaxbConvertor {
 	public static QueryType createQueryType(ObjectQuery query, PrismContext prismContext) throws SchemaException{
 
 		ObjectFilter filter = query.getFilter();
-		try{
-			QueryType queryType = new QueryType();
-			if (filter != null){
-				MapXNode filterXnode = QueryConvertor.serializeFilter(filter, prismContext);
-				SearchFilterType filterType = new SearchFilterType();
-				filterType.setXFilter(filterXnode);
-				queryType.setFilter(filterType);
-//				Element filterElement = prismContext.getParserDom().serializeToElement(filterXnode, QueryConvertor.FILTER_ELEMENT_NAME);
-//				queryType.setFilter(filterElement);
-			}
-		
-		
+		QueryType queryType = new QueryType();
+		if (filter != null){
+			SearchFilterType filterType = new SearchFilterType();
+			filterType.setSearchFilter(filter);
+			queryType.setFilter(filterType);
+		}
+				
 		queryType.setPaging(PagingConvertor.createPagingType(query.getPaging()));
 		queryType.setCondition(query.getCondition());
 		return queryType;
-		} catch (SchemaException ex){
-			throw new SchemaException("Failed to convert query. Reason: " + ex.getMessage(), ex);
-		}
 
 	}
 

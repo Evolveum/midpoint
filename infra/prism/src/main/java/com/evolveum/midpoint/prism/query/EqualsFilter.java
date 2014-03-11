@@ -49,6 +49,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -70,11 +71,11 @@ public class EqualsFilter<T extends Object> extends PropertyValueFilter<PrismPro
 		super(parentPath, definition, matchingRule);
 	}
 		
-	EqualsFilter(ItemPath parentPath, PrismPropertyDefinition definition, QName matchingRule, XNode expression) {
+	EqualsFilter(ItemPath parentPath, PrismPropertyDefinition definition, QName matchingRule, MapXNode expression) {
 		super(parentPath, definition, matchingRule, expression);
 	}
 	
-	public static EqualsFilter createEqual(ItemPath path, PrismPropertyDefinition definition, QName matchingRule, XNode expression){
+	public static EqualsFilter createEqual(ItemPath path, PrismPropertyDefinition definition, QName matchingRule, MapXNode expression){
 		Validate.notNull(path, "Path must not be null");
 		// Do not check definition. We may want queries for which the definition is supplied later.
 		return new EqualsFilter(path, definition, matchingRule, expression);
