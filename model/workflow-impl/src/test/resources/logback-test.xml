@@ -38,7 +38,6 @@
 	<logger name="com.evolveum.midpoint.model.sync.LiveSyncTaskHandler" level="TRACE" />
 	<logger name="com.evolveum.midpoint.test" level="TRACE" />
     <logger name="com.evolveum.midpoint.task" level="TRACE" />
-    <logger name="org.springframework" level="DEBUG" />
     <!--<logger name="org.springframework" level="DEBUG" />-->
 
 	<logger name="PROFILING" level="TRACE" />

@@ -6,12 +6,14 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.WorkflowManagerImpl;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.WorkItemContents;
 import org.apache.commons.configuration.Configuration;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanNameAware;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.xml.bind.JAXBException;
 import java.util.Map;
@@ -30,6 +32,9 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
 
     private String beanName;
     private BeanFactory beanFactory;
+
+    @Autowired
+    private WorkflowManagerImpl workflowManager;
 
     private boolean enabled = false;
 
@@ -68,4 +73,7 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
         processorConfiguration = c;
     }
 
+    public WorkflowManagerImpl getWorkflowManager() {
+        return workflowManager;
+    }
 }

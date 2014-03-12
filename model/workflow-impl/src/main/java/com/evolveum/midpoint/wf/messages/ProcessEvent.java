@@ -46,9 +46,15 @@ public class ProcessEvent extends ActivitiToMidPointMessage {
      */
     private boolean running;
 
-    public String getAnswer() {
-        return (String) variables.get(CommonProcessVariableNames.VARIABLE_WF_ANSWER);
-    }
+    /**
+     * What is a (textually characterized) state of the process instance?
+     */
+    private String state;
+
+    /**
+     * What is a (textually characterized) final answer?
+     */
+    private String answer;
 
     public String getPid() {
         return pid;
@@ -108,5 +114,21 @@ public class ProcessEvent extends ActivitiToMidPointMessage {
         } else {
             return variables.containsKey(varname);
         }
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public String getAnswer() {
+        return answer;
+    }
+
+    public void setAnswer(String answer) {
+        this.answer = answer;
     }
 }

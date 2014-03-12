@@ -51,7 +51,7 @@ import com.evolveum.midpoint.wf.WfConfiguration;
 import com.evolveum.midpoint.wf.api.WfTaskExtensionItemsNames;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.processors.primary.PcpTaskExtensionItemsNames;
-import com.evolveum.midpoint.wf.processors.primary.wrapper.PrimaryApprovalProcessWrapper;
+import com.evolveum.midpoint.wf.processors.primary.aspect.PrimaryChangeAspect;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
@@ -234,20 +234,20 @@ public class WfTaskUtil {
 
     }
 
-    public void setProcessWrapper(Task task, PrimaryApprovalProcessWrapper wrapper) throws SchemaException {
+    public void setProcessWrapper(Task task, PrimaryChangeAspect wrapper) throws SchemaException {
         Validate.notNull(wrapper, "Process Wrapper is undefined.");
         PrismProperty<String> w = wfProcessWrapperPropertyDefinition.instantiate();
         w.setRealValue(wrapper.getClass().getName());
         task.setExtensionProperty(w);
     }
 
-    public PrimaryApprovalProcessWrapper getProcessWrapper(Task task, List<PrimaryApprovalProcessWrapper> wrappers) {
+    public PrimaryChangeAspect getProcessWrapper(Task task, List<PrimaryChangeAspect> wrappers) {
         String wrapperClassName = getExtensionValue(String.class, task, PcpTaskExtensionItemsNames.WFPROCESS_WRAPPER_PROPERTY_NAME);
         if (wrapperClassName == null) {
-            throw new IllegalStateException("No wf process wrapper defined in task " + task);
+            throw new IllegalStateException("No wf process aspect defined in task " + task);
         }
 
-        for (PrimaryApprovalProcessWrapper w : wrappers) {
+        for (PrimaryChangeAspect w : wrappers) {
             if (wrapperClassName.equals(w.getClass().getName())) {
                 return w;
             }

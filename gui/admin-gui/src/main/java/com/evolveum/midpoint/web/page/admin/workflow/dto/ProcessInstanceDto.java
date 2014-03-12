@@ -97,7 +97,7 @@ public class ProcessInstanceDto extends Selectable {
         return processInstanceState.getShadowTaskOid();
     }
 
-    public ObjectType getInstanceState() {
-        return processInstance.getState();
+    public ProcessInstanceState getInstanceState() {
+        return (ProcessInstanceState) processInstance.getState();
     }
 }

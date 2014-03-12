@@ -16,8 +16,9 @@
 
 package com.evolveum.midpoint.wf.general;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -26,9 +27,10 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.processors.general.wrapper.DefaultGcpProcessWrapper;
+import com.evolveum.midpoint.wf.processors.general.scenarios.BaseGcpScenarioBean;
+import com.evolveum.midpoint.wf.processors.general.scenarios.DefaultGcpScenarioBean;
 import com.evolveum.midpoint.wf.util.JaxbValueContainer;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessSpecificState;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -42,9 +44,9 @@ import java.util.Map;
  * @author mederly
  */
 @Component
-public class ApprovingDummyResourceChangesProcessWrapper extends DefaultGcpProcessWrapper {
+public class ApprovingDummyResourceChangesScenarioBean extends BaseGcpScenarioBean {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ApprovingDummyResourceChangesProcessWrapper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ApprovingDummyResourceChangesScenarioBean.class);
 
     public static final QName DUMMY_RESOURCE_DELTA_QNAME = new QName(SchemaConstants.NS_WFCF, "dummyResourceDelta");
 
@@ -52,8 +54,11 @@ public class ApprovingDummyResourceChangesProcessWrapper extends DefaultGcpProce
     private PrismContext prismContext;
 
     @Override
-    public PrismObject<? extends ProcessInstanceState> externalizeInstanceState(Map<String, Object> variables) throws SchemaException {
-        PrismObject<? extends ProcessInstanceState> statePrism = super.externalizeInstanceState(variables);
+    public ProcessSpecificState externalizeInstanceState(Map<String, Object> variables) throws SchemaException {
+        PrismContainerDefinition<ProcessSpecificState> extDefinition = prismContext.getSchemaRegistry().findContainerDefinitionByType(ProcessSpecificState.COMPLEX_TYPE);
+        PrismContainer<ProcessSpecificState> extStateContainer = extDefinition.instantiate();
+        ProcessSpecificState extState = extStateContainer.createNewValue().asContainerable();
+
         PrismPropertyDefinition deltaDefinition = new PrismPropertyDefinition(
                 DUMMY_RESOURCE_DELTA_QNAME,
                 new QName(SchemaConstantsGenerated.NS_TYPES, "ObjectDeltaType"),
@@ -62,12 +67,12 @@ public class ApprovingDummyResourceChangesProcessWrapper extends DefaultGcpProce
         JaxbValueContainer<ObjectDeltaType> deltaInProcess = (JaxbValueContainer) variables.get("dummyResourceDelta");
         if (deltaInProcess != null) {
             deltaInProcess.setPrismContext(prismContext);
-            PrismProperty deltaProperty = statePrism.findOrCreateItem(new ItemPath(DUMMY_RESOURCE_DELTA_QNAME), PrismProperty.class, deltaDefinition);
+            PrismProperty deltaProperty = extStateContainer.getValue().findOrCreateItem(new ItemPath(DUMMY_RESOURCE_DELTA_QNAME), PrismProperty.class, deltaDefinition);
             deltaProperty.setRealValue(deltaInProcess.getValue());
             LOGGER.info("deltaProperty = {}", deltaProperty.debugDump());
         } else {
             LOGGER.warn("No dummyResourceDelta variable in process instance");
         }
-        return statePrism;
+        return extState;
     }
 }

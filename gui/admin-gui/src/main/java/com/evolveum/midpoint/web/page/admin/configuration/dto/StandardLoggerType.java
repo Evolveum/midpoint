@@ -20,9 +20,9 @@ package com.evolveum.midpoint.web.page.admin.configuration.dto;
  * */
 public enum StandardLoggerType {
 
-    MAPPING("com.evolveum.midpoint.common.mapping.Mapping"),
-    EXPRESSION("com.evolveum.midpoint.common.expression.Expression"),
-    SCRIPT_EXPRESSION("com.evolveum.midpoint.common.expression.script.ScriptExpression"),
+    MAPPING("com.evolveum.midpoint.model.common.mapping.Mapping"),
+    EXPRESSION("com.evolveum.midpoint.model.common.expression.Expression"),
+    SCRIPT_EXPRESSION("com.evolveum.midpoint.model.common.expression.script.ScriptExpression"),
     PROJECTOR("com.evolveum.midpoint.model.lens.projector.Projector"),
     PROJECTOR_DETAIL("com.evolveum.midpoint.model.lens.projector"),
     CLOCKWORK("com.evolveum.midpoint.model.lens.Clockwork"),

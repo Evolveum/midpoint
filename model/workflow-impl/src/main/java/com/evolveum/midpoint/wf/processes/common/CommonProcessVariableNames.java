@@ -45,17 +45,8 @@ public class CommonProcessVariableNames {
     // TODO think about storing also object class (currently we fetch an object from the repo as "ObjectType.class" but that's far from ideal).
     public static final String VARIABLE_MIDPOINT_OBJECT_OID = "midPointObjectOid";
 
-    // Variable reflecting the process status, like "your request was approved by
-    // engineering group, and is being sent to the management". Stored into wfStatus task extension property.
-    // [String]
-    public static final String VARIABLE_MIDPOINT_STATE = "midPointState";
-
     // Object that provides various utility methods for use in processes, e.g. getApprover(RoleType r). [ActivitiUtil]
     public static final String VARIABLE_UTIL = "util";
-
-    // Basic decision returned from a workflow process.
-    // for most work items it is simple __APPROVED__ or __REJECTED__, but in principle this can be any string value
-    public static final String VARIABLE_WF_ANSWER = "wfAnswer";
 
     // Basic decision returned from a work item.
     // for most work items it is simple __APPROVED__ or __REJECTED__, but in principle this can be any string value
@@ -67,11 +58,11 @@ public class CommonProcessVariableNames {
 
     public static final String FORM_BUTTON_PREFIX = "[B]";
 
-    public static final String VARIABLE_MODEL_CONTEXT = "modelContext";
-
     // A signal that the process instance is being stopped. Used e.g. to suppress propagation of exceptions
     // occurring in the process instance end listener.
     // [Boolean]
     public static final String VARIABLE_MIDPOINT_IS_PROCESS_INSTANCE_STOPPING = "midPointIsProcessInstanceStopping";
 
+    // Name of process interface bean (ProcessMidPointInterface implementation) that is related to this process [String]
+    public static final String VARIABLE_MIDPOINT_PROCESS_INTERFACE_BEAN_NAME = "midPointProcessInterfaceBeanName";
 }

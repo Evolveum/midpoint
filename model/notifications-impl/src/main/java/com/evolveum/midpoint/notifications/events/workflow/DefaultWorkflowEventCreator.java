@@ -29,8 +29,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ItemApprovalProcessInstanceState;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.PrimaryApprovalProcessInstanceState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.PrimaryChangeProcessorState;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -54,8 +53,6 @@ public class DefaultWorkflowEventCreator implements WorkflowEventCreator {
 
     @PostConstruct
     public void init() {
-        notificationManager.registerWorkflowEventCreator(ItemApprovalProcessInstanceState.class, this);
-        notificationManager.registerWorkflowEventCreator(PrimaryApprovalProcessInstanceState.class, this);
         notificationManager.registerWorkflowEventCreator(ProcessInstanceState.class, this);
     }
 
@@ -80,19 +77,19 @@ public class DefaultWorkflowEventCreator implements WorkflowEventCreator {
         event.setOperationStatusCustom(decision);
         event.setProcessInstanceState(instanceState);
         event.setRequester(new SimpleObjectRefImpl(notificationsUtil, instanceState.asObjectable().getRequesterOid()));
+        if (instanceState.asObjectable().getObjectOid() != null) {
+            event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, instanceState.asObjectable().getObjectOid()));
+        }
 
         // fill-in requestee (for primary approval process variables)
 
-        if (instanceState.asObjectable() instanceof PrimaryApprovalProcessInstanceState) {
-            PrimaryApprovalProcessInstanceState paProcessVariables = (PrimaryApprovalProcessInstanceState) instanceState.asObjectable();
-
-            if (paProcessVariables.getMidPointObjectToBeAdded() != null) {
-                ObjectType objectToBeAdded = paProcessVariables.getMidPointObjectToBeAdded();
+        if (event.getRequestee() == null && instanceState.asObjectable().getProcessorSpecificState() instanceof PrimaryChangeProcessorState) {
+            PrimaryChangeProcessorState pcpState = (PrimaryChangeProcessorState) instanceState.asObjectable().getProcessorSpecificState();
+            if (pcpState.getObjectToBeAdded() != null) {
+                ObjectType objectToBeAdded = pcpState.getObjectToBeAdded();
                 if (objectToBeAdded instanceof UserType) {
                     event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, objectToBeAdded));
                 }
-            } else {
-                event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, paProcessVariables.getMidPointObjectOid()));
             }
         }
     }

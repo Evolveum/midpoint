@@ -386,7 +386,7 @@ public class JobController {
 
     private String getStateDescription(ProcessEvent event) {
         String pid = event.getPid();
-        String stateDescription = (String) event.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_STATE);
+        String stateDescription = event.getState();
         if (stateDescription == null || stateDescription.isEmpty()) {
             if (event instanceof ProcessStartedEvent) {
                 stateDescription = "Workflow process instance has been created (process id " + pid + ")";
@@ -522,14 +522,14 @@ public class JobController {
     }
 
     private void notifyProcessStart(StartProcessCommand spc, Job job, OperationResult result) throws JAXBException, SchemaException {
-        PrismObject<? extends ProcessInstanceState> state = job.getChangeProcessor().externalizeInstanceState(spc.getVariables());
+        PrismObject<? extends ProcessInstanceState> state = job.getChangeProcessor().externalizeProcessInstanceState(spc.getVariables());
         for (ProcessListener processListener : processListeners) {
             processListener.onProcessInstanceStart(state, result);
         }
     }
 
     private void notifyProcessEnd(ProcessEvent event, Job job, OperationResult result) throws JAXBException, SchemaException {
-        PrismObject<? extends ProcessInstanceState> state = job.getChangeProcessor().externalizeInstanceState(event.getVariables());
+        PrismObject<? extends ProcessInstanceState> state = job.getChangeProcessor().externalizeProcessInstanceState(event.getVariables());
         for (ProcessListener processListener : processListeners) {
             processListener.onProcessInstanceEnd(state, result);
         }
@@ -537,7 +537,7 @@ public class JobController {
 
     private void notifyWorkItemCreated(String workItemName, String assigneeOid, String processInstanceName, Map<String,Object> processVariables) throws JAXBException, SchemaException {
         ChangeProcessor cp = getChangeProcessor(processVariables);
-        PrismObject<? extends ProcessInstanceState> state = cp.externalizeInstanceState(processVariables);
+        PrismObject<? extends ProcessInstanceState> state = cp.externalizeProcessInstanceState(processVariables);
         for (WorkItemListener workItemListener : workItemListeners) {
             workItemListener.onWorkItemCreation(workItemName, assigneeOid, state);
         }
@@ -545,7 +545,7 @@ public class JobController {
 
     private void notifyWorkItemCompleted(String workItemName, String assigneeOid, String processInstanceName, Map<String,Object> processVariables, String decision) throws JAXBException, SchemaException {
         ChangeProcessor cp = getChangeProcessor(processVariables);
-        PrismObject<? extends ProcessInstanceState> state = cp.externalizeInstanceState(processVariables);
+        PrismObject<? extends ProcessInstanceState> state = cp.externalizeProcessInstanceState(processVariables);
         for (WorkItemListener workItemListener : workItemListeners) {
             workItemListener.onWorkItemCompletion(workItemName, assigneeOid, state, decision);
         }

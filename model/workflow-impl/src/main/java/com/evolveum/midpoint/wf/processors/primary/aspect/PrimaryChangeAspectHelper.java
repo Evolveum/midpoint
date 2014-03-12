@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.processors.primary.wrapper;
+package com.evolveum.midpoint.wf.processors.primary.aspect;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
-import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -40,41 +35,30 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
-import com.evolveum.midpoint.wf.processes.common.StringHolder;
-import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.processes.itemApproval.Decision;
 import com.evolveum.midpoint.wf.processes.itemApproval.ProcessVariableNames;
-import com.evolveum.midpoint.wf.processors.primary.PcpChildJobCreationInstruction;
 import com.evolveum.midpoint.wf.processors.primary.PcpJob;
-import com.evolveum.midpoint.wf.processors.primary.PcpProcessVariableNames;
-import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ApprovalSchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ItemApprovalProcessInstanceState;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ItemApprovalRequestType;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.PrimaryApprovalProcessInstanceState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author mederly
  */
 @Component
-public class WrapperHelper {
+public class PrimaryChangeAspectHelper {
 
-    private static final Trace LOGGER = TraceManager.getTrace(WrapperHelper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PrimaryChangeAspectHelper.class);
 
     @Autowired
     private RepositoryService repositoryService;
@@ -86,44 +70,12 @@ public class WrapperHelper {
     private PrismContext prismContext;
 
     //region ========================================================================== Jobs-related methods
-    public void prepareCommonInstructionAttributes(PrimaryChangeProcessor changeProcessor, PrimaryApprovalProcessWrapper wrapper, PcpChildJobCreationInstruction instruction, ModelContext<?> modelContext, String objectOid, PrismObject<UserType> requester) throws SchemaException {
-
-        instruction.setRequesterOidInProcess(requester);
-        instruction.setObjectOidInProcess(objectOid);
-
-        instruction.setExecuteApprovedChangeImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
-
-        instruction.addProcessVariable(PcpProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_WRAPPER, wrapper.getClass().getName());
-        instruction.addTaskVariable(wfTaskUtil.getWfProcessWrapperPropertyDefinition(), wrapper.getClass().getName());
-
-        if (instruction.isExecuteApprovedChangeImmediately()) {
-            // actually, context should be emptied anyway; but to be sure, let's do it here as well
-            instruction.addTaskModelContext(changeProcessor.contextCopyWithNoDelta((LensContext) modelContext));
-            instruction.setExecuteModelOperationHandler(true);
-        }
-    }
-
-    public void setDeltaProcessAndTaskVariables(PcpChildJobCreationInstruction instruction, ObjectDelta delta) {
-        try {
-            instruction.addProcessVariable(PcpProcessVariableNames.VARIABLE_MIDPOINT_DELTA, new StringHolder(DeltaConvertor.toObjectDeltaTypeXml(delta)));
-        } catch(JAXBException e) {
-            throw new SystemException("Couldn't store primary delta into the process variable due to JAXB exception", e);
-        } catch (SchemaException e) {
-            throw new SystemException("Couldn't store primary delta into the process variable due to schema exception", e);
-        }
-
-        try {
-            instruction.addTaskDeltasVariable(wfTaskUtil.getWfDeltaToProcessPropertyDefinition(), delta);
-        } catch (SchemaException e) {
-            throw new SystemException("Couldn't store primary delta into the task variable due to schema exception", e);
-        }
-    }
     //endregion
 
-    //region ========================================================================== Default implementation of wrapper methods
+    //region ========================================================================== Default implementation of aspect methods
     /**
      * Prepares deltaOut from deltaIn, based on process instance variables.
-     * (Default implementation of the method from PrimaryApprovalProcessWrapper.)
+     * (Default implementation of the method from PrimaryChangeAspect.)
      *
      * In the default case, mapping deltaIn -> deltaOut is extremely simple.
      * DeltaIn contains a delta that has to be approved. Workflow answers simply yes/no.
@@ -136,54 +88,6 @@ public class WrapperHelper {
         } else {
             return new ArrayList<>();
         }
-    }
-
-    /**
-     * Default implementation of getApprovedBy; it expects that we are using general item approval process.
-     */
-    public List<ObjectReferenceType> getApprovedBy(ProcessEvent event) {
-        List<ObjectReferenceType> retval = new ArrayList<ObjectReferenceType>();
-        if (!ApprovalUtils.isApproved(event.getAnswer())) {
-            return retval;
-        }
-        List<Decision> allDecisions = (List<Decision>) event.getVariable(ProcessVariableNames.ALL_DECISIONS);
-        for (Decision decision : allDecisions) {
-            if (decision.isApproved()) {
-                retval.add(MiscSchemaUtil.createObjectReference(decision.getApproverOid(), SchemaConstants.C_USER_TYPE));
-            }
-        }
-
-        return retval;
-    }
-
-    /**
-     * Default implementation of externalizeInstanceState; it expects that we are using general item approval process.
-     */
-    public PrismObject<? extends PrimaryApprovalProcessInstanceState> externalizeInstanceState(Map<String, Object> variables) {
-        PrismObjectDefinition<ItemApprovalProcessInstanceState> extDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(ItemApprovalProcessInstanceState.COMPLEX_TYPE);
-        PrismObject<ItemApprovalProcessInstanceState> extVariablesObject = extDefinition.instantiate();
-        ItemApprovalProcessInstanceState extVariables = extVariablesObject.asObjectable();
-
-        PrismContainer extRequestContainer = extDefinition.findContainerDefinition(ItemApprovalProcessInstanceState.F_APPROVAL_REQUEST).instantiate();
-        ItemApprovalRequestType extRequestType = (ItemApprovalRequestType) extRequestContainer.createNewValue().asContainerable();
-
-        ApprovalRequest<?> intApprovalRequest = (ApprovalRequest) variables.get(ProcessVariableNames.APPROVAL_REQUEST);
-        intApprovalRequest.setPrismContext(prismContext);
-
-        ApprovalSchemaType approvalSchemaType = (ApprovalSchemaType) extRequestContainer.getDefinition().findContainerDefinition(ItemApprovalRequestType.F_APPROVAL_SCHEMA).instantiate().createNewValue().asContainerable();
-        intApprovalRequest.getApprovalSchema().toApprovalSchemaType(approvalSchemaType);
-        extRequestType.setApprovalSchema(approvalSchemaType);
-        extRequestType.setItemToApprove(intApprovalRequest.getItemToApprove());
-        extVariables.setApprovalRequest(extRequestType);
-
-        List<Decision> intDecisions = (List<Decision>) variables.get(ProcessVariableNames.ALL_DECISIONS);
-        if (intDecisions != null) {
-            for (Decision intDecision : intDecisions) {
-                extVariables.getDecisions().add(intDecision.toDecisionType());
-            }
-        }
-
-        return extVariablesObject;
     }
 
     //endregion

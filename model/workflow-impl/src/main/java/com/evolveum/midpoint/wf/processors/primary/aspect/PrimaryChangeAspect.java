@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.processors.primary.wrapper;
+package com.evolveum.midpoint.wf.processors.primary.aspect;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.Objectable;
@@ -29,36 +29,33 @@ import com.evolveum.midpoint.wf.processors.primary.PcpChildJobCreationInstructio
 import com.evolveum.midpoint.wf.processors.primary.PcpJob;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.QuestionFormType;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.PrimaryApprovalProcessInstanceState;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessSpecificState;
 
 import java.util.List;
 import java.util.Map;
 
 /**
  *
- * PrimaryApprovalProcessWrapper is an interface to (or a wrapper of) a specific kind of workflow process related
- * to primary-stage change approval. Examples of process wrappers:
+ * Change aspect deals with a given (elementary) kind of primary-stage change. Examples of change aspects:
  *  - AddRoleProcessWrapper
  *  - CreateUserProcessWrapper
  *  - ChangeAttributeXProcessWrapper (X is an attribute of a user)
  *  - ...
  *
- * Process wrapper plays a role on these occasions:
- * 1) When a change arrives - process wrapper tries to recognize whether the change
+ * Change aspect plays a role on these occasions:
+ * 1) When a change arrives - change aspect tries to recognize whether the change
  *    contains relevant delta(s); if so, it prepares instruction(s) to start related workflow approval process(es).
- * 2) When a process instance finishes, process wrapper:
+ * 2) When a process instance finishes, change aspect:
  *     - modifies the delta(s) related to particular process instance and passes them along, to be executed,
  *     - provides a list of approvers that is to be stored in modified object's metadata.
- * 3) When a user wants to work on his task, the wrapper prepares a form to be presented to the user.
- * 4) When a user asks about the state of process instance(s), the wrapper prepares that part of the
+ * 3) When a user wants to work on his task, the change aspect prepares a form to be presented to the user.
+ * 4) When a user asks about the state of process instance(s), the change aspect prepares that part of the
  *    answer that is specific to individual process.
  *
  * @author mederly
  */
-public interface PrimaryApprovalProcessWrapper {
+public interface PrimaryChangeAspect {
 
     /**
      * Examines the change and determines whether there are pieces that require (change type specific)
@@ -92,13 +89,15 @@ public interface PrimaryApprovalProcessWrapper {
      * Returns a list of users who have approved the particular request. This information is then stored in the task by the wf module,
      * and eventually fetched from there and put into metadata (createApproverRef/modifyApproverRef) by the model ChangeExecutor.
      *
-     * However, information about the approvers is process-specific. Default implementation of this method in BaseWrapper corresponds
+     * However, information about the approvers is process-specific. Default implementation of this method in BasePrimaryChangeAspect corresponds
      * to behavior of general ItemApproval process.
      *
      * @param event Current ProcessEvent providing information on what happened within wf process instance.
+     * @param job Reference to a job (pair of process instance and a task) in which the event happened.
+     * @param result Operation result - the method should report any errors here.
      * @return List of references to approvers that approved this request.
      */
-    List<ObjectReferenceType> getApprovedBy(ProcessEvent event);
+    List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event, PcpJob job, OperationResult result);
 
     /**
      * Returns a PrismObject containing information about a work item to be processed by the user. For example, for 'approve role addition' process
@@ -116,7 +115,7 @@ public interface PrimaryApprovalProcessWrapper {
      * @throws SchemaException if any of key objects cannot be retrieved because of schema exception
      * @throws ObjectNotFoundException if any of key objects cannot be found
      */
-    PrismObject<? extends QuestionFormType> getQuestionForm(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException;
+    PrismObject<? extends QuestionFormType> prepareQuestionForm(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Returns a object related to the work item at hand. E.g. for 'approve role addition' process this method returns corresponding role object.
@@ -128,7 +127,15 @@ public interface PrimaryApprovalProcessWrapper {
      * @throws SchemaException if the object cannot be retrieved because of schema exception
      * @throws ObjectNotFoundException if the object cannot be found
      */
-    PrismObject<? extends ObjectType> getRelatedObject(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException;
+    PrismObject<? extends ObjectType> prepareRelatedObject(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
-    PrismObject<? extends PrimaryApprovalProcessInstanceState> externalizeInstanceState(Map<String, Object> variables);
+    /**
+     * Externalizes internal state of the process instance. Typically, uninteresting (auxiliary) data elements
+     * are thrown away, internal representation suitable for workflow processing is replaced by "clean" prism
+     * object structure, and untyped Map[String,Object] is replaced by typed prism data.
+     *
+     * @param variables internal process state represented by a map
+     * @return external representation
+     */
+    ProcessSpecificState externalizeProcessInstanceState(Map<String, Object> variables);
 }

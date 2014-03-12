@@ -22,13 +22,15 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.wf.processes.EmptyProcessDetailsPanel;
 import com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalPanel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ItemApprovalProcessInstanceState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ItemApprovalProcessState;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessSpecificState;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -48,9 +50,9 @@ public class ProcessInstancePanel extends SimplePanel<ProcessInstanceDto> {
     private static final String ID_TASK = "task";
     private static final String ID_TASK_COMMENT = "taskComment";
 
-    private static Map<Class<? extends ProcessInstanceState>,Class<? extends Panel>> panelsForProcesses = null;
+    private static Map<Class<? extends ProcessSpecificState>,Class<? extends Panel>> panelsForProcesses = null;
 
-    public static void registerProcessInstancePanel(Class<? extends ProcessInstanceState> dataClass, Class<? extends Panel> panelClass) {
+    public static void registerProcessInstancePanel(Class<? extends ProcessSpecificState> dataClass, Class<? extends Panel> panelClass) {
         if (panelsForProcesses == null) {
             panelsForProcesses = new HashMap<>();
         }
@@ -59,7 +61,8 @@ public class ProcessInstancePanel extends SimplePanel<ProcessInstanceDto> {
 
     // TODO it would be nicer if individual panels could register themselves
     static {
-        registerProcessInstancePanel(ItemApprovalProcessInstanceState.class, ItemApprovalPanel.class);
+        registerProcessInstancePanel(ItemApprovalProcessState.class, ItemApprovalPanel.class);
+        registerProcessInstancePanel(ProcessSpecificState.class, EmptyProcessDetailsPanel.class);
     }
 
     public ProcessInstancePanel(String id, IModel<ProcessInstanceDto> model) {
@@ -118,16 +121,21 @@ public class ProcessInstancePanel extends SimplePanel<ProcessInstanceDto> {
 
     private Class<? extends Panel> getDetailsPanelClassName() {
         ProcessInstanceDto processInstanceDto = getModel().getObject();
-        Class<? extends ProcessInstanceState> dataClass = (Class<? extends ProcessInstanceState>) processInstanceDto.getProcessInstance().getState().getClass();
-        while (dataClass != null) {
-            Class<? extends Panel> panelClass = panelsForProcesses.get(dataClass);
-            if (panelClass != null) {
-                return panelClass;
-            } else {
-                dataClass = (Class<? extends ProcessInstanceState>) dataClass.getSuperclass();
+        ProcessSpecificState processSpecificState = ((ProcessInstanceState) processInstanceDto.getProcessInstance().getState()).getProcessSpecificState();
+        if (processSpecificState != null) {
+            Class<? extends ProcessSpecificState> dataClass = processSpecificState.getClass();
+            while (dataClass != null) {
+                Class<? extends Panel> panelClass = panelsForProcesses.get(dataClass);
+                if (panelClass != null) {
+                    return panelClass;
+                } else {
+                    dataClass = (Class<? extends ProcessSpecificState>) dataClass.getSuperclass();
+                }
             }
+            throw new IllegalStateException("A panel for displaying workflow process state of type " + processInstanceDto.getProcessInstance().getState().getClass() + " couldn't be found");
+        } else {
+            return EmptyProcessDetailsPanel.class;
         }
-        throw new IllegalStateException("A panel for displaying workflow process state of type " + processInstanceDto.getProcessInstance().getState().getClass() + " couldn't be found");
     }
 
 
