@@ -80,8 +80,7 @@ public class ROrg extends RAbstractRole<OrgType> {
     @ElementCollection
     @ForeignKey(name = "fk_org_org_type")
     @CollectionTable(name = "m_org_org_type", joinColumns = {
-            @JoinColumn(name = "org_oid", referencedColumnName = "oid"),
-            @JoinColumn(name = "org_id", referencedColumnName = "id")
+            @JoinColumn(name = "org_oid", referencedColumnName = "oid")
     })
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<String> getOrgType() {

@@ -24,7 +24,6 @@ import java.io.Serializable;
 public class RSynchronizationSituationDescriptionId implements Serializable {
 
     private String shadowOid;
-    private Short shadowId;
     private String checksum;
 
     public String getShadowOid() {
@@ -33,14 +32,6 @@ public class RSynchronizationSituationDescriptionId implements Serializable {
 
     public void setShadowOid(String shadowOid) {
         this.shadowOid = shadowOid;
-    }
-
-    public Short getShadowId() {
-        return shadowId;
-    }
-
-    public void setShadowId(Short shadowId) {
-        this.shadowId = shadowId;
     }
 
     public String getChecksum() {
@@ -59,7 +50,6 @@ public class RSynchronizationSituationDescriptionId implements Serializable {
         RSynchronizationSituationDescriptionId that = (RSynchronizationSituationDescriptionId) o;
 
         if (checksum != null ? !checksum.equals(that.checksum) : that.checksum != null) return false;
-        if (shadowId != null ? !shadowId.equals(that.shadowId) : that.shadowId != null) return false;
         if (shadowOid != null ? !shadowOid.equals(that.shadowOid) : that.shadowOid != null) return false;
 
         return true;
@@ -68,7 +58,6 @@ public class RSynchronizationSituationDescriptionId implements Serializable {
     @Override
     public int hashCode() {
         int result = shadowOid != null ? shadowOid.hashCode() : 0;
-        result = 31 * result + (shadowId != null ? shadowId.hashCode() : 0);
         result = 31 * result + (checksum != null ? checksum.hashCode() : 0);
         return result;
     }
@@ -77,7 +66,6 @@ public class RSynchronizationSituationDescriptionId implements Serializable {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("RSynchronizationSituationDescriptionId{shadowOid='").append(shadowOid).append('\'');
-        sb.append(", shadowId=").append(shadowId);
         sb.append(", checksum='").append(checksum).append("'}");
 
         return sb.toString();

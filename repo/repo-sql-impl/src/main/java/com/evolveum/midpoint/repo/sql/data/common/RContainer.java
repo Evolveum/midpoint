@@ -32,13 +32,15 @@ import java.io.Serializable;
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public abstract class RContainer implements Serializable {
 
+    public static final String F_OWNER = "owner";
+
     private RObject owner;
     private String ownerOid;
     private Short id;
 
     @Id
     @ForeignKey(name = "fk_container_owner")
-    @MapsId("owner")
+    @MapsId("owner")    //todo fix, if necessary
     @ManyToOne(fetch = FetchType.LAZY)
     public RObject getOwner() {
         return owner;

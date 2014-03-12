@@ -35,7 +35,6 @@ public class ROperationResult implements OperationResult {
     //owner
     private RObject owner;
     private String ownerOid;
-    private Short ownerId;
     //other fields
     private ROperationResultStatus status;
     private Long token;
@@ -45,20 +44,10 @@ public class ROperationResult implements OperationResult {
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({
-            @PrimaryKeyJoinColumn(name = "owner_oid", referencedColumnName = "oid"),
-            @PrimaryKeyJoinColumn(name = "owner_id", referencedColumnName = "id")
+            @PrimaryKeyJoinColumn(name = "owner_oid", referencedColumnName = "oid")
     })
     public RObject getOwner() {
         return owner;
-    }
-
-    @Id
-    @Column(name = "owner_id")
-    public Short getOwnerId() {
-        if (ownerId == null && owner != null) {
-            ownerId = owner.getId();
-        }
-        return ownerId;
     }
 
     @Id
@@ -86,10 +75,6 @@ public class ROperationResult implements OperationResult {
 
     public String getMessageCode() {
         return messageCode;
-    }
-
-    public void setOwnerId(Short ownerId) {
-        this.ownerId = ownerId;
     }
 
     public void setOwnerOid(String ownerOid) {

@@ -32,6 +32,7 @@ import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
@@ -585,7 +586,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         LOGGER.trace("Saving object.");
         RContainerId containerId = (RContainerId) session.save(rObject);
-        String oid = containerId.getOid();
+        String oid = containerId.getOwnerOid();
 
         updateFullObject(session, rObject, object);
 
@@ -707,8 +708,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             if (!existIncorrect) {
                 LOGGER.trace("adding incorrect {}\t{}", new Object[]{ancestorOid,
                         descendant.getOid()});
-                session.save(new ROrgIncorrect(ancestorOid, descendant.getOid(),
-                        descendant.getId()));
+                session.save(new ROrgIncorrect(ancestorOid, descendant.getOid()));
             }
         }
     }
@@ -1022,7 +1022,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     + " polysCount from RAnyContainer where ownerId = :id and ownerOid = :oid and ownerType = :ownerType");
             query.setParameter("id", (short) 0);
             query.setParameter("oid", prismObject.getOid());
-            query.setParameter("ownerType", RContainerType.SHADOW);
+            query.setParameter("ownerType", RObjectType.SHADOW);
 
             Object[] counts = (Object[]) query.uniqueResult();
             Class[] classes = new Class[]{RAnyString.class, RAnyLong.class, RAnyDate.class, RAnyReference.class,
@@ -1053,7 +1053,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 + anyValueType.getSimpleName() + " as c where c.ownerId = :id and c.ownerOid = :oid and c.ownerType = :ownerType");
         query.setParameter("id", (short) 0);
         query.setParameter("oid", object.getOid());
-        query.setParameter("ownerType", RContainerType.SHADOW);
+        query.setParameter("ownerType", RObjectType.SHADOW);
 
         List<Object[]> values = query.list();
         if (values == null || values.isEmpty()) {

@@ -11,6 +11,7 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
+@IdClass(RACId.class)
 @Entity
 public class RAA implements Serializable {
 
@@ -18,8 +19,6 @@ public class RAA implements Serializable {
     private String ownerOid;
 
     private Short id;
-
-    private REmbeddedReference targetRef;
 
     @Id
     @ForeignKey(name = "fk_raa_owner")
@@ -42,11 +41,6 @@ public class RAA implements Serializable {
         return id;
     }
 
-    @Embedded
-    public REmbeddedReference getTargetRef() {
-        return targetRef;
-    }
-
     public void setOwner(RAO owner) {
         this.owner = owner;
     }
@@ -57,6 +51,13 @@ public class RAA implements Serializable {
 
     public void setId(Short id) {
         this.id = id;
+    }
+
+    private REmbeddedReference targetRef;
+
+    @Embedded
+    public REmbeddedReference getTargetRef() {
+        return targetRef;
     }
 
     public void setTargetRef(REmbeddedReference targetRef) {

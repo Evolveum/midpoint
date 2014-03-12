@@ -16,14 +16,13 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import java.io.Serializable;
-
-import javax.persistence.*;
-
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import java.io.Serializable;
 
 /**
  * @author lazyman
@@ -32,74 +31,58 @@ import org.hibernate.annotations.Index;
 @Table(name = "m_org_incorrect")
 public class ROrgIncorrect implements Serializable {
 
-	private String ancestorOid;
-	private String descendantOid;
-	private Short descendantId;
+    private String ancestorOid;
+    private String descendantOid;
 
-	public ROrgIncorrect() {
+    public ROrgIncorrect() {
+    }
 
-	}
+    public ROrgIncorrect(String ancestorOid, String descendantOid) {
+        this.ancestorOid = ancestorOid;
+        this.descendantOid = descendantOid;
+    }
 
-	public ROrgIncorrect(String ancestorOid, String descendantOid, Short descendantId) {
-		this.ancestorOid = ancestorOid;
-		this.descendantOid = descendantOid;
-		this.descendantId = descendantId;
-	}
-	
-	@Id
-	@Column(name = "ancestor_oid", nullable = false, updatable = false, length = RUtil.COLUMN_LENGTH_OID)
-	public String getAncestorOid() {
-		return ancestorOid;
-	}
+    @Id
+    @Column(name = "ancestor_oid", nullable = false, updatable = false, length = RUtil.COLUMN_LENGTH_OID)
+    public String getAncestorOid() {
+        return ancestorOid;
+    }
 
-	public void setAncestorOid(String ancestorOid) {
-		this.ancestorOid = ancestorOid;
-	}
-	
-	@Id
-	@Column(name = "descendant_oid", nullable = false, updatable = false, length = RUtil.COLUMN_LENGTH_OID)
-	public String getDescendantOid() {
-		return descendantOid;
-	}
+    public void setAncestorOid(String ancestorOid) {
+        this.ancestorOid = ancestorOid;
+    }
 
-	public void setDescendantOid(String descendantOid) {
-		this.descendantOid = descendantOid;
-	}
+    @Id
+    @Column(name = "descendant_oid", nullable = false, updatable = false, length = RUtil.COLUMN_LENGTH_OID)
+    public String getDescendantOid() {
+        return descendantOid;
+    }
 
-	@Id
-	@Column(name = "descendant_id")
-	public Short getDescendantId() {
-		return descendantId;
-	}
+    public void setDescendantOid(String descendantOid) {
+        this.descendantOid = descendantOid;
+    }
 
-	public void setDescendantId(Short descendantId) {
-		this.descendantId = descendantId;
-	}
+    @Override
+    public int hashCode() {
+        int result = ancestorOid != null ? ancestorOid.hashCode() : 0;
+        result = 31 * result + (descendantOid != null ? descendantOid.hashCode() : 0);
+        return result;
+    }
 
-	@Override
-	public int hashCode() {
-		int result = ancestorOid != null ? ancestorOid.hashCode() : 0;
-		result = 31 * result + (descendantOid != null ? descendantOid.hashCode() : 0);
-		result = 31 * result + (descendantId != null ? descendantId.hashCode() : 0);
-		return result;
-	}
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null || getClass() != obj.getClass())
+            return false;
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null || getClass() != obj.getClass())
-			return false;
+        ROrgIncorrect that = (ROrgIncorrect) obj;
 
-		ROrgIncorrect that = (ROrgIncorrect) obj;	
+        if (ancestorOid != null ? !ancestorOid.equals(that.ancestorOid) : that.ancestorOid != null)
+            return false;
+        if (descendantOid != null ? !descendantOid.equals(that.descendantOid) : that.descendantOid != null)
+            return false;
 
-		if (ancestorOid != null ? !ancestorOid.equals(that.ancestorOid) : that.ancestorOid != null)
-			return false;
-		if (descendantOid != null ? !descendantOid.equals(that.descendantOid) : that.descendantOid != null)
-			return false;
-		if (descendantId != null ? !descendantId.equals(that.descendantId) : that.descendantId != null)
-			return false;
-		
-		return true;
-	}
+        return true;
+    }
 }

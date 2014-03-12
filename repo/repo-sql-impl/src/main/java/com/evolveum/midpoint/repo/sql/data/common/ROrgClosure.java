@@ -29,7 +29,7 @@ import java.io.Serializable;
 @Entity
 @Table(name = "m_org_closure")
 @org.hibernate.annotations.Table(appliesTo = "m_org_closure",
-        indexes = {@Index(name = "iAncestorDepth", columnNames = {"ancestor_id", "ancestor_oid", "depthValue"})})
+        indexes = {@Index(name = "iAncestorDepth", columnNames = {"ancestor_oid", "depthValue"})})
 public class ROrgClosure implements Serializable {
 
     private Long id;
@@ -72,8 +72,7 @@ public class ROrgClosure implements Serializable {
     }
 
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumns({@JoinColumn(name = "ancestor_oid", referencedColumnName = "oid"),
-            @JoinColumn(name = "ancestor_id", referencedColumnName = "id")})
+    @JoinColumns({@JoinColumn(name = "ancestor_oid", referencedColumnName = "oid")})
     @ForeignKey(name = "fk_ancestor")
     public RObject getAncestor() {
         return ancestor;
@@ -92,8 +91,7 @@ public class ROrgClosure implements Serializable {
     }
 
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumns({@JoinColumn(name = "descendant_oid", referencedColumnName = "oid"),
-            @JoinColumn(name = "descendant_id", referencedColumnName = "id")})
+    @JoinColumns({@JoinColumn(name = "descendant_oid", referencedColumnName = "oid")})
     @ForeignKey(name = "fk_descendant")
     public RObject getDescendant() {
         return descendant;

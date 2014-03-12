@@ -29,6 +29,7 @@ import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -812,7 +813,6 @@ public class OrgStructTest extends BaseSQLRepoTest {
         try {
             RUser user = new RUser();
             user.setOid(UUID.randomUUID().toString());
-            user.setId((short) 0);
             user.setName(new RPolyString("vilko", "vilko"));
             Set<RObjectReference> refs = new HashSet<RObjectReference>();
             refs.add(createRef(user, "1", null, null));
@@ -826,12 +826,11 @@ public class OrgStructTest extends BaseSQLRepoTest {
             session.getTransaction().commit();
             session.close();
 
-            user = getUser(id.getOid(), 3, user);
+            user = getUser(id.getOwnerOid(), 3, user);
             //todo asserts
 
             user = new RUser();
-            user.setId((short) 0);
-            user.setOid(id.getOid());
+            user.setOid(id.getOwnerOid());
             user.setName(new RPolyString("vilko", "vilko"));
             refs = new HashSet<RObjectReference>();
             refs.add(createRef(user, "1", null, null));
@@ -844,7 +843,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
             session.getTransaction().commit();
             session.close();
 
-            user = getUser(id.getOid(), 2, user);
+            user = getUser(id.getOwnerOid(), 2, user);
             //todo asserts
         } catch (Exception ex) {
             LOGGER.error("Exception occurred.", ex);
@@ -891,7 +890,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         RParentOrgRef ref = new RParentOrgRef();
         ref.setOwner(user);
         ref.setTargetOid(targetOid);
-        ref.setType(RContainerType.ORG);
+        ref.setType(RObjectType.ORG);
 
         QName q = null;
         if (namespace != null && localpart != null) {

@@ -32,16 +32,18 @@ public class ContainerTypeGenerator implements IdentifierGenerator {
 
     @Override
     public Serializable generate(SessionImplementor session, Object object) throws HibernateException {
-        if (!(object instanceof RAnyContainer)) {
-            throw new HibernateException("Can't create identifier for " + object.getClass().getSimpleName());
-        }
-
-        RAnyContainer container = (RAnyContainer) object;
-        if (container.getOwnerType() != null) {
-            return container.getOwnerType();
-        }
-
-        RContainer owner = container.getOwner();
-        return RContainerType.getType(owner.getClass());
+        //todo fix
+//        if (!(object instanceof RAnyContainer)) {
+//            throw new HibernateException("Can't create identifier for " + object.getClass().getSimpleName());
+//        }
+//
+//        RAnyContainer container = (RAnyContainer) object;
+//        if (container.getOwnerType() != null) {
+//            return container.getOwnerType();
+//        }
+//
+//        RContainer owner = container.getOwner();
+//        return RContainerType.getType(owner.getClass());
+        return null;
     }
 }

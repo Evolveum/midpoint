@@ -37,15 +37,16 @@ public class ContainerIdGenerator implements IdentifierGenerator {
     @Override
     public Serializable generate(SessionImplementor session, Object object) throws HibernateException {
         if (object instanceof RAnyContainer) {
-            RAnyContainer any = (RAnyContainer) object;
-            RContainer owner = any.getOwner();
-            Short id = owner.getId();
-            if (id == null) {
-                id = generate(owner);
-                owner.setId(id);
-            }
-            LOGGER.trace("Created id='{}' for any.", new Object[]{id});
-            return id;
+            //todo fix
+//            RAnyContainer any = (RAnyContainer) object;
+//            RContainer owner = any.getOwner();
+//            Short id = owner.getId();
+//            if (id == null) {
+//                id = generate(owner);
+//                owner.setId(id);
+//            }
+//            LOGGER.trace("Created id='{}' for any.", new Object[]{id});
+//            return id;
         }
 
         if (!(object instanceof RContainer)) {

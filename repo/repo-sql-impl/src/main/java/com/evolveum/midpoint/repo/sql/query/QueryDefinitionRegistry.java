@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.query;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.definition.ClassDefinitionParser;
 import com.evolveum.midpoint.repo.sql.query.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query.definition.EntityDefinition;
@@ -54,8 +55,8 @@ public class QueryDefinitionRegistry implements DebugDumpable {
         ClassDefinitionParser classDefinitionParser = new ClassDefinitionParser();
 
         Map<QName, EntityDefinition> map = new HashMap<QName, EntityDefinition>();
-        Collection<RContainerType> types = ClassMapper.getKnownTypes();
-        for (RContainerType type : types) {
+        Collection<RObjectType> types = ClassMapper.getKnownTypes();
+        for (RObjectType type : types) {
             Class clazz = type.getClazz();
             if (!RObject.class.isAssignableFrom(clazz)) {
                 continue;

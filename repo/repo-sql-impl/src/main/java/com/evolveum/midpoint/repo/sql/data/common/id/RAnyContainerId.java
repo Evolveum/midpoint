@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.id;
 
-import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 
 import java.io.Serializable;
 
@@ -26,16 +26,7 @@ import java.io.Serializable;
 public class RAnyContainerId implements Serializable {
 
     private String ownerOid;
-    private Short ownerId;
-    private RContainerType ownerType;
-
-    public Short getOwnerId() {
-        return ownerId;
-    }
-
-    public void setOwnerId(Short ownerId) {
-        this.ownerId = ownerId;
-    }
+    private RObjectType ownerType;
 
     public String getOwnerOid() {
         return ownerOid;
@@ -45,11 +36,11 @@ public class RAnyContainerId implements Serializable {
         this.ownerOid = ownerOid;
     }
 
-    public RContainerType getOwnerType() {
+    public RObjectType getOwnerType() {
         return ownerType;
     }
 
-    public void setOwnerType(RContainerType ownerType) {
+    public void setOwnerType(RObjectType ownerType) {
         this.ownerType = ownerType;
     }
 
@@ -60,7 +51,6 @@ public class RAnyContainerId implements Serializable {
 
         RAnyContainerId that = (RAnyContainerId) o;
 
-        if (ownerId != null ? !ownerId.equals(that.ownerId) : that.ownerId != null) return false;
         if (ownerOid != null ? !ownerOid.equals(that.ownerOid) : that.ownerOid != null) return false;
         if (ownerType != that.ownerType) return false;
 
@@ -70,13 +60,12 @@ public class RAnyContainerId implements Serializable {
     @Override
     public int hashCode() {
         int result = ownerOid != null ? ownerOid.hashCode() : 0;
-        result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
         result = 31 * result + (ownerType != null ? ownerType.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
-        return "RAnyContainerId[" + ownerOid + "," + ownerId + "," + ownerType + "]";
+        return "RAnyContainerId[" + ownerOid + "," + ownerType + "]";
     }
 }

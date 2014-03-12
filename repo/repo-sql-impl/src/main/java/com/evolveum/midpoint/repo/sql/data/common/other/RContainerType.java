@@ -21,12 +21,14 @@ import com.evolveum.midpoint.repo.sql.data.common.*;
 /**
  * @author lazyman
  */
+@Deprecated
 public enum RContainerType {
 
-    ASSIGNMENT(RAssignment.class),
-    EXCLUSION(RExclusion.class),
-    AUTHORIZATION(RAuthorization.class),
-    TRIGGER(RTrigger.class);
+    a(null);
+//    ASSIGNMENT(RAssignment.class),
+//    EXCLUSION(RExclusion.class),
+//    AUTHORIZATION(RAuthorization.class);
+//    TRIGGER(RTrigger.class);
 
     private Class<? extends RContainer> clazz;
 

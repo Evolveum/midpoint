@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.id;
 
-import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -27,8 +27,7 @@ import java.sql.Timestamp;
 public class RAnyDateId implements Serializable {
 
     private String ownerOid;
-    private Short ownerId;
-    private RContainerType ownerType;
+    private RObjectType ownerType;
     private Timestamp value;
     private String name;
     private String type;
@@ -41,19 +40,11 @@ public class RAnyDateId implements Serializable {
         this.ownerOid = ownerOid;
     }
 
-    public Short getOwnerId() {
-        return ownerId;
-    }
-
-    public void setOwnerId(Short ownerId) {
-        this.ownerId = ownerId;
-    }
-
-    public RContainerType getOwnerType() {
+    public RObjectType getOwnerType() {
         return ownerType;
     }
 
-    public void setOwnerType(RContainerType ownerType) {
+    public void setOwnerType(RObjectType ownerType) {
         this.ownerType = ownerType;
     }
 
@@ -89,7 +80,6 @@ public class RAnyDateId implements Serializable {
         RAnyDateId that = (RAnyDateId) o;
 
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (ownerId != null ? !ownerId.equals(that.ownerId) : that.ownerId != null) return false;
         if (ownerOid != null ? !ownerOid.equals(that.ownerOid) : that.ownerOid != null) return false;
         if (ownerType != that.ownerType) return false;
         if (type != null ? !type.equals(that.type) : that.type != null) return false;
@@ -101,7 +91,6 @@ public class RAnyDateId implements Serializable {
     @Override
     public int hashCode() {
         int result = ownerOid != null ? ownerOid.hashCode() : 0;
-        result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
         result = 31 * result + (ownerType != null ? ownerType.hashCode() : 0);
         result = 31 * result + (value != null ? value.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
@@ -111,6 +100,6 @@ public class RAnyDateId implements Serializable {
 
     @Override
     public String toString() {
-        return "RAnyDateId[" + ownerOid + "," + ownerId + "," + ownerType + "," + value + "]";
+        return "RAnyDateId[" + ownerOid + "," + ownerType + "," + value + "]";
     }
 }

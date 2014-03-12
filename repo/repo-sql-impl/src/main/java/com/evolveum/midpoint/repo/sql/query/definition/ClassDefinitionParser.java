@@ -146,7 +146,7 @@ public class ClassDefinitionParser {
             EntityDefinition entityDef = new EntityDefinition(jaxbName, jaxbType, jpaName, jpaType);
             if ("com.evolveum.midpoint.repo.sql.data.common.embedded".equals(jpaType.getPackage().getName())
                     //todo not good, check some interface or annotation, DO NOT ENUMERATE [lazyman]
-                    || RMetadata.class.equals(jpaType)
+//                    || RMetadata.class.equals(jpaType) todo fix metadata shit
                     || ROperationResult.class.equals(jpaType)) {
                 updateEntityDefinition(entityDef);
             }

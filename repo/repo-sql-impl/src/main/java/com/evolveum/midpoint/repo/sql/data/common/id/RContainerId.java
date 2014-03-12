@@ -23,7 +23,7 @@ import java.io.Serializable;
  */
 public class RContainerId implements Serializable {
 
-    private String oid;
+    private String ownerOid;
     private Short id;
 
     public RContainerId() {
@@ -35,23 +35,23 @@ public class RContainerId implements Serializable {
 
     public RContainerId(Short id, String oid) {
         this.id = id;
-        this.oid = oid;
+        this.ownerOid = oid;
     }
 
     public Short getId() {
         return id;
     }
 
-    public String getOid() {
-        return oid;
+    public String getOwnerOid() {
+        return ownerOid;
     }
 
     public void setId(Short id) {
         this.id = id;
     }
 
-    public void setOid(String oid) {
-        this.oid = oid;
+    public void setOwnerOid(String oid) {
+        this.ownerOid = oid;
     }
 
     @Override
@@ -62,20 +62,20 @@ public class RContainerId implements Serializable {
         RContainerId that = (RContainerId) o;
 
         if (id != null ? !id.equals(that.id) : that.id != null) return false;
-        if (oid != null ? !oid.equals(that.oid) : that.oid != null) return false;
+        if (ownerOid != null ? !ownerOid.equals(that.ownerOid) : that.ownerOid != null) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = oid != null ? oid.hashCode() : 0;
+        int result = ownerOid != null ? ownerOid.hashCode() : 0;
         result = 31 * result + (id != null ? id.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
-        return "RContainerId{" + oid + ", " + id + "}";
+        return "RContainerId{" + ownerOid + ", " + id + "}";
     }
 }

@@ -21,13 +21,14 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
-public class RObjectReferenceId implements Serializable {
+public class RCObjectReferenceId implements Serializable {
 
     private String ownerOid;
+    private Short ownerId;
     private String targetOid;
     private String relation;
 
-    public RObjectReferenceId() {
+    public RCObjectReferenceId() {
     }
 
     public String getOwnerOid() {
@@ -36,6 +37,14 @@ public class RObjectReferenceId implements Serializable {
 
     public void setOwnerOid(String ownerOid) {
         this.ownerOid = ownerOid;
+    }
+
+    public Short getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(Short ownerId) {
+        this.ownerId = ownerId;
     }
 
     public String getTargetOid() {
@@ -59,9 +68,10 @@ public class RObjectReferenceId implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RObjectReferenceId that = (RObjectReferenceId) o;
+        RCObjectReferenceId that = (RCObjectReferenceId) o;
 
         if (ownerOid != null ? !ownerOid.equals(that.ownerOid) : that.ownerOid != null) return false;
+        if (ownerId != null ? !ownerId.equals(that.ownerId) : that.ownerId != null) return false;
         if (targetOid != null ? !targetOid.equals(that.targetOid) : that.targetOid != null) return false;
         if (relation != null ? !relation.equals(that.relation) : that.relation != null) return false;
 
@@ -72,6 +82,7 @@ public class RObjectReferenceId implements Serializable {
     @Override
     public int hashCode() {
         int result = ownerOid != null ? ownerOid.hashCode() : 0;
+        result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
         result = 31 * result + (targetOid != null ? targetOid.hashCode() : 0);
         result = 31 * result + (relation != null ? relation.hashCode() : 0);
 
@@ -80,6 +91,6 @@ public class RObjectReferenceId implements Serializable {
 
     @Override
     public String toString() {
-        return "RObjectReferenceId[" + ownerOid + "," + targetOid + "," + relation + ']';
+        return "RObjectReferenceId[" + ownerOid + "," + ownerId + "," + targetOid + "," + relation + ']';
     }
 }

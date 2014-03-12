@@ -110,7 +110,7 @@ public final class ClassMapper {
         throw new IllegalArgumentException("Couldn't find qname for hql type " + type);
     }
 
-    public static ObjectTypes getObjectTypeForHQLType(Class<? extends RContainer> type) {
+    public static ObjectTypes getObjectTypeForHQLType(Class<? extends RObject> type) {
         if (type == null) {
             return null;
         }

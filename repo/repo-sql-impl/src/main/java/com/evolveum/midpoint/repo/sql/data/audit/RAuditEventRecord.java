@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -65,7 +66,7 @@ public class RAuditEventRecord implements Serializable {
     //prism object
     private String targetOid;
     private String targetName;
-    private RContainerType targetType;
+    private RObjectType targetType;
     //prism object - user
     private String targetOwnerOid;
     private String targetOwnerName;
@@ -160,7 +161,7 @@ public class RAuditEventRecord implements Serializable {
     }
 
     @Enumerated(EnumType.ORDINAL)
-    public RContainerType getTargetType() {
+    public RObjectType getTargetType() {
         return targetType;
     }
 
@@ -246,7 +247,7 @@ public class RAuditEventRecord implements Serializable {
         this.targetOid = targetOid;
     }
 
-    public void setTargetType(RContainerType targetType) {
+    public void setTargetType(RObjectType targetType) {
         this.targetType = targetType;
     }
 

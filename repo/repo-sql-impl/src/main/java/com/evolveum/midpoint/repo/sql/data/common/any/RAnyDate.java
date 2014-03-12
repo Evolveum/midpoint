@@ -18,7 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAnyDateId;
-import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -37,8 +37,7 @@ public class RAnyDate implements RAnyValue {
     //owner entity
     private RAnyContainer anyContainer;
     private String ownerOid;
-    private Short ownerId;
-    private RContainerType ownerType;
+    private RObjectType ownerType;
 
     private boolean dynamic;
     private String name;
@@ -76,17 +75,8 @@ public class RAnyDate implements RAnyValue {
     }
 
     @Id
-    @Column(name = "anyContainer_owner_id")
-    public Short getOwnerId() {
-        if (ownerId == null && anyContainer != null) {
-            ownerId = anyContainer.getOwnerId();
-        }
-        return ownerId;
-    }
-
-    @Id
     @Column(name = "anyContainer_owner_type")
-    public RContainerType getOwnerType() {
+    public RObjectType getOwnerType() {
         if (ownerType == null && anyContainer != null) {
             ownerType = anyContainer.getOwnerType();
         }
@@ -152,11 +142,7 @@ public class RAnyDate implements RAnyValue {
         this.ownerOid = ownerOid;
     }
 
-    public void setOwnerId(Short ownerId) {
-        this.ownerId = ownerId;
-    }
-
-    public void setOwnerType(RContainerType ownerType) {
+    public void setOwnerType(RObjectType ownerType) {
         this.ownerType = ownerType;
     }
 

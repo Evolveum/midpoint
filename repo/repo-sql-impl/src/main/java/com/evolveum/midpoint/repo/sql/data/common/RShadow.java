@@ -119,7 +119,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     @JoinColumns({
             @JoinColumn(name = "attrOid", referencedColumnName = "owner_oid"),
-            @JoinColumn(name = "attrId", referencedColumnName = "owner_id"),
             @JoinColumn(name = "attrType", referencedColumnName = "owner_type")
     })
     public RAnyContainer getAttributes() {

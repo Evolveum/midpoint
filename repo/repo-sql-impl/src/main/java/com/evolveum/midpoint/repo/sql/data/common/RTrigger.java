@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -8,22 +9,29 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Index;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
+import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.io.Serializable;
 
 @JaxbType(type = TriggerType.class)
 @Entity
+@IdClass(RContainerId.class)
 @ForeignKey(name = "fk_trigger")
 @org.hibernate.annotations.Table(appliesTo = "m_trigger",
         indexes = {@Index(name = "iTriggerTimestamp", columnNames = RTrigger.C_TIMESTAMP)})
-public class RTrigger extends RContainer {
+public class RTrigger implements Serializable {
 
-    public static final String C_TIMESTAMP = "timestampValue";
     public static final String F_OWNER = "owner";
+    public static final String C_TIMESTAMP = "timestampValue";
 
+    //identificator
+    private RObject owner;
+    private String ownerOid;
+    private Short id;
+    //trigger fields
     private String handlerUri;
     private XMLGregorianCalendar timestamp;
 
@@ -35,6 +43,31 @@ public class RTrigger extends RContainer {
         setOwner(owner);
     }
 
+
+    @Id
+    @ForeignKey(name = "fk_container_owner")
+    @MapsId("owner")    //todo fix, if necessary
+    @ManyToOne(fetch = FetchType.LAZY)
+    public RObject getOwner() {
+        return owner;
+    }
+
+    @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
+    public String getOwnerOid() {
+        if (owner != null && ownerOid == null) {
+            ownerOid = owner.getOid();
+        }
+        return ownerOid;
+    }
+
+    @Id
+    @GeneratedValue(generator = "ContainerIdGenerator")
+    @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
+    @Column(name = "id")
+    public Short getId() {
+        return id;
+    }
+
     public String getHandlerUri() {
         return handlerUri;
     }
@@ -42,6 +75,18 @@ public class RTrigger extends RContainer {
     @Column(name = C_TIMESTAMP)
     public XMLGregorianCalendar getTimestamp() {
         return timestamp;
+    }
+
+    public void setOwner(RObject owner) {
+        this.owner = owner;
+    }
+
+    public void setOwnerOid(String ownerOid) {
+        this.ownerOid = ownerOid;
+    }
+
+    public void setId(Short id) {
+        this.id = id;
     }
 
     public void setTimestamp(XMLGregorianCalendar timestamp) {

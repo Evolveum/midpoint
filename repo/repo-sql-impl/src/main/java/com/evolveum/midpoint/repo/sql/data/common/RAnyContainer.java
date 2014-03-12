@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAnyContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
@@ -49,10 +50,9 @@ public class RAnyContainer implements Serializable {
 
     public static final String OWNER_TYPE = "owner_type";
 
-    private RContainer owner;
+    private RObject owner;
     private String ownerOid;
-    private Short ownerId;
-    private RContainerType ownerType;
+    private RObjectType ownerType;
 
     private Short stringsCount;
     private Short longsCount;
@@ -71,20 +71,8 @@ public class RAnyContainer implements Serializable {
     @ForeignKey(name = "none")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumns({
-            @JoinColumn(name = "owner_id", referencedColumnName = "id"),
-            @JoinColumn(name = "owner_oid", referencedColumnName = "oid")
-    })
-    public RContainer getOwner() {
+    public RObject getOwner() {
         return owner;
-    }
-
-    @Column(name = "owner_id")
-    public Short getOwnerId() {
-        if (ownerId == null && owner != null) {
-            ownerId = owner.getId();
-        }
-        return ownerId;
     }
 
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID)
@@ -101,7 +89,7 @@ public class RAnyContainer implements Serializable {
             strategy = "com.evolveum.midpoint.repo.sql.util.ContainerTypeGenerator")
     @Enumerated(EnumType.ORDINAL)
     @Column(name = OWNER_TYPE)
-    public RContainerType getOwnerType() {
+    public RObjectType getOwnerType() {
         return ownerType;
     }
 
@@ -219,7 +207,7 @@ public class RAnyContainer implements Serializable {
         this.references = references;
     }
 
-    public void setOwnerType(RContainerType ownerType) {
+    public void setOwnerType(RObjectType ownerType) {
         this.ownerType = ownerType;
     }
 
@@ -231,10 +219,6 @@ public class RAnyContainer implements Serializable {
         this.longs = longs;
     }
 
-    public void setOwnerId(Short ownerId) {
-        this.ownerId = ownerId;
-    }
-
     public void setOwnerOid(String ownerOid) {
         this.ownerOid = ownerOid;
     }
@@ -243,7 +227,7 @@ public class RAnyContainer implements Serializable {
         this.strings = strings;
     }
 
-    public void setOwner(RContainer owner) {
+    public void setOwner(RObject owner) {
         this.owner = owner;
     }
 

@@ -122,7 +122,6 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     @JoinColumns({@JoinColumn(name = "extOid", referencedColumnName = "owner_oid"),
-            @JoinColumn(name = "extId", referencedColumnName = "owner_id"),
             @JoinColumn(name = "extType", referencedColumnName = "owner_type")})
     public RAnyContainer getExtension() {
         return extension;

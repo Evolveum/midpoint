@@ -79,8 +79,7 @@ public class RConnector extends RObject<ConnectorType> {
     @ElementCollection
     @ForeignKey(name = "fk_connector_target_system")
     @CollectionTable(name = "m_connector_target_system", joinColumns = {
-            @JoinColumn(name = "connector_oid", referencedColumnName = "oid"),
-            @JoinColumn(name = "connector_id", referencedColumnName = "id")
+            @JoinColumn(name = "connector_oid", referencedColumnName = "oid")
     })
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<String> getTargetSystemType() {

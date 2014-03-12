@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
+import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RCreateApproverRef;
@@ -32,13 +33,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.apache.commons.lang.Validate;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -47,11 +47,12 @@ import java.util.Set;
  */
 @JaxbType(type = AssignmentType.class)
 @Entity
+@IdClass(RContainerId.class)
 @org.hibernate.annotations.Table(appliesTo = "m_assignment",
         indexes = {@Index(name = "iAssignmentAdministrative", columnNames = "administrativeStatus"),
                 @Index(name = "iAssignmentEffective", columnNames = "effectiveStatus")})
 @ForeignKey(name = "fk_assignment")
-public class RAssignment extends RContainer {
+public class RAssignment implements Serializable {
 
     public static final String F_OWNER = "owner";
     /**
@@ -62,9 +63,13 @@ public class RAssignment extends RContainer {
 
     private static final Trace LOGGER = TraceManager.getTrace(RAssignment.class);
 
+    private RObject owner;
+    private String ownerOid;
+    private Short id;
+
     private RAssignmentOwner assignmentOwner;
     //extension
-    private RAnyContainer extension;
+//    private RAnyContainer extension;
     //assignment fields
     private RActivation activation;
     private REmbeddedReference targetRef;
@@ -73,11 +78,11 @@ public class RAssignment extends RContainer {
     //metadata
     private XMLGregorianCalendar createTimestamp;
     private REmbeddedReference creatorRef;
-    private Set<RObjectReference> createApproverRef;
+    private Set<RCObjectReference> createApproverRef;
     private String createChannel;
     private XMLGregorianCalendar modifyTimestamp;
     private REmbeddedReference modifierRef;
-    private Set<RObjectReference> modifyApproverRef;
+    private Set<RCObjectReference> modifyApproverRef;
     private String modifyChannel;
 
 	public RAssignment() {
@@ -87,6 +92,30 @@ public class RAssignment extends RContainer {
     public RAssignment(RObject owner, RAssignmentOwner assignmentOwner) {
         this.setOwner(owner);
         this.assignmentOwner = assignmentOwner;
+    }
+
+    @Id
+    @ForeignKey(name = "fk_container_owner")
+    @MapsId("owner")    //todo fix, if necessary
+    @ManyToOne(fetch = FetchType.LAZY)
+    public RObject getOwner() {
+        return owner;
+    }
+
+    @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
+    public String getOwnerOid() {
+        if (owner != null && ownerOid == null) {
+            ownerOid = owner.getOid();
+        }
+        return ownerOid;
+    }
+
+    @Id
+    @GeneratedValue(generator = "ContainerIdGenerator")
+    @GenericGenerator(name = "ContainerIdGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ContainerIdGenerator")
+    @Column(name = "id")
+    public Short getId() {
+        return id;
     }
 
     @Enumerated(EnumType.ORDINAL)
@@ -104,18 +133,18 @@ public class RAssignment extends RContainer {
 		return tenantRef;
 	}
 
-    @com.evolveum.midpoint.repo.sql.query.definition.Any(jaxbNameLocalPart = "extension")
-    @OneToOne(optional = true, orphanRemoval = true)
-    @ForeignKey(name = "none")
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    @JoinColumns({
-            @JoinColumn(name = "extOid", referencedColumnName = "owner_oid"),
-            @JoinColumn(name = "extId", referencedColumnName = "owner_id"),
-            @JoinColumn(name = "extType", referencedColumnName = "owner_type")
-    })
-    public RAnyContainer getExtension() {
-        return extension;
-    }
+//    @com.evolveum.midpoint.repo.sql.query.definition.Any(jaxbNameLocalPart = "extension")
+//    @OneToOne(optional = true, orphanRemoval = true)
+//    @ForeignKey(name = "none")
+//    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+//    @JoinColumns({
+//            @JoinColumn(name = "extOid", referencedColumnName = "owner_oid"),
+//            @JoinColumn(name = "extId", referencedColumnName = "owner_id"),
+//            @JoinColumn(name = "extType", referencedColumnName = "owner_type")
+//    })
+//    public RAnyContainer getExtension() {
+//        return extension;
+//    }
 
     @Embedded
     public RActivation getActivation() {
@@ -131,9 +160,9 @@ public class RAssignment extends RContainer {
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RObjectReference> getCreateApproverRef() {
+    public Set<RCObjectReference> getCreateApproverRef() {
         if (createApproverRef == null) {
-            createApproverRef = new HashSet<RObjectReference>();
+            createApproverRef = new HashSet<>();
         }
         return createApproverRef;
     }
@@ -160,9 +189,9 @@ public class RAssignment extends RContainer {
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RObjectReference> getModifyApproverRef() {
+    public Set<RCObjectReference> getModifyApproverRef() {
         if (modifyApproverRef == null) {
-            modifyApproverRef = new HashSet<RObjectReference>();
+            modifyApproverRef = new HashSet<>();
         }
         return modifyApproverRef;
     }
@@ -175,7 +204,19 @@ public class RAssignment extends RContainer {
         return modifyTimestamp;
     }
 
-    public void setCreateApproverRef(Set<RObjectReference> createApproverRef) {
+    public void setOwner(RObject owner) {
+        this.owner = owner;
+    }
+
+    public void setOwnerOid(String ownerOid) {
+        this.ownerOid = ownerOid;
+    }
+
+    public void setId(Short id) {
+        this.id = id;
+    }
+
+    public void setCreateApproverRef(Set<RCObjectReference> createApproverRef) {
         this.createApproverRef = createApproverRef;
     }
 
@@ -195,7 +236,7 @@ public class RAssignment extends RContainer {
         this.modifierRef = modifierRef;
     }
 
-    public void setModifyApproverRef(Set<RObjectReference> modifyApproverRef) {
+    public void setModifyApproverRef(Set<RCObjectReference> modifyApproverRef) {
         this.modifyApproverRef = modifyApproverRef;
     }
 
@@ -215,12 +256,12 @@ public class RAssignment extends RContainer {
         this.activation = activation;
     }
 
-    public void setExtension(RAnyContainer extension) {
-        this.extension = extension;
-        if (this.extension != null) {
-            this.extension.setOwnerType(RContainerType.ASSIGNMENT);
-        }
-    }
+//    public void setExtension(RAnyContainer extension) {
+//        this.extension = extension;
+//        if (this.extension != null) {
+//            this.extension.setOwnerType(RContainerType.ASSIGNMENT);
+//        }
+//    }
 
     public void setTargetRef(REmbeddedReference targetRef) {
         this.targetRef = targetRef;
@@ -242,7 +283,7 @@ public class RAssignment extends RContainer {
         RAssignment that = (RAssignment) o;
 
         if (activation != null ? !activation.equals(that.activation) : that.activation != null) return false;
-        if (extension != null ? !extension.equals(that.extension) : that.extension != null) return false;
+//        if (extension != null ? !extension.equals(that.extension) : that.extension != null) return false;
         if (targetRef != null ? !targetRef.equals(that.targetRef) : that.targetRef != null) return false;
         if (assignmentOwner != null ? !assignmentOwner.equals(that.assignmentOwner) : that.assignmentOwner != null)
             return false;
@@ -279,11 +320,12 @@ public class RAssignment extends RContainer {
         jaxb.setId(RUtil.toLong(repo.getId()));
         jaxb.setOrder(repo.getOrder());
 
-        if (repo.getExtension() != null) {
-            ExtensionType extension = new ExtensionType();
-            jaxb.setExtension(extension);
-            RAnyContainer.copyToJAXB(repo.getExtension(), extension, prismContext);
-        }
+        //todo fix
+//        if (repo.getExtension() != null) {
+//            ExtensionType extension = new ExtensionType();
+//            jaxb.setExtension(extension);
+//            RAnyContainer.copyToJAXB(repo.getExtension(), extension, prismContext);
+//        }
         if (repo.getActivation() != null) {
             jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
         }
@@ -309,13 +351,14 @@ public class RAssignment extends RContainer {
         repo.setId(RUtil.toShort(jaxb.getId()));
         repo.setOrder(jaxb.getOrder());
 
-        if (jaxb.getExtension() != null) {
-            RAnyContainer extension = new RAnyContainer();
-            extension.setOwner(repo);
-
-            repo.setExtension(extension);
-            RAnyContainer.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
-        }
+        //todo fix
+//        if (jaxb.getExtension() != null) {
+//            RAnyContainer extension = new RAnyContainer();
+//            extension.setOwner(repo);
+//
+//            repo.setExtension(extension);
+//            RAnyContainer.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
+//        }
 
         if (jaxb.getActivation() != null) {
             RActivation activation = new RActivation();

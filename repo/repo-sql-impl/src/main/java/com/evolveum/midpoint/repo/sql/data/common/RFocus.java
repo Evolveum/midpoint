@@ -101,7 +101,7 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAssignment> getAssignments() {
         if (assignments == null) {
-            assignments = new HashSet<RAssignment>();
+            assignments = new HashSet<>();
         }
         return assignments;
     }

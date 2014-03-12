@@ -73,8 +73,7 @@ public class RTask extends RObject<TaskType> {
     @ElementCollection
     @ForeignKey(name = "fk_task_dependent")
     @CollectionTable(name = "m_task_dependent", joinColumns = {
-            @JoinColumn(name = "task_oid", referencedColumnName = "oid"),
-            @JoinColumn(name = "task_id", referencedColumnName = "id")
+            @JoinColumn(name = "task_oid", referencedColumnName = "oid")
     })
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<String> getDependent() {

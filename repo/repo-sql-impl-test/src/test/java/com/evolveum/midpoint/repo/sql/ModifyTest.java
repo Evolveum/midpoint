@@ -34,6 +34,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -468,8 +469,7 @@ public class ModifyTest extends BaseSQLRepoTest {
             session.beginTransaction();
             user = createUser(456L, DATE);
 
-            user.setId((short)0);
-            user.setOid(id.getOid());
+            user.setOid(id.getOwnerOid());
             session.merge(user);
             session.getTransaction().commit();
             session.close();
@@ -477,7 +477,7 @@ public class ModifyTest extends BaseSQLRepoTest {
             LOGGER.info(">>>GET");
             session = getFactory().openSession();
             session.beginTransaction();
-            user = (RUser) session.createQuery("from RUser as u where u.oid = :oid").setParameter("oid", id.getOid()).uniqueResult();
+            user = (RUser) session.createQuery("from RUser as u where u.oid = :oid").setParameter("oid", id.getOwnerOid()).uniqueResult();
 
             RAnyContainer extension = user.getExtension();
             AssertJUnit.assertEquals(1, extension.getClobs().size());
@@ -515,7 +515,6 @@ public class ModifyTest extends BaseSQLRepoTest {
     private RUser createUser(Long lootValue, Timestamp dateValue) {
         RUser user = new RUser();
         user.setOid(UUID.randomUUID().toString());
-        user.setId((short) 0);
 
         user.setName(new RPolyString("u1", "u1"));
         user.setFullName(new RPolyString("fu1", "fu1"));
@@ -523,7 +522,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         user.setGivenName(new RPolyString("gi1", "gi1"));
 
         RAnyContainer any = new RAnyContainer();
-        any.setOwnerType(RContainerType.USER);
+        any.setOwnerType(RObjectType.USER);
         any.setOwner(user);
         user.setExtension(any);
 
@@ -654,7 +653,6 @@ public class ModifyTest extends BaseSQLRepoTest {
         //add
         RShadow s1 = new RShadow();
         s1.setOid(UUID.randomUUID().toString());
-        s1.setId((short) 0);
         s1.setName(new RPolyString("acc", "acc"));
 
         LOGGER.info("add:\n{}", new Object[]{ReflectionToStringBuilder.reflectionToString(s1, ToStringStyle.MULTI_LINE_STYLE)});
@@ -670,8 +668,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         //modify1
         s1 = new RShadow();
-        s1.setId((short)0);
-        s1.setOid(ID.getOid());
+        s1.setOid(ID.getOwnerOid());
         s1.setName(new RPolyString("acc", "acc"));
         RSynchronizationSituationDescription desc = new RSynchronizationSituationDescription();
         desc.setShadow(s1);
@@ -712,8 +709,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         //modify2
         s1 = new RShadow();
-        s1.setId((short)0);
-        s1.setOid(ID.getOid());
+        s1.setOid(ID.getOwnerOid());
         s1.setName(new RPolyString("acc", "acc"));
         desc = new RSynchronizationSituationDescription();
         desc.setShadow(s1);
