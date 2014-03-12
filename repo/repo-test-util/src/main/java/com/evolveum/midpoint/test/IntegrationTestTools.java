@@ -806,8 +806,9 @@ public class IntegrationTestTools {
 		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS,"password")));
 	}
 
+	//TODO: add language parameter..for now, use xml serialization
 	public static void displayXml(String message, PrismObject<? extends ObjectType> object) throws SchemaException {
-		String xml = PrismTestUtil.serializeObjectToString(object);
+		String xml = PrismTestUtil.serializeObjectToString(object, PrismContext.LANG_XML);
 		display(message, xml);
 	}
 

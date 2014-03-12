@@ -25,6 +25,8 @@ import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.ForeignKey;
@@ -235,8 +237,8 @@ public class RObjectReference implements ObjectReference {
         String filter = repo.getFilter();
         if (StringUtils.isNotEmpty(filter)) {
             Element element = DOMUtil.parseDocument(filter).getDocumentElement();
-            ObjectReferenceType.Filter jaxbFilter = new ObjectReferenceType.Filter();
-            jaxbFilter.setFilter(element);
+            SearchFilterType jaxbFilter = new SearchFilterType();
+            jaxbFilter.setFilterClause(element);
             jaxb.setFilter(jaxbFilter);
         }
     }
@@ -257,9 +259,9 @@ public class RObjectReference implements ObjectReference {
 
         repo.setTargetOid(jaxb.getOid());
 
-        if (jaxb.getFilter() != null && jaxb.getFilter().getFilter() != null) {
-            ObjectReferenceType.Filter filter = jaxb.getFilter();
-            repo.setFilter(DOMUtil.printDom(filter.getFilter()).toString());
+        if (jaxb.getFilter() != null && jaxb.getFilter().getFilterClause() != null) {
+            SearchFilterType filter = jaxb.getFilter();
+            repo.setFilter(DOMUtil.printDom(filter.getFilterClause()).toString());
         }
     }
 

@@ -147,7 +147,7 @@ public class YamlParser extends AbstractParser{
 	}
 
 	@Override
-	protected void writeObjectType(QName explicitType, JsonGenerator generator) throws JsonGenerationException, IOException {
+	protected void writeExplicitType(QName explicitType, JsonGenerator generator) throws JsonGenerationException, IOException {
 		generator.writeObjectField("@type", explicitType);
 		//		if (generator.canWriteTypeId()){
 //			String type = QNameUtil.qNameToUri(explicitType);

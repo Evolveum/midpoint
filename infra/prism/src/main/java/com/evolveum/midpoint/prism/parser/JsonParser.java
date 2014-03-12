@@ -123,7 +123,7 @@ public class JsonParser extends AbstractParser{
 	}
 
 	@Override
-	protected void writeObjectType(QName explicitType, JsonGenerator generator) throws JsonProcessingException, IOException {
+	protected void writeExplicitType(QName explicitType, JsonGenerator generator) throws JsonProcessingException, IOException {
 		generator.writeObjectField("@type", explicitType);
 	}
 
