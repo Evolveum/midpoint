@@ -260,7 +260,7 @@ public class ProcessInstanceProvider {
         ChangeProcessor cp = wfConfiguration.findChangeProcessor((String) vars.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR));
 
         try {
-            pi.setState(cp.externalizeInstanceState(vars).asObjectable());
+            pi.setState(cp.externalizeProcessInstanceState(vars).asObjectable());
         } catch (JAXBException|SchemaException e) {
             result.recordFatalError("Couldn't externalize process instance state for instance " + instance.getProcessInstanceId(), e);
             LoggingUtils.logException(LOGGER, "Couldn't externalize process instance state for instance {}", e, instance.getProcessInstanceId());
@@ -293,7 +293,7 @@ public class ProcessInstanceProvider {
             Map<String,Object> vars = activitiEngineDataHelper.getHistoricVariables(instance.getId(), result);
             pi.setName(new PolyStringType((String) vars.get(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME)));
             ChangeProcessor cp = wfConfiguration.findChangeProcessor((String) vars.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR));
-            pi.setState(cp.externalizeInstanceState(vars).asObjectable());
+            pi.setState(cp.externalizeProcessInstanceState(vars).asObjectable());
             result.recordSuccessIfUnknown();
             return pi;
         } catch (RuntimeException|WorkflowException|JAXBException|SchemaException e) {

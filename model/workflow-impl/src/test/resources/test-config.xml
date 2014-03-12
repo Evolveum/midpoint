@@ -56,14 +56,14 @@
                                 </c:script>
                             </c:activationCondition>
                             <c:processName>ApprovingDummyResourceChangesProcess</c:processName>
-                            <c:processWrapper>approvingDummyResourceChangesProcessWrapper</c:processWrapper>
+                            <c:beanName>approvingDummyResourceChangesScenarioBean</c:beanName>
                         </c:scenario>
                     </c:generalChangeProcessorConfiguration>
                 </generalChangeProcessor>
                 <primaryUserChangeProcessor>
                     <enabled>true</enabled>
-                    <wrapper>addRoleAssignmentWrapper</wrapper>
-                    <wrapper>changePasswordWrapper</wrapper>
+                    <aspect>addRoleAssignmentAspect</aspect>
+                    <aspect>changePasswordAspect</aspect>
                 </primaryUserChangeProcessor>
             </changeProcessors>
         </workflow>

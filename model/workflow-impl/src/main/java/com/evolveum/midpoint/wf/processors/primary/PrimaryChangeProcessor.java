@@ -23,7 +23,6 @@ import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -46,16 +45,15 @@ import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.messages.TaskEvent;
-import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.processes.ProcessInterfaceFinder;
 import com.evolveum.midpoint.wf.processors.BaseAuditHelper;
 import com.evolveum.midpoint.wf.processors.BaseChangeProcessor;
 import com.evolveum.midpoint.wf.processors.BaseExternalizationHelper;
 import com.evolveum.midpoint.wf.processors.BaseModelInvocationProcessingHelper;
-import com.evolveum.midpoint.wf.processors.primary.wrapper.PrimaryApprovalProcessWrapper;
+import com.evolveum.midpoint.wf.processors.primary.aspect.PrimaryChangeAspect;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.WorkItemContents;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.PrimaryApprovalProcessInstanceState;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -95,17 +93,14 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     private JobController jobController;
 
     @Autowired
-    private PrismContext prismContext;
-
-    @Autowired
-    private MiscDataUtil miscDataUtil;
-
-    @Autowired
     private PcpRepoAccessHelper pcpRepoAccessHelper;
+
+    @Autowired
+    private ProcessInterfaceFinder processInterfaceFinder;
 
     public static final String UNKNOWN_OID = "?";
 
-    List<PrimaryApprovalProcessWrapper> processWrappers;
+    List<PrimaryChangeAspect> processWrappers;
 
     public enum ExecutionMode {
         ALL_AFTERWARDS, ALL_IMMEDIATELY, MIXED;
@@ -118,7 +113,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         pcpConfigurationHelper.configure(this);
     }
 
-    public void setProcessWrappers(List<PrimaryApprovalProcessWrapper> processWrappers) {
+    public void setProcessWrappers(List<PrimaryChangeAspect> processWrappers) {
         this.processWrappers = processWrappers;
     }
     //endregion
@@ -156,7 +151,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     private List<PcpChildJobCreationInstruction> gatherStartInstructions(ModelContext context, ObjectDelta<? extends ObjectType> changeBeingDecomposed, Task taskFromModel, OperationResult result) throws SchemaException {
         List<PcpChildJobCreationInstruction> startProcessInstructions = new ArrayList<>();
 
-        for (PrimaryApprovalProcessWrapper wrapper : processWrappers) {
+        for (PrimaryChangeAspect wrapper : processWrappers) {
             List<PcpChildJobCreationInstruction> instructions = wrapper.prepareJobCreationInstructions(context, changeBeingDecomposed, taskFromModel, result);
             logWrapperResult(wrapper, instructions);
             if (instructions != null) {
@@ -190,7 +185,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         return startProcessInstructions;
     }
 
-    private void logWrapperResult(PrimaryApprovalProcessWrapper wrapper, List<? extends JobCreationInstruction> instructions) {
+    private void logWrapperResult(PrimaryChangeAspect wrapper, List<? extends JobCreationInstruction> instructions) {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Wrapper " + wrapper.getClass() + " returned the following process start instructions (count: " + (instructions == null ? "(null)" : instructions.size()) + "):");
             if (instructions != null) {
@@ -335,30 +330,21 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     @Override
     public void onProcessEnd(ProcessEvent event, Job job, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         PcpJob pcpJob = new PcpJob(job);
-        PrimaryApprovalProcessWrapper wrapper = pcpJob.getProcessWrapper();
+        PrimaryChangeAspect aspect = pcpJob.getChangeAspect();
 
-        pcpJob.storeResultingDeltas(wrapper.prepareDeltaOut(event, pcpJob, result));
-        pcpJob.addApprovedBy(wrapper.getApprovedBy(event));
+        pcpJob.storeResultingDeltas(aspect.prepareDeltaOut(event, pcpJob, result));
+        pcpJob.addApprovedBy(aspect.prepareApprovedBy(event, pcpJob, result));
         pcpJob.commitChanges(result);
     }
     //endregion
 
-    //region User interaction
-//    @Override
-//    public String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance) {
-//        PrimaryApprovalProcessInstanceState state = (PrimaryApprovalProcessInstanceState) processInstance.getState();
-//        String wrapperName = state.getMidPointProcessWrapper();
-//        Validate.notNull(wrapperName, "There's no change processor name among the process instance variables");
-//        PrimaryApprovalProcessWrapper wrapper = findProcessWrapper(wrapperName);
-//        return wrapper.getProcessInstanceDetailsPanelName(processInstance);
-//    }
-
     @Override
-    public PrismObject<? extends ProcessInstanceState> externalizeInstanceState(Map<String, Object> variables) throws JAXBException, SchemaException {
-        PrismObject<? extends PrimaryApprovalProcessInstanceState> state = getProcessWrapper(variables).externalizeInstanceState(variables);
-        pcpExternalizationHelper.externalizeState(state, variables);
-        baseExternalizationHelper.externalizeState(state, variables);
-        return state;
+    public PrismObject<? extends ProcessInstanceState> externalizeProcessInstanceState(Map<String, Object> variables) throws JAXBException, SchemaException {
+
+        PrismObject<ProcessInstanceState> processInstanceStatePrismObject = baseExternalizationHelper.externalizeState(variables);
+        processInstanceStatePrismObject.asObjectable().setProcessorSpecificState(pcpExternalizationHelper.externalizeState(variables));
+        processInstanceStatePrismObject.asObjectable().setProcessSpecificState(getChangeAspect(variables).externalizeProcessInstanceState(variables));
+        return processInstanceStatePrismObject;
     }
 
     @Override
@@ -389,7 +375,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         }
 
         if (stage == AuditEventStage.EXECUTION) {
-            auditEventRecord.setResult((String) variables.get(CommonProcessVariableNames.VARIABLE_WF_ANSWER));
+            auditEventRecord.setResult(processInterfaceFinder.getProcessInterface(variables).getAnswer(variables));
         }
 
         return auditEventRecord;
@@ -413,22 +399,22 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     //endregion
 
     //region Getters and setters
-    public List<PrimaryApprovalProcessWrapper> getProcessWrappers() {
+    public List<PrimaryChangeAspect> getProcessWrappers() {
         return processWrappers;
     }
 
-    PrimaryApprovalProcessWrapper getProcessWrapper(Map<String, Object> variables) {
-        String wrapperClassName = (String) variables.get(PcpProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_WRAPPER);
+    PrimaryChangeAspect getChangeAspect(Map<String, Object> variables) {
+        String wrapperClassName = (String) variables.get(PcpProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_ASPECT);
         return findProcessWrapper(wrapperClassName);
     }
 
-    public PrimaryApprovalProcessWrapper findProcessWrapper(String name) {
+    public PrimaryChangeAspect findProcessWrapper(String name) {
 
-        // we can search either by bean name or by wrapper class name (experience will show what is the better way)
+        // we can search either by bean name or by aspect class name (experience will show what is the better way)
         if (getBeanFactory().containsBean(name)) {
-            return getBeanFactory().getBean(name, PrimaryApprovalProcessWrapper.class);
+            return getBeanFactory().getBean(name, PrimaryChangeAspect.class);
         }
-        for (PrimaryApprovalProcessWrapper w : processWrappers) {
+        for (PrimaryChangeAspect w : processWrappers) {
             if (name.equals(w.getClass().getName())) {
                 return w;
             }
@@ -440,5 +426,4 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         return wfTaskUtil;
     }
     //endregion
-
 }

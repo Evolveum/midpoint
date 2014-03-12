@@ -16,10 +16,23 @@
 
 package com.evolveum.midpoint.wf.processors.primary;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.wf.jobs.Job;
 import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
+import com.evolveum.midpoint.wf.processes.common.StringHolder;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
+import com.evolveum.midpoint.wf.processors.primary.aspect.PrimaryChangeAspect;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+
+import javax.xml.bind.JAXBException;
 
 /**
  * @author mederly
@@ -54,6 +67,39 @@ public class PcpChildJobCreationInstruction extends JobCreationInstruction {
 
     public void setExecuteApprovedChangeImmediately(boolean executeApprovedChangeImmediately) {
         this.executeApprovedChangeImmediately = executeApprovedChangeImmediately;
+    }
+
+    public void prepareCommonAttributes(PrimaryChangeAspect wrapper, ModelContext<?> modelContext, String objectOid, PrismObject<UserType> requester) throws SchemaException {
+
+        setRequesterOidInProcess(requester);
+        setObjectOidInProcess(objectOid);
+
+        setExecuteApprovedChangeImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
+
+        addProcessVariable(PcpProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_ASPECT, wrapper.getClass().getName());
+        addTaskVariable(getChangeProcessor().getWorkflowManager().getWfTaskUtil().getWfProcessWrapperPropertyDefinition(), wrapper.getClass().getName());
+
+        if (isExecuteApprovedChangeImmediately()) {
+            // actually, context should be emptied anyway; but to be sure, let's do it here as well
+            addTaskModelContext(((PrimaryChangeProcessor) getChangeProcessor()).contextCopyWithNoDelta((LensContext) modelContext));
+            setExecuteModelOperationHandler(true);
+        }
+    }
+
+    public void setDeltaProcessAndTaskVariables(ObjectDelta delta) {
+        try {
+            addProcessVariable(PcpProcessVariableNames.VARIABLE_MIDPOINT_DELTA, new StringHolder(DeltaConvertor.toObjectDeltaTypeXml(delta)));
+        } catch(JAXBException e) {
+            throw new SystemException("Couldn't store primary delta into the process variable due to JAXB exception", e);
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't store primary delta into the process variable due to schema exception", e);
+        }
+
+        try {
+            addTaskDeltasVariable(getChangeProcessor().getWorkflowManager().getWfTaskUtil().getWfDeltaToProcessPropertyDefinition(), delta);
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't store primary delta into the task variable due to schema exception", e);
+        }
     }
 
     @Override

@@ -280,7 +280,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         return true;
     }
 
-    // temporary - brutal hack - the following three methods are copied from AddRoleAssignmentWrapper - Pavol M.
+    // temporary - brutal hack - the following three methods are copied from AddRoleAssignmentAspect - Pavol M.
 
     private String formatAssignmentBrief(AssignmentType assignment) {
         StringBuilder sb = new StringBuilder();

@@ -20,7 +20,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.processors.BaseConfigurationHelper;
-import com.evolveum.midpoint.wf.processors.primary.wrapper.PrimaryApprovalProcessWrapper;
+import com.evolveum.midpoint.wf.processors.primary.aspect.PrimaryChangeAspect;
 import org.apache.commons.configuration.Configuration;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,31 +41,31 @@ public class PcpConfigurationHelper {
     private BaseConfigurationHelper baseConfigurationHelper;
 
     // configuration
-    private static final String KEY_WRAPPER = "wrapper";
-    private static final List<String> LOCALLY_KNOWN_KEYS = Arrays.asList(KEY_WRAPPER);
+    private static final String KEY_ASPECT = "aspect";
+    private static final List<String> LOCALLY_KNOWN_KEYS = Arrays.asList(KEY_ASPECT);
 
     public void configure(PrimaryChangeProcessor primaryChangeProcessor) {
         baseConfigurationHelper.configureProcessor(primaryChangeProcessor, LOCALLY_KNOWN_KEYS);
-        setPrimaryChangeProcessorWrappers(primaryChangeProcessor);
+        setPrimaryChangeProcessorAspects(primaryChangeProcessor);
     }
 
-    private void setPrimaryChangeProcessorWrappers(PrimaryChangeProcessor primaryChangeProcessor) {
+    private void setPrimaryChangeProcessorAspects(PrimaryChangeProcessor primaryChangeProcessor) {
 
-        List<PrimaryApprovalProcessWrapper> wrappers = new ArrayList<>();
+        List<PrimaryChangeAspect> wrappers = new ArrayList<>();
 
         Configuration c = primaryChangeProcessor.getProcessorConfiguration();
         if (c != null) {
-            String[] wrappersNames = c.getStringArray(KEY_WRAPPER);
+            String[] wrappersNames = c.getStringArray(KEY_ASPECT);
             if (wrappersNames == null || wrappersNames.length == 0) {
                 LOGGER.warn("No wrappers defined for primary change processor " + primaryChangeProcessor.getBeanName());
             } else {
                 for (String wrapperName : wrappersNames) {
-                    LOGGER.trace("Searching for wrapper " + wrapperName);
+                    LOGGER.trace("Searching for aspect " + wrapperName);
                     try {
-                        PrimaryApprovalProcessWrapper wrapper = (PrimaryApprovalProcessWrapper) primaryChangeProcessor.getBeanFactory().getBean(wrapperName);
+                        PrimaryChangeAspect wrapper = (PrimaryChangeAspect) primaryChangeProcessor.getBeanFactory().getBean(wrapperName);
                         wrappers.add(wrapper);
                     } catch (BeansException e) {
-                        throw new SystemException("Process wrapper " + wrapperName + " could not be found.", e);
+                        throw new SystemException("Change aspect " + wrapperName + " could not be found.", e);
                     }
                 }
                 LOGGER.debug("Resolved " + wrappers.size() + " process wrappers for primary change processor " + primaryChangeProcessor.getBeanName());
