@@ -136,7 +136,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private void initLayout() {
         //confirm delete
-        add(new ConfirmationDialog(ID_CONFIRM_DELETE_POPUP,
+        ConfirmationDialog deleteConfirm = new ConfirmationDialog(ID_CONFIRM_DELETE_POPUP,
                 createStringResource("pageDebugList.dialog.title.confirmDelete"), createDeleteConfirmString()) {
 
             @Override
@@ -156,7 +156,13 @@ public class PageDebugList extends PageAdminConfiguration {
                         break;
                 }
             }
-        });
+
+            @Override
+            public boolean getLabelEscapeModelStrings(){
+                return false;
+            }
+        };
+        add(deleteConfirm);
 
         Form searchForm = new Form(ID_SEARCH_FORM);
         add(searchForm);
