@@ -259,6 +259,17 @@ public class XNodeProcessor {
 		return cval;
 	}
 	
+	public void parseXNodeValues(MapXNode xmap) {
+		if (xmap == null) {
+			return;
+		}
+		for (Entry<QName,XNode> entry: xmap.entrySet()) {
+			QName elementQName = entry.getKey();
+			prismContext.getSchemaRegistry().resolveGlobalTypeDefinition(elementQName);
+		}
+		
+	}
+	
 	protected <T extends Containerable> ItemDefinition locateItemDefinition(
 			PrismContainerDefinition<T> containerDefinition, QName elementQName, XNode xnode)
 			throws SchemaException {
@@ -431,7 +442,7 @@ public class XNodeProcessor {
 		if (ItemPathType.COMPLEX_TYPE.equals(typeName)){
 			return (T) parseItemPathType(xprim);
 		} else
-		if (prismContext.getBeanConverter().canConvert(typeName) && !typeName.equals(PolyStringType.COMPLEX_TYPE) && !typeName.equals(ItemPathType.COMPLEX_TYPE)) {
+		if (prismContext.getBeanConverter().canProcess(typeName) && !typeName.equals(PolyStringType.COMPLEX_TYPE) && !typeName.equals(ItemPathType.COMPLEX_TYPE)) {
 			// Primitive elements may also have complex Java representations (e.g. enums)
 			return prismContext.getBeanConverter().unmarshallPrimitive(xprim, typeName);
 		} else {
@@ -476,7 +487,7 @@ public class XNodeProcessor {
 		} else if (SchemaDefinitionType.COMPLEX_TYPE.equals(typeName)) {
 			SchemaDefinitionType schemaDefType = parseSchemaDefinitionType(xmap);
 			return (T) schemaDefType;
-		} else if (prismContext.getBeanConverter().canConvert(typeName)) {
+		} else if (prismContext.getBeanConverter().canProcess(typeName)) {
 			return prismContext.getBeanConverter().unmarshall(xmap, typeName);
 		} else {
 			if (propertyDefinition.isRuntimeSchema()) {

@@ -287,7 +287,7 @@ public class XNodeSerializer {
 			return serializePolyString((PolyString) realValue);
 		} else if (realValue instanceof ItemPathType){
 			return serializeItemPathType((ItemPathType) realValue);
-		} else if (beanConverter.canConvert(typeQName)) {
+		} else if (beanConverter.canProcess(typeQName)) {
 			return beanConverter.marshall(realValue);
 		} else {
 			// primitive value

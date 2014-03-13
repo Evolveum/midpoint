@@ -82,7 +82,7 @@ public class SerializationSafeContainer<T> implements Serializable {
             this.valueForStorageWhenEncoded = MiscDataUtil.serializeContainerableToXml((Containerable) value, prismContext);
             this.valueForStorageWhenNotEncoded = null;
             encodingScheme = EncodingScheme.PRISM_CONTAINER;
-        } else if (value != null && prismContext.getPrismJaxbProcessor().canConvert(value.getClass())) {
+        } else if (value != null && prismContext.getPrismJaxbProcessor().canProcess(value.getClass())) {
             checkPrismContext();
             try {
                 this.valueForStorageWhenEncoded = prismContext.getPrismJaxbProcessor().marshalElementToString(new JAXBElement<Object>(new QName("value"), Object.class, value));

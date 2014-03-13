@@ -42,6 +42,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.parser.DomParser;
 import com.evolveum.midpoint.prism.parser.PrismBeanConverter;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
@@ -75,7 +76,7 @@ import org.w3c.dom.Element;
 	"description",
     "filterClause",
 })
-public class SearchFilterType implements Serializable, Cloneable, Equals, HashCode, DebugDumpable
+public class SearchFilterType implements Serializable, Cloneable, Equals, HashCode, DebugDumpable, Revivable
 {
     private final static long serialVersionUID = 201303040000L;
     
@@ -254,6 +255,19 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
     	return xmap;
     }
 
+    @Override
+	public void revive(PrismContext prismContext) {
+    	if (filterClause != null) {
+			DomParser domParser = prismContext.getParserDom();
+			MapXNode xnode = domParser.parseElementAsMap(filterClause);
+    		searchFilter = QueryConvertor.parseFilter(xnode, prismContext);
+    		filterClause = null;
+    	}
+		if (searchFilter != null) {
+			searchFilter.revive(prismContext);
+		}
+	}
+    
     /**
      * Generates a String representation of the contents of this type.
      * This is an extension method, produced by the 'ts' xjc plugin

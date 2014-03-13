@@ -58,6 +58,7 @@ import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
@@ -745,7 +746,7 @@ public class QueryConvertor {
 	private static <T> XNode serializePropertyValue(PrismPropertyValue<T> value, PrismPropertyDefinition<T> definition, PrismBeanConverter beanConverter) throws SchemaException {
 			QName typeQName = definition.getTypeName();
 			T realValue = value.getValue();
-			if (beanConverter.canConvert(typeQName)) {
+			if (beanConverter.canProcess(typeQName)) {
 				return beanConverter.marshall(realValue);
 			} else {
 				// primitive value
@@ -761,12 +762,25 @@ public class QueryConvertor {
 	}
 	
 
-
-//	
-//	
+	public static void revive (ObjectFilter filter, final PrismContext prismContext) {
+		Visitor visitor = new Visitor() {
+			@Override
+			public void visit(ObjectFilter filter) {
+				if (filter instanceof PropertyValueFilter<?>) {
+					parseExpression((PropertyValueFilter<?>)filter, prismContext);
+				}
+			}
+		};
+		filter.accept(visitor);
+	}
 	
-	
 
+	private static void parseExpression(PropertyValueFilter<?> propValFilter, PrismContext prismContext) throws SchemaException {
+		MapXNode xexpression = propValFilter.getExpression();
+		if (xexpression != null) {
+			prismContext.getXnodeProcessor().parseGlobalXNodeValues(xexpression);
+		}
+	}
 
 
 }

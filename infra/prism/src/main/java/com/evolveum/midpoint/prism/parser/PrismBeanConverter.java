@@ -46,6 +46,7 @@ import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -91,12 +92,11 @@ public class PrismBeanConverter {
 		return prismContext.getSchemaRegistry();
 	}
 
-	public boolean canConvert(QName typeName) {
+	public boolean canProcess(QName typeName) {
 		return getSchemaRegistry().determineCompileTimeClass(typeName) != null; 
 	}
 	
-	public boolean canConvert(Class<?> clazz) {
-//		return !clazz.isEnum() && 
+	public boolean canProcess(Class<?> clazz) {
 		return clazz.getAnnotation(XmlType.class) != null;
 	}
 	
@@ -324,6 +324,10 @@ public class PrismBeanConverter {
 			} else {
 				throw new IllegalStateException("Uh?");
 			}
+		}
+		
+		if (prismContext != null && bean instanceof Revivable) {
+			((Revivable)bean).revive(prismContext);
 		}
 		
 		return bean;
@@ -791,6 +795,80 @@ public class PrismBeanConverter {
 		return xmap;
 	}
 	
+	public void revive(Object bean, final PrismContext prismContext) {
+		Handler<Object> visitor = new Handler<Object>() {
+			@Override
+			public boolean handle(Object o) {
+				if (o instanceof Revivable) {
+					((Revivable)o).revive(prismContext);
+				}
+				return true;
+			}
+		};
+		visit(bean,visitor);
+	}
+	
+	public void visit(Object bean, Handler<Object> handler) {
+		if (bean == null) {
+			return;
+		}
+		
+		Class<? extends Object> beanClass = bean.getClass();
+						
+		handler.handle(bean);
+		
+		if (beanClass.isEnum() || beanClass.isPrimitive()){
+			//nothing more to do
+			return;
+		}
+		
+		XmlType xmlType = beanClass.getAnnotation(XmlType.class);
+		if (xmlType == null) {
+			// no @XmlType annotation, we are not interested to go any deeper
+			return;
+		}
+		
+		List<String> propOrder = getPropOrder(beanClass);
+		for (String fieldName: propOrder) {
+			Method getter = findPropertyGetter(beanClass, fieldName);
+			if (getter == null) {
+				throw new IllegalStateException("No getter for field "+fieldName+" in "+beanClass);
+			}
+			Object getterResult;
+			try {
+				getterResult = getter.invoke(bean);
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				throw new SystemException("Cannot invoke method for field "+fieldName+" in "+beanClass+": "+e.getMessage(), e);
+			}
+			
+			if (getterResult == null) {
+				continue;
+			}
+			
+			if (getterResult instanceof Collection<?>) {
+				Collection col = (Collection)getterResult;
+				if (col.isEmpty()) {
+					continue;
+				}
+				
+				for (Object element: col) {
+					visitValue(element, handler);
+					
+				}
+			} else {
+				visitValue(getterResult, handler);
+			}
+		}
+	}
+	
+	private void visitValue(Object element, Handler<Object> handler) {
+		Object elementToMarshall = element;
+		if (element instanceof JAXBElement){
+			elementToMarshall = ((JAXBElement) element).getValue();
+		} 
+		visit(elementToMarshall, handler);
+	}
+
 	private void setExplicitTypeDeclarationIfNeeded(Method getter, Object getterResult, XNode xmap, QName fieldTypeName){
 		Class getterReturnType = getter.getReturnType();
 		Class getterType = null;
@@ -858,7 +936,7 @@ public class PrismBeanConverter {
 		} else if (value instanceof RawType){
 			return marshalRawValue((RawType) value);
 		} else		
-		if (canConvert(value.getClass())) {
+		if (canProcess(value.getClass())) {
 			// This must be a bean
 			return marshall(value);
 		} else {

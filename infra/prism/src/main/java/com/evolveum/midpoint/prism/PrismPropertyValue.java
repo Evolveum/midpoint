@@ -166,6 +166,18 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	}
 
 	@Override
+	public void revive(PrismContext prismContext) {
+		super.revive(prismContext);
+		if (value != null) {
+			if (value instanceof Revivable) {
+				((Revivable)value).revive(prismContext);
+			} else if (prismContext.getBeanConverter().canProcess(value.getClass())) {
+				prismContext.getBeanConverter().revive(value, prismContext);
+			}
+		}
+	}
+
+	@Override
 	public void recompute(PrismContext prismContext) {
 		if (isRaw()) {
 			return;

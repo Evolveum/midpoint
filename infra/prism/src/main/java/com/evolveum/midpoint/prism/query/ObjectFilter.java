@@ -22,15 +22,18 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugDumpable;
 
 
 
-public abstract class ObjectFilter implements DebugDumpable, Serializable {
+public abstract class ObjectFilter implements DebugDumpable, Serializable, Revivable {
 	
 	ObjectFilter() {
 		// Nothing to do
@@ -45,6 +48,11 @@ public abstract class ObjectFilter implements DebugDumpable, Serializable {
 	
 	public void accept(Visitor visitor) {
 		visitor.visit(this);
+	}
+
+	@Override
+	public void revive(final PrismContext prismContext) {
+		QueryConvertor.revive(this, prismContext);
 	}
 		
 }
