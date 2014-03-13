@@ -1185,7 +1185,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     	}
     }
     
-    public void revive(PrismContext prismContext) {
+    public void revive(PrismContext prismContext) throws SchemaException {
     	if (objectToAdd != null) {
     		objectToAdd.revive(prismContext);
     	}

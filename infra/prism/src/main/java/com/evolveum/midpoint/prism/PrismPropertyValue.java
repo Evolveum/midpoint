@@ -166,7 +166,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	}
 
 	@Override
-	public void revive(PrismContext prismContext) {
+	public void revive(PrismContext prismContext) throws SchemaException {
 		super.revive(prismContext);
 		if (value != null) {
 			if (value instanceof Revivable) {

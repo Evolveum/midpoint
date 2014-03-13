@@ -256,7 +256,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
     }
 
     @Override
-	public void revive(PrismContext prismContext) {
+	public void revive(PrismContext prismContext) throws SchemaException {
     	if (filterClause != null) {
 			DomParser domParser = prismContext.getParserDom();
 			MapXNode xnode = domParser.parseElementAsMap(filterClause);
@@ -264,7 +264,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
     		filterClause = null;
     	}
 		if (searchFilter != null) {
-			searchFilter.revive(prismContext);
+			QueryConvertor.revive(searchFilter, prismContext);
 		}
 	}
     

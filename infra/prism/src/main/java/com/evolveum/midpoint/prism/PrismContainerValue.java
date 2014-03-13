@@ -1103,7 +1103,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	}
 
 	@Override
-	public void revive(PrismContext prismContext) {
+	public void revive(PrismContext prismContext) throws SchemaException {
 		super.revive(prismContext);
 		if (items != null) {
 			for (Item<?> item: items) {

@@ -539,7 +539,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
 		}
 	}
     
-    public void revive(PrismContext prismContext) {
+    public void revive(PrismContext prismContext) throws SchemaException {
     	if (this.prismContext != null) {
     		return;
     	}

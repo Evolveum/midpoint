@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 
 
@@ -51,7 +52,7 @@ public abstract class ObjectFilter implements DebugDumpable, Serializable, Reviv
 	}
 
 	@Override
-	public void revive(final PrismContext prismContext) {
+	public void revive(final PrismContext prismContext) throws SchemaException {
 		QueryConvertor.revive(this, prismContext);
 	}
 		

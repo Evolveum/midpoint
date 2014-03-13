@@ -114,7 +114,7 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 		// Do nothing by default
 	}
 	
-	public void revive(PrismContext prismContext) {
+	public void revive(PrismContext prismContext) throws SchemaException {
 		recompute(prismContext);
 	}
 	

@@ -15,12 +15,14 @@
  */
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 /**
  * @author Radovan Semancik
  *
  */
 public interface Revivable {
 
-	void revive(PrismContext prismContext);
+	void revive(PrismContext prismContext) throws SchemaException;
 	
 }

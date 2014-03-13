@@ -68,6 +68,7 @@ import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
@@ -762,16 +763,25 @@ public class QueryConvertor {
 	}
 	
 
-	public static void revive (ObjectFilter filter, final PrismContext prismContext) {
+	public static void revive (ObjectFilter filter, final PrismContext prismContext) throws SchemaException {
 		Visitor visitor = new Visitor() {
 			@Override
 			public void visit(ObjectFilter filter) {
 				if (filter instanceof PropertyValueFilter<?>) {
-					parseExpression((PropertyValueFilter<?>)filter, prismContext);
+					try {
+						parseExpression((PropertyValueFilter<?>)filter, prismContext);
+					} catch (SchemaException e) {
+						throw new TunnelException(e);
+					}
 				}
 			}
 		};
-		filter.accept(visitor);
+		try {
+			filter.accept(visitor);
+		} catch (TunnelException te) {
+			SchemaException e = (SchemaException) te.getCause();
+			throw e;
+		}
 	}
 	
 

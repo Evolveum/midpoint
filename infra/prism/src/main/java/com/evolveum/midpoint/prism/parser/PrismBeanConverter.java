@@ -63,6 +63,7 @@ import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_2.RawType;
@@ -795,17 +796,26 @@ public class PrismBeanConverter {
 		return xmap;
 	}
 	
-	public void revive(Object bean, final PrismContext prismContext) {
+	public void revive(Object bean, final PrismContext prismContext) throws SchemaException {
 		Handler<Object> visitor = new Handler<Object>() {
 			@Override
 			public boolean handle(Object o) {
 				if (o instanceof Revivable) {
-					((Revivable)o).revive(prismContext);
+					try {
+						((Revivable)o).revive(prismContext);
+					} catch (SchemaException e) {
+						throw new TunnelException(e);
+					}
 				}
 				return true;
 			}
 		};
-		visit(bean,visitor);
+		try {
+			visit(bean,visitor);
+		} catch (TunnelException te) {
+			SchemaException e = (SchemaException) te.getCause();
+			throw e;
+		}
 	}
 	
 	public void visit(Object bean, Handler<Object> handler) {

@@ -259,13 +259,14 @@ public class XNodeProcessor {
 		return cval;
 	}
 	
-	public void parseXNodeValues(MapXNode xmap) {
+	public void parseGlobalXNodeValues(MapXNode xmap) {
 		if (xmap == null) {
 			return;
 		}
 		for (Entry<QName,XNode> entry: xmap.entrySet()) {
 			QName elementQName = entry.getKey();
-			prismContext.getSchemaRegistry().resolveGlobalTypeDefinition(elementQName);
+//			prismContext.getSchemaRegistry().resolveGlobalTypeDefinition(elementQName);
+			// TODO
 		}
 		
 	}
