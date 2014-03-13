@@ -1605,8 +1605,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Session session = null;
         try {
             session = beginReadOnlyTransaction();
-            Query query = session.createQuery("select o.version from " + ClassMapper.getHQLType(ObjectType.class)
-                    + " as o where o.id = 0 and o.oid = :oid");
+            Query query = session.createQuery("select o.version from RObject as o where o.oid = :oid");
             query.setString("oid", oid);
 
             Integer versionLong = (Integer) query.uniqueResult();

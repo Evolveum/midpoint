@@ -343,21 +343,6 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                 .getGlobalPasswordPolicyRef());
         AssertJUnit.assertNull("default user template not null", repoSystemConfig.asObjectable()
                 .getDefaultUserTemplateRef());
-
-//        AssertJUnit.assertNotNull("org root ref is null.", repoSystemConfig.asObjectable().getOrgRootRef());
-//        AssertJUnit.assertEquals(2, repoSystemConfig.asObjectable().getOrgRootRef().size());
-//        List<ObjectReferenceType> orgRootRefs = repoSystemConfig.asObjectable().getOrgRootRef();
-//        String[] refs = {"10000000-0000-0000-0000-000000000003", "20000000-0000-0000-0000-000000000003"};
-//        for (String ref : refs) {
-//            boolean found = false;
-//            for (ObjectReferenceType orgRootRef : orgRootRefs) {
-//                if (ref.equals(orgRootRef.getOid())) {
-//                    found = true;
-//                    break;
-//                }
-//            }
-//            AssertJUnit.assertTrue(ref  + " was not found in org. root refs in system configuration.",found);
-//        }
     }
 
     @Test
