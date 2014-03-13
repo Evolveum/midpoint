@@ -55,6 +55,7 @@ import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -372,10 +373,6 @@ public class QueryConvertor {
 			return createAndFilter(pcd, filter);
 		}
 
-		if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_EQUAL, filter)) {
-			return createEqualFilter(pcd, filter);
-		}
-		
 		if (QNameUtil.compareQName(SchemaConstantsGenerated.Q_EQUAL, filter)) {
 			return createEqualFilter(pcd, filter);
 		}
