@@ -19,7 +19,8 @@ package com.evolveum.midpoint.wf.processes.itemApproval;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
+import com.evolveum.midpoint.wf.processes.BaseProcessMidPointInterface;
+import com.evolveum.midpoint.wf.processes.common.SpringApplicationContextHolder;
 import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
@@ -107,9 +108,9 @@ public class RecordIndividualDecision implements JavaDelegate {
         if (setLoopApprovesInLevelStop != null) {
             execution.setVariable(ProcessVariableNames.LOOP_APPROVERS_IN_LEVEL_STOP, setLoopApprovesInLevelStop);
         }
-        execution.setVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_STATE, "User " + decision.getApproverName() + " decided to " + (decision.isApproved() ? "approve" : "refuse") + " the request.");
+        execution.setVariable(BaseProcessMidPointInterface.VARIABLE_WF_STATE, "User " + decision.getApproverName() + " decided to " + (decision.isApproved() ? "approve" : "refuse") + " the request.");
 
-        SpringApplicationContextHolder.getActivitiInterface().notifyMidpoint(execution);
+        SpringApplicationContextHolder.getActivitiInterface().notifyMidpointAboutProcessEvent(execution);
     }
 
 }

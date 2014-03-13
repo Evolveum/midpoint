@@ -40,8 +40,10 @@ import com.evolveum.midpoint.task.api.TaskRecurrence;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
+import com.evolveum.midpoint.wf.processes.ProcessMidPointInterface;
+import com.evolveum.midpoint.wf.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.processes.itemApproval.ItemApprovalProcessInterface;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
@@ -362,6 +364,10 @@ public class JobCreationInstruction implements DebugDumpable {
 
     public void setProcessInstanceName(String name) {
         addProcessVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME, name);
+    }
+
+    public void setProcessInterfaceBean(ProcessMidPointInterface processInterfaceBean) {
+        addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_INTERFACE_BEAN_NAME, processInterfaceBean.getBeanName());
     }
     //endregion
 

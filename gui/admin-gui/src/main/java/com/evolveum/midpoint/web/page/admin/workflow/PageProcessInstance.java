@@ -73,9 +73,7 @@ public class PageProcessInstance extends PageAdminWorkItems {
             }
         };
 
-        // TODO catch RuntimeException (when process instance variables couldn't be retrieved) and do something meaninful with it
-        String detailsPageClassName = getWorkflowManager().getProcessInstanceDetailsPanelName(model.getObject().getProcessInstance());
-        initLayout(detailsPageClassName);
+        initLayout();
     }
 
     private ProcessInstanceDto loadProcessInstance() {
@@ -108,12 +106,11 @@ public class PageProcessInstance extends PageAdminWorkItems {
         }
     }
 
-    private void initLayout(String detailsPanelClassName) {
+    private void initLayout() {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        ProcessInstancePanel processInstancePanel = new ProcessInstancePanel(ID_PROCESS_INSTANCE_PANEL, model,
-                detailsPanelClassName);
+        ProcessInstancePanel processInstancePanel = new ProcessInstancePanel(ID_PROCESS_INSTANCE_PANEL, model);
         mainForm.add(processInstancePanel);
 
         initButtons(mainForm);

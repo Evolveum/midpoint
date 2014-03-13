@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.processors.primary.wrapper;
+package com.evolveum.midpoint.wf.processors.primary.aspect;
 
 import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -26,27 +25,22 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
-import com.evolveum.midpoint.wf.processes.itemApproval.Constants;
+import com.evolveum.midpoint.wf.processes.ProcessInterfaceFinder;
 import com.evolveum.midpoint.wf.processors.primary.PcpJob;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.PrimaryApprovalProcessInstanceState;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessSpecificState;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * @author Pavol
+ * @author mederly
  */
-public abstract class BaseWrapper implements PrimaryApprovalProcessWrapper {
+public abstract class BasePrimaryChangeAspect implements PrimaryChangeAspect {
 
-    private static final Trace LOGGER = TraceManager.getTrace(BaseWrapper.class);
-
-    public static final String GENERAL_APPROVAL_PROCESS = "ItemApproval";
-    private static final String DEFAULT_PROCESS_INSTANCE_DETAILS_PANEL_NAME = Constants.DEFAULT_PANEL_NAME;
+    private static final Trace LOGGER = TraceManager.getTrace(BasePrimaryChangeAspect.class);
 
     @Autowired
     protected RepositoryService repositoryService;
@@ -58,29 +52,27 @@ public abstract class BaseWrapper implements PrimaryApprovalProcessWrapper {
     protected PrimaryChangeProcessor changeProcessor;
 
     @Autowired
-    protected WrapperHelper wrapperHelper;
+    protected PrimaryChangeAspectHelper primaryChangeAspectHelper;
+
+    @Autowired
+    protected ProcessInterfaceFinder processInterfaceFinder;
 
     @Override
     public List<ObjectDelta<Objectable>> prepareDeltaOut(ProcessEvent event, PcpJob pcpJob, OperationResult result) throws SchemaException {
-        return wrapperHelper.prepareDeltaOut(event, pcpJob, result);
+        return primaryChangeAspectHelper.prepareDeltaOut(event, pcpJob, result);
     }
 
     @Override
-    public List<ObjectReferenceType> getApprovedBy(ProcessEvent event) {
-        return wrapperHelper.getApprovedBy(event);
+    public List<ObjectReferenceType> prepareApprovedBy(ProcessEvent event, PcpJob job, OperationResult result) {
+        return processInterfaceFinder.getProcessInterface(event.getVariables()).prepareApprovedBy(event);
+    }
+
+    @Override
+    public ProcessSpecificState externalizeProcessInstanceState(Map<String, Object> variables) {
+        return processInterfaceFinder.getProcessInterface(variables).externalizeProcessInstanceState(variables);
     }
 
     public PrimaryChangeProcessor getChangeProcessor() {
         return changeProcessor;
-    }
-
-    @Override
-    public String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance) {
-        return DEFAULT_PROCESS_INSTANCE_DETAILS_PANEL_NAME;
-    }
-
-    @Override
-    public PrismObject<? extends PrimaryApprovalProcessInstanceState> externalizeInstanceState(Map<String, Object> variables) {
-        return wrapperHelper.externalizeInstanceState(variables);
     }
 }

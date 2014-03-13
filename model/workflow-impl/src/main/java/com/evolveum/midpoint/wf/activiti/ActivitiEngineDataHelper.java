@@ -123,42 +123,4 @@ public class ActivitiEngineDataHelper {
         }
     }
 
-
-    public List<String> getCandidates(Task task) {
-
-        List<String> retval = new ArrayList<String>();
-
-        TaskService taskService = activitiEngine.getTaskService();
-
-        List<IdentityLink> ils = taskService.getIdentityLinksForTask(task.getId());
-        for (IdentityLink il : ils) {
-            if ("candidate".equals(il.getType())) {
-                if (il.getGroupId() != null) {
-                    retval.add("G:" + il.getGroupId());
-                }
-                if (il.getUserId() != null) {
-                    retval.add("U:" + il.getUserId());
-                }
-            }
-        }
-
-        return retval;
-    }
-
-    public String getCandidatesAsString(Task task) {
-
-        StringBuilder retval = new StringBuilder();
-        boolean first = true;
-        for (String c : getCandidates(task)) {
-            if (first) {
-                first = false;
-            } else {
-                retval.append(", ");
-            }
-            retval.append(c);
-        }
-        return retval.toString();
-    }
-
-
 }

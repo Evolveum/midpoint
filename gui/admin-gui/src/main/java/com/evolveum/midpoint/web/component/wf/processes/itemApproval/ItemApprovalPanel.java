@@ -24,15 +24,24 @@ import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.DecisionDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ItemApprovalProcessInstanceState;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ApprovalLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ApprovalSchemaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.DecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ItemApprovalProcessState;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ItemApprovalRequestType;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.ResourceModel;
+import org.apache.wicket.model.StringResourceModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -109,7 +118,7 @@ public class ItemApprovalPanel extends Panel {
             @Override
             public String getObject() {
 
-                ItemApprovalProcessInstanceState instanceState = (ItemApprovalProcessInstanceState) model.getObject().getInstanceState();
+                ItemApprovalProcessState instanceState = (ItemApprovalProcessState) model.getObject().getInstanceState().getProcessSpecificState();
                 ItemApprovalRequestType approvalRequestType = instanceState.getApprovalRequest();
 
                 // todo delegate to process wrapper instead
@@ -140,7 +149,7 @@ public class ItemApprovalPanel extends Panel {
             public Object getObject() {
                 StringBuilder retval = new StringBuilder();
 
-                ItemApprovalProcessInstanceState instanceState = (ItemApprovalProcessInstanceState) model.getObject().getInstanceState();
+                ItemApprovalProcessState instanceState = (ItemApprovalProcessState) model.getObject().getInstanceState().getProcessSpecificState();
                 ItemApprovalRequestType approvalRequestType = instanceState.getApprovalRequest();
 
                 if (approvalRequestType == null) {
@@ -225,7 +234,7 @@ public class ItemApprovalPanel extends Panel {
             @Override
             public List<DecisionDto> getObject() {
                 List<DecisionDto> retval = new ArrayList<>();
-                ItemApprovalProcessInstanceState instanceState = (ItemApprovalProcessInstanceState) model.getObject().getInstanceState();
+                ItemApprovalProcessState instanceState = (ItemApprovalProcessState) model.getObject().getInstanceState().getProcessSpecificState();
                 List<DecisionType> allDecisions = instanceState.getDecisions();
                 if (allDecisions != null) {
                     for (DecisionType decision : allDecisions) {

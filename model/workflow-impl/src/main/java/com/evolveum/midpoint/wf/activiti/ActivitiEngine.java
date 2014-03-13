@@ -40,6 +40,8 @@ import java.net.URL;
 import java.util.*;
 
 /**
+ * Manages Activiti instance (starts, stops, maintains reference to it).
+ *
  * @author mederly
  */
 @Component

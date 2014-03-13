@@ -18,17 +18,30 @@ package com.evolveum.midpoint.wf.activiti;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.jobs.JobController;
-import com.evolveum.midpoint.wf.messages.*;
+import com.evolveum.midpoint.wf.messages.ActivitiToMidPointMessage;
+import com.evolveum.midpoint.wf.messages.MidPointToActivitiMessage;
+import com.evolveum.midpoint.wf.messages.ProcessEvent;
+import com.evolveum.midpoint.wf.messages.ProcessFinishedEvent;
+import com.evolveum.midpoint.wf.messages.ProcessStartedEvent;
+import com.evolveum.midpoint.wf.messages.QueryProcessCommand;
+import com.evolveum.midpoint.wf.messages.QueryProcessResponse;
+import com.evolveum.midpoint.wf.messages.StartProcessCommand;
+import com.evolveum.midpoint.wf.messages.TaskCompletedEvent;
+import com.evolveum.midpoint.wf.messages.TaskCreatedEvent;
+import com.evolveum.midpoint.wf.messages.TaskEvent;
+import com.evolveum.midpoint.wf.processes.ProcessMidPointInterface;
 import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.processes.ProcessInterfaceFinder;
 import org.activiti.engine.HistoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.delegate.DelegateExecution;
+import org.activiti.engine.delegate.DelegateTask;
+import org.activiti.engine.delegate.TaskListener;
 import org.activiti.engine.history.HistoricDetail;
 import org.activiti.engine.history.HistoricDetailQuery;
 import org.activiti.engine.history.HistoricFormProperty;
@@ -58,6 +71,9 @@ public class ActivitiInterface {
 
     @Autowired
     private JobController jobController;
+
+    @Autowired
+    private ProcessInterfaceFinder processInterfaceFinder;
 
     /**
      * Processes a message coming from midPoint to activiti. Although currently activiti is co-located with midPoint,
@@ -198,37 +214,7 @@ public class ActivitiInterface {
         }
 
         try {
-
-            if (msg instanceof ProcessEvent) {
-
-                ProcessEvent event = (ProcessEvent) msg;
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Received ProcessEvent: " + event);
-                }
-
-                String taskOid = event.getTaskOid();
-                if (taskOid == null) {
-                    throw new IllegalStateException("Got a workflow message without taskOid: " + event.toString());
-                }
-
-                if (task != null) {
-                    if (!taskOid.equals(task.getOid())) {
-                        throw new IllegalStateException("TaskOid received from the workflow (" + taskOid + ") is different from current task OID (" + task + "): " + event.toString());
-                    }
-                } else {
-                    task = taskManager.getTask(taskOid, result);
-                }
-
-                if (asynchronous && task.getExecutionStatus() != TaskExecutionStatus.WAITING) {
-                    LOGGER.trace("Asynchronous message received in a state different from WAITING ({}), ignoring it. Task = {}", task.getExecutionStatus(), task);
-                } else {
-                    jobController.processWorkflowMessage(event, task, result);
-                }
-
-            } else {
-                throw new IllegalStateException("Unknown message type coming from the workflow: " + msg);
-            }
-
+            jobController.processWorkflowMessage(msg, task, asynchronous, result);
         } catch (Exception e) {     // todo fix the exception processing
             String message = "Couldn't process an event coming from the workflow management system";
             LoggingUtils.logException(LOGGER, message, e);
@@ -243,19 +229,58 @@ public class ActivitiInterface {
         }
     }
 
-    public void notifyMidpointFinal(DelegateExecution execution) {
-        notifyMidpoint(execution, new ProcessFinishedEvent());
+    public void notifyMidpointAboutProcessFinishedEvent(DelegateExecution execution) {
+        notifyMidpointAboutProcessEvent(execution, new ProcessFinishedEvent());
     }
 
-    public void notifyMidpoint(DelegateExecution execution) {
-        notifyMidpoint(execution, new ProcessEvent());
+    public void notifyMidpointAboutProcessEvent(DelegateExecution execution) {
+        notifyMidpointAboutProcessEvent(execution, new ProcessEvent());
     }
 
-    public void notifyMidpoint(DelegateExecution execution, ProcessEvent event) {
+    public void notifyMidpointAboutProcessEvent(DelegateExecution execution, ProcessEvent event) {
         event.setPid(execution.getProcessInstanceId());
         event.setRunning(true);
         event.setTaskOid((String) execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID));
         event.setVariablesFrom(execution.getVariables());
-        activiti2midpoint(event, null, true, new OperationResult(DOT_CLASS + "notifyMidpoint"));
+        ProcessMidPointInterface processInterface = processInterfaceFinder.getProcessInterface(execution.getVariables());
+        event.setAnswer(processInterface.getAnswer(execution.getVariables()));
+        event.setState(processInterface.getState(execution.getVariables()));
+        activiti2midpoint(event, null, true, new OperationResult(DOT_CLASS + "notifyMidpointAboutProcessEvent"));
     }
+
+    //region Processing work item events
+
+    public void notifyMidpointAboutTaskEvent(DelegateTask delegateTask) {
+
+        OperationResult result = new OperationResult(DOT_CLASS + "notifyMidpointAboutTaskEvent");
+
+        TaskEvent taskEvent = new TaskEvent();
+        if (TaskListener.EVENTNAME_CREATE.equals(delegateTask.getEventName())) {
+            taskEvent = new TaskCreatedEvent();
+        } else if (TaskListener.EVENTNAME_COMPLETE.equals(delegateTask.getEventName())) {
+            taskEvent = new TaskCompletedEvent();
+        } else {
+            return;         // ignoring other events
+        }
+
+        taskEvent.setVariables(delegateTask.getVariables());
+        taskEvent.setAssigneeOid(delegateTask.getAssignee());
+        taskEvent.setTaskId(delegateTask.getId());
+        taskEvent.setTaskName(delegateTask.getName());
+        taskEvent.setProcessInstanceName((String) delegateTask.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME));
+        taskEvent.setProcessInstanceId(delegateTask.getProcessInstanceId());
+        taskEvent.setCreateTime(delegateTask.getCreateTime());
+        taskEvent.setExecutionId(delegateTask.getExecutionId());
+        taskEvent.setOwner(delegateTask.getOwner());
+
+        try {
+            jobController.processWorkflowMessage(taskEvent, null, true, result);
+        } catch (Exception e) {     // todo fix the exception processing e.g. think about situation where an event cannot be audited - should we allow to proceed?
+            String message = "Couldn't process an event coming from the workflow management system";
+            LoggingUtils.logException(LOGGER, message, e);
+            result.recordFatalError(message, e);
+        }
+    }
+
+    //endregion
 }

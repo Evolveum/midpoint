@@ -19,7 +19,7 @@ package com.evolveum.midpoint.wf.processes.itemApproval;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
+import com.evolveum.midpoint.wf.processes.common.SpringApplicationContextHolder;
 import com.evolveum.midpoint.wf.util.SerializationSafeContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 

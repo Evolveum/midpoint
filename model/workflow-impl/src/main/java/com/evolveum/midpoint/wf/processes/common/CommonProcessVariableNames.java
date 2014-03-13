@@ -33,35 +33,20 @@ public class CommonProcessVariableNames {
     // Java class name of the change processor (the same as wf:changeProcessor task property) [String]
     public static final String VARIABLE_MIDPOINT_CHANGE_PROCESSOR = "midPointChangeProcessor";
 
-    // Java class name of the process wrapper (the same as wf:processWrapper task property) [String]
-    public static final String VARIABLE_MIDPOINT_PROCESS_WRAPPER = "midPointProcessWrapper";
-
     // OID of the user who requested the particular operation (e.g. adding of a role to another user).
     // Used e.g. for searching for process instances requested by particular user. [String]
     public static final String VARIABLE_MIDPOINT_REQUESTER_OID = "midPointRequesterOid";
 
     // OID of the object (typically, a user) that is being changed within the operation. [String]
+    // In some cases (e.g. for PrimaryChangeProcessor) the OID is determined clearly.
+    // In other situations, e.g. for GeneralChangeProcessor there must be a code that provides
+    // this information. In some cases, there may be no OID - e.g. when an object is yet to be created.
+    //
+    // TODO think about storing also object class (currently we fetch an object from the repo as "ObjectType.class" but that's far from ideal).
     public static final String VARIABLE_MIDPOINT_OBJECT_OID = "midPointObjectOid";
-
-    // Object that is about to be added (for ADD operation). [ObjectType]
-    public static final String VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED = "midPointObjectToBeAdded";
-
-    // XML representation of the delta to be approved. (Note that technically a process
-    // can approve more deltas; if necessary, this variable would have to be changed.)
-    // [StringHolder]
-    public static final String VARIABLE_MIDPOINT_DELTA = "midPointDelta";
-
-    // Variable reflecting the process status, like "your request was approved by
-    // engineering group, and is being sent to the management". Stored into wfStatus task extension property.
-    // [String]
-    public static final String VARIABLE_MIDPOINT_STATE = "midPointState";
 
     // Object that provides various utility methods for use in processes, e.g. getApprover(RoleType r). [ActivitiUtil]
     public static final String VARIABLE_UTIL = "util";
-
-    // Basic decision returned from a workflow process.
-    // for most work items it is simple __APPROVED__ or __REJECTED__, but in principle this can be any string value
-    public static final String VARIABLE_WF_ANSWER = "wfAnswer";
 
     // Basic decision returned from a work item.
     // for most work items it is simple __APPROVED__ or __REJECTED__, but in principle this can be any string value
@@ -73,11 +58,11 @@ public class CommonProcessVariableNames {
 
     public static final String FORM_BUTTON_PREFIX = "[B]";
 
-    public static final String VARIABLE_MODEL_CONTEXT = "modelContext";
-
     // A signal that the process instance is being stopped. Used e.g. to suppress propagation of exceptions
     // occurring in the process instance end listener.
     // [Boolean]
     public static final String VARIABLE_MIDPOINT_IS_PROCESS_INSTANCE_STOPPING = "midPointIsProcessInstanceStopping";
 
+    // Name of process interface bean (ProcessMidPointInterface implementation) that is related to this process [String]
+    public static final String VARIABLE_MIDPOINT_PROCESS_INTERFACE_BEAN_NAME = "midPointProcessInterfaceBeanName";
 }

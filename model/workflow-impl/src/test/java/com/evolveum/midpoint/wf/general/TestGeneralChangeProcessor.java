@@ -44,20 +44,20 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.TestConstants;
 import com.evolveum.midpoint.wf.WorkflowManagerImpl;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
-import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
-import com.evolveum.midpoint.wf.activiti.TestAuthenticationInfoHolder;
+import com.evolveum.midpoint.wf.processes.common.ActivitiUtil;
+import com.evolveum.midpoint.wf.util.TestAuthenticationInfoHolder;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.processors.general.GeneralChangeProcessor;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.util.JaxbValueContainer;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.QuestionFormType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.WorkItemContents;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -223,7 +223,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
                 PrismObject<? extends QuestionFormType> questionFormPrism = workItemContents.asObjectable().getQuestionForm().asPrismObject();
 
                 WfProcessInstanceType instance = workflowServiceImpl.getProcessInstanceById(workItem.getProcessInstanceId(), false, true, result);
-                PrismProperty<ObjectDeltaType> dummyResourceDelta = instance.getState().asPrismObject().findProperty(ApprovingDummyResourceChangesProcessWrapper.DUMMY_RESOURCE_DELTA_QNAME);
+                PrismProperty<ObjectDeltaType> dummyResourceDelta = ((ProcessInstanceState) instance.getState()).getProcessSpecificState().asPrismContainerValue().findProperty(ApprovingDummyResourceChangesScenarioBean.DUMMY_RESOURCE_DELTA_QNAME);
                 ObjectDeltaType deltaType = dummyResourceDelta.getRealValue();
                 display("dummyResourceDelta", DeltaConvertor.createObjectDelta(deltaType, prismContext));
 
@@ -251,7 +251,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
         });
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void test030AddAccountApproved() throws Exception {
         TestUtil.displayTestTile(this, "test030AddAccountApproved");
 
@@ -283,7 +283,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
                 PrismObject<? extends QuestionFormType> questionFormPrism = workItemContents.asObjectable().getQuestionForm().asPrismObject();
 
                 WfProcessInstanceType instance = workflowServiceImpl.getProcessInstanceById(workItem.getProcessInstanceId(), false, true, result);
-                PrismProperty<ObjectDeltaType> dummyResourceDelta = instance.getState().asPrismObject().findProperty(ApprovingDummyResourceChangesProcessWrapper.DUMMY_RESOURCE_DELTA_QNAME);
+                PrismProperty<ObjectDeltaType> dummyResourceDelta = ((ProcessInstanceState) instance.getState()).getProcessSpecificState().asPrismContainerValue().findProperty(ApprovingDummyResourceChangesScenarioBean.DUMMY_RESOURCE_DELTA_QNAME);
                 ObjectDeltaType deltaType = dummyResourceDelta.getRealValue();
                 display("dummyResourceDelta", DeltaConvertor.createObjectDelta(deltaType, prismContext));
 

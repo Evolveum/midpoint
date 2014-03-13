@@ -192,4 +192,6 @@ public abstract class SchemaConstants {
     public static final QName C_TO = new QName(NS_C, "to");
     public static final QName C_ENCODED_MESSAGE_TEXT = new QName(NS_C, "encodedMessageText");
     public static final QName C_MESSAGE = new QName(NS_C, "message");
+    public static final QName C_WORK_ITEM = new QName(NS_C, "workItem");
+    public static final QName C_WF_PROCESS_INSTANCE = new QName(NS_C, "wfProcessInstance");
 }
