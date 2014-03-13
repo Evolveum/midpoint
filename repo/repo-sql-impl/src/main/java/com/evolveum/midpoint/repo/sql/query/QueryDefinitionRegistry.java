@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.repo.sql.query;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.definition.ClassDefinitionParser;
@@ -30,11 +29,9 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -84,12 +81,12 @@ public class QueryDefinitionRegistry implements DebugDumpable {
 
         return registry;
     }
-    
+
     @Override
     public String debugDump() {
-    	return debugDump(0);
+        return debugDump(0);
     }
-    
+
     @Override
     public String debugDump(int indent) {
         StringBuilder builder = new StringBuilder();

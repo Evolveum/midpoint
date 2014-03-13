@@ -19,13 +19,10 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RCreateApproverRef;
 import com.evolveum.midpoint.repo.sql.data.common.type.RModifyApproverRef;
 import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
-import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -55,7 +52,7 @@ import java.util.Set;
 @Table(name = "m_object")
 @org.hibernate.annotations.Table(appliesTo = "m_object",
         indexes = {@Index(name = "iObjectNameOrig", columnNames = "name_orig"),
-		@Index(name = "iObjectNameNorm", columnNames = "name_norm")})
+                @Index(name = "iObjectNameNorm", columnNames = "name_norm")})
 @ForeignKey(name = "fk_object")
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class RObject<T extends ObjectType> implements Metadata<RObjectReference>, Serializable {
@@ -68,7 +65,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     private Set<ROrgClosure> descendants;
     private Set<ROrgClosure> ancestors;
     //ObjectType
-	private RPolyString name;
+    private RPolyString name;
     private RAnyContainer extension;
     private Set<RObjectReference> parentOrgRef;
     private Set<RTrigger> trigger;
@@ -142,11 +139,11 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     public int getVersion() {
         return version;
     }
-    
+
     @Embedded
     public REmbeddedReference getTenantRef() {
-		return tenantRef;
-	}
+        return tenantRef;
+    }
 
     @Lob
     @Type(type = RUtil.LOB_STRING_TYPE)
@@ -242,9 +239,9 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         this.version = version;
     }
 
-	public void setTenantRef(REmbeddedReference tenantRef) {
-		this.tenantRef = tenantRef;
-	}
+    public void setTenantRef(REmbeddedReference tenantRef) {
+        this.tenantRef = tenantRef;
+    }
 
     public void setName(RPolyString name) {
         this.name = name;
@@ -306,7 +303,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     }
 
     @Override
-    public int hashCode() {        
+    public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (createTimestamp != null ? createTimestamp.hashCode() : 0);
@@ -320,7 +317,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     }
 
     public static <T extends ObjectType> void copyToJAXB(RObject<T> repo, ObjectType jaxb, PrismContext prismContext,
-                                  Collection<SelectorOptions<GetOperationOptions>> options)
+                                                         Collection<SelectorOptions<GetOperationOptions>> options)
             throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
@@ -359,11 +356,11 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
 //                jaxb.setMetadata(repo.getMetadata().toJAXB(prismContext));
 //            }
         }
-        
+
         if (SelectorOptions.hasToLoadPath(ObjectType.F_TENANT_REF, options)) {
-        	if (repo.getTenantRef() != null) {
-        		jaxb.setTenantRef(repo.getTenantRef().toJAXB(prismContext));
-        	}
+            if (repo.getTenantRef() != null) {
+                jaxb.setTenantRef(repo.getTenantRef().toJAXB(prismContext));
+            }
         }
     }
 
@@ -406,7 +403,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
 //            RMetadata.copyFromJAXB(jaxb.getMetadata(), metadata, prismContext);
 //            repo.setMetadata(metadata);
 //        }
-        
+
         repo.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTenantRef(), prismContext));
     }
 

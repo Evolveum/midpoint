@@ -35,9 +35,9 @@ public enum RReferenceOwner {
     OBJECT_PARENT_ORG(RParentOrgRef.class, RParentOrgRef.DISCRIMINATOR),
     /**
      * this constant also have to be changed in
-     * {@link com.evolveum.midpoint.repo.sql.data.common.type.RAccountRef}
+     * {@link com.evolveum.midpoint.repo.sql.data.common.type.RLinkRef}
      */
-    USER_ACCOUNT(RAccountRef.class, RAccountRef.DISCRIMINATOR),
+    USER_ACCOUNT(RLinkRef.class, RLinkRef.DISCRIMINATOR),
     /**
      * this constant also have to be changed in
      * {@link com.evolveum.midpoint.repo.sql.data.common.type.RResourceApproverRef}
@@ -102,7 +102,7 @@ public enum RReferenceOwner {
             case SYSTEM_CONFIGURATION_ORG_ROOT:
                 return new ROrgRootRef();
             case USER_ACCOUNT:
-                return new RAccountRef();
+                return new RLinkRef();
             case RESOURCE_BUSINESS_CONFIGURATON_APPROVER:
                 return new RResourceApproverRef();
             case CREATE_APPROVER:
