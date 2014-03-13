@@ -79,13 +79,19 @@ public class ConfirmationDialog extends ModalWindow {
         initLayout(content, message);
     }
 
+    public boolean getLabelEscapeModelStrings(){
+        return true;
+    }
+
     public void setMessage(IModel<String> message) {
         Label label = (Label) getContent().get(ID_CONFIRM_TEXT);
         label.setDefaultModel(message);
     }
 
     private void initLayout(WebMarkupContainer content, IModel<String> message) {
-        content.add(new Label(ID_CONFIRM_TEXT, message));
+        Label label = new Label(ID_CONFIRM_TEXT, message);
+        label.setEscapeModelStrings(getLabelEscapeModelStrings());
+        content.add(label);
 
         AjaxButton yesButton = new AjaxButton(ID_YES, new StringResourceModel("confirmationDialog.yes",
                 this, null)) {

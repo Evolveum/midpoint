@@ -492,20 +492,11 @@ public class PageUser extends PageAdminUsers {
         return items;
     }
 
-    private void initAccounts(WebMarkupContainer accounts) {
-        //todo implement check all functionality [lazyman]
-        AjaxCheckBox accountCheckAll = new AjaxCheckBox(ID_ACCOUNT_CHECK_ALL, new Model()) {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-            }
-        };
-        accounts.add(accountCheckAll);
-
+    private void initAccounts(final WebMarkupContainer accounts) {
         InlineMenu accountMenu = new InlineMenu(ID_ACCOUNT_MENU, new Model((Serializable) createAccountsMenu()));
         accounts.add(accountMenu);
 
-        ListView<UserAccountDto> accountList = new ListView<UserAccountDto>(ID_ACCOUNT_LIST, accountsModel) {
+        final ListView<UserAccountDto> accountList = new ListView<UserAccountDto>(ID_ACCOUNT_LIST, accountsModel) {
 
             @Override
             protected void populateItem(final ListItem<UserAccountDto> item) {
@@ -524,9 +515,24 @@ public class PageUser extends PageAdminUsers {
                         };
                     }
                 };
+                account.setOutputMarkupId(true);
                 item.add(account);
             }
         };
+
+        AjaxCheckBox accountCheckAll = new AjaxCheckBox(ID_ACCOUNT_CHECK_ALL, new Model()) {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                for(UserAccountDto dto: accountList.getModelObject()){
+                    ObjectWrapper accModel = dto.getObject();
+                    accModel.setSelected(getModelObject());
+                }
+
+                target.add(accounts);
+            }
+        };
+        accounts.add(accountCheckAll);
 
         accounts.add(accountList);
     }
@@ -662,20 +668,11 @@ public class PageUser extends PageAdminUsers {
         return target;
     }
 
-    private void initAssignments(WebMarkupContainer assignments) {
-        //todo implement check all functionality [lazyman]
-        AjaxCheckBox assignmentCheckAll = new AjaxCheckBox(ID_ASSIGNMENT_CHECK_ALL, new Model()) {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-            }
-        };
-        assignments.add(assignmentCheckAll);
-
+    private void initAssignments(final WebMarkupContainer assignments) {
         InlineMenu accountMenu = new InlineMenu(ID_ASSIGNMENT_MENU, new Model((Serializable) createAssignmentsMenu()));
         assignments.add(accountMenu);
 
-        ListView<AssignmentEditorDto> assignmentList = new ListView<AssignmentEditorDto>(ID_ASSIGNMENT_LIST,
+        final ListView<AssignmentEditorDto> assignmentList = new ListView<AssignmentEditorDto>(ID_ASSIGNMENT_LIST,
                 assignmentsModel) {
 
             @Override
@@ -685,7 +682,21 @@ public class PageUser extends PageAdminUsers {
                 item.add(assignmentEditor);
             }
         };
+        assignmentList.setOutputMarkupId(true);
         assignments.add(assignmentList);
+
+        AjaxCheckBox assignmentCheckAll = new AjaxCheckBox(ID_ASSIGNMENT_CHECK_ALL, new Model()) {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                for(AssignmentEditorDto item: assignmentList.getModelObject()){
+                    item.setSelected(this.getModelObject());
+                }
+
+                target.add(assignments);
+            }
+        };
+        assignments.add(assignmentCheckAll);
     }
 
     private void initTasks(WebMarkupContainer tasks) {

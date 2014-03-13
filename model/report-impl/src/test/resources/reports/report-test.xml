@@ -209,11 +209,11 @@
 	</templateStyle>
 	<orientation>landscape</orientation>
 	<export>csv</export>
-	 <!-- datasource sample, provider instance is obtained from spring context -->
-    <dataSource>
-        <providerClass>com.evolveum.midpoint.report.DataSourceReportProvider</providerClass>
-        <springBean>true</springBean>
-    </dataSource>
+	<!-- datasource sample, provider instance is obtained from spring context -->
+	<dataSource>
+		<providerClass>com.evolveum.midpoint.report.DataSourceReportProvider</providerClass>
+		<springBean>true</springBean>
+	</dataSource>
 	<field>
 		<nameReport>name</nameReport>
 		<nameHeader>Name</nameHeader>
@@ -245,9 +245,17 @@
 		<classType>c:ActivationStatusType</classType>
 	</field>	
 	<!-- configuration properties -->
-	<configuration xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report">
+	<configuration xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report"
+				   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2">
 		<r:logoPath>src/test/resources/reports/logo.jpg</r:logoPath>
-		<r:type>UserType</r:type>
+		<r:type>c:UserType</r:type>
+		<r:filter>
+			<q:substring>
+				<q:matching>normIgnoreCase</q:matching>
+				<q:path>c:name</q:path>
+				<q:value>user</q:value>
+			</q:substring>
+		</r:filter>
 	</configuration>
 	<!-- report parameters configuration schema sample with different options -->
 	<configurationSchema>
@@ -257,6 +265,7 @@
                     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
                     xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report"
+					xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
                     elementFormDefault="qualified"
                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/report">
 
@@ -273,10 +282,17 @@
 					<xsd:sequence>
 						<!-- sample how query api datasource configuration should look like-->
 						<xsd:element name="type" type="xsd:QName"/>
-						
+						<xsd:element name="filter" type="q:QueryType">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<jaxb:dom/>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+
 						<!-- special design parameters for all evolveum reports -->
 						<xsd:element name="logoPath" type="xsd:string"/>
-						
+
 					</xsd:sequence>
 				</xsd:complexType>
 				<xsd:element name="configuration" type="r:ConfigurationType"/>
