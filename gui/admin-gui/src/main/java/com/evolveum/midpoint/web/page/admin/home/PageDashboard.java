@@ -378,13 +378,12 @@ public class PageDashboard extends PageAdminHome {
         PrismReference targetRef = assignment.findReference(AssignmentType.F_TARGET_REF);
         if (targetRef == null || targetRef.isEmpty()) {
             //account construction
-            PrismProperty construction = assignment.findProperty(AssignmentType.F_CONSTRUCTION);
+            PrismContainer construction = assignment.findContainer(AssignmentType.F_CONSTRUCTION);
             String name = null;
             String description = null;
-            if (construction != null && !construction.isEmpty()) {
-                ConstructionType constr = (ConstructionType)
-                        construction.getRealValue(ConstructionType.class);
-                description = constr.getDescription();
+            if (construction.getValue().asContainerable() != null && !construction.isEmpty()) {
+                ConstructionType constr = (ConstructionType) construction.getValue().asContainerable();
+                description =  (String) construction.getPropertyRealValue(ConstructionType.F_DESCRIPTION, String.class);
 
                 if (constr.getResourceRef() != null) {
                     ObjectReferenceType resourceRef = constr.getResourceRef();

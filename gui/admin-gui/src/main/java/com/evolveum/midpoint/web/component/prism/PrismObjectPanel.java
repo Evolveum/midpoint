@@ -238,6 +238,9 @@ public class PrismObjectPanel extends Panel {
 
         WebMarkupContainer headerPanel = new WebMarkupContainer("headerPanel");
         headerPanel.add(new AttributeAppender("class", createHeaderClassModel(model), " "));
+//        TODO - attempt to fix row color application when certain actions performed, similar to AssignmentEditorPanel.
+//        headerPanel.add(AttributeModifier.append("class", createHeaderClassModel(model)));
+//        headerPanel.setOutputMarkupId(true);
         add(headerPanel);
         headerPanel.add(new VisibleEnableBehaviour() {
 
