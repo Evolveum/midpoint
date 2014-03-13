@@ -39,6 +39,8 @@ import javax.persistence.*;
 @Table(name = "m_assignment_reference")
 @org.hibernate.annotations.Table(appliesTo = "m_assignment_reference",
         indexes = {@Index(name = "iAssignmentReferenceTargetOid", columnNames = "targetOid")})
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = RObjectReference.REFERENCE_TYPE, discriminatorType = DiscriminatorType.INTEGER)
 public class RCObjectReference implements ObjectReference {
 
     public static final String REFERENCE_TYPE = "reference_type";
@@ -57,7 +59,7 @@ public class RCObjectReference implements ObjectReference {
     public RCObjectReference() {
     }
 
-    @ForeignKey(name = "fk_reference_owner")
+    @ForeignKey(name = "fk_reference_assignment")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     public RAssignment getOwner() {

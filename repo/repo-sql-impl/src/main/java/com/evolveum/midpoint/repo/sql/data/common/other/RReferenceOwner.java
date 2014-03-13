@@ -50,11 +50,6 @@ public enum RReferenceOwner {
     ROLE_APPROVER(RRoleApproverRef.class, RRoleApproverRef.DISCRIMINATOR),
     /**
      * this constant also have to be changed in
-     * {@link com.evolveum.midpoint.repo.sql.data.common.type.ROrgRootRef}
-     */
-    SYSTEM_CONFIGURATION_ORG_ROOT(ROrgRootRef.class, ROrgRootRef.DISCRIMINATOR),
-    /**
-     * this constant also have to be changed in
      * {@link com.evolveum.midpoint.repo.sql.data.common.type.RCreateApproverRef}
      */
     CREATE_APPROVER(RCreateApproverRef.class, RCreateApproverRef.DISCRIMINATOR),
@@ -99,8 +94,6 @@ public enum RReferenceOwner {
                 return new RParentOrgRef();
             case ROLE_APPROVER:
                 return new RRoleApproverRef();
-            case SYSTEM_CONFIGURATION_ORG_ROOT:
-                return new ROrgRootRef();
             case USER_ACCOUNT:
                 return new RLinkRef();
             case RESOURCE_BUSINESS_CONFIGURATON_APPROVER:

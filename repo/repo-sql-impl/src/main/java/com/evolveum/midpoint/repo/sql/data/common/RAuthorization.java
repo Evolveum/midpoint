@@ -62,7 +62,7 @@ public class RAuthorization implements Container {
     }
 
     @Id
-    @ForeignKey(name = "fk_container_owner")
+    @ForeignKey(name = "fk_authorization_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     public RObject getOwner() {

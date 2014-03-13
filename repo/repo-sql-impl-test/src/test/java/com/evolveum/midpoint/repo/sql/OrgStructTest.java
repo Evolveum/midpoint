@@ -27,7 +27,6 @@ import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgIncorrect;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -376,8 +375,6 @@ public class OrgStructTest extends BaseSQLRepoTest {
         ancestors.add(ORG_F002_OID);
 
         for (String ancestorOid : ancestors) {
-
-
             criteria = session.createCriteria(ROrgClosure.class);
             criteria.createCriteria("ancestor", "anc").setFetchMode("ancestor", FetchMode.JOIN)
                     .add(Restrictions.eq("anc.oid", ancestorOid));
@@ -516,11 +513,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
         LOGGER.info("==>before modify - delete<==");
 
         Query qDelete = session.createQuery("from ROrgClosure as o where " +
-                "o.descendantId = :descendantId and o.descendantOid = :descendantOid " +
-                "and o.ancestorId = :ancestorId and o.ancestorOid = :ancestorOid and o.depth = :depth");
-        qDelete.setParameter("descendantId",(short) 0);
+                "o.descendantOid = :descendantOid and o.ancestorOid = :ancestorOid and o.depth = :depth");
         qDelete.setParameter("descendantOid", MODIFY_ORG_DELETE_REF_OID);
-        qDelete.setParameter("ancestorId",(short) 0);
         qDelete.setParameter("ancestorOid", ORG_F003_OID);
         qDelete.setParameter("depth", 1);
 
@@ -538,11 +532,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
         LOGGER.info("==>after modify - delete<==");
 
         qDelete = session.createQuery("from ROrgClosure as o where " +
-                "o.descendantId = :descendantId and o.descendantOid = :descendantOid " +
-                "and o.ancestorId = :ancestorId and o.ancestorOid = :ancestorOid and o.depth = :depth");
-        qDelete.setParameter("descendantId",(short) 0);
+                "o.descendantOid = :descendantOid  and o.ancestorOid = :ancestorOid and o.depth = :depth");
         qDelete.setParameter("descendantOid", MODIFY_ORG_DELETE_REF_OID);
-        qDelete.setParameter("ancestorId",(short) 0);
         qDelete.setParameter("ancestorOid", ORG_F003_OID);
         qDelete.setParameter("depth", 1);
 
@@ -573,11 +564,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
         LOGGER.info("==>before modify - delete<==");
 
         Query qDelete = session.createQuery("from ROrgClosure as o where " +
-                "o.descendantId = :descendantId and o.descendantOid = :descendantOid " +
-                "and o.ancestorId = :ancestorId and o.ancestorOid = :ancestorOid");
-        qDelete.setParameter("descendantId",(short) 0);
+                "o.descendantOid = :descendantOid  and o.ancestorOid = :ancestorOid");
         qDelete.setParameter("descendantOid", MODIFY_ORG_INCORRECT_DELETE_REF_OID);
-        qDelete.setParameter("ancestorId",(short) 0);
         qDelete.setParameter("ancestorOid", ORG_F012_OID);
 
         List<ROrgClosure> orgClosure = qDelete.list();
@@ -594,11 +582,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
         LOGGER.info("==>after modify - delete<==");
 
         qDelete = session.createQuery("from ROrgClosure as o where " +
-                "o.descendantId = :descendantId and o.descendantOid = :descendantOid " +
-                "and o.ancestorId = :ancestorId and o.ancestorOid = :ancestorOid");
-        qDelete.setParameter("descendantId",(short) 0);
+                "o.descendantOid = :descendantOid and o.ancestorOid = :ancestorOid");
         qDelete.setParameter("descendantOid", MODIFY_ORG_INCORRECT_DELETE_REF_OID);
-        qDelete.setParameter("ancestorId",(short) 0);
         qDelete.setParameter("ancestorOid", ORG_F012_OID);
 
         orgClosure = qDelete.list();
@@ -644,9 +629,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         LOGGER.info("==>after modify - add user to org<==");
 
-        Query sqlOrgClosure = session.createQuery("from ROrgClosure as o where o.descendantOid = :descendantOid and o.descendantId = :descendantId");
+        Query sqlOrgClosure = session.createQuery("from ROrgClosure as o where o.descendantOid = :descendantOid");
         sqlOrgClosure.setParameter("descendantOid", ELAINE_OID);
-        sqlOrgClosure.setParameter("descendantId", (short) 0);
         List<ROrgClosure> orgClosure = sqlOrgClosure.list();
 
         AssertJUnit.assertEquals(7, orgClosure.size());
@@ -677,9 +661,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         LOGGER.info("==>after delete<==");
 
         Query sqlOrgClosure = session.createQuery("from ROrgClosure as o where " +
-                "(o.descendantOid = :deleteOid and o.descendantId = :deleteId) or" +
-                "(o.ancestorOid = :deleteOid and o.ancestorId = :deleteId)");
-        sqlOrgClosure.setParameter("deleteId", (short) 0);
+                "o.descendantOid = :deleteOid or o.ancestorOid = :deleteOid");
         sqlOrgClosure.setParameter("deleteOid", DELETE_ORG_OID);
 
         List<ROrgClosure> orgClosure = sqlOrgClosure.list();
@@ -821,17 +803,17 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
             Session session = getFactory().openSession();
             session.beginTransaction();
-            RContainerId id = (RContainerId) session.save(user);
+            String id = (String) session.save(user);
             session.getTransaction().commit();
             session.close();
 
-            user = getUser(id.getOwnerOid(), 3, user);
+            user = getUser(id, 3, user);
             //todo asserts
 
             user = new RUser();
-            user.setOid(id.getOwnerOid());
+            user.setOid(id);
             user.setName(new RPolyString("vilko", "vilko"));
-            refs = new HashSet<RObjectReference>();
+            refs = new HashSet<>();
             refs.add(createRef(user, "1", null, null));
             refs.add(createRef(user, "1", "namespace", "localpart"));
             user.setParentOrgRef(refs);
@@ -842,7 +824,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
             session.getTransaction().commit();
             session.close();
 
-            user = getUser(id.getOwnerOid(), 2, user);
+            user = getUser(id, 2, user);
             //todo asserts
         } catch (Exception ex) {
             LOGGER.error("Exception occurred.", ex);
@@ -876,7 +858,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
     private RUser getUser(String oid, int count, RUser other) {
         Session session = getFactory().openSession();
         session.beginTransaction();
-        RUser user = (RUser) session.get(RUser.class, new RContainerId((short) 0, oid));
+        RUser user = (RUser) session.get(RUser.class, oid);
         AssertJUnit.assertEquals(count, user.getParentOrgRef().size());
 
         session.getTransaction().commit();

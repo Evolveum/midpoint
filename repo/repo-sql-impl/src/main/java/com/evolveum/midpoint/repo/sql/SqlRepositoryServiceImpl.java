@@ -278,8 +278,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         try {
             session = beginReadOnlyTransaction();
             Query query = session.createQuery("select s.oid from " + ClassMapper.getHQLType(ShadowType.class)
-                    + " as s where s.id = :id and s.oid = :oid");
-            query.setLong("id", (short) 0);
+                    + " as s where s.oid = :oid");
             query.setString("oid", shadowOid);
             if (query.uniqueResult() == null) {
                 throw new ObjectNotFoundException("Shadow with oid '" + shadowOid + "' doesn't exist.");
@@ -290,21 +289,21 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     + " as owner left join owner.linkRef as ref where ref.targetOid = :oid");
             query.setString("oid", shadowOid);
 
-            List<String> users = query.list();
-            LOGGER.trace("Found {} users, transforming data to JAXB types.",
-                    new Object[]{(users != null ? users.size() : 0)});
+            List<String> focuses = query.list();
+            LOGGER.trace("Found {} focuses, transforming data to JAXB types.",
+                    new Object[]{(focuses != null ? focuses.size() : 0)});
 
-            if (users == null || users.isEmpty()) {
+            if (focuses == null || focuses.isEmpty()) {
                 // account shadow owner was not found
                 return null;
             }
 
-            if (users.size() > 1) {
+            if (focuses.size() > 1) {
                 LOGGER.warn("Found {} owners for shadow oid {}, returning first owner.",
-                        new Object[]{users.size(), shadowOid});
+                        new Object[]{focuses.size(), shadowOid});
             }
 
-            String focus = users.get(0);
+            String focus = focuses.get(0);
             owner = updateLoadedObject(focus, session, (Class<F>) FocusType.class);
 
             session.getTransaction().commit();
@@ -798,8 +797,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             session.delete(objectToDelete);
         }
 
-//        Query query = session.createQuery("delete from ROrgClosure as c where c.descendantId = :dId and c.descendantOid = :dOid");
-//        query.setParameter("dId", (short) 0);
+//        Query query = session.createQuery("delete from ROrgClosure as c where c.descendantOid = :dOid");
 //        query.setParameter("dOid", object.getOid());
 //
 //        query.executeUpdate();

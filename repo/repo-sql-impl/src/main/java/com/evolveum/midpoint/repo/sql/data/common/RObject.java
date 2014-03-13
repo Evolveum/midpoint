@@ -29,6 +29,7 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
 import org.apache.commons.lang.StringUtils;
@@ -266,7 +267,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
 
     public void setExtension(RAnyContainer extension) {
         this.extension = extension;
-        if (this.extension != null) {
+        if (this.extension != null) {                 //todo fix
 //            this.extension.setOwnerType(RContainerType.OBJECT);
         }
     }
@@ -354,11 +355,8 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         }
 
         if (SelectorOptions.hasToLoadPath(ObjectType.F_METADATA, options)) {
-            //todo fix
-//            MetadataFactory.copyToJAXB(this, );
-//            if (repo.getMetadata() != null) {
-//                jaxb.setMetadata(repo.getMetadata().toJAXB(prismContext));
-//            }
+            MetadataType metadata = MetadataFactory.toJAXB(repo, prismContext);
+            jaxb.setMetadata(metadata);
         }
 
         if (SelectorOptions.hasToLoadPath(ObjectType.F_TENANT_REF, options)) {

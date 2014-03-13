@@ -60,7 +60,7 @@ public class RExclusion implements Container {
     }
 
     @Id
-    @ForeignKey(name = "fk_container_owner")
+    @ForeignKey(name = "fk_exclusion_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     public RObject getOwner() {

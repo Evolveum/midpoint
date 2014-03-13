@@ -30,6 +30,7 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.*;
@@ -93,7 +94,7 @@ public class RAssignment implements Container, Metadata<RCObjectReference> {
     }
 
     @Id
-    @ForeignKey(name = "fk_container_owner")
+    @ForeignKey(name = "fk_assignment_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     public RObject getOwner() {
@@ -334,10 +335,9 @@ public class RAssignment implements Container, Metadata<RCObjectReference> {
         if (repo.getTenantRef() != null) {
             jaxb.setTenantRef(repo.getTenantRef().toJAXB(prismContext));
         }
-        //todo fix
-//        if (repo.getMetadata() != null) {
-//            jaxb.setMetadata(repo.getMetadata().toJAXB(prismContext));
-//        }
+
+        MetadataType metadata = MetadataFactory.toJAXB(repo, prismContext);
+        jaxb.setMetadata(metadata);
     }
 
     public static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, ObjectType parent, PrismContext prismContext)

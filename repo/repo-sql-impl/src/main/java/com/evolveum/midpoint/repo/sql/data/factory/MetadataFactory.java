@@ -2,10 +2,11 @@ package com.evolveum.midpoint.repo.sql.data.factory;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.Metadata;
-import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MetadataType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import java.util.List;
@@ -15,11 +16,12 @@ import java.util.List;
  */
 public class MetadataFactory {
 
-    public static void copyToJAXB(Metadata repo, MetadataType jaxb, PrismContext prismContext)
-            throws DtoTranslationException {
-        Validate.notNull(repo, "Repo metadata must not be null.");
-        Validate.notNull(jaxb, "Jaxb metadata must not be null.");
-        Validate.notNull(prismContext, "Prism context must not be null.");
+    public static MetadataType toJAXB(Metadata repo, PrismContext context) {
+        if (isNull(repo)) {
+            return null;
+        }
+
+        MetadataType jaxb = new MetadataType();
 
         jaxb.setCreateChannel(repo.getCreateChannel());
         jaxb.setCreateTimestamp(repo.getCreateTimestamp());
@@ -27,20 +29,37 @@ public class MetadataFactory {
         jaxb.setModifyTimestamp(repo.getModifyTimestamp());
 
         if (repo.getCreatorRef() != null) {
-            jaxb.setCreatorRef(repo.getCreatorRef().toJAXB(prismContext));
+            jaxb.setCreatorRef(repo.getCreatorRef().toJAXB(context));
         }
         if (repo.getModifierRef() != null) {
-            jaxb.setModifierRef(repo.getModifierRef().toJAXB(prismContext));
+            jaxb.setModifierRef(repo.getModifierRef().toJAXB(context));
         }
 
-        List refs = RUtil.safeSetReferencesToList(repo.getCreateApproverRef(), prismContext);
-        if (!refs.isEmpty()) {
-            jaxb.getCreateApproverRef().addAll(refs);
+        if (repo instanceof RObject) {
+            List refs = RUtil.safeSetReferencesToList(repo.getCreateApproverRef(), context);
+            if (!refs.isEmpty()) {
+                jaxb.getCreateApproverRef().addAll(refs);
+            }
+            refs = RUtil.safeSetReferencesToList(repo.getModifyApproverRef(), context);
+            if (!refs.isEmpty()) {
+                jaxb.getModifyApproverRef().addAll(refs);
+            }
+        } else {
+
         }
-        refs = RUtil.safeSetReferencesToList(repo.getModifyApproverRef(), prismContext);
-        if (!refs.isEmpty()) {
-            jaxb.getModifyApproverRef().addAll(refs);
-        }
+
+        return jaxb;
+    }
+
+    private static boolean isNull(Metadata repo) {
+        return StringUtils.isNotEmpty(repo.getCreateChannel())
+                && repo.getCreateTimestamp() == null
+                && (repo.getCreateApproverRef() == null || repo.getCreateApproverRef().isEmpty())
+                && repo.getCreatorRef() == null
+                && StringUtils.isNotEmpty(repo.getModifyChannel())
+                && repo.getModifyTimestamp() == null
+                && (repo.getModifyApproverRef() == null || repo.getModifyApproverRef().isEmpty())
+                && repo.getModifierRef() == null;
     }
 
     public static void copyFromJAXB(MetadataType jaxb, Metadata repo, PrismContext prismContext)

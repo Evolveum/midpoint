@@ -30,9 +30,10 @@ import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
+import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
+import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
-import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -309,6 +310,10 @@ public final class RUtil {
         return list;
     }
 
+    /**
+     * Use {@link com.evolveum.midpoint.repo.sql.data.factory.ObjectReferenceFactory#safeSetReferencesToList(java.util.Set, com.evolveum.midpoint.prism.PrismContext)}
+     */
+    @Deprecated
     public static List<ObjectReferenceType> safeSetReferencesToList(Set<RObjectReference> set, PrismContext prismContext) {
         List<ObjectReferenceType> list = new ArrayList<ObjectReferenceType>();
 
@@ -398,7 +403,11 @@ public final class RUtil {
             fixCompositeIdentifierInMetaModel(sessionFactory, owner.getClazz());
         }
 
-        fixCompositeIdentifierInMetaModel(sessionFactory, Container.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RCObjectReference.class);
+        for (RCReferenceOwner owner : RCReferenceOwner.values()) {
+            fixCompositeIdentifierInMetaModel(sessionFactory, owner.getClazz());
+        }
+
         fixCompositeIdentifierInMetaModel(sessionFactory, RAssignment.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RAuthorization.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RExclusion.class);

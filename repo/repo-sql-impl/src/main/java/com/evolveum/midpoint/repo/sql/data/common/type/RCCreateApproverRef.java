@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.type;
 
-import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
+import com.evolveum.midpoint.repo.sql.data.common.RCObjectReference;
 
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
@@ -25,8 +25,8 @@ import javax.persistence.Entity;
  * @author lazyman
  */
 @Entity
-@DiscriminatorValue(ROrgRootRef.DISCRIMINATOR)
-public class ROrgRootRef extends RObjectReference {
+@DiscriminatorValue(RCCreateApproverRef.DISCRIMINATOR)
+public class RCCreateApproverRef extends RCObjectReference {
 
-    public static final String DISCRIMINATOR = "4";
+    public static final String DISCRIMINATOR = "0";
 }

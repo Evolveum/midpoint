@@ -459,7 +459,7 @@ public class ModifyTest extends BaseSQLRepoTest {
             LOGGER.info(">>>SAVE");
             session = getFactory().openSession();
             session.beginTransaction();
-            RContainerId id = (RContainerId) session.save(user);
+            String id = (String) session.save(user);
             session.getTransaction().commit();
             session.close();
 
@@ -468,7 +468,7 @@ public class ModifyTest extends BaseSQLRepoTest {
             session.beginTransaction();
             user = createUser(456L, DATE);
 
-            user.setOid(id.getOwnerOid());
+            user.setOid(id);
             session.merge(user);
             session.getTransaction().commit();
             session.close();
@@ -476,7 +476,7 @@ public class ModifyTest extends BaseSQLRepoTest {
             LOGGER.info(">>>GET");
             session = getFactory().openSession();
             session.beginTransaction();
-            user = (RUser) session.createQuery("from RUser as u where u.oid = :oid").setParameter("oid", id.getOwnerOid()).uniqueResult();
+            user = (RUser) session.createQuery("from RUser as u where u.oid = :oid").setParameter("oid", id).uniqueResult();
 
             RAnyContainer extension = user.getExtension();
             AssertJUnit.assertEquals(1, extension.getClobs().size());
@@ -656,10 +656,10 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         LOGGER.info("add:\n{}", new Object[]{ReflectionToStringBuilder.reflectionToString(s1, ToStringStyle.MULTI_LINE_STYLE)});
         Session session = getFactory().openSession();
-        final RContainerId ID;
+        final String ID;
         try {
             session.beginTransaction();
-            ID = (RContainerId) session.save(s1);
+            ID = (String) session.save(s1);
             session.getTransaction().commit();
         } finally {
             session.close();
@@ -667,7 +667,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         //modify1
         s1 = new RShadow();
-        s1.setOid(ID.getOwnerOid());
+        s1.setOid(ID);
         s1.setName(new RPolyString("acc", "acc"));
         RSynchronizationSituationDescription desc = new RSynchronizationSituationDescription();
         desc.setShadow(s1);
@@ -708,7 +708,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         //modify2
         s1 = new RShadow();
-        s1.setOid(ID.getOwnerOid());
+        s1.setOid(ID);
         s1.setName(new RPolyString("acc", "acc"));
         desc = new RSynchronizationSituationDescription();
         desc.setShadow(s1);
