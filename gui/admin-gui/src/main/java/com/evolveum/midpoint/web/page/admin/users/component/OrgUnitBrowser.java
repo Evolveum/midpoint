@@ -283,6 +283,7 @@ public class OrgUnitBrowser extends ModalWindow {
 
     }
 
+    //TODO - continue here - make sure that this query is not overwritten by query from createQueryFromSelected()
     private ObjectQuery createQuery(){
         OrgUnitSearchDto dto = searchModel.getObject();
         ObjectQuery query = null;
