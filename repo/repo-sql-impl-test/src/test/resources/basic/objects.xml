@@ -1311,6 +1311,7 @@
         <configuration xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report">
             <r:LOGO_PATH>src/test/resources/reports/logo.jpg</r:LOGO_PATH>
             <r:BaseTemplateStyles>src/test/resources/styles/midpoint_base_styles.jrtx</r:BaseTemplateStyles>
+            <r:type>c:UserType</r:type>
         </configuration>
     </report>
 

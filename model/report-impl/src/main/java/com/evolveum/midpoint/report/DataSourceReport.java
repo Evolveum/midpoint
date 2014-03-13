@@ -3,10 +3,12 @@ package com.evolveum.midpoint.report;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRField;
+import net.sf.jasperreports.engine.JasperReport;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -53,26 +55,28 @@ public class DataSourceReport implements JRDataSource
 	private int rowCount = 0;
 	private ObjectQuery objectQuery = null;
 	private Class clazz = null;
-
+	private Map params = null;
 	
-	public DataSourceReport(ReportType reportType, ObjectQuery objectQuery, Class clazz, OperationResult result, PrismContext prismContext, ModelService modelService)
+	public DataSourceReport(Map params, PrismContext prismContext, ModelService modelService)
 	{
-		this.reportType = reportType;
-		this.result = result;
+		this.params = params;
 		this.prismContext = prismContext;
 		this.modelService = modelService;
-		this.objectQuery = objectQuery;
-		this.clazz = clazz;
 		initialize();
 	}
 	
-	public DataSourceReport() {
-		// TODO Auto-generated constructor stub
-	}
-
 	private void initialize()
-	{	
-		subResult = result.createSubresult("Initialize");	
+	{	clazz = ReportUtils.getObjectTypeClass(params);
+		objectQuery = ReportUtils.getObjectQuery(params, clazz, prismContext);
+		result = ReportUtils.getOperationResult(params);
+		try
+		{
+			reportType = ReportUtils.getReport(params, modelService, prismContext);
+		} catch (Exception ex)
+		{
+			LOGGER.error("Report doesn't correct in datasource. {}", ex.getMessage());
+		}
+		subResult = result.createSubresult("Initialize datasource");	
 		paging = ObjectPaging.createPaging(0, 50);
 		objectQuery.setPaging(paging);		
 		rowCount = paging.getMaxSize();
@@ -107,9 +111,10 @@ public class DataSourceReport implements JRDataSource
 		{
 			LOGGER.error("Search report objects {}:", ex);
 			throw ex;
-        }
-		
+        }		
 	}
+	
+	
 	@Override
 	public boolean next() throws JRException {
 		try 
@@ -158,7 +163,14 @@ public class DataSourceReport implements JRDataSource
 		else return "";
 	}
 	
-	
+	 /**
+     * Disposes of this data source.  Nothing to do here, yet
+     */
+    public void dispose()
+    {
+            //nothing to do, yet
+    }
+
 	
 	
 }
