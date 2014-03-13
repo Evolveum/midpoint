@@ -39,7 +39,7 @@ import java.io.Serializable;
 @Entity
 @IdClass(RContainerId.class)
 @ForeignKey(name = "fk_exclusion")
-public class RExclusion implements Serializable {
+public class RExclusion implements Container {
 
     public static final String F_OWNER = "owner";
     //owner
@@ -61,7 +61,7 @@ public class RExclusion implements Serializable {
 
     @Id
     @ForeignKey(name = "fk_container_owner")
-    @MapsId("owner")    //todo fix, if necessary
+    @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     public RObject getOwner() {
         return owner;

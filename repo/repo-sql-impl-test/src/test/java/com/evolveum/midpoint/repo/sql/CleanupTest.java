@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
-import com.evolveum.midpoint.repo.sql.data.common.RContainer;
+import com.evolveum.midpoint.repo.sql.data.common.Container;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.RTask;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
@@ -115,7 +115,7 @@ public class CleanupTest extends BaseSQLRepoTest {
             MidPointNamingStrategy namingStrategy = new MidPointNamingStrategy();
             final String taskTableName = namingStrategy.classToTableName(RTask.class.getSimpleName());
             final String objectTableName = namingStrategy.classToTableName(RObject.class.getSimpleName());
-            final String containerTableName = namingStrategy.classToTableName(RContainer.class.getSimpleName());
+            final String containerTableName = namingStrategy.classToTableName(Container.class.getSimpleName());
 
             final String completionTimestampColumn = "completionTimestamp";
 

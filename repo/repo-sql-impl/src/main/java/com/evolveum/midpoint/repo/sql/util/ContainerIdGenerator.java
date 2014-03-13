@@ -49,15 +49,15 @@ public class ContainerIdGenerator implements IdentifierGenerator {
 //            return id;
         }
 
-        if (!(object instanceof RContainer)) {
+        if (!(object instanceof Container)) {
             throw new HibernateException("Couldn't create id for '"
                     + object.getClass().getSimpleName() + "' not instance of RContainer.");
         }
 
-        return generate((RContainer) object);
+        return generate((Container) object);
     }
 
-    private Short generate(RContainer container) {
+    private Short generate(Container container) {
         if (container.getId() != null && container.getId() != 0) {
             LOGGER.trace("Created id='{}' for '{}'.", new Object[]{container.getId(), toString(container)});
             return container.getId();
@@ -68,17 +68,10 @@ public class ContainerIdGenerator implements IdentifierGenerator {
                     + container.getClass().getSimpleName() + "' (should not happen).");
         }
 
-        throw new RuntimeException("Unknown id.");
-
-//        RContainer parent = ((ROwnable) container).getContainerOwner();
-//        Set<RContainer> containers = getChildrenContainers(parent);
-//
-//        Short id = getNextId(containers);
-//        LOGGER.trace("Created id='{}' for '{}'.", new Object[]{id, toString(container)});
-//        return id;
+        throw new RuntimeException("Unknown id, should not happen.");
     }
 
-    private String toString(RContainer object) {
+    private String toString(Container object) {
         StringBuilder builder = new StringBuilder();
         builder.append(object.getClass().getSimpleName());
         builder.append("[");
@@ -90,10 +83,10 @@ public class ContainerIdGenerator implements IdentifierGenerator {
         return builder.toString();
     }
 
-    private Short getNextId(Set<? extends RContainer> set) {
+    private Short getNextId(Set<? extends Container> set) {
         Short id = 0;
         if (set != null) {
-            for (RContainer container : set) {
+            for (Container container : set) {
                 Short contId = container.getId();
                 if (contId != null && contId > id) {
                     id = contId;
@@ -115,16 +108,16 @@ public class ContainerIdGenerator implements IdentifierGenerator {
             return;
         }
 
-        Set<RContainer> containers = getChildrenContainers(container);
+        Set<Container> containers = getChildrenContainers(container);
         Set<Short> usedIds = new HashSet<>();
-        for (RContainer c : containers) {
+        for (Container c : containers) {
             if (c.getId() != null) {
                 usedIds.add(c.getId());
             }
         }
 
         Short nextId = 1;
-        for (RContainer c : containers) {
+        for (Container c : containers) {
             if (c.getId() != null) {
                 continue;
             }
@@ -138,8 +131,8 @@ public class ContainerIdGenerator implements IdentifierGenerator {
         }
     }
 
-    private Set<RContainer> getChildrenContainers(RObject parent) {
-        Set<RContainer> containers = new HashSet<>();
+    private Set<Container> getChildrenContainers(RObject parent) {
+        Set<Container> containers = new HashSet<>();
         containers.addAll(parent.getTrigger());
 
         if (parent instanceof RFocus) {

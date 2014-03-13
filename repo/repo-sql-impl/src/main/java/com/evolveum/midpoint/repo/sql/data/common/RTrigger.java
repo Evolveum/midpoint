@@ -22,7 +22,7 @@ import java.io.Serializable;
 @ForeignKey(name = "fk_trigger")
 @org.hibernate.annotations.Table(appliesTo = "m_trigger",
         indexes = {@Index(name = "iTriggerTimestamp", columnNames = RTrigger.C_TIMESTAMP)})
-public class RTrigger implements Serializable {
+public class RTrigger implements Container {
 
     public static final String F_OWNER = "owner";
     public static final String C_TIMESTAMP = "timestampValue";
@@ -46,7 +46,7 @@ public class RTrigger implements Serializable {
 
     @Id
     @ForeignKey(name = "fk_container_owner")
-    @MapsId("owner")    //todo fix, if necessary
+    @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     public RObject getOwner() {
         return owner;

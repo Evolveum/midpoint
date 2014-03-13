@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RCreateApproverRef;
 import com.evolveum.midpoint.repo.sql.data.common.type.RModifyApproverRef;
+import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -36,7 +37,6 @@ import org.hibernate.annotations.*;
 import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -50,7 +50,7 @@ import java.util.Set;
         indexes = {@Index(name = "iAssignmentAdministrative", columnNames = "administrativeStatus"),
                 @Index(name = "iAssignmentEffective", columnNames = "effectiveStatus")})
 @ForeignKey(name = "fk_assignment")
-public class RAssignment implements Serializable {
+public class RAssignment implements Container, Metadata<RCObjectReference> {
 
     public static final String F_OWNER = "owner";
     /**
@@ -94,7 +94,7 @@ public class RAssignment implements Serializable {
 
     @Id
     @ForeignKey(name = "fk_container_owner")
-    @MapsId("owner")    //todo fix, if necessary
+    @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     public RObject getOwner() {
         return owner;
@@ -289,7 +289,7 @@ public class RAssignment implements Serializable {
             return false;
         if (tenantRef != null ? !tenantRef.equals(that.tenantRef) : that.tenantRef != null) return false;
 
-        //todo fix metadata
+        if (!MetadataFactory.equals(this, that)) return false;
 
         return true;
     }

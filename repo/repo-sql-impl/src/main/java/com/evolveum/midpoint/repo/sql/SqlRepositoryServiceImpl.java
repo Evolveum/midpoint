@@ -96,6 +96,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         boolean lockedForUpdateViaSql = false;
 
         LockOptions lockOptions = new LockOptions();
+        //todo fix lock for update!!!!!
         if (lockForUpdate) {
             if (getConfiguration().isLockForUpdateViaHibernate()) {
                 lockOptions.setLockMode(LockMode.PESSIMISTIC_WRITE);
@@ -105,7 +106,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     LOGGER.trace("Trying to lock object " + oid + " for update (via SQL)");
                 }
                 long time = System.currentTimeMillis();
-                SQLQuery q = session.createSQLQuery("select id from m_container where id = 0 and oid = ? for update");
+                SQLQuery q = session.createSQLQuery("select oid from m_object where oid = ? for update");
                 q.setString(0, oid);
                 Object result = q.uniqueResult();
                 if (result == null) {
@@ -131,7 +132,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Object fullObject;
         if (!lockForUpdate) {
             //we're not doing update after, so this is faster way to load full object
-            Query query = session.createQuery("select o.fullObject from RObject as o where o.id=0 and o.oid=:oid");
+            Query query = session.createQuery("select o.fullObject from RObject as o where o.oid=:oid");
             query.setString("oid", oid);
 
             query.setLockOptions(lockOptions);
@@ -145,7 +146,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             // we're doing update after this get, therefore we load full object right now
             // (it would be loaded during merge anyway)
             Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
-            criteria.add(Restrictions.eq("id", (short) 0));
             criteria.add(Restrictions.eq("oid", oid));
 
             criteria.setLockMode(lockOptions.getLockMode());
@@ -552,10 +552,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         String fullObject = domProcessor.serializeObjectToString(savedObject);
         LOGGER.trace("Storing full object\n{}", fullObject);
 
-        SQLQuery query = session.createSQLQuery("update m_object set fullObject = :fullObject where id=0 and oid=:oid");
-
+        SQLQuery query = session.createSQLQuery("update m_object set fullObject = :fullObject where oid=:oid");
         query.setString("fullObject", fullObject);
         query.setString("oid", savedObject.getOid());
+
         int result = query.executeUpdate();
         if (result != 1) {
             throw new SystemException("Update of fullObject xml column failed.");
@@ -572,7 +572,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (StringUtils.isNotEmpty(originalOid)) {
             LOGGER.trace("Checking oid uniqueness.");
             Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(object.getCompileTimeClass()));
-            criteria.add(Restrictions.eq("id", (short) 0));
             criteria.add(Restrictions.eq("oid", object.getOid()));
             criteria.setProjection(Projections.rowCount());
 
@@ -584,8 +583,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         LOGGER.trace("Saving object.");
-        RContainerId containerId = (RContainerId) session.save(rObject);
-        String oid = containerId.getOwnerOid();
+        String oid = (String) session.save(rObject);
 
         updateFullObject(session, rObject, object);
 
@@ -597,17 +595,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             LOGGER.trace("Org. structure closure table update finished ({} ms).",
                     new Object[]{(System.currentTimeMillis() - time)});
         }
-        
-        /*
-        if (rObject. instanceof ROrg || !objectType.getParentOrgRef().isEmpty()) {
-            long time = System.currentTimeMillis();
-            LOGGER.trace("Org. structure closure table update started.");
-            objectType.setOid(oid);
-            this.fillHierarchyExt(rObject, session);
-            LOGGER.trace("Org. structure closure table update finished ({} ms).",
-                    new Object[]{(System.currentTimeMillis() - time)});
-        }
-        */
 
         return oid;
     }
@@ -617,12 +604,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         // do
         Query qExistClosure = session
                 .createQuery("select count(*) from ROrgClosure as o where "
-                        + "o.ancestorId = :ancestorId and o.ancestorOid = :ancestorOid "
-                        + "and o.descendantId = :descendantId and o.descendantOid = :descendantOid "
-                        + "and o.depth = :depth");
-        qExistClosure.setParameter("ancestorId", (short) 0);
+                        + "o.ancestorOid = :ancestorOid and o.descendantOid = :descendantOid and o.depth = :depth");
         qExistClosure.setParameter("ancestorOid", ancestorOid);
-        qExistClosure.setParameter("descendantId", (short) 0);
         qExistClosure.setParameter("descendantOid", descendantOid);
         qExistClosure.setParameter("depth", depth);
 
@@ -635,10 +618,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         // do
         Query qExistIncorrect = session
                 .createQuery("select count(*) from ROrgIncorrect as o where "
-                        + "o.ancestorOid = :ancestorOid "
-                        + "and o.descendantId = :descendantId and o.descendantOid = :descendantOid");
+                        + "o.ancestorOid = :ancestorOid and o.descendantOid = :descendantOid");
         qExistIncorrect.setParameter("ancestorOid", ancestorOid);
-        qExistIncorrect.setParameter("descendantId", (short) 0);
         qExistIncorrect.setParameter("descendantOid", descendantOid);
 
         return (Long) qExistIncorrect.uniqueResult() != 0;
@@ -664,7 +645,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             List<ROrgIncorrect> orgIncorrect = qIncorrect.list();
 
             for (ROrgIncorrect orgInc : orgIncorrect) {
-                Query qObject = session.createQuery("from RObject where id = 0 and oid = :oid");
+                Query qObject = session.createQuery("from RObject where oid = :oid");
                 qObject.setString("oid", orgInc.getDescendantOid());
                 RObject rObjectI = (RObject) qObject.uniqueResult();
                 if (rObjectI != null) {
@@ -754,7 +735,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
             Criteria query = session.createCriteria(ClassMapper.getHQLTypeClass(type));
             query.add(Restrictions.eq("oid", oid));
-            query.add(Restrictions.eq("id", (short) 0));
             RObject object = (RObject) query.uniqueResult();
             if (object == null) {
                 throw new ObjectNotFoundException("Object of type '" + type.getSimpleName() + "' with oid '" + oid
@@ -797,7 +777,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                             .getClass()));
 //            Criteria query = session.createCriteria(object.getClass());
             query.add(Restrictions.eq("oid", object.getOid()));
-            query.add(Restrictions.eq("id", (short) 0));
             RObject obj = (RObject) query.uniqueResult();
             if (obj == null) {
                 // object not found..probably it was just deleted.
@@ -1018,8 +997,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             LOGGER.debug("Loading definitions for shadow attributes.");
 
             Query query = session.createQuery("select stringsCount, longsCount, datesCount, referencesCount, clobsCount,"
-                    + " polysCount from RAnyContainer where ownerId = :id and ownerOid = :oid and ownerType = :ownerType");
-            query.setParameter("id", (short) 0);
+                    + " polysCount from RAnyContainer where ownerOid = :oid and ownerType = :ownerType");
             query.setParameter("oid", prismObject.getOid());
             query.setParameter("ownerType", RObjectType.SHADOW);
 
@@ -1049,8 +1027,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         PrismContainer attributes = object.findContainer(ShadowType.F_ATTRIBUTES);
 
         Query query = session.createQuery("select c.name, c.type, c.valueType from "
-                + anyValueType.getSimpleName() + " as c where c.ownerId = :id and c.ownerOid = :oid and c.ownerType = :ownerType");
-        query.setParameter("id", (short) 0);
+                + anyValueType.getSimpleName() + " as c where c.ownerOid = :oid and c.ownerType = :ownerType");
         query.setParameter("oid", object.getOid());
         query.setParameter("ownerType", RObjectType.SHADOW);
 
@@ -1337,56 +1314,19 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             throws DtoTranslationException {
 
         String sqlDeleteOrgClosure = "delete from ROrgClosure as o where " +
-                "(o.descendantId = :modifyId and o.descendantOid = :modifyOid) or " +
-                "(o.ancestorId =:modifyId and o.ancestorOid = :modifyOid)";
+                "o.descendantOid = :modifyOid or o.ancestorOid = :modifyOid";
 
         session.createQuery(sqlDeleteOrgClosure)
                 .setParameter("modifyOid", objectToDelete.getOid())
-                .setParameter("modifyId", (short) 0)
                 .executeUpdate();
 
         String sqlDeleteOrgIncorrect = "delete from ROrgIncorrect as o where "
-                + "(o.descendantId = :descendantId and o.descendantOid = :modifyOid) "
-                + "or o.ancestorOid = :modifyOid";
+                + "o.descendantOid = :modifyOid or o.ancestorOid = :modifyOid";
         session.createQuery(sqlDeleteOrgIncorrect)
                 .setParameter("modifyOid", objectToDelete.getOid())
-                .setParameter("descendantId", (short) 0)
                 .executeUpdate();
 
     }
-
-    // private List<RObject> deleteFromHierarchy(RObject object, Session
-    // session) throws SchemaException,
-    // DtoTranslationException {
-    //
-    // LOGGER.trace("Deleting records from organization closure table.");
-    //
-    // Criteria criteria = session.createCriteria(ROrgClosure.class);
-    // List<RObject> descendants =
-    // criteria.setProjection(Projections.property("descendant"))
-    // .add(Restrictions.eq("ancestor", object)).list();
-    //
-    // for (RObject desc : descendants) {
-    // List<ROrgClosure> orgClosure = session.createCriteria(ROrgClosure.class)
-    // .add(Restrictions.eq("descendant", desc)).list();
-    // for (ROrgClosure o : orgClosure) {
-    // session.delete(o);
-    // }
-    // // fillHierarchy(desc.toJAXB(getPrismContext()), session);
-    // }
-    //
-    // criteria = session.createCriteria(ROrgClosure.class).add(
-    // Restrictions.or(Restrictions.eq("ancestor", object),
-    // Restrictions.eq("descendant", object)));
-    //
-    // List<ROrgClosure> orgClosure = criteria.list();
-    // for (ROrgClosure o : orgClosure) {
-    // LOGGER.trace("deleting from hierarchy: A: {} D:{} depth:{}",
-    // new Object[] { o.getAncestor(), o.getDescendant(), o.getDepth() });
-    // session.delete(o);
-    // }
-    // return descendants;
-    // }
 
     @Override
     public <T extends ShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
@@ -1866,7 +1806,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         MidPointNamingStrategy namingStrategy = new MidPointNamingStrategy();
         final String taskTableName = namingStrategy.classToTableName(RTask.class.getSimpleName());
         final String objectTableName = namingStrategy.classToTableName(RObject.class.getSimpleName());
-        final String containerTableName = namingStrategy.classToTableName(RContainer.class.getSimpleName());
+        final String containerTableName = namingStrategy.classToTableName(Container.class.getSimpleName());
 
         final String completionTimestampColumn = "completionTimestamp";
 

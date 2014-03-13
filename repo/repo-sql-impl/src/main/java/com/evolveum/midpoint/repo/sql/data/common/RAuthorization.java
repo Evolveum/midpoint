@@ -41,7 +41,7 @@ import java.util.Set;
 @Entity
 @IdClass(RContainerId.class)
 @ForeignKey(name = "fk_authorization")
-public class RAuthorization implements Serializable {
+public class RAuthorization implements Container {
 
     public static final String F_OWNER = "owner";
     //owner, identifier
@@ -63,7 +63,7 @@ public class RAuthorization implements Serializable {
 
     @Id
     @ForeignKey(name = "fk_container_owner")
-    @MapsId("owner")    //todo fix, if necessary
+    @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     public RObject getOwner() {
         return owner;

@@ -16,18 +16,22 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import java.io.Serializable;
+
 /**
  * @author lazyman
  */
-public interface ROwnable {
+public interface Container extends Serializable {
 
-    /**
-     * @return Returns owner of container. For example for {@link RAssignment} method must
-     *         return instance of subclass {@link RFocus}
-     */
-    Container getContainerOwner();
+    RObject getOwner();
 
     String getOwnerOid();
 
-    Short getOwnerId();
+    Short getId();
+
+    void setOwner(RObject owner);
+
+    void setOwnerOid(String ownerOid);
+
+    void setId(Short id);
 }

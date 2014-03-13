@@ -16,8 +16,8 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
+import com.evolveum.midpoint.repo.sql.data.common.Container;
 import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
-import com.evolveum.midpoint.repo.sql.data.common.RContainer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
@@ -52,7 +52,7 @@ public class ContainerOidGenerator implements IdentifierGenerator {
     }
 
     private String generate(Object object) {
-        RContainer container = (RContainer) object;
+        Container container = (Container) object;
         if (StringUtils.isNotEmpty(container.getOwnerOid())) {
             return container.getOwnerOid();
         }

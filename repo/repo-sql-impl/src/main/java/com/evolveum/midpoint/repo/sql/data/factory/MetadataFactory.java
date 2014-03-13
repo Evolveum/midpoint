@@ -64,7 +64,7 @@ public class MetadataFactory {
 //                repo.owner, RReferenceOwner.MODIFY_APPROVER));
     }
 
-    public boolean equals(Metadata m1, Metadata m2) {
+    public static boolean equals(Metadata m1, Metadata m2) {
         if (m1 == m2) return true;
 
         if (m1.getCreateApproverRef() != null ? !m1.getCreateApproverRef().equals(m2.getCreateApproverRef()) : m2.getCreateApproverRef() != null)

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RCreateApproverRef;
 import com.evolveum.midpoint.repo.sql.data.common.type.RModifyApproverRef;
 import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
+import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -299,6 +300,8 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
             return false;
         if (tenantRef != null ? !tenantRef.equals(rObject.tenantRef) : rObject.tenantRef != null)
             return false;
+        if (!MetadataFactory.equals(this, rObject)) return false;
+
         return true;
     }
 
@@ -306,6 +309,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (name != null ? name.hashCode() : 0);
+
         result = 31 * result + (createTimestamp != null ? createTimestamp.hashCode() : 0);
         result = 31 * result + (creatorRef != null ? creatorRef.hashCode() : 0);
         result = 31 * result + (createChannel != null ? createChannel.hashCode() : 0);
