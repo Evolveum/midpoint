@@ -15,11 +15,15 @@
  */
 package com.evolveum.midpoint.web.page.admin.roles.dto;
 
+import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import org.apache.wicket.model.IModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 /**
  *  @author shood
@@ -33,6 +37,8 @@ public class RoleDto implements Serializable{
     public static final String F_FROM = "from";
     public static final String F_TO = "to";
     public static final String F_ADMIN_STATUS = "adminStatus";
+    public static final String F_INDUCEMENTS = "inducements";
+    public static final String F_ASSIGNMENTS = "assignments";
 
     private String name;
     private String description;
@@ -41,6 +47,8 @@ public class RoleDto implements Serializable{
     private XMLGregorianCalendar from;
     private XMLGregorianCalendar to;
     private ActivationStatusType adminStatus;
+    private List<AssignmentEditorDto> inducements;
+    private List<AssignmentEditorDto> assignments;
 
     public RoleDto(){}
 
@@ -54,6 +62,22 @@ public class RoleDto implements Serializable{
         this.from = from;
         this.to = to;
         this.adminStatus = adminStatus;
+    }
+
+    public List<AssignmentEditorDto> getInducements() {
+        return inducements;
+    }
+
+    public void setInducements(List<AssignmentEditorDto> inducements) {
+        this.inducements = inducements;
+    }
+
+    public List<AssignmentEditorDto> getAssignments() {
+        return assignments;
+    }
+
+    public void setAssignments(List<AssignmentEditorDto> assignments) {
+        this.assignments = assignments;
     }
 
     public String getName() {

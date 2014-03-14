@@ -45,7 +45,7 @@ import org.apache.wicket.util.string.StringValue;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/role", encoder = OnePageParameterEncoder.class, action = {
+@PageDescriptor(url = "/admin/roleOld", encoder = OnePageParameterEncoder.class, action = {
         PageAdminRoles.AUTHORIZATION_ROLE_ALL,
         AuthorizationConstants.NS_AUTHORIZATION + "#role"})
 public class PageRoleOld extends PageAdminRoles {
