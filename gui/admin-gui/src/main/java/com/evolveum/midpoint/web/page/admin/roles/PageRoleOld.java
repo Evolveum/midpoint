@@ -48,9 +48,9 @@ import org.apache.wicket.util.string.StringValue;
 @PageDescriptor(url = "/admin/role", encoder = OnePageParameterEncoder.class, action = {
         PageAdminRoles.AUTHORIZATION_ROLE_ALL,
         AuthorizationConstants.NS_AUTHORIZATION + "#role"})
-public class PageRole extends PageAdminRoles {
+public class PageRoleOld extends PageAdminRoles {
 
-    private static final String DOT_CLASS = PageRole.class.getName() + ".";
+    private static final String DOT_CLASS = PageRoleOld.class.getName() + ".";
     private static final String OPERATION_LOAD_ROLE = DOT_CLASS + "loadRole";
     private static final String OPERATION_SAVE_ROLE = DOT_CLASS + "saveRole";
 
@@ -58,7 +58,7 @@ public class PageRole extends PageAdminRoles {
 
     private IModel<ObjectViewDto> model;
 
-    public PageRole() {
+    public PageRoleOld() {
         model = new LoadableModel<ObjectViewDto>(false) {
 
             @Override
@@ -76,11 +76,11 @@ public class PageRole extends PageAdminRoles {
             @Override
             protected String load() {
                 if (!isEditing()) {
-                    return PageRole.super.createPageTitleModel().getObject();
+                    return PageRoleOld.super.createPageTitleModel().getObject();
                 }
 
                 String name = model.getObject().getName();
-                return new StringResourceModel("pageRole.title.editing", PageRole.this, null, null, name).getString();
+                return new StringResourceModel("pageRole.title.editing", PageRoleOld.this, null, null, name).getString();
             }
         };
     }
