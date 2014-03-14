@@ -24,6 +24,8 @@ import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.security.Authorization;
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.api.ModelDiagnosticService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -32,6 +34,7 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
+import com.evolveum.midpoint.model.security.api.UserDetailsService;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -98,6 +101,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
@@ -125,6 +129,9 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.testng.AssertJUnit;
 
@@ -204,6 +211,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     @Autowired(required = false)
     protected NotificationManager notificationManager;
+    
+    @Autowired(required = false)
+    protected UserDetailsService userDetailsService;
 	
 	protected DummyAuditService dummyAuditService;
 	
@@ -2110,6 +2120,26 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected void assertNoGroupMembers(DummyGroup group) {
 		IntegrationTestTools.assertNoGroupMembers(group);
+	}
+	
+	protected void login(String principalName) {
+		MidPointPrincipal principal = userDetailsService.getUser(principalName);
+		SecurityContext securityContext = SecurityContextHolder.getContext();
+		Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
+		securityContext.setAuthentication(authentication);
+	}
+	
+	protected void loginSuperUser(String principalName) throws SchemaException {
+		MidPointPrincipal principal = userDetailsService.getUser(principalName);
+		AuthorizationType superAutzType = new AuthorizationType();
+		prismContext.adopt(superAutzType, RoleType.class, new ItemPath(RoleType.F_AUTHORIZATION));
+		superAutzType.getAction().add(AuthorizationConstants.AUTZ_ALL_URL);
+		Authorization superAutz = new Authorization(superAutzType);
+		Collection<Authorization> authorities = principal.getAuthorities();
+		authorities.add(superAutz);
+		SecurityContext securityContext = SecurityContextHolder.getContext();
+		Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
+		securityContext.setAuthentication(authentication);
 	}
 
 }

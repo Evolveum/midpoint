@@ -344,7 +344,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		// Users
 		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
 		repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, RoleType.class, initResult);
-		
+		login(userAdministrator.asObjectable().getName().getOrig());
 	}
     	
 	protected File getSystemConfigurationFile() {

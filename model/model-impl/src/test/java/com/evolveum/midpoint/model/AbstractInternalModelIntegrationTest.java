@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,6 +91,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 	
 	protected static final String USER_ADMINISTRATOR_FILENAME = COMMON_DIR_NAME + "/user-administrator.xml";
+	protected static final String USER_ADMINISTRATOR_NAME = "administrator";
 	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
 	
 	protected static final String USER_JACK_FILENAME = COMMON_DIR_NAME + "/user-jack.xml";
@@ -190,6 +191,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 				
 		// Administrator
 		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
+		loginSuperUser(userAdministrator.asObjectable().getName().getOrig());
 		
 		// User Templates
 		repoAddObjectFromFile(USER_TEMPLATE_FILENAME, ObjectTemplateType.class, initResult);
