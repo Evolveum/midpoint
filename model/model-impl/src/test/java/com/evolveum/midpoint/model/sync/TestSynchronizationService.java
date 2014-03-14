@@ -79,10 +79,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 	private String accountShadowJackDummyOid = null;
 	private String accountShadowCalypsoDummyOid = null;
 	
-	public TestSynchronizationService() throws JAXBException {
-		super();
-	}
-		
 	@Test
     public void test010AddedAccountJack() throws Exception {
 		final String TEST_NAME = "test010AddedAccountJack";

@@ -27,16 +27,22 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
+import com.evolveum.midpoint.model.security.AuthorizationEnforcer;
 import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
+
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -46,6 +52,7 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.common.security.Authorization;
 import com.evolveum.midpoint.model.ModelObjectResolver;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -221,7 +228,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
         result.addParam("class", clazz);
 
 		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-		
+				
 		try {	
 
 			ObjectReferenceType ref = new ObjectReferenceType();
@@ -229,7 +236,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			ref.setType(ObjectTypes.getObjectType(clazz).getTypeQName());
             Utils.clearRequestee(task);
             object = objectResolver.getObject(clazz, oid, options, task, result).asPrismObject();
-
+            
 			resolve(object, options, task, result);
 		} catch (SchemaException e) {
 			ModelUtils.recordFatalError(result, e);
@@ -254,10 +261,12 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		}
 		
 		result.cleanupResult();
-		validateObject(object, rootOptions, result);
+		
+		AuthorizationEnforcer.authorize(ModelService.AUTZ_READ_URL, object, null, task, result);
+		
+        validateObject(object, rootOptions, result);
 		return object;
 	}
-	
 
 	protected void resolve(PrismObject<?> object, Collection<SelectorOptions<GetOperationOptions>> options,
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {

@@ -6161,18 +6161,35 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-<!--  TODO        	<xsd:element name="object" type="tns:ObjectSpecificationType" minOccurs="0" maxOccurs="unbounded">
+        	<xsd:element name="object" type="tns:ObjectSpecificationType" minOccurs="0" maxOccurs="unbounded">
         		<xsd:annotation>
         			<xsd:documentation>
         				Object part from the (subject,action,object) authorization triple.
         			</xsd:documentation>
         		</xsd:annotation>
-        	</xsd:element> -->
-        	<!-- TODO: more elements will be added in the future: item, target, condition, parameters -->
+        	</xsd:element>
+        	<xsd:element name="item" type="t:XPathType"  minOccurs="0" maxOccurs="unbounded">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Specification of items that form a scope of this authorization. This autorization will
+        				only affect the items specified in this element. If no items are specified then the
+        				authorization applies to all items in the objects.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="target" type="tns:ObjectSpecificationType" minOccurs="0" maxOccurs="unbounded">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Target of the operation. E.g. an role that is being assigned. It can be considered an operation
+        				parameter. If no target is specified then the authorization applies to all possible targets.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<!-- TODO: more elements will be added in the future: condition, parameters -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
 	</xsd:complexType>
-	
+		
 	<xsd:simpleType name="AuthorizationDecisionType">
         <xsd:annotation>
             <xsd:appinfo>
@@ -6191,6 +6208,60 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="DENY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+	<xsd:complexType name="ObjectSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selects some objects from all the objects in midPoint.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element ref="tns:description" minOccurs="0"/>
+        	<xsd:element name="type" minOccurs="1" type="xsd:QName">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Type of the object to select.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="filter" type="q:QueryType" minOccurs="0" maxOccurs="1">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Action part from the (subject,action,object) authorization triple. It is an URL to allow extension.
+        				Multiple actions may be specified. In that case the authorization applies to all of them.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="special" type="tns:SpecialObjectSpecificationType" minOccurs="0" maxOccurs="unbounded">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Defines special object by relative description, such as "self".
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+	</xsd:complexType>
+
+	<xsd:simpleType name="SpecialObjectSpecificationType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="self">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SELF"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

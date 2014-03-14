@@ -110,28 +110,4 @@ public class ControllerGetObjectTest extends AbstractTestNGSpringContextTests  {
 		controller.getObject(ObjectType.class, oid, null, task, task.getResult());
 	}
 
-	@Test
-	@SuppressWarnings("unchecked")
-	public void getUserCorrect() throws Exception {
-		final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER,
-				"get-user-correct.xml"), UserType.class);
-
-		final String oid = "abababab-abab-abab-abab-000000000001";
-		when(repository.getObject(eq(UserType.class),eq(oid), any(Collection.class), any(OperationResult.class)))
-				.thenReturn(expectedUser.asPrismObject());
-
-		Task task = taskManager.createTaskInstance("Get Object");
-		try {
-			final UserType user = controller.getObject(UserType.class, oid, null, task, task.getResult()
-					).asObjectable();
-
-			assertNotNull(user);
-			assertEquals(expectedUser.getName(), user.getName());
-
-			verify(repository, atLeastOnce()).getObject(eq(UserType.class), eq(oid),
-					any(Collection.class), any(OperationResult.class));
-		} finally {
-			LOGGER.debug("getUserCorrect" + task.getResult().debugDump());
-		}
-	}
 }
