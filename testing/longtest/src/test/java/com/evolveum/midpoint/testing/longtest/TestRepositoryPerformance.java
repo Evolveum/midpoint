@@ -26,6 +26,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.opends.server.types.Entry;
@@ -39,6 +40,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
+
 import java.io.IOException;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -109,8 +111,9 @@ public class TestRepositoryPerformance extends AbstractModelIntegrationTest {
 
         // System Configuration and administrator
         repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, SystemConfigurationType.class, initResult);
-        repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
+        PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
         repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, RoleType.class, initResult);
+        login(userAdministrator);
 
         // Resources
         resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILENAME, RESOURCE_OPENDJ_OID,

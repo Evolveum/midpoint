@@ -162,8 +162,9 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 		}
 		
 		// Users
-		repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
+		PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
 		repoAddObjectFromFile(USER_JACK_FILE, UserType.class, true, initResult).asObjectable();
+		login(userAdministrator);
 		
 		// Roles
 		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult);
