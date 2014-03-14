@@ -77,8 +77,13 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		DebugUtil.debugDumpLabel(sb, "Authorization(", indent);
-		sb.append(authorizationType);
+		DebugUtil.debugDumpLabel(sb, "Authorization", indent);
+		if (authorizationType == null) {
+			sb.append(" null");
+		} else {
+			sb.append("\n");
+			authorizationType.asPrismContainerValue().debugDump(indent+1);
+		}
 		return sb.toString();
 	}
 
