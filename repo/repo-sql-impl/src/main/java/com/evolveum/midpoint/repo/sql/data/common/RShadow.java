@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RFailedOperationType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RShadowKind;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.type.PrefixedStringType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -225,10 +226,9 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
 
     public void setAttributes(RAnyContainer attributes) {
         this.attributes = attributes;
-        //todo fix
-//        if (this.attributes != null) {
-//            this.attributes.setOwnerType(RContainerType.SHADOW);
-//        }
+        if (this.attributes != null) {
+            this.attributes.setOwnerType(RObjectType.SHADOW);
+        }
     }
 
     public void setObjectClass(String objectClass) {
@@ -421,14 +421,13 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
                     "translated to resource reference.");
         }
 
-        //todo fix
-//        if (jaxb.getAttributes() != null) {
-//            RAnyContainer attributes = new RAnyContainer();
-//            attributes.setOwner(repo);
-//
-//            repo.setAttributes(attributes);
-//            RAnyContainer.copyFromJAXB(jaxb.getAttributes(), attributes, prismContext);
-//        }
+        if (jaxb.getAttributes() != null) {
+            RAnyContainer attributes = new RAnyContainer();
+            attributes.setOwner(repo);
+
+            repo.setAttributes(attributes);
+            RAnyContainer.copyFromJAXB(jaxb.getAttributes(), attributes, prismContext);
+        }
     }
 
     @Override

@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RCreateApproverRef;
 import com.evolveum.midpoint.repo.sql.data.common.type.RModifyApproverRef;
@@ -159,7 +160,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RObjectReference> getCreateApproverRef() {
         if (createApproverRef == null) {
-            createApproverRef = new HashSet<RObjectReference>();
+            createApproverRef = new HashSet<>();
         }
         return createApproverRef;
     }
@@ -188,7 +189,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RObjectReference> getModifyApproverRef() {
         if (modifyApproverRef == null) {
-            modifyApproverRef = new HashSet<RObjectReference>();
+            modifyApproverRef = new HashSet<>();
         }
         return modifyApproverRef;
     }
@@ -267,8 +268,8 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
 
     public void setExtension(RAnyContainer extension) {
         this.extension = extension;
-        if (this.extension != null) {                 //todo fix
-//            this.extension.setOwnerType(RContainerType.OBJECT);
+        if (this.extension != null) {
+            this.extension.setOwnerType(RObjectType.OBJECT);
         }
     }
 

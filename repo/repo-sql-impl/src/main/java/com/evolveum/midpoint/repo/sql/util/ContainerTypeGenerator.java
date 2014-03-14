@@ -16,6 +16,9 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
+import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.id.IdentifierGenerator;
@@ -29,18 +32,16 @@ public class ContainerTypeGenerator implements IdentifierGenerator {
 
     @Override
     public Serializable generate(SessionImplementor session, Object object) throws HibernateException {
-        //todo fix
-//        if (!(object instanceof RAnyContainer)) {
-//            throw new HibernateException("Can't create identifier for " + object.getClass().getSimpleName());
-//        }
-//
-//        RAnyContainer container = (RAnyContainer) object;
-//        if (container.getOwnerType() != null) {
-//            return container.getOwnerType();
-//        }
-//
-//        RContainer owner = container.getOwner();
-//        return RContainerType.getType(owner.getClass());
-        return null;
+        if (!(object instanceof RAnyContainer)) {
+            throw new HibernateException("Can't create identifier for " + object.getClass().getSimpleName());
+        }
+
+        RAnyContainer container = (RAnyContainer) object;
+        if (container.getOwnerType() != null) {
+            return container.getOwnerType();
+        }
+
+        RObject owner = container.getOwner();
+        return RObjectType.getType(owner.getClass());
     }
 }
