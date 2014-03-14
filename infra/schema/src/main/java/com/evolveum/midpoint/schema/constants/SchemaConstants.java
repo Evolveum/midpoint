@@ -142,13 +142,8 @@ public abstract class SchemaConstants {
 	public static final String NS_MODEL_CHANNEL = NS_MODEL + "/channels-2";
 	public static final QName CHANNEL_WEB_SERVICE_QNAME = new QName(NS_MODEL_CHANNEL, "webService");
 	public static final String CHANNEL_WEB_SERVICE_URI = QNameUtil.qNameToUri(CHANNEL_WEB_SERVICE_QNAME);
-
-	public static final String NS_GUI = NS_MIDPOINT_PUBLIC + "/gui";
-	public static final String NS_GUI_CHANNEL = NS_GUI + "/channels-2";
-	public static final QName CHANNEL_GUI_INIT_QNAME = new QName(NS_GUI_CHANNEL, "init");
-	public static final String CHANNEL_GUI_INIT_URI = QNameUtil.qNameToUri(CHANNEL_GUI_INIT_QNAME);
-	public static final QName CHANNEL_GUI_USER_QNAME = new QName(NS_GUI_CHANNEL, "user");
-	public static final String CHANNEL_GUI_USER_URI = QNameUtil.qNameToUri(CHANNEL_GUI_USER_QNAME);
+	
+	public static final String NS_MODEL_SERVICE = NS_MODEL + "/service-2";
 	
 	public static final String NS_MODEL_EXTENSION = NS_MODEL + "/extension-2";
 	public static final QName MODEL_EXTENSION_FRESHENESS_INTERVAL_PROPERTY_NAME = new QName(NS_MODEL_EXTENSION, "freshnessInterval");
@@ -162,6 +157,13 @@ public abstract class SchemaConstants {
 	
     public static final QName MODEL_EXTENSION_OBJECT_QUERY = new QName(NS_MODEL_EXTENSION, "objectQuery");
 
+    public static final String NS_GUI = NS_MIDPOINT_PUBLIC + "/gui";
+	public static final String NS_GUI_CHANNEL = NS_GUI + "/channels-2";
+	public static final QName CHANNEL_GUI_INIT_QNAME = new QName(NS_GUI_CHANNEL, "init");
+	public static final String CHANNEL_GUI_INIT_URI = QNameUtil.qNameToUri(CHANNEL_GUI_INIT_QNAME);
+	public static final QName CHANNEL_GUI_USER_QNAME = new QName(NS_GUI_CHANNEL, "user");
+	public static final String CHANNEL_GUI_USER_URI = QNameUtil.qNameToUri(CHANNEL_GUI_USER_QNAME);
+    
 	public static final String INTENT_DEFAULT = "default";
 
 	// This constant should not be here. It is used by schema processor to
