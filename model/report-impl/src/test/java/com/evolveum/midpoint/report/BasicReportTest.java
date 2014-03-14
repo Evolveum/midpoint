@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,6 +101,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportTemplateStyleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -172,6 +173,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	private static String EXPORT_DIR = MIDPOINT_HOME + "/export/";
 	
 	private static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR + "/system-configuration.xml");
+	private static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR + "/role-superuser.xml");
 	private static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR + "/user-administrator.xml");
 	private static final File TASK_REPORT_FILE = new File(COMMON_DIR + "/task-report.xml");  
 	private static final File REPORTS_FOR_CLEANUP_FILE = new File(COMMON_DIR + "/report-outputs-for-cleanup.xml");
@@ -226,6 +228,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		
 		LOGGER.trace("initSystem");
 		super.initSystem(initTask, initResult);
+		modelService.postInit(initResult);
 		
 		OperationResult result = new OperationResult("System variables");
 		// System Configuration
@@ -236,11 +239,13 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		}
 		
 		// Users
+		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, result);
 		try {
 			userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, result);
 		} catch (ObjectAlreadyExistsException e) {
 			LOGGER.trace("User administrator already exists in repository;");
 		}
+		login(userAdministrator);
 		
 	}
 	

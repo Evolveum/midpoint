@@ -45,7 +45,7 @@ import com.evolveum.midpoint.common.security.Authorization;
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.common.security.AuthorizationEvaluator;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
-import com.evolveum.midpoint.model.security.api.UserDetailsService;
+import com.evolveum.midpoint.common.security.UserProfileService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -63,7 +63,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	public static final File TEST_DIR = new File("src/test/resources/contract");
 
 	@Autowired(required=true)
-	private UserDetailsService userDetailsService;
+	private UserProfileService userDetailsService;
 	
 	@Autowired(required=true)
 	private AuthorizationEvaluator authorizationEvaluator;
@@ -78,7 +78,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // WHEN
-        MidPointPrincipal principal = userDetailsService.getUser(USER_ADMINISTRATOR_USERNAME);
+        MidPointPrincipal principal = userDetailsService.getPrincipal(USER_ADMINISTRATOR_USERNAME);
         
         // THEN
         display("Administrator principal", principal);
@@ -95,7 +95,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // WHEN
-        MidPointPrincipal principal = userDetailsService.getUser(USER_JACK_USERNAME);
+        MidPointPrincipal principal = userDetailsService.getPrincipal(USER_JACK_USERNAME);
         
         // THEN
         assertJack(principal);
@@ -111,7 +111,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // WHEN
-        MidPointPrincipal principal = userDetailsService.getUser(USER_BARBOSSA_USERNAME);
+        MidPointPrincipal principal = userDetailsService.getPrincipal(USER_BARBOSSA_USERNAME);
         
         // THEN
         display("Principal barbossa", principal);
@@ -133,7 +133,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // WHEN
-        MidPointPrincipal principal = userDetailsService.getUser(USER_GUYBRUSH_USERNAME);
+        MidPointPrincipal principal = userDetailsService.getPrincipal(USER_GUYBRUSH_USERNAME);
         
         // THEN
         display("Principal guybrush", principal);
@@ -159,7 +159,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
         // WHEN
-        MidPointPrincipal principal = userDetailsService.getUser(USER_JACK_USERNAME);
+        MidPointPrincipal principal = userDetailsService.getPrincipal(USER_JACK_USERNAME);
         
         // THEN
         assertJack(principal);
@@ -181,7 +181,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assignRole(USER_GUYBRUSH_OID, ROLE_NICE_PIRATE_OID, task, result);
         
         // WHEN
-        MidPointPrincipal principal = userDetailsService.getUser(USER_GUYBRUSH_USERNAME);
+        MidPointPrincipal principal = userDetailsService.getPrincipal(USER_GUYBRUSH_USERNAME);
         
         // THEN
         display("Principal guybrush", principal);
@@ -201,7 +201,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assignRole(USER_GUYBRUSH_OID, ROLE_CAPTAIN_OID, task, result);
         
         // WHEN
-        MidPointPrincipal principal = userDetailsService.getUser(USER_GUYBRUSH_USERNAME);
+        MidPointPrincipal principal = userDetailsService.getPrincipal(USER_GUYBRUSH_USERNAME);
         
         // THEN
         display("Principal guybrush", principal);

@@ -27,6 +27,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.security.Authorization;
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
+import com.evolveum.midpoint.common.security.UserProfileService;
 import com.evolveum.midpoint.model.api.ModelDiagnosticService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -34,7 +35,6 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
-import com.evolveum.midpoint.model.security.api.UserDetailsService;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -213,7 +213,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected NotificationManager notificationManager;
     
     @Autowired(required = false)
-    protected UserDetailsService userDetailsService;
+    protected UserProfileService userProfileService;
 	
 	protected DummyAuditService dummyAuditService;
 	
@@ -2123,14 +2123,32 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void login(String principalName) {
-		MidPointPrincipal principal = userDetailsService.getUser(principalName);
+		MidPointPrincipal principal = userProfileService.getPrincipal(principalName);
+		login(principal);
+	}
+	
+	protected void login(PrismObject<UserType> user) {
+		MidPointPrincipal principal = userProfileService.getPrincipal(user);
+		login(principal);
+	}
+	
+	protected void login(MidPointPrincipal principal) {
 		SecurityContext securityContext = SecurityContextHolder.getContext();
 		Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
 		securityContext.setAuthentication(authentication);
 	}
 	
 	protected void loginSuperUser(String principalName) throws SchemaException {
-		MidPointPrincipal principal = userDetailsService.getUser(principalName);
+		MidPointPrincipal principal = userProfileService.getPrincipal(principalName);
+		loginSuperUser(principal);
+	}
+
+	protected void loginSuperUser(PrismObject<UserType> user) throws SchemaException {
+		MidPointPrincipal principal = userProfileService.getPrincipal(user);
+		loginSuperUser(principal);
+	}
+
+	protected void loginSuperUser(MidPointPrincipal principal) throws SchemaException {
 		AuthorizationType superAutzType = new AuthorizationType();
 		prismContext.adopt(superAutzType, RoleType.class, new ItemPath(RoleType.F_AUTHORIZATION));
 		superAutzType.getAction().add(AuthorizationConstants.AUTZ_ALL_URL);

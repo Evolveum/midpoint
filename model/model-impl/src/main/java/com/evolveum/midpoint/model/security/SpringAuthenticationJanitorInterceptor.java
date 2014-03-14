@@ -15,7 +15,8 @@
  */
 package com.evolveum.midpoint.model.security;
 
-import com.evolveum.midpoint.model.security.api.UserDetailsService;
+import com.evolveum.midpoint.common.security.UserProfileService;
+
 import org.apache.cxf.binding.soap.SoapMessage;
 import org.apache.cxf.binding.soap.saaj.SAAJInInterceptor;
 import org.apache.cxf.interceptor.Fault;
@@ -33,6 +34,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import javax.xml.soap.SOAPMessage;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;

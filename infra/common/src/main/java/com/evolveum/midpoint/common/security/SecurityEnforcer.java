@@ -13,35 +13,60 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.security;
+package com.evolveum.midpoint.common.security;
 
 import java.util.Collection;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
+import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.security.Authorization;
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
-import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * @author Radovan Semancik
  *
  */
-public class AuthorizationEnforcer {
+@Component
+public class SecurityEnforcer {
 	
-	private static final Trace LOGGER = TraceManager.getTrace(AuthorizationEnforcer.class);
+	private static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcer.class);
+	
+	private UserProfileService userProfileService = null;
+	
+	public UserProfileService getUserProfileService() {
+		return userProfileService;
+	}
 
-	public static <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, 
-			PrismObject<O> object, PrismObject<T> target, Task task, OperationResult parentResult) throws SecurityViolationException {
+	public void setUserProfileService(UserProfileService userProfileService) {
+		this.userProfileService = userProfileService;
+	}
+
+	public void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user) {
+		MidPointPrincipal principal = null;
+		if (userProfileService == null) {
+			LOGGER.warn("No user profile service set up in SecurityEnforcer. "
+					+ "This is OK in low-level tests but it is a serious problem in running system");
+			principal = new MidPointPrincipal(user.asObjectable());
+		} else {
+			principal = userProfileService.getPrincipal(user);
+		}
+		SecurityContext securityContext = SecurityContextHolder.getContext();
+		Authentication authentication = new PreAuthenticatedAuthenticationToken(principal, null);
+		securityContext.setAuthentication(authentication);
+	}
+
+	public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, 
+			PrismObject<O> object, PrismObject<T> target, OperationResult parentResult) throws SecurityViolationException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication == null) {
 			throw new SecurityViolationException("No authentication");
@@ -86,7 +111,7 @@ public class AuthorizationEnforcer {
 		}
 	}
 	
-	private static String getUsername(Authentication authentication) {
+	private String getUsername(Authentication authentication) {
 		String username = "(none)";
 		Object principal = authentication.getPrincipal();
 		if (principal != null) {
