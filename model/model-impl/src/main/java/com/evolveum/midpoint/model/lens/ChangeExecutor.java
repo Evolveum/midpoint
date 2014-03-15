@@ -19,7 +19,9 @@ package com.evolveum.midpoint.model.lens;
 import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.common.security.SecurityEnforcer;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
@@ -114,6 +116,9 @@ public class ChangeExecutor {
     
     @Autowired(required = true)
 	private ExpressionFactory expressionFactory;
+    
+    @Autowired(required = true)
+    private SecurityEnforcer securityEnforcer;
 
     // for inserting workflow-related metadata to changed object
     @Autowired(required = false)
@@ -636,6 +641,8 @@ public class ChangeExecutor {
             }
             change.getModifications().clear();
         }
+        
+        securityEnforcer.authorize(ModelService.AUTZ_ADD_URL, objectToAdd, null, null, result);
 
         T objectTypeToAdd = objectToAdd.asObjectable();
 
@@ -686,6 +693,9 @@ public class ChangeExecutor {
 
         String oid = change.getOid();
         Class<T> objectTypeClass = change.getObjectTypeClass();
+        
+        PrismObject<T> objectOld = objectContext.getObjectOld();
+        securityEnforcer.authorize(ModelService.AUTZ_DELETE_URL, objectOld, null, null, result);
 
         if (TaskType.class.isAssignableFrom(objectTypeClass)) {
             taskManager.deleteTask(oid, result);
@@ -720,6 +730,9 @@ public class ChangeExecutor {
             return;
         }
         Class<T> objectTypeClass = change.getObjectTypeClass();
+        
+        PrismObject<T> objectNew = objectContext.getObjectNew();
+        securityEnforcer.authorize(ModelService.AUTZ_MODIFY_URL, objectNew, change, null, result);
         	
     	applyMetadata(change, objectContext, objectTypeClass, task, context, result);
         

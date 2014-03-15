@@ -25,6 +25,7 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -66,7 +67,8 @@ public class SecurityEnforcer {
 	}
 
 	public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, 
-			PrismObject<O> object, PrismObject<T> target, OperationResult result) throws SecurityViolationException {
+			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, 
+			OperationResult result) throws SecurityViolationException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication == null) {
 			throw new SecurityViolationException("No authentication");

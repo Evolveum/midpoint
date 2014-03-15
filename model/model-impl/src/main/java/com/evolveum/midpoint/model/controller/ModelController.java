@@ -269,7 +269,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		
 		result.cleanupResult();
 		
-		securityEnforcer.authorize(ModelService.AUTZ_READ_URL, object, null, result);
+		securityEnforcer.authorize(ModelService.AUTZ_READ_URL, object, null, null, result);
 		
         validateObject(object, rootOptions, result);
 		return object;

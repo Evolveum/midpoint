@@ -102,6 +102,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
     public void test010GetUserAdministrator() throws Exception {
 		final String TEST_NAME = "test010GetUserAdministrator";
         TestUtil.displayTestTile(this, TEST_NAME);
+        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
 
         // WHEN
         MidPointPrincipal principal = userDetailsService.getPrincipal(USER_ADMINISTRATOR_USERNAME);
@@ -119,22 +120,27 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
     public void test050GetUserJack() throws Exception {
 		final String TEST_NAME = "test050GetUserJack";
         TestUtil.displayTestTile(this, TEST_NAME);
+        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
 
         // WHEN
         MidPointPrincipal principal = userDetailsService.getPrincipal(USER_JACK_USERNAME);
         
         // THEN
+        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
         assertJack(principal);
         assertTrue("Unexpected authorizations", principal.getAuthorities().isEmpty());
 
+        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
         assertNotAuthorized(principal, AUTZ_LOOT_URL);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
+        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
 	}
 	
 	@Test
     public void test051GetUserBarbossa() throws Exception {
 		final String TEST_NAME = "test051GetUserBarbossa";
         TestUtil.displayTestTile(this, TEST_NAME);
+        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
 
         // WHEN
         MidPointPrincipal principal = userDetailsService.getPrincipal(USER_BARBOSSA_USERNAME);
@@ -157,6 +163,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
     public void test052GetUserGuybrush() throws Exception {
 		final String TEST_NAME = "test052GetUserGuybrush";
         TestUtil.displayTestTile(this, TEST_NAME);
+        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
 
         // WHEN
         MidPointPrincipal principal = userDetailsService.getPrincipal(USER_GUYBRUSH_USERNAME);
@@ -180,6 +187,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test100JackRolePirate";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
+        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
@@ -202,6 +210,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test100JackRolePirate";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
+        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
@@ -223,6 +232,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test110GuybrushRoleNicePirate";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
+        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assignRole(USER_GUYBRUSH_OID, ROLE_NICE_PIRATE_OID, task, result);
@@ -243,6 +253,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		final String TEST_NAME = "test111GuybrushRoleCaptain";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
+        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assignRole(USER_GUYBRUSH_OID, ROLE_CAPTAIN_OID, task, result);
@@ -365,16 +376,19 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertGetAllow(UserType.class, USER_GUYBRUSH_OID);		
 	}
 	
-	private void assertAddDeny() {
-		// TODO Auto-generated method stub
+	private void assertAddDeny() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
+		assertAddDeny(USER_HERMAN_FILE);
 	}
 
 	private void assertAddAllow() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		assertAddAllow(USER_HERMAN_FILE);
 	}
 
-	private void assertModifyDeny() {
-		// TODO Auto-generated method stub
+	private void assertModifyDeny() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		// self-modify, common property
+		assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
+		// TODO: self-modify password
+		// TODO: modify other objects
 	}
 
 	private void assertModifyAllow() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
@@ -384,8 +398,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		// TODO: modify other objects
 	}
 
-	private void assertDeleteDeny() {
-		// TODO Auto-generated method stub
+	private void assertDeleteDeny() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		assertDeleteDeny(UserType.class, USER_LARGO_OID);
 	}
 
 	private void assertDeleteAllow() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
@@ -495,15 +509,23 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	}
 
 	private void assertAuthorized(MidPointPrincipal principal, String action) {
+		SecurityContext origContext = SecurityContextHolder.getContext();
 		createSecurityContext(principal);
-		assertTrue("AuthorizationEvaluator.isAuthorized: Principal "+principal+" NOT authorized for action "+action, authorizationEvaluator.isAuthorized(action));
-		authorizationEvaluator.decide(SecurityContextHolder.getContext().getAuthentication(), createSecureObject(), 
-				createConfigAttributes(action));
+		try {
+			assertTrue("AuthorizationEvaluator.isAuthorized: Principal "+principal+" NOT authorized for action "+action, authorizationEvaluator.isAuthorized(action));
+			authorizationEvaluator.decide(SecurityContextHolder.getContext().getAuthentication(), createSecureObject(), 
+					createConfigAttributes(action));
+		} finally {
+			SecurityContextHolder.setContext(origContext);
+		}
 	}
 	
 	private void assertNotAuthorized(MidPointPrincipal principal, String action) {
+		SecurityContext origContext = SecurityContextHolder.getContext();
 		createSecurityContext(principal);
-		assertFalse("AuthorizationEvaluator.isAuthorized: Principal "+principal+" IS authorized for action "+action+" but he should not be", authorizationEvaluator.isAuthorized(action));
+		boolean isAuthorized = authorizationEvaluator.isAuthorized(action);
+		SecurityContextHolder.setContext(origContext);
+		assertFalse("AuthorizationEvaluator.isAuthorized: Principal "+principal+" IS authorized for action "+action+" but he should not be", isAuthorized);
 	}
 
 	private void createSecurityContext(MidPointPrincipal principal) {
