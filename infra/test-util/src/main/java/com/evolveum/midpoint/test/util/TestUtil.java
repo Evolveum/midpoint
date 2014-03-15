@@ -317,7 +317,14 @@ public class TestUtil {
 	}
 
 	public static void assertFailure(OperationResult result) {
-		assertTrue("Expected that operation "+result.getOperation()+" fails, but the result was "+result.getStatus(), result.isError());
+		if (!result.isError()) {
+			String message = "Expected that operation "+result.getOperation()+" fails, but the result was "+result.getStatus();
+			System.out.println(message);
+			System.out.println(result.debugDump());
+			LOGGER.error("{}",message);
+			LOGGER.error("{}",result.debugDump());
+			AssertJUnit.fail(message);
+		}
 		assertNoUnknown(result);
 	}
 

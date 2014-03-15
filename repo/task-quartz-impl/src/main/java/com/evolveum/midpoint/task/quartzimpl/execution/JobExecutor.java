@@ -21,10 +21,12 @@ import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 import org.apache.commons.lang.Validate;
 import org.quartz.*;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
@@ -152,6 +154,10 @@ public class JobExecutor implements InterruptableJob {
                 // actually there is no point in throwing JEE; the only thing that is done with it is
                 // that it is logged by Quartz
 			}
+			
+			// Setup Spring Security context
+			PrismObject<UserType> taskOwner = task.getOwner();
+			taskManagerImpl.getSecurityEnforcer().setupPreAuthenticatedSecurityContext(taskOwner);
 		
 			if (task.isCycle()) {
 				executeRecurrentTask(handler);

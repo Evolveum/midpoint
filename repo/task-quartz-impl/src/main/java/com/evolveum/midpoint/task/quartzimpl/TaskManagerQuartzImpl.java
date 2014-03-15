@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.task.quartzimpl;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.common.security.SecurityEnforcer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -66,6 +67,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExecutionStatus
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -80,6 +82,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
+
 import java.text.ParseException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -159,6 +162,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     @Autowired(required=true)
 	private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 	
+    @Autowired(required=true)
+    private SecurityEnforcer securityEnforcer;
+    
 	@Autowired(required=true)
 	private PrismContext prismContext;
 	
@@ -1197,6 +1203,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     public ExecutionManager getExecutionManager() {
         return executionManager;
     }
+    
+    public SecurityEnforcer getSecurityEnforcer() {
+		return securityEnforcer;
+	}
     //endregion
 
     //region Delegation (CLEAN THIS UP)
@@ -1204,7 +1214,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
      *  ********************* DELEGATIONS *********************
      */
 
-    void synchronizeTaskWithQuartz(TaskQuartzImpl task, OperationResult parentResult) {
+	void synchronizeTaskWithQuartz(TaskQuartzImpl task, OperationResult parentResult) {
         executionManager.synchronizeTask(task, parentResult);
     }
 

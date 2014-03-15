@@ -107,8 +107,9 @@ public class TestLdap extends AbstractModelIntegrationTest {
 		}
 		
 		// Users
-		repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
+		PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
 		repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, RoleType.class, initResult);
+		login(userAdministrator);
 		
 		// Resources
 		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILENAME, RESOURCE_OPENDJ_OID, initTask, initResult);

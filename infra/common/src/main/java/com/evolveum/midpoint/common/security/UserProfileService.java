@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,28 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.model.security.api;
+package com.evolveum.midpoint.common.security;
 
-import com.evolveum.midpoint.common.security.MidPointPrincipal;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+
 
 /**
  * Service that exposes security functions for GUI and other spring-security-enabled authentication front-ends. 
  *
  * @author lazyman
  * @author Igor Farinic
+ * @author Radovan Semancik
  */
-public interface UserDetailsService {
+public interface UserProfileService {
     
-    String DOT_CLASS = UserDetailsService.class.getName() + ".";
+    String DOT_CLASS = UserProfileService.class.getName() + ".";
     String OPERATION_GET_USER = DOT_CLASS + "getUser";
     String OPERATION_UPDATE_USER = DOT_CLASS + "updateUser";
 
-    public MidPointPrincipal getUser(String principal);
+    public MidPointPrincipal getPrincipal(String username);
+    
+    public MidPointPrincipal getPrincipal(PrismObject<UserType> user);
 
-    public void updateUser(MidPointPrincipal user);
+    public void updateUser(MidPointPrincipal principal);
 }

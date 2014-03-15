@@ -22,7 +22,7 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.common.security.AuthorizationEvaluator;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
-import com.evolveum.midpoint.model.security.api.UserDetailsService;
+import com.evolveum.midpoint.common.security.UserProfileService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -53,6 +53,7 @@ import org.w3c.dom.NodeList;
 import javax.xml.namespace.QName;
 import javax.xml.soap.SOAPException;
 import javax.xml.soap.SOAPMessage;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -69,12 +70,12 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
     private Set<String> after = new HashSet<String>();
     private String id;
 
-    private UserDetailsService userDetailsService;
+    private UserProfileService userDetailsService;
     private AuthorizationEvaluator authorizationEvaluator;
     private AuditService auditService;
     private TaskManager taskManager;
 
-    public SpringAuthenticationInjectorInterceptor(UserDetailsService userDetailsService,
+    public SpringAuthenticationInjectorInterceptor(UserProfileService userDetailsService,
     		AuthorizationEvaluator authorizationEvaluator, AuditService auditService, TaskManager taskManager) {
         super();
         this.userDetailsService = userDetailsService;
@@ -128,7 +129,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
             username = getUsernameFromSecurityHeader(securityHeader);
 
             if (username != null && username.length() > 0) {
-            	MidPointPrincipal principal = userDetailsService.getUser(username);
+            	MidPointPrincipal principal = userDetailsService.getPrincipal(username);
                 Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
                 

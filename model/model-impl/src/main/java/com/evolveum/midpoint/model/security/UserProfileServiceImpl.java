@@ -19,12 +19,12 @@ package com.evolveum.midpoint.model.security;
 import com.evolveum.midpoint.common.security.Authorization;
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
+import com.evolveum.midpoint.common.security.UserProfileService;
 import com.evolveum.midpoint.model.UserComputer;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.lens.Assignment;
 import com.evolveum.midpoint.model.lens.AssignmentEvaluator;
-import com.evolveum.midpoint.model.security.api.UserDetailsService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -52,9 +52,9 @@ import java.util.List;
  * @author lazyman
  */
 @Service(value = "userDetailsService")
-public class UserDetailsServiceImpl implements UserDetailsService {
+public class UserProfileServiceImpl implements UserProfileService {
 
-    private static final Trace LOGGER = TraceManager.getTrace(UserDetailsServiceImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(UserProfileServiceImpl.class);
     
     @Autowired(required = true)
     private transient RepositoryService repositoryService;
@@ -72,29 +72,37 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private PrismContext prismContext;
 
     @Override
-    public MidPointPrincipal getUser(String principal) {
-    	MidPointPrincipal user = null;
+    public MidPointPrincipal getPrincipal(String username) {
+    	PrismObject<UserType> user = null;
         try {
-            user = findByUsername(principal);
+            user = findByUsername(username);
         } catch (Exception ex) {
             LOGGER.warn("Couldn't find user with name '{}', reason: {}.",
-                    new Object[]{principal, ex.getMessage()});
+                    new Object[]{username, ex.getMessage()});
         }
 
-        return user;
+        return getPrincipal(user);
     }
 
     @Override
-    public void updateUser(MidPointPrincipal user) {
+    public MidPointPrincipal getPrincipal(PrismObject<UserType> user) {
+    	userComputer.recompute(user);
+        MidPointPrincipal principal = new MidPointPrincipal(user.asObjectable());
+        addAuthorizations(principal);
+        return principal;
+    }
+
+    @Override
+    public void updateUser(MidPointPrincipal principal) {
         try {
-            save(user);
+            save(principal);
         } catch (RepositoryException ex) {
             LOGGER.warn("Couldn't save user '{}, ({})', reason: {}.",
-                    new Object[]{user.getFullName(), user.getOid(), ex.getMessage()});
+                    new Object[]{principal.getFullName(), principal.getOid(), ex.getMessage()});
         }
     }
 
-    private MidPointPrincipal findByUsername(String username) throws SchemaException, ObjectNotFoundException {
+    private PrismObject<UserType> findByUsername(String username) throws SchemaException, ObjectNotFoundException {
         PolyString usernamePoly = new PolyString(username);
         ObjectQuery query = ObjectQueryUtil.createNameQuery(usernamePoly, prismContext);
 //        ObjectQuery query = ObjectQuery.createObjectQuery(
@@ -112,13 +120,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         }
         
         PrismObject<UserType> user = list.get(0);
-        userComputer.recompute(user);
-
-        MidPointPrincipal principal = new MidPointPrincipal(user.asObjectable());
-        addAuthorizations(principal);
-        return principal;
+        return user;
     }
-
+        
 	private void addAuthorizations(MidPointPrincipal principal) {
 		UserType userType = principal.getUser();
 
@@ -148,7 +152,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         // resource schema not available, etc.
         assignmentEvaluator.setEvaluateConstructions(false);
 		
-        OperationResult result = new OperationResult(UserDetailsServiceImpl.class.getName() + ".addAuthorizations");
+        OperationResult result = new OperationResult(UserProfileServiceImpl.class.getName() + ".addAuthorizations");
         for(AssignmentType assignmentType: userType.getAssignment()) {
         	try {
 				Assignment assignment = assignmentEvaluator.evaluate(assignmentType, userType, userType.toString(), null, result);

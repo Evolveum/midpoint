@@ -20,7 +20,7 @@ import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.security.Authorization;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
-import com.evolveum.midpoint.model.security.api.UserDetailsService;
+import com.evolveum.midpoint.common.security.UserProfileService;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -41,6 +41,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.datatype.XMLGregorianCalendar;
+
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -54,7 +55,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 
 	private static final Trace LOGGER = TraceManager.getTrace(MidPointAuthenticationProvider.class);
 	@Autowired(required = true)
-	private transient UserDetailsService userManagerService;
+	private transient UserProfileService userManagerService;
 	@Autowired(required = true)
 	private transient Protector protector;
 	private int loginTimeout;
@@ -84,7 +85,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 		MidPointPrincipal user = null;
 		List<GrantedAuthority> grantedAuthorities = null;
 		try {
-			user = userManagerService.getUser((String) authentication.getPrincipal());
+			user = userManagerService.getPrincipal((String) authentication.getPrincipal());
 			authenticateUser(user, (String) authentication.getCredentials());
 		} catch (BadCredentialsException ex) {
 			if (user != null && user.getUser() != null && user.getUser().getCredentials() != null) {

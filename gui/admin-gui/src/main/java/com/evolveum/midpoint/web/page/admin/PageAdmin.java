@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.web.page.admin;
 
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
-import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.component.menu.top.MenuBarItem;
 import com.evolveum.midpoint.web.component.menu.top.MenuItem;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuBar;
@@ -28,7 +27,6 @@ import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports;
 import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceEdit;
-import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;

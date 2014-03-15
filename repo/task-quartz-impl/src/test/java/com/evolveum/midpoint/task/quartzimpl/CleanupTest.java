@@ -50,6 +50,7 @@ import java.util.List;
         "classpath:ctx-repo-cache.xml",
         "classpath*:ctx-repository.xml",
         "classpath:ctx-audit.xml",
+        "classpath:ctx-common.xml",
         "classpath:ctx-configuration-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CleanupTest extends AbstractTestNGSpringContextTests {
