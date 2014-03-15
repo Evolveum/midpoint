@@ -381,14 +381,13 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
                 .getVersion()) : 0;
         repo.setVersion(version);
 
-        //todo fix
-//        if (jaxb.getExtension() != null) {
-//            RAnyContainer extension = new RAnyContainer();
-//            extension.setOwner(repo);
-//
-//            repo.setExtension(extension);
-//            RAnyContainer.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
-//        }
+        if (jaxb.getExtension() != null) {
+            RAnyContainer extension = new RAnyContainer();
+            extension.setOwner(repo);
+
+            repo.setExtension(extension);
+            RAnyContainer.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
+        }
 
         repo.getParentOrgRef().addAll(RUtil.safeListReferenceToSet(jaxb.getParentOrgRef(), prismContext,
                 repo, RReferenceOwner.OBJECT_PARENT_ORG));
