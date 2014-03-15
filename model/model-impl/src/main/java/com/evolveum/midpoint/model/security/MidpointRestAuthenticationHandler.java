@@ -29,7 +29,7 @@ import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.security.AuthorizationEvaluator;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
-import com.evolveum.midpoint.model.security.api.UserDetailsService;
+import com.evolveum.midpoint.common.security.UserProfileService;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -37,7 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 public class MidpointRestAuthenticationHandler implements RequestHandler {
 	 
 	@Autowired(required =true)
-	private UserDetailsService userDetails;
+	private UserProfileService userDetails;
 	
 	@Autowired(required = true)
 	private AuthorizationEvaluator authorizationEvaluator;
@@ -62,7 +62,7 @@ public class MidpointRestAuthenticationHandler implements RequestHandler {
         }
         
         
-        MidPointPrincipal principal = userDetails.getUser(username);
+        MidPointPrincipal principal = userDetails.getPrincipal(username);
         
         if (principal == null ){
         	return Response.status(401).header("WWW-Authenticate", "Basic").build();

@@ -94,6 +94,7 @@ import static org.testng.AssertJUnit.*;
         "classpath:ctx-repo-cache.xml",
         "classpath*:ctx-repository.xml",
         "classpath:ctx-audit.xml",
+        "classpath:ctx-common.xml",
         "classpath:ctx-configuration-test.xml"})
 public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTests {
 

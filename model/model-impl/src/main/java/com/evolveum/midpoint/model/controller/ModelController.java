@@ -27,7 +27,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
-import com.evolveum.midpoint.model.security.AuthorizationEnforcer;
 import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
@@ -53,6 +52,8 @@ import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.security.Authorization;
+import com.evolveum.midpoint.common.security.SecurityEnforcer;
+import com.evolveum.midpoint.common.security.UserProfileService;
 import com.evolveum.midpoint.model.ModelObjectResolver;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -196,6 +197,12 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	private AuditService auditService;
 	
 	@Autowired(required = true)
+	private SecurityEnforcer securityEnforcer;
+	
+	@Autowired(required = true)
+	private UserProfileService userProfileService;
+	
+	@Autowired(required = true)
 	Projector projector;
 	
 	@Autowired(required = true)
@@ -262,7 +269,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		
 		result.cleanupResult();
 		
-		AuthorizationEnforcer.authorize(ModelService.AUTZ_READ_URL, object, null, task, result);
+		securityEnforcer.authorize(ModelService.AUTZ_READ_URL, object, null, result);
 		
         validateObject(object, rootOptions, result);
 		return object;
@@ -1272,6 +1279,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		OperationResult result = parentResult.createSubresult(POST_INIT);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ModelController.class);
 
+		securityEnforcer.setUserProfileService(userProfileService);
 		// TODO: initialize repository
 
 		PrismObject<SystemConfigurationType> systemConfiguration;

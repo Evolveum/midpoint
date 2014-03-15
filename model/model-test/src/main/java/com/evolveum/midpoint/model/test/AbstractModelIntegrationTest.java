@@ -27,6 +27,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.security.Authorization;
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
+import com.evolveum.midpoint.common.security.UserProfileService;
 import com.evolveum.midpoint.model.api.ModelDiagnosticService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -34,7 +35,6 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
-import com.evolveum.midpoint.model.security.api.UserDetailsService;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -213,7 +213,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected NotificationManager notificationManager;
     
     @Autowired(required = false)
-    protected UserDetailsService userDetailsService;
+    protected UserProfileService userProfileService;
 	
 	protected DummyAuditService dummyAuditService;
 	
@@ -555,6 +555,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.executeChanges(deltas, null, task, result);	
 	}
 	
+	protected <O extends ObjectType> void modifyObjectReplace(Class<O> type, String oid, QName propertyName, Task task, OperationResult result, Object... newRealValue) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		modifyObjectReplace(type, oid, new ItemPath(propertyName), task, result, newRealValue);
+	}
+	
+	protected <O extends ObjectType> void modifyObjectReplace(Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, Object... newRealValue) 
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, 
+			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<O> objectDelta = ObjectDelta.createModificationReplaceProperty(type, oid, propertyPath, prismContext, newRealValue);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+		modelService.executeChanges(deltas, null, task, result);	
+	}
+	
 	protected void modifyUserAdd(String userOid, QName propertyName, Task task, OperationResult result, Object... newRealValue) 
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, 
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
@@ -598,10 +610,26 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.recompute(UserType.class, userOid, task, result);
 	}
 	
+	protected void assignRole(String userOid, String roleOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".assignRole");
+		OperationResult result = task.getResult();
+		assignRole(userOid, roleOid, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+	}
+	
 	protected void assignRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
 		modifyUserAssignment(userOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, true, result);
+	}
+	
+	protected void unassignRole(String userOid, String roleOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".unassignRole");
+		OperationResult result = task.getResult();
+		unassignRole(userOid, roleOid, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
 	}
 	
 	protected void unassignRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
@@ -620,6 +648,32 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
 		modifyUserAssignment(userOid, roleOid, RoleType.COMPLEX_TYPE, null, task, extension, false, result);
+	}
+	
+	protected void unassignAllRoles(String userOid) throws ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".unassignAllRoles");
+		OperationResult result = task.getResult();
+		PrismObject<UserType> user = modelService.getObject(UserType.class, userOid, null, task, result);
+		Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+		for (AssignmentType assignment: user.asObjectable().getAssignment()) {
+			ObjectReferenceType targetRef = assignment.getTargetRef();
+			if (targetRef != null) {
+				if (targetRef.getType().equals(RoleType.COMPLEX_TYPE)) {
+					modifications.add((createAssignmentModification(targetRef.getOid(), targetRef.getType(), 
+							targetRef.getRelation(), null, false)));
+				}
+			}
+		}
+		if (modifications.isEmpty()) {
+			return;
+		}
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, modifications, UserType.class, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+		modelService.executeChanges(deltas, null, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
 	}
 	
 	protected void assignOrg(String userOid, String orgOid, Task task, OperationResult result)
@@ -2123,14 +2177,32 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void login(String principalName) {
-		MidPointPrincipal principal = userDetailsService.getUser(principalName);
+		MidPointPrincipal principal = userProfileService.getPrincipal(principalName);
+		login(principal);
+	}
+	
+	protected void login(PrismObject<UserType> user) {
+		MidPointPrincipal principal = userProfileService.getPrincipal(user);
+		login(principal);
+	}
+	
+	protected void login(MidPointPrincipal principal) {
 		SecurityContext securityContext = SecurityContextHolder.getContext();
 		Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
 		securityContext.setAuthentication(authentication);
 	}
 	
 	protected void loginSuperUser(String principalName) throws SchemaException {
-		MidPointPrincipal principal = userDetailsService.getUser(principalName);
+		MidPointPrincipal principal = userProfileService.getPrincipal(principalName);
+		loginSuperUser(principal);
+	}
+
+	protected void loginSuperUser(PrismObject<UserType> user) throws SchemaException {
+		MidPointPrincipal principal = userProfileService.getPrincipal(user);
+		loginSuperUser(principal);
+	}
+
+	protected void loginSuperUser(MidPointPrincipal principal) throws SchemaException {
 		AuthorizationType superAutzType = new AuthorizationType();
 		prismContext.adopt(superAutzType, RoleType.class, new ItemPath(RoleType.F_AUTHORIZATION));
 		superAutzType.getAction().add(AuthorizationConstants.AUTZ_ALL_URL);
