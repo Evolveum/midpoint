@@ -47,6 +47,7 @@ import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -60,6 +61,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,6 +72,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import javax.xml.namespace.QName;
+
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
@@ -138,7 +141,7 @@ public class ObjectImporter {
                 object = migrator.migrate(object);
                 
                 Utils.resolveReferences(object, repository, 
-                		options.isReferentialIntegrity() == null ? false : options.isReferentialIntegrity(), 
+                		(options == null || options.isReferentialIntegrity() == null) ? false : options.isReferentialIntegrity(), 
                 				prismContext, objectResult);
                 
                 objectResult.computeStatus();
@@ -153,7 +156,7 @@ public class ObjectImporter {
                 	return EventResult.skipObject(objectResult.getMessage());
                 }
 
-                if (BooleanUtils.isTrue(options.isValidateDynamicSchema())) {
+                if (options != null && BooleanUtils.isTrue(options.isValidateDynamicSchema())) {
                     validateWithDynamicSchemas(object, objectElement, repository, objectResult);
                 }
 
@@ -162,7 +165,7 @@ public class ObjectImporter {
                 	return EventResult.skipObject(objectResult.getMessage());
                 }
                 
-                if (BooleanUtils.isTrue(options.isEncryptProtectedValues())) {
+                if (options != null && BooleanUtils.isTrue(options.isEncryptProtectedValues())) {
                 	OperationResult opResult = objectResult.createMinorSubresult(ObjectImporter.class.getName()+".encryptValues");
                     try {
 						CryptoUtil.encryptValues(protector, object);
@@ -234,15 +237,17 @@ public class ObjectImporter {
 
         Validator validator = new Validator(prismContext, handler);
         validator.setVerbose(true);
-        validator.setValidateSchema(BooleanUtils.isTrue(options.isValidateStaticSchema()));
-        if (options.getStopAfterErrors() != null) {
-            validator.setStopAfterErrors(options.getStopAfterErrors().longValue());
-        }
-        if (options.isSummarizeErrors()) {
-        	parentResult.setSummarizeErrors(true);
-        }
-        if (options.isSummarizeSucceses()) {
-        	parentResult.setSummarizeSuccesses(true);
+        if (options != null) {
+	        validator.setValidateSchema(BooleanUtils.isTrue(options.isValidateStaticSchema()));
+	        if (options.getStopAfterErrors() != null) {
+	            validator.setStopAfterErrors(options.getStopAfterErrors().longValue());
+	        }
+	        if (options.isSummarizeErrors()) {
+	        	parentResult.setSummarizeErrors(true);
+	        }
+	        if (options.isSummarizeSucceses()) {
+	        	parentResult.setSummarizeSuccesses(true);
+	        }
         }
 
         validator.validate(input, parentResult, OperationConstants.IMPORT_OBJECT);
@@ -250,10 +255,15 @@ public class ObjectImporter {
     }
 
     private <T extends ObjectType> void importObjectToRepository(PrismObject<T> object, ImportOptionsType options,
-                                         Task task, OperationResult objectResult) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+                                         Task task, OperationResult objectResult) throws ObjectNotFoundException, ExpressionEvaluationException, CommunicationException,
+				ConfigurationException, PolicyViolationException, SecurityViolationException, SchemaException, ObjectAlreadyExistsException {
 
         OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName() + ".importObjectToRepository");
 
+        if (options == null) {
+        	options = new ImportOptionsType();
+        }
+        
         if (BooleanUtils.isTrue(options.isKeepOid()) && object.getOid() == null) {
 			// Try to check if there is existing object with the same type and name
         	ObjectQuery query = ObjectQueryUtil.createNameQuery(object);
@@ -312,16 +322,10 @@ public class ObjectImporter {
         		result.recordFatalError(e);
              	throw e;
         	}
-        } catch (SchemaException ex){
-        	result.recordFatalError("Schema exception, cannot import object: " + object, ex);
-//        	result.computeStatus();
-        	throw ex;
-//        } catch (CommunicationException ex){
-//        	result.recordFatalError("Communication problem, cannot import object: " + object, ex);
-//        	throw ex;
-//        } catch (CommunicationException ex){
-//        	result.recordFatalError("Communication problem, cannot import object: " + object, ex);
-//        	throw ex;
+        } catch (ObjectNotFoundException | ExpressionEvaluationException | CommunicationException
+				| ConfigurationException | PolicyViolationException | SecurityViolationException | SchemaException e) {
+        	result.recordFatalError("Cannot import " + object + ": "+e.getMessage(), e);
+        	throw e;
         } catch (RuntimeException ex){
         	result.recordFatalError("Couldn't import object: " + object +". Reason: " + ex.getMessage(), ex);
         	throw ex;

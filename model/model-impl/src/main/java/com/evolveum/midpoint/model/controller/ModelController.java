@@ -375,9 +375,12 @@ public class ModelController implements ModelService, ModelInteractionService, T
 						if (ModelExecuteOptions.isOverwrite(options)) {
 							repoOptions.setOverwrite(true);
 						}
+						securityEnforcer.authorize(AUTZ_ADD_URL, delta.getObjectToAdd(), null, null, result);
 						String oid = cacheRepositoryService.addObject(delta.getObjectToAdd(), repoOptions, result);
 						delta.setOid(oid);
 					} else if (delta.isDelete()) {
+						PrismObject<? extends ObjectType> existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result);
+						securityEnforcer.authorize(AUTZ_DELETE_URL, existingObject, null, null, result);
 						if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
                             Utils.clearRequestee(task);
 							provisioning.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
@@ -387,6 +390,8 @@ public class ModelController implements ModelService, ModelInteractionService, T
 									result);
 						}
 					} else if (delta.isModify()) {
+						PrismObject existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result);
+						securityEnforcer.authorize(AUTZ_MODIFY_URL, existingObject, delta, null, result);
 						cacheRepositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(), 
 								delta.getModifications(), result);
 					} else {

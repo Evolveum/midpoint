@@ -91,7 +91,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 	public static final String SYSTEM_CONFIGURATION_FILENAME = COMMON_DIR_NAME + "/system-configuration.xml";
 	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 	
-	protected static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
+	public static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
 	protected static final String USER_ADMINISTRATOR_NAME = "administrator";
 	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
 	
@@ -113,7 +113,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 	protected static final String USER_LARGO_FILENAME = COMMON_DIR_NAME + "/user-largo.xml";
 	protected static final String USER_LARGO_OID = "c0c010c0-d34d-b33f-f00d-111111111118";
 	
-	protected static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
+	public static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
 	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 	
 	protected static final String ACCOUNT_HBARBOSSA_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-hbarbossa-dummy.xml";

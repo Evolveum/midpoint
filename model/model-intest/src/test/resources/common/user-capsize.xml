@@ -65,16 +65,16 @@
             <resourceRef oid="10000000-0000-0000-0000-000000000204"/>
         </construction>
     </assignment>
+    
+    <activation>
+    	<administrativeStatus>enabled</administrativeStatus>
+    </activation>
 
     <fullName>Kate Capsize</fullName>
     <givenName>Kate</givenName>
     <familyName>Capsize</familyName>
     <honorificPrefix>Captain</honorificPrefix>
-    
-    <activation>
-    	<administrativeStatus>enabled</administrativeStatus>
-    </activation>
-    
+        
     <credentials>
         <password>
         	<value>
