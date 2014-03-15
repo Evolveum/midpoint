@@ -31,6 +31,19 @@ Still needs to be done:
 
 repo-sql-impl-test: 3739
 
+************
+containers branch, longtest run
+cca. 185k
+[INFO] midPoint Testing - Long Tests ..................... SUCCESS [10:45.982s]
+[INFO] midPoint Testing - Story Tests .................... SUCCESS [1:08.887s]
+[INFO] midPoint Testing Infrastructure ................... SUCCESS [0.087s]
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 15:42.524s
+[INFO] Finished at: Fri Mar 14 15:04:55 CET 2014
+[INFO] Final Memory: 84M/727M
+
 ******************************
 ******************************
 ******************************
