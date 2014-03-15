@@ -161,13 +161,11 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 					"looks like the previous test haven't cleaned it up", e);
 		}
 		
-		// Users
+		// User administrator
 		PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
 		repoAddObjectFromFile(USER_JACK_FILE, UserType.class, true, initResult).asObjectable();
-		login(userAdministrator);
-		
-		// Roles
 		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult);
+		login(userAdministrator);
 				
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 		
