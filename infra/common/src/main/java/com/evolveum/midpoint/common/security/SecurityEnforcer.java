@@ -66,7 +66,7 @@ public class SecurityEnforcer {
 	}
 
 	public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, 
-			PrismObject<O> object, PrismObject<T> target, OperationResult parentResult) throws SecurityViolationException {
+			PrismObject<O> object, PrismObject<T> target, OperationResult result) throws SecurityViolationException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication == null) {
 			throw new SecurityViolationException("No authentication");
@@ -107,7 +107,11 @@ public class SecurityEnforcer {
 		if (!allow) {
 			String username = getUsername(authentication);
 			LOGGER.error("User {} not authorized for operation {}", username, operationUrl);
-			throw new SecurityViolationException("User "+username+" not authorized for operation "+operationUrl+":\n"+((MidPointPrincipal)principal).debugDump());
+			SecurityViolationException e = new SecurityViolationException("User "+username+" not authorized for operation "
+			+operationUrl);
+//			+":\n"+((MidPointPrincipal)principal).debugDump());
+			result.recordFatalError(e.getMessage(), e);
+			throw e;
 		}
 	}
 	

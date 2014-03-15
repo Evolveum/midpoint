@@ -598,10 +598,26 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.recompute(UserType.class, userOid, task, result);
 	}
 	
+	protected void assignRole(String userOid, String roleOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".assignRole");
+		OperationResult result = task.getResult();
+		assignRole(userOid, roleOid, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+	}
+	
 	protected void assignRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
 		modifyUserAssignment(userOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, true, result);
+	}
+	
+	protected void unassignRole(String userOid, String roleOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".unassignRole");
+		OperationResult result = task.getResult();
+		unassignRole(userOid, roleOid, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
 	}
 	
 	protected void unassignRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
@@ -620,6 +636,32 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
 		modifyUserAssignment(userOid, roleOid, RoleType.COMPLEX_TYPE, null, task, extension, false, result);
+	}
+	
+	protected void unassignAllRoles(String userOid) throws ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".unassignAllRoles");
+		OperationResult result = task.getResult();
+		PrismObject<UserType> user = modelService.getObject(UserType.class, userOid, null, task, result);
+		Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+		for (AssignmentType assignment: user.asObjectable().getAssignment()) {
+			ObjectReferenceType targetRef = assignment.getTargetRef();
+			if (targetRef != null) {
+				if (targetRef.getType().equals(RoleType.COMPLEX_TYPE)) {
+					modifications.add((createAssignmentModification(targetRef.getOid(), targetRef.getType(), 
+							targetRef.getRelation(), null, false)));
+				}
+			}
+		}
+		if (modifications.isEmpty()) {
+			return;
+		}
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, modifications, UserType.class, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+		modelService.executeChanges(deltas, null, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
 	}
 	
 	protected void assignOrg(String userOid, String orgOid, Task task, OperationResult result)

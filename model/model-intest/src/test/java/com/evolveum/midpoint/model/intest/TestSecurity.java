@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.springframework.security.web.FilterInvocation;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.security.Authorization;
@@ -46,10 +47,18 @@ import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.common.security.AuthorizationEvaluator;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.common.security.UserProfileService;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -60,7 +69,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	
-	public static final File TEST_DIR = new File("src/test/resources/contract");
+	public static final File TEST_DIR = new File("src/test/resources/security");
 
 	@Autowired(required=true)
 	private UserProfileService userDetailsService;
@@ -172,6 +181,27 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
+    public void test109JackUnassignRolePirate() throws Exception {
+		final String TEST_NAME = "test100JackRolePirate";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
+        
+        // WHEN
+        MidPointPrincipal principal = userDetailsService.getPrincipal(USER_JACK_USERNAME);
+        
+        // THEN
+        assertJack(principal);
+        
+        assertEquals("Wrong number of authorizations", 0, principal.getAuthorities().size());
+        
+        assertNotAuthorized(principal, AUTZ_LOOT_URL);
+        assertNotAuthorized(principal, AUTZ_COMMAND_URL);
+	}
+	
+	@Test
     public void test110GuybrushRoleNicePirate() throws Exception {
 		final String TEST_NAME = "test110GuybrushRoleNicePirate";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -211,6 +241,63 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertAuthorized(principal, AUTZ_COMMAND_URL);
 	}
 	
+	// Authorization tests: logged-in user jack
+	
+	@Test
+    public void test200AutzJackNoRole() throws Exception {
+		final String TEST_NAME = "test200AutzJackNoRole";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        login(userAdministrator);
+        unassignAllRoles(USER_JACK_OID);
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        assertGetDeny(UserType.class, USER_JACK_OID);
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+	}
+	
+	@Test
+    public void test201AutzJackSuperuserRole() throws Exception {
+		final String TEST_NAME = "test201AutzJackSuperuserRole";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        login(userAdministrator);
+        unassignAllRoles(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_SUPERUSER_OID);
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        assertGetAllow(UserType.class, USER_JACK_OID);
+        assertGetAllow(UserType.class, USER_GUYBRUSH_OID);
+        
+        // CLEANUP
+        login(userAdministrator);
+        unassignAllRoles(USER_JACK_OID);
+	}
+	
+	
+	private <O extends ObjectType> void assertGetDeny(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+		Task task = taskManager.createTaskInstance(TestSecurity.class.getName() + ".assertGetDeny");
+        OperationResult result = task.getResult();
+		try {
+			PrismObject<O> object = modelService.getObject(type, oid, null, task, result);
+			AssertJUnit.fail("Expected get of "+object+" to fail. But it was successful");
+		} catch (SecurityViolationException e) {
+			// this is expected
+			result.computeStatus();
+			TestUtil.assertFailure(result);
+		}
+	}
+	
+	private <O extends ObjectType> void assertGetAllow(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(TestSecurity.class.getName() + ".assertGetAllow");
+        OperationResult result = task.getResult();
+		PrismObject<O> object = modelService.getObject(type, oid, null, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+	}
+
 	private void assertJack(MidPointPrincipal principal) {
 		display("Principal jack", principal);
         assertEquals("wrong username", USER_JACK_USERNAME, principal.getUsername());
