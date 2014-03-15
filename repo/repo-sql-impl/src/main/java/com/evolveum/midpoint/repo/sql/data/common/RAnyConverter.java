@@ -286,13 +286,13 @@ public class RAnyConverter {
     }
 
     private void addClobValueToItem(RAnyClob value, Item item) throws SchemaException {
-        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
-        Element root = DOMUtil.parseDocument(value.getValue()).getDocumentElement();
-
-        Item parsedItem = domProcessor.parseItem(DOMUtil.listChildElements(root),
-                RUtil.stringToQName(value.getName()), item.getDefinition());
-
-        item.addAll(PrismValue.resetParentCollection(parsedItem.getValues()));
+//        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+//        Element root = DOMUtil.parseDocument(value.getValue()).getDocumentElement();
+//
+//        Item parsedItem = domProcessor.parseItem(DOMUtil.listChildElements(root),
+//                RUtil.stringToQName(value.getName()), item.getDefinition());
+//
+//        item.addAll(PrismValue.resetParentCollection(parsedItem.getValues()));
     }
 
     private void addValueToItem(RAnyValue value, Item item) throws SchemaException {

@@ -44,7 +44,6 @@ public class RAnyClob implements RAnyValue {
     private String name;
     private String type;
     private RValueType valueType;
-    private String value;
     private String checksum;
 
     public RAnyClob() {
@@ -120,21 +119,18 @@ public class RAnyClob implements RAnyValue {
         return dynamic;
     }
 
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    @Column(name = "clobValue")
+    @Transient
     public String getValue() {
-        return value;
+        return null;
     }
 
     public void setChecksum(String checksum) {
         //checksum is always computed from value, this setter is only for hibernate satisfaction
+        this.checksum = checksum;
     }
 
     public void setValue(String value) {
-        this.value = value;
-
-        checksum = StringUtils.isNotEmpty(this.value) ? DigestUtils.md5Hex(this.value) : "";
+        checksum = StringUtils.isNotEmpty(value) ? DigestUtils.md5Hex(value) : "";
     }
 
     public void setValueType(RValueType valueType) {
@@ -176,7 +172,6 @@ public class RAnyClob implements RAnyValue {
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (type != null ? !type.equals(that.type) : that.type != null) return false;
         if (valueType != that.valueType) return false;
-        if (value != null ? !value.equals(that.value) : that.value != null) return false;
         if (checksum != null ? !checksum.equals(that.checksum) : that.checksum != null) return false;
 
         return true;
@@ -188,7 +183,6 @@ public class RAnyClob implements RAnyValue {
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (valueType != null ? valueType.hashCode() : 0);
-        result = 31 * result + (value != null ? value.hashCode() : 0);
         result = 31 * result + (checksum != null ? checksum.hashCode() : 0);
         return result;
     }
