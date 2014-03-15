@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.sql.data.common;
+package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
+import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCObjectReferenceId;
-import com.evolveum.midpoint.repo.sql.data.common.id.RObjectReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
@@ -41,7 +42,7 @@ import javax.persistence.*;
         indexes = {@Index(name = "iAssignmentReferenceTargetOid", columnNames = "targetOid")})
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = RObjectReference.REFERENCE_TYPE, discriminatorType = DiscriminatorType.INTEGER)
-public class RCObjectReference implements ObjectReference {
+public class RAssignmentReference implements ObjectReference {
 
     public static final String REFERENCE_TYPE = "reference_type";
 
@@ -56,10 +57,10 @@ public class RCObjectReference implements ObjectReference {
     private String relation;
     private RObjectType type;
 
-    public RCObjectReference() {
+    public RAssignmentReference() {
     }
 
-    @ForeignKey(name = "fk_reference_assignment")
+    @ForeignKey(name = "fk_a_reference")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     public RAssignment getOwner() {
@@ -93,7 +94,7 @@ public class RCObjectReference implements ObjectReference {
     }
 
     @Id
-    @Column(name = "relation", length = RUtil.COLUMN_LENGTH_QNAME)
+    @Column(length = RUtil.COLUMN_LENGTH_QNAME)
     public String getRelation() {
         return relation;
     }
@@ -141,7 +142,7 @@ public class RCObjectReference implements ObjectReference {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RCObjectReference ref = (RCObjectReference) o;
+        RAssignmentReference ref = (RAssignmentReference) o;
 
         if (targetOid != null ? !targetOid.equals(ref.targetOid) : ref.targetOid != null) return false;
         if (type != ref.type) return false;
@@ -158,7 +159,7 @@ public class RCObjectReference implements ObjectReference {
         return result;
     }
 
-    public static void copyToJAXB(RCObjectReference repo, ObjectReferenceType jaxb, PrismContext prismContext) {
+    public static void copyToJAXB(RAssignmentReference repo, ObjectReferenceType jaxb, PrismContext prismContext) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
@@ -167,7 +168,7 @@ public class RCObjectReference implements ObjectReference {
         jaxb.setRelation(RUtil.stringToQName(repo.getRelation()));
     }
 
-    public static void copyFromJAXB(ObjectReferenceType jaxb, RCObjectReference repo, PrismContext prismContext) {
+    public static void copyFromJAXB(ObjectReferenceType jaxb, RAssignmentReference repo, PrismContext prismContext) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notEmpty(jaxb.getOid(), "Target oid must not be null.");

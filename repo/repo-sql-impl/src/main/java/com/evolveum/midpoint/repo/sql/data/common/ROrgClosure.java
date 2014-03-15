@@ -40,6 +40,8 @@ public class ROrgClosure implements Serializable {
     private RObject descendant;
     private String descendantOid;
 
+    private String relation;
+
     private int depth;
 
     public ROrgClosure() {
@@ -112,6 +114,15 @@ public class ROrgClosure implements Serializable {
     @Column(name = "depthValue")
     public int getDepth() {
         return depth;
+    }
+
+    @Column(length = RUtil.COLUMN_LENGTH_QNAME)
+    public String getRelation() {
+        return relation;
+    }
+
+    public void setRelation(String relation) {
+        this.relation = relation;
     }
 
     public void setDepth(int depth) {

@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.sql.data.common;
+package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.common.Metadata;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
@@ -51,12 +54,12 @@ import java.util.Set;
         indexes = {@Index(name = "iAssignmentAdministrative", columnNames = "administrativeStatus"),
                 @Index(name = "iAssignmentEffective", columnNames = "effectiveStatus")})
 @ForeignKey(name = "fk_assignment")
-public class RAssignment implements Container, Metadata<RCObjectReference> {
+public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
     public static final String F_OWNER = "owner";
     /**
      * enum identifier of object class which owns this assignment. It's used because we have to
-     * distinguish between assignments and inducements (all of them are the same kind) in {@link RAbstractRole}.
+     * distinguish between assignments and inducements (all of them are the same kind) in {@link com.evolveum.midpoint.repo.sql.data.common.RAbstractRole}.
      */
     public static final String F_ASSIGNMENT_OWNER = "assignmentOwner";
 
@@ -77,11 +80,11 @@ public class RAssignment implements Container, Metadata<RCObjectReference> {
     //metadata
     private XMLGregorianCalendar createTimestamp;
     private REmbeddedReference creatorRef;
-    private Set<RCObjectReference> createApproverRef;
+    private Set<RAssignmentReference> createApproverRef;
     private String createChannel;
     private XMLGregorianCalendar modifyTimestamp;
     private REmbeddedReference modifierRef;
-    private Set<RCObjectReference> modifyApproverRef;
+    private Set<RAssignmentReference> modifyApproverRef;
     private String modifyChannel;
 
 	public RAssignment() {
@@ -159,7 +162,7 @@ public class RAssignment implements Container, Metadata<RCObjectReference> {
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RCObjectReference> getCreateApproverRef() {
+    public Set<RAssignmentReference> getCreateApproverRef() {
         if (createApproverRef == null) {
             createApproverRef = new HashSet<>();
         }
@@ -188,7 +191,7 @@ public class RAssignment implements Container, Metadata<RCObjectReference> {
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RCObjectReference> getModifyApproverRef() {
+    public Set<RAssignmentReference> getModifyApproverRef() {
         if (modifyApproverRef == null) {
             modifyApproverRef = new HashSet<>();
         }
@@ -215,7 +218,7 @@ public class RAssignment implements Container, Metadata<RCObjectReference> {
         this.id = id;
     }
 
-    public void setCreateApproverRef(Set<RCObjectReference> createApproverRef) {
+    public void setCreateApproverRef(Set<RAssignmentReference> createApproverRef) {
         this.createApproverRef = createApproverRef;
     }
 
@@ -235,7 +238,7 @@ public class RAssignment implements Container, Metadata<RCObjectReference> {
         this.modifierRef = modifierRef;
     }
 
-    public void setModifyApproverRef(Set<RCObjectReference> modifyApproverRef) {
+    public void setModifyApproverRef(Set<RAssignmentReference> modifyApproverRef) {
         this.modifyApproverRef = modifyApproverRef;
     }
 

@@ -14,19 +14,26 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.sql.data.common.type;
+package com.evolveum.midpoint.repo.sql.data.common.container;
 
-import com.evolveum.midpoint.repo.sql.data.common.RCObjectReference;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
 
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
+import java.io.Serializable;
 
 /**
  * @author lazyman
  */
-@Entity
-@DiscriminatorValue(RCCreateApproverRef.DISCRIMINATOR)
-public class RCCreateApproverRef extends RCObjectReference {
+public interface Container extends Serializable {
 
-    public static final String DISCRIMINATOR = "0";
+    RObject getOwner();
+
+    String getOwnerOid();
+
+    Short getId();
+
+    void setOwner(RObject owner);
+
+    void setOwnerOid(String ownerOid);
+
+    void setId(Short id);
 }

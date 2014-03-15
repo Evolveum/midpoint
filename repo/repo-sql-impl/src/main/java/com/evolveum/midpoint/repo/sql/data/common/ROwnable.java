@@ -16,13 +16,15 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.repo.sql.data.common.container.Container;
+
 /**
  * @author lazyman
  */
 public interface ROwnable {
 
     /**
-     * @return Returns owner of container. For example for {@link RAssignment} method must
+     * @return Returns owner of container. For example for {@link com.evolveum.midpoint.repo.sql.data.common.container.RAssignment} method must
      *         return instance of subclass {@link RFocus}
      */
     Container getContainerOwner();

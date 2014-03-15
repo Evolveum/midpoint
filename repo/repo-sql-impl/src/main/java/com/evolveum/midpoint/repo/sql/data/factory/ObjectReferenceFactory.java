@@ -2,6 +2,8 @@ package com.evolveum.midpoint.repo.sql.data.factory;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.*;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAssignmentReference;
 import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
@@ -59,15 +61,15 @@ public class ObjectReferenceFactory {
         return set;
     }
 
-    public static Set<RCObjectReference> safeListReferenceToSet(List<ObjectReferenceType> list, PrismContext context,
+    public static Set<RAssignmentReference> safeListReferenceToSet(List<ObjectReferenceType> list, PrismContext context,
                                                                 RAssignment owner, RCReferenceOwner refOwner) {
-        Set<RCObjectReference> set = new HashSet<>();
+        Set<RAssignmentReference> set = new HashSet<>();
         if (list == null || list.isEmpty()) {
             return set;
         }
 
         for (ObjectReferenceType ref : list) {
-            RCObjectReference rRef = jaxbRefToAssignmentRepo(ref, context, owner, refOwner);
+            RAssignmentReference rRef = jaxbRefToAssignmentRepo(ref, context, owner, refOwner);
             if (rRef != null) {
                 set.add(rRef);
             }
@@ -76,7 +78,7 @@ public class ObjectReferenceFactory {
     }
 
 
-    public static RCObjectReference jaxbRefToAssignmentRepo(ObjectReferenceType reference, PrismContext prismContext,
+    public static RAssignmentReference jaxbRefToAssignmentRepo(ObjectReferenceType reference, PrismContext prismContext,
                                                             RAssignment owner, RCReferenceOwner refOwner) {
         if (reference == null) {
             return null;
@@ -85,9 +87,9 @@ public class ObjectReferenceFactory {
         Validate.notNull(refOwner, "Reference owner of reference must not be null.");
         Validate.notEmpty(reference.getOid(), "Target oid reference must not be null.");
 
-        RCObjectReference repoRef = RCReferenceOwner.createObjectReference(refOwner);
+        RAssignmentReference repoRef = RCReferenceOwner.createObjectReference(refOwner);
         repoRef.setOwner(owner);
-        RCObjectReference.copyFromJAXB(reference, repoRef, prismContext);
+        RAssignmentReference.copyFromJAXB(reference, repoRef, prismContext);
 
         return repoRef;
     }

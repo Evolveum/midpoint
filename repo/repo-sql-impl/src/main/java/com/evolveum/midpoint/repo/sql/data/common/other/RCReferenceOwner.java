@@ -16,9 +16,9 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.other;
 
-import com.evolveum.midpoint.repo.sql.data.common.RCObjectReference;
-import com.evolveum.midpoint.repo.sql.data.common.type.RCCreateApproverRef;
-import com.evolveum.midpoint.repo.sql.data.common.type.RCModifyApproverRef;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAssignmentReference;
+import com.evolveum.midpoint.repo.sql.data.common.type.RACreateApproverRef;
+import com.evolveum.midpoint.repo.sql.data.common.type.RAModifyApproverRef;
 import org.apache.commons.lang.Validate;
 
 /**
@@ -33,17 +33,17 @@ public enum RCReferenceOwner {
      * this constant also have to be changed in
      * {@link com.evolveum.midpoint.repo.sql.data.common.type.RCreateApproverRef}
      */
-    CREATE_APPROVER(RCCreateApproverRef.class, RCCreateApproverRef.DISCRIMINATOR),
+    CREATE_APPROVER(RACreateApproverRef.class, RACreateApproverRef.DISCRIMINATOR),
     /**
      * this constant also have to be changed in
      * {@link com.evolveum.midpoint.repo.sql.data.common.type.RModifyApproverRef}
      */
-    MODIFY_APPROVER(RCModifyApproverRef.class, RCModifyApproverRef.DISCRIMINATOR);
+    MODIFY_APPROVER(RAModifyApproverRef.class, RAModifyApproverRef.DISCRIMINATOR);
 
     private String discriminator;
-    private Class<? extends RCObjectReference> clazz;
+    private Class<? extends RAssignmentReference> clazz;
 
-    private RCReferenceOwner(Class<? extends RCObjectReference> clazz, String discriminator) {
+    private RCReferenceOwner(Class<? extends RAssignmentReference> clazz, String discriminator) {
         this.discriminator = discriminator;
         this.clazz = clazz;
     }
@@ -54,7 +54,7 @@ public enum RCReferenceOwner {
      *
      * @return class based on reference type
      */
-    public Class<? extends RCObjectReference> getClazz() {
+    public Class<? extends RAssignmentReference> getClazz() {
         return clazz;
     }
 
@@ -62,14 +62,14 @@ public enum RCReferenceOwner {
         return discriminator;
     }
 
-    public static RCObjectReference createObjectReference(RCReferenceOwner owner) {
+    public static RAssignmentReference createObjectReference(RCReferenceOwner owner) {
         Validate.notNull(owner, "Reference owner must not be null.");
 
         switch (owner) {
             case CREATE_APPROVER:
-                return new RCCreateApproverRef();
+                return new RACreateApproverRef();
             case MODIFY_APPROVER:
-                return new RCModifyApproverRef();
+                return new RAModifyApproverRef();
             default:
                 throw new IllegalArgumentException("This is unknown reference owner: " + owner);
         }

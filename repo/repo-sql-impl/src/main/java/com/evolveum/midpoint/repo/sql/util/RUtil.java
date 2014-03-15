@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
 import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
+import com.evolveum.midpoint.repo.sql.data.common.container.*;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
@@ -403,7 +404,7 @@ public final class RUtil {
             fixCompositeIdentifierInMetaModel(sessionFactory, owner.getClazz());
         }
 
-        fixCompositeIdentifierInMetaModel(sessionFactory, RCObjectReference.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAssignmentReference.class);
         for (RCReferenceOwner owner : RCReferenceOwner.values()) {
             fixCompositeIdentifierInMetaModel(sessionFactory, owner.getClazz());
         }

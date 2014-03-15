@@ -30,7 +30,6 @@ import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
-import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
@@ -1803,7 +1802,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         MidPointNamingStrategy namingStrategy = new MidPointNamingStrategy();
         final String taskTableName = namingStrategy.classToTableName(RTask.class.getSimpleName());
         final String objectTableName = namingStrategy.classToTableName(RObject.class.getSimpleName());
-        final String containerTableName = namingStrategy.classToTableName(Container.class.getSimpleName());
 
         final String completionTimestampColumn = "completionTimestamp";
 
@@ -1833,8 +1831,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         //drop records from m_task, m_object, m_container
         session.createSQLQuery(createDeleteQuery(taskTableName, tempTable)).executeUpdate();
-        session.createSQLQuery(createDeleteQuery(objectTableName, tempTable)).executeUpdate();
-        int count = session.createSQLQuery(createDeleteQuery(containerTableName, tempTable)).executeUpdate();
+        int count = session.createSQLQuery(createDeleteQuery(objectTableName, tempTable)).executeUpdate();
 
         //drop temporary table
         if (dialect.dropTemporaryTableAfterUse()) {
@@ -1880,7 +1877,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     private String createDeleteQuery(String objectTable, String tempTable) {
         StringBuilder sb = new StringBuilder();
         sb.append("delete from ").append(objectTable);
-        sb.append(" where id = 0 and (oid in (select oid from ").append(tempTable).append("))");
+        sb.append(" where oid in (select oid from ").append(tempTable).append(")");
 
         return sb.toString();
     }

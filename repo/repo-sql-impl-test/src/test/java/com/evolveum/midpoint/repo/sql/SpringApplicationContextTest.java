@@ -68,6 +68,7 @@ public class SpringApplicationContextTest extends BaseSQLRepoTest {
         System.out.println("Dialect: " + sessionFactory.getHibernateProperties().getProperty("hibernate.dialect"));
 
         addAnnotatedClasses("com.evolveum.midpoint.repo.sql.data.common", configuration);
+        addAnnotatedClasses("com.evolveum.midpoint.repo.sql.data.common.container", configuration);
         addAnnotatedClasses("com.evolveum.midpoint.repo.sql.data.common.any", configuration);
         addAnnotatedClasses("com.evolveum.midpoint.repo.sql.data.common.embedded", configuration);
         addAnnotatedClasses("com.evolveum.midpoint.repo.sql.data.common.enums", configuration);
