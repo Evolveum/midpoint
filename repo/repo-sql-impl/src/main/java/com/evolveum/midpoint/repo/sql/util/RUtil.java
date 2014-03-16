@@ -622,4 +622,9 @@ public final class RUtil {
 
         return sb.toString();
     }
+
+    public static String getTableName(Class hqlType) {
+        MidPointNamingStrategy namingStrategy = new MidPointNamingStrategy();
+        return namingStrategy.classToTableName(hqlType.getSimpleName());
+    }
 }

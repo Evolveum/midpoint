@@ -569,12 +569,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         // check name uniqueness (by type)
         if (StringUtils.isNotEmpty(originalOid)) {
             LOGGER.trace("Checking oid uniqueness.");
-            Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(object.getCompileTimeClass()));
-            criteria.add(Restrictions.eq("oid", object.getOid()));
-            criteria.setProjection(Projections.rowCount());
+            //todo improve this table name bullshit
+            SQLQuery query = session.createSQLQuery("select count(*) from "
+                    + RUtil.getTableName(ClassMapper.getHQLTypeClass(object.getCompileTimeClass())) + " where oid=:oid");
+            query.setString("oid", object.getOid());
 
-            Long count = (Long) criteria.uniqueResult();
-            if (count != null && count > 0) {
+            Number count = (Number) query.uniqueResult();
+            if (count != null && count.longValue() > 0) {
                 throw new ObjectAlreadyExistsException("Object '" + object.getCompileTimeClass().getSimpleName()
                         + "' with oid '" + object.getOid() + "' already exists.");
             }
