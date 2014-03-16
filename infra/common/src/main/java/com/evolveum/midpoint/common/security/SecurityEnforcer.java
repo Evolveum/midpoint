@@ -16,6 +16,9 @@
 package com.evolveum.midpoint.common.security;
 
 import java.util.Collection;
+import java.util.List;
+
+import javax.xml.namespace.QName;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -27,11 +30,16 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SpecialObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
 /**
  * @author Radovan Semancik
@@ -68,7 +76,7 @@ public class SecurityEnforcer {
 
 	public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, 
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, 
-			OperationResult result) throws SecurityViolationException {
+			OperationResult result) throws SecurityViolationException, SchemaException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication == null) {
 			throw new SecurityViolationException("No authentication");
@@ -78,18 +86,59 @@ public class SecurityEnforcer {
 		if (principal != null) {
 			if (principal instanceof MidPointPrincipal) {
 				MidPointPrincipal midPointPrincipal = (MidPointPrincipal)principal;
+				LOGGER.trace("AUTZ: evaluating authorization principal={}, op={}, object={}, delta={}, target={}",
+						new Object[]{midPointPrincipal, operationUrl, object, delta, target});
 				Collection<Authorization> authorities = midPointPrincipal.getAuthorities();
 				if (authorities != null) {
 					for (GrantedAuthority authority: authorities) {
 						if (authority instanceof Authorization) {
 							Authorization autz = (Authorization)authority;
+							LOGGER.trace("Evaluating authorization {}", autz);
+							// First check if the authorization is applicable.
+							
+							// action
 							if (!autz.getAction().contains(operationUrl) && !autz.getAction().contains(AuthorizationConstants.AUTZ_ALL_URL)) {
-								LOGGER.trace("Evaluating authorization {}: not applicable for operation {}", autz, operationUrl);
+								LOGGER.trace("  Authorization not applicable for operation {}", operationUrl);
 								continue;
 							}
-							LOGGER.trace("Evaluating authorization {}: ALLOW operation {}", autz, operationUrl);
-							allow = true;
-							break;
+							
+							// object
+							List<ObjectSpecificationType> autzObjects = autz.getObject();
+							if (autzObjects != null && !autzObjects.isEmpty()) {
+								if (object == null) {
+									LOGGER.trace("  Authorization not applicable for null object");
+									continue;
+								}
+								boolean applicable = false;
+								for (ObjectSpecificationType autzObject: autzObjects) {
+									if (isApplicable(autzObject, object, midPointPrincipal)) {
+										applicable = true;
+										break;
+									}
+								}
+								if (applicable) {
+									LOGGER.trace("  Authorization applicable for object {}", object);
+								} else {
+									LOGGER.trace("  Authorization not applicable for object {}, none of the object specifications match", 
+											object);
+								}
+							} else {
+								LOGGER.trace("  No object specification in authorization (authorization is applicable)");
+							}
+							
+							// authority is applicable to this situation. now we can process the decision.
+							AuthorizationDecisionType decision = autz.getDecision();
+							if (decision == null || decision == AuthorizationDecisionType.ALLOW) {
+								LOGGER.trace("  ALLOW operation {} (but continue evaluation)", autz, operationUrl);
+								allow = true;
+								// Do NOT break here. Other authorization statements may still deny the operation
+							} else {
+								LOGGER.trace("  DENY operation {}", autz, operationUrl);
+								allow = false;
+								// Break right here. Deny cannot be overridden by allow. This decision cannot be changed. 
+								break;
+							}
+							
 						} else {
 							LOGGER.warn("Unknown authority type {} in user {}", authority.getClass(), midPointPrincipal.getUsername());
 						}
@@ -104,7 +153,7 @@ public class SecurityEnforcer {
 		
 		if (LOGGER.isTraceEnabled()) {
 			String username = getUsername(authentication);
-			LOGGER.trace("AUTZ operation {}, principal {}: {}", new Object[]{operationUrl, username, allow});
+			LOGGER.trace("AUTZ result: principal={}, operation={}: {}", new Object[]{username, operationUrl, allow});
 		}
 		if (!allow) {
 			String username = getUsername(authentication);
@@ -115,6 +164,38 @@ public class SecurityEnforcer {
 			result.recordFatalError(e.getMessage(), e);
 			throw e;
 		}
+	}
+	
+	private <O extends ObjectType> boolean isApplicable(ObjectSpecificationType objectSpecType, PrismObject<O> object, 
+			MidPointPrincipal principal) throws SchemaException {
+		if (objectSpecType == null) {
+			return false;
+		}
+		QueryType specFilter = objectSpecType.getFilter();
+		QName specTypeQName = objectSpecType.getType();
+		List<SpecialObjectSpecificationType> specSpecial = objectSpecType.getSpecial();
+		if (specSpecial != null && !specSpecial.isEmpty()) {
+			if (specFilter != null) {
+				throw new SchemaException("Both filter and special object specification specified in authorization");
+			}
+			for (SpecialObjectSpecificationType special: specSpecial) {
+				if (special == SpecialObjectSpecificationType.SELF) {
+					String principalOid = principal.getOid();
+					if (principalOid != null) {
+						// This is a rare case. It should not normally happen. But it may happen in tests
+						// or during initial import. Therefore we are not going to die here. Just ignore it.
+					} else {
+						if (principalOid.equals(object.getOid())) {
+							return true;
+						}
+					}
+				} else {
+					throw new SchemaException("Unsupported special object specification specified in authorization: "+special);
+				}
+			}
+		}
+		// TODO: filter
+		return false;
 	}
 	
 	private String getUsername(Authentication authentication) {

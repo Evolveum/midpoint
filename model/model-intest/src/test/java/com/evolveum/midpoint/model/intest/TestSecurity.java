@@ -27,6 +27,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
@@ -52,6 +53,7 @@ import com.evolveum.midpoint.common.security.AuthorizationEvaluator;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.common.security.UserProfileService;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -73,6 +75,8 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -95,6 +99,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	
 	protected static final File ROLE_READONLY_DEEP_FILE = new File(TEST_DIR, "role-readonly-deep.xml");
 	protected static final String ROLE_READONLY_DEEP_OID = "00000000-0000-0000-0000-00000000aa02";
+	
+	protected static final File ROLE_SELF_FILE = new File(TEST_DIR, "role-self.xml");
+	protected static final String ROLE_SELF_OID = "00000000-0000-0000-0000-00000000aa03";
 
 	@Autowired(required=true)
 	private UserProfileService userDetailsService;
@@ -108,8 +115,28 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		
 		repoAddObjectFromFile(ROLE_READONLY_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_READONLY_DEEP_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_SELF_FILE, RoleType.class, initResult);
 	}
 
+	@Test(enabled=false) // Disabled 16 Mar 2014, waiting for repo changes
+    public void test000Sanity() throws Exception {
+		final String TEST_NAME = "test000Sanity";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
+
+        // WHEN
+        PrismObject<RoleType> roleSelf = getRole(ROLE_SELF_OID);
+        
+        // THEN
+        display("Role self", roleSelf);
+        List<AuthorizationType> authorizations = roleSelf.asObjectable().getAuthorization();
+        assertEquals("Wrong number of authorizations", 2, authorizations.size());
+        AuthorizationType authRead = authorizations.get(1);
+        assertEquals("Wrong action in authorization", ModelService.AUTZ_READ_URL, authRead.getAction().get(0));
+        List<ObjectSpecificationType> objectSpecs = authRead.getObject();
+        assertEquals("Wrong number of object specs in authorization", 1, objectSpecs.size());
+    }
+	
 	@Test
     public void test010GetUserAdministrator() throws Exception {
 		final String TEST_NAME = "test010GetUserAdministrator";
@@ -346,6 +373,30 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteDeny();
 	}
 	
+	@Test(enabled=false) // Disabled 16 Mar 2014, waiting for repo changes
+    public void test204AutzJackSelfRole() throws Exception {
+		final String TEST_NAME = "test204AutzJackSelfRole";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_SELF_OID);
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assertGetAllow(UserType.class, USER_JACK_OID);
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+
+        assertAddDeny();
+        
+        assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
+        assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
+        
+        assertDeleteDeny();
+        assertDeleteDeny(UserType.class, USER_JACK_OID);
+	}
+	
 	private void cleanupAutzTest(String userOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
 		login(userAdministrator);
         unassignAllRoles(userOid);
@@ -360,7 +411,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         cleanupAdd(USER_LECHUCK_FILE, task, result);
         
         modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, task, result);
-        // TODO: cleanup created objects
+        modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, task, result, PrismTestUtil.createPolyString("Wannabe"));
 	}
 	
 	private void cleanupAdd(File userLargoFile, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
@@ -412,6 +463,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
 		assertModifyDenyOptions(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, ModelExecuteOptions.createRaw(), PrismTestUtil.createPolyString("CSc"));
 		// TODO: self-modify password
+		assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
 		// TODO: modify other objects
 	}
 
@@ -420,6 +472,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
 		assertModifyAllowOptions(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_SUFFIX, ModelExecuteOptions.createRaw(), PrismTestUtil.createPolyString("CSc"));
 		// TODO: self-modify password
+		assertModifyAllow(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
 		// TODO: modify other objects
 	}
 

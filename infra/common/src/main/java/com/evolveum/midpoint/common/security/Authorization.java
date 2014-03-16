@@ -18,11 +18,13 @@ package com.evolveum.midpoint.common.security;
 import java.util.List;
 
 import org.springframework.security.core.GrantedAuthority;
+import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSpecificationType;
 
 /**
  * @author semancik
@@ -60,6 +62,18 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
 
 	public List<String> getAction() {
 		return authorizationType.getAction();
+	}
+
+	public List<ObjectSpecificationType> getObject() {
+		return authorizationType.getObject();
+	}
+
+	public List<Element> getItem() {
+		return authorizationType.getItem();
+	}
+
+	public List<ObjectSpecificationType> getTarget() {
+		return authorizationType.getTarget();
 	}
 
 	/* (non-Javadoc)
