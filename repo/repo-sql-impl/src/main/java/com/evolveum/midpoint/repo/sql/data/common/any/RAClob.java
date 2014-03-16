@@ -17,11 +17,13 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
-import com.evolveum.midpoint.repo.sql.data.common.id.RAnyLongId;
+import com.evolveum.midpoint.repo.sql.data.common.id.RAnyClobId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 
@@ -29,34 +31,35 @@ import javax.persistence.*;
  * @author lazyman
  */
 @Entity
-@IdClass(RAnyLongId.class)
-@Table(name = "m_any_long")
-public class RAnyLong implements RAnyValue {
+@IdClass(RAnyClobId.class)
+@Table(name = "m_a_clob")
+public class RAClob implements RAnyValue {
 
     //owner entity
     private RAnyContainer anyContainer;
     private String ownerOid;
+    private Short ownerId;
     private RObjectType ownerType;
 
     private boolean dynamic;
     private String name;
     private String type;
     private RValueType valueType;
+    private String checksum;
 
-    private Long value;
-
-    public RAnyLong() {
+    public RAClob() {
     }
 
-    public RAnyLong(Long value) {
-        this.value = value;
+    public RAClob(String value) {
+        setValue(value);
     }
 
-    @ForeignKey(name = "fk_any_long")
+    @ForeignKey(name = "fk_any_clob")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({
             @PrimaryKeyJoinColumn(name = "anyContainer_owner_oid", referencedColumnName = "ownerOid"),
+            @PrimaryKeyJoinColumn(name = "anyContainer_owner_id", referencedColumnName = "ownerId"),
             @PrimaryKeyJoinColumn(name = "anyContainer_owner_type", referencedColumnName = "owner_type")
     })
     public RAnyContainer getAnyContainer() {
@@ -79,6 +82,17 @@ public class RAnyLong implements RAnyValue {
             ownerType = anyContainer.getOwnerType();
         }
         return ownerType;
+    }
+
+    /**
+     * This method is used for content comparing when querying database (we don't want to compare clob values).
+     *
+     * @return md5 hash of {@link com.evolveum.midpoint.repo.sql.data.common.any.RAnyClob#getValue()}
+     */
+    @Id
+    @Column(length = 32, name = "checksum")
+    public String getChecksum() {
+        return checksum;
     }
 
     @Id
@@ -106,14 +120,18 @@ public class RAnyLong implements RAnyValue {
         return dynamic;
     }
 
-    @Index(name = "iLong")
-    @Column(name = "longValue")
-    public Long getValue() {
-        return value;
+    @Transient
+    public String getValue() {
+        return null;
     }
 
-    public void setValue(Long value) {
-        this.value = value;
+    public void setChecksum(String checksum) {
+        //checksum is always computed from value, this setter is only for hibernate satisfaction
+        this.checksum = checksum;
+    }
+
+    public void setValue(String value) {
+        checksum = StringUtils.isNotEmpty(value) ? DigestUtils.md5Hex(value) : "";
     }
 
     public void setValueType(RValueType valueType) {
@@ -149,13 +167,13 @@ public class RAnyLong implements RAnyValue {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RAnyLong that = (RAnyLong) o;
+        RAClob that = (RAClob) o;
 
         if (dynamic != that.dynamic) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (type != null ? !type.equals(that.type) : that.type != null) return false;
         if (valueType != that.valueType) return false;
-        if (value != null ? !value.equals(that.value) : that.value != null) return false;
+        if (checksum != null ? !checksum.equals(that.checksum) : that.checksum != null) return false;
 
         return true;
     }
@@ -166,7 +184,7 @@ public class RAnyLong implements RAnyValue {
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (valueType != null ? valueType.hashCode() : 0);
-        result = 31 * result + (value != null ? value.hashCode() : 0);
+        result = 31 * result + (checksum != null ? checksum.hashCode() : 0);
         return result;
     }
 }

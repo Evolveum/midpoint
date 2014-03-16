@@ -58,7 +58,6 @@ public class RAnyDate implements RAnyValue {
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({
             @PrimaryKeyJoinColumn(name = "anyContainer_owner_oid", referencedColumnName = "ownerOid"),
-            @PrimaryKeyJoinColumn(name = "anyContainer_owner_id", referencedColumnName = "ownerId"),
             @PrimaryKeyJoinColumn(name = "anyContainer_owner_type", referencedColumnName = "owner_type")
     })
     public RAnyContainer getAnyContainer() {
