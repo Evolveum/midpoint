@@ -35,11 +35,8 @@ import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
-
-import javax.xml.namespace.QName;
 
 import java.io.IOException;
 
@@ -50,9 +47,9 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
  */
 @ContextConfiguration(locations = {"classpath:ctx-longtest-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestRepositoryPerformance extends AbstractModelIntegrationTest {
+public class TestGenericSynchronization extends AbstractModelIntegrationTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestRepositoryPerformance.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestGenericSynchronization.class);
 
     private static final String SYSTEM_CONFIGURATION_FILENAME = COMMON_DIR_NAME + "/system-configuration.xml";
     private static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
