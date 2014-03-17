@@ -399,14 +399,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
             repo.getTrigger().add(rTrigger);
         }
 
-        //todo fix
-//        if (jaxb.getMetadata() != null) {
-//            RMetadata metadata = new RMetadata();
-//            metadata.setOwner(repo);
-//            RMetadata.copyFromJAXB(jaxb.getMetadata(), metadata, prismContext);
-//            repo.setMetadata(metadata);
-//        }
-
+        MetadataFactory.fromJAXB(jaxb.getMetadata(), repo, prismContext);
         repo.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTenantRef(), prismContext));
     }
 

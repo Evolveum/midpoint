@@ -3,13 +3,20 @@ package com.evolveum.midpoint.repo.sql.data.factory;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.Metadata;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAssignmentReference;
+import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author lazyman
@@ -62,11 +69,11 @@ public class MetadataFactory {
                 && repo.getModifierRef() == null;
     }
 
-    public static void copyFromJAXB(MetadataType jaxb, Metadata repo, PrismContext prismContext)
+    public static void fromJAXB(MetadataType jaxb, Metadata repo, PrismContext prismContext)
             throws DtoTranslationException {
-        Validate.notNull(repo, "Repo metadata must not be null.");
-        Validate.notNull(jaxb, "Jaxb metadata must not be null.");
-        Validate.notNull(prismContext, "Prism context must not be null.");
+        if (jaxb == null) {
+            return;
+        }
 
         repo.setCreateChannel(jaxb.getCreateChannel());
         repo.setCreateTimestamp(jaxb.getCreateTimestamp());
@@ -76,11 +83,17 @@ public class MetadataFactory {
         repo.setCreatorRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getCreatorRef(), prismContext));
         repo.setModifierRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getModifierRef(), prismContext));
 
-        //todo fix
-//        repo.getCreateApproverRef().addAll(RUtil.safeListReferenceToSet(jaxb.getCreateApproverRef(), prismContext,
-//                repo.owner, RReferenceOwner.CREATE_APPROVER));
-//        repo.getModifyApproverRef().addAll(RUtil.safeListReferenceToSet(jaxb.getModifyApproverRef(), prismContext,
-//                repo.owner, RReferenceOwner.MODIFY_APPROVER));
+        if (repo instanceof RObject) {
+            repo.getCreateApproverRef().addAll(RUtil.safeListReferenceToSet(jaxb.getCreateApproverRef(), prismContext,
+                    (RObject) repo, RReferenceOwner.CREATE_APPROVER));
+            repo.getModifyApproverRef().addAll(RUtil.safeListReferenceToSet(jaxb.getModifyApproverRef(), prismContext,
+                    (RObject) repo, RReferenceOwner.MODIFY_APPROVER));
+        } else {
+            repo.getCreateApproverRef().addAll(safeListReferenceToSet(jaxb.getCreateApproverRef(), prismContext,
+                    (RAssignment) repo, RCReferenceOwner.CREATE_APPROVER));
+            repo.getModifyApproverRef().addAll(safeListReferenceToSet(jaxb.getModifyApproverRef(), prismContext,
+                    (RAssignment) repo, RCReferenceOwner.MODIFY_APPROVER));
+        }
     }
 
     public static boolean equals(Metadata m1, Metadata m2) {
@@ -104,5 +117,37 @@ public class MetadataFactory {
             return false;
 
         return true;
+    }
+
+    public static Set<RAssignmentReference> safeListReferenceToSet(List<ObjectReferenceType> list, PrismContext prismContext,
+                                                                   RAssignment owner, RCReferenceOwner refOwner) {
+        Set<RAssignmentReference> set = new HashSet<>();
+        if (list == null || list.isEmpty()) {
+            return set;
+        }
+
+        for (ObjectReferenceType ref : list) {
+            RAssignmentReference rRef = jaxbRefToRepo(ref, prismContext, owner, refOwner);
+            if (rRef != null) {
+                set.add(rRef);
+            }
+        }
+        return set;
+    }
+
+    public static RAssignmentReference jaxbRefToRepo(ObjectReferenceType reference, PrismContext prismContext,
+                                                     RAssignment owner, RCReferenceOwner refOwner) {
+        if (reference == null) {
+            return null;
+        }
+        Validate.notNull(owner, "Owner of reference must not be null.");
+        Validate.notNull(refOwner, "Reference owner of reference must not be null.");
+        Validate.notEmpty(reference.getOid(), "Target oid reference must not be null.");
+
+        RAssignmentReference repoRef = RCReferenceOwner.createObjectReference(refOwner);
+        repoRef.setOwner(owner);
+        RAssignmentReference.copyFromJAXB(reference, repoRef, prismContext);
+
+        return repoRef;
     }
 }

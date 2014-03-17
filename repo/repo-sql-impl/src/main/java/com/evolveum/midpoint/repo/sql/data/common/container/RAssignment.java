@@ -375,13 +375,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         
         repo.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTenantRef(), prismContext));
 
-        //todo fix
-//        if (jaxb.getMetadata() != null) {
-//            RMetadata metadata = new RMetadata();
-//            metadata.setOwner(repo);
-//            RMetadata.copyFromJAXB(jaxb.getMetadata(), metadata, prismContext);
-//            repo.setMetadata(metadata);
-//        }
+        MetadataFactory.fromJAXB(jaxb.getMetadata(), repo, prismContext);
     }
 
     public AssignmentType toJAXB(PrismContext prismContext) throws DtoTranslationException {

@@ -311,10 +311,6 @@ public final class RUtil {
         return list;
     }
 
-    /**
-     * Use {@link com.evolveum.midpoint.repo.sql.data.factory.ObjectReferenceFactory#safeSetReferencesToList(java.util.Set, com.evolveum.midpoint.prism.PrismContext)}
-     */
-    @Deprecated
     public static List<ObjectReferenceType> safeSetReferencesToList(Set<RObjectReference> set, PrismContext prismContext) {
         List<ObjectReferenceType> list = new ArrayList<ObjectReferenceType>();
 

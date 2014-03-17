@@ -68,7 +68,7 @@ public class RAssignmentReference implements ObjectReference {
     }
 
     @Id
-    @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID)
+    @Column(name = "owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     public String getOwnerOid() {
         if (ownerOid == null && owner != null) {
             ownerOid = owner.getOwnerOid();
@@ -94,7 +94,7 @@ public class RAssignmentReference implements ObjectReference {
     }
 
     @Id
-    @Column(length = RUtil.COLUMN_LENGTH_QNAME)
+    @Column(name="relation", length = RUtil.COLUMN_LENGTH_QNAME)
     public String getRelation() {
         return relation;
     }
