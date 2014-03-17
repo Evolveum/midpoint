@@ -18,9 +18,9 @@ package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
-import com.evolveum.midpoint.common.security.Authorization;
-import com.evolveum.midpoint.common.security.MidPointPrincipal;
-import com.evolveum.midpoint.common.security.UserProfileService;
+import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;

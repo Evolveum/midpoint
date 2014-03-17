@@ -47,11 +47,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.common.security.Authorization;
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
-import com.evolveum.midpoint.common.security.AuthorizationEvaluator;
-import com.evolveum.midpoint.common.security.MidPointPrincipal;
-import com.evolveum.midpoint.common.security.UserProfileService;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -64,6 +59,11 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -107,7 +107,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	private UserProfileService userDetailsService;
 	
 	@Autowired(required=true)
-	private AuthorizationEvaluator authorizationEvaluator;
+	private SecurityEnforcer securityEnforcer;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -667,22 +667,23 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		TestUtil.assertSetEquals("Wrong action in "+authorization, authorization.getAction(), action);
 	}
 
-	private void assertAuthorized(MidPointPrincipal principal, String action) {
+	private void assertAuthorized(MidPointPrincipal principal, String action) throws SchemaException {
 		SecurityContext origContext = SecurityContextHolder.getContext();
 		createSecurityContext(principal);
 		try {
-			assertTrue("AuthorizationEvaluator.isAuthorized: Principal "+principal+" NOT authorized for action "+action, authorizationEvaluator.isAuthorized(action));
-			authorizationEvaluator.decide(SecurityContextHolder.getContext().getAuthentication(), createSecureObject(), 
+			assertTrue("AuthorizationEvaluator.isAuthorized: Principal "+principal+" NOT authorized for action "+action, 
+					securityEnforcer.isAuthorized(action, null, null, null));
+			securityEnforcer.decide(SecurityContextHolder.getContext().getAuthentication(), createSecureObject(), 
 					createConfigAttributes(action));
 		} finally {
 			SecurityContextHolder.setContext(origContext);
 		}
 	}
 	
-	private void assertNotAuthorized(MidPointPrincipal principal, String action) {
+	private void assertNotAuthorized(MidPointPrincipal principal, String action) throws SchemaException {
 		SecurityContext origContext = SecurityContextHolder.getContext();
 		createSecurityContext(principal);
-		boolean isAuthorized = authorizationEvaluator.isAuthorized(action);
+		boolean isAuthorized = securityEnforcer.isAuthorized(action, null, null, null);
 		SecurityContextHolder.setContext(origContext);
 		assertFalse("AuthorizationEvaluator.isAuthorized: Principal "+principal+" IS authorized for action "+action+" but he should not be", isAuthorized);
 	}

@@ -13,25 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.common.security;
+package com.evolveum.midpoint.security.impl;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.aopalliance.intercept.MethodInvocation;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.ConfigAttribute;
+import org.springframework.security.access.SecurityConfig;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisionType;
@@ -46,20 +60,28 @@ import com.evolveum.prism.xml.ns._public.query_2.QueryType;
  *
  */
 @Component
-public class SecurityEnforcer {
+public class SecurityEnforcerImpl implements SecurityEnforcer {
 	
-	private static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcer.class);
+	private static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);
 	
 	private UserProfileService userProfileService = null;
 	
+	@Override
 	public UserProfileService getUserProfileService() {
 		return userProfileService;
 	}
 
+	@Override
 	public void setUserProfileService(UserProfileService userProfileService) {
 		this.userProfileService = userProfileService;
 	}
 
+	@Override
+	public MidPointPrincipal getPrincipal() throws SecurityViolationException {
+		return SecurityUtil.getPrincipal();
+	}
+
+	@Override
 	public void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user) {
 		MidPointPrincipal principal = null;
 		if (userProfileService == null) {
@@ -74,12 +96,14 @@ public class SecurityEnforcer {
 		securityContext.setAuthentication(authentication);
 	}
 
-	public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, 
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, 
-			OperationResult result) throws SecurityViolationException, SchemaException {
+	@Override
+	public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl,
+			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target)
+			throws SchemaException {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		if (authentication == null) {
-			throw new SecurityViolationException("No authentication");
+			LOGGER.warn("No authentication");
+			return false;
 		}
 		Object principal = authentication.getPrincipal();
 		boolean allow = false;
@@ -145,18 +169,33 @@ public class SecurityEnforcer {
 					}
 				}
 			} else {
+				if (authentication.getPrincipal() instanceof String && "anonymousUser".equals(principal)){
+					LOGGER.trace("AUTZ: deny because user is not logged in");
+					return false;
+				}
 				LOGGER.warn("Unknown principal type {}", principal.getClass());
+				return false;
 			}
 		} else {
 			LOGGER.warn("Null principal");
+			return false;
 		}
 		
 		if (LOGGER.isTraceEnabled()) {
-			String username = getUsername(authentication);
+			String username = getQuotedUsername(authentication);
 			LOGGER.trace("AUTZ result: principal={}, operation={}: {}", new Object[]{username, operationUrl, allow});
 		}
+		return allow;
+	}
+
+	@Override
+	public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, 
+			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, 
+			OperationResult result) throws SecurityViolationException, SchemaException {
+		MidPointPrincipal principal = getPrincipal();
+		boolean allow = isAuthorized(operationUrl, object, delta, target);
 		if (!allow) {
-			String username = getUsername(authentication);
+			String username = getQuotedUsername(principal);
 			LOGGER.error("User {} not authorized for operation {}", username, operationUrl);
 			SecurityViolationException e = new SecurityViolationException("User "+username+" not authorized for operation "
 			+operationUrl);
@@ -198,7 +237,79 @@ public class SecurityEnforcer {
 		return false;
 	}
 	
-	private String getUsername(Authentication authentication) {
+	/**
+	 * Spring security method. It is practically applicable only for simple cases.
+	 */
+	@Override
+	public void decide(Authentication authentication, Object object,
+			Collection<ConfigAttribute> configAttributes) throws AccessDeniedException,
+			InsufficientAuthenticationException {
+		if (object instanceof MethodInvocation) {
+			MethodInvocation methodInvocation = (MethodInvocation)object;
+			// TODO
+		} else if (object instanceof FilterInvocation) {
+			FilterInvocation filterInvocation = (FilterInvocation)object;
+			// TODO
+		} else {
+			throw new IllegalArgumentException("Unknown type of secure object "+object.getClass());
+		}
+		
+		Object principalObject = authentication.getPrincipal();
+		if (!(principalObject instanceof MidPointPrincipal)) {
+			if (authentication.getPrincipal() instanceof String && "anonymousUser".equals(principalObject)){
+				throw new InsufficientAuthenticationException("Not logged in.");
+			}
+			throw new IllegalArgumentException("Expected that spring security principal will be of type "+
+					MidPointPrincipal.class.getName()+" but it was "+principalObject.getClass());
+		}
+		MidPointPrincipal principal = (MidPointPrincipal)principalObject;
+
+		Collection<String> configActions = getActions(configAttributes);
+		
+		for(String configAction: configActions) {
+			boolean isAuthorized;
+			try {
+				isAuthorized = isAuthorized(configAction, null, null, null);
+			} catch (SchemaException e) {
+				throw new SystemException(e.getMessage(), e);
+			}
+			if (isAuthorized) {
+				return;
+			}
+		}
+		
+		throw new AccessDeniedException("Access denied, insufficient authorization (required actions "+configActions+")");
+	}
+	
+	private Collection<String> getActions(Collection<ConfigAttribute> configAttributes) {
+		Collection<String> actions = new ArrayList<String>(configAttributes.size());
+		for (ConfigAttribute attr: configAttributes) {
+			actions.add(attr.getAttribute());
+		}
+		return actions;
+	}
+
+	@Override
+	public boolean supports(ConfigAttribute attribute) {
+		if (attribute instanceof SecurityConfig) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	@Override
+	public boolean supports(Class<?> clazz) {
+		if (MethodInvocation.class.isAssignableFrom(clazz)) {
+			return true;
+		} else if (FilterInvocation.class.isAssignableFrom(clazz)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	private String getQuotedUsername(Authentication authentication) {
 		String username = "(none)";
 		Object principal = authentication.getPrincipal();
 		if (principal != null) {
@@ -209,6 +320,13 @@ public class SecurityEnforcer {
 			}
 		}
 		return username;
+	}
+	
+	private String getQuotedUsername(MidPointPrincipal principal) {
+		if (principal == null) {
+			return "(none)";
+		}
+		return "'"+((MidPointPrincipal)principal).getUsername()+"'";
 	}
 	
 }

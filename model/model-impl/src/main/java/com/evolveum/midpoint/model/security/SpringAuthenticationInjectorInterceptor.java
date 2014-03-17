@@ -19,15 +19,16 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
-import com.evolveum.midpoint.common.security.AuthorizationEvaluator;
-import com.evolveum.midpoint.common.security.MidPointPrincipal;
-import com.evolveum.midpoint.common.security.UserProfileService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
@@ -71,15 +72,15 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
     private String id;
 
     private UserProfileService userDetailsService;
-    private AuthorizationEvaluator authorizationEvaluator;
+    private SecurityEnforcer securityEnforcer;
     private AuditService auditService;
     private TaskManager taskManager;
 
     public SpringAuthenticationInjectorInterceptor(UserProfileService userDetailsService,
-    		AuthorizationEvaluator authorizationEvaluator, AuditService auditService, TaskManager taskManager) {
+    		SecurityEnforcer securityEnforcer, AuditService auditService, TaskManager taskManager) {
         super();
         this.userDetailsService = userDetailsService;
-        this.authorizationEvaluator = authorizationEvaluator;
+        this.securityEnforcer = securityEnforcer;
         this.auditService = auditService;
         this.taskManager = taskManager;
         id = getClass().getName();
@@ -159,7 +160,14 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
 					}
 	                String action = QNameUtil.qNameToUri(new QName(AuthorizationConstants.NS_AUTHORIZATION_WS, operationName));
 	                LOGGER.trace("Determining authorization for web service operation {} (action: {})", operationName, action);
-	                if (!authorizationEvaluator.isAuthorized(action)) {
+	                boolean isAuthorized;
+					try {
+						isAuthorized = securityEnforcer.isAuthorized(action, null, null, null);
+					} catch (SchemaException e) {
+						auditLoginFailure(username);
+						throw new Fault(e);
+					}
+	                if (!isAuthorized) {
 	                	auditLoginFailure(username);
 	                	throw new Fault(new WSSecurityException("Unauthorized"));
 	                }

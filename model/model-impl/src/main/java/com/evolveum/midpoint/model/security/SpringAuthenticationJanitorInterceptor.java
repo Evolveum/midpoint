@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.model.security;
 
-import com.evolveum.midpoint.common.security.UserProfileService;
+import com.evolveum.midpoint.security.api.UserProfileService;
 
 import org.apache.cxf.binding.soap.SoapMessage;
 import org.apache.cxf.binding.soap.saaj.SAAJInInterceptor;

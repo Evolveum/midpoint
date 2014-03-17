@@ -16,8 +16,9 @@
 
 package com.evolveum.midpoint.web.page.admin.reports;
 
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
