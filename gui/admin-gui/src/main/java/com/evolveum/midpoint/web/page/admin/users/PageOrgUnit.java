@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -35,6 +34,8 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.MultiValueChoosePanel;
+import com.evolveum.midpoint.web.component.assignment.AssignmentTableDto;
+import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.form.*;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
@@ -49,10 +50,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.*;
 import org.apache.wicket.util.string.StringValue;
 
 import java.io.Serializable;
@@ -73,6 +71,8 @@ public class PageOrgUnit extends PageAdminUsers {
     private static final String LOAD_UNIT = DOT_CLASS + "loadOrgUnit";
     private static final String SAVE_UNIT = DOT_CLASS + "saveOrgUnit";
     private static final String LOAD_PARENT_UNITS = DOT_CLASS + "loadParentOrgUnits";
+    private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
+    private static final String OPERATION_LOAD_ASSIGNMENT = DOT_CLASS + "loadAssignment";
 
     private static final String ID_LABEL_SIZE = "col-md-4";
     private static final String ID_INPUT_SIZE = "col-md-6";
@@ -92,6 +92,9 @@ public class PageOrgUnit extends PageAdminUsers {
     private static final String ID_ORG_TYPE = "orgType";
     private static final String ID_BACK = "back";
     private static final String ID_SAVE = "save";
+
+    private static final String ID_ASSIGNMENTS_TABLE = "assignmentsPanel";
+    private static final String ID_INDUCEMENTS_TABLE = "inducementsPanel";
 
     private IModel<PrismObject<OrgType>> orgModel;
     private IModel<List<OrgType>> parentOrgUnitsModel;
@@ -259,6 +262,26 @@ public class PageOrgUnit extends PageAdminUsers {
             }
         };
         form.add(parentOrgType);
+
+        AssignmentTablePanel assignments = new AssignmentTablePanel(ID_ASSIGNMENTS_TABLE, new Model<AssignmentTableDto>(),
+                createStringResource("PageOrgUnit.title.assignments")){
+
+            @Override
+            public List<AssignmentType> getAssignmentTypeList(){
+                return orgModel.getObject().asObjectable().getAssignment();
+            }
+        };
+        form.add(assignments);
+
+        AssignmentTablePanel inducements = new AssignmentTablePanel(ID_INDUCEMENTS_TABLE, new Model<AssignmentTableDto>(),
+                createStringResource("PageOrgUnit.title.inducements")){
+
+            @Override
+            public List<AssignmentType> getAssignmentTypeList(){
+                return orgModel.getObject().asObjectable().getInducement();
+            }
+        };
+        form.add(inducements);
 
         initButtons(form);
     }
