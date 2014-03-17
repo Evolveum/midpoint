@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
-import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAnyLongId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -31,7 +30,7 @@ import javax.persistence.*;
 @Entity
 @IdClass(RAnyLongId.class)
 @Table(name = "m_any_long")
-public class RAnyLong implements RAnyValue {
+public class RAnyLong implements RExtensionValue {
 
     //owner entity
     private RAnyContainer anyContainer;

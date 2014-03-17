@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.query.definition;
 
 import com.evolveum.midpoint.repo.sql.data.common.*;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAnyContainer;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;

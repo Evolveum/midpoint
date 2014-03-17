@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
-import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAnyDateId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -32,7 +31,7 @@ import java.sql.Timestamp;
 @Entity
 @IdClass(RAnyDateId.class)
 @Table(name = "m_any_date")
-public class RAnyDate implements RAnyValue {
+public class RAnyDate implements RExtensionValue {
 
     //owner entity
     private RAnyContainer anyContainer;

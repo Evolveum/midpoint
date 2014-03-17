@@ -16,14 +16,12 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
-import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAnyClobId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 
@@ -33,7 +31,7 @@ import javax.persistence.*;
 @Entity
 @IdClass(RAnyClobId.class)
 @Table(name = "m_any_clob")
-public class RAnyClob implements RAnyValue {
+public class RAnyClob implements RExtensionValue {
 
     //owner entity
     private RAnyContainer anyContainer;

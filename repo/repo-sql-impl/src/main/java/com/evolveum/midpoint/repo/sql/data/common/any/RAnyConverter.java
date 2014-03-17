@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.sql.data.common;
+package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -74,11 +73,12 @@ public class RAnyConverter {
         this.prismContext = prismContext;
     }
 
-    Set<RAnyValue> convertToRValue(Item item) throws DtoTranslationException {
+    //todo assignment parameter really messed up this method, proper interfaces must be introduced later [lazyman]
+    Set<RAnyValue> convertToRValue(Item item, boolean assignment) throws DtoTranslationException {
         Validate.notNull(item, "Object for converting must not be null.");
         Validate.notNull(item.getDefinition(), "Item '" + item.getElementName() + "' without definition can't be saved.");
 
-        Set<RAnyValue> rValues = new HashSet<RAnyValue>();
+        Set<RAnyValue> rValues = new HashSet<>();
         try {
             ItemDefinition definition = item.getDefinition();
 
@@ -86,36 +86,63 @@ public class RAnyConverter {
             List<PrismValue> values = item.getValues();
             for (PrismValue value : values) {
                 if (value instanceof PrismContainerValue) {
-                    rValue = createClobValue(value);
+                    rValue = createClobValue(value, assignment);
                 } else if (value instanceof PrismPropertyValue) {
                     PrismPropertyValue propertyValue = (PrismPropertyValue) value;
                     switch (getValueType(definition.getTypeName())) {
                         case LONG:
-                            RAnyLong longValue = new RAnyLong();
-                            longValue.setValue(extractValue(propertyValue, Long.class));
-                            rValue = longValue;
+                            if (assignment) {
+                                RALong longValue = new RALong();
+                                longValue.setValue(extractValue(propertyValue, Long.class));
+                                rValue = longValue;
+                            } else {
+                                RAnyLong longValue = new RAnyLong();
+                                longValue.setValue(extractValue(propertyValue, Long.class));
+                                rValue = longValue;
+                            }
                             break;
                         case DATE:
-                            RAnyDate dateValue = new RAnyDate();
-                            dateValue.setValue(extractValue(propertyValue, Timestamp.class));
-                            rValue = dateValue;
+                            if (assignment) {
+                                RADate dateValue = new RADate();
+                                dateValue.setValue(extractValue(propertyValue, Timestamp.class));
+                                rValue = dateValue;
+                            } else {
+                                RAnyDate dateValue = new RAnyDate();
+                                dateValue.setValue(extractValue(propertyValue, Timestamp.class));
+                                rValue = dateValue;
+                            }
                             break;
                         case POLY_STRING:
-                            rValue = new RAnyPolyString(extractValue(propertyValue, PolyString.class));
+                            if (assignment) {
+                                rValue = new RAPolyString(extractValue(propertyValue, PolyString.class));
+                            } else {
+                                rValue = new RAnyPolyString(extractValue(propertyValue, PolyString.class));
+                            }
                             break;
                         case STRING:
                         default:
                             if (isIndexable(definition)) {
-                                RAnyString strValue = new RAnyString();
-                                strValue.setValue(extractValue(propertyValue, String.class));
-                                rValue = strValue;
+                                if (assignment) {
+                                    RAString strValue = new RAString();
+                                    strValue.setValue(extractValue(propertyValue, String.class));
+                                    rValue = strValue;
+                                } else {
+                                    RAnyString strValue = new RAnyString();
+                                    strValue.setValue(extractValue(propertyValue, String.class));
+                                    rValue = strValue;
+                                }
                             } else {
-                                rValue = createClobValue(propertyValue);
+                                rValue = createClobValue(propertyValue, assignment);
                             }
                     }
                 } else if (value instanceof PrismReferenceValue) {
-                    PrismReferenceValue referenceValue = (PrismReferenceValue) value;
-                    rValue = RAnyReference.createReference(referenceValue);
+                    if (assignment) {
+                        PrismReferenceValue referenceValue = (PrismReferenceValue) value;
+                        rValue = RAReference.createReference(referenceValue);
+                    } else {
+                        PrismReferenceValue referenceValue = (PrismReferenceValue) value;
+                        rValue = RAnyReference.createReference(referenceValue);
+                    }
                 }
 
                 rValue.setName(RUtil.qnameToString(definition.getName()));
@@ -171,13 +198,13 @@ public class RAnyConverter {
         return RValueType.getTypeFromItemClass(((Item) itemable).getClass());
     }
 
-    private RAnyClob createClobValue(PrismValue prismValue) throws SchemaException {
+    private RAnyValue createClobValue(PrismValue prismValue, boolean assignment) throws SchemaException {
         PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
         Element root = createElement(RUtil.CUSTOM_OBJECT);
         domProcessor.serializeValueToDom(prismValue, root);
         String value = DOMUtil.serializeDOMToString(root);
 
-        return new RAnyClob(value);
+        return !assignment ?  new RAnyClob(value) : new RAClob(value);
     }
 
     private <T> T extractValue(PrismPropertyValue value, Class<T> returnType) throws SchemaException {
@@ -334,7 +361,7 @@ public class RAnyConverter {
      * @throws SchemaException
      */
     private Object createRealValue(RAnyValue rValue) throws SchemaException {
-        if (rValue instanceof RAnyReference) {
+        if (rValue instanceof RAnyReference || rValue instanceof RAReference) {
             //this is special case, reference doesn't have value, it only has a few properties (oid, filter, etc.)
             return null;
         }
@@ -342,11 +369,11 @@ public class RAnyConverter {
         Object value = rValue.getValue();
         QName type = RUtil.stringToQName(rValue.getType());
 
-        if (rValue instanceof RAnyDate) {
+        if (rValue instanceof RAnyDate || rValue instanceof RADate) {
             if (value instanceof Date) {
                 return XMLGregorianCalendarType.asXMLGregorianCalendar((Date) value);
             }
-        } else if (rValue instanceof RAnyLong) {
+        } else if (rValue instanceof RAnyLong || rValue instanceof RALong) {
             if (DOMUtil.XSD_LONG.equals(type)) {
                 return value;
             } else if (DOMUtil.XSD_INT.equals(type)) {
@@ -354,7 +381,7 @@ public class RAnyConverter {
             } else if (DOMUtil.XSD_SHORT.equals(type)) {
                 return ((Long) value).shortValue();
             }
-        } else if (rValue instanceof RAnyString) {
+        } else if (rValue instanceof RAnyString || rValue instanceof RAString) {
             if (DOMUtil.XSD_STRING.equals(type)) {
                 return value;
             } else if (DOMUtil.XSD_DOUBLE.equals(type)) {
@@ -366,7 +393,7 @@ public class RAnyConverter {
             } else if (DOMUtil.XSD_DECIMAL.equals(type)) {
                 return new BigDecimal((String) value);
             }
-        } else if (rValue instanceof RAnyPolyString) {
+        } else if (rValue instanceof RAnyPolyString || rValue instanceof RAPolyString) {
             RAnyPolyString poly = (RAnyPolyString) rValue;
             return new PolyString(poly.getValue(), poly.getNorm());
         }

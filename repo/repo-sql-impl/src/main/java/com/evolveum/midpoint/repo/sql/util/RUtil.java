@@ -395,6 +395,14 @@ public final class RUtil {
         fixCompositeIdentifierInMetaModel(sessionFactory, RAnyReference.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RAnyLong.class);
 
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAssignmentExtension.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAClob.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RADate.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAString.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAPolyString.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAReference.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RALong.class);
+
         fixCompositeIdentifierInMetaModel(sessionFactory, RObjectReference.class);
         for (RReferenceOwner owner : RReferenceOwner.values()) {
             fixCompositeIdentifierInMetaModel(sessionFactory, owner.getClazz());

@@ -16,14 +16,11 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
-import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
-import com.evolveum.midpoint.repo.sql.data.common.id.RAnyClobId;
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.data.common.id.RAClobId;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 
@@ -31,15 +28,14 @@ import javax.persistence.*;
  * @author lazyman
  */
 @Entity
-@IdClass(RAnyClobId.class)
+@IdClass(RAClobId.class)
 @Table(name = "m_a_clob")
-public class RAClob implements RAnyValue {
+public class RAClob implements RAExtensionValue {
 
     //owner entity
-    private RAnyContainer anyContainer;
+    private RAssignmentExtension anyContainer;
     private String ownerOid;
     private Short ownerId;
-    private RObjectType ownerType;
 
     private boolean dynamic;
     private String name;
@@ -54,20 +50,19 @@ public class RAClob implements RAnyValue {
         setValue(value);
     }
 
-    @ForeignKey(name = "fk_any_clob")
+    @ForeignKey(name = "fk_a_clob")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({
-            @PrimaryKeyJoinColumn(name = "anyContainer_owner_oid", referencedColumnName = "ownerOid"),
-            @PrimaryKeyJoinColumn(name = "anyContainer_owner_id", referencedColumnName = "ownerId"),
-            @PrimaryKeyJoinColumn(name = "anyContainer_owner_type", referencedColumnName = "owner_type")
+            @PrimaryKeyJoinColumn(name = "anyContainer_owner_owner_oid", referencedColumnName = "ownerOid"),
+            @PrimaryKeyJoinColumn(name = "anyContainer_owner_id", referencedColumnName = "ownerId")
     })
-    public RAnyContainer getAnyContainer() {
+    public RAssignmentExtension getAnyContainer() {
         return anyContainer;
     }
 
     @Id
-    @Column(name = "anyContainer_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
+    @Column(name = "anyContainer_owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     public String getOwnerOid() {
         if (ownerOid == null && anyContainer != null) {
             ownerOid = anyContainer.getOwnerOid();
@@ -76,12 +71,12 @@ public class RAClob implements RAnyValue {
     }
 
     @Id
-    @Column(name = "anyContainer_owner_type")
-    public RObjectType getOwnerType() {
-        if (ownerType == null && anyContainer != null) {
-            ownerType = anyContainer.getOwnerType();
+    @Column(name = "anyContainer_owner_id")
+    public Short getOwnerId() {
+        if (ownerId == null && anyContainer != null) {
+            ownerId = anyContainer.getOwnerId();
         }
-        return ownerType;
+        return ownerId;
     }
 
     /**
@@ -150,7 +145,7 @@ public class RAClob implements RAnyValue {
         this.dynamic = dynamic;
     }
 
-    public void setAnyContainer(RAnyContainer anyContainer) {
+    public void setAnyContainer(RAssignmentExtension anyContainer) {
         this.anyContainer = anyContainer;
     }
 
@@ -158,8 +153,8 @@ public class RAClob implements RAnyValue {
         this.ownerOid = ownerOid;
     }
 
-    public void setOwnerType(RObjectType ownerType) {
-        this.ownerType = ownerType;
+    public void setOwnerId(Short ownerId) {
+        this.ownerId = ownerId;
     }
 
     @Override

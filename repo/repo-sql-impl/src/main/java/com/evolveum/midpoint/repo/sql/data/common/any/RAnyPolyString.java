@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAnyPolyStringId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -32,7 +31,7 @@ import javax.persistence.*;
 @Entity
 @IdClass(RAnyPolyStringId.class)
 @Table(name = "m_any_poly_string")
-public class RAnyPolyString implements RAnyValue {
+public class RAnyPolyString implements RExtensionValue {
 
     //owner entity
     private RAnyContainer anyContainer;

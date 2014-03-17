@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.Metadata;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.apache.commons.lang.Validate;
@@ -71,7 +73,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
 
     private RAssignmentOwner assignmentOwner;
     //extension
-//    private RAnyContainer extension;
+    private RAssignmentExtension extension;
     //assignment fields
     private RActivation activation;
     private REmbeddedReference targetRef;
@@ -135,18 +137,17 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
 		return tenantRef;
 	}
 
-//    @com.evolveum.midpoint.repo.sql.query.definition.Any(jaxbNameLocalPart = "extension")
-//    @OneToOne(optional = true, orphanRemoval = true)
-//    @ForeignKey(name = "none")
-//    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-//    @JoinColumns({
-//            @JoinColumn(name = "extOid", referencedColumnName = "owner_oid"),
-//            @JoinColumn(name = "extId", referencedColumnName = "owner_id"),
-//            @JoinColumn(name = "extType", referencedColumnName = "owner_type")
-//    })
-//    public RAnyContainer getExtension() {
-//        return extension;
-//    }
+    @com.evolveum.midpoint.repo.sql.query.definition.Any(jaxbNameLocalPart = "extension")
+    @OneToOne(optional = true, orphanRemoval = true)
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @JoinColumns({
+            @JoinColumn(name = "extOid", referencedColumnName = "owner_owner_oid"),
+            @JoinColumn(name = "extId", referencedColumnName = "owner_id")
+    })
+    public RAssignmentExtension getExtension() {
+        return extension;
+    }
 
     @Embedded
     public RActivation getActivation() {
@@ -258,12 +259,9 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         this.activation = activation;
     }
 
-//    public void setExtension(RAnyContainer extension) {
-//        this.extension = extension;
-//        if (this.extension != null) {
-//            this.extension.setOwnerType(RContainerType.ASSIGNMENT);
-//        }
-//    }
+    public void setExtension(RAssignmentExtension extension) {
+        this.extension = extension;
+    }
 
     public void setTargetRef(REmbeddedReference targetRef) {
         this.targetRef = targetRef;
@@ -285,7 +283,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         RAssignment that = (RAssignment) o;
 
         if (activation != null ? !activation.equals(that.activation) : that.activation != null) return false;
-//        if (extension != null ? !extension.equals(that.extension) : that.extension != null) return false;
+        if (extension != null ? !extension.equals(that.extension) : that.extension != null) return false;
         if (targetRef != null ? !targetRef.equals(that.targetRef) : that.targetRef != null) return false;
         if (assignmentOwner != null ? !assignmentOwner.equals(that.assignmentOwner) : that.assignmentOwner != null)
             return false;
@@ -322,12 +320,11 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         jaxb.setId(RUtil.toLong(repo.getId()));
         jaxb.setOrder(repo.getOrder());
 
-        //todo fix
-//        if (repo.getExtension() != null) {
-//            ExtensionType extension = new ExtensionType();
-//            jaxb.setExtension(extension);
-//            RAnyContainer.copyToJAXB(repo.getExtension(), extension, prismContext);
-//        }
+        if (repo.getExtension() != null) {
+            ExtensionType extension = new ExtensionType();
+            jaxb.setExtension(extension);
+            RAssignmentExtension.copyToJAXB(repo.getExtension(), extension, prismContext);
+        }
         if (repo.getActivation() != null) {
             jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
         }
@@ -352,14 +349,13 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         repo.setId(RUtil.toShort(jaxb.getId()));
         repo.setOrder(jaxb.getOrder());
 
-        //todo fix
-//        if (jaxb.getExtension() != null) {
-//            RAnyContainer extension = new RAnyContainer();
-//            extension.setOwner(repo);
-//
-//            repo.setExtension(extension);
-//            RAnyContainer.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
-//        }
+        if (jaxb.getExtension() != null) {
+            RAssignmentExtension extension = new RAssignmentExtension();
+            extension.setOwner(repo);
+
+            repo.setExtension(extension);
+            RAssignmentExtension.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
+        }
 
         if (jaxb.getActivation() != null) {
             RActivation activation = new RActivation();

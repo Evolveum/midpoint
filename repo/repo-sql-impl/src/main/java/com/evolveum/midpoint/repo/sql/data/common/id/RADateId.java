@@ -19,15 +19,16 @@ package com.evolveum.midpoint.repo.sql.data.common.id;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 
 /**
  * @author lazyman
  */
-public class RAClobId implements Serializable {
+public class RADateId implements Serializable {
 
     private String ownerOid;
     private Short ownerId;
-    private String checksum;
+    private Timestamp value;
     private String name;
     private String type;
 
@@ -47,12 +48,12 @@ public class RAClobId implements Serializable {
         this.ownerId = ownerId;
     }
 
-    public String getChecksum() {
-        return checksum;
+    public Timestamp getValue() {
+        return value;
     }
 
-    public void setChecksum(String checksum) {
-        this.checksum = checksum;
+    public void setValue(Timestamp value) {
+        this.value = value;
     }
 
     public String getName() {
@@ -76,13 +77,13 @@ public class RAClobId implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RAClobId raClobId = (RAClobId) o;
+        RADateId raDateId = (RADateId) o;
 
-        if (checksum != null ? !checksum.equals(raClobId.checksum) : raClobId.checksum != null) return false;
-        if (name != null ? !name.equals(raClobId.name) : raClobId.name != null) return false;
-        if (ownerId != null ? !ownerId.equals(raClobId.ownerId) : raClobId.ownerId != null) return false;
-        if (ownerOid != null ? !ownerOid.equals(raClobId.ownerOid) : raClobId.ownerOid != null) return false;
-        if (type != null ? !type.equals(raClobId.type) : raClobId.type != null) return false;
+        if (name != null ? !name.equals(raDateId.name) : raDateId.name != null) return false;
+        if (ownerId != null ? !ownerId.equals(raDateId.ownerId) : raDateId.ownerId != null) return false;
+        if (ownerOid != null ? !ownerOid.equals(raDateId.ownerOid) : raDateId.ownerOid != null) return false;
+        if (type != null ? !type.equals(raDateId.type) : raDateId.type != null) return false;
+        if (value != null ? !value.equals(raDateId.value) : raDateId.value != null) return false;
 
         return true;
     }
@@ -91,7 +92,7 @@ public class RAClobId implements Serializable {
     public int hashCode() {
         int result = ownerOid != null ? ownerOid.hashCode() : 0;
         result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
-        result = 31 * result + (checksum != null ? checksum.hashCode() : 0);
+        result = 31 * result + (value != null ? value.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (type != null ? type.hashCode() : 0);
         return result;
@@ -99,10 +100,10 @@ public class RAClobId implements Serializable {
 
     @Override
     public String toString() {
-        return "RAClobId{" +
+        return "RADateId{" +
                 "ownerOid='" + ownerOid + '\'' +
                 ", ownerId=" + ownerId +
-                ", checksum='" + checksum + '\'' +
+                ", value=" + value +
                 ", name='" + name + '\'' +
                 ", type='" + type + '\'' +
                 '}';

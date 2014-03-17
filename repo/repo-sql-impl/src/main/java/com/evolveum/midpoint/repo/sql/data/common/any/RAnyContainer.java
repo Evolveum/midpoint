@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.sql.data.common;
+package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.sql.data.common.any.*;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAnyContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -261,11 +261,6 @@ public class RAnyContainer implements Serializable {
         return result;
     }
 
-    @Override
-    public String toString() {
-        return ReflectionToStringBuilder.toString(this, ToStringStyle.MULTI_LINE_STYLE);
-    }
-
     public static void copyToJAXB(RAnyContainer repo, ShadowAttributesType jaxb,
                                   PrismContext prismContext) throws
             DtoTranslationException {
@@ -333,14 +328,14 @@ public class RAnyContainer implements Serializable {
         try {
             List<Item<?>> items = containerValue.getItems();
             for (Item item : items) {
-                values.addAll(converter.convertToRValue(item));
+                values.addAll(converter.convertToRValue(item, false));
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
 
         for (RAnyValue value : values) {
-            value.setAnyContainer(repo);
+            ((RExtensionValue) value).setAnyContainer(repo);
 
             if (value instanceof RAnyClob) {
                 repo.getClobs().add((RAnyClob) value);

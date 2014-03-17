@@ -16,10 +16,8 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.repo.sql.data.common.id.RAnyReferenceId;
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sql.util.ClassMapper;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.sql.data.common.id.RAPolyStringId;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -30,42 +28,48 @@ import javax.persistence.*;
  * @author lazyman
  */
 @Entity
-@IdClass(RAnyReferenceId.class)
-@Table(name = "m_any_reference")
-public class RAnyReference implements RExtensionValue {
+@IdClass(RAPolyStringId.class)
+@Table(name = "m_a_poly_string")
+public class RAPolyString implements RAExtensionValue {
 
     //owner entity
-    private RAnyContainer anyContainer;
+    private RAssignmentExtension anyContainer;
     private String ownerOid;
-    private RObjectType ownerType;
+    private Short ownerId;
 
     private boolean dynamic;
     private String name;
     private String type;
     private RValueType valueType;
 
-    //this is target oid
+    //orig value
     private String value;
-    //this is type attribute
-    private RObjectType targetType;
-    private String relation;
+    private String norm;
 
-    public RAnyReference() {
+    public RAPolyString() {
+        this(null);
     }
 
-    @ForeignKey(name = "fk_any_reference")
+    public RAPolyString(PolyString polyString) {
+        if (polyString != null) {
+            value = polyString.getOrig();
+            norm = polyString.getNorm();
+        }
+    }
+
+    @ForeignKey(name = "fk_any_poly_string")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({
-            @PrimaryKeyJoinColumn(name = "anyContainer_owner_oid", referencedColumnName = "ownerOid"),
-            @PrimaryKeyJoinColumn(name = "anyContainer_owner_type", referencedColumnName = "owner_type")
+            @PrimaryKeyJoinColumn(name = "anyContainer_owner_owner_oid", referencedColumnName = "ownerOid"),
+            @PrimaryKeyJoinColumn(name = "anyContainer_owner_id", referencedColumnName = "owner_type")
     })
-    public RAnyContainer getAnyContainer() {
+    public RAssignmentExtension getAnyContainer() {
         return anyContainer;
     }
 
     @Id
-    @Column(name = "anyContainer_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
+    @Column(name = "anyContainer_owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     public String getOwnerOid() {
         if (ownerOid == null && anyContainer != null) {
             ownerOid = anyContainer.getOwnerOid();
@@ -74,12 +78,12 @@ public class RAnyReference implements RExtensionValue {
     }
 
     @Id
-    @Column(name = "anyContainer_owner_type")
-    public RObjectType getOwnerType() {
-        if (ownerType == null && anyContainer != null) {
-            ownerType = anyContainer.getOwnerType();
+    @Column(name = "anyContainer_owner_id")
+    public Short getOwnerId() {
+        if (ownerId == null && anyContainer != null) {
+            ownerId = anyContainer.getOwnerId();
         }
-        return ownerType;
+        return ownerId;
     }
 
     @Id
@@ -107,20 +111,18 @@ public class RAnyReference implements RExtensionValue {
         return dynamic;
     }
 
-    @Index(name = "iTargetOid")
-    @Column(name = "targetoid", length = RUtil.COLUMN_LENGTH_OID)
+    @Index(name = "iPolyString")
+    @Column(name = "orig")
     public String getValue() {
         return value;
     }
 
-    @Enumerated(EnumType.ORDINAL)
-    public RObjectType getTargetType() {
-        return targetType;
+    public String getNorm() {
+        return norm;
     }
 
-    @Column(name = "relation", length = RUtil.COLUMN_LENGTH_QNAME)
-    public String getRelation() {
-        return relation;
+    public void setNorm(String norm) {
+        this.norm = norm;
     }
 
     public void setValue(String value) {
@@ -143,7 +145,7 @@ public class RAnyReference implements RExtensionValue {
         this.dynamic = dynamic;
     }
 
-    public void setAnyContainer(RAnyContainer anyContainer) {
+    public void setAnyContainer(RAssignmentExtension anyContainer) {
         this.anyContainer = anyContainer;
     }
 
@@ -151,16 +153,8 @@ public class RAnyReference implements RExtensionValue {
         this.ownerOid = ownerOid;
     }
 
-    public void setOwnerType(RObjectType ownerType) {
-        this.ownerType = ownerType;
-    }
-
-    public void setTargetType(RObjectType targetType) {
-        this.targetType = targetType;
-    }
-
-    public void setRelation(String relation) {
-        this.relation = relation;
+    public void setOwnerId(Short ownerId) {
+        this.ownerId = ownerId;
     }
 
     @Override
@@ -168,15 +162,14 @@ public class RAnyReference implements RExtensionValue {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RAnyReference that = (RAnyReference) o;
+        RAPolyString that = (RAPolyString) o;
 
         if (dynamic != that.dynamic) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (relation != null ? !relation.equals(that.relation) : that.relation != null) return false;
-        if (targetType != that.targetType) return false;
         if (type != null ? !type.equals(that.type) : that.type != null) return false;
-        if (value != null ? !value.equals(that.value) : that.value != null) return false;
         if (valueType != that.valueType) return false;
+        if (value != null ? !value.equals(that.value) : that.value != null) return false;
+        if (norm != null ? !norm.equals(that.norm) : that.norm != null) return false;
 
         return true;
     }
@@ -188,28 +181,6 @@ public class RAnyReference implements RExtensionValue {
         result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (valueType != null ? valueType.hashCode() : 0);
         result = 31 * result + (value != null ? value.hashCode() : 0);
-        result = 31 * result + (targetType != null ? targetType.hashCode() : 0);
-        result = 31 * result + (relation != null ? relation.hashCode() : 0);
-
         return result;
-    }
-
-    public static PrismReferenceValue createReference(RAnyReference repo) {
-        PrismReferenceValue value = new PrismReferenceValue();
-        value.setOid(repo.getValue());
-        value.setRelation(RUtil.stringToQName(repo.getRelation()));
-        value.setTargetType(ClassMapper.getQNameForHQLType(repo.getTargetType()));
-
-        return value;
-    }
-
-    public static RAnyReference createReference(PrismReferenceValue jaxb) {
-        RAnyReference repo = new RAnyReference();
-
-        repo.setValue(jaxb.getOid());
-        repo.setRelation(RUtil.qnameToString(jaxb.getRelation()));
-        repo.setTargetType(ClassMapper.getHQLTypeForQName(jaxb.getTargetType()));
-
-        return repo;
     }
 }

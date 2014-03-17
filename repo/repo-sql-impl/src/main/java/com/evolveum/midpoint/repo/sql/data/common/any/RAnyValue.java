@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
-import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
-
 import java.io.Serializable;
 
 /**
@@ -32,8 +30,6 @@ public interface RAnyValue<T> extends Serializable {
     String F_NAME = "name";
 
     String F_TYPE = "type";
-
-    void setAnyContainer(RAnyContainer anyContainer);
 
     String getName();
 

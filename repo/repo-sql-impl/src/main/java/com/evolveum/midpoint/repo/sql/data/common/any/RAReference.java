@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.repo.sql.data.common.id.RAReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAnyReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
@@ -30,14 +31,14 @@ import javax.persistence.*;
  * @author lazyman
  */
 @Entity
-@IdClass(RAnyReferenceId.class)
-@Table(name = "m_any_reference")
-public class RAnyReference implements RExtensionValue {
+@IdClass(RAReferenceId.class)
+@Table(name = "m_a_reference")
+public class RAReference implements RAExtensionValue {
 
     //owner entity
-    private RAnyContainer anyContainer;
+    private RAssignmentExtension anyContainer;
     private String ownerOid;
-    private RObjectType ownerType;
+    private Short ownerId;
 
     private boolean dynamic;
     private String name;
@@ -50,22 +51,22 @@ public class RAnyReference implements RExtensionValue {
     private RObjectType targetType;
     private String relation;
 
-    public RAnyReference() {
+    public RAReference() {
     }
 
     @ForeignKey(name = "fk_any_reference")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({
-            @PrimaryKeyJoinColumn(name = "anyContainer_owner_oid", referencedColumnName = "ownerOid"),
-            @PrimaryKeyJoinColumn(name = "anyContainer_owner_type", referencedColumnName = "owner_type")
+            @PrimaryKeyJoinColumn(name = "anyContainer_owner_owner_oid", referencedColumnName = "ownerOid"),
+            @PrimaryKeyJoinColumn(name = "anyContainer_owner_id", referencedColumnName = "owner_type")
     })
-    public RAnyContainer getAnyContainer() {
+    public RAssignmentExtension getAnyContainer() {
         return anyContainer;
     }
 
     @Id
-    @Column(name = "anyContainer_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
+    @Column(name = "anyContainer_owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     public String getOwnerOid() {
         if (ownerOid == null && anyContainer != null) {
             ownerOid = anyContainer.getOwnerOid();
@@ -74,12 +75,12 @@ public class RAnyReference implements RExtensionValue {
     }
 
     @Id
-    @Column(name = "anyContainer_owner_type")
-    public RObjectType getOwnerType() {
-        if (ownerType == null && anyContainer != null) {
-            ownerType = anyContainer.getOwnerType();
+    @Column(name = "anyContainer_owner_id")
+    public Short getOwnerId() {
+        if (ownerId == null && anyContainer != null) {
+            ownerId = anyContainer.getOwnerId();
         }
-        return ownerType;
+        return ownerId;
     }
 
     @Id
@@ -143,16 +144,12 @@ public class RAnyReference implements RExtensionValue {
         this.dynamic = dynamic;
     }
 
-    public void setAnyContainer(RAnyContainer anyContainer) {
+    public void setAnyContainer(RAssignmentExtension anyContainer) {
         this.anyContainer = anyContainer;
     }
 
     public void setOwnerOid(String ownerOid) {
         this.ownerOid = ownerOid;
-    }
-
-    public void setOwnerType(RObjectType ownerType) {
-        this.ownerType = ownerType;
     }
 
     public void setTargetType(RObjectType targetType) {
@@ -163,12 +160,16 @@ public class RAnyReference implements RExtensionValue {
         this.relation = relation;
     }
 
+    public void setOwnerId(Short ownerId) {
+        this.ownerId = ownerId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RAnyReference that = (RAnyReference) o;
+        RAReference that = (RAReference) o;
 
         if (dynamic != that.dynamic) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
@@ -194,7 +195,7 @@ public class RAnyReference implements RExtensionValue {
         return result;
     }
 
-    public static PrismReferenceValue createReference(RAnyReference repo) {
+    public static PrismReferenceValue createReference(RAReference repo) {
         PrismReferenceValue value = new PrismReferenceValue();
         value.setOid(repo.getValue());
         value.setRelation(RUtil.stringToQName(repo.getRelation()));
@@ -203,8 +204,8 @@ public class RAnyReference implements RExtensionValue {
         return value;
     }
 
-    public static RAnyReference createReference(PrismReferenceValue jaxb) {
-        RAnyReference repo = new RAnyReference();
+    public static RAReference createReference(PrismReferenceValue jaxb) {
+        RAReference repo = new RAReference();
 
         repo.setValue(jaxb.getOid());
         repo.setRelation(RUtil.qnameToString(jaxb.getRelation()));

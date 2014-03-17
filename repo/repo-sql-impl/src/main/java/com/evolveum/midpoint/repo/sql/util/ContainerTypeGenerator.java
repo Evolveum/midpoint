@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
-import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAnyContainer;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import org.hibernate.HibernateException;
