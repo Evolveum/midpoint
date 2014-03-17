@@ -105,7 +105,6 @@ public class RADate implements RAExtensionValue {
         return dynamic;
     }
 
-    @Index(name = "iDate")
     @Column(name = "dateValue")
     public Timestamp getValue() {
         return value;

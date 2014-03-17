@@ -104,7 +104,6 @@ public class RAString implements RAExtensionValue {
         return dynamic;
     }
 
-    @Index(name = "iString")
     @Column(name = "stringValue")
     public String getValue() {
         return value;

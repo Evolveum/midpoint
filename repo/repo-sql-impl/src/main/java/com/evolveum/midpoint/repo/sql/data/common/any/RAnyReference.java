@@ -107,7 +107,6 @@ public class RAnyReference implements RExtensionValue {
         return dynamic;
     }
 
-    @Index(name = "iTargetOid")
     @Column(name = "targetoid", length = RUtil.COLUMN_LENGTH_OID)
     public String getValue() {
         return value;

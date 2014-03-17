@@ -104,7 +104,6 @@ public class RALong implements RAExtensionValue {
         return dynamic;
     }
 
-    @Index(name = "iLong")
     @Column(name = "longValue")
     public Long getValue() {
         return value;

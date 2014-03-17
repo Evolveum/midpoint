@@ -740,8 +740,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                         + "' was not found.", null, oid);
             }
 
-            deleteReferences(object, session);
-
             List<RObject> objectsToRecompute = null;
             if (type.isAssignableFrom(OrgType.class)) {
                 objectsToRecompute = deleteTransitiveHierarchy(object, session);
@@ -803,15 +801,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 //        query.executeUpdate();
     }
 
-    private void deleteReferences(RObject object, Session session) {
-        Query sqlDelete = session.createQuery("delete from RObjectReference where targetOid = :deleteOid");
-        sqlDelete.setParameter("deleteOid", object.getOid());
-        sqlDelete.executeUpdate();
-
-        LOGGER.trace("deleting reference: oid:{}", new Object[]{object.getOid()});
-    }
-
-
     @Override
     public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult result) {
         Validate.notNull(type, "Object type must not be null.");
@@ -850,9 +839,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             if (query == null || query.getFilter() == null) {
                 // this is 5x faster than count with 3 inner joins, it can probably improved also for queries which
                 // filters uses only properties from concrete entities like RUser, RRole by improving interpreter [lazyman]
-                MidPointNamingStrategy namingStrategy = new MidPointNamingStrategy();
-                String table = namingStrategy.classToTableName(hqlType.getSimpleName());
-                SQLQuery sqlQuery = session.createSQLQuery("SELECT COUNT(*) FROM " + table);
+                SQLQuery sqlQuery = session.createSQLQuery("SELECT COUNT(*) FROM " + RUtil.getTableName(hqlType));
                 Number n = (Number) sqlQuery.uniqueResult();
                 longCount = n.longValue();
             } else {
@@ -1603,10 +1590,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Session session = null;
         try {
             session = beginReadOnlyTransaction();
-            Query query = session.createQuery("select o.version from RObject as o where o.oid = :oid");
+            SQLQuery query = session.createSQLQuery("select o.version from " + RUtil.getTableName(RObject.class)
+                    + " as o where o.oid = :oid");
             query.setString("oid", oid);
 
-            Integer versionLong = (Integer) query.uniqueResult();
+            Number versionLong = (Number) query.uniqueResult();
             if (versionLong == null) {
                 throw new ObjectNotFoundException("Object '" + type.getSimpleName()
                         + "' with oid '" + oid + "' was not found.");

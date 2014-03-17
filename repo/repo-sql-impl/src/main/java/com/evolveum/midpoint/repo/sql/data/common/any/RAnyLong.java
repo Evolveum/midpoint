@@ -105,7 +105,6 @@ public class RAnyLong implements RExtensionValue {
         return dynamic;
     }
 
-    @Index(name = "iLong")
     @Column(name = "longValue")
     public Long getValue() {
         return value;

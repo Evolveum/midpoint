@@ -105,7 +105,6 @@ public class RAnyString implements RExtensionValue {
         return dynamic;
     }
 
-    @Index(name = "iString")
     @Column(name = "stringValue")
     public String getValue() {
         return value;

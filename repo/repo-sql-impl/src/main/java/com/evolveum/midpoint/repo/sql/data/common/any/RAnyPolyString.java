@@ -112,7 +112,6 @@ public class RAnyPolyString implements RExtensionValue {
         return dynamic;
     }
 
-    @Index(name = "iPolyString")
     @Column(name = "orig")
     public String getValue() {
         return value;

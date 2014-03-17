@@ -106,7 +106,6 @@ public class RAnyDate implements RExtensionValue {
         return dynamic;
     }
 
-    @Index(name = "iDate")
     @Column(name = "dateValue")
     public Timestamp getValue() {
         return value;

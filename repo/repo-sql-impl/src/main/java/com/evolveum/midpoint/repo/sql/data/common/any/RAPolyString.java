@@ -111,7 +111,6 @@ public class RAPolyString implements RAExtensionValue {
         return dynamic;
     }
 
-    @Index(name = "iPolyString")
     @Column(name = "orig")
     public String getValue() {
         return value;
