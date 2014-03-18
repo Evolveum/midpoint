@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.samples.test;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -42,6 +44,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import javax.xml.bind.JAXBException;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -60,7 +63,7 @@ import static org.testng.AssertJUnit.assertEquals;
  */
 @ContextConfiguration(locations = {"classpath:ctx-samples-test-main.xml"})
 @DirtiesContext(classMode=ClassMode.AFTER_CLASS)
-public class TestSampleImport extends AbstractIntegrationTest {
+public class TestSampleImport extends AbstractModelIntegrationTest {
 	
 	private static final String SAMPLE_DIRECTORY_NAME = "../";
 	private static final String SCHEMA_DIRECTORY_NAME = SAMPLE_DIRECTORY_NAME + "schema/";
@@ -80,16 +83,15 @@ public class TestSampleImport extends AbstractIntegrationTest {
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-//		SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
-//		schemaRegistry.loadPrismSchemasFromDirectory(new File(SCHEMA_DIRECTORY_NAME));
-		
-		// Necessary to avoid warnings about missing user in task owner references
-		repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
+		super.initSystem(initTask, initResult);
 		
 		// This should discover the connectors
 		LOGGER.trace("initSystem: trying modelService.postInit()");
 		modelService.postInit(initResult);
 		LOGGER.trace("initSystem: modelService.postInit() done");
+		
+		PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
+		loginSuperUser(userAdministrator);		
 	}
 	
 	@Test
