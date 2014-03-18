@@ -16,13 +16,24 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RAuthorizationDecision;
+import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -40,146 +51,187 @@ import java.util.Set;
 @ForeignKey(name = "fk_authorization")
 public class RAuthorization extends RContainer implements ROwnable {
 
-    public static final String F_OWNER = "owner";
+	public static final String F_OWNER = "owner";
 
-    //owner
-    private RObject owner;
-    private String ownerOid;
-    private Long ownerId;
-    //actual data
-    private String description;
-    private RAuthorizationDecision decision;
-    private Set<String> action;
+	// owner
+	private RObject owner;
+	private String ownerOid;
+	private Long ownerId;
+	// actual data
+	private String description;
+	private RAuthorizationDecision decision;
+	private Set<String> action;
 
-    public RAuthorization() {
-        this(null);
-    }
+	private String objectSpecification;
 
-    public RAuthorization(RObject owner) {
-        this.owner = owner;
-    }
+	public RAuthorization() {
+		this(null);
+	}
 
-    @ForeignKey(name = "fk_authorization_owner")
-    @MapsId("owner")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumns({
-            @JoinColumn(name = "owner_oid", referencedColumnName = "oid"),
-            @JoinColumn(name = "owner_id", referencedColumnName = "id")
-    })
-    public RObject getOwner() {
-        return owner;
-    }
+	public RAuthorization(RObject owner) {
+		this.owner = owner;
+	}
 
-    @Column(name = "owner_id", nullable = false)
-    public Long getOwnerId() {
-        if (ownerId == null && owner != null) {
-            ownerId = owner.getId();
-        }
-        return ownerId;
-    }
+	@ForeignKey(name = "fk_authorization_owner")
+	@MapsId("owner")
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumns({
+			@JoinColumn(name = "owner_oid", referencedColumnName = "oid"),
+			@JoinColumn(name = "owner_id", referencedColumnName = "id") })
+	public RObject getOwner() {
+		return owner;
+	}
 
-    @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
-    public String getOwnerOid() {
-        if (ownerOid == null && owner != null) {
-            ownerOid = owner.getOid();
-        }
-        return ownerOid;
-    }
+	@Column(name = "owner_id", nullable = false)
+	public Long getOwnerId() {
+		if (ownerId == null && owner != null) {
+			ownerId = owner.getId();
+		}
+		return ownerId;
+	}
 
-    @ElementCollection
-    @ForeignKey(name = "fk_authorization_action")
-    @CollectionTable(name = "m_authorization_action", joinColumns = {
-            @JoinColumn(name = "role_oid", referencedColumnName = "oid"),
-            @JoinColumn(name = "role_id", referencedColumnName = "id")
-    })
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<String> getAction() {
-        return action;
-    }
+	@Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
+	public String getOwnerOid() {
+		if (ownerOid == null && owner != null) {
+			ownerOid = owner.getOid();
+		}
+		return ownerOid;
+	}
 
-    @Enumerated(EnumType.ORDINAL)
-    public RAuthorizationDecision getDecision() {
-        return decision;
-    }
+	@ElementCollection
+	@ForeignKey(name = "fk_authorization_action")
+	@CollectionTable(name = "m_authorization_action", joinColumns = {
+			@JoinColumn(name = "role_oid", referencedColumnName = "oid"),
+			@JoinColumn(name = "role_id", referencedColumnName = "id") })
+	@Cascade({ org.hibernate.annotations.CascadeType.ALL })
+	public Set<String> getAction() {
+		return action;
+	}
 
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getDescription() {
-        return description;
-    }
+	@Enumerated(EnumType.ORDINAL)
+	public RAuthorizationDecision getDecision() {
+		return decision;
+	}
 
-    @Transient
-    @Override
-    public RContainer getContainerOwner() {
-        return getOwner();
-    }
+	@Lob
+	@Type(type = RUtil.LOB_STRING_TYPE)
+	public String getDescription() {
+		return description;
+	}
 
-    public void setAction(Set<String> action) {
-        this.action = action;
-    }
+	@Transient
+	@Override
+	public RContainer getContainerOwner() {
+		return getOwner();
+	}
 
-    public void setDecision(RAuthorizationDecision decision) {
-        this.decision = decision;
-    }
+	public void setAction(Set<String> action) {
+		this.action = action;
+	}
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+	public void setDecision(RAuthorizationDecision decision) {
+		this.decision = decision;
+	}
 
-    public void setOwner(RObject owner) {
-        this.owner = owner;
-    }
+	public void setDescription(String description) {
+		this.description = description;
+	}
 
-    public void setOwnerId(Long ownerId) {
-        this.ownerId = ownerId;
-    }
+	public void setOwner(RObject owner) {
+		this.owner = owner;
+	}
 
-    public void setOwnerOid(String ownerOid) {
-        this.ownerOid = ownerOid;
-    }
+	public void setOwnerId(Long ownerId) {
+		this.ownerId = ownerId;
+	}
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+	public void setOwnerOid(String ownerOid) {
+		this.ownerOid = ownerOid;
+	}
 
-        RAuthorization that = (RAuthorization) o;
+	@Lob
+	@Type(type = RUtil.LOB_STRING_TYPE)
+	public String getObjectSpecification() {
+		return objectSpecification;
+	}
 
-        if (action != null ? !action.equals(that.action) : that.action != null) return false;
-        if (decision != that.decision) return false;
-        if (description != null ? !description.equals(that.description) : that.description != null) return false;
+	public void setObjectSpecification(String objectSpecification) {
+		this.objectSpecification = objectSpecification;
+	}
 
-        return true;
-    }
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (o == null || getClass() != o.getClass())
+			return false;
+		if (!super.equals(o))
+			return false;
 
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + (description != null ? description.hashCode() : 0);
-        result = 31 * result + (decision != null ? decision.hashCode() : 0);
+		RAuthorization that = (RAuthorization) o;
 
-        return result;
-    }
+		if (action != null ? !action.equals(that.action) : that.action != null)
+			return false;
+		if (decision != that.decision)
+			return false;
+		if (description != null ? !description.equals(that.description)
+				: that.description != null)
+			return false;
+		if (objectSpecification != null ? !objectSpecification
+				.equals(that.objectSpecification)
+				: that.objectSpecification != null)
+			return false;
 
-    public static void copyToJAXB(RAuthorization repo, AuthorizationType jaxb, PrismContext prismContext) throws
-            DtoTranslationException {
-        Validate.notNull(repo, "Repo object must not be null.");
-        Validate.notNull(jaxb, "JAXB object must not be null.");
+		return true;
+	}
 
-        jaxb.setId(repo.getId());
-        jaxb.setDescription(repo.getDescription());
-        if (repo.getDecision() != null) {
-            jaxb.setDecision(repo.getDecision().getSchemaValue());
-        }
+	@Override
+	public int hashCode() {
+		int result = super.hashCode();
+		result = 31 * result
+				+ (description != null ? description.hashCode() : 0);
+		result = 31 * result + (decision != null ? decision.hashCode() : 0);
+		result = 31
+				* result
+				+ (objectSpecification != null ? objectSpecification.hashCode()
+						: 0);
+		return result;
+	}
 
-        List types = RUtil.safeSetToList(repo.getAction());
-        if (!types.isEmpty()) {
-            jaxb.getAction().addAll(types);
-        }
-    }
+	public static void copyToJAXB(RAuthorization repo, AuthorizationType jaxb,
+			PrismContext prismContext) throws DtoTranslationException {
+		Validate.notNull(repo, "Repo object must not be null.");
+		Validate.notNull(jaxb, "JAXB object must not be null.");
 
-    public static void copyFromJAXB(AuthorizationType jaxb, RAuthorization repo, ObjectType parent,
+		jaxb.setId(repo.getId());
+		jaxb.setDescription(repo.getDescription());
+		if (repo.getDecision() != null) {
+			jaxb.setDecision(repo.getDecision().getSchemaValue());
+		}
+
+		List types = RUtil.safeSetToList(repo.getAction());
+		if (!types.isEmpty()) {
+			jaxb.getAction().addAll(types);
+		}
+//		if (repo.getObjectSpecification() != null) {
+//			try {
+//				AuthorizationType objectSpecification = RUtil.toJAXB(
+//						repo.getObjectSpecification(), AuthorizationType.class,
+//						prismContext);
+//				if (!objectSpecification.getObject().isEmpty())
+//					jaxb.getObject().addAll(objectSpecification.getObject());
+//				if (!objectSpecification.getItem().isEmpty())
+//					jaxb.getItem().addAll(objectSpecification.getItem());
+//				if (!objectSpecification.getTarget().isEmpty())
+//					jaxb.getTarget().addAll(objectSpecification.getTarget());
+//
+//			} catch (Exception ex) {
+//				throw new DtoTranslationException(ex.getMessage(), ex);
+//			}
+//		}
+	}
+
+	public static void copyFromJAXB(AuthorizationType jaxb, RAuthorization repo, ObjectType parent,
                                     PrismContext prismContext) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
@@ -190,11 +242,50 @@ public class RAuthorization extends RContainer implements ROwnable {
 
         repo.setDecision(RUtil.getRepoEnumValue(jaxb.getDecision(), RAuthorizationDecision.class));
         repo.setAction(RUtil.listToSet(jaxb.getAction()));
+//		  object, item, target - set in new authorization type
+//        AuthorizationType objectSpecification = new AuthorizationType();
+//		
+//        PrismContainerValue objSpecCont = objectSpecification.asPrismContainerValue();
+//        try {
+//        	if (!jaxb.getObject().isEmpty()) {
+//        		PrismContainer jaxbContainer = jaxb.asPrismContainerValue().findContainer(AuthorizationType.F_OBJECT);
+//            	for (jaxbContainer.getValues())
+//        		Set real = PrismValue.getRealValuesOfCollection(jaxbContainer.getValues());
+//        		
+//				objSpecCont.findOrCreateContainer(AuthorizationType.F_OBJECT).addAll(PrismValue.cloneCollection(jaxbContainer.getValues()));
+//        		objectSpecification.getObject().addAll(real);
+//			}
+			/*if (!jaxb.getObject().isEmpty()) objectSpecification.getObject().addAll(jaxb.getObject());
+			if (!jaxb.getItem().isEmpty()) objectSpecification.getItem().addAll(jaxb.getItem());
+        	if (!jaxb.getTarget().isEmpty()) objectSpecification.getTarget().addAll(jaxb.getTarget());*/
+ 
+            
+        	//repo.setObjectSpecification(RUtil.toRepo(objectSpecification, prismContext));
+        	/*
+        	if (!jaxb.getObject().isEmpty()){
+        		PrismContainer jaxbContainer = jaxb.asPrismContainerValue().findContainer(AuthorizationType.F_OBJECT);
+        		PrismContainer newContainer = jaxbContainer.clone();
+        	  	objectSpecification.asPrismContainerValue().addReplaceExisting(newContainer);
+        	}
+        	
+        	if (!jaxb.getTarget().isEmpty()){
+        		PrismContainer jaxbContainer = jaxb.asPrismContainerValue().findContainer(AuthorizationType.F_TARGET);
+        		PrismContainer newContainer = jaxbContainer.clone();
+        	  	objectSpecification.asPrismContainerValue().addReplaceExisting(newContainer);
+        	}
+        	*/
+        	//repo.setObjectSpecification(RUtil.toRepo(objectSpecification, prismContext));
+        	
+//        } catch (Exception ex) {
+//        	throw new DtoTranslationException(ex.getMessage(), ex);
+//        }
+//      
     }
 
-    public AuthorizationType toJAXB(PrismContext prismContext) throws DtoTranslationException {
-        AuthorizationType object = new AuthorizationType();
-        RAuthorization.copyToJAXB(this, object, prismContext);
-        return object;
-    }
+	public AuthorizationType toJAXB(PrismContext prismContext)
+			throws DtoTranslationException {
+		AuthorizationType object = new AuthorizationType();
+		RAuthorization.copyToJAXB(this, object, prismContext);
+		return object;
+	}
 }

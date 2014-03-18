@@ -1118,7 +1118,8 @@
     </object>
 
     <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2">
         <name>Judge</name>
         <linkRef oid="11223355"/>
         <assignment id="1">
@@ -1138,6 +1139,31 @@
             <decision>allow</decision>
             <action>http://example.com/uri1</action>
             <action>http://example.com/uri2</action>
+            <!-- <object>
+            	<description>object description</description>
+            	<type>c:UserType</type>
+            	<filter>
+            		<q:substring>
+						<q:matching>normIgnoreCase</q:matching>
+						<q:path>c:name</q:path>
+						<q:value>user</q:value>
+					</q:substring>
+				</filter>
+				<special>self</special>
+            </object>
+            <item>c:name</item>
+            <target>
+            	<description>target description</description>
+            	<type>c:UserType</type>
+            	<filter>
+            		<q:substring>
+						<q:matching>normIgnoreCase</q:matching>
+						<q:path>c:name</q:path>
+						<q:value>user</q:value>
+					</q:substring>
+				</filter>
+				<special>self</special>
+            </target> --> 
         </authorization>
         <authorization id="4">
             <description>some authorization description 2</description>
@@ -1314,5 +1340,4 @@
             <r:type>c:UserType</r:type>
         </configuration>
     </report>
-
 </objects>
