@@ -62,10 +62,10 @@
 			<parameter name="role" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
 			<parameter name="org" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
 			<parameter name="account" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
-			<parameter name="hqlQueryRoles" class="java.lang.String"/>
-			<parameter name="hqlQueryAccounts" class="java.lang.String"/>
-			<parameter name="hqlQueryOrgs" class="java.lang.String"/>
-			<parameter name="hqlQuery" class="java.lang.String"/>
+			<parameter name="hqlQueryRoles" class="java.lang.String" isForPrompting="false"/>
+			<parameter name="hqlQueryAccounts" class="java.lang.String" isForPrompting="false"/>
+			<parameter name="hqlQueryOrgs" class="java.lang.String" isForPrompting="false"/>
+			<parameter name="hqlQuery" class="java.lang.String" isForPrompting="false"/>
 			<queryString language="hql"><![CDATA[$P!{hqlQuery}]]></queryString>
 			<field name="userOid" class="java.lang.String"/>
 			<field name="name" class="java.lang.String"/>
