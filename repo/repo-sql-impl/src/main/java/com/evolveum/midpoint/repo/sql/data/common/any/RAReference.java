@@ -54,7 +54,7 @@ public class RAReference implements RAExtensionValue {
     public RAReference() {
     }
 
-    @ForeignKey(name = "fk_any_reference")
+    @ForeignKey(name = "fk_a_reference")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({

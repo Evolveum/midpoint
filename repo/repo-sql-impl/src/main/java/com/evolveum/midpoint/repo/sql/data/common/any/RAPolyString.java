@@ -57,7 +57,7 @@ public class RAPolyString implements RAExtensionValue {
         }
     }
 
-    @ForeignKey(name = "fk_any_poly_string")
+    @ForeignKey(name = "fk_a_poly_string")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({
