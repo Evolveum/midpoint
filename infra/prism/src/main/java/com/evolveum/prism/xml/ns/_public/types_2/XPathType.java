@@ -120,5 +120,34 @@ public class XPathType implements Serializable {
     public void setContent(String value) {
         this.content = value;
     }
+    
+    @Override
+    public boolean equals(Object obj) {
+    	if (!(obj instanceof XPathType)){
+    		return false;
+    	}
+    	
+    	XPathType other = (XPathType) obj;
+    	String otherValue = other.getContent();
+    	String thisValue = content;
+    	
+    	if (thisValue == null && otherValue == null){
+    		return true;
+    	}
+    	
+    	if (thisValue == null || otherValue == null){
+    		return false;
+    	}
+    	
+    	return thisValue.equals(otherValue);
+//    	
+//    	
+//    	return super.equals(obj);
+    }
+    
+    @Override
+    public String toString() {
+    	return "[path: "+content+"]";
+    }
 
 }

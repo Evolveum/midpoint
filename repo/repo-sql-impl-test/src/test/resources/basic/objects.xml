@@ -1139,7 +1139,7 @@
             <decision>allow</decision>
             <action>http://example.com/uri1</action>
             <action>http://example.com/uri2</action>
-            <!-- <object>
+            <object>
             	<description>object description</description>
             	<type>c:UserType</type>
             	<filter>
@@ -1163,7 +1163,7 @@
 					</q:substring>
 				</filter>
 				<special>self</special>
-            </target> --> 
+            </target> 
         </authorization>
         <authorization id="4">
             <description>some authorization description 2</description>

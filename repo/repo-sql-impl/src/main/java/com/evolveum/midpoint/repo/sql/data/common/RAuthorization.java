@@ -16,32 +16,43 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RAuthorizationDecision;
-import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
-import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
-import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
+import javax.persistence.CollectionTable;
+import javax.persistence.Column;
+import javax.persistence.ElementCollection;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
+import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
+import javax.persistence.MapsId;
+import javax.persistence.Transient;
 
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Type;
 
-import javax.persistence.*;
-import java.util.List;
-import java.util.Set;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RAuthorizationDecision;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
+import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 
 /**
  * @author lazyman
@@ -213,22 +224,30 @@ public class RAuthorization extends RContainer implements ROwnable {
 		if (!types.isEmpty()) {
 			jaxb.getAction().addAll(types);
 		}
-//		if (repo.getObjectSpecification() != null) {
-//			try {
-//				AuthorizationType objectSpecification = RUtil.toJAXB(
-//						repo.getObjectSpecification(), AuthorizationType.class,
-//						prismContext);
-//				if (!objectSpecification.getObject().isEmpty())
-//					jaxb.getObject().addAll(objectSpecification.getObject());
-//				if (!objectSpecification.getItem().isEmpty())
-//					jaxb.getItem().addAll(objectSpecification.getItem());
-//				if (!objectSpecification.getTarget().isEmpty())
-//					jaxb.getTarget().addAll(objectSpecification.getTarget());
-//
-//			} catch (Exception ex) {
-//				throw new DtoTranslationException(ex.getMessage(), ex);
-//			}
-//		}
+		if (repo.getObjectSpecification() != null) {
+			try {
+				AuthorizationType objectSpecification = RUtil.toJAXB(RoleType.class, new ItemPath(
+						RoleType.F_AUTHORIZATION), repo.getObjectSpecification(), AuthorizationType.class,
+						prismContext);
+				PrismContainerValue jaxbContainer = jaxb.asPrismContainerValue();
+
+				Collection cloned = RUtil.cloneValuesToJaxb(objectSpecification, SchemaConstants.C_ITEM);
+				if (cloned != null) {
+					jaxbContainer.findOrCreateProperty(SchemaConstants.C_ITEM).addAll(cloned);
+				}
+				cloned = RUtil.cloneValuesToJaxb(objectSpecification, AuthorizationType.F_OBJECT);
+				if (cloned != null) {
+					jaxbContainer.findOrCreateContainer(AuthorizationType.F_OBJECT).addAll(cloned);
+				}
+				cloned = RUtil.cloneValuesToJaxb(objectSpecification, AuthorizationType.F_TARGET);
+				if (cloned != null) {
+					jaxbContainer.findOrCreateContainer(AuthorizationType.F_TARGET).addAll(cloned);
+				}
+
+			} catch (Exception ex) {
+				throw new DtoTranslationException(ex.getMessage(), ex);
+			}
+		}
 	}
 
 	public static void copyFromJAXB(AuthorizationType jaxb, RAuthorization repo, ObjectType parent,
@@ -243,43 +262,20 @@ public class RAuthorization extends RContainer implements ROwnable {
         repo.setDecision(RUtil.getRepoEnumValue(jaxb.getDecision(), RAuthorizationDecision.class));
         repo.setAction(RUtil.listToSet(jaxb.getAction()));
 //		  object, item, target - set in new authorization type
-//        AuthorizationType objectSpecification = new AuthorizationType();
-//		
-//        PrismContainerValue objSpecCont = objectSpecification.asPrismContainerValue();
-//        try {
-//        	if (!jaxb.getObject().isEmpty()) {
-//        		PrismContainer jaxbContainer = jaxb.asPrismContainerValue().findContainer(AuthorizationType.F_OBJECT);
-//            	for (jaxbContainer.getValues())
-//        		Set real = PrismValue.getRealValuesOfCollection(jaxbContainer.getValues());
-//        		
-//				objSpecCont.findOrCreateContainer(AuthorizationType.F_OBJECT).addAll(PrismValue.cloneCollection(jaxbContainer.getValues()));
-//        		objectSpecification.getObject().addAll(real);
-//			}
-			/*if (!jaxb.getObject().isEmpty()) objectSpecification.getObject().addAll(jaxb.getObject());
-			if (!jaxb.getItem().isEmpty()) objectSpecification.getItem().addAll(jaxb.getItem());
-        	if (!jaxb.getTarget().isEmpty()) objectSpecification.getTarget().addAll(jaxb.getTarget());*/
- 
-            
-        	//repo.setObjectSpecification(RUtil.toRepo(objectSpecification, prismContext));
-        	/*
-        	if (!jaxb.getObject().isEmpty()){
-        		PrismContainer jaxbContainer = jaxb.asPrismContainerValue().findContainer(AuthorizationType.F_OBJECT);
-        		PrismContainer newContainer = jaxbContainer.clone();
-        	  	objectSpecification.asPrismContainerValue().addReplaceExisting(newContainer);
-        	}
-        	
-        	if (!jaxb.getTarget().isEmpty()){
-        		PrismContainer jaxbContainer = jaxb.asPrismContainerValue().findContainer(AuthorizationType.F_TARGET);
-        		PrismContainer newContainer = jaxbContainer.clone();
-        	  	objectSpecification.asPrismContainerValue().addReplaceExisting(newContainer);
-        	}
-        	*/
-        	//repo.setObjectSpecification(RUtil.toRepo(objectSpecification, prismContext));
-        	
-//        } catch (Exception ex) {
-//        	throw new DtoTranslationException(ex.getMessage(), ex);
-//        }
-//      
+		AuthorizationType objectSpecification = new AuthorizationType();
+		PrismContainerValue<AuthorizationType> objSpecCont = objectSpecification.asPrismContainerValue();
+		try {
+			objSpecCont.addReplaceExisting(RUtil.cloneValuesFromJaxb(jaxb, AuthorizationType.F_OBJECT));
+			objSpecCont.addReplaceExisting(RUtil.cloneValuesFromJaxb(jaxb, AuthorizationType.F_TARGET));
+			objSpecCont.addReplaceExisting(RUtil.cloneValuesFromJaxb(jaxb, SchemaConstants.C_ITEM));
+			Item i = parent.asPrismObject().findItem(RoleType.F_AUTHORIZATION);
+			objSpecCont.setParent(i);
+
+			repo.setObjectSpecification(RUtil.toRepo(objectSpecification, prismContext));
+		} catch (Exception ex) {
+			throw new DtoTranslationException(ex.getMessage(), ex);
+        }
+      
     }
 
 	public AuthorizationType toJAXB(PrismContext prismContext)

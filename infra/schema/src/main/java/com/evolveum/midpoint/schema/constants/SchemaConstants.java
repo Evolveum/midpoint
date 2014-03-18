@@ -54,6 +54,7 @@ public abstract class SchemaConstants {
 	// COMMON NAMESPACE
 	
 	public static final QName C_FILTER_TYPE_URI = new QName(NS_QUERY, "uri");
+	public static final QName C_ITEM = new QName(NS_C, "item");
 	public static final QName C_OBJECTS = new QName(NS_C, "objects");
 	public static final QName C_OBJECT = new QName(NS_C, "object");
 	public static final QName C_ABSTRACT_ROLE = new QName(NS_C, "abstractRole");
