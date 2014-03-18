@@ -71,11 +71,11 @@ public class EqualsFilter<T extends Object> extends PropertyValueFilter<PrismPro
 		super(parentPath, definition, matchingRule);
 	}
 		
-	EqualsFilter(ItemPath parentPath, PrismPropertyDefinition definition, QName matchingRule, MapXNode expression) {
+	EqualsFilter(ItemPath parentPath, PrismPropertyDefinition definition, QName matchingRule, ExpressionWrapper expression) {
 		super(parentPath, definition, matchingRule, expression);
 	}
 	
-	public static EqualsFilter createEqual(ItemPath path, PrismPropertyDefinition definition, QName matchingRule, MapXNode expression){
+	public static EqualsFilter createEqual(ItemPath path, PrismPropertyDefinition definition, QName matchingRule, ExpressionWrapper expression){
 		Validate.notNull(path, "Path must not be null");
 		// Do not check definition. We may want queries for which the definition is supplied later.
 		return new EqualsFilter(path, definition, matchingRule, expression);

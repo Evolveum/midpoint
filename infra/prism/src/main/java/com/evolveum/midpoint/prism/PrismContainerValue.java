@@ -45,6 +45,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
@@ -396,6 +397,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	}
 
     // Expects that the "self" path segment is already included in the basePath
+    // todo treat unqualified names
     void addItemPathsToList(ItemPath basePath, Collection<ItemPath> list) {
     	if (items != null) {
 	    	for (Item<?> item: items) {
@@ -537,23 +539,20 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     
     @SuppressWarnings("unchecked")
 	<I extends Item<?>> I findCreateItem(QName itemName, Class<I> type, ItemDefinition itemDefinition, boolean create) throws SchemaException {
-    	if (items != null) {
-	    	for (Item<?> item : items) {
-	            if (itemName.equals(item.getElementName())) {
-	            	if (type.isAssignableFrom(item.getClass())) {
-	            		return (I)item;
-	            	} else {
-	            		if (create) {
-	            			throw new IllegalStateException("The " + type.getSimpleName() + " cannot be created because "
-	        						+ item.getClass().getSimpleName() + " with the same name exists ("+item.getElementName()+")");
-	            		} else {
-	            			return null;
-	            		}
-	            	}
-	            }
-	        }
-    	}
-    	if (create) {
+        Item<?> item = findItemByQName(itemName);
+        if (item != null) {
+            if (type.isAssignableFrom(item.getClass())) {
+                return (I)item;
+            } else {
+                if (create) {
+                    throw new IllegalStateException("The " + type.getSimpleName() + " cannot be created because "
+                            + item.getClass().getSimpleName() + " with the same name exists ("+item.getElementName()+")");
+                } else {
+                    return null;
+                }
+            }
+        }
+    	if (create) {   // todo treat unqualified names
     		return createSubItem(itemName, type, itemDefinition);
     	} else {
     		return null;
@@ -577,44 +576,42 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     	}
     	QName subName = ((NameItemPathSegment)first).getName();
     	ItemPath rest = propPath.rest();
-    	if (items != null) {
-	    	for (Item<?> item : items) {
-	            if (subName.equals(item.getElementName())) {
-	            	if (rest.isEmpty()) {
-	            		if (type.isAssignableFrom(item.getClass())) {
-	            			return (I)item;
-	            		} else {
-	            			if (create) {
-	            				throw new SchemaException("The " + type.getSimpleName() + " cannot be created because "
-	            						+ item.getClass().getSimpleName() + " with the same name exists ("+item.getElementName()+")");
-	            			} else {
-	            				return null;
-	            			}
-	            		}
-	            	} else {
-	            		// Go deeper
-		            	if (item instanceof PrismContainer) {
-		            		return ((PrismContainer<?>)item).findCreateItem(rest, type, itemDefinition, create);
-		            	} else {
-	            			if (create) {
-	            				throw new SchemaException("The " + type.getSimpleName() + " cannot be created because "
-	            						+ item.getClass().getSimpleName() + " with the same name exists ("+item.getElementName()+")");
-	            			} else {
-	            				// Return the item for non-container even if the path is non-empty
-	            				// FIXME: This is not the best solution but it is needed to be able to look inside properties
-	            				// such as PolyString
-	            				if (type.isAssignableFrom(item.getClass())) {
-	                    			return (I)item;
-	                    		} else {
-	                    			return null;
-	                    		}
-	            			}
-		            	}
-	            	}
-	            }
+        Item<?> item = findItemByQName(subName);
+        if (item != null) {
+            if (rest.isEmpty()) {
+                if (type.isAssignableFrom(item.getClass())) {
+                    return (I)item;
+                } else {
+                    if (create) {
+                        throw new SchemaException("The " + type.getSimpleName() + " cannot be created because "
+                                + item.getClass().getSimpleName() + " with the same name exists ("+item.getElementName()+")");
+                    } else {
+                        return null;
+                    }
+                }
+            } else {
+                // Go deeper
+                if (item instanceof PrismContainer) {
+                    return ((PrismContainer<?>)item).findCreateItem(rest, type, itemDefinition, create);
+                } else {
+                    if (create) {
+                        throw new SchemaException("The " + type.getSimpleName() + " cannot be created because "
+                                + item.getClass().getSimpleName() + " with the same name exists ("+item.getElementName()+")");
+                    } else {
+                        // Return the item for non-container even if the path is non-empty
+                        // FIXME: This is not the best solution but it is needed to be able to look inside properties
+                        // such as PolyString
+                        if (type.isAssignableFrom(item.getClass())) {
+                            return (I)item;
+                        } else {
+                            return null;
+                        }
+                    }
+                }
             }
         }
-    	if (create) {
+
+    	if (create) {       // todo treat unqualified names
     		if (rest.isEmpty()) {
     			return createSubItem(subName, type, itemDefinition);
     		} else {
@@ -626,7 +623,37 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     		return null;
     	}
     }
-    
+
+    private Item<?> findItemByQName(QName subName) throws SchemaException {
+        if (items == null) {
+            return null;
+        }
+        if (StringUtils.isNotEmpty(subName.getNamespaceURI())) {
+            // traditional search by fully qualified name
+            for (Item<?> item : items) {
+                if (subName.equals(item.getElementName())) {
+                    return item;
+                }
+            }
+            return null;
+        } else {
+            // approximate search using local part
+            String localNameToFind = subName.getLocalPart();
+            Item<?> matching = null;
+            for (Item<?> item : items) {
+                if (localNameToFind.equals(item.getElementName().getLocalPart())) {
+                    if (matching != null) {
+                        String containerName = getParent() != null ? DebugUtil.formatElementName(getParent().getElementName()) : "";
+                        throw new SchemaException("Using ambiguous unqualified item name " + localNameToFind + " in container " + containerName);
+                    } else {
+                        matching = item;
+                    }
+                }
+            }
+            return matching;
+        }
+    }
+
     @SuppressWarnings("unchecked")
 	private <I extends Item<?>> I createSubItem(QName name, Class<I> type, ItemDefinition itemDefinition) throws SchemaException {
     	// the item with specified name does not exist, create it now
@@ -840,7 +867,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	    	QName subName = ((NameItemPathSegment)first).getName();
 	    	ItemPath rest = path.rest();
 			if (items != null) {
-				for (Item<?> item : items) {
+				for (Item<?> item : items) {            // todo unqualified names!
 					if (first.isWildcard() || subName.equals(item.getElementName())) {
 						item.accept(visitor, rest, recursive);
 					}

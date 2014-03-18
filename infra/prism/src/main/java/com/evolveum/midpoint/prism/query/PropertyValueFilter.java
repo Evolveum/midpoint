@@ -52,7 +52,7 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFilter implements Itemable {
 
-	private MapXNode expression;
+	private ExpressionWrapper expression;
 	private List<T> values;
 
 	PropertyValueFilter() {
@@ -74,17 +74,17 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 		this.values = null;
 	}
 	
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, MapXNode expression) {
+	PropertyValueFilter(ItemPath path, ItemDefinition definition, ExpressionWrapper expression) {
 		super(path, definition);
 		this.expression = expression;
 	}
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, MapXNode expression, List<T> values) {
+	PropertyValueFilter(ItemPath path, ItemDefinition definition, ExpressionWrapper expression, List<T> values) {
 		super(path, definition);
 		this.values = values;
 		this.expression = expression;
 	}
 	
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule, MapXNode expression) {
+	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule, ExpressionWrapper expression) {
 		super(path, definition, matchingRule);
 		this.expression = expression;
 	}
@@ -187,11 +187,11 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 		return filterItem;
 	}
 	
-	public MapXNode getExpression() {
+	public ExpressionWrapper getExpression() {
 		return expression;
 	}
 
-	public void setExpression(MapXNode expression) {
+	public void setExpression(ExpressionWrapper expression) {
 		this.expression = expression;
 	}
 
@@ -257,13 +257,13 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 			}
 		}
 
-		XNode expression = getExpression();
-		if (expression != null) {
+        ExpressionWrapper expression = getExpression();
+		if (expression != null && expression.getExpression() != null) {
 			sb.append("\n");
 			DebugUtil.indentDebugDump(sb, indent+1);
 			sb.append("EXPRESSION:");
 			sb.append("\n");
-			sb.append(DebugUtil.debugDump(expression, indent + 2));
+			sb.append(DebugUtil.debugDump(expression.getExpression(), indent + 2));
 		}
 
 		QName matchingRule = getMatchingRule();

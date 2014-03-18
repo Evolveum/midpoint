@@ -165,7 +165,7 @@ public class SchemaDefinitionType implements Serializable {
 						schema = e;
 						return true;
 					} else {
-						throw new IllegalStateException("Canno add more then one schema element");
+						throw new IllegalStateException("Cannot add more then one schema element");
 					}
 				}
 

@@ -44,11 +44,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public class RefFilter extends PropertyValueFilter<PrismReferenceValue>{
 	private static final long serialVersionUID = 1L;
 
-	RefFilter(ItemPath path, PrismReferenceDefinition definition, MapXNode expression, List<PrismReferenceValue> values) {
+	RefFilter(ItemPath path, PrismReferenceDefinition definition, ExpressionWrapper expression, List<PrismReferenceValue> values) {
 		super(path, definition, expression, values);
 	}
 		
-	RefFilter(ItemPath path, PrismReferenceDefinition definition, MapXNode expression) {
+	RefFilter(ItemPath path, PrismReferenceDefinition definition, ExpressionWrapper expression) {
 		super(path, definition, expression);
 	}
 	
@@ -64,11 +64,11 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue>{
 		return new RefFilter(path, definition, null, Arrays.asList(values));
 	}
 	
-	public static RefFilter createReferenceEqual(ItemPath path, PrismReference item, MapXNode expression){
+	public static RefFilter createReferenceEqual(ItemPath path, PrismReference item, ExpressionWrapper expression){
 		return new RefFilter(path, item.getDefinition(), expression, item.getValues());
 	}
 	
-	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, MapXNode expression){
+	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, ExpressionWrapper expression){
 		return new RefFilter(path, definition, expression);
 	}
 		

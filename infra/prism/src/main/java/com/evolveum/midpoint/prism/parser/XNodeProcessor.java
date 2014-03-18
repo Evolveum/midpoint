@@ -18,12 +18,14 @@ package com.evolveum.midpoint.prism.parser;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -268,10 +270,35 @@ public class XNodeProcessor {
 //			prismContext.getSchemaRegistry().resolveGlobalTypeDefinition(elementQName);
 			// TODO
 		}
-		
 	}
-	
-	protected <T extends Containerable> ItemDefinition locateItemDefinition(
+
+    public Object parseGlobalXNodeValue(Entry<QName, XNode> entry) throws SchemaException {
+        Validate.notNull(entry);
+
+        QName globalElementName = entry.getKey();
+        if (globalElementName == null) {
+            throw new SchemaException("No global element name to look for");
+        }
+        ItemDefinition itemDefinition = prismContext.getSchemaRegistry().resolveGlobalItemDefinition(globalElementName);
+        if (itemDefinition == null) {
+            throw new SchemaException("No definition for item " + globalElementName);
+        }
+
+        if (itemDefinition instanceof PrismPropertyDefinition) {
+            PrismProperty prismProperty = parsePrismProperty(entry.getValue(), globalElementName, (PrismPropertyDefinition) itemDefinition);
+            if (prismProperty.size() > 1) {
+                throw new SchemaException("Retrieved more than one value from globally defined element " + globalElementName);
+            } else if (prismProperty.size() == 0) {
+                return null;
+            } else {
+                return prismProperty.getRealValues().iterator().next();
+            }
+        } else {
+            throw new IllegalArgumentException("Parsing global elements with definitions other than PrismPropertyDefinition is not supported yet: element = " + globalElementName + " definition kind = " + itemDefinition.getClass().getSimpleName());
+        }
+    }
+
+    protected <T extends Containerable> ItemDefinition locateItemDefinition(
 			PrismContainerDefinition<T> containerDefinition, QName elementQName, XNode xnode)
 			throws SchemaException {
 		ItemDefinition def = containerDefinition.findItemDefinition(elementQName);
@@ -833,4 +860,5 @@ public class XNodeProcessor {
 	public XNodeSerializer createSerializer() {
 		return new XNodeSerializer(PrismUtil.getBeanConverter(prismContext));
 	}
+
 }

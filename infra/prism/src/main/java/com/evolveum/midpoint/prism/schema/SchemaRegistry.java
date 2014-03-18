@@ -885,7 +885,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		}
 		ItemDefinition itemDefinition = schema.findItemDefinition(elementQName, ItemDefinition.class);
 		if (itemDefinition == null) {
-				throw new SchemaException("No definition for item "+elementQName+" (schema for the namespace is present)");
+            throw new SchemaException("No definition for item "+elementQName+" (schema for the namespace is present)");
 		}
 		return itemDefinition;
 	}

@@ -107,6 +107,9 @@ public class RawType implements Serializable{
     public RawType clone() {
     	RawType clone = new RawType();
     	clone.setXnode(xnode);
+        for (Object o : getContent()) {
+            clone.getContent().add(o);
+        }
     	return clone;
     }
     

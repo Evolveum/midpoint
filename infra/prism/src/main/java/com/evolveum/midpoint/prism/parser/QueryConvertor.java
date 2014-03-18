@@ -24,6 +24,7 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.ExpressionWrapper;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -279,16 +280,18 @@ public class QueryConvertor {
 			return EqualsFilter.createEqual(itemPath, (PrismProperty) item, matchingRule);
 			
 		} else {
-			MapXNode expressionXnode = null;
-			
+
 			Entry<QName,XNode> expressionEntry = xmap.getSingleEntryThatDoesNotMatch(
 					KEY_FILTER_EQUALS_VALUE, KEY_FILTER_EQUALS_MATCHING, KEY_FILTER_EQUALS_PATH);
 			if (expressionEntry != null) {
-				expressionXnode = new MapXNode();
-				expressionXnode.put(expressionEntry.getKey(), expressionEntry.getValue());
-			}
+                ExpressionWrapper expressionWrapper = new ExpressionWrapper();
+                expressionWrapper.setExpression(prismContext.getXnodeProcessor().parseGlobalXNodeValue(expressionEntry));
+
+                return EqualsFilter.createEqual(itemPath, (PrismPropertyDefinition) itemDefinition, matchingRule, expressionWrapper);
+			} else {
+                throw new SchemaException("No expression nor value in filter");
+            }
 			
-			return EqualsFilter.createEqual(itemPath, (PrismPropertyDefinition) itemDefinition, matchingRule, expressionXnode);
 		}
 
 	}
@@ -330,9 +333,10 @@ public class QueryConvertor {
 			throw new IllegalStateException("No values to search specified for item " + itemName);
 		}
 
-		MapXNode expressionXnode = null;
+		ExpressionWrapper expressionWrapper = null;
+        // TODO
 		
-		return RefFilter.createReferenceEqual(itemPath, ref, expressionXnode);
+		return RefFilter.createReferenceEqual(itemPath, ref, expressionWrapper);
 	}
 
 	private static <C extends Containerable> SubstringFilter parseSubstringFilter(XNode xnode, PrismContainerDefinition<C> pcd, PrismContext prismContext)
@@ -568,9 +572,10 @@ public class QueryConvertor {
 			map.put(KEY_FILTER_EQUALS_VALUE, valuesNode);
 		}
 		
-		MapXNode xexpression = filter.getExpression();
+		ExpressionWrapper xexpression = filter.getExpression();
 		if (xexpression != null) {
-			map.merge(xexpression);
+			//map.merge(xexpression);
+            //TODO serialize expression
 		}
 		
 		return map;
@@ -764,33 +769,32 @@ public class QueryConvertor {
 	
 
 	public static void revive (ObjectFilter filter, final PrismContext prismContext) throws SchemaException {
-		Visitor visitor = new Visitor() {
-			@Override
-			public void visit(ObjectFilter filter) {
-				if (filter instanceof PropertyValueFilter<?>) {
-					try {
-						parseExpression((PropertyValueFilter<?>)filter, prismContext);
-					} catch (SchemaException e) {
-						throw new TunnelException(e);
-					}
-				}
-			}
-		};
-		try {
-			filter.accept(visitor);
-		} catch (TunnelException te) {
-			SchemaException e = (SchemaException) te.getCause();
-			throw e;
-		}
+//		Visitor visitor = new Visitor() {
+//			@Override
+//			public void visit(ObjectFilter filter) {
+//				if (filter instanceof PropertyValueFilter<?>) {
+//					try {
+//						parseExpression((PropertyValueFilter<?>)filter, prismContext);
+//					} catch (SchemaException e) {
+//						throw new TunnelException(e);
+//					}
+//				}
+//			}
+//		};
+//		try {
+//			filter.accept(visitor);
+//		} catch (TunnelException te) {
+//			SchemaException e = (SchemaException) te.getCause();
+//			throw e;
+//		}
 	}
 	
-
-	private static void parseExpression(PropertyValueFilter<?> propValFilter, PrismContext prismContext) throws SchemaException {
-		MapXNode xexpression = propValFilter.getExpression();
-		if (xexpression != null) {
-			prismContext.getXnodeProcessor().parseGlobalXNodeValues(xexpression);
-		}
-	}
+//	private static void parseExpression(PropertyValueFilter<?> propValFilter, PrismContext prismContext) throws SchemaException {
+//		ExpressionWrapper xexpression = propValFilter.getExpression();
+//		if (xexpression != null) {
+//			prismContext.getXnodeProcessor().parseGlobalXNodeValues(xexpression);
+//		}
+//	}
 
 
 }
