@@ -53,7 +53,7 @@ import com.evolveum.midpoint.test.util.TestUtil;
         "classpath:ctx-model.xml",
         "classpath*:ctx-workflow.xml",
         "file:src/main/webapp/WEB-INF/ctx-init.xml",
-        "file:src/main/webapp/WEB-INF/ctx-security.xml",
+        "file:src/main/webapp/WEB-INF/ctx-web-security.xml",
         "file:src/main/webapp/WEB-INF/ctx-webapp.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestCleanStartup extends AbstractModelIntegrationTest {

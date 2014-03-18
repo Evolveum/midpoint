@@ -59,7 +59,7 @@ import com.evolveum.prism.xml.ns._public.query_2.QueryType;
  * @author Radovan Semancik
  *
  */
-@Component
+@Component("securityEnforcer")
 public class SecurityEnforcerImpl implements SecurityEnforcer {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);

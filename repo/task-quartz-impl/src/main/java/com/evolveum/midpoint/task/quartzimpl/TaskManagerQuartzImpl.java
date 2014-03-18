@@ -75,6 +75,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 
@@ -163,6 +164,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 	
     @Autowired(required=true)
+    @Qualifier("securityEnforcer")
     private SecurityEnforcer securityEnforcer;
     
 	@Autowired(required=true)
