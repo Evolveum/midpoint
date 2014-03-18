@@ -23,6 +23,9 @@
 
     <user oid="00000000-d34d-b33f-f00d-111111111111">
         <name>r1boss</name>
+        <assignment>
+            <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"/>
+        </assignment>
         <fullName>Role1 Boss</fullName>
         <givenName>Role1</givenName>
         <familyName>Boss</familyName>
@@ -30,6 +33,9 @@
 
     <user oid="00000000-d34d-b33f-f00d-111111111112">
         <name>r2boss</name>
+        <assignment>
+            <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"/>
+        </assignment>
         <fullName>Role2 Boss</fullName>
         <givenName>Role2</givenName>
         <familyName>Boss</familyName>
@@ -38,6 +44,9 @@
 
     <user oid="00000000-d34d-b33f-f00d-111111111113">
         <name>r3boss</name>
+        <assignment>
+            <targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"/>
+        </assignment>
         <fullName>Role3 Boss</fullName>
         <givenName>Role3</givenName>
         <familyName>Boss</familyName>

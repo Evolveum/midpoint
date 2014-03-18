@@ -16,47 +16,28 @@
 
 package com.evolveum.midpoint.wf.processors.primary;
 
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.api.context.ModelElementContext;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConfiguration;
 import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.common.StringHolder;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
-import com.evolveum.midpoint.wf.util.TestAuthenticationInfoHolder;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
-
-import org.activiti.engine.form.FormProperty;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBException;
-
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
