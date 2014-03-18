@@ -16,14 +16,15 @@
 
 package com.evolveum.midpoint.web.page;
 
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.wizard.resource.component.capability.CapabilityPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+
 import org.apache.wicket.model.IModel;
 
 /**

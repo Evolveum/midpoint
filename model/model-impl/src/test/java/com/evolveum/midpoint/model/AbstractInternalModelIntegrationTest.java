@@ -71,6 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificatio
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -90,7 +91,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 	public static final String SYSTEM_CONFIGURATION_FILENAME = COMMON_DIR_NAME + "/system-configuration.xml";
 	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 	
-	protected static final String USER_ADMINISTRATOR_FILENAME = COMMON_DIR_NAME + "/user-administrator.xml";
+	public static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR, "user-administrator.xml");
 	protected static final String USER_ADMINISTRATOR_NAME = "administrator";
 	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
 	
@@ -111,6 +112,9 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 	// Largo does not have a full name set, employeeType=PIRATE
 	protected static final String USER_LARGO_FILENAME = COMMON_DIR_NAME + "/user-largo.xml";
 	protected static final String USER_LARGO_OID = "c0c010c0-d34d-b33f-f00d-111111111118";
+	
+	public static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
+	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 	
 	protected static final String ACCOUNT_HBARBOSSA_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-hbarbossa-dummy.xml";
 	protected static final String ACCOUNT_HBARBOSSA_DUMMY_OID = "c0c010c0-d34d-b33f-f00d-222211111112";
@@ -188,17 +192,17 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
 					"looks like the previous test haven't cleaned it up", e);
 		}
+		
+		modelService.postInit(initResult);
 				
 		// Administrator
-		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
-		loginSuperUser(userAdministrator.asObjectable().getName().getOrig());
+		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
+		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult);
+		login(userAdministrator);
 		
 		// User Templates
 		repoAddObjectFromFile(USER_TEMPLATE_FILENAME, ObjectTemplateType.class, initResult);
 
-		// Connectors
-		repoAddObjectFromFile(CONNECTOR_DUMMY_FILENAME, ConnectorType.class, initResult);
-		
 		// Resources
 		
 		dummyResourceCtl = DummyResourceContoller.create(null, resourceDummy);

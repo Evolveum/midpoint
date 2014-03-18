@@ -107,3 +107,5 @@ CREATE INDEX iObjectNameNorm ON m_object (name_norm);
  UPDATE m_object SET name_norm = x.name_norm, name_orig = x.name_orig FROM m_task as x WHERE x.oid = m_object.oid;
  UPDATE m_object SET name_norm = x.name_norm, name_orig = x.name_orig FROM m_user as x WHERE x.oid = m_object.oid;
  UPDATE m_object SET name_norm = x.name_norm, name_orig = x.name_orig FROM m_value_policy as x WHERE x.oid = m_object.oid;
+ 
+ ALTER TABLE m_authorization ADD objectSpecification TEXT;

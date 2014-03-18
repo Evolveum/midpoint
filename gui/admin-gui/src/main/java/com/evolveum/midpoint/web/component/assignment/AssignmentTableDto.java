@@ -14,24 +14,12 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.util;
+package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import java.io.Serializable;
 
 /**
- * Used for testing.
- *
- * @author mederly
- */
-public class TestAuthenticationInfoHolder {
-
-    private static UserType userType;
-
-    public static UserType getUserType() {
-        return userType;
-    }
-
-    public static void setUserType(UserType userType) {
-        TestAuthenticationInfoHolder.userType = userType;
-    }
+ *  @author shood
+ * */
+public class AssignmentTableDto implements Serializable {
 }

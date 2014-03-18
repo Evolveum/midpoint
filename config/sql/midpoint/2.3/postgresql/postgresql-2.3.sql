@@ -194,6 +194,7 @@
     create table m_authorization (
         decision int4,
         description text,
+        objectSpecification text,
         owner_id int8 not null,
         owner_oid varchar(36) not null,
         id int8 not null,

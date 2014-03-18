@@ -39,6 +39,7 @@ import static org.testng.AssertJUnit.assertNotNull;
         "classpath:ctx-audit.xml",
         "classpath:ctx-configuration-test.xml",
         "classpath:ctx-common.xml",
+        "classpath:ctx-security.xml",
         "classpath:ctx-provisioning.xml",
         "classpath:ctx-model.xml",
         "classpath*:ctx-workflow.xml"})

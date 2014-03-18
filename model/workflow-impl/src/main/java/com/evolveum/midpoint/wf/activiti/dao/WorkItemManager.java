@@ -16,10 +16,12 @@
 
 package com.evolveum.midpoint.wf.activiti.dao;
 
-import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WorkflowManagerImpl;
@@ -27,6 +29,7 @@ import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
+
 import org.activiti.engine.FormService;
 import org.activiti.engine.form.FormProperty;
 import org.activiti.engine.form.TaskFormData;
@@ -34,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,6 +55,9 @@ public class WorkItemManager {
 
     @Autowired
     private MiscDataUtil miscDataUtil;
+    
+    @Autowired
+    private SecurityEnforcer securityEnforcer;
 
     private static final String DOT_CLASS = WorkflowManagerImpl.class.getName() + ".";
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
@@ -65,7 +72,13 @@ public class WorkItemManager {
     // todo error reporting
     public void completeWorkItemWithDetails(String taskId, PrismObject specific, String decision, OperationResult parentResult) {
 
-        MidPointPrincipal principal = MiscDataUtil.getPrincipalUser();
+        MidPointPrincipal principal;
+		try {
+			principal = securityEnforcer.getPrincipal();
+		} catch (SecurityViolationException e) {
+			LOGGER.error("Security violation: {}", e.getMessage(), e);
+            return;
+		}
 
         OperationResult result = parentResult.createSubresult(OPERATION_COMPLETE_WORK_ITEM);
         result.addParam("taskId", taskId);
@@ -84,7 +97,7 @@ public class WorkItemManager {
         TaskFormData data = activitiEngine.getFormService().getTaskFormData(taskId);
 
         String assigneeOid = data.getTask().getAssignee();
-        if (!miscDataUtil.isAuthorizedToSubmit(principal, assigneeOid)) {
+        if (!miscDataUtil.isAuthorizedToSubmit(assigneeOid)) {
             result.recordFatalError("You are not authorized to complete the selected work item.");
             LOGGER.error("Authorization failure: task.assigneeOid = {}, principal = {}", assigneeOid, principal);
             return;

@@ -19,7 +19,6 @@ package com.evolveum.midpoint.wf.processors;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -27,8 +26,11 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -43,10 +45,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBException;
+
 import java.util.List;
 import java.util.Map;
 
@@ -63,6 +67,9 @@ public class BaseAuditHelper {
 
     @Autowired
     private WorkItemProvider workItemProvider;
+    
+    @Autowired
+    private SecurityEnforcer securityEnforcer;
 
     @Autowired
     private RepositoryService repositoryService;
@@ -133,10 +140,13 @@ public class BaseAuditHelper {
                 }
             }
         } else {
-            MidPointPrincipal principal = MiscDataUtil.getPrincipalUser();
-            if (principal != null && principal.getUser() != null) {
-                auditEventRecord.setTargetOwner(principal.getUser().asPrismObject());
-            }
+            MidPointPrincipal principal;
+			try {
+				principal = securityEnforcer.getPrincipal();
+				auditEventRecord.setTargetOwner(principal.getUser().asPrismObject());
+			} catch (SecurityViolationException e) {
+				LOGGER.warn("Not recording user in the audit record because there is no user: "+e.getMessage(), e);
+			}
         }
 
         auditEventRecord.setOutcome(OperationResultStatus.SUCCESS);

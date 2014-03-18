@@ -194,6 +194,7 @@
     create table m_authorization (
         decision integer,
         description clob,
+        objectSpecification clob,
         owner_id bigint not null,
         owner_oid varchar(36) not null,
         id bigint not null,

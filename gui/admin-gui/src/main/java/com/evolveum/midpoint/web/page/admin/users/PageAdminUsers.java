@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.users;
 
 
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 
 /**

@@ -21,26 +21,42 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
+import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import java.io.File;
 import java.io.FileFilter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 
 /**
@@ -69,7 +85,7 @@ public class InitialDataImport {
         this.taskManager = taskManager;
     }
 
-    public void init() {
+    public void init() throws SchemaException {
         LOGGER.info("Starting initial object import.");
 
         OperationResult mainResult = new OperationResult(OPERATION_INITIAL_OBJECTS_IMPORT);
@@ -82,6 +98,23 @@ public class InitialDataImport {
         PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
         File[] files = getInitialImportObjects();
         LOGGER.info("Importing files {}.", Arrays.toString(files));
+        
+        // We need to provide a fake Spring security context here.
+        // We have to fake it because we do not have anything in the repository yet. And to get
+        // something to the repository we need a context. Chicken and egg. So we fake the egg.
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        UserType userAdministrator = new UserType();
+        prismContext.adopt(userAdministrator);
+        userAdministrator.setName(new PolyStringType(new PolyString("initAdmin", "initAdmin")));
+		MidPointPrincipal principal = new MidPointPrincipal(userAdministrator);
+		AuthorizationType superAutzType = new AuthorizationType();
+		prismContext.adopt(superAutzType, RoleType.class, new ItemPath(RoleType.F_AUTHORIZATION));
+		superAutzType.getAction().add(AuthorizationConstants.AUTZ_ALL_URL);
+		Authorization superAutz = new Authorization(superAutzType);
+		Collection<Authorization> authorities = principal.getAuthorities();
+		authorities.add(superAutz);
+        Authentication authentication = new PreAuthenticatedAuthenticationToken(principal, null);
+        securityContext.setAuthentication(authentication);
 
         for (File file : files) {
             try {
@@ -106,6 +139,8 @@ public class InitialDataImport {
             }
         }
 
+        securityContext.setAuthentication(null);
+        
         mainResult.recomputeStatus("Couldn't import objects.");
 
         LOGGER.info("Initial object import finished ({} objects imported, {} errors)", count, errors);

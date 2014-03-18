@@ -49,7 +49,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
-import com.evolveum.midpoint.wf.util.TestAuthenticationInfoHolder;
 import com.evolveum.midpoint.wf.processes.common.WorkflowResult;
 import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.processes.itemApproval.ProcessVariableNames;
@@ -614,7 +613,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
             @Override
             boolean decideOnApproval(String executionId) throws Exception {
-                TestAuthenticationInfoHolder.setUserType(getUser(USER_ADMINISTRATOR_OID).asObjectable());
+                login(getUser(USER_ADMINISTRATOR_OID));
                 return false;
             }
         });
@@ -658,7 +657,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
             @Override
             boolean decideOnApproval(String executionId) throws Exception {
-                TestAuthenticationInfoHolder.setUserType(getUser(USER_ADMINISTRATOR_OID).asObjectable());
+                login(getUser(USER_ADMINISTRATOR_OID));
                 return true;
             }
         });
@@ -710,7 +709,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 if (approvalRequest.getItemToApprove() instanceof AssignmentType) {
                     return decideOnRoleApproval(executionId);
                 } else {
-                    TestAuthenticationInfoHolder.setUserType(getUser(USER_ADMINISTRATOR_OID).asObjectable());
+                    login(getUser(USER_ADMINISTRATOR_OID));
                     return true;
                 }
             }
@@ -739,13 +738,13 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         assertNotNull("requested role OID not found", roleOid);
 
         if (TestConstants.ROLE_R1_OID.equals(roleOid)) {
-            TestAuthenticationInfoHolder.setUserType(getUser(TestConstants.R1BOSS_OID).asObjectable());
+            login(getUser(TestConstants.R1BOSS_OID));
             return true;
         } else if (TestConstants.ROLE_R2_OID.equals(roleOid)) {
-            TestAuthenticationInfoHolder.setUserType(getUser(TestConstants.R2BOSS_OID).asObjectable());
+            login(getUser(TestConstants.R2BOSS_OID));
             return false;
         } else if (TestConstants.ROLE_R3_OID.equals(roleOid)) {
-            TestAuthenticationInfoHolder.setUserType(getUser(TestConstants.R3BOSS_OID).asObjectable());
+            login(getUser(TestConstants.R3BOSS_OID));
             return true;
         } else {
             throw new AssertionError("Unknown role OID in assignment to be approved: " + roleOid);

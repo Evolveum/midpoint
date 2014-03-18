@@ -36,5 +36,7 @@
         <module>repo-sql-impl-test</module>
         <module>task-api</module>
         <module>task-quartz-impl</module>
+    	<module>security-api</module>
+    	<module>security-impl</module>
     </modules>
 </project>

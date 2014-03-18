@@ -58,7 +58,9 @@ http://www.springframework.org/schema/security/spring-security-3.1.xsd">
         <form-login login-page="/login" default-target-url="/home" />
     </http>
 
-    <beans:bean id="accessDecisionManager" class="com.evolveum.midpoint.web.security.MidPointGuiAuthorizationEvaluator"/>
+    <beans:bean id="accessDecisionManager" class="com.evolveum.midpoint.web.security.MidPointGuiAuthorizationEvaluator">
+    	<beans:constructor-arg name="securityEnforcer" ref="securityEnforcer"/>
+    </beans:bean>
     
     <beans:bean id="logoutHandler" class="com.evolveum.midpoint.web.security.AuditedLogoutHandler" />
 

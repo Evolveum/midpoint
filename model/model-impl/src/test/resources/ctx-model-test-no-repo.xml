@@ -37,5 +37,6 @@
     <import resource="ctx-configuration-test-no-repo.xml"/>
     <import resource="ctx-task.xml"/>
     <import resource="ctx-audit.xml"/>
+    <import resource="ctx-security.xml"/>
     <import resource="ctx-common.xml"/>
 </beans>

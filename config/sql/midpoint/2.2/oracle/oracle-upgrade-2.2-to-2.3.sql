@@ -122,3 +122,5 @@ CREATE INDEX iObjectNameNorm ON m_object (name_norm) INITRANS 30;
  WHERE EXISTS (SELECT x.name_norm, x.name_orig FROM m_user x WHERE x.oid = o.oid);
  UPDATE m_object o SET (o.name_norm, o.name_orig) = (SELECT x.name_norm, x.name_orig FROM m_value_policy x WHERE x.oid = o.oid) 
  WHERE EXISTS (SELECT x.name_norm, x.name_orig FROM m_value_policy x WHERE x.oid = o.oid);
+
+ ALTER TABLE m_authorization ADD objectSpecification CLOB;

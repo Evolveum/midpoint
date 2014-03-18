@@ -24,10 +24,6 @@ import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.security.Authorization;
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
-import com.evolveum.midpoint.common.security.MidPointPrincipal;
-import com.evolveum.midpoint.common.security.UserProfileService;
 import com.evolveum.midpoint.model.api.ModelDiagnosticService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -78,6 +74,10 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
@@ -2212,6 +2212,40 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		SecurityContext securityContext = SecurityContextHolder.getContext();
 		Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
 		securityContext.setAuthentication(authentication);
+	}
+	
+	protected void assertLoggedInUser(String username) {
+		SecurityContext securityContext = SecurityContextHolder.getContext();
+		Authentication authentication = securityContext.getAuthentication();
+		if (authentication == null) {
+			if (username == null) {
+				return;
+			} else {
+				AssertJUnit.fail("Expected logged in user '"+username+"' but there was no authentication in the spring security context");
+			}
+		}
+		Object principal = authentication.getPrincipal();
+		if (principal == null) {
+			if (username == null) {
+				return;
+			} else {
+				AssertJUnit.fail("Expected logged in user '"+username+"' but there was no principal in the spring security context");
+			}
+		}
+		if (principal instanceof MidPointPrincipal) {
+			MidPointPrincipal midPointPrincipal = (MidPointPrincipal)principal;
+			UserType user = midPointPrincipal.getUser();
+			if (user == null) {
+				if (username == null) {
+					return;
+				} else {
+					AssertJUnit.fail("Expected logged in user '"+username+"' but there was no user in the spring security context");
+				}
+			}
+			assertEquals("Wrong logged-in user", username, user.getName().getOrig());
+		} else {
+			AssertJUnit.fail("Expected logged in user '"+username+"' but there was unknown principal in the spring security context: "+principal);
+		}
 	}
 
 }

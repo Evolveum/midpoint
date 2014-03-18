@@ -184,7 +184,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String USER_LARGO_USERNAME = "largo";
 	
 	// Rapp does not have a full name set, employeeType=COOK
-	protected static final String USER_RAPP_FILENAME = COMMON_DIR_NAME + "/user-rapp.xml";
+	protected static final File USER_RAPP_FILE = new File(COMMON_DIR, "user-rapp.xml");
 	protected static final String USER_RAPP_OID = "c0c010c0-d34d-b33f-f00d-11111111c008";
 	protected static final String USER_RAPP_USERNAME = "rapp";
 
@@ -206,7 +206,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	// Captain Kate Capsize does not exist in the repo. This user is designed to be added. 
 	// She has account on dummy resources (default, red, blue)
 	// The accounts are also assigned
-	static final String USER_CAPSIZE_FILENAME = COMMON_DIR_NAME + "/user-capsize.xml";
+	static final File USER_CAPSIZE_FILE = new File(COMMON_DIR, "user-capsize.xml");
 	protected static final String USER_CAPSIZE_OID = "c0c010c0-d34d-b33f-f00d-11c1c1c1c11c";
 	protected static final String USER_CAPSIZE_USERNAME = "capsize";
 	

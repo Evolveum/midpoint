@@ -16,11 +16,12 @@
 
 package com.evolveum.midpoint.web.component.menu.top;
 
-import com.evolveum.midpoint.common.security.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.web.component.util.BaseSimplePanel;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.home.PageMyPasswords;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
 import org.apache.wicket.model.AbstractReadOnlyModel;
