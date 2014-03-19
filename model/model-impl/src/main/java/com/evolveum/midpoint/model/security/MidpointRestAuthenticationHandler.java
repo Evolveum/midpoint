@@ -27,9 +27,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
-import com.evolveum.midpoint.common.security.AuthorizationEvaluator;
-import com.evolveum.midpoint.common.security.MidPointPrincipal;
-import com.evolveum.midpoint.common.security.UserProfileService;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -40,7 +40,7 @@ public class MidpointRestAuthenticationHandler implements RequestHandler {
 	private UserProfileService userDetails;
 	
 	@Autowired(required = true)
-	private AuthorizationEvaluator authorizationEvaluator;
+	private SecurityEnforcer securityEnforcer;
 	
 	@Autowired(required = true)
 	private Protector protector;

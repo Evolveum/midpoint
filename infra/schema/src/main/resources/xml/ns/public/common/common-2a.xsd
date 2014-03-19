@@ -6225,7 +6225,7 @@
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element ref="tns:description" minOccurs="0"/>
-        	<xsd:element name="type" minOccurs="1" type="xsd:QName">
+        	<xsd:element name="type" minOccurs="0" type="xsd:QName">
         		<xsd:annotation>
         			<xsd:documentation>
         				Type of the object to select.

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.common.security;
+package com.evolveum.midpoint.security.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;

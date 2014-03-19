@@ -16,11 +16,11 @@
 
 package com.evolveum.midpoint.web.page.admin.reports;
 
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -36,6 +36,7 @@ import com.evolveum.midpoint.web.page.admin.reports.dto.ReportSearchDto;
 import com.evolveum.midpoint.web.session.ReportsStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;

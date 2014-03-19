@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.common.security;
+package com.evolveum.midpoint.security.api;
 
 import java.util.ArrayList;
 import java.util.Collection;

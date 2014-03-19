@@ -44,9 +44,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.TestConstants;
 import com.evolveum.midpoint.wf.WorkflowManagerImpl;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
-import com.evolveum.midpoint.wf.processes.common.ActivitiUtil;
-import com.evolveum.midpoint.wf.util.TestAuthenticationInfoHolder;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
+import com.evolveum.midpoint.wf.processes.common.ActivitiUtil;
 import com.evolveum.midpoint.wf.processors.general.GeneralChangeProcessor;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.util.JaxbValueContainer;
@@ -71,9 +70,7 @@ import java.io.File;
 import java.util.List;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author semancik
@@ -177,7 +174,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
                     contextProperty.replace(new PrismPropertyValue<>(JaxbValueContainer.getChunk(newCtx, ctxIndex)));
                 }
 
-                TestAuthenticationInfoHolder.setUserType(getUser(USER_ADMINISTRATOR_OID).asObjectable());
+                login(getUser(USER_ADMINISTRATOR_OID));
                 workflowServiceImpl.completeWorkItemWithDetails(taskId, qFormObject, "approve", result);
             }
 
@@ -233,7 +230,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
                 rejectAll.setRealValue(Boolean.TRUE);
                 questionFormPrism.addReplaceExisting(rejectAll);
 
-                TestAuthenticationInfoHolder.setUserType(getUser(USER_ADMINISTRATOR_OID).asObjectable());
+                login(getUser(USER_ADMINISTRATOR_OID));
                 workflowServiceImpl.completeWorkItemWithDetails(taskId, questionFormPrism, "rejectAll", result);
             }
 
@@ -251,7 +248,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
         });
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test030AddAccountApproved() throws Exception {
         TestUtil.displayTestTile(this, "test030AddAccountApproved");
 
@@ -293,7 +290,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
                 approve.setRealValue(Boolean.TRUE);
                 questionFormPrism.addReplaceExisting(approve);
 
-                TestAuthenticationInfoHolder.setUserType(getUser(USER_ADMINISTRATOR_OID).asObjectable());
+                login(getUser(USER_ADMINISTRATOR_OID));
                 workflowServiceImpl.completeWorkItemWithDetails(taskId, questionFormPrism, "approve", result);
             }
 

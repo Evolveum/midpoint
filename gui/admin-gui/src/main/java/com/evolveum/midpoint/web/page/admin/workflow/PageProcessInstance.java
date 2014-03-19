@@ -16,8 +16,8 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -29,6 +29,7 @@ import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;

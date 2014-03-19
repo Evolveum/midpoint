@@ -37,6 +37,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.model.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
@@ -51,6 +52,7 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -58,6 +60,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -99,6 +102,18 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
 		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+	}
+
+	@Override
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		super.initSystem(initTask, initResult);
+		
+		modelService.postInit(initResult);
+		
+		// Administrator
+		PrismObject<UserType> userAdministrator = repoAddObjectFromFile(AbstractInternalModelIntegrationTest.USER_ADMINISTRATOR_FILE, UserType.class, initResult);
+		repoAddObjectFromFile(AbstractInternalModelIntegrationTest.ROLE_SUPERUSER_FILE, RoleType.class, initResult);
+		login(userAdministrator);
 	}
 
 	@Test

@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.task.quartzimpl;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.common.security.SecurityEnforcer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -35,6 +34,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
@@ -75,6 +75,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 
@@ -163,6 +164,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 	
     @Autowired(required=true)
+    @Qualifier("securityEnforcer")
     private SecurityEnforcer securityEnforcer;
     
 	@Autowired(required=true)

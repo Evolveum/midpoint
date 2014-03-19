@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.security;
 
-import static com.evolveum.midpoint.common.security.AuthorizationConstants.*;
+import static com.evolveum.midpoint.security.api.AuthorizationConstants.*;
 
 /**
  * @author lazyman

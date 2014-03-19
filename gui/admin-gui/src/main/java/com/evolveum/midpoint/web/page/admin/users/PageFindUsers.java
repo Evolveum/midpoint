@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;

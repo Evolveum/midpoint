@@ -16,10 +16,6 @@
 
 package com.evolveum.midpoint.model.security;
 
-import com.evolveum.midpoint.common.security.Authorization;
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
-import com.evolveum.midpoint.common.security.MidPointPrincipal;
-import com.evolveum.midpoint.common.security.UserProfileService;
 import com.evolveum.midpoint.model.UserComputer;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
@@ -35,6 +31,10 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;

@@ -16,10 +16,11 @@
 
 package com.evolveum.midpoint.web.page;
 
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;

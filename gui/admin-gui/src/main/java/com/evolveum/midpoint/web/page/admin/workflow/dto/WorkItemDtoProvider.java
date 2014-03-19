@@ -16,8 +16,8 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
-import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -27,6 +27,7 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
+
 import org.apache.wicket.Component;
 
 import java.util.Iterator;

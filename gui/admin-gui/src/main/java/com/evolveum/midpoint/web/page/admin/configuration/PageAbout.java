@@ -16,10 +16,10 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -28,6 +28,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+
 import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;

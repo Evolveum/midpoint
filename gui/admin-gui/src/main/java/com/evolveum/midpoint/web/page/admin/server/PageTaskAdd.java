@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
-import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -27,6 +25,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -46,6 +46,7 @@ import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
