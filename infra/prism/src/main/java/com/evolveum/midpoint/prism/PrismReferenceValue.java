@@ -30,6 +30,7 @@ import java.io.Serializable;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import org.w3c.dom.Element;
 
 /**
@@ -45,7 +46,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
     private QName targetType = null;
     private QName relation = null;
     private String description = null;
-    private ObjectFilter filter = null;
+    private SearchFilterType filter = null;
     
     public PrismReferenceValue() {
         this(null,null,null);
@@ -143,11 +144,11 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		this.description = description;
 	}
 
-	public ObjectFilter getFilter() {
+	public SearchFilterType getFilter() {
 		return filter;
 	}
 
-	public void setFilter(ObjectFilter filter) {
+	public void setFilter(SearchFilterType filter) {
 		this.filter = filter;
 	}
 	

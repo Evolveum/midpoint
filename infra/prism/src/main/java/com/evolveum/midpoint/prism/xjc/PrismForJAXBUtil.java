@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
@@ -422,7 +423,8 @@ public final class PrismForJAXBUtil {
 				return;
 			}
 			MapXNode filterXNode = parser.parseElementAsMap(filterElement);
-			ObjectFilter filter = QueryConvertor.parseFilter(filterXNode, rval.getPrismContext());
+			SearchFilterType filter = new SearchFilterType();
+            filter.parseFromXNode(filterXNode);
 			rval.setFilter(filter);
 		} catch (SchemaException e) {
 			throw new SystemException("Error parsing filter: "+e.getMessage(),e);
@@ -430,7 +432,7 @@ public final class PrismForJAXBUtil {
 	}
 
 	public static Element getReferenceFilterElement(PrismReferenceValue rval) {
-		ObjectFilter filter = rval.getFilter();
+		SearchFilterType filter = rval.getFilter();
 		if (filter == null) {
 			return null;
 		}
@@ -440,9 +442,9 @@ public final class PrismForJAXBUtil {
 		// equals and hashcode and similar methods.
 		DomParser parser = getDomParser(rval);
 		try {
-			MapXNode filterXmap = QueryConvertor.serializeFilter(filter, prismContext);
+			MapXNode filterXmap = filter.serializeToXNode(prismContext);
 			if (filterXmap.size() != 1) {
-				// This is supposed to be a map with just a single entry. This is an internall error
+				// This is supposed to be a map with just a single entry. This is an internal error
 				throw new IllegalArgumentException("Unexpected map in filter processing, it has "+filterXmap.size()+" entries");
 			}
 			Entry<QName, XNode> entry = filterXmap.entrySet().iterator().next();

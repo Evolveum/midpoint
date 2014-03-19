@@ -229,7 +229,13 @@ public class DomSerializer {
 	    		QName value = (QName) xprim.getValue();
 				DOMUtil.setQNameValue(element, value);
 	    	} else {
-	    		String value = xprim.getFormattedValue();
+                String value;
+                // TODO eliminate this if at all possible ... we should not provide raw value here
+                if (xprim.isParsed()) {
+                    value = xprim.getFormattedValue();
+                } else {
+                    value = xprim.getStringValue();
+                }
 	    		element.setTextContent(value);
 	    	}
 		}

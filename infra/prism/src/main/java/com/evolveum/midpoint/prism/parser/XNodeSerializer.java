@@ -23,6 +23,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -253,9 +254,9 @@ public class XNodeSerializer {
 		if (description != null) {
 			xmap.put(XNode.KEY_REFERENCE_DESCRIPTION, createPrimitiveXNode(description, DOMUtil.XSD_STRING));
 		}
-		ObjectFilter filter = value.getFilter();
+		SearchFilterType filter = value.getFilter();
 		if (filter != null) {
-			XNode xsubnode = QueryConvertor.serializeFilter(filter, this);
+			XNode xsubnode = filter.serializeToXNode(value.getPrismContext());
 			xmap.put(XNode.KEY_REFERENCE_FILTER, xsubnode);
 		}
 		

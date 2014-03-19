@@ -25,7 +25,9 @@ import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.query.ExpressionWrapper;
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -151,20 +153,24 @@ public class QueryConvertor {
 	 * Used by XNodeProcessor and similar code that does not have complete schema for the filter 
 	 */
 	public static ObjectFilter parseFilter(XNode xnode, PrismContext prismContext) throws SchemaException {
+        Validate.notNull(prismContext);
 		MapXNode xmap = toMap(xnode);
 		return parseFilterContainer(xmap, null, prismContext);
 	}
 	
 	public static <O extends Objectable> ObjectFilter parseFilter(MapXNode xmap, PrismObjectDefinition<O> objDef) throws SchemaException {
+        Validate.notNull(objDef);
 		if (xmap == null) {
 			return null;
 		}
 		return parseFilterContainer(xmap, objDef, objDef.getPrismContext());
 	}
 
+    // beware, pcd may be null
 	private static <C extends Containerable> ObjectFilter parseFilterContainer(MapXNode xmap, PrismContainerDefinition<C> pcd,
-		PrismContext prismContext) throws SchemaException {
-		Entry<QName, XNode> entry = singleSubEntry(xmap, "top-level element");
+		    PrismContext prismContext) throws SchemaException {
+        Validate.notNull(prismContext);
+		Entry<QName, XNode> entry = xmap.getSingleEntryThatDoesNotMatch(SearchFilterType.F_DESCRIPTION);
 		QName filterQName = entry.getKey();
 		XNode xsubnode = entry.getValue();
 		return parseFilterContainer(xsubnode, filterQName, pcd, prismContext);
@@ -214,7 +220,7 @@ public class QueryConvertor {
 
 	private static <C extends Containerable> List<ObjectFilter> parseLogicalFilter(XNode xnode,
 			PrismContainerDefinition<C> pcd, PrismContext prismContext) throws SchemaException {
-	List<ObjectFilter> subfilters = new ArrayList<ObjectFilter>();
+        List<ObjectFilter> subfilters = new ArrayList<ObjectFilter>();
 		MapXNode xmap = toMap(xnode);
 		for (Entry<QName, XNode> entry : xmap.entrySet()) {
 			if (entry.getValue() instanceof ListXNode){
@@ -230,6 +236,7 @@ public class QueryConvertor {
 		}
 		return subfilters;
 	}
+
 	private static <C extends Containerable> OrFilter parseOrFilter(XNode xnode, PrismContainerDefinition<C> pcd,
 			PrismContext prismContext) throws SchemaException {
 		List<ObjectFilter> subfilters = parseLogicalFilter(xnode, pcd, prismContext);
@@ -244,7 +251,6 @@ public class QueryConvertor {
 
 	private static <C extends Containerable> NotFilter parseNotFilter(XNode xnode, PrismContainerDefinition<C> pcd,
 			PrismContext prismContext) throws SchemaException {
-		List<ObjectFilter> subfilters = new ArrayList<ObjectFilter>();
 		MapXNode xmap = toMap(xnode);
 		Entry<QName, XNode> entry = singleSubEntry(xmap, "not");
 		ObjectFilter subfilter = parseFilterContainer(entry.getValue(), entry.getKey(), pcd, prismContext);
@@ -261,8 +267,8 @@ public class QueryConvertor {
 		
 		QName matchingRule = determineMatchingRule(xmap);
 		
-		if (itemPath.last() == null){
-			throw new SchemaException("Cannot convert query, becasue query does not contian property path.");
+		if (itemPath.last() == null) {
+			throw new SchemaException("Cannot convert query, because query does not contain property path.");
 		}
 		QName itemName = ItemPath.getName(itemPath.last());
 //		ItemPath parentPath = itemPath.allExceptLast();
@@ -303,7 +309,7 @@ public class QueryConvertor {
 		ItemPath itemPath = getPath(xmap, pcd.getPrismContext());
 		
 		if (itemPath == null || itemPath.isEmpty()){
-			throw new SchemaException("Cannot convert query, becasue query does not contian property path.");
+			throw new SchemaException("Cannot convert query, because query does not contain property path.");
 		}
 		
 		if (itemPath.last() == null){
@@ -462,7 +468,7 @@ public class QueryConvertor {
 	}
 	
 	private static <C extends Containerable> ItemDefinition locateItemDefinition(XNode valueXnode, ItemPath itemPath, PrismContainerDefinition<C> pcd, PrismContext prismContext) throws SchemaException{
-		QName itemName = ItemPath.getName(itemPath.last());
+		QName itemName = ItemPath.getName(itemPath.last());     // TODO why using only the last item name? It can be in a container different from 'pcd'
 		ItemDefinition itemDefinition = null;
 		if (pcd != null) {
 			itemDefinition = pcd.findItemDefinition(itemPath);
@@ -475,7 +481,6 @@ public class QueryConvertor {
 		}
 		return itemDefinition;
 	}
-
 
 	public static MapXNode serializeFilter(ObjectFilter filter, PrismContext prismContext) throws SchemaException{
 		return serializeFilter(filter, PrismUtil.getXnodeProcessor(prismContext).createSerializer());

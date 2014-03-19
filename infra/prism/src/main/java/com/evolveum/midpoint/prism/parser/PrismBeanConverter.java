@@ -15,20 +15,17 @@
  */
 package com.evolveum.midpoint.prism.parser;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBElement;
@@ -47,10 +44,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.Revivable;
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -60,7 +55,6 @@ import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Handler;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
@@ -339,7 +333,7 @@ public class PrismBeanConverter {
 			return null;
 		}
 		SearchFilterType filterType = new SearchFilterType();
-		filterType.parseFromXNode(xmap, prismContext);
+		filterType.parseFromXNode(xmap);
 		return filterType;
 	}
 	
@@ -643,7 +637,7 @@ public class PrismBeanConverter {
 		}
 		primValue = StringUtils.trim(primValue);
 		
-		String javaEnumString = findEnumValue(classType, primValue);
+		String javaEnumString = findEnumFieldName(classType, primValue);
 //		for (Field field: classType.getDeclaredFields()) {
 //			XmlEnumValue xmlEnumValue = field.getAnnotation(XmlEnumValue.class);
 //			if (xmlEnumValue != null && xmlEnumValue.value() != null && xmlEnumValue.value().equals(primValue)) {
@@ -669,8 +663,20 @@ public class PrismBeanConverter {
 		
 		return bean;
 	}
-	
-	private <T> String findEnumValue(Class classType, T primValue){
+
+    // TODO hacked, for now
+    private <T> String findEnumFieldValue(Class classType, Object bean){
+        String name = bean.toString();
+        for (Field field: classType.getDeclaredFields()) {
+            XmlEnumValue xmlEnumValue = field.getAnnotation(XmlEnumValue.class);
+            if (xmlEnumValue != null && field.getName().equals(name)) {
+                return xmlEnumValue.value();
+            }
+        }
+        return null;
+    }
+
+    private <T> String findEnumFieldName(Class classType, T primValue){
 		for (Field field: classType.getDeclaredFields()) {
 			XmlEnumValue xmlEnumValue = field.getAnnotation(XmlEnumValue.class);
 			if (xmlEnumValue != null && xmlEnumValue.value() != null && xmlEnumValue.value().equals(primValue)) {
@@ -702,7 +708,7 @@ public class PrismBeanConverter {
 		
 		//check for enums
 		if (beanClass.isEnum()){
-			String enumValue = findEnumValue(beanClass, bean);
+			String enumValue = findEnumFieldValue(beanClass, bean);
 			if (StringUtils.isEmpty(enumValue)){
 				enumValue = bean.toString();
 			}

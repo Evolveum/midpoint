@@ -72,6 +72,10 @@ public class MapXNode extends XNode implements Map<QName,XNode> {
 		return entry.getValue();
 	}
 
+    public XNode put(Map.Entry<QName, XNode> entry) {
+        return put(entry.getKey(), entry.getValue());
+    }
+
 	public XNode put(QName key, XNode value) {
 		removeEntry(key);
 		subnodes.add(new Entry(key, value));

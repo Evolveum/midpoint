@@ -24,6 +24,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
@@ -804,7 +805,7 @@ public class XNodeProcessor {
 		return refVal;
 	}
 
-	private ObjectFilter parseFilter(XNode xnode) throws SchemaException {
+	private SearchFilterType parseFilter(XNode xnode) throws SchemaException {
 		if (xnode == null) {
 			return null;
 		}
@@ -813,7 +814,7 @@ public class XNodeProcessor {
 			System.out.println("Emplty filter. Skipping parsing.");
 			return null;
 		}
-		return QueryConvertor.parseFilter(xnode, prismContext);
+		return SearchFilterType.createFromXNode(xnode);
 	}
 	
 	private String getOid(MapXNode xmap) throws SchemaException {

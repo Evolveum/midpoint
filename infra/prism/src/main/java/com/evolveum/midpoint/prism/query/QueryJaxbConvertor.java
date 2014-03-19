@@ -172,7 +172,8 @@ public class QueryJaxbConvertor {
 		QueryType queryType = new QueryType();
 		if (filter != null){
 			SearchFilterType filterType = new SearchFilterType();
-			filterType.setSearchFilter(filter);
+            MapXNode filterXNode = QueryConvertor.serializeFilter(filter, prismContext);
+			filterType.setFilterClauseXNode(filterXNode);
 			queryType.setFilter(filterType);
 		}
 				

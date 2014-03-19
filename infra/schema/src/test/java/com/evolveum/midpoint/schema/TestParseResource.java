@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.parser.DomParser;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.parser.XNodeProcessor;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ExpressionWrapper;
@@ -367,7 +368,7 @@ public class TestParseResource {
 		}
 	}
 
-	private void assertResourcePrism(PrismObject<ResourceType> resource, boolean isSimple) {
+	private void assertResourcePrism(PrismObject<ResourceType> resource, boolean isSimple) throws SchemaException {
 		assertEquals("Wrong oid (prism)", RESOURCE_OID, resource.getOid());
 //		assertEquals("Wrong version", "42", resource.getVersion());
 		PrismObjectDefinition<ResourceType> resourceDefinition = resource.getDefinition();
@@ -391,7 +392,7 @@ public class TestParseResource {
     	PrismReferenceValue connectorRefVal = connectorRef.getValue();
     	assertNotNull("No connectorRef value", connectorRefVal);
     	assertEquals("Wrong type in connectorRef value", ConnectorType.COMPLEX_TYPE, connectorRefVal.getTargetType());
-    	ObjectFilter filter = connectorRefVal.getFilter();
+    	SearchFilterType filter = connectorRefVal.getFilter();
     	assertNotNull("No filter in connectorRef value", filter);
 				
 		PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
@@ -431,7 +432,10 @@ public class TestParseResource {
 			SearchFilterType correlationFilterType = correlations.get(0);
 			System.out.println("\nCorrelation filter");
 			System.out.println(correlationFilterType.debugDump());
-			ObjectFilter objectFilter = correlationFilterType.getSearchFilter();
+
+            PrismContext prismContext = PrismTestUtil.getPrismContext();
+
+			ObjectFilter objectFilter = QueryConvertor.parseFilter(correlationFilterType.serializeToXNode(prismContext), prismContext);
 			PrismAsserts.assertAssignableFrom(EqualsFilter.class, objectFilter);
 			EqualsFilter equalsFilter = (EqualsFilter)objectFilter;
 			equalsFilter.getFullPath();

@@ -27,6 +27,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
@@ -838,30 +839,33 @@ public class PrismDomProcessor {
 
 
 	public PrismReferenceValue parseReferenceValue(Element element) {
-		String oid = getOid(element);
-		QName type = DOMUtil.getQNameAttribute(element, PrismConstants.ATTRIBUTE_REF_TYPE_LOCAL_NAME);
-		if (type != null) {
-			DOMUtil.validateNonEmptyQName(type, " in reference type in " + DOMUtil.getQName(element));
-		}
-		PrismReferenceValue refVal = new PrismReferenceValue(oid);
-		refVal.setTargetType(type);
 
-		QName relationAttribute = DOMUtil.getQNameAttribute(element, PrismConstants.ATTRIBUTE_RELATION_LOCAL_NAME);
-		if (relationAttribute != null) {
-			DOMUtil.validateNonEmptyQName(relationAttribute, " in reference type in " + DOMUtil.getQName(element));
-		}
-		refVal.setRelation(relationAttribute);
+        throw new UnsupportedOperationException();
 
-		Element descriptionElement = DOMUtil.getChildElement(element, PrismConstants.ELEMENT_DESCRIPTION_LOCAL_NAME);
-		if (descriptionElement != null) {
-			refVal.setDescription(descriptionElement.getTextContent());
-		}
-		Element filterElement = DOMUtil.getChildElement(element, PrismConstants.ELEMENT_FILTER_LOCAL_NAME);
-		if (filterElement != null) {
-			refVal.setFilter((ObjectFilter) DOMUtil.getFirstChildElement(filterElement));
-		}
-
-		return refVal;
+//		String oid = getOid(element);
+//		QName type = DOMUtil.getQNameAttribute(element, PrismConstants.ATTRIBUTE_REF_TYPE_LOCAL_NAME);
+//		if (type != null) {
+//			DOMUtil.validateNonEmptyQName(type, " in reference type in " + DOMUtil.getQName(element));
+//		}
+//		PrismReferenceValue refVal = new PrismReferenceValue(oid);
+//		refVal.setTargetType(type);
+//
+//		QName relationAttribute = DOMUtil.getQNameAttribute(element, PrismConstants.ATTRIBUTE_RELATION_LOCAL_NAME);
+//		if (relationAttribute != null) {
+//			DOMUtil.validateNonEmptyQName(relationAttribute, " in reference type in " + DOMUtil.getQName(element));
+//		}
+//		refVal.setRelation(relationAttribute);
+//
+//		Element descriptionElement = DOMUtil.getChildElement(element, PrismConstants.ELEMENT_DESCRIPTION_LOCAL_NAME);
+//		if (descriptionElement != null) {
+//			refVal.setDescription(descriptionElement.getTextContent());
+//		}
+//		Element filterElement = DOMUtil.getChildElement(element, PrismConstants.ELEMENT_FILTER_LOCAL_NAME);
+//		if (filterElement != null) {
+//			refVal.setFilter((SearchFilterType) DOMUtil.getFirstChildElement(filterElement));       // will throw ClassCastException for now
+//		}
+//
+//		return refVal;
 	}
 
 	private PrismReference parseReference(List<? extends Object> elements, ItemDefinition definition) throws SchemaException{
@@ -925,34 +929,37 @@ public class PrismDomProcessor {
 	 * before raising an error.
 	 */
 	private PrismReferenceValue parseReferenceValueFromObject(Object referenceObject) throws SchemaException {
-		String oid = ReflectionUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_OID, String.class);
-		QName type = ReflectionUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_TYPE, QName.class);
-		PrismReferenceValue refVal = new PrismReferenceValue(oid);
-		refVal.setTargetType(type);
-		String description = ReflectionUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_DESCRIPTION, String.class);
-		refVal.setDescription(description);
-		Object filterType = ReflectionUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_FILTER, Object.class);
-		if (filterType != null) {
-			if (ReflectionUtil.hasJavaProperty(filterType, JAVA_JAXB_PROPERTY_ANY)) {
-				List filterElementList = ReflectionUtil.getJavaProperty(filterType, JAVA_JAXB_PROPERTY_ANY, List.class);
-				if (filterElementList != null) {
-					Object firstElement = filterElementList.get(0);
-					if (firstElement instanceof Element) {
-						refVal.setFilter((ObjectFilter) firstElement);
-					} else {
-						throw new SchemaException("Unknown type of filter element " + firstElement.getClass());
-					}
-				}
-			} else if (ReflectionUtil.hasJavaProperty(filterType, JAVA_PROPERTY_FILTER)) {
-				Element filterElement = ReflectionUtil.getJavaProperty(filterType, JAVA_PROPERTY_FILTER, Element.class);
-				refVal.setFilter((ObjectFilter) filterElement);
-			} else {
-				throw new SchemaException("JAXB bean of type " + referenceObject.getClass().getName()
-						+ " representing prism reference" + " does not contain '" + JAVA_JAXB_PROPERTY_ANY
-						+ "' property nor '" + JAVA_PROPERTY_FILTER + "' property");
-			}
-		}
-		return refVal;
+
+        throw new UnsupportedOperationException();
+
+//		String oid = ReflectionUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_OID, String.class);
+//		QName type = ReflectionUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_TYPE, QName.class);
+//		PrismReferenceValue refVal = new PrismReferenceValue(oid);
+//		refVal.setTargetType(type);
+//		String description = ReflectionUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_DESCRIPTION, String.class);
+//		refVal.setDescription(description);
+//		Object filterType = ReflectionUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_FILTER, Object.class);
+//		if (filterType != null) {
+//			if (ReflectionUtil.hasJavaProperty(filterType, JAVA_JAXB_PROPERTY_ANY)) {
+//				List filterElementList = ReflectionUtil.getJavaProperty(filterType, JAVA_JAXB_PROPERTY_ANY, List.class);
+//				if (filterElementList != null) {
+//					Object firstElement = filterElementList.get(0);
+//					if (firstElement instanceof Element) {
+//						refVal.setFilter((ObjectFilter) firstElement);
+//					} else {
+//						throw new SchemaException("Unknown type of filter element " + firstElement.getClass());
+//					}
+//				}
+//			} else if (ReflectionUtil.hasJavaProperty(filterType, JAVA_PROPERTY_FILTER)) {
+//				Element filterElement = ReflectionUtil.getJavaProperty(filterType, JAVA_PROPERTY_FILTER, Element.class);
+//				refVal.setFilter((ObjectFilter) filterElement);
+//			} else {
+//				throw new SchemaException("JAXB bean of type " + referenceObject.getClass().getName()
+//						+ " representing prism reference" + " does not contain '" + JAVA_JAXB_PROPERTY_ANY
+//						+ "' property nor '" + JAVA_PROPERTY_FILTER + "' property");
+//			}
+//		}
+//		return refVal;
 	}
 
 	/**

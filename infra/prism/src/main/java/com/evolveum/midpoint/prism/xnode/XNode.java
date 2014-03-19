@@ -32,7 +32,7 @@ import com.evolveum.midpoint.util.Transformer;
  * @author semancik
  *
  */
-public abstract class XNode implements DebugDumpable, Visitable {
+public abstract class XNode implements DebugDumpable, Visitable, Cloneable {
 	
 	public static final QName KEY_OID = new QName(null, "oid");
 	public static final QName KEY_VERSION = new QName(null, "version");
@@ -124,7 +124,11 @@ public abstract class XNode implements DebugDumpable, Visitable {
 	}
 	
 	public abstract void accept(Visitor visitor);
-	
+
+    public XNode clone() {
+        return cloneTransformKeys(null);
+    }
+
 	public XNode cloneTransformKeys(Transformer<QName> keyTransformer) {
 		return cloneTransformKeys(keyTransformer, this);
 	}
@@ -137,7 +141,7 @@ public abstract class XNode implements DebugDumpable, Visitable {
 			MapXNode xclone = new MapXNode();
 			for (Entry<QName,XNode> entry: xmap.entrySet()) {
 				QName key = entry.getKey();
-				QName newKey = keyTransformer.transform(key);
+				QName newKey = keyTransformer != null ? keyTransformer.transform(key) : key;
 				if (newKey != null) {
 					XNode value = entry.getValue();
 					XNode newValue = cloneTransformKeys(keyTransformer, value);

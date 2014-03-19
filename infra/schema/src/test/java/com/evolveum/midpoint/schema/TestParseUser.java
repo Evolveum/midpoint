@@ -261,7 +261,7 @@ public abstract class TestParseUser {
 		assertEquals("Wrong ref3 oid (prism)",  USER_ACCOUNT_REF_3_OID, accountRef3Val.getOid());
 		assertEquals("Wrong ref3 type (prism)", ShadowType.COMPLEX_TYPE, accountRef3Val.getTargetType());
 		assertEquals("Wrong ref3 description (prism)", "This is third accountRef", accountRef3Val.getDescription());
-		ObjectFilter accountRef3ValFilterElement = accountRef3Val.getFilter();
+		SearchFilterType accountRef3ValFilterElement = accountRef3Val.getFilter();
 		assertFilter("ref3", accountRef3ValFilterElement);
 	}
 	
@@ -273,7 +273,7 @@ public abstract class TestParseUser {
 		assertEquals("Wrong "+message+" filter localName", "equal", filterElement.getLocalName());
 	}
 	
-	private void assertFilter(String message, ObjectFilter filter) {
+	private void assertFilter(String message, SearchFilterType filter) {
 		assertNotNull("No "+message+" filter", filter);
 	}
 
