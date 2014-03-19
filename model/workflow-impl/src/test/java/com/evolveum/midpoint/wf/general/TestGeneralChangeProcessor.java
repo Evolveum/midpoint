@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -48,9 +49,7 @@ import com.evolveum.midpoint.wf.processors.general.GeneralChangeProcessor;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.util.JaxbValueContainer;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.QuestionFormType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.WorkItemContents;
@@ -263,12 +262,10 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
         Element root = DOMUtil.parseDocument(xml).getDocumentElement();
 
         QName name = new QName("http://midpoint.evolveum.com/xml/ns/public/model/model-context-2", "modelContext");
-        QName type = new QName("http://midpoint.evolveum.com/xml/ns/public/model/model-context-2", "LensContextType");
-        // Here should be ContainerDefinition - but that would fail in sql repository,
-        // I really don't understand what's going on.
-        PrismPropertyDefinition def = new PrismPropertyDefinition(name, type, prismContext);
-        Item parsedItem = domProcessor.parseItem(DOMUtil.listChildElements(root),
-                name, def);
+
+        PrismObjectDefinition oDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class);
+        PrismContainerDefinition def = oDef.findContainerDefinition(new ItemPath(ObjectType.F_EXTENSION, name));
+        Item parsedItem = domProcessor.parseItem(DOMUtil.listChildElements(root), name, def);
         LOGGER.debug("Parser:\n{}", parsedItem.debugDump());
     }
 
