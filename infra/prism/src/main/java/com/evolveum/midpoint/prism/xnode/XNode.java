@@ -60,7 +60,7 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable {
 	private String originDescription;
 	private int lineNumber;
 	
-	// These may be deteceted in parsed file and
+	// These may be detected in parsed file and
 	// are also used for serialization
 	private QName typeQName;
 	private Integer maxOccurs;

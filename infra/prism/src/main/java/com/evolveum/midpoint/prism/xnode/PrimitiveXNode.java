@@ -105,7 +105,29 @@ public class PrimitiveXNode<T> extends XNode {
 		return false;
 	}
 
-	/**
+    /**
+     * Returns formatted parsed value without actually changing node state from UNPARSED to PARSED
+     * (if node is originally unparsed).
+     *
+     * Useful e.g. to serialize nodes that have a type declaration but were not parsed yet.
+     *
+     * Experimental. Should be thought through yet.
+     *
+     * @return properly formatted value
+     */
+    public String getGuessedFormattedValue() throws SchemaException {
+        if (getTypeQName() == null) {
+            throw new IllegalStateException("Cannot fetch formatted value if type definition is not set");
+        }
+        if (isParsed()) {
+            return getFormattedValue();
+        } else {
+            T value = valueParser.parse(getTypeQName());
+            return formatValue(value);
+        }
+    }
+
+    /**
 	 * Returns a value that is correctly string-formatted according
 	 * to its type definition. Works properly only if definition is set.
 	 */
@@ -117,16 +139,20 @@ public class PrimitiveXNode<T> extends XNode {
 			throw new IllegalStateException("Cannot fetch formatted value if the xnode is not parsed");
 		}
 		T value = getValue();
-		if (value instanceof PolyString) {
-			return ((PolyString)value).getOrig();
-		}
-		if (value instanceof QName) {
-			return QNameUtil.qNameToUri((QName)value);
-		}
-		return XmlTypeConverter.toXmlTextContent(value, null);
+        return formatValue(value);
 	}
-	
-	@Override
+
+    private String formatValue(T value) {
+        if (value instanceof PolyString) {
+            return ((PolyString) value).getOrig();
+        }
+        if (value instanceof QName) {
+            return QNameUtil.qNameToUri((QName) value);
+        }
+        return XmlTypeConverter.toXmlTextContent(value, null);
+    }
+
+    @Override
 	public void accept(Visitor visitor) {
 		visitor.visit(this);
 	}
@@ -214,5 +240,4 @@ public class PrimitiveXNode<T> extends XNode {
 		// TODO Auto-generated method stub
 		return super.hashCode();
 	}
-
 }

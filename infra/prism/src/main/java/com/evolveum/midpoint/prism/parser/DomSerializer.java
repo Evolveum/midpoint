@@ -185,7 +185,7 @@ public class DomSerializer {
 		return DOMUtil.getFirstChildElement(parent);
 	}
 
-	private void serializePrimitiveElement(PrimitiveXNode<?> xprim, Element parentElement, QName elementName) {
+	private void serializePrimitiveElement(PrimitiveXNode<?> xprim, Element parentElement, QName elementName) throws SchemaException {
 		QName typeQName = xprim.getTypeQName();
 		if (typeQName == null) {
 			if (PrismContext.isAllowSchemalessSerialization()) {
@@ -231,11 +231,11 @@ public class DomSerializer {
 	    	} else {
                 String value;
                 // TODO eliminate this if at all possible ... we should not provide raw value here
-                if (xprim.isParsed()) {
-                    value = xprim.getFormattedValue();
-                } else {
-                    value = xprim.getStringValue();
-                }
+//                if (xprim.isParsed()) {
+                    value = xprim.getGuessedFormattedValue();
+//                } else {
+//                    value = xprim.getStringValue();
+//                }
 	    		element.setTextContent(value);
 	    	}
 		}
