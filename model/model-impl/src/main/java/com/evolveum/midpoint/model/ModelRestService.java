@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.QueryConvertor;
@@ -62,6 +63,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificatio
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ModelExecuteOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationalStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -320,6 +322,32 @@ LOGGER.info("model rest service for add operation start");
 		}
 		
 	}
+	
+	@POST
+	@Path("/notifyChange")
+	public Response notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription, @Context UriInfo uriInfo){
+		LOGGER.info("model rest service for notify change operation start");
+
+		Task task = taskManager.createTaskInstance();
+		OperationResult parentResult = new OperationResult("find shadow owner");
+		try {
+			model.notifyChange(changeDescription, parentResult, task);
+			return Response.seeOther((uriInfo.getBaseUriBuilder().path(this.getClass(), "getObject").build(ObjectTypes.TASK.getRestType(), task.getOid()))).build();
+		} catch (ObjectAlreadyExistsException e) {
+			return Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (ObjectNotFoundException e) {
+			return Response.status(Status.NOT_FOUND).entity(e.getMessage()).build();
+		} catch (SchemaException e) {
+			return Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (CommunicationException e) {
+			return Response.status(Status.GATEWAY_TIMEOUT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (ConfigurationException e) {
+			return Response.status(Status.BAD_GATEWAY).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (SecurityViolationException e) {
+			return Response.status(Status.FORBIDDEN).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		}
+	}
+
 
 	
 	@GET
@@ -506,7 +534,7 @@ LOGGER.info("model rest service for add operation start");
         
         
     }
-
+	
 //    @GET
 //    @Path("tasks/{oid}")
     public Response getTaskByIdentifier(@PathParam("oid") String identifier) throws SchemaException, ObjectNotFoundException {

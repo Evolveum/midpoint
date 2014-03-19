@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -26,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.controller.ModelController;
@@ -39,8 +41,12 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismValidate;
+import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
+import com.evolveum.midpoint.provisioning.api.ResourceEventDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -59,9 +65,11 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 /**
  * Simple version of model service exposing CRUD-like operations. This is common facade for webservice and REST services.
@@ -91,6 +99,12 @@ public class ModelCrudService {
 	@Qualifier("cacheRepositoryService")
 	RepositoryService repository;
 	
+	@Autowired(required = true)
+	private Protector protector;
+	
+	@Autowired(required = true)
+	private ChangeNotificationDispatcher dispatcher;
+	
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid,
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -103,6 +117,76 @@ public class ModelCrudService {
 			SecurityViolationException {
 		return modelController.searchObjects(type, query, options, task, parentResult);
 	}
+	
+	public void notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription, OperationResult parentResult, Task task) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectNotFoundException, GenericConnectorException, ObjectAlreadyExistsException{
+		
+		String oldShadowOid = changeDescription.getOldShadowOid();
+		ResourceEventDescription eventDescription = new ResourceEventDescription();
+		
+			PrismObject<ShadowType> oldShadow = null;
+			LOGGER.trace("resolving old object");
+			if (!StringUtils.isEmpty(oldShadowOid)){
+				oldShadow = getObject(ShadowType.class, oldShadowOid, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), task, parentResult);
+				eventDescription.setOldShadow(oldShadow);
+				LOGGER.trace("old object resolved to: {}", oldShadow.debugDump());
+			} else{
+				LOGGER.trace("Old shadow null");
+			}
+			
+				PrismObject<ShadowType> currentShadow = null;
+				ShadowType currentShadowType = changeDescription.getCurrentShadow();
+				LOGGER.trace("resolving current shadow");
+				if (currentShadowType != null){
+					prismContext.adopt(currentShadowType);
+					currentShadow = currentShadowType.asPrismObject();
+					LOGGER.trace("current shadow resolved to {}", currentShadow.debugDump());
+				}
+				
+				eventDescription.setCurrentShadow(currentShadow);
+				
+				ObjectDeltaType deltaType = changeDescription.getObjectDelta();
+				ObjectDelta delta = null;
+				
+				PrismObject<ShadowType> shadowToAdd = null;
+				if (deltaType != null){
+				
+					delta = ObjectDelta.createEmptyDelta(ShadowType.class, deltaType.getOid(), prismContext, ChangeType.toChangeType(deltaType.getChangeType()));
+					
+					if (delta.getChangeType() == ChangeType.ADD) {
+//						LOGGER.trace("determined ADD change ");
+						if (deltaType.getObjectToAdd() == null){
+							LOGGER.trace("No object to add specified. Check your delta. Add delta must contain object to add");
+							throw new IllegalArgumentException("No object to add specified. Check your delta. Add delta must contain object to add");
+//							return handleTaskResult(task);
+						}
+						Object objToAdd = deltaType.getObjectToAdd().getAny();
+						if (!(objToAdd instanceof ShadowType)){
+							LOGGER.trace("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
+							throw new IllegalArgumentException("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
+//							return handleTaskResult(task);
+						}
+						prismContext.adopt((ShadowType)objToAdd);
+						
+						shadowToAdd = ((ShadowType) objToAdd).asPrismObject();
+						LOGGER.trace("object to add: {}", shadowToAdd.debugDump());
+						delta.setObjectToAdd(shadowToAdd);
+					} else {
+						Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(deltaType.getModification(), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class));
+						delta.getModifications().addAll(modifications);
+					} 
+				}
+				Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+				deltas.add(delta);
+				Utils.encrypt(deltas, protector, null, parentResult);
+				eventDescription.setDelta(delta);
+					
+				eventDescription.setSourceChannel(changeDescription.getChannel());
+			
+					dispatcher.notifyEvent(eventDescription, task, parentResult);
+					parentResult.computeStatus();
+					task.setResult(parentResult);
+	}
+	
 
 	/**
 	 * <p>
