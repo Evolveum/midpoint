@@ -23,13 +23,14 @@
          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
          xmlns:my="http://myself.me/schemas/whatever"
          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
 
-    <object xsi:type="UserType" version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+    <c:object xsi:type="UserType" version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 
             xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
-        <name>atestuserX00002</name>
+        <c:name>atestuserX00002</c:name>
         
         <trigger id="2">
             <handlerUri>http://triggerUri</handlerUri>
@@ -110,7 +111,7 @@
             <effectiveStatus>disabled</effectiveStatus>
             <disableReason>asdfreason</disableReason>
         </activation>
-    </object>
+    </c:object>
 
     <object xsi:type="UserType" version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 
@@ -153,10 +154,10 @@
         </activation>
     </object>
 
-    <resource>
+    <c:resource>
 
         <!-- Resource name. It will be displayed in GUI.  -->
-        <name>Localhost OpenDJ</name>
+        <c:name>Localhost OpenDJ</c:name>
 
         <description>
             LDAP resource using an Identity Connector Framework LDAP connector. It contains configuration
@@ -583,24 +584,22 @@
             <enabled>true</enabled>
 
             <correlation>
-                <description>
+                <q:description>
                     Correlation expression is a search query.
                     Following search queury will look for users that have "name"
                     equal to the "uid" attribute of the account. Simply speaking,
                     it will look for match in usernames in the IDM and the resource.
                     The correlation rule always looks for users, so it will not match
                     any other object type.
-                </description>
-                <filter>
-                <equal>
-                    <path>name</path>
-                    <valueExpression>
-                        <code>
+                </q:description>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <c:valueExpression>
+                        <c:code>
                             $c:account/c:attributes/ri:uid
-                        </code>
-                    </valueExpression>
-                </equal>
-                </filter>
+                        </c:code>
+                    </c:valueExpression>
+                </q:equal>
             </correlation>
 
             <!-- Confirmation rule may be here, but as the search above will
@@ -647,7 +646,7 @@
    <assignmentPolicyEnforcement>positive</assignmentPolicyEnforcement>
    </projection>
 
-    </resource>
+    </c:resource>
 
     <resource>
 
