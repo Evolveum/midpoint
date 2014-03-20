@@ -22,10 +22,9 @@ import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -50,23 +49,24 @@ import com.evolveum.midpoint.wf.processors.general.GeneralChangeProcessor;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.util.JaxbValueContainer;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.QuestionFormType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.WorkItemContents;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
+import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
+import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.io.File;
+import java.io.FileInputStream;
 import java.util.List;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -118,6 +118,9 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
     @Autowired
     private GeneralChangeProcessor generalChangeProcessor;
+
+    @Autowired
+    private PrismContext prismContext;
 
     private ActivitiUtil activitiUtil = new ActivitiUtil();                 // this is not a spring bean
 
@@ -246,6 +249,34 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
 
         });
+    }
+
+    @Test(enabled = false)
+    public void test028CurrentRepo() throws Exception {
+        TestUtil.displayTestTile(this, "test029NewRepo");
+
+        //old repo
+        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+        //"extension" value
+        String xml = IOUtils.toString(new FileInputStream("./src/test/resources/model-context.xml"), "utf-8");
+        Element root = DOMUtil.parseDocument(xml).getDocumentElement();
+
+        QName name = new QName("http://midpoint.evolveum.com/xml/ns/public/model/model-context-2", "modelContext");
+
+        PrismObjectDefinition oDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class);
+        PrismContainerDefinition def = oDef.findContainerDefinition(new ItemPath(ObjectType.F_EXTENSION, name));
+        Item parsedItem = domProcessor.parseItem(DOMUtil.listChildElements(root), name, def);
+        LOGGER.debug("Parser:\n{}", parsedItem.debugDump());
+    }
+
+    @Test(enabled = false)
+    public void test029NewRepo() throws Exception {
+        TestUtil.displayTestTile(this, "test029NewRepo");
+
+        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+        String xml = IOUtils.toString(new FileInputStream("./src/test/resources/task.xml"), "utf-8");
+        PrismObject o = domProcessor.parseObject(xml);
+        LOGGER.info("Parsed:\n{}", o.debugDump());
     }
 
     @Test(enabled = true)
