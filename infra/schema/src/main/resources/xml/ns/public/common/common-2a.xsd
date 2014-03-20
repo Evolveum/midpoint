@@ -6298,11 +6298,25 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
+			<xsd:element name="orgRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                        	Top node of an organizational hierarchy. This node and all of its subnodes
+                        	(transitively, unlimited depth) are considered selected.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+            			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+            		</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         	<xsd:element name="filter" type="q:QueryType" minOccurs="0" maxOccurs="1">
         		<xsd:annotation>
         			<xsd:documentation>
-        				Action part from the (subject,action,object) authorization triple. It is an URL to allow extension.
-        				Multiple actions may be specified. In that case the authorization applies to all of them.
+        				Filter that an object must match to be considered selected by this statement.
+        				This filter MUST NOT containt organization unit clauses. It may only contain
+        				property clauses, logical operations and so on.
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
@@ -6319,6 +6333,9 @@
 
 	<xsd:simpleType name="SpecialObjectSpecificationType">
         <xsd:annotation>
+        	<xsd:documentation>
+        		Specification used to select special cases that are usually context-relative.
+        	</xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
             </xsd:appinfo>
@@ -6327,6 +6344,11 @@
             <xsd:enumeration value="self">
                 <xsd:annotation>
                     <xsd:appinfo>
+                    	<xsd:documentation>
+                    		Object that represents itself. This usually represents an
+                    		object that corresponds to a currently logged-in user.
+                    		E.g. it may be used to allow each user to change his own password.
+                    	</xsd:documentation>
                         <jaxb:typesafeEnumMember name="SELF"/>
                     </xsd:appinfo>
                 </xsd:annotation>
