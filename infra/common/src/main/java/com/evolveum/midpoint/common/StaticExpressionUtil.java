@@ -129,12 +129,12 @@ public class StaticExpressionUtil {
 		return output;
 	}
 
-	public static <V extends PrismValue> List<?> serializeValueElements(Item<V> item, String contextDescription) throws SchemaException {
+	public static <V extends PrismValue> List<JAXBElement<RawType>> serializeValueElements(Item<V> item, String contextDescription) throws SchemaException {
 		if (item == null) {
 			return null;
 		}
 		XNodeProcessor xnodeProcessor = item.getPrismContext().getXnodeProcessor();
-		List<Object> elements = new ArrayList<Object>(1);
+		List<JAXBElement<RawType>> elements = new ArrayList<>(1);
 		XNode xnode = xnodeProcessor.serializeItem(item);
 		RawType rawType = new RawType();
 		rawType.setXnode(xnode);

@@ -17,6 +17,7 @@ package com.evolveum.midpoint.prism.parser;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -89,7 +90,14 @@ public class DomParser implements Parser {
 		return parse(document);
 	}
 
-	@Override
+    @Override
+    public XNode parse(InputStream stream) throws SchemaException, IOException {
+        Document document = DOMUtil.parse(stream);
+        return parse(document);
+    }
+
+
+    @Override
 	public XNode parse(String dataString) throws SchemaException {
 		Document document = DOMUtil.parseDocument(dataString);
 		return parse(document);

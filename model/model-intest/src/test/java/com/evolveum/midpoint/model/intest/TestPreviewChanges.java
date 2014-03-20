@@ -23,6 +23,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 
 import javax.xml.bind.JAXBException;
@@ -106,8 +107,10 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 					return PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
 				} catch (SchemaException e) {
 					throw new IllegalStateException(e.getMessage(),e);
-				}
-			}
+				} catch (IOException e) {
+                    throw new IllegalStateException(e.getMessage(),e);
+                }
+            }
 		};
         
 		ObjectChecker<ModelContext<UserType>> checker = new ObjectChecker<ModelContext<UserType>>() {
@@ -140,7 +143,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 					PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
 					account.removeContainer(ShadowType.F_ATTRIBUTES);
 					return account;
-				} catch (SchemaException e) {
+				} catch (SchemaException|IOException e) {
 					throw new IllegalStateException(e.getMessage(),e);
 				}
 			}

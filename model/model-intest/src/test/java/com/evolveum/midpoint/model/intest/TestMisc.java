@@ -27,6 +27,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
 
+import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -126,7 +127,7 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         	display("Exporting user", user);
         	assertNotNull("Null definition in "+user, user.getDefinition());
         	display("Definition", user.getDefinition());
-        	String xmlString = prismContext.getPrismDomProcessor().serializeObjectToString(user);
+        	String xmlString = new PrismDomProcessor(prismContext.getSchemaRegistry()).serializeObjectToString(user);
         	display("Exported user", xmlString);
         	
         	Document xmlDocument = DOMUtil.parseDocument(xmlString);

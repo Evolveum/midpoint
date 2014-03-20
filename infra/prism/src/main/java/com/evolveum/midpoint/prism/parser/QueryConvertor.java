@@ -166,6 +166,11 @@ public class QueryConvertor {
 		return parseFilterContainer(xmap, objDef, objDef.getPrismContext());
 	}
 
+    public static ObjectFilter parseFilter(SearchFilterType filter, PrismObjectDefinition objDef) throws SchemaException {
+        Validate.notNull(objDef);
+        return parseFilter(filter.getFilterClauseXNode(objDef.getPrismContext()), objDef);
+    }
+
     // beware, pcd may be null
 	private static <C extends Containerable> ObjectFilter parseFilterContainer(MapXNode xmap, PrismContainerDefinition<C> pcd,
 		    PrismContext prismContext) throws SchemaException {
@@ -793,7 +798,7 @@ public class QueryConvertor {
 //			throw e;
 //		}
 	}
-	
+
 //	private static void parseExpression(PropertyValueFilter<?> propValFilter, PrismContext prismContext) throws SchemaException {
 //		ExpressionWrapper xexpression = propValFilter.getExpression();
 //		if (xexpression != null) {

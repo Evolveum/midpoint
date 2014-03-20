@@ -21,6 +21,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.ConnectException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -330,7 +331,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 	}
 	
 	private LensProjectionContext fillContextWithDummyElaineAccount(
-			LensContext<UserType> context, String dummyName, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+			LensContext<UserType> context, String dummyName, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, IOException {
 		String resourceOid = getDummyOid(dummyName);
 		String accountOid = getDummuAccountOid(dummyName,"e");
 		PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_ELAINE_TEMPLATE_FILE);

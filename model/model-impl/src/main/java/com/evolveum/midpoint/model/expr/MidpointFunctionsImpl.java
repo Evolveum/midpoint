@@ -63,6 +63,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

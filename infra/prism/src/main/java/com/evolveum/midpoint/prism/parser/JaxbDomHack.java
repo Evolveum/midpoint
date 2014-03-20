@@ -15,8 +15,11 @@
  */
 package com.evolveum.midpoint.prism.parser;
 
+import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +32,9 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.schema.SchemaDescription;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
@@ -403,5 +408,62 @@ public class JaxbDomHack {
     private Unmarshaller createUnmarshaller() throws JAXBException {
         return jaxbContext.createUnmarshaller();
     }
+
+    public <T> T unmarshalObject(InputStream input) throws JAXBException, SchemaException {
+        Object object = createUnmarshaller().unmarshal(input);
+        JAXBElement<T> jaxbElement = (JAXBElement<T>) object;
+        adopt(jaxbElement);
+
+        if (jaxbElement == null) {
+            return null;
+        } else {
+            return jaxbElement.getValue();
+        }
+    }
+
+    private void adopt(Object object) throws SchemaException {
+        if (object instanceof JAXBElement) {
+            adopt(((JAXBElement)object).getValue());
+        } else if (object instanceof Objectable) {
+            prismContext.adopt(((Objectable) (object)));
+        }
+    }
+
+    public String silentMarshalObject(Object object, Trace logger) {
+        PrismDomProcessor prismDomProcessor = new PrismDomProcessor(prismContext.getSchemaRegistry());          // TODO brutal hack
+        String xml = null;
+        try {
+            QName fakeQName=new QName(PrismConstants.NS_PREFIX + "debug", "debugPrintObject");
+            if (object instanceof Objectable) {
+                xml = prismDomProcessor.serializeObjectToString(((Objectable) object).asPrismObject());
+            } else if (object instanceof Containerable) {
+                Element fakeParent = DOMUtil.createElement(DOMUtil.getDocument(), fakeQName);
+                xml = prismDomProcessor.serializeObjectToString(((Containerable) object).asPrismContainerValue(),
+                        fakeParent);
+            } else {
+                xml = marshalElementToString(new JAXBElement<Object>(fakeQName, Object.class, object));
+            }
+        } catch (Exception ex) {
+            Trace log = logger != null ? logger : LOGGER;
+            LoggingUtils.logException(log, "Couldn't marshal element to string {}", ex, object);
+        }
+        return xml;
+    }
+
+    public String marshalElementToString(JAXBElement<?> jaxbElement) throws JAXBException {
+        return marshalElementToString(jaxbElement, new HashMap<String, Object>());
+    }
+
+    public String marshalElementToString(JAXBElement<?> jaxbElement, Map<String, Object> properties) throws JAXBException {
+        StringWriter writer = new StringWriter();
+        Marshaller marshaller = createMarshaller(null);
+        for (Entry<String, Object> entry : properties.entrySet()) {
+            marshaller.setProperty(entry.getKey(), entry.getValue());
+        }
+        marshaller.marshal(jaxbElement, writer);
+        return writer.getBuffer().toString();
+    }
+
+
 
 }

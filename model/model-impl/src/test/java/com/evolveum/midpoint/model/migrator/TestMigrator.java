@@ -101,7 +101,7 @@ public class TestMigrator {
 		assertEquals(superUserRole.getTargetRef().getOid(), SystemObjectsType.ROLE_SUPERUSER.value());
 	}
 	
-	private <O extends ObjectType> void assertSimpleMigration(File fileOld, File fileNew) throws SchemaException {
+	private <O extends ObjectType> void assertSimpleMigration(File fileOld, File fileNew) throws SchemaException, IOException {
 		// GIVEN
 		Migrator migrator = createMigrator();
 		
@@ -117,12 +117,12 @@ public class TestMigrator {
 		assertNotNull("No migrated object "+fileOld.getName(), objectNew);
 
 		IntegrationTestTools.display("Migrated object "+fileOld.getName(), objectNew);
-		String migratedXml = PrismTestUtil.serializeObjectToString(objectNew);
+		String migratedXml = PrismTestUtil.serializeObjectToString(objectNew, PrismContext.LANG_XML);
 		IntegrationTestTools.display("Migrated object XML "+fileOld.getName(), migratedXml);
 		
 		PrismObject<O> expectedObject = prismContext.parseObject(fileNew);
 		IntegrationTestTools.display("Expected object "+fileOld.getName(), expectedObject);
-		String expectedXml = PrismTestUtil.serializeObjectToString(expectedObject);
+		String expectedXml = PrismTestUtil.serializeObjectToString(expectedObject, PrismContext.LANG_XML);
 		IntegrationTestTools.display("Expected object XML "+fileOld.getName(), expectedXml);
 		
 		List<String> expectedXmlLines = MiscUtil.splitLines(expectedXml);

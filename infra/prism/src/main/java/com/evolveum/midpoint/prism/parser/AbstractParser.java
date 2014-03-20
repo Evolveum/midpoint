@@ -2,6 +2,7 @@ package com.evolveum.midpoint.prism.parser;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.Collection;
 import java.util.Iterator;
@@ -52,6 +53,7 @@ public abstract class AbstractParser implements Parser {
 	
 	
 	protected abstract JsonParser createParser(String dataString)  throws SchemaException;
+    protected abstract JsonParser createParser(InputStream stream) throws SchemaException, IOException;
 	protected abstract JsonParser createParser(File file)  throws SchemaException, IOException;
 	public abstract JsonGenerator createGenerator(StringWriter out) throws SchemaException;
 	
@@ -70,8 +72,14 @@ public abstract class AbstractParser implements Parser {
 		JsonParser parser = createParser(file);
 		return parseObject(parser);
 	}
-	
-	@Override
+
+    @Override
+    public XNode parse(InputStream stream) throws SchemaException, IOException {
+        JsonParser parser = createParser(stream);
+        return parseObject(parser);
+    }
+
+    @Override
 	public XNode parse(String dataString) throws SchemaException {
 		JsonParser parser = createParser(dataString);
 		return parseObject(parser);

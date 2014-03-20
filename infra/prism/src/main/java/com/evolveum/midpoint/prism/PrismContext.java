@@ -17,6 +17,7 @@ package com.evolveum.midpoint.prism;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -231,7 +232,14 @@ public class PrismContext {
 		return xnodeProcessor.parseObject(xnode);
 	}
 
-	/**
+    public <T extends Objectable> PrismObject<T> parseObject(InputStream stream, String language) throws SchemaException, IOException {
+        Parser parser = getParserNotNull(language);
+        XNode xnode = parser.parse(stream);
+        return xnodeProcessor.parseObject(xnode);
+    }
+
+
+    /**
 	 * Parses a string and creates a prism from it. Autodetect language. 
 	 * Used mostly for testing, but can also be used for built-in editors, etc.
 	 */

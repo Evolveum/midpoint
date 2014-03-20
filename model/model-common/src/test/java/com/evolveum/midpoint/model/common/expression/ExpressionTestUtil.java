@@ -44,7 +44,7 @@ public class ExpressionTestUtil {
 		AESProtector protector = new AESProtector();
         protector.setKeyStorePath(MidPointTestConstants.KEYSTORE_PATH);
         protector.setKeyStorePassword(MidPointTestConstants.KEYSTORE_PASSWORD);
-        protector.setPrismContext(prismContext);
+        //protector.setPrismContext(prismContext);
         protector.init();
         return protector;
 	}

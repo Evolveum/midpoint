@@ -24,6 +24,7 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
@@ -264,7 +265,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
         
 	
 	protected <O extends ObjectType> void fillContextWithFocus(LensContext<O> context, File file) throws SchemaException,
-	ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, IOException {
 		PrismObject<O> user = PrismTestUtil.parseObject(file);
 		fillContextWithFocus(context, user);
 	}
@@ -290,7 +291,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 	}
 
 	protected LensProjectionContext fillContextWithAccountFromFile(LensContext<UserType> context, String filename, OperationResult result) throws SchemaException,
-	ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, IOException {
 		PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(filename));
 		provisioningService.applyDefinition(account, result);
 		return fillContextWithAccount(context, account, result);
@@ -348,19 +349,19 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 	
 	protected ObjectDelta<UserType> addModificationToContextAddAccountFromFile(
 			LensContext<UserType> context, String filename) throws JAXBException, SchemaException,
-			FileNotFoundException {
+            IOException {
 		return addModificationToContextAddProjection(context, UserType.class, new File(filename));
 	}
 	
 	protected ObjectDelta<UserType> addModificationToContextAddAccountFromFile(
 			LensContext<UserType> context, File file) throws JAXBException, SchemaException,
-			FileNotFoundException {
+            IOException {
 		return addModificationToContextAddProjection(context, UserType.class, file);
 	}
 
 	protected <F extends FocusType> ObjectDelta<F> addModificationToContextAddProjection(
 			LensContext<F> context, Class<F> focusType, File file) throws JAXBException, SchemaException,
-			FileNotFoundException {
+            IOException {
 		PrismObject<ShadowType> account = PrismTestUtil.parseObject(file);
 		LensFocusContext<F> focusContext = context.getOrCreateFocusContext();
 		ObjectDelta<F> userDelta = ObjectDelta.createModificationAddReference(focusType, focusContext

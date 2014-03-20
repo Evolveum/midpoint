@@ -20,7 +20,9 @@ import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -93,7 +95,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
         // Make sure that plain JAXB parser is used ... this is what a webservice stack would do
-        ResourceType resourceType = prismContext.getPrismJaxbProcessor().unmarshalObject(RESOURCE_MAROON_FILE, ResourceType.class);
+        ResourceType resourceType = prismContext.getJaxbDomHack().unmarshalObject(new FileInputStream(RESOURCE_MAROON_FILE));
         
         // WHEN
         PrismObject<ResourceType> object = resourceType.asPrismObject();
@@ -156,9 +158,9 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 	}
 		
 	@Test
-    public void test119ModifyUserDeleteAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test119ModifyUserDeleteAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            IOException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+            PolicyViolationException, SecurityViolationException {
         TestUtil.displayTestTile(this, "test119ModifyUserDeleteAccount");
 
         // GIVEN
@@ -198,9 +200,9 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 	}
 	
 	@Test
-    public void test120AddAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test120AddAccount() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            IOException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+            PolicyViolationException, SecurityViolationException {
         TestUtil.displayTestTile(this, "test120AddAccount");
 
         // GIVEN
@@ -271,9 +273,9 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 
 	
 	@Test
-    public void test128ModifyUserDeleteAccountRef() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, 
-    		FileNotFoundException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, 
-    		PolicyViolationException, SecurityViolationException {
+    public void test128ModifyUserDeleteAccountRef() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            IOException, JAXBException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+            PolicyViolationException, SecurityViolationException {
         TestUtil.displayTestTile(this, "test128ModifyUserDeleteAccountRef");
 
         // GIVEN

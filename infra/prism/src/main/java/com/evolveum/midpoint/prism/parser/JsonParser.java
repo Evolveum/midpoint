@@ -3,6 +3,7 @@ package com.evolveum.midpoint.prism.parser;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 
 import javax.xml.namespace.QName;
@@ -13,7 +14,6 @@ import com.evolveum.midpoint.prism.parser.json.QNameSerializer;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -55,16 +55,20 @@ public class JsonParser extends AbstractParser{
 	
 	@Override
 	protected com.fasterxml.jackson.core.JsonParser createParser(File file) throws SchemaException, IOException {
-		JsonFactory factory = new JsonFactory();
-		try {
-			return factory.createParser(new FileInputStream(file));
-		} catch (IOException e) {
-			throw e;
-		}
-//		return parser;
+		return createParser(new FileInputStream(file));
 	}
 
-	@Override
+    @Override
+    protected com.fasterxml.jackson.core.JsonParser createParser(InputStream stream) throws SchemaException, IOException {
+        JsonFactory factory = new JsonFactory();
+        try {
+            return factory.createParser(stream);
+        } catch (IOException e) {
+            throw e;
+        }
+    }
+
+    @Override
 	protected com.fasterxml.jackson.core.JsonParser createParser(String dataString) throws SchemaException {
 		JsonFactory factory = new JsonFactory();
 		try {

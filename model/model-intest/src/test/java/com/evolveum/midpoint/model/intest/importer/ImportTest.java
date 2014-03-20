@@ -45,6 +45,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -200,7 +201,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		// Jack has a password. Check if it was encrypted
 		ProtectedStringType protectedString = jack.getCredentials().getPassword().getValue();
 		assertNull("Arrgh! Pirate sectrets were revealed!",protectedString.getClearValue());
-		assertNotNull("Er? The pirate sectrets were lost!",protectedString.getEncryptedData());
+		assertNotNull("Er? The pirate sectrets were lost!",protectedString.getEncryptedDataType());
 
 		// Check import with generated OID
 //		EqualsFilter equal = EqualsFilter.createEqual(UserType.class, PrismTestUtil.getPrismContext(), UserType.F_NAME, "guybrush");
@@ -621,7 +622,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		// Check if the password was NOT encrypted
 		ProtectedStringType protectedString = userHerman.asObjectable().getCredentials().getPassword().getValue();
 		assertEquals("Er? Pirate sectrets still hidden?", "m0nk3y", protectedString.getClearValue());
-		assertNull("Er? Encrypted data together with clear value?", protectedString.getEncryptedData());
+		assertNull("Er? Encrypted data together with clear value?", protectedString.getEncryptedDataType());
 
 		assertUsers(6);
 		
@@ -656,7 +657,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		} else {
 			ProtectedStringType psType = guardedPVal.getValue();
 			assertNull("uselessGuardedString was not encrypted (clearValue)", psType.getClearValue());
-			assertNotNull("uselessGuardedString was not encrypted (no EncryptedData)", psType.getEncryptedData());
+			assertNotNull("uselessGuardedString was not encrypted (no EncryptedData)", psType.getEncryptedDataType());
 		}
 	}
 
