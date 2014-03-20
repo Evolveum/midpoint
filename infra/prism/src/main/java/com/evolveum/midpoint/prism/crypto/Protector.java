@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.net.ssl.TrustManager;
 
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -39,21 +40,19 @@ public interface Protector {
 	
 	KeyStore getKeyStore();
 	
-//	
-//
-//	/**
-//	 * 
-//	 * @param protectedString
-//	 * @return decrypted String from protectedString object
-//	 * @throws EncryptionException
-//	 *             this is thrown probably in case JRE/JDK doesn't have JCE
-//	 *             installed
-//	 * @throws IllegalArgumentException
-//	 *             if protectedString argument is null or EncryptedData in
-//	 *             protectedString argument is null
-//	 */
-//	String decryptString(ProtectedStringType protectedString) throws EncryptionException;
-//
+	/**
+	 *
+	 * @param protectedString
+	 * @return decrypted String from protectedString object
+	 * @throws EncryptionException
+	 *             this is thrown probably in case JRE/JDK doesn't have JCE
+	 *             installed
+	 * @throws IllegalArgumentException
+	 *             if protectedString argument is null or EncryptedData in
+	 *             protectedString argument is null
+	 */
+	String decryptString(ProtectedStringType protectedString) throws EncryptionException;
+
 //	/**
 //	 * 
 //	 * @param protectedString
@@ -66,18 +65,18 @@ public interface Protector {
 //	 *             protectedString argument is null
 //	 */
 //	Element decrypt(ProtectedStringType protectedString) throws EncryptionException;
-//
-//	/**
-//	 * 
-//	 * @param text
-//	 * @return {@link ProtectedStringType} with encrypted string inside it. If
-//	 *         input argument is null or empty, method returns null.
-//	 * @throws EncryptionException
-//	 *             this is thrown probably in case JRE/JDK doesn't have JCE
-//	 *             installed
-//	 */
-//	ProtectedStringType encryptString(String text) throws EncryptionException;
-//
+
+	/**
+	 *
+	 * @param text
+	 * @return {@link ProtectedStringType} with encrypted string inside it. If
+	 *         input argument is null or empty, method returns null.
+	 * @throws EncryptionException
+	 *             this is thrown probably in case JRE/JDK doesn't have JCE
+	 *             installed
+	 */
+	ProtectedStringType encryptString(String text) throws EncryptionException;
+
 //	/**
 //	 * 
 //	 * @param plain
@@ -96,10 +95,10 @@ public interface Protector {
 //	 */
 //	void encrypt(ProtectedStringType ps) throws EncryptionException;
 //
-//	/**
-//	 * Returns true if protected string contains encrypted data that seems valid.
-//	 */
-//	boolean isEncrypted(ProtectedStringType ps);
+	/**
+	 * Returns true if protected string contains encrypted data that seems valid.
+	 */
+	boolean isEncrypted(ProtectedStringType ps);
 
 	
 

@@ -21,6 +21,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import org.apache.commons.lang.BooleanUtils;
 import org.w3c.dom.Element;
 
@@ -140,11 +142,11 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 			resultValues.add(createPrismValue(getExpressionEvaluatorType().getOid(), targetTypeQName, params));
 		} else {
 		
-			QueryType queryType = getExpressionEvaluatorType().getQuery();
-			if (queryType == null) {
-				throw new SchemaException("No query in "+shortDebugDump());
+			SearchFilterType filterType = getExpressionEvaluatorType().getFilter();
+			if (filterType == null) {
+				throw new SchemaException("No filter in "+shortDebugDump());
 			}
-			query = QueryJaxbConvertor.createObjectQuery(targetTypeClass, queryType, prismContext);
+			query = QueryJaxbConvertor.createObjectQuery(targetTypeClass, filterType, prismContext);
 			query = ExpressionUtil.evaluateQueryExpressions(query, variables, params.getExpressionFactory(), 
 					prismContext, params.getContextDescription(), task, result);
 			query = extendQuery(query, params);
@@ -268,11 +270,11 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 					+ "skipping. Subsequent operations will most likely fail", contextDescription);
 			return null;
 		}
-		Element pathElement = targetType.getPath();
-		if (pathElement == null) {
+        ItemPathType itemPathType = targetType.getPath();
+		if (itemPathType == null) {
 			throw new SchemaException("No path in target definition in "+contextDescription);
 		}
-		ItemPath targetPath = new XPathHolder(pathElement).toItemPath();
+		ItemPath targetPath = itemPathType.getItemPath();
 		ItemDefinition propOutputDefinition = ExpressionUtil.resolveDefinitionPath(targetPath, variables, 
 				objectDefinition, "target definition in "+contextDescription);
 		if (propOutputDefinition == null) {

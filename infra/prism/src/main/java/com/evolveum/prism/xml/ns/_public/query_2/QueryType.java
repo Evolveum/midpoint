@@ -60,7 +60,6 @@ import com.evolveum.midpoint.util.DebugUtil;
  *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
  *       &lt;sequence>
  *         &lt;element name="description" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *         &lt;element name="condition" type="{http://www.w3.org/2001/XMLSchema}anyType" minOccurs="0"/>
  *         &lt;element ref="{http://prism.evolveum.com/xml/ns/public/query-2}filter"/>
  *         &lt;element name="paging" type="{http://prism.evolveum.com/xml/ns/public/query-2}PagingType" minOccurs="0"/>
  *       &lt;/sequence>
@@ -74,7 +73,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "QueryType", propOrder = {
     "description",
-    "condition",
     "filter",
     "paging"
 })
@@ -84,11 +82,9 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
     public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "QueryType");
     public final static QName F_DESCRIPTION = new QName(PrismConstants.NS_QUERY, "description");
     public final static QName F_FILTER = new QName(PrismConstants.NS_QUERY, "filter");
-    public final static QName F_CONDITION = new QName(PrismConstants.NS_QUERY, "condition");
     public final static QName F_PAGING = new QName(PrismConstants.NS_QUERY, "paging");
 
     protected String description;
-    protected Object condition;
     @XmlElement(required = true)
     protected SearchFilterType filter;
     protected PagingType paging;
@@ -117,30 +113,6 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
      */
     public void setDescription(String value) {
         this.description = value;
-    }
-
-    /**
-     * Gets the value of the condition property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Object }
-     *     
-     */
-    public Object getCondition() {
-        return condition;
-    }
-
-    /**
-     * Sets the value of the condition property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Object }
-     *     
-     */
-    public void setCondition(Object value) {
-        this.condition = value;
     }
 
     /**
@@ -195,7 +167,6 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((condition == null) ? 0 : condition.hashCode());
 		result = prime * result + ((description == null) ? 0 : description.hashCode());
 		result = prime * result + ((filter == null) ? 0 : filter.hashCode());
 		result = prime * result + ((paging == null) ? 0 : paging.hashCode());
@@ -211,11 +182,6 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
 		if (getClass() != obj.getClass())
 			return false;
 		QueryType other = (QueryType) obj;
-		if (condition == null) {
-			if (other.condition != null)
-				return false;
-		} else if (!condition.equals(other.condition))
-			return false;
 		if (description == null) {
 			if (other.description != null)
 				return false;
@@ -616,8 +582,6 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
                 final QueryType clone = ((QueryType) super.clone());
                 // CBuiltinLeafInfo: java.lang.String
                 clone.description = ((this.description == null)?null:this.getDescription());
-                // CBuiltinLeafInfo: java.lang.Object
-                clone.condition = ((this.condition == null)?null:copyOf(this.getCondition()));
                 // CWildcardTypeInfo: org.w3c.dom.Element
                 clone.filter = ((this.filter == null)?null:((this.getFilter() == null)?null:((SearchFilterType) this.getFilter().clone())));
                 // CClassInfo: com.evolveum.prism.xml.ns._public.query_2.PagingType
@@ -643,10 +607,6 @@ public class QueryType implements Serializable, Cloneable, DebugDumpable
 		if (description != null) {
 			sb.append("\n");
 			DebugUtil.debugDumpWithLabel(sb, "description", description, indent + 1);
-		}
-		if (condition != null) {
-			sb.append("\n");
-			DebugUtil.debugDumpWithLabel(sb, "condition", condition.toString(), indent + 1);
 		}
 		if (filter != null) {
 			sb.append("\n");

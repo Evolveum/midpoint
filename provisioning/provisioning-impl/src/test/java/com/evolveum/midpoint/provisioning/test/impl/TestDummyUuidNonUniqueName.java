@@ -23,6 +23,7 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.ConnectException;
 import java.util.List;
 
@@ -129,7 +130,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 		// DO nothing. This test is meaningless in non-unique environment
 	}
 
-	private String addFettucini(final String TEST_NAME, File file, String oid, String expectedFullName) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ConnectException, FileNotFoundException {
+	private String addFettucini(final String TEST_NAME, File file, String oid, String expectedFullName) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, IOException {
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);

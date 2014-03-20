@@ -28,6 +28,7 @@ import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -621,7 +622,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertConnectorInstanceChanged(resourceProvisioning);
 	}
 	
-	private String addAccount(String filename) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
+	private String addAccount(String filename) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, IOException {
 		Task task = taskManager.createTaskInstance(TestDummyResourceAndSchemaCaching.class.getName()
 				+ ".addAccount");
 		OperationResult result = task.getResult();

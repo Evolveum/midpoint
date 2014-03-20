@@ -64,16 +64,6 @@ public class QueryJaxbConvertor {
 		try {
 			ObjectQuery query = new ObjectQuery();
 			
-			Object condition = queryType.getCondition();
-			if (condition != null){
-				if (!(condition instanceof Element)){
-					throw new SchemaException("Bad condition specified.");
-				}
-				Element conditionElement = (Element) condition;
-				XNode conditionXNode = prismContext.getParserDom().parseElementContent(conditionElement);
-				query.setCondition(conditionXNode);
-			}
-			
 			if (filterDom != null) {
 				XNode filterXNode = prismContext.getParserDom().parseElementContent(filterDom);
 				MapXNode rootFilter = new MapXNode();
@@ -178,7 +168,6 @@ public class QueryJaxbConvertor {
 		}
 				
 		queryType.setPaging(PagingConvertor.createPagingType(query.getPaging()));
-		queryType.setCondition(query.getCondition());
 		return queryType;
 
 	}

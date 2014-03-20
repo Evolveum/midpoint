@@ -26,6 +26,8 @@ import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
@@ -366,16 +368,26 @@ public class DomParser implements Parser {
 	}
 
 	public Element serializeValueToDom(PrismReferenceValue rval, QName elementName, Document document) {
-		// TODO Auto-generated method stub
-		return null;
+        throw new UnsupportedOperationException();      // TODO implement
 	}
 
 	public Element serializeValueToDom(PrismContainerValue<?> pval, QName elementName, Document document) {
-		// TODO Auto-generated method stub
-		return null;
+        throw new UnsupportedOperationException();      // TODO implement
 	}
-	
-	public Element serializeXMapToElement(MapXNode xmap, QName elementName) throws SchemaException {
+
+    public Element serializeValueToDom(PrismPropertyValue<?> pval, QName elementName, Document document) {
+        throw new UnsupportedOperationException();      // TODO implement
+    }
+
+    public Element serializeValueToDom(PrismPropertyValue<?> pval, QName elementName) {
+        throw new UnsupportedOperationException();      // TODO implement
+    }
+
+    public Element serializeValueToDom(PrismValue pval, QName variableName) {
+        throw new UnsupportedOperationException();      // TODO implement
+    }
+
+    public Element serializeXMapToElement(MapXNode xmap, QName elementName) throws SchemaException {
 		DomSerializer serializer = new DomSerializer(this, schemaRegistry);
 		return serializer.serializeToElement(xmap, elementName);
 	}

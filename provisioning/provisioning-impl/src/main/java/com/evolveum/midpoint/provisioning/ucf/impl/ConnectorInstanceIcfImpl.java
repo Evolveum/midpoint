@@ -32,6 +32,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.DebugUtil;
 
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.Validate;
 import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
@@ -139,7 +140,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.BeforeAfterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
@@ -402,7 +402,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// implementing Potemkin-like security. Use a temporary
 			// "nonsense" type for now, so this will fail in tests and
 			// will be fixed later
-			propXsdType = SchemaConstants.C_PROTECTED_STRING_TYPE;
+			propXsdType = SchemaConstants.T_PROTECTED_STRING_TYPE;
 		} else if (GuardedByteArray.class.equals(type) || 
 				(Byte.class.equals(type) && isConfidential)) {
 			// GuardedString is a special case. It is a ICF-specific
@@ -410,7 +410,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// implementing Potemkin-like security. Use a temporary
 			// "nonsense" type for now, so this will fail in tests and
 			// will be fixed later
-			propXsdType = SchemaConstants.C_PROTECTED_BYTE_ARRAY_TYPE;
+			propXsdType = SchemaConstants.T_PROTECTED_BYTE_ARRAY_TYPE;
 		} else {
 			propXsdType = XsdTypeMapper.toXsdType(type);
 		}

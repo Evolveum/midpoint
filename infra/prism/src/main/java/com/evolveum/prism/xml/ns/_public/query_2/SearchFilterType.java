@@ -138,7 +138,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
         if (filterClauseXNode != null) {
         	try {
 	        	DomParser domParser = PrismUtil.getDomParser(null);
-				return domParser.serializeSingleElementMapToElement(filterClauseXNode);         // TODO: beware, there can be unparsed values!
+				return domParser.serializeSingleElementMapToElement(filterClauseXNode);         // TODO: beware, there can be nodes with unparsed values!
 			} catch (SchemaException e) {
 				throw new RuntimeException(e.getMessage(), e);
 			}

@@ -26,8 +26,10 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.schema.SchemaDescription;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
@@ -376,4 +378,30 @@ public class JaxbDomHack {
 
 		return marshaller;
 	}
+
+
+
+    public <T> T toJavaValue(Element element, Class<T> typeClass) throws JAXBException {
+        QName type = JAXBUtil.getTypeQName(typeClass);
+        return (T) toJavaValue(element, type);
+    }
+
+    /**
+     * Used to convert property values from DOM
+     */
+    public Object toJavaValue(Element element, QName xsdType) throws JAXBException {
+        Class<?> declaredType = prismContext.getSchemaRegistry().getCompileTimeClass(xsdType);
+        if (declaredType == null) {
+            // This may happen if the schema is runtime and there is no associated compile-time class
+            throw new SystemException("Cannot determine Java type for "+xsdType);
+        }
+        JAXBElement<?> jaxbElement = createUnmarshaller().unmarshal(element, declaredType);
+        Object object = jaxbElement.getValue();
+        return object;
+    }
+
+    private Unmarshaller createUnmarshaller() throws JAXBException {
+        return jaxbContext.createUnmarshaller();
+    }
+
 }

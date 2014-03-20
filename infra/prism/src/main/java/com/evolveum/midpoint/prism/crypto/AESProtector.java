@@ -40,6 +40,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.xml.security.Init;
@@ -267,8 +268,23 @@ public class AESProtector implements Protector {
 		protectedData.setEncryptedData(encryptedDataType);
 		protectedData.destroyCleartext();
 	}
-	
-	private byte[] encryptBytes(byte[] clearData, String algorithmUri, Key key) throws NoSuchAlgorithmException, NoSuchPaddingException, NoSuchProviderException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
+
+    @Override
+    public String decryptString(ProtectedStringType protectedString) throws EncryptionException {
+        throw new UnsupportedOperationException();      // TODO implement this
+    }
+
+    @Override
+    public ProtectedStringType encryptString(String text) throws EncryptionException {
+        throw new UnsupportedOperationException();      // TODO implement this
+    }
+
+    @Override
+    public boolean isEncrypted(ProtectedStringType ps) {
+        throw new UnsupportedOperationException();      // TODO implement this
+    }
+
+    private byte[] encryptBytes(byte[] clearData, String algorithmUri, Key key) throws NoSuchAlgorithmException, NoSuchPaddingException, NoSuchProviderException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
 		Cipher cipher = getCipher(Cipher.ENCRYPT_MODE, algorithmUri);
 		cipher.init(Cipher.ENCRYPT_MODE, key);
 		
@@ -350,8 +366,8 @@ public class AESProtector implements Protector {
 	public KeyStore getKeyStore() {
 		return keyStore;
 	}
-	
-	   /**
+
+    /**
      * @param encryptionKeyAlias Alias of the encryption key {@link SecretKey} which is used
      *                           for encryption
      * @throws IllegalArgumentException if encryption key digest is null or empty string

@@ -175,8 +175,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="condition" type="xsd:anyType" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="filter" type="tns:SearchFilterType"/> 
+            <xsd:element name="filter" type="tns:SearchFilterType"/>
             <xsd:element name="paging" type="tns:PagingType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
@@ -193,7 +192,7 @@
 			</xsd:element>            	
     	</xsd:sequence>
     </xsd:complexType>
-    
+
     <xsd:element name="filter" type="tns:SearchFilterType"/>
 
     <xsd:element name="filterClause" type="tns:FilterClauseType"/>
