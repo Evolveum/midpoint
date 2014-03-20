@@ -106,7 +106,8 @@ public abstract class SchemaConstants {
 	public static final QName C_REPORT_OUTPUT = new QName(NS_C, "reportOutput");
 	public static final QName C_ITEM_PATH_FIELD = new QName(NS_C, "itemPathField");
 	public static final QName C_ACTIVATION_STATUS_TYPE = new QName(NS_C, "ActivationStatusType");
-
+	public static final QName C_SECURITY_POLICY = new QName(NS_C, "securityPolicy");
+	
 	public static final QName T_POLY_STRING_TYPE = new QName(SchemaConstantsGenerated.NS_TYPES, "PolyStringType");
     public static final QName T_OBJECT_DELTA = new QName(SchemaConstantsGenerated.NS_TYPES, "objectDelta");
     public static final QName T_OBJECT_DELTA_TYPE = new QName(SchemaConstantsGenerated.NS_TYPES, "ObjectDeltaType");
