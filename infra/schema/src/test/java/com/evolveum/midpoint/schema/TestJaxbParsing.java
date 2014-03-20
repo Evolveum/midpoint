@@ -43,6 +43,7 @@ import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -221,8 +222,8 @@ public class TestJaxbParsing {
         item1.setPath(new ItemPathType(path));
         ProtectedStringType protectedString = new ProtectedStringType();
         protectedString.setEncryptedData(new EncryptedDataType());
-        ItemDeltaType.Value value = new ItemDeltaType.Value();
-        value.getAny().add(new JAXBElement(new QName(SchemaConstants.NS_C, "protectedString"), ProtectedStringType.class, protectedString));
+        RawType value = new RawType();
+        value.getContent().add(new JAXBElement(new QName(SchemaConstants.NS_C, "protectedString"), ProtectedStringType.class, protectedString));
         item1.setValue(value);
 
         //fix marshalling somehow, or change the way how to create XML from ObjectDeltaType

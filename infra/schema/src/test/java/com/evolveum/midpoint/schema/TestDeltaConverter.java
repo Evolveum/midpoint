@@ -45,6 +45,7 @@ import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -226,11 +227,11 @@ public class TestDeltaConverter {
         objectChange.setOid("12345");
         ItemDeltaType modificationDeleteAccountRef = new ItemDeltaType();
         modificationDeleteAccountRef.setModificationType(ModificationTypeType.DELETE);
-        ItemDeltaType.Value modificationValue = new ItemDeltaType.Value();
+        RawType modificationValue = new RawType();
         ObjectReferenceType accountRefToDelete = new ObjectReferenceType();
         accountRefToDelete.setOid("54321");
         JAXBElement<ObjectReferenceType> accountRefToDeleteElement = new JAXBElement<ObjectReferenceType>(UserType.F_LINK_REF, ObjectReferenceType.class, accountRefToDelete);
-        modificationValue.getAny().add(accountRefToDeleteElement);
+        modificationValue.getContent().add(accountRefToDeleteElement);
         modificationDeleteAccountRef.setValue(modificationValue);
         objectChange.getModification().add(modificationDeleteAccountRef);
         
@@ -277,7 +278,7 @@ public class TestDeltaConverter {
     	ItemPathType itemPathType = mod1.getPath();
     	assertNotNull("Wrong path (must not be null)", itemPathType);
     	assertEquals("Wrong path", path.allExceptLast(), itemPathType.getItemPath());
-    	List<Object> valueElements = mod1.getValue().getAny();
+    	List<Object> valueElements = mod1.getValue().getContent();
     	assertEquals("Wrong number of value elements", 1, valueElements.size());
     	JAXBElement<ProtectedStringType> valueElement = (JAXBElement<ProtectedStringType>)valueElements.iterator().next();
     	assertEquals("Wrong element name", PasswordType.F_VALUE, valueElement.getName());
@@ -315,7 +316,7 @@ public class TestDeltaConverter {
     	ItemPathType itemPathType = mod1.getPath();
     	assertNotNull("Wrong path (must not be null)", itemPathType);
     	assertTrue("Wrong path: "+itemPathType, itemPathType.getItemPath().isEmpty());
-    	List<Object> valueElements = mod1.getValue().getAny();
+    	List<Object> valueElements = mod1.getValue().getContent();
     	assertEquals("Wrong number of value elements", 1, valueElements.size());
     	Element valueElement = (Element)valueElements.iterator().next();
     	assertEquals("Wrong element name", UserType.F_COST_CENTER, DOMUtil.getQName(valueElement));

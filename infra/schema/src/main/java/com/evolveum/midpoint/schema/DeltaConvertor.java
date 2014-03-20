@@ -54,6 +54,7 @@ import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
 
 /**
  * @author semancik
@@ -270,7 +271,8 @@ public class DeltaConvertor {
         if (containingPcd == null) {
             throw new SchemaException("No container definition for " + parentPath + " (while creating delta for " + pcDef + ")");
         }
-        Collection<Item<V>> items = pcDef.getPrismContext().getJaxbDomHack().fromAny(propMod.getValue().getAny(), 
+        System.out.println("DELTA: " + propMod.getValue().getXnode().debugDump());
+        Collection<Item<V>> items = pcDef.getPrismContext().getJaxbDomHack().fromAny(propMod.getValue().getContent(), 
         		containingPcd);
         if (items.size() > 1) {
             throw new SchemaException("Expected presence of a single item (path " + propMod.getPath() + ") in a object modification, but found " + items.size() + " instead");
@@ -344,18 +346,19 @@ public class DeltaConvertor {
     private static void addModValues(ItemDelta delta, ItemDeltaType mod, Collection<PrismValue> values,
             Document document) throws SchemaException {
     	QName elementName = delta.getElementName();
-    	ItemDeltaType.Value modValue = new ItemDeltaType.Value();
+    	RawType modValue = new RawType();
         mod.setValue(modValue);
         if (values == null || values.isEmpty()) {
         	// We need to create "nil" element otherwise the element name will be lost
         	// (and this is different from empty element)
         	Element nilValueElement = DOMUtil.createElement(elementName);
         	DOMUtil.setNill(nilValueElement);
-			modValue.getAny().add(nilValueElement);
+        	//FIXME : DOM?? vs Xnode??
+			modValue.getContent().add(nilValueElement);
         } else {
 	        for (PrismValue value : values) {
 	        	Object xmlValue = toAny(delta, value, document);
-	            modValue.getAny().add(xmlValue);
+	            modValue.getContent().add(xmlValue);
 	        }
         }
     }

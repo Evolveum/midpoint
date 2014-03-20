@@ -283,10 +283,10 @@ public class ObjectTypeUtil {
         if (propertyModification.getValue() == null) {
             throw new IllegalArgumentException("Modification without value element");
         }
-        if (propertyModification.getValue().getAny() == null || propertyModification.getValue().getAny().isEmpty()) {
+        if (propertyModification.getValue().getContent() == null || propertyModification.getValue().getContent().isEmpty()) {
             throw new IllegalArgumentException("Modification with empty value element");
         }
-        return JAXBUtil.getElementQName(propertyModification.getValue().getAny().get(0));
+        return JAXBUtil.getElementQName(propertyModification.getValue().getContent().get(0));
     }
 
     public static boolean isEmpty(ObjectModificationType objectModification) {

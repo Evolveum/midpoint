@@ -422,25 +422,25 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-            <xsd:element name="value">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    The elements and values of changed properties.
-                                    Multi-valued properties are expressed as usual,
-                                    that means by repeating the element containing
-                                    the property value.
-                                    All the elements must have the same QName and be 
-                                    of the same type.
-                                    If more than one property is changed, the entire
-                                    PropertyChangeType element must be repeated.
-                                </xsd:documentation>
-                            </xsd:annotation>
-                        </xsd:any>
-                    </xsd:sequence>
-                </xsd:complexType>
+            <xsd:element name="value" type="tns:RawType">
+<!--                 <xsd:complexType> -->
+<!--                     <xsd:sequence> -->
+<!--                         <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"> -->
+<!--                             <xsd:annotation> -->
+<!--                                 <xsd:documentation> -->
+<!--                                     The elements and values of changed properties. -->
+<!--                                     Multi-valued properties are expressed as usual, -->
+<!--                                     that means by repeating the element containing -->
+<!--                                     the property value. -->
+<!--                                     All the elements must have the same QName and be  -->
+<!--                                     of the same type. -->
+<!--                                     If more than one property is changed, the entire -->
+<!--                                     PropertyChangeType element must be repeated. -->
+<!--                                 </xsd:documentation> -->
+<!--                             </xsd:annotation> -->
+<!--                         </xsd:any> -->
+<!--                     </xsd:sequence> -->
+<!--                 </xsd:complexType> -->
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>

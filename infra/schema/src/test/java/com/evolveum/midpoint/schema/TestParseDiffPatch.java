@@ -496,8 +496,9 @@ public class TestParseDiffPatch {
 
     private void assertXmlPolyMod(ObjectModificationType objectModificationType, QName propertyName,
             ModificationTypeType modType, PolyStringType... expectedValues) {
+    	//FIXME: 
         for (ItemDeltaType mod : objectModificationType.getModification()) {
-            List<Object> elements = mod.getValue().getAny();
+            List<Object> elements = mod.getValue().getContent();
             assertFalse(elements.isEmpty());
             Object first = elements.get(0);
             QName elementQName = JAXBUtil.getElementQName(first);
@@ -538,7 +539,7 @@ public class TestParseDiffPatch {
 	private void assertXmlMod(ObjectModificationType objectModificationType, QName propertyName,
 			ModificationTypeType modType, String... expectedValues) {
 		for (ItemDeltaType mod: objectModificationType.getModification()) {
-			List<Object> elements = mod.getValue().getAny();
+			List<Object> elements = mod.getValue().getContent();
 			assertFalse(elements.isEmpty());
 			Object first = elements.get(0);
 			QName elementQName = JAXBUtil.getElementQName(first);

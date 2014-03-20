@@ -401,7 +401,7 @@ public class SchemaDebugUtil {
 		}
 		sb.append(",");
 
-		for (Object element : change.getValue().getAny()) {
+		for (Object element : change.getValue().getContent()) {
 			sb.append(prettyPrint(element));
 			sb.append(",");
 		}
