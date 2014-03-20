@@ -34,6 +34,8 @@ import javax.persistence.*;
 @Entity
 @IdClass(RAReferenceId.class)
 @Table(name = "m_a_reference")
+@org.hibernate.annotations.Table(appliesTo = "m_a_reference",
+        indexes = {@Index(name = "iAExtensionReference", columnNames = {"targetoid", "eName", "eType"})})
 public class RAReference implements RAExtensionValue {
 
     //owner entity

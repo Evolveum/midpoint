@@ -30,6 +30,8 @@ import javax.persistence.*;
 @Entity
 @IdClass(RAnyLongId.class)
 @Table(name = "m_any_long")
+@org.hibernate.annotations.Table(appliesTo = "m_any_long",
+        indexes = {@Index(name = "iExtensionLong", columnNames = {"longValue", "eName", "eType"})})
 public class RAnyLong implements RExtensionValue {
 
     //owner entity
