@@ -17,12 +17,10 @@
 package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -96,6 +94,7 @@ public class PageOrgUnit extends PageAdminUsers {
     private static final String ID_ASSIGNMENTS_TABLE = "assignmentsPanel";
     private static final String ID_INDUCEMENTS_TABLE = "inducementsPanel";
 
+    //private ContainerStatus status;
     private IModel<PrismObject<OrgType>> orgModel;
     private IModel<List<OrgType>> parentOrgUnitsModel;
     private IModel<List<PrismPropertyValue>> orgTypeModel;
@@ -138,6 +137,8 @@ public class PageOrgUnit extends PageAdminUsers {
                 return loadParentOrgUnits();
             }
         };
+
+        //status = isEditing() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
 
         initLayout();
     }
@@ -358,10 +359,34 @@ public class PageOrgUnit extends PageAdminUsers {
             ObjectDelta delta = null;
             if (!isEditing()) {
                 delta = ObjectDelta.createAddDelta(newOrgUnit);
+
+                //handle assignments
+                PrismObjectDefinition orgDef = newOrgUnit.getDefinition();
+                PrismContainerDefinition assignmentDef = orgDef.findContainerDefinition(OrgType.F_ASSIGNMENT);
+                AssignmentTablePanel assignmentPanel = (AssignmentTablePanel)get(createComponentPath(ID_FORM, ID_ASSIGNMENTS_TABLE));
+                assignmentPanel.handleAssignmentsWhenAdd(newOrgUnit, assignmentDef, newOrgUnit.asObjectable().getAssignment());
+
+                //handle inducements
+                PrismContainerDefinition inducementDef = orgDef.findContainerDefinition(OrgType.F_INDUCEMENT);
+                AssignmentTablePanel inducementPanel = (AssignmentTablePanel)get(createComponentPath(ID_FORM, ID_INDUCEMENTS_TABLE));
+                inducementPanel.handleAssignmentsWhenAdd(newOrgUnit, inducementDef, newOrgUnit.asObjectable().getInducement());
+
             } else {
                 PrismObject<OrgType> oldOrgUnit = WebModelUtils.loadObject(OrgType.class, newOrgUnit.getOid(), result, this);
                 if (oldOrgUnit != null) {
                     delta = oldOrgUnit.diff(newOrgUnit);
+
+                    //handle assignments
+                    SchemaRegistry registry = getPrismContext().getSchemaRegistry();
+                    PrismObjectDefinition objectDefinition = registry.findObjectDefinitionByCompileTimeClass(OrgType.class);
+                    PrismContainerDefinition assignmentDef = objectDefinition.findContainerDefinition(OrgType.F_ASSIGNMENT);
+                    AssignmentTablePanel assignmentPanel = (AssignmentTablePanel)get(createComponentPath(ID_FORM, ID_ASSIGNMENTS_TABLE));
+                    assignmentPanel.handleAssignmentDeltas(delta, assignmentDef, OrgType.F_ASSIGNMENT);
+
+                    //handle inducements
+                    PrismContainerDefinition inducementDef = objectDefinition.findContainerDefinition(OrgType.F_INDUCEMENT);
+                    AssignmentTablePanel inducementPanel = (AssignmentTablePanel)get(createComponentPath(ID_FORM, ID_INDUCEMENTS_TABLE));
+                    inducementPanel.handleAssignmentDeltas(delta, inducementDef, OrgType.F_INDUCEMENT);
                 }
             }
 
