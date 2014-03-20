@@ -20,10 +20,7 @@
 		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
 		oid="RECONCIL-3333-3333-TEST-10000000000"
         version="0">
-	<name>
-		<orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Reconciliation report</orig>
-		<norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Reconciliation report</norm>
-	</name>
+	<name>Reconciliation report</name>
 	<description>Reconciliation report for selected resource.</description>
 	<!-- flag if this report is "parent" report, used for gui -->
 	<parent>true</parent>
@@ -45,6 +42,8 @@
 			uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
 			<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
 			<property name="net.sf.jasperreports.export.pdf.force.linebreak.policy" value="true"/>
+			<property name="net.sf.jasperreports.export.csv.exclude.origin.band.1" value="title"/>
+			<property name="net.sf.jasperreports.export.csv.exclude.origin.band.2" value="pageFooter"/>
 			<style fontName="DejaVu Sans" fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="true" 
 				   name="Base" pdfEncoding="Identity-H" pdfFontName="DejaVuSans.ttf" vAlign="Middle">
 			</style>
