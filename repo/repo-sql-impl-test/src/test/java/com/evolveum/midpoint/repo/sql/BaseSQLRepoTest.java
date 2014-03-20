@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 
 import org.hibernate.Criteria;
 import org.hibernate.Session;
@@ -188,8 +189,6 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
 
         Document document = DOMUtil.parseFile(file);
         QueryType queryType = PrismTestUtil.getJaxbUtil().unmarshalObject(file, QueryType.class);
-//        QueryType queryType = prismContext.getPrismJaxbProcessor().unmarshalObject(file, QueryType.class);
-//        Element filter = DOMUtil.listChildElements(document.getDocumentElement()).get(0);
 
         LOGGER.info("QUERY TYPE TO CONVERT : {}", ObjectQueryUtil.dump(queryType));
 

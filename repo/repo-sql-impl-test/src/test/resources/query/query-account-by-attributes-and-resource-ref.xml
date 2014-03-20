@@ -18,7 +18,7 @@
 <query xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
-
+<filter>
 	<and>
 		<ref>
 			<path>c:resourceRef</path>
@@ -31,4 +31,5 @@
 			<value xsi:type="xsd:string">uid=jbond,ou=People,dc=example,dc=com</value>
 		</equal>
 	</and>
+</filter>
 </query>

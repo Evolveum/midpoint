@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 
 public class ValueSerializationUtil {
 	
@@ -169,7 +170,7 @@ public class ValueSerializationUtil {
 		throw new UnsupportedOperationException("need to be implemented");
 	}
 	
-	public static String serializeFilter(ObjectFilter query, PrismContext prismContext, String language){
+	public static String serializeFilter(SearchFilterType query, PrismContext prismContext, String language){
 		System.out.println("query serialization");
 		throw new UnsupportedOperationException("need to be implemented");
 	}
@@ -226,7 +227,7 @@ public class ValueSerializationUtil {
 		throw new UnsupportedOperationException("need to be implemented");
 	}
 	
-	public static ObjectFilter deserializeFilter(String query, String language){
+	public static SearchFilterType deserializeFilter(String query, String language){
 		System.out.println("query deserialization");
 		throw new UnsupportedOperationException("need to be implemented");
 	}
