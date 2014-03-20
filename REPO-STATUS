@@ -56,3 +56,14 @@ loadOrgStructure(null, TREE_SIZE, 20, "", opResult);
 [INFO] Total time: 6:07.215s
 [INFO] Finished at: Sat Mar 08 20:17:37 CET 2014
 [INFO] Final Memory: 29M/343M
+
+*****************
+mvn -P default,aspectj,extratest,-dist clean install -o
+192k
+[INFO] midPoint Testing - Long Tests ..................... SUCCESS [10:09.189s]
+[INFO] midPoint Testing - Story Tests .................... SUCCESS [1:07.508s]
+[INFO] midPoint Testing Infrastructure ................... SUCCESS [0.077s]
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 15:07.594s
+[INFO] Finished at: Thu Mar 20 15:26:40 CET 2014
+[INFO] Final Memory: 79M/670M
