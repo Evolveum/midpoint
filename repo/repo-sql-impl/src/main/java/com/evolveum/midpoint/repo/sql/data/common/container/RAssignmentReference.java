@@ -60,7 +60,7 @@ public class RAssignmentReference implements ObjectReference {
     public RAssignmentReference() {
     }
 
-    @ForeignKey(name = "fk_a_reference")
+    @ForeignKey(name = "fk_assignment_reference")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     public RAssignment getOwner() {

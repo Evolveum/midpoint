@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.repo.sql.data.common.id.RAClobId;
+import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
@@ -36,6 +37,8 @@ public class RAClob implements RAExtensionValue {
     private RAssignmentExtension anyContainer;
     private String ownerOid;
     private Short ownerId;
+
+    private RAssignmentExtensionType extensionType;
 
     private boolean dynamic;
     private String name;
@@ -77,6 +80,12 @@ public class RAClob implements RAExtensionValue {
             ownerId = anyContainer.getOwnerId();
         }
         return ownerId;
+    }
+
+    @Id
+    @Enumerated(EnumType.ORDINAL)
+    public RAssignmentExtensionType getExtensionType() {
+        return extensionType;
     }
 
     /**
@@ -155,6 +164,10 @@ public class RAClob implements RAExtensionValue {
 
     public void setOwnerId(Short ownerId) {
         this.ownerId = ownerId;
+    }
+
+    public void setExtensionType(RAssignmentExtensionType extensionType) {
+        this.extensionType = extensionType;
     }
 
     @Override

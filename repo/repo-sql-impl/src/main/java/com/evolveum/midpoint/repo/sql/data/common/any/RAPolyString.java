@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAPolyStringId;
+import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -36,6 +37,8 @@ public class RAPolyString implements RAExtensionValue {
     private RAssignmentExtension anyContainer;
     private String ownerOid;
     private Short ownerId;
+
+    private RAssignmentExtensionType extensionType;
 
     private boolean dynamic;
     private String name;
@@ -84,6 +87,12 @@ public class RAPolyString implements RAExtensionValue {
             ownerId = anyContainer.getOwnerId();
         }
         return ownerId;
+    }
+
+    @Id
+    @Enumerated(EnumType.ORDINAL)
+    public RAssignmentExtensionType getExtensionType() {
+        return extensionType;
     }
 
     @Id
@@ -154,6 +163,10 @@ public class RAPolyString implements RAExtensionValue {
 
     public void setOwnerId(Short ownerId) {
         this.ownerId = ownerId;
+    }
+
+    public void setExtensionType(RAssignmentExtensionType extensionType) {
+        this.extensionType = extensionType;
     }
 
     @Override

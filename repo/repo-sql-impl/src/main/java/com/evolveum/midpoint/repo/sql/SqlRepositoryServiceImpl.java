@@ -445,7 +445,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
 
             LOGGER.trace("Translating JAXB to data type.");
-            RObject rObject = createDataObjectFromJAXB(object);
+            RObject rObject = createDataObjectFromJAXB(object, true);
 
             session = beginTransaction();
             if (options.isOverwrite()) {
@@ -541,8 +541,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private <T extends ObjectType> void updateFullObject(Session session, RObject object, PrismObject<T> savedObject)
             throws DtoTranslationException, SchemaException {
-        LOGGER.debug("Updating full object xml column start.");
+        LOGGER.debug("Updating full object xml column start. Flushing session.");
         session.flush();
+        LOGGER.debug("Session flushed.");
 
         savedObject.setVersion(Integer.toString(object.getVersion()));
 
@@ -581,7 +582,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
         }
 
-        LOGGER.trace("Saving object.");
+        LOGGER.trace("Saving object (non overwrite).");
         String oid = (String) session.save(rObject);
 
         updateFullObject(session, rObject, object);
@@ -1138,7 +1139,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
             // merge and update user
             LOGGER.trace("Translating JAXB to data type.");
-            RObject rObject = createDataObjectFromJAXB(prismObject);
+            RObject rObject = createDataObjectFromJAXB(prismObject, false);
             rObject.setVersion(rObject.getVersion() + 1);
 
             session.merge(rObject);
@@ -1396,7 +1397,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-    private <T extends ObjectType> RObject createDataObjectFromJAXB(PrismObject<T> prismObject) throws SchemaException {
+    private <T extends ObjectType> RObject createDataObjectFromJAXB(PrismObject<T> prismObject, boolean add)
+            throws SchemaException {
+
         PrismIdentifierGenerator generator = new PrismIdentifierGenerator();
         generator.generate(prismObject);
 
@@ -1409,8 +1412,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz, PrismContext.class);
             method.invoke(clazz, object, rObject, getPrismContext());
 
-            ContainerIdGenerator gen = new ContainerIdGenerator();
-            gen.generateIdForObject(rObject);
+//            if (!add) {
+                ContainerIdGenerator gen = new ContainerIdGenerator();
+                gen.generateIdForObject(rObject);
+//            }
         } catch (Exception ex) {
             String message = ex.getMessage();
             if (StringUtils.isEmpty(message) && ex.getCause() != null) {

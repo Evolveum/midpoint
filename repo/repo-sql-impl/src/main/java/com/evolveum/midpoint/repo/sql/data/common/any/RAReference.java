@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAnyReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
@@ -39,6 +40,8 @@ public class RAReference implements RAExtensionValue {
     private RAssignmentExtension anyContainer;
     private String ownerOid;
     private Short ownerId;
+
+    private RAssignmentExtensionType extensionType;
 
     private boolean dynamic;
     private String name;
@@ -81,6 +84,13 @@ public class RAReference implements RAExtensionValue {
             ownerId = anyContainer.getOwnerId();
         }
         return ownerId;
+    }
+
+    @Id
+    @Enumerated(EnumType.ORDINAL)
+    public RAssignmentExtensionType getExtensionType() {
+//        return extensionType;
+        return RAssignmentExtensionType.EXTENSION;
     }
 
     @Id
@@ -161,6 +171,10 @@ public class RAReference implements RAExtensionValue {
 
     public void setOwnerId(Short ownerId) {
         this.ownerId = ownerId;
+    }
+
+    public void setExtensionType(RAssignmentExtensionType extensionType) {
+        this.extensionType = extensionType;
     }
 
     @Override
