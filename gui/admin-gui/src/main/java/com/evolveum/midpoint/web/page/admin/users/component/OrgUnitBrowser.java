@@ -61,7 +61,7 @@ import java.util.List;
  */
 public class OrgUnitBrowser extends ModalWindow {
 
-    public static enum Operation {MOVE, ADD, REMOVE}
+    public static enum Operation {MOVE, ADD, REMOVE, RECOMPUTE}
 
     private static final Trace LOGGER = TraceManager.getTrace(OrgUnitBrowser.class);
 

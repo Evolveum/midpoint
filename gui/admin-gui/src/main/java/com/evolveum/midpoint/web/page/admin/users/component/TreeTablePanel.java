@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.users.component;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -26,12 +27,12 @@ import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -102,6 +103,7 @@ public class TreeTablePanel extends SimplePanel<String> {
     private static final String OPERATION_MOVE_OBJECT = DOT_CLASS + "moveObject";
     private static final String OPERATION_UPDATE_OBJECTS = DOT_CLASS + "updateObjects";
     private static final String OPERATION_UPDATE_OBJECT = DOT_CLASS + "updateObject";
+    private static final String OPERATION_RECONCILE = DOT_CLASS + "reconcile";
 
     private static final String ID_TREE = "tree";
     private static final String ID_TREE_CONTAINER = "treeContainer";
@@ -311,6 +313,15 @@ public class TreeTablePanel extends SimplePanel<String> {
         });
         items.add(item);
 
+        item = new InlineMenuItem(createStringResource("TreeTablePanel.recomputeRoot"), new InlineMenuItemAction() {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                recomputeRootPerformed(target, OrgUnitBrowser.Operation.RECOMPUTE);
+            }
+        });
+        items.add(item);
+
         return items;
     }
 
@@ -455,6 +466,15 @@ public class TreeTablePanel extends SimplePanel<String> {
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
                         deletePerformed(target);
+                    }
+                }));
+
+        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel,menu.recompute"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form){
+                        recomputePerformed(target, OrgUnitBrowser.Operation.RECOMPUTE);
                     }
                 }));
 
@@ -774,6 +794,52 @@ public class TreeTablePanel extends SimplePanel<String> {
         provider.clearCache();
 
         target.add(getTable());
+    }
+
+    private void recomputeRootPerformed(AjaxRequestTarget target, OrgUnitBrowser.Operation operation){
+        OrgTreeDto root = getRootFromProvider();
+        OrgTableDto dto = new OrgTableDto(root.getOid(), root.getType());
+        recomputePerformed(target, operation, dto);
+    }
+
+    private void recomputePerformed(AjaxRequestTarget target, OrgUnitBrowser.Operation operation){
+        recomputePerformed(target, operation, null);
+    }
+
+    private void recomputePerformed(AjaxRequestTarget target, OrgUnitBrowser.Operation operation, OrgTableDto orgDto){
+        List<OrgTableDto> objects;
+        if (orgDto == null) {
+            objects = isAnythingSelected(target);
+            if (objects.isEmpty()) {
+                return;
+            }
+        } else {
+            objects = new ArrayList<>();
+            objects.add(orgDto);
+        }
+
+        Task task = getPageBase().createSimpleTask(OPERATION_RECONCILE);
+        OperationResult result = new OperationResult(OPERATION_RECONCILE);
+
+        try {
+
+            for(OrgTableDto org: objects){
+                ObjectDelta emptyDelta = ObjectDelta.createEmptyModifyDelta(OrgType.class,
+                        org.getOid(), getPageBase().getPrismContext());
+                ModelExecuteOptions options = new ModelExecuteOptions();
+                options.setReconcile(true);
+                getPageBase().getModelService().executeChanges(WebMiscUtil.createDeltaCollection(emptyDelta), options, task, result);
+            }
+
+            result.recordSuccess();
+        } catch (Exception e){
+            result.recordFatalError(getString("TreeTablePanel.message.recomputeError"), e);
+            LoggingUtils.logException(LOGGER, getString("TreeTablePanel.message.recomputeError"), e);
+        }
+
+        getPageBase().showResult(result);
+        target.add(getPageBase().getFeedbackPanel());
+        refreshTabbedPanel(target);
     }
 
     private void deleteRootPerformed(AjaxRequestTarget target) {
