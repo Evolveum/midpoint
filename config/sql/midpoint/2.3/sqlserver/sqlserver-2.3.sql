@@ -509,6 +509,17 @@
         unique (name_norm)
     );
 
+    create table m_security_policy (
+        authentication nvarchar(MAX),
+        credentials nvarchar(MAX),
+        name_norm nvarchar(255),
+        name_orig nvarchar(255),
+        id bigint not null,
+        oid nvarchar(36) not null,
+        primary key (id, oid),
+        unique (name_norm)
+    );
+
     create table m_shadow (
         administrativeStatus int,
         archiveTimestamp datetime2,
@@ -935,6 +946,13 @@
         add constraint fk_role 
         foreign key (id, oid) 
         references m_abstract_role;
+
+    create index iSecurityPolicyName on m_security_policy (name_orig);
+
+    alter table m_security_policy 
+        add constraint fk_security_policy 
+        foreign key (id, oid) 
+        references m_object;
 
     create index iShadowNameOrig on m_shadow (name_orig);
 

@@ -55,6 +55,7 @@ AS
     DELETE FROM m_system_configuration;
     DELETE FROM m_generic_object;
     DELETE FROM m_trigger;
+	DELETE FROM m_security_policy;
 
     DELETE FROM m_org_incorrect;
     DELETE FROM m_org_closure;
