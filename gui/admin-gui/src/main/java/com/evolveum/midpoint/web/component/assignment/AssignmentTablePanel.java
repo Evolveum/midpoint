@@ -74,12 +74,12 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
     private static final String ID_MODAL_ASSIGN = "assignablePopup";
     private static final String ID_MODAL_DELETE_ASSIGNMENT = "deleteAssignmentPopup";
 
-    IModel<List<AssignmentEditorDto>> assignmentModel;
+    private LoadableModel<List<AssignmentEditorDto>> assignmentModel;
 
     public AssignmentTablePanel(String id, IModel<AssignmentTableDto> model, IModel<String> label){
         super(id, model);
 
-        assignmentModel = new LoadableModel<List<AssignmentEditorDto>>() {
+        assignmentModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
 
             @Override
             protected List<AssignmentEditorDto> load() {
@@ -156,7 +156,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
     }
 
     private void initPanelLayout(IModel<String> labelModel){
-        WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
+        final WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
         assignments.setOutputMarkupId(true);
         add(assignments);
 
@@ -166,7 +166,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
         InlineMenu assignmentMenu = new InlineMenu(ID_MENU, new Model((Serializable) createAssignmentMenu()));
         assignments.add(assignmentMenu);
 
-        final ListView<AssignmentEditorDto> list = new ListView<AssignmentEditorDto>(ID_LIST, assignmentModel) {
+        ListView<AssignmentEditorDto> list = new ListView<AssignmentEditorDto>(ID_LIST, assignmentModel) {
 
             @Override
                 protected void populateItem(ListItem<AssignmentEditorDto> item) {
@@ -181,7 +181,13 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                //TODO
+                List<AssignmentEditorDto> assignmentEditors = assignmentModel.getObject();
+
+                for(AssignmentEditorDto dto: assignmentEditors){
+                    dto.setSelected(this.getModelObject());
+                }
+
+                target.add(assignments);
             }
         };
         assignments.add(checkAll);
@@ -307,7 +313,18 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
     }
 
     private void deleteAssignmentConfirmedPerformed(AjaxRequestTarget target, List<AssignmentEditorDto> toDelete){
-        //TODO
+        List<AssignmentEditorDto> assignments = assignmentModel.getObject();
+
+        for(AssignmentEditorDto assignment: toDelete){
+            if(UserDtoStatus.ADD.equals(assignment.getStatus())){
+                assignments.remove(assignment);
+            } else {
+                assignment.setStatus(UserDtoStatus.DELETE);
+                assignment.setSelected(false);
+            }
+        }
+
+        target.add(getPageBase().getFeedbackPanel(), get(ID_ASSIGNMENTS));
     }
 
     private void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignments){
@@ -405,19 +422,19 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
 
         //PrismObject<OrgType> org = (PrismObject<OrgType>)getModel().getObject().getAssignmentParent();
         //PrismObjectDefinition orgDef = org.getDefinition();
-        PrismContainerDefinition assignmentDef = def.findContainerDefinition(assignmentPath);
+        //PrismContainerDefinition assignmentDef = def.findContainerDefinition(assignmentPath);
 
         List<AssignmentEditorDto> assignments = assignmentModel.getObject();
         for (AssignmentEditorDto assDto : assignments) {
             PrismContainerValue newValue = assDto.getNewValue();
             switch (assDto.getStatus()) {
                 case ADD:
-                    newValue.applyDefinition(assignmentDef, false);
+                    newValue.applyDefinition(def, false);
                     assDelta.addValueToAdd(newValue.clone());
                     break;
                 case DELETE:
                     PrismContainerValue oldValue = assDto.getOldValue();
-                    oldValue.applyDefinition(assignmentDef);
+                    oldValue.applyDefinition(def);
                     assDelta.addValueToDelete(oldValue.clone());
                     break;
                 case MODIFY:
@@ -426,7 +443,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
                         continue;
                     }
 
-                    handleModifyAssignmentDelta(assDto, assignmentDef, newValue, userDelta);
+                    handleModifyAssignmentDelta(assDto, def, newValue, userDelta);
                     break;
                 default:
                     warn(getString("pageUser.message.illegalAssignmentState", assDto.getStatus()));
