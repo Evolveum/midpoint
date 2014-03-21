@@ -7786,9 +7786,9 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ObjectType">
                 <xsd:sequence>
-                	<xsd:element name="authentication" type="tns:AuthenticationPolicyType">
+                	<xsd:element name="authentication" type="tns:AuthenticationPolicyType" minOccurs="0">
                 	</xsd:element>
-                	<xsd:element name="credentials" type="tns:CredentialsPolicyType">
+                	<xsd:element name="credentials" type="tns:CredentialsPolicyType" minOccurs="0">
                 	</xsd:element>
                     <!--  TODO: radovan -->
                     
@@ -7827,9 +7827,9 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="password" type="tns:PasswordCredentialsPolicyType">
+			<xsd:element name="password" type="tns:PasswordCredentialsPolicyType" minOccurs="0">
 			</xsd:element>
-			<xsd:element name="securityQuestions" type="tns:SecurityQuestionsCredentialsPolicyType">
+			<xsd:element name="securityQuestions" type="tns:SecurityQuestionsCredentialsPolicyType" minOccurs="0">
              </xsd:element>
              <!-- More credential types may come here in the future. -->
 		</xsd:sequence>

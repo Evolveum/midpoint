@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.util;
 
 import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Node;
 
 /**
@@ -74,5 +76,22 @@ public class QNameUtil {
 	
 	public static boolean compareQName(QName qname, Node node) {
 		return (qname.getNamespaceURI().equals(node.getNamespaceURI()) && qname.getLocalPart().equals(node.getLocalName()));
+	}
+	
+	/**
+	 * Matching with considering wildcard namespace (null).
+	 */
+	public static boolean match(QName a, QName b) {
+		if (a == null && b == null) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		if (StringUtils.isBlank(a.getNamespaceURI()) || StringUtils.isBlank(b.getNamespaceURI())) {
+			return a.getLocalPart().equals(b.getLocalPart());
+		} else {
+			return a.equals(b);
+		}
 	}
 }

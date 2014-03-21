@@ -79,6 +79,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SpecialObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -102,6 +103,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	
 	protected static final File ROLE_SELF_FILE = new File(TEST_DIR, "role-self.xml");
 	protected static final String ROLE_SELF_OID = "00000000-0000-0000-0000-00000000aa03";
+	
+	protected static final File ROLE_OBJECT_FILTER_CARIBBEAN_FILE = new File(TEST_DIR, "role-filter-object-caribbean.xml");
+	protected static final String ROLE_OBJECT_FILTER_CARIBBEAN_OID = "00000000-0000-0000-0000-00000000aa04";
 
 	@Autowired(required=true)
 	private UserProfileService userDetailsService;
@@ -116,9 +120,10 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_READONLY_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_READONLY_DEEP_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_SELF_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_OBJECT_FILTER_CARIBBEAN_FILE, RoleType.class, initResult);
 	}
 
-	@Test(enabled=false) // Disabled 16 Mar 2014, waiting for repo changes
+	@Test
     public void test000Sanity() throws Exception {
 		final String TEST_NAME = "test000Sanity";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -131,12 +136,26 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         display("Role self", roleSelf);
         List<AuthorizationType> authorizations = roleSelf.asObjectable().getAuthorization();
         assertEquals("Wrong number of authorizations", 2, authorizations.size());
-        AuthorizationType authRead = authorizations.get(1);
+        AuthorizationType authRead = findAutz(authorizations, ModelService.AUTZ_READ_URL);
         assertEquals("Wrong action in authorization", ModelService.AUTZ_READ_URL, authRead.getAction().get(0));
         List<ObjectSpecificationType> objectSpecs = authRead.getObject();
         assertEquals("Wrong number of object specs in authorization", 1, objectSpecs.size());
+        ObjectSpecificationType objectSpec = objectSpecs.get(0);
+        List<SpecialObjectSpecificationType> specials = objectSpec.getSpecial();
+        assertEquals("Wrong number of specials in object specs in authorization", 1, specials.size());
+        SpecialObjectSpecificationType special = specials.get(0);
+        assertEquals("Wrong special in object specs in authorization", SpecialObjectSpecificationType.SELF, special);
     }
 	
+	private AuthorizationType findAutz(List<AuthorizationType> authorizations, String actionUrl) {
+		for (AuthorizationType authorization: authorizations) {
+			if (authorization.getAction().contains(actionUrl)) {
+				return authorization;
+			}
+		}
+		return null;
+	}
+
 	@Test
     public void test010GetUserAdministrator() throws Exception {
 		final String TEST_NAME = "test010GetUserAdministrator";
@@ -373,7 +392,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteDeny();
 	}
 	
-	@Test(enabled=false) // Disabled 16 Mar 2014, waiting for repo changes
+	@Test
     public void test204AutzJackSelfRole() throws Exception {
 		final String TEST_NAME = "test204AutzJackSelfRole";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -395,6 +414,29 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         assertDeleteDeny();
         assertDeleteDeny(UserType.class, USER_JACK_OID);
+	}
+	
+	@Test
+    public void test205AutzJackObjectFilterCaribbeanfRole() throws Exception {
+		final String TEST_NAME = "test205AutzJackObjectFilterCaribbeanfRole";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_OBJECT_FILTER_CARIBBEAN_OID);
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assertReadAllow();
+
+        assertAddDeny();
+        
+        assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
+        assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
+        assertModifyAllow(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Mutinier"));
+        
+        assertDeleteDeny();
 	}
 	
 	private void cleanupAutzTest(String userOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
