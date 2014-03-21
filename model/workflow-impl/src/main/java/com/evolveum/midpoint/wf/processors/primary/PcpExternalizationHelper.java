@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.wf.processors.primary;
 
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -58,7 +59,7 @@ public class PcpExternalizationHelper {
 
         String objectXml = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED);
         if (objectXml != null) {
-            ObjectType objectToBeAdded = prismContext.getPrismJaxbProcessor().unmarshalObject(objectXml, ObjectType.class);
+            ObjectType objectToBeAdded = (ObjectType) prismContext.parseObject(objectXml, PrismContext.LANG_XML).asObjectable();
             state.setMidPointObjectToBeAdded(objectToBeAdded);
         }
         state.setMidPointDelta(miscDataUtil.getObjectDeltaType(variables, true));

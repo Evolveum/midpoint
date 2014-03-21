@@ -119,7 +119,7 @@ public class PageDebugView extends PageAdminConfiguration {
             PrismObject<ObjectType> object = getModelService().getObject(type, objectOid.toString(), options, task, result);
 
             PrismContext context = application.getPrismContext();
-            String xml = context.getPrismDomProcessor().serializeObjectToString(object);
+            String xml = context.serializeObjectToString(object, PrismContext.LANG_XML);
             dto = new ObjectViewDto(object.getOid(), WebMiscUtil.getName(object), object, xml);
 
             result.recomputeStatus();

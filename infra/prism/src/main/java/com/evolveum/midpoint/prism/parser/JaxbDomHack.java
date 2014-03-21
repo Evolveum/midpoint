@@ -464,6 +464,25 @@ public class JaxbDomHack {
         return writer.getBuffer().toString();
     }
 
+    public boolean isJaxbClass(Class<?> clazz) {
+        if (clazz == null) {
+            throw new IllegalArgumentException("No class, no fun");
+        }
+        if (clazz.getPackage() == null) {
+            // No package: this is most likely a primitive type and definitely
+            // not a JAXB class
+            return false;
+        }
+        for (Package jaxbPackage: prismContext.getSchemaRegistry().getCompileTimePackages()) {
+            if (jaxbPackage.equals(clazz.getPackage())) {
+                return true;
+            }
+        }
+        return false;
+    }
 
+    public boolean canConvert(Class<?> clazz) {
+        return isJaxbClass(clazz);
+    }
 
 }

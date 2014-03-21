@@ -156,7 +156,7 @@ public class QueryJaxbConvertor {
 
 	}
 
-	public static QueryType createQueryType(ObjectQuery query, PrismContext prismContext) throws SchemaException{
+    public static QueryType createQueryType(ObjectQuery query, PrismContext prismContext) throws SchemaException{
 
 		ObjectFilter filter = query.getFilter();
 		QueryType queryType = new QueryType();

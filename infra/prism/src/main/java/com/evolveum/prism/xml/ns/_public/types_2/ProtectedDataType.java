@@ -288,9 +288,28 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
 		return sb.toString();
 	}
 
+    protected void cloneTo(ProtectedDataType<T> cloned) {
+        for (Object o : getContent()) {
+            if (o instanceof JAXBElement<?>) {
+                JAXBElement<?> je = (JAXBElement) o;
+                Object v = je.getValue();
+                if (v instanceof EncryptedDataType) {
+                    EncryptedDataType edt = (EncryptedDataType) v;
+                    cloned.addContent(new JAXBElement<EncryptedDataType>(je.getName(), (Class) je.getDeclaredType(), edt.clone()));
+                } else {
+                    throw new IllegalStateException("Unknown JAXB element "+je+ " in ProtectedDataType");
+                }
+            } else if (o instanceof Element) {
+                cloned.addContent(((Element) o).cloneNode(true));
+            } else if (o instanceof String) {
+                cloned.addContent(o);           // will this work?
+            } else {
+                throw new IllegalStateException("Unknown object of type "+o.getClass()+ " in ProtectedDataType");
+            }
+        }
+    }
 
-
-	class ContentList implements List<Object> {
+    class ContentList implements List<Object> {
 
 		@Override
 		public int size() {

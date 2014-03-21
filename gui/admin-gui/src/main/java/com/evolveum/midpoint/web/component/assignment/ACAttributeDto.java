@@ -26,6 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAttributeDefinitionType;
 
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
@@ -90,10 +91,6 @@ public class ACAttributeDto implements Serializable {
                 values.add(new ACValueConstructionDto(this, ((PrismPropertyValue) value).getValue()));
             }
         }
-        if (expression.getSequence() == null) {
-            return values;
-        }
-
         return values;
     }
 
@@ -159,10 +156,10 @@ public class ACAttributeDto implements Serializable {
         }
 
         List evaluators = expression.getExpressionEvaluator();
-        Collection<?> collection = StaticExpressionUtil.serializeValueElements(property, null);
+        List<JAXBElement<RawType>> collection = StaticExpressionUtil.serializeValueElements(property, null);
         ObjectFactory of = new ObjectFactory();
-        for (Object obj : collection) {
-            evaluators.add(of.createValue(obj));
+        for (JAXBElement<RawType> evaluator : collection) {
+            evaluators.add(evaluator);
         }
 
         if (evaluators.isEmpty()) {

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.wizard.resource;
 
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -89,18 +90,19 @@ public class SchemaStep extends WizardStep {
                 }
 
                 PageBase page = (PageBase) SchemaStep.this.getPage();
-                PrismDomProcessor domProcessor = page.getPrismContext().getPrismDomProcessor();
 
                 try {
-                    Element root = domProcessor.serializeToDom(xmlSchema.getValue(),
-                            DOMUtil.createElement(SchemaConstantsGenerated.C_SCHEMA));
-
-                    Element schema = root != null ? DOMUtil.getFirstChildElement(root) : null;
-                    if (schema == null) {
-                        return null;
-                    }
-
-                    return DOMUtil.serializeDOMToString(schema);
+                    // probably not correct... test and fix [pm]
+                    return page.getPrismContext().serializeContainerValueToString(xmlSchema.getValue(), SchemaConstantsGenerated.C_SCHEMA, PrismContext.LANG_XML);
+//                    Element root = page.getPrismContext().getParserDom().serializeToDom(xmlSchema.getValue(),
+//                            DOMUtil.createElement(SchemaConstantsGenerated.C_SCHEMA));
+//
+//                    Element schema = root != null ? DOMUtil.getFirstChildElement(root) : null;
+//                    if (schema == null) {
+//                        return null;
+//                    }
+//
+//                    return DOMUtil.serializeDOMToString(schema);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                     //todo error handling

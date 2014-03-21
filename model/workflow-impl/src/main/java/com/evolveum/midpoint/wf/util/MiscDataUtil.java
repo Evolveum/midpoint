@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -144,7 +145,7 @@ public class MiscDataUtil {
         String objectXml = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED);
         PrismObject<? extends ObjectType> object;
         if (objectXml != null) {
-            object = prismContext.getPrismJaxbProcessor().unmarshalObject(objectXml, ObjectType.class).asPrismObject();
+            object = prismContext.parseObject(objectXml, PrismContext.LANG_XML);
         } else {
             String oid = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID);
             if (oid == null) {
@@ -178,7 +179,7 @@ public class MiscDataUtil {
                 throw new IllegalStateException("There's no delta in process variables");
             }
         }
-        return prismContext.getPrismJaxbProcessor().unmarshalObject(deltaXml.getValue(), ObjectDeltaType.class);
+        return prismContext.parsePrismPropertyRealValue(deltaXml.getValue(), ObjectDeltaType.COMPLEX_TYPE, PrismContext.LANG_XML);
     }
 
     public PrismObject<? extends ObjectType> getObjectAfter(Map<String, Object> variables, ObjectDeltaType deltaType, PrismObject<? extends ObjectType> objectBefore, PrismContext prismContext, OperationResult result) throws JAXBException, SchemaException {
@@ -209,25 +210,24 @@ public class MiscDataUtil {
 
     public static String serializeObjectToXml(PrismObject<? extends ObjectType> object, PrismContext prismContext) {
         try {
-            return prismContext.getPrismJaxbProcessor().marshalToString(object.asObjectable());
-        } catch (JAXBException e) {
+            return prismContext.serializeObjectToString(object, PrismContext.LANG_XML);
+        } catch (SchemaException e) {
             throw new SystemException("Couldn't serialize a PrismObject " + object + " into XML", e);
         }
     }
 
     public static String serializeContainerableToXml(Containerable containerable, PrismContext prismContext) {
         try {
-            return prismContext.getPrismJaxbProcessor().marshalContainerableToString(containerable);
-        } catch (JAXBException e) {
+            PrismContainerValue value = containerable.asPrismContainerValue();
+            return prismContext.serializeContainerValueToString(value, value.getContainer().getElementName(), PrismContext.LANG_XML);
+        } catch (SchemaException e) {
             throw new SystemException("Couldn't serialize a Containerable " + containerable + " into XML", e);
         }
     }
 
     public static ObjectType deserializeObjectFromXml(String xml, PrismContext prismContext) {
         try {
-            return prismContext.getPrismJaxbProcessor().unmarshalObject(xml, ObjectType.class);
-        } catch (JAXBException e) {
-            throw new SystemException("Couldn't deserialize a PrismObject from XML", e);
+            return (ObjectType) prismContext.parseObject(xml, PrismContext.LANG_XML).asObjectable();
         } catch (SchemaException e) {
             throw new SystemException("Couldn't deserialize a PrismObject from XML", e);
         }
@@ -235,9 +235,7 @@ public class MiscDataUtil {
 
     public static PrismContainer deserializeContainerFromXml(String xml, PrismContext prismContext) {
         try {
-            return prismContext.getPrismJaxbProcessor().unmarshalSingleValueContainer(xml, Containerable.class);
-        } catch (JAXBException e) {
-            throw new SystemException("Couldn't deserialize a Containerable from XML", e);
+            return prismContext.parseContainer(xml, (Class) null, PrismContext.LANG_XML);
         } catch (SchemaException e) {
             throw new SystemException("Couldn't deserialize a Containerable from XML", e);
         }

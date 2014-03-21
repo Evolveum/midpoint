@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -318,7 +319,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
         OperationResult result = new OperationResult("test000LoadContext");
 
-        LensContextType lensContextType = prismContext.getPrismJaxbProcessor().unmarshalObject(new File("src/test/resources/model-contexts/context-dummy-resource.xml"), LensContextType.class);
+        LensContextType lensContextType = (LensContextType) prismContext.parseObject(new File("src/test/resources/model-contexts/context-dummy-resource.xml")).asObjectable();
         display("LensContextType", lensContextType);
         LensContext<?> lensContext = LensContext.fromLensContextType(lensContextType, prismContext, provisioningService, result);
         display("LensContext", lensContext);

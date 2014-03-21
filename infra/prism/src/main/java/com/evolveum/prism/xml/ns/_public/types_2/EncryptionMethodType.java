@@ -48,7 +48,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "EncryptionMethodType", propOrder = {
     "algorithm"
 })
-public class EncryptionMethodType  implements Serializable {
+public class EncryptionMethodType  implements Serializable, Cloneable {
 
     @XmlElement(required = true)
     @XmlSchemaType(name = "anyURI")
@@ -107,5 +107,11 @@ public class EncryptionMethodType  implements Serializable {
 	public String toString() {
 		return "EncryptionMethodType(algorithm=" + algorithm + ")";
 	}
+
+    public EncryptionMethodType clone() {
+        EncryptionMethodType cloned = new EncryptionMethodType();
+        cloned.setAlgorithm(getAlgorithm());
+        return cloned;
+    }
 
 }

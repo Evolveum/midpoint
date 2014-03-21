@@ -28,6 +28,11 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.ws.BindingProvider;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import org.apache.commons.io.IOUtils;
 import org.apache.cxf.frontend.ClientProxy;
 import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
@@ -38,14 +43,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-
-import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
-import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelService;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
 /**
  * @author Radovan Semancik
@@ -112,7 +109,7 @@ public class ModelClientUtil {
 
 	public static ProtectedStringType createProtectedString(String clearValue) {
 		ProtectedStringType protectedString = new ProtectedStringType();
-		protectedString.setClearValue(clearValue);
+		protectedString.getContent().add(clearValue);
 		return protectedString;
 	}
 
