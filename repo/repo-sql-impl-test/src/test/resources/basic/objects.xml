@@ -1340,4 +1340,64 @@
             <r:type>c:UserType</r:type>
         </configuration>
     </report>
+    
+	<valuePolicy oid="SECURITY-0000-0000-0000-000000000003"
+        		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+        		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+        		version="0">
+    	<name>Default Password Policy</name>
+    	<description>Default password policy</description>
+    	<lifetime>
+        	<expiration>999</expiration>
+	        <warnBeforeExpiration>9</warnBeforeExpiration>
+    	    <lockAfterExpiration>0</lockAfterExpiration>
+        	<minPasswordAge>0</minPasswordAge>
+        	<passwordHistoryLength>0</passwordHistoryLength>
+    	</lifetime>
+    	<stringPolicy>
+        	<description>Testing string policy</description>
+        	<limitations>
+            	<minLength>5</minLength>
+	            <maxLength>8</maxLength> 
+    	        <minUniqueChars>3</minUniqueChars>
+        	    <checkAgainstDictionary>true</checkAgainstDictionary>
+            	<checkPattern />
+            	<limit>
+            		<description>Alphas</description>
+	            	<minOccurs>1</minOccurs>
+    	        	<maxOccurs>5</maxOccurs>
+        	    	<mustBeFirst>false</mustBeFirst> 
+            		<characterClass> 
+          				<value>abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</value>
+	            	</characterClass> 
+    	        </limit>
+        	    <limit>
+            		<description>Numbers</description>
+            		<minOccurs>1</minOccurs>
+	            	<maxOccurs>5</maxOccurs>
+    	        	<mustBeFirst>false</mustBeFirst>
+        	    	<characterClass>
+            			<value>1234567890</value>
+            		</characterClass>
+            	</limit>
+        	</limitations>
+    	</stringPolicy>
+	</valuePolicy>
+    <securityPolicy xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+        <name>Security policy</name>
+        <description>Security policy example</description>
+        <authentication>
+        </authentication>
+        <credentials>
+        	<password>
+        		<passwordPolicyRef oid="SECURITY-0000-0000-0000-000000000003" type="c:ValuePolicyType"/>
+        	</password>
+        	<securityQuestions>
+        		<question>
+        			<identifier>http://example.com/uri3</identifier>
+        			<enabled>false</enabled>
+        		</question>
+        	</securityQuestions>
+        </credentials>
+   </securityPolicy>
 </objects>

@@ -45,6 +45,7 @@ public class RReport extends RObject<ReportType> {
     private String configuration;
     private String configurationSchema;
 
+    @Embedded
     public RPolyString getName() {
         return name;
     }
