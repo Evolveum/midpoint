@@ -114,3 +114,23 @@ CREATE INDEX iObjectNameNorm ON m_object (name_norm);
  UPDATE m_object as o, m_value_policy as x SET o.name_norm = x.name_norm, o.name_orig = x.name_orig  WHERE x.oid = o.oid;
  
  ALTER TABLE m_authorization ADD objectSpecification LONGTEXT;
+  
+ CREATE TABLE m_security_policy (
+    authentication LONGTEXT,
+    credentials LONGTEXT,
+    name_norm VARCHAR(255),
+    name_orig VARCHAR(255),
+	id BIGINT NOT NULL,
+    oid VARCHAR(36) NOT NULL,
+    PRIMARY KEY (id, oid),
+    UNIQUE (name_norm)
+);
+
+CREATE INDEX iSecurityPolicyName ON m_security_policy (name_orig);
+
+ALTER TABLE m_security_policy 
+	ADD INDEX fk_security_policy (id, oid), 
+    ADD CONSTRAINT fk_security_policy 
+    FOREIGN KEY (id, oid) 
+    REFERENCES m_object (id, oid);
+
