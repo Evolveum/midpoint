@@ -15,9 +15,11 @@
  */
 package com.evolveum.midpoint.web.page.admin.roles.dto;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import org.apache.wicket.model.IModel;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -27,7 +29,11 @@ import java.util.List;
 
 /**
  *  @author shood
+ *
+ *  Deprecated for now. May find usage in future
  * */
+
+@Deprecated
 public class RoleDto implements Serializable{
 
     public static final String F_NAME = "name";
@@ -40,6 +46,7 @@ public class RoleDto implements Serializable{
     public static final String F_INDUCEMENTS = "inducements";
     public static final String F_ASSIGNMENTS = "assignments";
 
+    private PrismObject<RoleType> role;
     private String name;
     private String description;
     private String type;
@@ -62,6 +69,14 @@ public class RoleDto implements Serializable{
         this.from = from;
         this.to = to;
         this.adminStatus = adminStatus;
+    }
+
+    public PrismObject<RoleType> getRole() {
+        return role;
+    }
+
+    public void setRole(PrismObject<RoleType> role) {
+        this.role = role;
     }
 
     public List<AssignmentEditorDto> getInducements() {
