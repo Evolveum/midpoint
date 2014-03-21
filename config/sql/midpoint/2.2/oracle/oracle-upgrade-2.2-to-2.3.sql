@@ -86,6 +86,7 @@ ALTER TABLE m_report_output
 ALTER TABLE m_assignment ADD orderValue NUMBER(10,0);
 
 ALTER TABLE m_user ADD jpegPhoto BLOB;
+
 CREATE INDEX iObjectNameOrig ON m_object (name_orig) INITRANS 30;
 
 CREATE INDEX iObjectNameNorm ON m_object (name_norm) INITRANS 30;
@@ -123,4 +124,25 @@ CREATE INDEX iObjectNameNorm ON m_object (name_norm) INITRANS 30;
  UPDATE m_object o SET (o.name_norm, o.name_orig) = (SELECT x.name_norm, x.name_orig FROM m_value_policy x WHERE x.oid = o.oid) 
  WHERE EXISTS (SELECT x.name_norm, x.name_orig FROM m_value_policy x WHERE x.oid = o.oid);
 
- ALTER TABLE m_authorization ADD objectSpecification CLOB;
+ ALTER TABLE m_authorization ADD objectSpecification CLOB INITRANS 30;
+ 
+ 
+ CREATE TABLE m_security_policy (
+    authentication CLOB,
+    credentials CLOB,
+    name_norm VARCHAR2(255 CHAR),
+    name_orig VARCHAR2(255 CHAR),
+	id NUMBER(19,0) NOT NULL,
+    oid VARCHAR2(36 CHAR) NOT NULL,
+    PRIMARY KEY (id, oid),
+    UNIQUE (name_norm)
+) INITRANS 30;
+
+
+CREATE INDEX iSecurityPolicyName ON m_security_policy (name_orig) INITRANS 30;
+
+ALTER TABLE m_security_policy 
+    ADD CONSTRAINT fk_security_policy 
+    FOREIGN KEY (id, oid) 
+    REFERENCES m_object;
+

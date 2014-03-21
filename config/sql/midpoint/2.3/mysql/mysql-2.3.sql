@@ -519,6 +519,17 @@
         unique (name_norm)
     ) DEFAULT CHARACTER SET utf8 COLLATE utf8_bin ENGINE=InnoDB;
 
+    create table m_security_policy (
+        authentication longtext,
+        credentials longtext,
+        name_norm varchar(255),
+        name_orig varchar(255),
+        id bigint not null,
+        oid varchar(36) not null,
+        primary key (id, oid),
+        unique (name_norm)
+    ) DEFAULT CHARACTER SET utf8 COLLATE utf8_bin ENGINE=InnoDB;
+
     create table m_shadow (
         administrativeStatus integer,
         archiveTimestamp DATETIME(6),
@@ -979,6 +990,14 @@
         add constraint fk_role 
         foreign key (id, oid) 
         references m_abstract_role (id, oid);
+
+    create index iSecurityPolicyName on m_security_policy (name_orig);
+
+    alter table m_security_policy 
+        add index fk_security_policy (id, oid), 
+        add constraint fk_security_policy 
+        foreign key (id, oid) 
+        references m_object (id, oid);
 
     create index iShadowNameOrig on m_shadow (name_orig);
 
