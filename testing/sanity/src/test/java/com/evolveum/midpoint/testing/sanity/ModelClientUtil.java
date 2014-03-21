@@ -28,6 +28,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.ws.BindingProvider;
 
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import org.apache.commons.io.IOUtils;
 import org.apache.cxf.frontend.ClientProxy;
 import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
@@ -42,9 +45,6 @@ import org.xml.sax.SAXException;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
-import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelService;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
 /**
@@ -84,8 +84,22 @@ public class ModelClientUtil {
 		String pathDeclaration = "declare default namespace '" + NS_COMMON + "'; " + stringPath;
 		return createTextElement(COMMON_PATH, pathDeclaration, doc);
 	}
-	
-	public static PolyStringType createPolyStringType(String string, Document doc) {
+
+    public static ItemPathType createItemPathType(String stringPath) {
+        ItemPathType itemPathType = new ItemPathType();
+        String pathDeclaration = "declare default namespace '" + NS_COMMON + "'; " + stringPath;
+        itemPathType.getContent().add(pathDeclaration);
+        return itemPathType;
+    }
+
+    public static SearchFilterType parseSearchFilterType(String filterClauseAsXml) throws IOException, SAXException {
+        Element filterClauseAsElement = parseElement(filterClauseAsXml);
+        SearchFilterType searchFilterType = new SearchFilterType();
+        searchFilterType.setFilterClause(filterClauseAsElement);
+        return searchFilterType;
+    }
+
+    public static PolyStringType createPolyStringType(String string, Document doc) {
 		PolyStringType polyStringType = new PolyStringType();
 		Element origElement = createTextElement(TYPES_POLYSTRING_ORIG, string, doc);
 		polyStringType.getAny().add(origElement);
