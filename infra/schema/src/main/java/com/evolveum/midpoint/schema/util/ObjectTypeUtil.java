@@ -35,7 +35,6 @@ import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
@@ -289,11 +288,6 @@ public class ObjectTypeUtil {
         return JAXBUtil.getElementQName(propertyModification.getValue().getAny().get(0));
     }
 
-    public static boolean isEmpty(ObjectModificationType objectModification) {
-        return (objectModification.getModification() == null) ||
-                objectModification.getModification().isEmpty();
-    }
-    
     public static void assertConcreteType(Class<? extends Objectable> type) {
     	// The abstract object types are enumerated here. It should be switched to some flag later on
     	if (type.equals(ObjectType.class)) {

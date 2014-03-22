@@ -23,6 +23,11 @@ import java.util.Random;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.GetOperationOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.RetrieveOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.SelectorQualifiedGetOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.SelectorQualifiedGetOptionsType;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -40,10 +45,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectOperationOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectOperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProjectionPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
@@ -142,43 +144,27 @@ public class MiscSchemaUtil {
 		return itemPathList;
 	}
 
-	public static Collection<SelectorOptions<GetOperationOptions>> optionsTypeToOptions(OperationOptionsType optionsType) {
-		if (optionsType == null) {
-			return null;
-		}
-		List<ObjectOperationOptionsType> objectOptionsTypeList = optionsType.getObjectOption();
-		Collection<SelectorOptions<GetOperationOptions>> optionsList = new ArrayList<SelectorOptions<GetOperationOptions>>(objectOptionsTypeList.size());
-		for (ObjectOperationOptionsType objectOptionsType: objectOptionsTypeList) {
-			optionsList.add(objectOptionsTypeToOptions(objectOptionsType));
-		}
-		return optionsList;
-	}
-
-	private static SelectorOptions<GetOperationOptions> objectOptionsTypeToOptions(ObjectOperationOptionsType objectOptionsType) {
+	private static SelectorOptions<GetOperationOptions> objectOptionsTypeToOptions(SelectorQualifiedGetOptionType objectOptionsType) {
 		ObjectSelector selector = selectorTypeToSelector(objectOptionsType.getSelector());
-		GetOperationOptions options = optionsTypeToOptions(objectOptionsType.getOption());
-		return new SelectorOptions<GetOperationOptions>(selector, options );
+		GetOperationOptions options = getOptionsTypeToOptions(objectOptionsType.getOptions());
+		return new SelectorOptions<>(selector, options);
 	}
 
-	private static GetOperationOptions optionsTypeToOptions(List<ObjectOperationOptionType> optionTypeList) {
+	private static GetOperationOptions getOptionsTypeToOptions(GetOperationOptionsType optionsType) {
 		GetOperationOptions options = new GetOperationOptions();
-		for (ObjectOperationOptionType optionType: optionTypeList) {
-			if (optionType == ObjectOperationOptionType.RESOLVE) {
-				options.setResolve(true);
-			}
-			if (optionType == ObjectOperationOptionType.NO_FETCH) {
-				options.setNoFetch(true);
-			}			
-		}
+        options.setRetrieve(RetrieveOption.fromRetrieveOptionType(optionsType.getRetrieve()));
+        options.setResolve(optionsType.isResolve());
+        options.setNoFetch(optionsType.isNoFetch());
+        options.setRaw(optionsType.isRaw());
+        options.setDoNotDiscovery(optionsType.isNoDiscovery());
 		return options;
 	}
 
-	private static ObjectSelector selectorTypeToSelector(ObjectSelectorType selectorType) {
+    private static ObjectSelector selectorTypeToSelector(ObjectSelectorType selectorType) {
 		if (selectorType == null) {
 			return null;
 		}
-		XPathHolder itemXPath = new XPathHolder(selectorType.getPath());
-		return new ObjectSelector(itemXPath.toItemPath());
+		return new ObjectSelector(selectorType.getPath().getItemPath());
 	}
 	
     /**

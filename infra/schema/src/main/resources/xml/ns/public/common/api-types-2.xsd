@@ -167,45 +167,6 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="ObjectModificationType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Describes a change of attributes of a specific object.
-                All changes are expected to happen atomically, but
-                there may be exceptions. Please check with the
-                documentation of the interface using this type for
-                more details.
-
-               	Used in the interfaces (modifyObject)
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="oid" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        OID of the object to modify.
-
-                        Due to consistency reasons this should rather be
-                        an attribute. But it is an element because of
-                        OpenESB bug with attributes in message parts.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="modification" type="t:ItemDeltaType" minOccurs="1" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Describe a change to a single attribute of an object.
-                        
-                        TODO: this should be renamed to "itemModification"
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:element name="objectModification" type="tns:ObjectModificationType"/>
-    
-    
     <xsd:complexType name="ObjectListType">
         <xsd:sequence>
             <xsd:element name="object" type="c:ObjectType" minOccurs="0" maxOccurs="unbounded"/>
@@ -272,18 +233,18 @@
         </xsd:sequence>
     </xsd:complexType>
     
-    <xsd:complexType name="OperationOptionsType">
+    <xsd:complexType name="SelectorQualifiedGetOptionsType">
         <xsd:annotation>
             <xsd:documentation>
-                Operation Options
+                Selector-qualified options for a get-like operation.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="objectOption" type="tns:ObjectOperationOptionsType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="option" type="tns:SelectorQualifiedGetOptionType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="ObjectOperationOptionsType">
+    <xsd:complexType name="SelectorQualifiedGetOptionType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
@@ -291,7 +252,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="selector" type="tns:ObjectSelectorType" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="option" type="tns:ObjectOperationOptionType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="options" type="tns:GetOperationOptionsType" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -302,40 +263,84 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="path" type="t:XPathType" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="0" maxOccurs="1"/>
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:simpleType name="ObjectOperationOptionType">
+    <xsd:simpleType name="RetrieveOptionType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO
             </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="resolve">
+            <xsd:enumeration value="default">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="RESOLVE"/>
+                        <jaxb:typesafeEnumMember name="DEFAULT"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="no-fetch">
+            <xsd:enumeration value="include">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="NO_FETCH"/>
+                        <jaxb:typesafeEnumMember name="INCLUDE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="force">
+            <xsd:enumeration value="exclude">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="FORCE"/>
+                        <jaxb:typesafeEnumMember name="EXCLUDE"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
-    
+
+    <xsd:complexType name="GetOperationOptionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                See GetOperationOptions for a description.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="retrieve" type="tns:RetrieveOptionType" minOccurs="0"/>
+            <xsd:element name="resolve" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="noFetch" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="raw" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="noDiscovery" type="xsd:boolean" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ModelExecuteOptionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                See ModelExecuteOptions for a description.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="force" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="raw" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="noCrypt" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="reconcile" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="executeImmediatelyAfterApproval" type="xsd:boolean" minOccurs="0"/>
+            <xsd:element name="overwrite" type="xsd:boolean" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ObjectDeltaListType">
+        <xsd:annotation>
+            <xsd:documentation>
+                List of object deltas.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="delta" type="t:ObjectDeltaType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
 </xsd:schema>
 
