@@ -392,6 +392,9 @@ public class PageOrgUnit extends PageAdminUsers {
 
             if (delta != null) {
                 Collection<ObjectDelta<? extends ObjectType>> deltas = WebMiscUtil.createDeltaCollection(delta);
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Saving changes for org. unit: {}", delta.debugDump());
+                }
                 model.executeChanges(deltas, null, createSimpleTask(SAVE_UNIT), result);
             }
         } catch (Exception ex) {
