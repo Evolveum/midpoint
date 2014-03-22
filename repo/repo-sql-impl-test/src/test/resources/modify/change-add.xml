@@ -22,8 +22,9 @@
     <oid>f65963e3-9d47-4b18-aaf3-bfc98bdfa000</oid>
     <modification>
         <t:modificationType>add</t:modificationType>
+        <t:path>c:linkRef</t:path>
         <t:value>
-            <c:linkRef oid="1234567890" />
+            <oid>1234567890</oid>
         </t:value>
     </modification>
 </objectModification>

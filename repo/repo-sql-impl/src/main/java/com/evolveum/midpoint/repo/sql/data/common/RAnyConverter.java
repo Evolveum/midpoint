@@ -179,7 +179,7 @@ public class RAnyConverter {
 //        Element root = createElement(RUtil.CUSTOM_OBJECT);
 //        domProcessor.serializeValueToDom(prismValue, root);
 //        String value = DOMUtil.serializeDOMToString(root);
-    	String value = ValueSerializationUtil.serializeItemValue(prismValue, PrismContext.LANG_XML);
+    	String value = ValueSerializationUtil.serializeItemValue(def.getName(), def, prismValue, prismContext, PrismContext.LANG_XML);
         return new RAnyClob(value);
     }
 

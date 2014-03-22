@@ -21,8 +21,9 @@
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
 	<oid>00000000-8888-6666-0000-100000000005</oid>
-	<modification>
+	<itemDelta>
 		<t:modificationType>delete</t:modificationType>
+		<t:path>c:assignment</t:path>
 		<t:value>
 			<c:assignment id="1">
                 <c:construction>
@@ -30,9 +31,10 @@
                 </c:construction>
 			</c:assignment>
 		</t:value>
-	</modification>
-    <modification>
+	</itemDelta>
+    <itemDelta>
         <t:modificationType>add</t:modificationType>
+        <t:path>c:inducement</t:path>
         <t:value>
             <c:inducement id="1">
                 <c:construction>
@@ -40,5 +42,5 @@
                 </c:construction>
             </c:inducement>
         </t:value>
-    </modification>
+    </itemDelta>
 </objectModification>

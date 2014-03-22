@@ -290,8 +290,8 @@ public class ObjectTypeUtil {
     }
 
     public static boolean isEmpty(ObjectModificationType objectModification) {
-        return (objectModification.getModification() == null) ||
-                objectModification.getModification().isEmpty();
+        return (objectModification.getItemDelta() == null) ||
+                objectModification.getItemDelta().isEmpty();
     }
     
     public static void assertConcreteType(Class<? extends Objectable> type) {

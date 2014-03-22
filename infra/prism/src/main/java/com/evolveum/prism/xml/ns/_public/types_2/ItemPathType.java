@@ -88,12 +88,10 @@ public class ItemPathType implements Serializable, Equals{
 
     public ItemPathType() {
     	// Nothing to do
-    	System.out.println("itempath construction");
-    	System.out.println("content: " + content);
     	if (content == null){
     		content = new ContentList();
     	}
-    	System.out.println("content after: " + content);
+//    	System.out.println("content after: " + content);
     }
     
     public ItemPathType(ItemPath itemPath) {
@@ -138,7 +136,7 @@ public class ItemPathType implements Serializable, Equals{
      * 
      */
     public List<Object> getContent() {
-        if (content == null) {
+        if (!(content instanceof ContentList)) {
             content = new ContentList();
         }
         return this.content;
@@ -253,6 +251,9 @@ public class ItemPathType implements Serializable, Equals{
 				if (e instanceof String){
 					XPathHolder holder = new XPathHolder((String) e);
 					itemPath = holder.toItemPath();
+					return true;
+				} else if (e instanceof QName){
+					itemPath = new ItemPath((QName) e);
 					return true;
 				}
 				throw new IllegalArgumentException("PATH ADD: "+e+" "+e.getClass());

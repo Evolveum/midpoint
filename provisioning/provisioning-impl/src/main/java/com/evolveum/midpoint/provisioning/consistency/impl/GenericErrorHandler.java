@@ -137,7 +137,7 @@ public class GenericErrorHandler extends ErrorHandler{
 			Collection<? extends ItemDelta> modifications = null;
 			if (shadow.getObjectChange() != null) {
 				ObjectDeltaType deltaType = shadow.getObjectChange();
-				modifications = DeltaConvertor.toModifications(deltaType.getModification(), shadow
+				modifications = DeltaConvertor.toModifications(deltaType.getItemDelta(), shadow
 							.asPrismObject().getDefinition());
 			}
 			PropertyDelta.applyTo(modifications, shadow.asPrismObject());

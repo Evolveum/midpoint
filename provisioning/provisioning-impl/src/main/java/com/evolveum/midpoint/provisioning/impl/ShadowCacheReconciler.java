@@ -121,7 +121,7 @@ public class ShadowCacheReconciler extends ShadowCache{
 		//TODO: error handling
 		if (shadowDelta != null){
 		modifications = DeltaConvertor.toModifications(
-				shadowDelta.getModification(), shadow.getDefinition());
+				shadowDelta.getItemDelta(), shadow.getDefinition());
 		
 		}
 		

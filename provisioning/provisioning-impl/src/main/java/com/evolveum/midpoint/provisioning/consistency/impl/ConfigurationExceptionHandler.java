@@ -65,7 +65,7 @@ public class ConfigurationExceptionHandler extends ErrorHandler {
 			if (shadow.getObjectChange() != null) {
 				ObjectDeltaType deltaType = shadow.getObjectChange();
 
-				modifications = DeltaConvertor.toModifications(deltaType.getModification(), shadow
+				modifications = DeltaConvertor.toModifications(deltaType.getItemDelta(), shadow
 						.asPrismObject().getDefinition());
 			}
 			delta = ObjectDelta.createModifyDelta(shadow.getOid(), modifications, shadow.getClass(), prismContext);

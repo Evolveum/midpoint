@@ -165,9 +165,12 @@ public class ValueSerializationUtil {
 //		throw new UnsupportedOperationException("need to be implemented");
 	}
 	
-	public static String serializeItemValue(PrismValue value, String language){
-		System.out.println("item value serialization");
-		throw new UnsupportedOperationException("need to be implemented");
+	public static String serializeItemValue(QName itemName, ItemDefinition def, PrismValue value, PrismContext prismContext, String language) throws SchemaException{
+		XNodeSerializer serializer = prismContext.getXnodeProcessor().createSerializer();
+		XNode node = serializer.serializeItemValue(value, def);
+		String s = prismContext.getParserDom().serializeToString(node, itemName);
+		System.out.println("serialized: " + s);
+		return s;
 	}
 	
 	public static String serializeFilter(SearchFilterType query, PrismContext prismContext, String language){

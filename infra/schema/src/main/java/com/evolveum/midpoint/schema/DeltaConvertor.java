@@ -22,33 +22,33 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectDeltaOperationType;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
-import com.evolveum.midpoint.prism.parser.XPathHolder;
+import com.evolveum.midpoint.prism.parser.XNodeSerializer;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.ValueSerializationUtil;
+import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectDeltaOperationType;
 import com.evolveum.prism.xml.ns._public.types_2.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
@@ -78,7 +78,7 @@ public class DeltaConvertor {
         ObjectDelta<T> objectDelta = new ObjectDelta<T>(objDef.getCompileTimeClass(), ChangeType.MODIFY, objDef.getPrismContext());
         objectDelta.setOid(objectModification.getOid());
 
-        for (ItemDeltaType propMod : objectModification.getModification()) {
+        for (ItemDeltaType propMod : objectModification.getItemDelta()) {
             ItemDelta itemDelta = createItemDelta(propMod, objDef);
             objectDelta.addModification(itemDelta);
         }
@@ -103,7 +103,7 @@ public class DeltaConvertor {
         } else if (objectDeltaType.getChangeType() == ChangeTypeType.MODIFY) {
         	ObjectDelta<T> objectDelta = new ObjectDelta<T>(type, ChangeType.MODIFY, prismContext);
             objectDelta.setOid(objectDeltaType.getOid());
-	        for (ItemDeltaType propMod : objectDeltaType.getModification()) {
+	        for (ItemDeltaType propMod : objectDeltaType.getItemDelta()) {
 	            ItemDelta itemDelta = createItemDelta(propMod, objDef);
 	            objectDelta.addModification(itemDelta);
 	        }
@@ -138,7 +138,7 @@ public class DeltaConvertor {
     
     public static <T extends Objectable> Collection<? extends ItemDelta> toModifications(ObjectModificationType objectModification, 
     		PrismObjectDefinition<T> objDef) throws SchemaException {
-    	return toModifications(objectModification.getModification(), objDef);
+    	return toModifications(objectModification.getItemDelta(), objDef);
     }
     	
     public static <T extends Objectable> Collection<? extends ItemDelta> toModifications(Collection<ItemDeltaType> itemDeltaTypes, 
@@ -160,7 +160,7 @@ public class DeltaConvertor {
         }
         ObjectModificationType modType = new ObjectModificationType();
         modType.setOid(delta.getOid());
-        List<ItemDeltaType> propModTypes = modType.getModification();
+        List<ItemDeltaType> propModTypes = modType.getItemDelta();
         for (ItemDelta<?> propDelta : delta.getModifications()) {
             Collection<ItemDeltaType> propPropModTypes;
             try {
@@ -202,7 +202,7 @@ public class DeltaConvertor {
 		        } catch (SchemaException e) {
 		            throw new SchemaException(e.getMessage() + " in " + objectDelta.toString(), e);
 		        }
-		        objectDeltaType.getModification().addAll(propPropModTypes);
+		        objectDeltaType.getItemDelta().addAll(propPropModTypes);
 		    }
         } else if (objectDelta.getChangeType() == ChangeType.DELETE) {
         	// Nothing to do
@@ -262,30 +262,37 @@ public class DeltaConvertor {
     	if (parentPathType != null){
     		parentPath = parentPathType.getItemPath();
     	} else {
-    		parentPath = new ItemPath();
+    		throw new IllegalStateException("Path argument in the itemDelta HAVE TO BE specified.");
+//    		parentPath = new ItemPath();
     	}
         if (propMod.getValue() == null) {
             throw new IllegalArgumentException("No value in item delta (path: " + parentPath + ") while creating a property delta");
         }
-        PrismContainerDefinition<?> containingPcd = pcDef.findContainerDefinition(parentPath);
+        ItemDefinition containingPcd = pcDef.findItemDefinition(parentPath);
         if (containingPcd == null) {
             throw new SchemaException("No container definition for " + parentPath + " (while creating delta for " + pcDef + ")");
         }
-        System.out.println("DELTA: " + propMod.getValue().getXnode().debugDump());
-        Collection<Item<V>> items = pcDef.getPrismContext().getJaxbDomHack().fromAny(propMod.getValue().getContent(), 
-        		containingPcd);
-        if (items.size() > 1) {
-            throw new SchemaException("Expected presence of a single item (path " + propMod.getPath() + ") in a object modification, but found " + items.size() + " instead");
-        }
-        if (items.size() < 1) {
-        	if (propMod.getModificationType() == ModificationTypeType.REPLACE) {
-        		// Empty replace delta is OK
-        	} else {
-        		throw new SchemaException("Expected presence of a value (path " + propMod.getPath() + ") in a object modification, but found nothing");
-        	}
-        }
-        Item<V> item = items.iterator().next();
-        ItemDelta<V> itemDelta = item.createDelta(parentPath.subPath(item.getElementName()));
+//        System.out.println("DELTA: " + propMod.getValue().getXnode().debugDump());
+//        Collection<Item<V>> items = pcDef.getPrismContext().getJaxbDomHack().fromAny(propMod.getValue().getContent(), 
+//        		containingPcd);
+        
+//        Collection<Item<V>> items = new ArrayList<Item<V>>();
+        
+//        
+//        if (items.size() > 1) {
+//            throw new SchemaException("Expected presence of a single item (path " + propMod.getPath() + ") in a object modification, but found " + items.size() + " instead");
+//        }
+//        if (items.size() < 1) {
+//        	if (propMod.getModificationType() == ModificationTypeType.REPLACE) {
+//        		// Empty replace delta is OK
+//        	} else {
+//        		throw new SchemaException("Expected presence of a value (path " + propMod.getPath() + ") in a object modification, but found nothing");
+//        	}
+//        }
+//        Item<V> item = items.iterator().next();
+        Item item = propMod.getValue().getParsedValue(containingPcd);
+//        ItemDelta<V> itemDelta = item.createDelta(parentPath.subPath(item.getElementName()));
+        ItemDelta<V> itemDelta = item.createDelta(parentPath);
         if (propMod.getModificationType() == ModificationTypeType.ADD) {
         	itemDelta.addValuesToAdd(PrismValue.resetParentCollection(PrismValue.cloneCollection(item.getValues())));
         } else if (propMod.getModificationType() == ModificationTypeType.DELETE) {
@@ -305,7 +312,7 @@ public class DeltaConvertor {
         Collection<ItemDeltaType> mods = new ArrayList<ItemDeltaType>();
 //        XPathHolder xpath = new XPathHolder(delta.getParentPath());
         Document document = DOMUtil.getDocument();
-        ItemPathType path = new ItemPathType(delta.getParentPath());
+        ItemPathType path = new ItemPathType(delta.getPath());
 //        Element xpathElement = xpath.toElement(PATH_ELEMENT_NAME, document);
         if (delta.getValuesToReplace() != null) {
             ItemDeltaType mod = new ItemDeltaType();
@@ -345,22 +352,53 @@ public class DeltaConvertor {
 
     private static void addModValues(ItemDelta delta, ItemDeltaType mod, Collection<PrismValue> values,
             Document document) throws SchemaException {
-    	QName elementName = delta.getElementName();
+//    	QName elementName = delta.getElementName();
     	RawType modValue = new RawType();
         mod.setValue(modValue);
         if (values == null || values.isEmpty()) {
         	// We need to create "nil" element otherwise the element name will be lost
         	// (and this is different from empty element)
-        	Element nilValueElement = DOMUtil.createElement(elementName);
-        	DOMUtil.setNill(nilValueElement);
+//        	Element nilValueElement = DOMUtil.createElement(elementName);
+//        	DOMUtil.setNill(nilValueElement);
         	//FIXME : DOM?? vs Xnode??
-			modValue.getContent().add(nilValueElement);
+        	
+			modValue.setXnode(null);
         } else {
 	        for (PrismValue value : values) {
-	        	Object xmlValue = toAny(delta, value, document);
-	            modValue.getContent().add(xmlValue);
+	        	//FIXME: serilaize to XNode instead of dom??
+//	        	Object xmlValue = toAny(delta, value, document);
+//	            modValue.getContent().add(xmlValue);
+	        	XNode xnode = toXNode(delta, value);
+	        	modValue.setXnode(xnode);
 	        }
         }
+    }
+    
+    private static XNode toXNode(ItemDelta delta, PrismValue value) throws SchemaException{
+    	PrismContext prismContext = delta.getPrismContext();
+    	
+		if (prismContext != null) {
+//			delta.getItemNew()
+//			TODO: swhich to the value serialization util
+			
+//			return ValueSerializationUtil.serializeItemValue(ItemDeltaType.F_VALUE, delta.getDefinition(), value, prismContext, PrismContext.LANG_XML);
+			XNodeSerializer serializer = prismContext.getXnodeProcessor().createSerializer();
+			XNode node = serializer.serializeItemValue(value, delta.getDefinition());
+//			return delta.getPrismContext().getXnodeProcessor().serializeItem()
+			return node;
+		}
+		if (value instanceof PrismPropertyValue<?>) {
+			PrismPropertyValue<?> pval = (PrismPropertyValue<?>)value;
+			Object raw = pval.getRawElement();
+			if (XNode.class.isAssignableFrom(raw.getClass())){
+				return (XNode) pval.getRawElement();
+			}
+//			return ;
+			throw new SystemException("something strange happened. There is a raw element, but it is not XNode"+value);
+		} else {
+			throw new SystemException("Null prism context in "+value+" in "+delta);
+		}
+    	
     }
 
 	private static Object toAny(ItemDelta delta, PrismValue value, Document document) throws SchemaException {

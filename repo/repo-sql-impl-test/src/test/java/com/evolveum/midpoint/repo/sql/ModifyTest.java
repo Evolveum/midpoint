@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+  * Copyright (c) 2010-2013 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -345,7 +345,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, oid, null, parentResult);
         System.out.println("\nRepo shadow");
         System.out.println(repoShadow.debugDump());
-
+        prismContext.adopt(repoShadow);
+        prismContext.adopt(accShadow);
         ObjectDelta d = repoShadow.diff(accShadow);
         System.out.println("\nDelta");
         System.out.println(d.debugDump());

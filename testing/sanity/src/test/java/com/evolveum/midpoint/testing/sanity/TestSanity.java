@@ -3667,7 +3667,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         value.getAny().add(el);
         mod1.setValue(value);
     	
-    	delta.getModification().add(mod1);
+    	delta.getItemDelta().add(mod1);
     	delta.setOid(oid);
     	
     	LOGGER.info("item delta: {}", SchemaDebugUtil.prettyPrint(mod1));
@@ -3747,7 +3747,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 //        mod1.setValue(value);
     	
 //    	delta.getModification().add(mod1);
-        delta.getModification().add(passwordDelta);
+        delta.getItemDelta().add(passwordDelta);
     	delta.setOid(oid);
     	
     	LOGGER.info("item delta: {}", SchemaDebugUtil.prettyPrint(passwordDelta));

@@ -191,7 +191,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="modification" type="t:ItemDeltaType" minOccurs="1" maxOccurs="unbounded">
+            <xsd:element name="itemDelta" type="t:ItemDeltaType" minOccurs="1" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         Describe a change to a single attribute of an object.

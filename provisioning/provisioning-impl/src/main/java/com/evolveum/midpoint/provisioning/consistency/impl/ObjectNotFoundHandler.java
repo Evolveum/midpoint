@@ -144,7 +144,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			
 			ObjectDeltaType shadowModifications = shadow.getObjectChange();
 			Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(
-					shadowModifications.getModification(), shadow.asPrismObject().getDefinition());
+					shadowModifications.getItemDelta(), shadow.asPrismObject().getDefinition());
 			
 			shadow.setDead(true);
 			

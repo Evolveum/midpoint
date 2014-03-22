@@ -22,6 +22,8 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.parser.TrivialXPathParser;
 import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.parser.XPathSegment;
@@ -99,7 +101,7 @@ public class XPathTest {
     	ObjectModificationType objectModification = PrismTestUtil.unmarshalObject(new File(FILENAME_CHANGETYPE),
     			ObjectModificationType.class);
 
-        for (ItemDeltaType change : objectModification.getModification()) {
+        for (ItemDeltaType change : objectModification.getItemDelta()) {
             ItemPathType pathType = change.getPath();
             System.out.println("  path=" + pathType + " (" + pathType.getClass().getName() + ") " + pathType.toString());
 //            NamedNodeMap attributes = path.getAttributes();

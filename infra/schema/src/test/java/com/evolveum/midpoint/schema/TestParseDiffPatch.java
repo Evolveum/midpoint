@@ -144,7 +144,7 @@ public class TestParseDiffPatch {
         System.out.println("Modification XML:");
         System.out.println(PrismTestUtil.marshalWrap(objectModificationType));
         assertEquals("Wrong delta OID", userBefore.getOid(), objectModificationType.getOid());
-        List<ItemDeltaType> propertyModifications = objectModificationType.getModification();
+        List<ItemDeltaType> propertyModifications = objectModificationType.getItemDelta();
         assertEquals("Unexpected number of modifications", 3, propertyModifications.size());
         PolyStringType polyString = new PolyStringType();
         polyString.setOrig("Cpt. Jack Sparrow");
@@ -497,7 +497,7 @@ public class TestParseDiffPatch {
     private void assertXmlPolyMod(ObjectModificationType objectModificationType, QName propertyName,
             ModificationTypeType modType, PolyStringType... expectedValues) {
     	//FIXME: 
-        for (ItemDeltaType mod : objectModificationType.getModification()) {
+        for (ItemDeltaType mod : objectModificationType.getItemDelta()) {
             List<Object> elements = mod.getValue().getContent();
             assertFalse(elements.isEmpty());
             Object first = elements.get(0);
@@ -538,7 +538,7 @@ public class TestParseDiffPatch {
 
 	private void assertXmlMod(ObjectModificationType objectModificationType, QName propertyName,
 			ModificationTypeType modType, String... expectedValues) {
-		for (ItemDeltaType mod: objectModificationType.getModification()) {
+		for (ItemDeltaType mod: objectModificationType.getItemDelta()) {
 			List<Object> elements = mod.getValue().getContent();
 			assertFalse(elements.isEmpty());
 			Object first = elements.get(0);

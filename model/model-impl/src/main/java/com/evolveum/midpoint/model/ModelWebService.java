@@ -453,7 +453,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 						LOGGER.trace("object to add: {}", shadowToAdd.debugDump());
 						delta.setObjectToAdd(shadowToAdd);
 					} else {
-						Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(deltaType.getModification(), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class));
+						Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(deltaType.getItemDelta(), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class));
 						delta.getModifications().addAll(modifications);
 					} 
 				}

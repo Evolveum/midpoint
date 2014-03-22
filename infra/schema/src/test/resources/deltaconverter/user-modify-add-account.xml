@@ -23,23 +23,24 @@
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
-	<modification>
+	<itemDelta>
 		<t:modificationType>add</t:modificationType>
+		<t:path>c:linkRef</t:path>
 		<t:value>
-			<c:link xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"> 
+<!-- 			<c:link xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" -->
+<!-- 				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">  -->
 				<!-- No OID for account. The OID will be generated once the account shadow is added to the repository. -->
 				<!-- No name here. We expect that it will be generated -->
 				<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
-				<c:objectClass>ri:AccountObjectClass</c:objectClass>
-				<c:attributes>
-					<icfs:name>uid=jack,ou=People,dc=example,dc=com</icfs:name>
+				<c:objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">ri:AccountObjectClass</c:objectClass>
+				<c:attributes xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
+					<icfs:name xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2">uid=jack,ou=People,dc=example,dc=com</icfs:name>
 					<ri:uid>jack</ri:uid>
 					<ri:cn>Jack Sparrow</ri:cn>
 					<ri:givenName>Jack</ri:givenName>
 					<ri:sn>Sparrow</ri:sn>
 				</c:attributes>
-			</c:link>
+<!-- 			</c:link> -->
 		</t:value>
-	</modification>
+	</itemDelta>
 </objectModification>

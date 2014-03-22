@@ -151,7 +151,7 @@ public class ShadowCacheProvisioner extends ShadowCache{
 
 			ObjectDeltaType deltaType = shadowType.getObjectChange();
 			Collection<? extends ItemDelta> pendingModifications = DeltaConvertor.toModifications(
-					deltaType.getModification(), shadow.getDefinition());
+					deltaType.getItemDelta(), shadow.getDefinition());
 
 			return ObjectDelta.summarize(ObjectDelta.createModifyDelta(shadow.getOid(), modifications,
 					ShadowType.class, getPrismContext()), ObjectDelta.createModifyDelta(shadow.getOid(),

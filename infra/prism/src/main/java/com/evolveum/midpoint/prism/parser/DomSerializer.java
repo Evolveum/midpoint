@@ -144,6 +144,7 @@ public class DomSerializer {
 				DOMUtil.setXsiType(element, xsubnode.getTypeQName());
 			}
 			parentElement.appendChild(element);
+			System.out.println("subnode " + xsubnode.debugDump());
 			serializeMap((MapXNode)xsubnode, element);
 		} else if (xsubnode instanceof PrimitiveXNode<?>) {
 			PrimitiveXNode<?> xprim = (PrimitiveXNode<?>)xsubnode;
@@ -166,6 +167,15 @@ public class DomSerializer {
 
 	private <T> void serializePrimitiveAttribute(PrimitiveXNode<T> xprim, Element parentElement, QName attributeName) {
     	QName typeQName = xprim.getTypeQName();
+    	if (typeQName == null){
+    		//TODO FIXME temporary hack..what if the attribute does not have type specified? can we assume that it is sting?
+    		//for now enought
+//    		typeQName = DOMUtil.XSD_STRING;
+//    		xprim.setTypeQName(typeQName);
+    		String value = xprim.getStringValue();
+    		parentElement.setAttribute(attributeName.getLocalPart(), value);
+    		return;
+    	}
     	if (typeQName.equals(DOMUtil.XSD_QNAME)) {
     		QName value = (QName) xprim.getValue();
     		try {
@@ -180,7 +190,8 @@ public class DomSerializer {
 	}
 	
 	public Element serializeXPrimitiveToElement(PrimitiveXNode<?> xprim, QName elementName) throws SchemaException {
-		Element parent = DOMUtil.createElement(new QName("fake","fake"));
+		initialize();
+		Element parent = DOMUtil.createElement(doc, new QName("fake","fake"));
 		serializePrimitiveElement(xprim, parent, elementName);
 		return DOMUtil.getFirstChildElement(parent);
 	}

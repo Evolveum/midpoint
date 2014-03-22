@@ -262,10 +262,11 @@ public class XNodeProcessor {
 		return cval;
 	}
 	
-	public void parseGlobalXNodeValues(MapXNode xmap) {
+	public static void parseGlobalXNodeValues(MapXNode xmap) throws SchemaException{
 		if (xmap == null) {
 			return;
 		}
+		
 		for (Entry<QName,XNode> entry: xmap.entrySet()) {
 			QName elementQName = entry.getKey();
 //			prismContext.getSchemaRegistry().resolveGlobalTypeDefinition(elementQName);
@@ -725,7 +726,7 @@ public class XNodeProcessor {
 		if (objectDefinition == null) {
 			throw new SchemaException("No definition for type "+type+" in reference");
 		}
-		refVal.setTargetType(type);
+		refVal.setTargetType(type); 
 
 		QName relationAttribute = xmap.getParsedPrimitiveValue(XNode.KEY_REFERENCE_RELATION, DOMUtil.XSD_QNAME);
 		refVal.setRelation(relationAttribute);
@@ -735,6 +736,13 @@ public class XNodeProcessor {
 		refVal.setFilter(parseFilter(xmap.get(XNode.KEY_REFERENCE_FILTER)));
 		
 		XNode xrefObject = xmap.get(XNode.KEY_REFERENCE_OBJECT);
+		if (xrefObject == null) { 
+			//try if there is not a fantom object (e.g. in the delta)
+			//if oid and filter are null this will also trow an exception later by checking consistence..
+			if (refVal.getOid() == null && refVal.getFilter() == null){
+				xrefObject = xmap;
+			}
+		}
 		if (xrefObject != null) {
 			if (!(xrefObject instanceof MapXNode)) {
 				throw new SchemaException("Cannot parse object from "+xrefObject);

@@ -213,7 +213,7 @@ public class TestJaxbParsing {
         delta.setChangeType(ChangeTypeType.MODIFY);
 
         ItemDeltaType item1 = new ItemDeltaType();
-        delta.getModification().add(item1);
+        delta.getItemDelta().add(item1);
         item1.setModificationType(ModificationTypeType.REPLACE);
         Document document = DOMUtil.getDocument();
 //        Element path = document.createElementNS(SchemaConstantsGenerated.NS_TYPES, "path");

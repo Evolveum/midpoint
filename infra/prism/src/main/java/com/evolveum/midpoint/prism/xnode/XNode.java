@@ -177,4 +177,5 @@ public abstract class XNode implements DebugDumpable, Visitable, Cloneable {
 		}
 		return sb.toString();
 	}
+	
 }

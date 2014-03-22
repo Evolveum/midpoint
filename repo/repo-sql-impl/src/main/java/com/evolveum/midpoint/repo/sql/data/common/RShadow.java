@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
+
 import org.hibernate.annotations.*;
 import org.hibernate.bytecode.internal.javassist.FieldHandled;
 import org.hibernate.bytecode.internal.javassist.FieldHandler;
@@ -43,6 +45,7 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -390,7 +393,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         jaxb.setSynchronizationTimestamp(repo.getSynchronizationTimestamp());
 
         try {
-            jaxb.setObjectChange(RUtil.toJAXB(repo.getObjectChange(), ObjectDeltaType.class, prismContext));
+            jaxb.setObjectChange(RUtil.toJAXB(ShadowType.class, ShadowType.F_OBJECT_CHANGE, repo.getObjectChange(), ObjectDeltaType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
@@ -448,7 +451,8 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         }
 
         try {
-            repo.setObjectChange(RUtil.toRepo(jaxb.getObjectChange(), prismContext));
+        	PrismObjectDefinition shadowDefinition = jaxb.asPrismObject().getDefinition();
+            repo.setObjectChange(RUtil.toRepo(shadowDefinition, ShadowType.F_OBJECT_CHANGE, jaxb.getObjectChange(), prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }

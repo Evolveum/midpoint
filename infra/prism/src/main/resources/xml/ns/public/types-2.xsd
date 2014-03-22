@@ -518,7 +518,7 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-        	<xsd:element name="modification" type="tns:ItemDeltaType" minOccurs="0" maxOccurs="unbounded">
+        	<xsd:element name="itemDelta" type="tns:ItemDeltaType" minOccurs="0" maxOccurs="unbounded">
         		<xsd:annotation>
         			<xsd:documentation>
         				Valid only if the changeType is "modify".

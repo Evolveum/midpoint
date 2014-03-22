@@ -85,7 +85,7 @@ import org.w3c.dom.Element;
     "objectType",
     "objectToAdd",
     "oid",
-    "modification"
+    "itemDelta"
 })
 public class ObjectDeltaType implements Serializable {
 
@@ -96,7 +96,7 @@ public class ObjectDeltaType implements Serializable {
     protected ObjectDeltaType.ObjectToAdd objectToAdd;
     @XmlElement(required = true)
     protected String oid;
-    protected List<ItemDeltaType> modification;
+    protected List<ItemDeltaType> itemDelta;
 
     /**
      * Gets the value of the changeType property.
@@ -216,11 +216,11 @@ public class ObjectDeltaType implements Serializable {
      * 
      * 
      */
-    public List<ItemDeltaType> getModification() {
-        if (modification == null) {
-            modification = new ArrayList<ItemDeltaType>();
+    public List<ItemDeltaType> getItemDelta() {
+        if (itemDelta == null) {
+            itemDelta = new ArrayList<ItemDeltaType>();
         }
-        return this.modification;
+        return this.itemDelta;
     }
 
 	@Override
@@ -228,7 +228,7 @@ public class ObjectDeltaType implements Serializable {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((changeType == null) ? 0 : changeType.hashCode());
-		result = prime * result + ((modification == null) ? 0 : modification.hashCode());
+		result = prime * result + ((itemDelta == null) ? 0 : itemDelta.hashCode());
 		result = prime * result + ((objectToAdd == null) ? 0 : objectToAdd.hashCode());
 		result = prime * result + ((objectType == null) ? 0 : objectType.hashCode());
 		result = prime * result + ((oid == null) ? 0 : oid.hashCode());
@@ -246,10 +246,10 @@ public class ObjectDeltaType implements Serializable {
 		ObjectDeltaType other = (ObjectDeltaType) obj;
 		if (changeType != other.changeType)
 			return false;
-		if (modification == null) {
-			if (other.modification != null)
+		if (itemDelta == null) {
+			if (other.itemDelta != null)
 				return false;
-		} else if (!modification.equals(other.modification))
+		} else if (!itemDelta.equals(other.itemDelta))
 			return false;
 		if (objectToAdd == null) {
 			if (other.objectToAdd != null)
@@ -272,7 +272,7 @@ public class ObjectDeltaType implements Serializable {
 	@Override
 	public String toString() {
 		return "ObjectDeltaType(changeType=" + changeType + ", objectType=" + objectType + ", objectToAdd="
-				+ objectToAdd + ", oid=" + oid + ", modification=" + modification + ")";
+				+ objectToAdd + ", oid=" + oid + ", modification=" + itemDelta + ")";
 	}
 
     /**
@@ -365,8 +365,8 @@ public class ObjectDeltaType implements Serializable {
         if (getObjectToAdd() != null) {
             clone.setObjectToAdd(getObjectToAdd().clone());
         }
-        for (ItemDeltaType mod : getModification()) {
-            clone.getModification().add(mod.clone());
+        for (ItemDeltaType mod : getItemDelta()) {
+            clone.getItemDelta().add(mod.clone());
         }
         return clone;
     }

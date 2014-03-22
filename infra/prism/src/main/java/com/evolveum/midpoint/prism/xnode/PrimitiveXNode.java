@@ -237,7 +237,7 @@ public class PrimitiveXNode<T> extends XNode {
 	
 	@Override
 	public int hashCode() {
-		// TODO Auto-generated method stub
-		return super.hashCode();
+		// TODO FIXME this is really not good way..
+		return 1;
 	}
 }

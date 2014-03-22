@@ -10,8 +10,12 @@ package com.evolveum.prism.xml.ns._public.types_2;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
@@ -20,10 +24,34 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.parser.DomParser;
+import com.evolveum.midpoint.prism.parser.XNodeProcessor;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.ValueParser;
 import com.evolveum.midpoint.prism.xnode.XNode;
-import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 
 /**
@@ -55,9 +83,16 @@ import com.evolveum.midpoint.util.MiscUtil;
 })
 public class RawType implements Serializable{
 	private static final long serialVersionUID = 4430291958902286779L;
+	
+	public RawType() {
+		content = new ContentList();
+	}
 
 	@XmlTransient
 	private XNode xnode;
+	
+	@XmlTransient
+	private Object realValue;
 	
     @XmlMixed
     @XmlAnyElement(lax = true)
@@ -98,11 +133,337 @@ public class RawType implements Serializable{
      */
     public List<Object> getContent() {
         if (content == null) {
-            content = new ArrayList<Object>();
+            content = new ContentList();
         }
         return this.content;
+        
     }
+        
+        class ContentList extends ArrayList<Object>{
 
+			@Override
+			public int size() {
+				if (realValue != null || xnode != null){
+					return 1;
+				}
+				return super.size();
+//				throw new UnsupportedOperationException("nto supported yet");
+			}
+
+			@Override
+			public boolean isEmpty() {
+				if (xnode != null){
+					return false;
+				}
+				return super.isEmpty();
+//				return itemPath == null;
+//				throw new UnsupportedOperationException("nto supported yet");
+			}
+//
+//			@Override
+//			public boolean contains(Object o) {
+//				throw new UnsupportedOperationException("nto supported yet");
+//			}
+
+			@Override
+			public Iterator<Object> iterator() {
+				if (realValue == null && xnode == null){
+					return super.iterator();
+				}
+			
+				return new Iterator<Object>() {
+					int i = 0;
+					@Override
+					public boolean hasNext() {
+						if (realValue == null && xnode == null){
+							return false;
+						}
+						return (i==0);
+					}
+
+					@Override
+					public Object next() {
+						i++;
+						if (realValue != null){
+							return new JAXBElement(new QName(PrismConstants.NS_TYPES, "value"), realValue.getClass(), realValue);
+						} else
+						if (xnode instanceof PrimitiveXNode){
+							PrimitiveXNode prim = (PrimitiveXNode) xnode;
+//							System.out.println("primitive to serialize: " + prim.debugDump());
+							QName typeName = prim.getTypeQName();
+							if (typeName == null){
+								//assume string..most probably it will be..  FIXME
+								typeName = DOMUtil.XSD_STRING;
+							}
+						 	Class declaredType = XsdTypeMapper.toJavaType(typeName);
+//						 	DomParser parser = new DomParser(null);
+//						 	try{
+//						 		Element e = parser.serializeXPrimitiveToElement(prim, new QName(PrismConstants.NS_TYPES, "value"));
+//						 		return e;
+						 		return prim.getStringValue();
+//						 	}catch (SchemaException ex){
+//						 		throw new IllegalStateException(ex.getMessage(), ex);
+//						 	}
+//							return new JAXBElement(new QName("fake", "fake"), declaredType, prim.getValue());
+						}
+						 else if (xnode instanceof MapXNode){
+//							throw new UnsupportedOperationException("nto supported yet");
+//							MapXNode map = (MapXNode) xnode;
+							 MapXNode map = (MapXNode) xnode;
+//							 	Class declaredType = XsdTypeMapper.toJavaType(prim.getTypeQName());
+							 	DomParser parser = new DomParser(null);
+							 	try{
+							 		Element e = parser.serializeXMapToElement(map, new QName(PrismConstants.NS_TYPES, "value"));
+							 		return e;
+							 	}catch (SchemaException ex){
+							 		throw new IllegalStateException(ex.getMessage(), ex);
+							 	}
+//							
+						}
+						
+						throw new UnsupportedOperationException("nto supported yet for xnode: " + xnode + ", realValue " + realValue);
+					}
+
+					@Override
+					public void remove() {
+						throw new UnsupportedOperationException("nto supported yet");
+					}
+					
+				};
+////				throw new UnsupportedOperationException("nto supported yet");
+			}
+
+//			@Override
+//			public Object[] toArray() {
+//				throw new UnsupportedOperationException("nto supported yet");
+//			}
+//
+//			@Override
+//			public <T> T[] toArray(T[] a) {
+//				throw new UnsupportedOperationException("nto supported yet");
+//			}
+
+			@Override
+			public boolean add(Object e) {
+				super.add(e);
+				if (e instanceof String){
+					if (StringUtils.isBlank((String)e)){
+						System.out.println("Blank value to add..skipping: => " + e);
+						return true;
+					}
+					final String val = (String) e;
+					ValueParser valueParser = new ValueParser() {
+
+						@Override
+						public Object parse(QName typeName)
+								throws SchemaException {
+							return XmlTypeConverter.toJavaValue(val, typeName);
+//							return null;
+						}
+
+						@Override
+						public boolean isEmpty() {
+							return StringUtils.isEmpty(val);
+						}
+
+						@Override
+						public String getStringValue() {
+							return val;
+						}
+					};
+					xnode = new PrimitiveXNode();
+					((PrimitiveXNode)xnode).setValueParser(valueParser);
+					return true;
+				} else if (e instanceof JAXBElement){
+					JAXBElement jaxb = (JAXBElement) e;
+					realValue = jaxb.getValue();
+//					XNodeProcessor.jaxb.getValue();
+					return true;
+				} else if (e instanceof Element){
+					DomParser domParser = new DomParser(null);
+					try{
+						xnode = domParser.parseElementAsMap((Element) e);
+//						xnode = domParser.parseElementAsMap((Element) e);
+						return true;
+					} catch (SchemaException ex){
+						throw new IllegalArgumentException("Cannot parse element: "+e+" Reason: "+ex.getMessage(), ex);
+					}
+				}
+				throw new IllegalArgumentException("RAW TYPE ADD: "+e+" "+e.getClass());
+			}
+
+//			@Override
+//			public boolean remove(Object o) {
+//				throw new UnsupportedOperationException("nto supported yet");
+//			}
+//
+//			@Override
+//			public boolean containsAll(Collection<?> c) {
+//				throw new UnsupportedOperationException("nto supported yet");
+//			}
+//
+//			@Override
+//			public boolean addAll(Collection<? extends Object> c) {
+//				throw new UnsupportedOperationException("nto supported yet");
+//			}
+//
+//			@Override
+//			public boolean addAll(int index, Collection<? extends Object> c) {
+//				throw new UnsupportedOperationException("nto supported yet");
+//			}
+//
+//			@Override
+//			public boolean removeAll(Collection<?> c) {
+//				throw new UnsupportedOperationException("nto supported yet");
+//			}
+//
+//			@Override
+//			public boolean retainAll(Collection<?> c) {
+//				throw new UnsupportedOperationException("nto supported yet");
+//			}
+
+			@Override
+			public void clear() {
+				xnode = null;
+				realValue = null;
+			}
+
+			@Override
+			public Object get(int index) {
+				if (realValue == null && xnode == null){
+					return super.get(index);
+				}
+				if (realValue != null){
+					return new JAXBElement(new QName(PrismConstants.NS_TYPES, "value"), realValue.getClass(), realValue);
+				} else
+				if (xnode instanceof PrimitiveXNode){
+					PrimitiveXNode prim = (PrimitiveXNode) xnode;
+				 	Class declaredType = XsdTypeMapper.toJavaType(prim.getTypeQName());
+				 	DomParser parser = new DomParser(null);
+				 	try{
+				 		Element e = parser.serializeXPrimitiveToElement(prim, new QName(PrismConstants.NS_TYPES, "value"));
+				 		return e;
+//				 		return prim.getStringValue();
+				 	}catch (SchemaException ex){
+				 		throw new IllegalStateException(ex.getMessage(), ex);
+				 	}
+//					return new JAXBElement(new QName("fake", "fake"), declaredType, prim.getValue());
+				}
+				 else if (xnode instanceof MapXNode){
+//					throw new UnsupportedOperationException("nto supported yet");
+//					MapXNode map = (MapXNode) xnode;
+					 MapXNode map = (MapXNode) xnode;
+//					 	Class declaredType = XsdTypeMapper.toJavaType(prim.getTypeQName());
+					 	DomParser parser = new DomParser(null);
+					 	try{
+					 		Element e = parser.serializeXMapToElement(map, new QName(PrismConstants.NS_TYPES, "value"));
+					 		
+					 		return e;
+					 	}catch (SchemaException ex){
+					 		throw new IllegalStateException(ex.getMessage(), ex);
+					 	}
+//					
+				} 
+				
+				throw new UnsupportedOperationException("nto supported yet for xnode: " + xnode + ", realValue " + realValue);
+//				throw new UnsupportedOperationException("nto supported yet");
+			}
+//
+//			@Override
+//			public Object set(int index, Object element) {
+//				throw new UnsupportedOperationException("nto supported yet");
+//			}
+//
+//			@Override
+//			public void add(int index, Object element) {
+//				throw new UnsupportedOperationException("nto supported yet");
+//			}
+//
+//			@Override
+//			public Object remove(int index) {
+//				throw new UnsupportedOperationException("nto supported yet");
+//			}
+//
+//			@Override
+//			public int indexOf(Object o) {
+//				throw new UnsupportedOperationException("nto supported yet");
+//			}
+//
+//			@Override
+//			public int lastIndexOf(Object o) {
+//				throw new UnsupportedOperationException("nto supported yet");
+//			}
+//
+//			@Override
+//			public ListIterator<Object> listIterator() {
+//				throw new UnsupportedOperationException("nto supported yet");
+//			}
+//
+//			@Override
+//			public ListIterator<Object> listIterator(int index) {
+//				throw new UnsupportedOperationException("nto supported yet");
+//			}
+//
+//			@Override
+//			public List<Object> subList(int fromIndex, int toIndex) {
+//				throw new UnsupportedOperationException("nto supported yet");
+//			}
+        	
+        
+	}
+
+        public Object getRealValue(){
+        	return realValue;
+        }
+        
+        public <V extends PrismValue> Item getParsedValue(ItemDefinition itemDefinition) throws SchemaException{
+		Item<V> subItem = null;
+		
+		if (xnode != null) {
+			System.out.println("xnode: " + xnode.debugDump());
+			PrismContext prismContext = itemDefinition.getPrismContext();
+			subItem = prismContext.getXnodeProcessor().parseItem(xnode, itemDefinition.getName(),
+					itemDefinition);
+			realValue = subItem.getValue(0);
+		} else {
+			if (itemDefinition == null) {
+				throw new SchemaException("No definition for item " + realValue
+						+ " (parsed from raw element)");
+			}
+			if (itemDefinition instanceof PrismPropertyDefinition<?>) {
+				// property
+				PrismProperty<?> property = ((PrismPropertyDefinition<?>) itemDefinition).instantiate();
+				property.setRealValue(realValue);
+				subItem = (Item<V>) property;
+			} else if (itemDefinition instanceof PrismContainerDefinition<?>) {
+				if (realValue instanceof Containerable) {
+					PrismContainer<?> container = ((PrismContainerDefinition<?>) itemDefinition)
+							.instantiate();
+					PrismContainerValue subValue = ((Containerable) realValue).asPrismContainerValue();
+					container.add(subValue);
+					subItem = (Item<V>) container;
+				} else {
+					throw new IllegalArgumentException("Unsupported JAXB bean " + realValue.getClass());
+				}
+			} else if (itemDefinition instanceof PrismReferenceDefinition) {
+				// TODO
+				if (realValue instanceof Referencable) {
+					PrismReference reference = ((PrismReferenceDefinition) itemDefinition).instantiate();
+					PrismReferenceValue refValue = ((Referencable) realValue).asReferenceValue();
+					reference.merge(refValue);
+					subItem = (Item<V>) reference;
+				} else {
+					throw new IllegalArgumentException("Unsupported JAXB bean" + realValue);
+				}
+
+			} else {
+				throw new IllegalArgumentException("Unsupported definition type " + itemDefinition.getClass());
+			}
+
+		}
+		return subItem;
+        }
+        
     // Shallow clone. Do we need deep clone?
     public RawType clone() {
     	RawType clone = new RawType();
@@ -118,6 +479,7 @@ public class RawType implements Serializable{
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((xnode == null) ? 0 : xnode.hashCode());
+		result = prime * result + ((realValue == null) ? 0 : realValue.hashCode());
 		return result;
 	}
 

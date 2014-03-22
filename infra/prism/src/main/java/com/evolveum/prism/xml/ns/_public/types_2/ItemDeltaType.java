@@ -34,7 +34,16 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Currency;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
+import java.util.UUID;
+
 import javax.activation.MimeType;
 import javax.activation.MimeTypeParseException;
 import javax.xml.bind.JAXBElement;
@@ -49,7 +58,6 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 
 
@@ -100,6 +108,10 @@ import com.evolveum.midpoint.util.JAXBUtil;
 })
 public class ItemDeltaType implements Serializable, Cloneable {
 
+	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "ItemDeltaType");
+	public static final QName F_PATH = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "path");
+	public static final QName F_VALUE = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "value");
+	
     @XmlElement(required = true)
     protected ModificationTypeType modificationType;
 //    @XmlAnyElement
