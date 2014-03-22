@@ -678,7 +678,20 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		return compileTimeClass;
 	}
 
-	public PrismSchema findSchemaByCompileTimeClass(Class<?> compileTimeClass) {
+    // TODO: which one is better (this one or the above)?
+    public <T> Class<T> getCompileTimeClass(QName xsdType) {
+        SchemaDescription desc = findSchemaDescriptionByNamespace(xsdType.getNamespaceURI());
+        if (desc == null) {
+            return null;
+        }
+        Map<QName, Class<?>> map = desc.getXsdTypeTocompileTimeClassMap();
+        if (map == null) {
+            return null;
+        }
+        return (Class<T>) map.get(xsdType);
+    }
+
+    public PrismSchema findSchemaByCompileTimeClass(Class<?> compileTimeClass) {
 		Package compileTimePackage = compileTimeClass.getPackage();
 		for (SchemaDescription desc: schemaDescriptions) {
 			if (compileTimePackage.equals(desc.getCompileTimeClassesPackage())) {
@@ -803,6 +816,14 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		return schema.findPropertyDefinitionByElementName(elementName);
 	}
 
+    public <T> PrismPropertyDefinition<T> findPropertyDefinitionByCompileTimeClass(Class<T> compileTimeClass) {
+        PrismSchema schema = findSchemaByCompileTimeClass(compileTimeClass);
+        if (schema == null) {
+            return null;
+        }
+        return schema.findPropertyDefinitionByCompileTimeClass(compileTimeClass);
+    }
+
     public PrismReferenceDefinition findReferenceDefinitionByElementName(QName elementName) {
         PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());
         if (schema == null) {
@@ -897,5 +918,4 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		}
 		return objDef.instantiate();
 	}
-
 }

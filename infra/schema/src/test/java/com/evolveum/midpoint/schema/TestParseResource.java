@@ -40,6 +40,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConditionalSearchFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
@@ -427,9 +428,9 @@ public class TestParseResource {
 			PrismProperty<SynchronizationType> synchronizationProp = resource.findProperty(ResourceType.F_SYNCHRONIZATION);
 			SynchronizationType synchronizationType = synchronizationProp.getRealValue();
 			ObjectSynchronizationType objectSynchronizationType = synchronizationType.getObjectSynchronization().get(0);
-			List<SearchFilterType> correlations = objectSynchronizationType.getCorrelation();
+			List<ConditionalSearchFilterType> correlations = objectSynchronizationType.getCorrelation();
 			assertEquals("Wrong number of correlation expressions", 1, correlations.size());
-			SearchFilterType correlationFilterType = correlations.get(0);
+			ConditionalSearchFilterType correlationFilterType = correlations.get(0);
 			System.out.println("\nCorrelation filter");
 			System.out.println(correlationFilterType.debugDump());
 

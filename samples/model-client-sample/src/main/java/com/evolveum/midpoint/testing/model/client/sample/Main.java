@@ -32,6 +32,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.ws.Holder;
 import javax.xml.ws.BindingProvider;
 
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import org.apache.commons.io.IOUtils;
 import org.apache.cxf.frontend.ClientProxy;
 
@@ -47,7 +48,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
@@ -256,7 +256,7 @@ public class Main {
 		
 		ItemDeltaType passwordDelta = new ItemDeltaType();
 		passwordDelta.setModificationType(ModificationTypeType.REPLACE);
-		passwordDelta.setPath(ModelClientUtil.createPathElement("credentials/password", doc));
+		passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password"));
 		ItemDeltaType.Value passwordValue = new ItemDeltaType.Value();
 		passwordValue.getAny().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_VALUE, ModelClientUtil.createProtectedString(newPassword)));
 		passwordDelta.setValue(passwordValue);
@@ -307,7 +307,7 @@ public class Main {
 
 	private static UserType searchUserByName(ModelPortType modelPort, String username) throws SAXException, IOException, FaultMessage {
 		// WARNING: in a real case make sure that the username is properly escaped before putting it in XML
-		Element filter = ModelClientUtil.parseElement(
+		SearchFilterType filter = ModelClientUtil.parseSearchFilterType(
 				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-2' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a' >" +
 				  "<path>c:name</path>" +
 				  "<value>" + username + "</value>" +
@@ -334,7 +334,7 @@ public class Main {
 	
 	private static RoleType searchRoleByName(ModelPortType modelPort, String roleName) throws SAXException, IOException, FaultMessage {
 		// WARNING: in a real case make sure that the username is properly escaped before putting it in XML
-		Element filter = ModelClientUtil.parseElement(
+		SearchFilterType filter = ModelClientUtil.parseSearchFilterType(
 				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-2' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a' >" +
 				  "<path>c:name</path>" +
 				  "<value>" + roleName + "</value>" +
@@ -360,7 +360,7 @@ public class Main {
 	}
 
 	private static Collection<RoleType> listRequestableRoles(ModelPortType modelPort) throws SAXException, IOException, FaultMessage {
-		Element filter = ModelClientUtil.parseElement(
+		SearchFilterType filter = ModelClientUtil.parseSearchFilterType(
 				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-2' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a' >" +
 				  "<path>c:requestable</path>" +
 				  "<value>true</value>" +

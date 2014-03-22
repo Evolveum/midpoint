@@ -36,6 +36,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.w3c.dom.Element;
 
@@ -43,9 +44,7 @@ import org.w3c.dom.Element;
 /**
  * 
  *                 Describes a change of a specific object.
- *                 This is abstract type. It cannot be used directly.
- *                 Use the subtypes instead.
- *             
+ *
  * 
  * <p>Java class for ObjectDeltaType complex type.
  * 
@@ -97,6 +96,9 @@ public class ObjectDeltaType implements Serializable {
     @XmlElement(required = true)
     protected String oid;
     protected List<ItemDeltaType> itemDelta;
+
+    public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_TYPES, "ObjectDeltaType");
+
 
     /**
      * Gets the value of the changeType property.

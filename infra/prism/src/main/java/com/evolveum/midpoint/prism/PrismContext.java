@@ -17,6 +17,7 @@ package com.evolveum.midpoint.prism;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -24,11 +25,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -48,8 +46,6 @@ import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.util.JaxbTestUtil;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -189,15 +185,7 @@ public class PrismContext {
 		return parser;
 	}
 
-	/**
-	 * Parses a DOM object and creates a prism from it.
-	 */
-	@Deprecated
-	public <T extends Objectable> PrismObject<T> parseObject(Element objectElement) throws SchemaException {
-		RootXNode xroot = parserDom.parseElementAsRoot(objectElement);
-		return xnodeProcessor.parseObject(xroot);
-	}
-
+    //region Parsing Prism objects
 	/**
 	 * Parses a file and creates a prism from it. Autodetect language.
 	 * @throws IOException 
@@ -208,30 +196,23 @@ public class PrismContext {
 		return xnodeProcessor.parseObject(xnode);
 	}
 	
-	private Parser findParser(File file) throws IOException{
-		Parser parser = null;
-		for (Entry<String,Parser> entry: parserMap.entrySet()) {
-			Parser aParser = entry.getValue();
-			if (aParser.canParse(file)) {
-				parser = aParser;
-				break;
-			}
-		}
-		if (parser == null) {
-			throw new SystemException("No parser for file '"+file+"' (autodetect)");
-		}
-		return parser;
-	}
 	/**
 	 * Parses a file and creates a prism from it.
 	 */
 	public <T extends Objectable> PrismObject<T> parseObject(File file, String language) throws SchemaException, IOException {
-		Parser parser = getParserNotNull(language);
-		XNode xnode = parser.parse(file);
+        XNode xnode = parseToXNode(file, language);
 		return xnodeProcessor.parseObject(xnode);
 	}
 
-	/**
+    /**
+     * Parses data from an input stream and creates a prism from it.
+     */
+    public <T extends Objectable> PrismObject<T> parseObject(InputStream stream, String language) throws SchemaException, IOException {
+        XNode xnode = parseToXNode(stream, language);
+        return xnodeProcessor.parseObject(xnode);
+    }
+
+    /**
 	 * Parses a string and creates a prism from it. Autodetect language. 
 	 * Used mostly for testing, but can also be used for built-in editors, etc.
 	 */
@@ -241,55 +222,117 @@ public class PrismContext {
 		return xnodeProcessor.parseObject(xnode);
 	}
 	
-	private Parser findParser(String data){
-		Parser parser = null;
-		for (Entry<String,Parser> entry: parserMap.entrySet()) {
-			Parser aParser = entry.getValue();
-			if (aParser.canParse(data)) {
-				parser = aParser;
-				break;
-			}
-		}
-		if (parser == null) {
-			throw new SystemException("No parser for data '"+DebugUtil.excerpt(data,16)+"' (autodetect)");
-		}
-		return parser;
-	}
-	
 	/**
 	 * Parses a string and creates a prism from it. Used mostly for testing, but can also be used for built-in editors, etc.
 	 */
 	public <T extends Objectable> PrismObject<T> parseObject(String dataString, String language) throws SchemaException {
-		Parser parser = getParserNotNull(language);
-		XNode xnode = parser.parse(dataString);
+		XNode xnode = parseToXNode(dataString, language);
 		return xnodeProcessor.parseObject(xnode);
 	}
-	
-	public <C extends Containerable> PrismContainer<C> parseContainer(File file, Class<C> type, String language) throws SchemaException, IOException {
-		Parser parser = getParserNotNull(language);
-		XNode xnode = parser.parse(file);
+
+    /**
+     * Parses a DOM object and creates a prism from it.
+     */
+    @Deprecated
+    public <T extends Objectable> PrismObject<T> parseObject(Element objectElement) throws SchemaException {
+        RootXNode xroot = parserDom.parseElementAsRoot(objectElement);
+        return xnodeProcessor.parseObject(xroot);
+    }
+    //endregion
+
+    //region Parsing prism containers
+    public <C extends Containerable> PrismContainer<C> parseContainer(File file, Class<C> type, String language) throws SchemaException, IOException {
+        XNode xnode = parseToXNode(file, language);
 		return xnodeProcessor.parseContainer(xnode, type);
 	}
-	
-	public <C extends Containerable> PrismContainer<C> parseContainer(File file, PrismContainerDefinition<C> containerDef, String language) throws SchemaException, IOException {
-		Parser parser = getParserNotNull(language);
-		XNode xnode = parser.parse(file);
+
+    public <C extends Containerable> PrismContainer<C> parseContainer(File file, PrismContainerDefinition<C> containerDef, String language) throws SchemaException, IOException {
+        XNode xnode = parseToXNode(file, language);
 		return xnodeProcessor.parseContainer(xnode, containerDef);
 	}
 	
 	public <C extends Containerable> PrismContainer<C> parseContainer(String dataString, Class<C> type, String language) throws SchemaException {
-		Parser parser = getParserNotNull(language);
-		XNode xnode = parser.parse(dataString);
+        XNode xnode = parseToXNode(dataString, language);
 		return xnodeProcessor.parseContainer(xnode, type);
 	}
 	
 	public <C extends Containerable> PrismContainer<C> parseContainer(String dataString, PrismContainerDefinition<C> containerDef, String language) throws SchemaException {
-		Parser parser = getParserNotNull(language);
-		XNode xnode = parser.parse(dataString);
+		XNode xnode = parseToXNode(dataString, language);
 		return xnodeProcessor.parseContainer(xnode, containerDef);
 	}
-	
-	/**
+
+    /**
+     * Parses prism container, trying to autodetect the definition from the root node name (if present) or from node type.
+     * Both single and multivalued containers are supported.
+     *
+     * @param dataString String to be parsed.
+     * @param language Language to be used.
+     * @return
+     * @throws SchemaException
+     */
+    public <C extends Containerable> PrismContainer<C> parseContainer(String dataString, String language) throws SchemaException {
+        XNode xnode = parseToXNode(dataString, language);
+        return xnodeProcessor.parseContainer(xnode);
+    }
+    //endregion
+
+    //region Parsing properties
+    /**
+     * Does not require existence of a property that corresponds to a given type name.
+     * (The method name is a bit misleading.)
+     */
+    public <T> T parsePrismPropertyRealValue(String dataString, QName typeName, String language) throws SchemaException {
+        XNode xnode = parseToXNode(dataString, language);
+        return xnodeProcessor.parsePrismPropertyRealValue(xnode, typeName);
+    }
+
+    //endregion
+    private XNode parseToXNode(String dataString, String language) throws SchemaException {
+        Parser parser = getParserNotNull(language);
+        return parser.parse(dataString);
+    }
+
+    private XNode parseToXNode(File file, String language) throws SchemaException, IOException {
+        Parser parser = getParserNotNull(language);
+        return parser.parse(file);
+    }
+
+    private XNode parseToXNode(InputStream stream, String language) throws SchemaException, IOException {
+        Parser parser = getParserNotNull(language);
+        return parser.parse(stream);
+    }
+
+    private Parser findParser(File file) throws IOException{
+        Parser parser = null;
+        for (Entry<String,Parser> entry: parserMap.entrySet()) {
+            Parser aParser = entry.getValue();
+            if (aParser.canParse(file)) {
+                parser = aParser;
+                break;
+            }
+        }
+        if (parser == null) {
+            throw new SystemException("No parser for file '"+file+"' (autodetect)");
+        }
+        return parser;
+    }
+
+    private Parser findParser(String data){
+        Parser parser = null;
+        for (Entry<String,Parser> entry: parserMap.entrySet()) {
+            Parser aParser = entry.getValue();
+            if (aParser.canParse(data)) {
+                parser = aParser;
+                break;
+            }
+        }
+        if (parser == null) {
+            throw new SystemException("No parser for data '"+DebugUtil.excerpt(data,16)+"' (autodetect)");
+        }
+        return parser;
+    }
+
+    /**
 	 * Set up the specified object with prism context instance and schema definition.
 	 */
 	public <T extends Objectable> void adopt(PrismObject<T> object, Class<T> declaredType) throws SchemaException {

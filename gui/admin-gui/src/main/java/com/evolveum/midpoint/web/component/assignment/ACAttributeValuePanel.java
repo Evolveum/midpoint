@@ -28,7 +28,7 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormValidatingBehavior;

@@ -247,7 +247,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		// Target is referenced, need to fetch it
 		Class<? extends ObjectType> clazz = null;
 		if (targetRef.getType() != null) {
-			clazz = (Class<? extends ObjectType>) prismContext.getSchemaRegistry().determineCompileTimeClass(targetRef.getType());
+			clazz = (Class) prismContext.getSchemaRegistry().determineCompileTimeClass(targetRef.getType());
 			if (clazz == null) {
 				throw new SchemaException("Cannot determine type from " + targetRef.getType() + " in target reference in " + assignment + " in " + sourceDescription);
 			}

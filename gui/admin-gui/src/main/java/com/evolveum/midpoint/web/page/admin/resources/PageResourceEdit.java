@@ -18,12 +18,14 @@ package com.evolveum.midpoint.web.page.admin.resources;
 
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
@@ -110,8 +112,7 @@ public class PageResourceEdit extends PageAdminResources {
         ObjectViewDto dto;
         try {
             PrismObject<ResourceType> resource = loadResource(null);
-            PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
-            String xml = domProcessor.serializeObjectToString(resource);
+            String xml = getPrismContext().serializeObjectToString(resource, PrismContext.LANG_XML);
 
             dto = new ObjectViewDto(resource.getOid(), WebMiscUtil.getName(resource), resource, xml);
         } catch (Exception ex) {
@@ -270,7 +271,7 @@ public class PageResourceEdit extends PageAdminResources {
 
         SchemaRegistry registry = getPrismContext().getSchemaRegistry();
         PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(ConnectorType.class);
-        ObjectFilter filter = QueryJaxbConvertor.parseFilter(objDef, refValue.getFilter());
+        ObjectFilter filter = QueryConvertor.parseFilter(refValue.getFilter(), objDef);
 
         List<PrismObject<ConnectorType>> connectors = getModelService().searchObjects(ConnectorType.class,
                 ObjectQuery.createObjectQuery(filter), null, task, result);

@@ -75,8 +75,8 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
 			String contextDescription, OperationResult result) throws ExpressionEvaluationException,
 			ObjectNotFoundException, ExpressionSyntaxException {
 
-    	Element codeElement = expressionType.getCode();
-		if (codeElement == null) {
+    	String codeString = expressionType.getCode();
+		if (codeString == null) {
 			throw new ExpressionEvaluationException("No script code in " + contextDescription);
 		}
 		
@@ -88,7 +88,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
 		
         QName returnType = determineRerturnType(type, expressionType, outputDefinition, suggestedReturnType);
 
-        Object evaluatedExpression = evaluate(returnType, codeElement, variables, objectResolver, functions, 
+        Object evaluatedExpression = evaluate(returnType, codeString, variables, objectResolver, functions,
         		contextDescription, result);
 
         List<PrismPropertyValue<T>> propertyValues;
@@ -135,7 +135,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
     	}
 	}
 
-	private Object evaluate(QName returnType, Element code, ExpressionVariables variables, ObjectResolver objectResolver,
+	private Object evaluate(QName returnType, String code, ExpressionVariables variables, ObjectResolver objectResolver,
 			Collection<FunctionLibrary> functions, 
     		String contextDescription, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, ExpressionSyntaxException {

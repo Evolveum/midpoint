@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -498,7 +499,7 @@ public class ResourceManager {
 			constraints.getGenerateObjectClass().addAll(objectClasses);
 			generationConstraints.setRealValue(constraints);
 		}
-		PrismProperty<Element> definitionProperty = cval.createProperty(XmlSchemaType.F_DEFINITION);
+		PrismProperty<SchemaDefinitionType> definitionProperty = cval.createProperty(XmlSchemaType.F_DEFINITION);
 		ObjectTypeUtil.setXsdSchemaDefinition(definitionProperty, xsdElement);
 		
 		return schemaContainerDelta;

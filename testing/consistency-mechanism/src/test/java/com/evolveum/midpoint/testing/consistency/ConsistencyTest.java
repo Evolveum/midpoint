@@ -31,6 +31,7 @@ import static org.testng.AssertJUnit.fail;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -590,9 +591,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		}
 
 	private UserType testAddUserToRepo(String displayMessage, String fileName, String userOid)
-			throws FileNotFoundException, ObjectNotFoundException, SchemaException, EncryptionException,
-			ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException,
-			ConfigurationException, PolicyViolationException, SecurityViolationException {
+            throws IOException, ObjectNotFoundException, SchemaException, EncryptionException,
+            ObjectAlreadyExistsException, ExpressionEvaluationException, CommunicationException,
+            ConfigurationException, PolicyViolationException, SecurityViolationException {
 
 		checkRepoOpenDjResource();
 		assertNoRepoCache();

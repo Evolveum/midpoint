@@ -3,6 +3,7 @@ package com.evolveum.midpoint.prism.parser;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringWriter;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -106,19 +107,24 @@ public class YamlParser extends AbstractParser{
 	
 	@Override
 	protected MidpointYAMLParser createParser(File file) throws SchemaException, IOException {
-		MidpointYAMLFactory factory = new MidpointYAMLFactory();
-		try {
-			MidpointYAMLParser p = (MidpointYAMLParser) factory.createParser(new FileInputStream(file));
-//			p.enable(Feature.BOGUS);
-			String oid = p.getObjectId();
-			p.enable(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_YAML_COMMENTS);
-			return p;
-		} catch (IOException e) {
-			throw e;
-		}
+        return createParser(new FileInputStream(file));
 	}
 
-	@Override
+    @Override
+    protected MidpointYAMLParser createParser(InputStream stream) throws SchemaException, IOException {
+        MidpointYAMLFactory factory = new MidpointYAMLFactory();
+        try {
+            MidpointYAMLParser p = (MidpointYAMLParser) factory.createParser(stream);
+//			p.enable(Feature.BOGUS);
+            String oid = p.getObjectId();
+            p.enable(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_YAML_COMMENTS);
+            return p;
+        } catch (IOException e) {
+            throw e;
+        }
+    }
+
+    @Override
 	protected MidpointYAMLParser createParser(String dataString) throws SchemaException {
 		MidpointYAMLFactory factory = new MidpointYAMLFactory();
 		try {

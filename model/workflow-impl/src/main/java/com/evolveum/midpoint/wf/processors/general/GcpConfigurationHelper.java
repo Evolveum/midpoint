@@ -93,7 +93,7 @@ public class GcpConfigurationHelper {
             } catch (SchemaException e) {
                 throw new SystemException("Schema validation failed for " + KEY_GENERAL_CHANGE_PROCESSOR_CONFIGURATION + " element in " + beanName + " configuration: " + e.getMessage(), e);
             }
-            return prismContext.getPrismJaxbProcessor().toJavaValue(processorConfig, GeneralChangeProcessorConfigurationType.class);
+            return prismContext.getJaxbDomHack().toJavaValue(processorConfig, GeneralChangeProcessorConfigurationType.class);
         } catch (XPathExpressionException|JAXBException e) {
             throw new SystemException("Couldn't read general workflow processor configuration in " + beanName, e);
         }

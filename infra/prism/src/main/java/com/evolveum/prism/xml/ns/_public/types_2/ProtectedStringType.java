@@ -81,4 +81,11 @@ public class ProtectedStringType extends ProtectedDataType<String> {
 	public int hashCode() {
 		return super.hashCode();
 	}
+
+    @Override
+    public ProtectedStringType clone() {
+        ProtectedStringType cloned = new ProtectedStringType();
+        cloneTo(cloned);
+        return cloned;
+    }
 }

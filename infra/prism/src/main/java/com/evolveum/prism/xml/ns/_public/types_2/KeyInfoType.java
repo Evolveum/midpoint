@@ -13,6 +13,7 @@ import java.io.Serializable;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.crypto.dsig.keyinfo.KeyInfo;
 
 
 /**
@@ -46,7 +47,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "KeyInfoType", propOrder = {
     "keyName"
 })
-public class KeyInfoType  implements Serializable {
+public class KeyInfoType  implements Serializable, Cloneable {
 
     protected String keyName;
 
@@ -104,4 +105,10 @@ public class KeyInfoType  implements Serializable {
 		return "KeyInfoType(keyName=" + keyName + ")";
 	}
 
+    @Override
+    public KeyInfoType clone() {
+        KeyInfoType cloned = new KeyInfoType();
+        cloned.setKeyName(getKeyName());
+        return cloned;
+    }
 }

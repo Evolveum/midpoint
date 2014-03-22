@@ -17,6 +17,7 @@
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 
 import javax.xml.namespace.QName;
@@ -32,6 +33,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public interface Parser {
 	
 	XNode parse(File file) throws SchemaException, IOException;
+
+    XNode parse(InputStream stream) throws SchemaException, IOException;
 	
 	XNode parse(String dataString) throws SchemaException;
 	

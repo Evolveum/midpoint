@@ -56,6 +56,7 @@ public class SerializationSafeContainer<T> implements Serializable {
     // if there is (e.g. for PrismObjects) the encoded value is stored in the second attribute
     private T valueForStorageWhenNotEncoded;
     protected String valueForStorageWhenEncoded;
+    protected QName typeName;
 
     // beware, for JAXB, PRISM_OBJECT and PRISM_CONTAINER encoding schemes the value must be XML, as it might be
     // exposed through JaxbValueContainer
@@ -71,21 +72,29 @@ public class SerializationSafeContainer<T> implements Serializable {
 
     public void setValue(T value) {
         this.actualValue = value;
+        Class clazz = value.getClass();
 
         if (value instanceof PrismObject) {
             checkPrismContext();
+            this.typeName = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz).getTypeName();
             this.valueForStorageWhenEncoded = MiscDataUtil.serializeObjectToXml((PrismObject) value, prismContext);
             this.valueForStorageWhenNotEncoded = null;
             encodingScheme = EncodingScheme.PRISM_OBJECT;
         } else if (value instanceof Containerable) {
             checkPrismContext();
+            this.typeName = prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(clazz).getTypeName();
             this.valueForStorageWhenEncoded = MiscDataUtil.serializeContainerableToXml((Containerable) value, prismContext);
             this.valueForStorageWhenNotEncoded = null;
             encodingScheme = EncodingScheme.PRISM_CONTAINER;
-        } else if (value != null && prismContext.getPrismJaxbProcessor().canProcess(value.getClass())) {
+        } else if (value != null && prismContext.getJaxbDomHack().canConvert(value.getClass())) {
             checkPrismContext();
+            PrismPropertyDefinition propDef = prismContext.getSchemaRegistry().findPropertyDefinitionByCompileTimeClass(value.getClass());
+            if (propDef == null) {
+                throw new IllegalStateException("No property definition for class " + value.getClass());
+            }
+            this.typeName = propDef.getTypeName();
             try {
-                this.valueForStorageWhenEncoded = prismContext.getPrismJaxbProcessor().marshalElementToString(new JAXBElement<Object>(new QName("value"), Object.class, value));
+                this.valueForStorageWhenEncoded = prismContext.getJaxbDomHack().marshalElementToString(new JAXBElement<Object>(new QName("value"), Object.class, value));
             } catch (JAXBException e) {
                 throw new SystemException("Couldn't serialize JAXB object of type " + value.getClass(), e);
             }
@@ -133,10 +142,7 @@ public class SerializationSafeContainer<T> implements Serializable {
             } else if (encodingScheme == EncodingScheme.JAXB) {
                 try {
                     LOGGER.trace("Trying to decode JAXB value {}", valueForStorageWhenEncoded);
-                    actualValue = (T) prismContext.getPrismJaxbProcessor().unmarshalElement(valueForStorageWhenEncoded, Object.class).getValue();
-                } catch (JAXBException e) {
-                    LOGGER.trace("Problem with JAXB value {}", valueForStorageWhenEncoded);
-                    throw new SystemException("Couldn't deserialize value from JAXB: " + StringUtils.abbreviate(valueForStorageWhenEncoded, MAX_WIDTH), e);
+                    actualValue = (T) prismContext.parsePrismPropertyRealValue(valueForStorageWhenEncoded, typeName, PrismContext.LANG_XML);
                 } catch (SchemaException e) {
                     LOGGER.trace("Problem with JAXB value {}", valueForStorageWhenEncoded);
                     throw new SystemException("Couldn't deserialize value from JAXB: " + StringUtils.abbreviate(valueForStorageWhenEncoded, MAX_WIDTH), e);

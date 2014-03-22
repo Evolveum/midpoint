@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.resources;
 
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -128,8 +129,8 @@ public class PageResourceWizard extends PageAdminResources {
             @Override
             public String getObject() {
                 try {
-                    PrismDomProcessor domProcessor = PageResourceWizard.this.getPrismContext().getPrismDomProcessor();
-                    return domProcessor.serializeObjectToString(model.getObject());
+                    PrismContext pc = PageResourceWizard.this.getPrismContext();
+                    return pc.serializeObjectToString(model.getObject(), PrismContext.LANG_XML);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }

@@ -47,7 +47,6 @@
         <commons.cli>1.2</commons.cli>
         <cxf.version>2.7.6</cxf.version>
         <cxf-xjc.version>2.4.0</cxf-xjc.version>
-        <camel.version>2.10.2</camel.version>
         <dbunit.version>2.4.7</dbunit.version>
         <jaxb.version>2.2.3</jaxb.version>
         <jaxb-xjc.version>2.2.4-1</jaxb-xjc.version>
@@ -249,21 +248,6 @@
                 <groupId>net.sf.saxon</groupId>
                 <artifactId>saxonhe</artifactId>
                 <version>9.3.1</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.camel</groupId>
-                <artifactId>camel-core</artifactId>
-                <version>${camel.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.camel</groupId>
-                <artifactId>camel-spring</artifactId>
-                <version>${camel.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.camel</groupId>
-                <artifactId>camel-jms</artifactId>
-                <version>${camel.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>

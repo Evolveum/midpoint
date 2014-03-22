@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.samples.test;
 
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 
@@ -118,7 +119,7 @@ public class TestSamples {
 				
 				// Try to marshall it back. This may detect some JAXB miscofiguration problems.
 				try {
-					String serializedString = PrismTestUtil.serializeObjectToString(object);
+					String serializedString = PrismTestUtil.serializeObjectToString(object, PrismContext.LANG_XML);
 				} catch (SchemaException e) {
 					objectResult.recordFatalError("Object serialization failed", e);
 				}

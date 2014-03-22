@@ -35,6 +35,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -212,7 +213,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		display("Resource after testResource (repository)",resourceTypeRepoAfter);
 		
-		display("Resource after testResource (repository, XML)", PrismTestUtil.serializeObjectToString(resourceTypeRepoAfter.asPrismObject()));
+		display("Resource after testResource (repository, XML)", PrismTestUtil.serializeObjectToString(resourceTypeRepoAfter.asPrismObject(), PrismContext.LANG_XML));
 		
 		XmlSchemaType xmlSchemaTypeAfter = resourceTypeRepoAfter.getSchema();
 		assertNotNull("No schema after test connection",xmlSchemaTypeAfter);
@@ -287,7 +288,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		// THEN
 		display("Resource from provisioninig", resource);
-		display("Resource from provisioninig (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject()));
+		display("Resource from provisioninig (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
 		
 		CapabilityCollectionType nativeCapabilities = resource.getCapabilities().getNative();
 		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();

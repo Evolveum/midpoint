@@ -793,20 +793,21 @@ public class ReportUtils {
     	
     	return output;
     }
-    
-    public static String getDeltaAudit(String delta)
-    {
-    	String deltaAudit = null;
-    	try
-    	{
-    		PrismContext prismContext = PrismTestUtil.createPrismContext();
-    		ObjectDeltaType xmlDelta = prismContext.getPrismJaxbProcessor().unmarshalObject(delta, ObjectDeltaType.class);
-    		deltaAudit = xmlDelta.getChangeType().toString() + " - " + xmlDelta.getObjectType().getLocalPart().toString();
-    	} catch (Exception ex) {
-    		return ex.getMessage();
-    	}
-    	
-    	return deltaAudit;
-    }
+
+//    comment out by mederly because it's not used and it's not clear what can be in the "delta" string (necessary to be correctly parsed)
+//    public static String getDeltaAudit(String delta)
+//    {
+//    	String deltaAudit = null;
+//    	try
+//    	{
+//    		PrismContext prismContext = PrismTestUtil.createPrismContext();
+//    		ObjectDeltaType xmlDelta = prismContext.getPrismJaxbProcessor().unmarshalObject(delta, ObjectDeltaType.class);
+//    		deltaAudit = xmlDelta.getChangeType().toString() + " - " + xmlDelta.getObjectType().getLocalPart().toString();
+//    	} catch (Exception ex) {
+//    		return ex.getMessage();
+//    	}
+//
+//    	return deltaAudit;
+//    }
     
 }

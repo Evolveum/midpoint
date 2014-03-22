@@ -48,7 +48,7 @@ import javax.xml.bind.annotation.XmlType;
 @XmlType(name = "CipherDataType", propOrder = {
     "cipherValue"
 })
-public class CipherDataType  implements Serializable {
+public class CipherDataType  implements Serializable, Cloneable {
 
     @XmlElement(required = true)
     protected byte[] cipherValue;
@@ -102,4 +102,10 @@ public class CipherDataType  implements Serializable {
 		return "CipherDataType(cipherValue=" + (cipherValue==null?"null":"["+cipherValue.length+" bytes]") + ")";
 	}
 
+    @Override
+    public CipherDataType clone() {
+        CipherDataType cloned = new CipherDataType();
+        cloned.setCipherValue(cipherValue.clone());
+        return cloned;
+    }
 }

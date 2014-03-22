@@ -34,6 +34,7 @@ import static org.testng.AssertJUnit.fail;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -48,6 +49,9 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
+import com.evolveum.prism.xml.ns._public.types_2.EncryptedDataType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -71,7 +75,6 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.w3._2001._04.xmlenc.EncryptedDataType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -152,7 +155,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProjectionPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -553,7 +555,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertFalse("Resource from " + source + " has no OID in connectorRef", StringUtils.isBlank(connectorRefType.getOid()));
         assertNotNull("Resource from " + source + " has null description in connectorRef", connectorRefType.getDescription());
         assertNotNull("Resource from " + source + " has null filter in connectorRef", connectorRefType.getFilter());
-        assertNotNull("Resource from " + source + " has null filter element in connectorRef", connectorRefType.getFilter().getFilter());
+        assertNotNull("Resource from " + source + " has null filter element in connectorRef", connectorRefType.getFilter().getFilterClause());
         assertNotNull("Resource from " + source + " has null configuration", resource.getConnectorConfiguration());
         assertNotNull("Resource from " + source + " has null schema", resource.getSchema());
         checkOpenDjSchema(resource, source);
@@ -642,7 +644,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 			Object credentials = credentialsPropertyValue.getValue();
 			assertTrue("Wrong type of credentials configuration property in "+resource+" from "+source+": "+credentials.getClass(), credentials instanceof ProtectedStringType);
 			ProtectedStringType credentialsPs = (ProtectedStringType)credentials;
-			EncryptedDataType encryptedData = credentialsPs.getEncryptedData();
+			EncryptedDataType encryptedData = credentialsPs.getEncryptedDataType();
 			assertNotNull("No EncryptedData element", encryptedData);
 		}
 
@@ -1388,7 +1390,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
        
         ItemDeltaType passwordDelta = new ItemDeltaType();
         passwordDelta.setModificationType(ModificationTypeType.REPLACE);
-        passwordDelta.setPath(ModelClientUtil.createPathElement("credentials/password", doc));
+        passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password"));
         ItemDeltaType.Value passwordValue = new ItemDeltaType.Value();
         passwordValue.getAny().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_VALUE, 
         		ModelClientUtil.createProtectedString(NEW_PASSWORD)));
@@ -1927,7 +1929,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test050AssignRolePirate() throws FileNotFoundException, JAXBException, FaultMessage,
+    public void test050AssignRolePirate() throws IOException, JAXBException, FaultMessage,
             ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException,
             ObjectAlreadyExistsException {
         TestUtil.displayTestTile("test050AssignRolePirate");
@@ -3657,8 +3659,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     	
     	ItemDeltaType mod1 = new ItemDeltaType();
     	mod1.setModificationType(ModificationTypeType.REPLACE);
-    	XPathHolder xpath = new XPathHolder(new ItemPath(ShadowType.F_ATTRIBUTES));
-    	Element path = xpath.toElement(SchemaConstantsGenerated.NS_TYPES, "path");
+    	ItemPathType path = new ItemPathType(new ItemPath(ShadowType.F_ATTRIBUTES));
     	mod1.setPath(path);
     	
     	ItemDeltaType.Value value = new ItemDeltaType.Value();
@@ -3724,7 +3725,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     	Document doc = DOMUtil.getDocument();
         ItemDeltaType passwordDelta = new ItemDeltaType();
         passwordDelta.setModificationType(ModificationTypeType.REPLACE);
-        passwordDelta.setPath(ModelClientUtil.createPathElement("credentials/password", doc));
+        passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password"));
         ItemDeltaType.Value passwordValue = new ItemDeltaType.Value();
         passwordValue.getAny().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_VALUE, ModelClientUtil.createProtectedString(newPassword)));
         passwordDelta.setValue(passwordValue);

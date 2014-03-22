@@ -51,7 +51,7 @@ import javax.xml.bind.annotation.XmlType;
     "keyInfo",
     "cipherData"
 })
-public class EncryptedDataType implements Serializable {
+public class EncryptedDataType implements Serializable, Cloneable {
 
     protected EncryptionMethodType encryptionMethod;
     protected KeyInfoType keyInfo;
@@ -172,4 +172,12 @@ public class EncryptedDataType implements Serializable {
 				+ ", cipherData=" + cipherData + ")";
 	}
 
+    @Override
+    protected EncryptedDataType clone() {
+        EncryptedDataType cloned = new EncryptedDataType();
+        cloned.setCipherData(getCipherData().clone());
+        cloned.setEncryptionMethod(getEncryptionMethod().clone());
+        cloned.setKeyInfo(getKeyInfo().clone());
+        return cloned;
+    }
 }

@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.page.admin.reports;
 
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
@@ -118,8 +119,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
         try {
             ReportType report = prismReport.asObjectable();
 
-            PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
-            String xml = domProcessor.serializeObjectToString(prismReport);
+            String xml = getPrismContext().serializeObjectToString(prismReport, PrismContext.LANG_XML);
             dto = new ReportDto(report.getName().getNorm(), report.getDescription(), xml, report.getExport());
             dto.setObject(prismReport);
             result.recordSuccess();

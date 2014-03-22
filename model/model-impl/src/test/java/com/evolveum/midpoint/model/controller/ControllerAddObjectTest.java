@@ -185,8 +185,8 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void addResourceCorrect() throws JAXBException, FaultMessage, ObjectAlreadyExistsException,
-			SchemaException, CommunicationException, ObjectNotFoundException, ExpressionEvaluationException,
-			FileNotFoundException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+            SchemaException, CommunicationException, ObjectNotFoundException, ExpressionEvaluationException,
+            IOException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		TestUtil.displayTestTile("addResourceCorrect");
 		
 		

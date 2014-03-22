@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.prism.parser;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -28,9 +27,6 @@ import com.evolveum.midpoint.prism.query.ExpressionWrapper;
 import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
@@ -44,16 +40,12 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.OrgFilter;
@@ -61,7 +53,6 @@ import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
-import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
@@ -71,9 +62,6 @@ import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.TunnelException;
-import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 public class QueryConvertor {
 	
@@ -165,6 +153,11 @@ public class QueryConvertor {
 		}
 		return parseFilterContainer(xmap, objDef, objDef.getPrismContext());
 	}
+
+    public static ObjectFilter parseFilter(SearchFilterType filter, PrismObjectDefinition objDef) throws SchemaException {
+        Validate.notNull(objDef);
+        return parseFilter(filter.getFilterClauseXNode(objDef.getPrismContext()), objDef);
+    }
 
     // beware, pcd may be null
 	private static <C extends Containerable> ObjectFilter parseFilterContainer(MapXNode xmap, PrismContainerDefinition<C> pcd,
@@ -291,8 +284,8 @@ public class QueryConvertor {
 					KEY_FILTER_EQUALS_VALUE, KEY_FILTER_EQUALS_MATCHING, KEY_FILTER_EQUALS_PATH);
 			if (expressionEntry != null) {
                 ExpressionWrapper expressionWrapper = new ExpressionWrapper();
-                expressionWrapper.setExpression(prismContext.getXnodeProcessor().parseGlobalXNodeValue(expressionEntry));
-
+                PrismPropertyValue expressionPropertyValue = prismContext.getXnodeProcessor().parsePrismPropertyFromGlobalXNodeValue(expressionEntry);
+                expressionWrapper.setExpression(expressionPropertyValue.getValue());
                 return EqualsFilter.createEqual(itemPath, (PrismPropertyDefinition) itemDefinition, matchingRule, expressionWrapper);
 			} else {
                 throw new SchemaException("No expression nor value in filter");
@@ -793,7 +786,7 @@ public class QueryConvertor {
 //			throw e;
 //		}
 	}
-	
+
 //	private static void parseExpression(PropertyValueFilter<?> propValFilter, PrismContext prismContext) throws SchemaException {
 //		ExpressionWrapper xexpression = propValFilter.getExpression();
 //		if (xexpression != null) {

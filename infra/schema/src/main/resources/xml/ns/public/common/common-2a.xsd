@@ -5044,16 +5044,19 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="correlation" type="q:SearchFilterType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="correlation" type="tns:ConditionalSearchFilterType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                    	<p>Correlation query expression. Running the query should return a list of candidate focus
+                    	<p>Correlation filter expression. Running the query should return a list of candidate focus
                     	entries that may be owners of a particular shadow.</p>
 
                         <p>Correlation is an rough but an efficient way how to relate the shadow (e.g. an account)
-                        to a focus (e.g. an user). The correlation expression is in fact just a search query that can
-                        contain expressions inside it. If correlation search returns more that one entries,
+                        to a focus (e.g. an user). The correlation expression is in fact just a search filter that can
+                        contain expressions inside it. If correlation search returns more that one entry,
                         confirmation expression will be executed for each of them.</p>
+
+                        <p>The filter in this case is conditional, i.e. there can be specified an expression
+                        that denotes a necessary condition for the filter to be applied.</p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -5122,6 +5125,27 @@
             </xsd:element>
             <xsd:element name="reaction" type="tns:SynchronizationReactionType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConditionalSearchFilterType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A filter with an expression that denotes a necessary condition for the filter to be applied.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="q:SearchFilterType">
+                <xsd:sequence>
+                    <xsd:element name="condition" type="tns:ExpressionType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                A condition that must be true in order to evaluate the filter.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:simpleType name="SynchronizationSituationType">

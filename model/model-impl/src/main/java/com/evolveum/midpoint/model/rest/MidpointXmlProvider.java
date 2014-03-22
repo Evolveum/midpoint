@@ -77,12 +77,12 @@ public class MidpointXmlProvider<T> extends AbstractConfigurableProvider impleme
 		String marhaledObj = null;
 		
 		if (object instanceof PrismObject){
-			marhaledObj = prismContext.silentMarshalObject(((PrismObject) object).asObjectable(), LOGGER);
+			marhaledObj = prismContext.getJaxbDomHack().silentMarshalObject(((PrismObject) object).asObjectable(), LOGGER);
 		} else if (object instanceof OperationResult){
 			OperationResultType operationResultType = ((OperationResult) object).createOperationResultType();
-			marhaledObj = prismContext.silentMarshalObject(operationResultType, LOGGER);
+			marhaledObj = prismContext.getJaxbDomHack().silentMarshalObject(operationResultType, LOGGER);
 		} else{
-			marhaledObj = prismContext.silentMarshalObject(object, LOGGER);
+			marhaledObj = prismContext.getJaxbDomHack().silentMarshalObject(object, LOGGER);
 		}
 		
 		entityStream.write(marhaledObj.getBytes());
@@ -115,9 +115,9 @@ public class MidpointXmlProvider<T> extends AbstractConfigurableProvider impleme
 		try {
 			
 			if (type.isAssignableFrom(PrismObject.class)){
-				object = (T) prismContext.getPrismDomProcessor().parseObject(entityStream);
+				object = (T) prismContext.parseObject(entityStream, PrismContext.LANG_XML);
 			} else {
-				object = (T) prismContext.getPrismJaxbProcessor().unmarshalObject(entityStream);
+				object = (T) prismContext.getJaxbDomHack().unmarshalObject(entityStream);
 			}
 			
 //			if (object instanceof ObjectModificationType){

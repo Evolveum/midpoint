@@ -77,9 +77,7 @@ public class InitialDataImport {
         int count = 0;
         int errors = 0;
         try {
-            PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
-
-            List<PrismObject<? extends Objectable>> objects = domProcessor.parseObjects(getResource(OBJECTS_FILE));
+            List<PrismObject<? extends Objectable>> objects = prismContext.parseObjects(getResource(OBJECTS_FILE));
             for (PrismObject object : objects) {
                 OperationResult result = mainResult.createSubresult(OPERATION_IMPORT_OBJECT);
 

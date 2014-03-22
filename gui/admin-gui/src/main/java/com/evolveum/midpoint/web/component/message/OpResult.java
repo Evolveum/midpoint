@@ -101,7 +101,7 @@ public class OpResult extends PageAdmin implements Serializable {
         try {
         	OperationResultType resultType = result.createOperationResultType();
         	ObjectFactory of = new ObjectFactory();
-			xml = getPrismContext().getPrismJaxbProcessor().marshalElementToString(of.createOperationResult(resultType));
+			xml = getPrismContext().getJaxbDomHack().marshalElementToString(of.createOperationResult(resultType));
 		} catch (JAXBException ex) {
 			error("Can't create xml: " + ex);
 		}

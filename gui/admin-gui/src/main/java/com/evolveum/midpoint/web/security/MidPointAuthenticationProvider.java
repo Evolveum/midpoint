@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.http.WebRequest;
@@ -202,7 +203,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 
 		try {
 			String decoded;
-			if (protectedString.getEncryptedData() != null) {
+			if (protectedString.getEncryptedDataType() != null) {
 				decoded = protector.decryptString(protectedString);
 			} else {
 				LOGGER.warn("Authenticating user based on clear value. Please check objects, "

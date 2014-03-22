@@ -106,7 +106,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTypeTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
@@ -120,6 +119,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.SearchResultEntry;
@@ -134,6 +134,7 @@ import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -1759,12 +1760,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return retTask;
 	}
 
-	protected <O extends ObjectType> void addObject(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+	protected <O extends ObjectType> void addObject(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
 		PrismObject<O> object = PrismTestUtil.parseObject(file);
 		addObject(object);
 	}
 	
-	protected <O extends ObjectType> void addObject(File file, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+	protected <O extends ObjectType> void addObject(File file, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
 		PrismObject<O> object = PrismTestUtil.parseObject(file);
 		addObject(object, task, result);
 	}

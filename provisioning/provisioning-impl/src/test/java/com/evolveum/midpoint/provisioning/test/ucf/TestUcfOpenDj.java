@@ -51,8 +51,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
 
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -715,9 +717,9 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		ItemDeltaType propMod = new ItemDeltaType();
 		//create modification path
 		Document doc = DOMUtil.getDocument();
-		Element path = doc.createElementNS(SchemaConstants.NS_C, "path");
+		ItemPathType path = new ItemPathType();
 //		PropertyPath propPath = new PropertyPath(new PropertyPath(ResourceObjectShadowType.F_CREDENTIALS), CredentialsType.F_PASSWORD);
-		path.setTextContent("c:credentials/c:password");
+		path.getContent().add("c:credentials/c:password");          // TODO will this work?
 		propMod.setPath(path);
 		
 		//set the replace value

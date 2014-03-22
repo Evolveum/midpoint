@@ -32,6 +32,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -131,12 +132,11 @@ public class TestClockwork extends AbstractLensTest {
         System.out.println("Context before serialization = " + context.debugDump());
 
         PrismContainer<LensContextType> lensContextType = context.toPrismContainer();
-        List<Element> lensContextTypeElements = prismContext.getPrismDomProcessor().serializeItemToDom(lensContextType, true);
-        String xml = DOMUtil.serializeDOMToString(lensContextTypeElements.get(0));
+        String xml = prismContext.serializeContainerValueToString(lensContextType.getValue(), lensContextType.getElementName(), PrismContext.LANG_XML);
 
         System.out.println("Serialized form = " + xml);
 
-        PrismContainer<LensContextType> unmarshalledContainer = prismContext.getPrismDomProcessor().parsePrismContainer(xml, lensContextType.getDefinition());
+        PrismContainer<LensContextType> unmarshalledContainer = prismContext.parseContainer(xml, LensContextType.class, PrismContext.LANG_XML);
         LensContext context2 = LensContext.fromLensContextType(unmarshalledContainer.getValue().asContainerable(), context.getPrismContext(), provisioningService, result);
 
         System.out.println("Context after deserialization = " + context.debugDump());
@@ -312,12 +312,11 @@ public class TestClockwork extends AbstractLensTest {
                 System.out.println("Context before serialization = " + context.debugDump());
 
                 PrismContainer<LensContextType> lensContextType = context.toPrismContainer();
-                List<Element> lensContextTypeElements = prismContext.getPrismDomProcessor().serializeItemToDom(lensContextType, true);
-                String xml = DOMUtil.serializeDOMToString(lensContextTypeElements.get(0));
+                String xml = prismContext.serializeContainerValueToString(lensContextType.getValue(), lensContextType.getElementName(), PrismContext.LANG_XML);
 
                 System.out.println("Serialized form = " + xml);
 
-                PrismContainer<LensContextType> unmarshalledContainer = prismContext.getPrismDomProcessor().parsePrismContainer(xml, lensContextType.getDefinition());
+                PrismContainer<LensContextType> unmarshalledContainer = prismContext.parseContainer(xml, LensContextType.class, PrismContext.LANG_XML);
                 context = LensContext.fromLensContextType(unmarshalledContainer.getValue().asContainerable(), context.getPrismContext(), provisioningService, result);
 
                 System.out.println("Context after deserialization = " + context.debugDump());

@@ -42,6 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScriptExpressionReturnTypeType;
 
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
@@ -165,19 +166,23 @@ public class ScriptExpression {
 	}
 
 	private String formatCode() {
-        return DOMUtil.serializeDOMToString(scriptType.getCode());
+        return scriptType.getCode();
     }
 	
 	public ItemPath parsePath(String path) {
 		if (path == null) {
 			return null;
 		}
-		Element codeElement = scriptType.getCode();
-		XPathHolder xPathHolder = new XPathHolder(path, codeElement);
-		if (xPathHolder == null) {
-			return null;
-		}
-		return xPathHolder.toItemPath();
+        ItemPathType itemPathType = new ItemPathType();
+        itemPathType.getContent().add(path);
+        return itemPathType.getItemPath();
+        // TODO what about namespaces?
+//		Element codeElement = scriptType.getCode();
+//		XPathHolder xPathHolder = new XPathHolder(path, codeElement);
+//		if (xPathHolder == null) {
+//			return null;
+//		}
+//		return xPathHolder.toItemPath();
 	}
 
 }

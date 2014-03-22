@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.schema;
 
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.RetrieveOptionType;
+
 public enum RetrieveOption {
 	
 	/**
@@ -17,5 +19,14 @@ public enum RetrieveOption {
 	 * Exclude the item from the result.
 	 */
 	EXCLUDE;
+
+    public static RetrieveOption fromRetrieveOptionType(RetrieveOptionType retrieveOptionType) {
+        switch(retrieveOptionType) {
+            case DEFAULT: return DEFAULT;
+            case INCLUDE: return INCLUDE;
+            case EXCLUDE: return EXCLUDE;
+            default: throw new IllegalStateException("Unsupported RetrieveOptionType: " + retrieveOptionType);
+        }
+    }
 
 }

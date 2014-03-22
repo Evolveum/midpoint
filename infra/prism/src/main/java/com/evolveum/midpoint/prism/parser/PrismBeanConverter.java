@@ -22,10 +22,14 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBElement;
@@ -101,19 +105,26 @@ public class PrismBeanConverter {
 	}
 	
 	public <T> T unmarshall(MapXNode xnode, Class<T> beanClass) throws SchemaException {
-		if (beanClass == SearchFilterType.class) {
-			return (T) unmarshalSearchFilterType(xnode);
-		}
-		T bean;
-		try {
-			bean = beanClass.newInstance();
-		} catch (InstantiationException e) {
-			throw new SystemException("Cannot instantiate bean of type "+beanClass+": "+e.getMessage(), e);
-		} catch (IllegalAccessException e) {
-			throw new SystemException("Cannot instantiate bean of type "+beanClass+": "+e.getMessage(), e);
-		}
+        T bean;
+        Set<String> keysToParse;          // only these keys will be parsed (null if all)
+		if (SearchFilterType.class.isAssignableFrom(beanClass)) {
+            keysToParse = Collections.singleton("condition");       // TODO fix this BRUTAL HACK - it is here because of c:ConditionalSearchFilterType
+			bean = (T) unmarshalSearchFilterType(xnode, (Class<? extends SearchFilterType>) beanClass);
+        } else {
+            keysToParse = null;
+            try {
+                bean = beanClass.newInstance();
+            } catch (InstantiationException e) {
+                throw new SystemException("Cannot instantiate bean of type "+beanClass+": "+e.getMessage(), e);
+            } catch (IllegalAccessException e) {
+                throw new SystemException("Cannot instantiate bean of type "+beanClass+": "+e.getMessage(), e);
+            }
+        }
 		for (Entry<QName,XNode> entry: xnode.entrySet()) {
 			QName key = entry.getKey();
+            if (keysToParse != null && !keysToParse.contains(key.getLocalPart())) {
+                continue;
+            }
 			XNode xsubnode = entry.getValue();
 			String propName = key.getLocalPart();
 			Field field = findPropertyField(beanClass, propName);
@@ -121,8 +132,7 @@ public class PrismBeanConverter {
 			if (field == null) {
 				propertyGetter = findPropertyGetter(beanClass, propName);
 			}
-			
-			
+
 			Method elementMethod = null;
 			Object objectFactory = null;
 			if (field == null && propertyGetter == null) {
@@ -327,13 +337,19 @@ public class PrismBeanConverter {
 		
 		return bean;
 	}
-	
-	private SearchFilterType unmarshalSearchFilterType(MapXNode xmap) throws SchemaException {
+
+    // parses any subtype of SearchFilterType
+	private <T extends SearchFilterType> T unmarshalSearchFilterType(MapXNode xmap, Class<T> beanClass) throws SchemaException {
 		if (xmap == null) {
 			return null;
 		}
-		SearchFilterType filterType = new SearchFilterType();
-		filterType.parseFromXNode(xmap);
+        T filterType;
+        try {
+            filterType = beanClass.newInstance();
+        } catch (InstantiationException|IllegalAccessException e) {
+            throw new SystemException("Cannot instantiate " + beanClass + ": " + e.getMessage(), e);
+        }
+        filterType.parseFromXNode(xmap);
 		return filterType;
 	}
 	

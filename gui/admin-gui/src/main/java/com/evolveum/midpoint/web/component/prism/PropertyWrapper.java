@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 

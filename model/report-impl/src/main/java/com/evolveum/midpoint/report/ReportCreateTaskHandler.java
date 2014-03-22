@@ -193,7 +193,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
 				PrismSchema subreportSchema = ReportUtils.getParametersSchema(reportType, prismContext);
 				PrismContainer<Containerable> subreportConfiguration = ReportUtils.getParametersContainer(reportType, subreportSchema);
 				
-				String reportTemplate = DOMUtil.serializeDOMToString((Node)reportType.getTemplate().getAny());
+				String reportTemplate = reportType.getTemplate();
        	 		InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate.getBytes());
        	 		JasperDesign jasperDesign = JRXmlLoader.load(inputStreamJRXML);
        	 		JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
@@ -266,14 +266,14 @@ public class ReportCreateTaskHandler implements TaskHandler {
     		setConfiguration(ReportUtils.getParametersContainer(reportType, getSchema()));
     		
     		
-    		if (reportType.getTemplate() == null || reportType.getTemplate().getAny() == null)
+    		if (reportType.getTemplate() == null)
             {
            	 	jasperDesign = ReportUtils.createJasperDesign(reportType, getConfiguration(), getSchema());
            	 	LOGGER.trace("create jasper design : {}", jasperDesign);
             }
             else
             {
-           	 	String reportTemplate = DOMUtil.serializeDOMToString((Node)reportType.getTemplate().getAny());
+           	 	String reportTemplate = reportType.getTemplate();
            	 	InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate.getBytes());
            	 	jasperDesign = JRXmlLoader.load(inputStreamJRXML);
            	 	LOGGER.trace("load jasper design : {}", jasperDesign);
