@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.sql.data.common.any.RAnyContainer;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -76,7 +75,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
     private RSynchronizationSituation synchronizationSituation;
     private Set<RSynchronizationSituationDescription> synchronizationSituationDescription;
     //attributes
-    private RAnyContainer attributes;
     private XMLGregorianCalendar synchronizationTimestamp;
     private RShadowKind kind;
     private Boolean assigned;
@@ -112,18 +110,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
     @Column(length = RUtil.COLUMN_LENGTH_QNAME)
     public String getObjectClass() {
         return objectClass;
-    }
-
-    @com.evolveum.midpoint.repo.sql.query.definition.Any(jaxbNameLocalPart = "attributes")
-    @OneToOne(optional = true, orphanRemoval = true)
-    @ForeignKey(name = "none")
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    @JoinColumns({
-            @JoinColumn(name = "attrOid", referencedColumnName = "owner_oid"),
-            @JoinColumn(name = "attrType", referencedColumnName = "owner_type")
-    })
-    public RAnyContainer getAttributes() {
-        return attributes;
     }
 
     @Embedded
@@ -225,13 +211,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         this.activation = activation;
     }
 
-    public void setAttributes(RAnyContainer attributes) {
-        this.attributes = attributes;
-        if (this.attributes != null) {
-            this.attributes.setOwnerType(RObjectType.SHADOW);
-        }
-    }
-
     public void setObjectClass(String objectClass) {
         this.objectClass = objectClass;
     }
@@ -281,7 +260,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         if (activation != null ? !activation.equals(that.activation) : that.activation != null) return false;
         if (attemptNumber != null ? !attemptNumber.equals(that.attemptNumber) : that.attemptNumber != null)
             return false;
-        if (attributes != null ? !attributes.equals(that.attributes) : that.attributes != null) return false;
         if (failedOperationType != that.failedOperationType) return false;
         if (objectClass != null ? !objectClass.equals(that.objectClass) : that.objectClass != null) return false;
         if (resourceRef != null ? !resourceRef.equals(that.resourceRef) : that.resourceRef != null) return false;
@@ -370,10 +348,12 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
 
         jaxb.setSynchronizationTimestamp(repo.getSynchronizationTimestamp());
 
-        if (repo.getAttributes() != null) {
+        if (SelectorOptions.hasToLoadPath(ShadowType.F_ATTRIBUTES, options)) {
             ShadowAttributesType attributes = new ShadowAttributesType();
-            jaxb.setAttributes(attributes);
-            RAnyContainer.copyToJAXB(repo.getAttributes(), attributes, prismContext);
+            copyExtensionToJAXB(repo, attributes.asPrismContainerValue(), prismContext, RObjectType.SHADOW);
+            if (!attributes.asPrismContainerValue().isEmpty()) {
+                jaxb.setAttributes(attributes);
+            }
         }
     }
 
@@ -423,11 +403,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         }
 
         if (jaxb.getAttributes() != null) {
-            RAnyContainer attributes = new RAnyContainer();
-            attributes.setOwner(repo);
-
-            repo.setAttributes(attributes);
-            RAnyContainer.copyFromJAXB(jaxb.getAttributes(), attributes, prismContext);
+            copyFromJAXB(jaxb.getAttributes().asPrismContainerValue(), repo, prismContext, RObjectType.SHADOW);
         }
     }
 

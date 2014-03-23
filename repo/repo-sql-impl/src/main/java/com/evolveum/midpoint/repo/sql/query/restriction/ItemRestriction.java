@@ -34,6 +34,7 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Criteria;
@@ -98,6 +99,9 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
             propPathSegments.add(new NameItemPathSegment(qname));
             propPath = new ItemPath(propPathSegments);
             // get entity query definition
+            if (qname.equals(ObjectType.F_EXTENSION) || qname.equals(ShadowType.F_ATTRIBUTES)) {
+                break;
+            }
 
             Definition childDef = definition.findDefinition(qname, Definition.class);
             if (childDef == null) {
@@ -175,8 +179,12 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
             // create new property path
             propPathSegments.add(new NameItemPathSegment(qname));
             propPath = new ItemPath(propPathSegments);
-            // get entity query definition
 
+            if (qname.equals(ObjectType.F_EXTENSION) || qname.equals(ShadowType.F_ATTRIBUTES)) {
+                break;
+            }
+
+            // get entity query definition
             Definition childDef = definition.findDefinition(qname, Definition.class);
             if (childDef == null) {
                 throw new QueryException("Definition '" + definition + "' doesn't contain child definition '"

@@ -23,8 +23,10 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyConverter;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryContext;
 import com.evolveum.midpoint.repo.sql.query.definition.AnyDefinition;
@@ -33,6 +35,8 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
@@ -55,11 +59,12 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
         }
 
         ValueFilter valFilter = (ValueFilter) filter;
-//        ItemPath fullPath = RUtil.createFullPath(valFilter);
         ItemPath fullPath = valFilter.getFullPath();
 
         List<Definition> defPath = createDefinitionPath(fullPath, context);
-        return containsAnyDefinition(defPath);
+        return containsAnyDefinition(defPath)
+                || (fullPath.first().equals(new NameItemPathSegment(ObjectType.F_EXTENSION)))
+                || (fullPath.first().equals(new NameItemPathSegment(ShadowType.F_ATTRIBUTES)));
     }
 
     private boolean containsAnyDefinition(List<Definition> definitions) {
@@ -94,6 +99,10 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
 
         Conjunction conjunction = Restrictions.conjunction();
 
+        RObjectType ownerType = filter.getFullPath().first().equals(new NameItemPathSegment(ObjectType.F_EXTENSION)) ?
+                RObjectType.OBJECT : RObjectType.SHADOW;
+        conjunction.add(Restrictions.eq(propertyNamePrefix + "ownerType", ownerType));
+
         Object testedValue = getValue(((PropertyValueFilter) filter).getValues());
         Object value = RAnyConverter.getAggregatedRepoObject(testedValue);
         conjunction.add(createCriterion(propertyNamePrefix + RAnyValue.F_VALUE, value, filter));
@@ -107,7 +116,7 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
     private ItemPath createAnyItemPath(ItemPath path, ItemDefinition itemDef) throws QueryException {
         try {
             List<ItemPathSegment> segments = new ArrayList<ItemPathSegment>();
-            segments.addAll(path.getSegments());
+//            segments.addAll(path.getSegments());
             // get any type name (e.g. clobs, strings, dates,...) based on definition
             String anyTypeName = RAnyConverter.getAnySetType(itemDef);
             segments.add(new NameItemPathSegment(new QName(RUtil.NS_SQL_REPO, anyTypeName)));

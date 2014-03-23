@@ -149,8 +149,8 @@ public class ObjectDBValidator {
         validateReferences(rObject.getParentOrgRef(), object.findReference(ObjectType.F_PARENT_ORG_REF));
 
         //todo
-        rObject.getExtension();
-        rObject.getTrigger();
+//        rObject.getExtension();
+//        rObject.getTrigger();
     }
 
     private static void validateReferences(Set<ObjectReference> set, PrismReference reference) {

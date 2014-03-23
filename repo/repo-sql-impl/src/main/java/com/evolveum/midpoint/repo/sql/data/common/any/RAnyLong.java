@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAnyLongId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -31,11 +32,11 @@ import javax.persistence.*;
 @IdClass(RAnyLongId.class)
 @Table(name = "m_any_long")
 @org.hibernate.annotations.Table(appliesTo = "m_any_long",
-        indexes = {@Index(name = "iExtensionLong", columnNames = {"longValue", "eName", "eType"})})
+        indexes = {@Index(name = "iExtensionLong", columnNames = {"ownerType", "longValue", "eName", "eType"})})
 public class RAnyLong implements RExtensionValue {
 
     //owner entity
-    private RAnyContainer anyContainer;
+    private RObject owner;
     private String ownerOid;
     private RObjectType ownerType;
 
@@ -53,32 +54,27 @@ public class RAnyLong implements RExtensionValue {
         this.value = value;
     }
 
-    @ForeignKey(name = "fk_any_long")
+    @Id
+    @ForeignKey(name = "fk_extension_long")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
-    @PrimaryKeyJoinColumns({
-            @PrimaryKeyJoinColumn(name = "anyContainer_owner_oid", referencedColumnName = "ownerOid"),
-            @PrimaryKeyJoinColumn(name = "anyContainer_owner_type", referencedColumnName = "owner_type")
-    })
-    public RAnyContainer getAnyContainer() {
-        return anyContainer;
+    public RObject getOwner() {
+        return owner;
     }
 
     @Id
-    @Column(name = "anyContainer_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
+    @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     public String getOwnerOid() {
-        if (ownerOid == null && anyContainer != null) {
-            ownerOid = anyContainer.getOwnerOid();
+        if (ownerOid == null && owner != null) {
+            ownerOid = owner.getOid();
         }
         return ownerOid;
     }
 
     @Id
-    @Column(name = "anyContainer_owner_type")
+    @Column(name = "ownerType")
+    @Enumerated(EnumType.ORDINAL)
     public RObjectType getOwnerType() {
-        if (ownerType == null && anyContainer != null) {
-            ownerType = anyContainer.getOwnerType();
-        }
         return ownerType;
     }
 
@@ -132,8 +128,8 @@ public class RAnyLong implements RExtensionValue {
         this.dynamic = dynamic;
     }
 
-    public void setAnyContainer(RAnyContainer anyContainer) {
-        this.anyContainer = anyContainer;
+    public void setOwner(RObject owner) {
+        this.owner = owner;
     }
 
     public void setOwnerOid(String ownerOid) {

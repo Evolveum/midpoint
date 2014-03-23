@@ -982,10 +982,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
             LOGGER.debug("Loading definitions for shadow attributes.");
 
+            //todo improve query -> can be already fetched during get/search through projection
             Query query = session.createQuery("select stringsCount, longsCount, datesCount, referencesCount, clobsCount,"
-                    + " polysCount from RAnyContainer where ownerOid = :oid and ownerType = :ownerType");
+                    + " polysCount from RObject where oid = :oid");
             query.setParameter("oid", prismObject.getOid());
-            query.setParameter("ownerType", RObjectType.SHADOW);
 
             Object[] counts = (Object[]) query.uniqueResult();
             Class[] classes = new Class[]{RAnyString.class, RAnyLong.class, RAnyDate.class, RAnyReference.class,
@@ -1000,6 +1000,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     applyShadowAttributeDefinitions(classes[i], prismObject, session);
                 }
             }
+
+            LOGGER.debug("Definitions for attributes loaded. Counts: {}", Arrays.toString(counts));
         }
 
         validateObjectType(prismObject, type);

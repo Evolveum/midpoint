@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.sql.data.common.any.RAnyContainer;
 import com.evolveum.midpoint.repo.sql.data.common.RShadow;
 import com.evolveum.midpoint.repo.sql.data.common.RSynchronizationSituationDescription;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
@@ -477,12 +476,11 @@ public class ModifyTest extends BaseSQLRepoTest {
             session.beginTransaction();
             user = (RUser) session.createQuery("from RUser as u where u.oid = :oid").setParameter("oid", id).uniqueResult();
 
-            RAnyContainer extension = user.getExtension();
-            AssertJUnit.assertEquals(1, extension.getClobs().size());
-            AssertJUnit.assertEquals(1, extension.getDates().size());
-            AssertJUnit.assertEquals(2, extension.getStrings().size());
-            AssertJUnit.assertEquals(1, extension.getLongs().size());
-            hasLong(extension.getLongs(), 456L);
+            AssertJUnit.assertEquals(1, user.getClobs().size());
+            AssertJUnit.assertEquals(1, user.getDates().size());
+            AssertJUnit.assertEquals(2, user.getStrings().size());
+            AssertJUnit.assertEquals(1, user.getLongs().size());
+            hasLong(user.getLongs(), 456L);
 
             session.getTransaction().commit();
             session.close();
@@ -519,18 +517,14 @@ public class ModifyTest extends BaseSQLRepoTest {
         user.setFamilyName(new RPolyString("fa1", "fa1"));
         user.setGivenName(new RPolyString("gi1", "gi1"));
 
-        RAnyContainer any = new RAnyContainer();
-        any.setOwnerType(RObjectType.USER);
-        any.setOwner(user);
-        user.setExtension(any);
-
         Set<RAnyDate> dates = new HashSet<RAnyDate>();
-        any.setDates(dates);
+        user.setDates(dates);
 
         final String namespace = "http://example.com/p";
 
         RAnyDate date = new RAnyDate();
-        date.setAnyContainer(any);
+        date.setOwner(user);
+        date.setOwnerType(RObjectType.OBJECT);
         date.setDynamic(false);
         date.setName(RUtil.qnameToString(new QName(namespace, "funeralDate")));
         date.setType(RUtil.qnameToString(new QName("http://www.w3.org/2001/XMLSchema", "dateTime")));
@@ -539,10 +533,11 @@ public class ModifyTest extends BaseSQLRepoTest {
         date.setValueType(RValueType.PROPERTY);
 
         Set<RAnyLong> longs = new HashSet<RAnyLong>();
-        any.setLongs(longs);
+        user.setLongs(longs);
 
         RAnyLong l = new RAnyLong();
-        l.setAnyContainer(any);
+        l.setOwner(user);
+        l.setOwnerType(RObjectType.OBJECT);
         longs.add(l);
         l.setDynamic(false);
         l.setName(RUtil.qnameToString(new QName(namespace, "loot")));
@@ -551,10 +546,11 @@ public class ModifyTest extends BaseSQLRepoTest {
         l.setValueType(RValueType.PROPERTY);
 
         Set<RAnyString> strings = new HashSet<RAnyString>();
-        any.setStrings(strings);
+        user.setStrings(strings);
 
         RAnyString s1 = new RAnyString();
-        s1.setAnyContainer(any);
+        s1.setOwner(user);
+        s1.setOwnerType(RObjectType.OBJECT);
         strings.add(s1);
         s1.setDynamic(false);
         s1.setName(RUtil.qnameToString(new QName(namespace, "weapon")));
@@ -563,7 +559,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         s1.setValueType(RValueType.PROPERTY);
 
         RAnyString s2 = new RAnyString();
-        s2.setAnyContainer(any);
+        s2.setOwner(user);
+        s2.setOwnerType(RObjectType.OBJECT);
         strings.add(s2);
         s2.setDynamic(false);
         s2.setName(RUtil.qnameToString(new QName(namespace, "shipName")));
@@ -572,11 +569,12 @@ public class ModifyTest extends BaseSQLRepoTest {
         s2.setValueType(RValueType.PROPERTY);
 
         Set<RAnyClob> clobs = new HashSet<RAnyClob>();
-        any.setClobs(clobs);
+        user.setClobs(clobs);
 
         RAnyClob c1 = new RAnyClob();
         clobs.add(c1);
-        c1.setAnyContainer(any);
+        c1.setOwner(user);
+        c1.setOwnerType(RObjectType.OBJECT);
         c1.setDynamic(false);
         c1.setName(RUtil.qnameToString(new QName(namespace, "someContainer")));
         c1.setType(RUtil.qnameToString(new QName("http://www.w3.org/2001/XMLSchema", "string")));

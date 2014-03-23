@@ -387,7 +387,6 @@ public final class RUtil {
         fixCompositeIdentifierInMetaModel(sessionFactory, RObjectDeltaOperation.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RSynchronizationSituationDescription.class);
 
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAnyContainer.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RAnyClob.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RAnyDate.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RAnyString.class);

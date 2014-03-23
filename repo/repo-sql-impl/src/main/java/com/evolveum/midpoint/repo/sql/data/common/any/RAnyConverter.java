@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -69,12 +70,12 @@ public class RAnyConverter {
         TYPE_MAP.put(PolyStringType.COMPLEX_TYPE, ValueType.POLY_STRING);
     }
 
-    RAnyConverter(PrismContext prismContext) {
+    public RAnyConverter(PrismContext prismContext) {
         this.prismContext = prismContext;
     }
 
     //todo assignment parameter really messed up this method, proper interfaces must be introduced later [lazyman]
-    Set<RAnyValue> convertToRValue(Item item, boolean assignment) throws DtoTranslationException {
+    public Set<RAnyValue> convertToRValue(Item item, boolean assignment) throws DtoTranslationException {
         Validate.notNull(item, "Object for converting must not be null.");
         Validate.notNull(item.getDefinition(), "Item '" + item.getElementName() + "' without definition can't be saved.");
 
@@ -237,7 +238,7 @@ public class RAnyConverter {
         return type;
     }
 
-    void convertFromRValue(RAnyValue value, PrismContainerValue any) throws DtoTranslationException {
+    public void convertFromRValue(RAnyValue value, PrismContainerValue any) throws DtoTranslationException {
         Validate.notNull(value, "Value for converting must not be null.");
         Validate.notNull(any, "Parent prism container value must not be null.");
 

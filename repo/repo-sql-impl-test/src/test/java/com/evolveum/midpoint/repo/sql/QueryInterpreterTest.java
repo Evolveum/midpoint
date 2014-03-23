@@ -27,6 +27,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sql.data.common.*;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
@@ -220,13 +221,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
         Criteria main = session.createCriteria(RGenericObject.class, "g");
 
-        Criteria extension = main.createCriteria("extension", "e");
-        Criteria stringExt = extension.createCriteria("longs", "l");
+        Criteria stringExt = main.createCriteria("longs", "l");
 
         //and
         Criterion c1 = Restrictions.eq("name.norm", "generic object");
         //and
         Conjunction c2 = Restrictions.conjunction();
+        c2.add(Restrictions.eq("l.ownerType", RObjectType.OBJECT));
         c2.add(Restrictions.eq("l.value", 123L));
         c2.add(Restrictions.eq("l.name", new QName("http://example.com/p", "intType")));
         c2.add(Restrictions.eq("l.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "integer")));
@@ -253,24 +254,22 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Criteria main = session.createCriteria(RShadow.class, "r");
         main.setProjection(Projections.property("r.fullObject"));
 
-        Criteria attributes = main.createCriteria("attributes", "a");
-        Criteria stringAttr = attributes.createCriteria("strings", "s1x");
-
-        Criteria extension = main.createCriteria("extension", "e");
-        Criteria stringExt = extension.createCriteria("strings", "s2x");
+        Criteria stringExt = main.createCriteria("strings", "s1");
 
         //or
         Criterion c1 = Restrictions.eq("intent", "some account type");
         //or
         Conjunction c2 = Restrictions.conjunction();
-        c2.add(Restrictions.eq("s1x.value", "foo value"));
-        c2.add(Restrictions.eq("s1x.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
-        c2.add(Restrictions.eq("s1x.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
+        c2.add(Restrictions.eq("s1.ownerType", RObjectType.SHADOW));
+        c2.add(Restrictions.eq("s1.value", "foo value"));
+        c2.add(Restrictions.eq("s1.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
+        c2.add(Restrictions.eq("s1.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
         //or
         Conjunction c3 = Restrictions.conjunction();
-        c3.add(Restrictions.eq("s2x.value", "uid=test,dc=example,dc=com"));
-        c3.add(Restrictions.eq("s2x.name", new QName("http://example.com/p", "stringType")));
-        c3.add(Restrictions.eq("s2x.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
+        c3.add(Restrictions.eq("s1.ownerType", RObjectType.OBJECT));
+        c3.add(Restrictions.eq("s1.value", "uid=test,dc=example,dc=com"));
+        c3.add(Restrictions.eq("s1.name", new QName("http://example.com/p", "stringType")));
+        c3.add(Restrictions.eq("s1.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
         //or
         Criterion c4 = Restrictions.conjunction().add(
                 Restrictions.eq("r.resourceRef.targetOid", "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e"));
@@ -403,14 +402,14 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
         Criteria main = session.createCriteria(RShadow.class, "r");
 
-        Criteria attributes = main.createCriteria("attributes", "a");
-        Criteria stringAttr = attributes.createCriteria("strings", "s1x");
+        Criteria stringAttr = main.createCriteria("strings", "s1x");
 
         //and
         Criterion c1 = Restrictions.conjunction().add(
                 Restrictions.eq("r.resourceRef.targetOid", "aae7be60-df56-11df-8608-0002a5d5c51b"));
         //and
         Conjunction c2 = Restrictions.conjunction();
+        c2.add(Restrictions.eq("s1x.ownerType", RObjectType.SHADOW));
         c2.add(Restrictions.eq("s1x.value", "uid=jbond,ou=People,dc=example,dc=com"));
         c2.add(Restrictions.eq("s1x.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
         c2.add(Restrictions.eq("s1x.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));

@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.repo.sql.util;
 
 import com.evolveum.midpoint.repo.sql.data.common.container.Container;
-import com.evolveum.midpoint.repo.sql.data.common.any.RAnyContainer;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
@@ -36,18 +35,6 @@ public class ContainerOidGenerator implements IdentifierGenerator {
 
     @Override
     public Serializable generate(SessionImplementor session, Object object) throws HibernateException {
-        if (object instanceof RAnyContainer) {
-//            RAnyContainer any = (RAnyContainer) object;
-//            RContainer owner = any.getOwner();
-//            String oid = owner.getOid();
-//            if (oid == null) {
-//                oid = generate(owner);
-//                owner.setOid(oid);
-//            }
-//            LOGGER.trace("Created oid='{}' for any.", new Object[]{oid});
-//            return oid;
-        }
-
         return generate(object);
     }
 

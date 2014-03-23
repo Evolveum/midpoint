@@ -16,8 +16,10 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
-import com.evolveum.midpoint.repo.sql.data.common.*;
-import com.evolveum.midpoint.repo.sql.data.common.any.RAnyContainer;
+import com.evolveum.midpoint.repo.sql.data.common.RAbstractRole;
+import com.evolveum.midpoint.repo.sql.data.common.RFocus;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.ROwnable;
 import com.evolveum.midpoint.repo.sql.data.common.container.Container;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -38,19 +40,6 @@ public class ContainerIdGenerator implements IdentifierGenerator {
 
     @Override
     public Serializable generate(SessionImplementor session, Object object) throws HibernateException {
-        if (object instanceof RAnyContainer) {
-            //todo fix
-//            RAnyContainer any = (RAnyContainer) object;
-//            RContainer owner = any.getOwner();
-//            Short id = owner.getId();
-//            if (id == null) {
-//                id = generate(owner);
-//                owner.setId(id);
-//            }
-//            LOGGER.trace("Created id='{}' for any.", new Object[]{id});
-//            return id;
-        }
-
         if (!(object instanceof Container)) {
             throw new HibernateException("Couldn't create id for '"
                     + object.getClass().getSimpleName() + "' not instance of RContainer.");
