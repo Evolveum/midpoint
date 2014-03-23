@@ -32,7 +32,7 @@ import javax.persistence.*;
 @IdClass(RAPolyStringId.class)
 @Table(name = "m_a_poly_string")
 @org.hibernate.annotations.Table(appliesTo = "m_a_poly_string",
-        indexes = {@Index(name = "iAExtensionPolyString", columnNames = {"orig", "eName", "eType"})})
+        indexes = {@Index(name = "iAExtensionPolyString", columnNames = {"extensionType", "orig", "eName", "eType"})})
 public class RAPolyString implements RAExtensionValue {
 
     //owner entity

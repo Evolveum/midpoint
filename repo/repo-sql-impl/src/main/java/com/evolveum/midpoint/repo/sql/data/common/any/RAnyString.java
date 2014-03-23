@@ -30,8 +30,8 @@ import javax.persistence.*;
  */
 @Entity
 @IdClass(RAnyStringId.class)
-@Table(name = "m_any_string")
-@org.hibernate.annotations.Table(appliesTo = "m_any_string",
+@Table(name = "m_object_string")
+@org.hibernate.annotations.Table(appliesTo = "m_object_string",
         indexes = {@Index(name = "iExtensionString", columnNames = {"ownerType", "stringValue", "eName", "eType"})})
 public class RAnyString implements RExtensionValue {
 

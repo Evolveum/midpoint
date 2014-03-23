@@ -32,7 +32,7 @@ import java.sql.Timestamp;
 @IdClass(RADateId.class)
 @Table(name = "m_a_date")
 @org.hibernate.annotations.Table(appliesTo = "m_a_date",
-        indexes = {@Index(name = "iAExtensionDate", columnNames = {"dateValue", "eName", "eType"})})
+        indexes = {@Index(name = "iAExtensionDate", columnNames = {"extensionType", "dateValue", "eName", "eType"})})
 public class RADate implements RAExtensionValue {
 
     //owner entity

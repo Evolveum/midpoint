@@ -31,7 +31,7 @@ import javax.persistence.*;
 @IdClass(RAStringId.class)
 @Table(name = "m_a_string")
 @org.hibernate.annotations.Table(appliesTo = "m_a_string",
-        indexes = {@Index(name = "iAExtensionString", columnNames = {"stringValue", "eName", "eType"})})
+        indexes = {@Index(name = "iAExtensionString", columnNames = {"extensionType", "stringValue", "eName", "eType"})})
 public class RAString implements RAExtensionValue {
 
     //owner entity

@@ -33,7 +33,7 @@ import javax.persistence.*;
  */
 @Entity
 @IdClass(RAnyClobId.class)
-@Table(name = "m_any_clob")
+@Table(name = "m_object_clob")
 public class RAnyClob implements RExtensionValue {
 
     //owner entity

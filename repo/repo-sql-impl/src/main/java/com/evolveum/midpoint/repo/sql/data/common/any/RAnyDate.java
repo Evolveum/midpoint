@@ -31,8 +31,8 @@ import java.sql.Timestamp;
  */
 @Entity
 @IdClass(RAnyDateId.class)
-@Table(name = "m_any_date")
-@org.hibernate.annotations.Table(appliesTo = "m_any_date",
+@Table(name = "m_object_date")
+@org.hibernate.annotations.Table(appliesTo = "m_object_date",
         indexes = {@Index(name = "iExtensionDate", columnNames = {"ownerType", "dateValue", "eName", "eType"})})
 public class RAnyDate implements RExtensionValue {
 
