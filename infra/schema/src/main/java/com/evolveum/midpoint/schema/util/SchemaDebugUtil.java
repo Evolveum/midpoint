@@ -58,6 +58,7 @@ import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
 
 /**
  * 
@@ -401,9 +402,12 @@ public class SchemaDebugUtil {
 		}
 		sb.append(",");
 
-		for (Object element : change.getValue().getContent()) {
-			sb.append(prettyPrint(element));
-			sb.append(",");
+		List<RawType> values = change.getValue();
+		for (RawType value : values) {
+			for (Object element : value.getContent()) {
+				sb.append(prettyPrint(element));
+				sb.append(",");
+			}
 		}
 
 		return sb.toString();

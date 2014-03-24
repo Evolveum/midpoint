@@ -234,7 +234,7 @@ public class TestDeltaConverter {
         accountRefToDelete.setOid("54321");
         JAXBElement<ObjectReferenceType> accountRefToDeleteElement = new JAXBElement<ObjectReferenceType>(UserType.F_LINK_REF, ObjectReferenceType.class, accountRefToDelete);
         modificationValue.getContent().add(accountRefToDeleteElement);
-        modificationDeleteAccountRef.setValue(modificationValue);
+        modificationDeleteAccountRef.getValue().add(modificationValue);
         objectChange.getItemDelta().add(modificationDeleteAccountRef);
         ItemPathType itemPathType = new ItemPathType();
         itemPathType.getContent().add(UserType.F_LINK_REF);
@@ -283,11 +283,14 @@ public class TestDeltaConverter {
     	ItemPathType itemPathType = mod1.getPath();
     	assertNotNull("Wrong path (must not be null)", itemPathType);
     	assertEquals("Wrong path", path, itemPathType.getItemPath());
-    	List<Object> valueElements = mod1.getValue().getContent();
+    	List<RawType> valueElements = mod1.getValue();
     	assertEquals("Wrong number of value elements", 1, valueElements.size());
-//    	JAXBElement<ProtectedStringType> valueElement = (JAXBElement<ProtectedStringType>)valueElements.iterator().next();
+    	RawType val = valueElements.get(0);
+    	List<Object> values = val.getContent();
+    	assertEquals("Wrong number of values", 1, values.size());
+    	JAXBElement<ProtectedStringType> valueElement = (JAXBElement<ProtectedStringType>)values.iterator().next();
 //    	assertEquals("Wrong element name", PasswordType.F_VALUE, valueElement.getName());
-//    	assertEquals("Wrong element value", protectedString, valueElement.getValue());
+    	assertEquals("Wrong element value", protectedString, valueElement.getValue());
     }
     
     @Test
@@ -322,10 +325,13 @@ public class TestDeltaConverter {
     	assertNotNull("Wrong path (must not be null)", itemPathType);
 //    	assertTrue("Wrong path: "+itemPathType, itemPathType.getItemPath().isEmpty());
     	assertEquals("Wrong path", itemPathType.getItemPath(), new ItemPath(UserType.F_COST_CENTER));
-    	List<Object> valueElements = mod1.getValue().getContent();
+    	List<RawType> valueElements = mod1.getValue();
     	assertEquals("Wrong number of value elements", 1, valueElements.size());
-    	System.out.println("value elements: " + valueElements);
-    	String valueElement = (String) valueElements.iterator().next();
+    	RawType rawValue = valueElements.get(0);
+    	List<Object> values = rawValue.getContent();
+    	assertEquals("Wrong number of value elements", 1, values.size());
+//    	System.out.println("value elements: " + valueElements);
+    	String valueElement = (String) values.iterator().next();
 //    	assertEquals("Wrong element name", ItemDeltaType.F_VALUE, DOMUtil.getQName(valueElement));
     	assertEquals("Wrong element value", VALUE, valueElement);
     	
@@ -404,7 +410,7 @@ public class TestDeltaConverter {
     	// GIVEN
     	PrismObjectDefinition<UserType> userDef = getUserDefinition();
     	PropertyDelta<String> deltaBefore = PropertyDelta.createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
-    	deltaBefore.setValueToReplace(new PrismPropertyValue<String>(""));
+//    	deltaBefore.setValueToReplace(new PrismPropertyValue<String>(""));
     	
 		// WHEN
     	Collection<ItemDeltaType> itemDeltaTypes = DeltaConvertor.toPropertyModificationTypes(deltaBefore);

@@ -30,6 +30,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -206,20 +208,20 @@ public class RawType implements Serializable{
 //						 	}
 //							return new JAXBElement(new QName("fake", "fake"), declaredType, prim.getValue());
 						}
-						 else if (xnode instanceof MapXNode){
-//							throw new UnsupportedOperationException("nto supported yet");
-//							MapXNode map = (MapXNode) xnode;
-							 MapXNode map = (MapXNode) xnode;
-//							 	Class declaredType = XsdTypeMapper.toJavaType(prim.getTypeQName());
-							 	DomParser parser = new DomParser(null);
-							 	try{
-							 		Element e = parser.serializeXMapToElement(map, new QName(PrismConstants.NS_TYPES, "value"));
-							 		return e;
-							 	}catch (SchemaException ex){
-							 		throw new IllegalStateException(ex.getMessage(), ex);
-							 	}
-//							
-						}
+//						 else if (xnode instanceof MapXNode){
+////							throw new UnsupportedOperationException("nto supported yet");
+////							MapXNode map = (MapXNode) xnode;
+//							 MapXNode map = (MapXNode) xnode;
+////							 	Class declaredType = XsdTypeMapper.toJavaType(prim.getTypeQName());
+//							 	DomParser parser = new DomParser(null);
+//							 	try{
+//							 		Element e = parser.serializeXMapToElement(map, new QName(PrismConstants.NS_TYPES, "value"));
+//							 		return e;
+//							 	}catch (SchemaException ex){
+//							 		throw new IllegalStateException(ex.getMessage(), ex);
+//							 	}
+////							
+//						}
 						
 						throw new UnsupportedOperationException("nto supported yet for xnode: " + xnode + ", realValue " + realValue);
 					}
@@ -349,21 +351,21 @@ public class RawType implements Serializable{
 				 	}
 //					return new JAXBElement(new QName("fake", "fake"), declaredType, prim.getValue());
 				}
-				 else if (xnode instanceof MapXNode){
-//					throw new UnsupportedOperationException("nto supported yet");
-//					MapXNode map = (MapXNode) xnode;
-					 MapXNode map = (MapXNode) xnode;
-//					 	Class declaredType = XsdTypeMapper.toJavaType(prim.getTypeQName());
-					 	DomParser parser = new DomParser(null);
-					 	try{
-					 		Element e = parser.serializeXMapToElement(map, new QName(PrismConstants.NS_TYPES, "value"));
-					 		
-					 		return e;
-					 	}catch (SchemaException ex){
-					 		throw new IllegalStateException(ex.getMessage(), ex);
-					 	}
-//					
-				} 
+//				 else if (xnode instanceof MapXNode){
+////					throw new UnsupportedOperationException("nto supported yet");
+////					MapXNode map = (MapXNode) xnode;
+//					 MapXNode map = (MapXNode) xnode;
+////					 	Class declaredType = XsdTypeMapper.toJavaType(prim.getTypeQName());
+//					 	DomParser parser = new DomParser(null);
+//					 	try{
+//					 		Element e = parser.serializeXMapToElement(map, new QName(PrismConstants.NS_TYPES, "value"));
+//					 		
+//					 		return e;
+//					 	}catch (SchemaException ex){
+//					 		throw new IllegalStateException(ex.getMessage(), ex);
+//					 	}
+////					
+//				} 
 				
 				throw new UnsupportedOperationException("nto supported yet for xnode: " + xnode + ", realValue " + realValue);
 //				throw new UnsupportedOperationException("nto supported yet");
@@ -416,15 +418,16 @@ public class RawType implements Serializable{
         	return realValue;
         }
         
-        public <V extends PrismValue> Item getParsedValue(ItemDefinition itemDefinition) throws SchemaException{
-		Item<V> subItem = null;
-		
+        public <V extends PrismValue> V getParsedValue(ItemDefinition itemDefinition) throws SchemaException{
+//		Item<V> subItem = null;
+		V value = null;
+        	
 		if (xnode != null) {
 			System.out.println("xnode: " + xnode.debugDump());
 			PrismContext prismContext = itemDefinition.getPrismContext();
-			subItem = prismContext.getXnodeProcessor().parseItem(xnode, itemDefinition.getName(),
+			Item<V> subItem = prismContext.getXnodeProcessor().parseItem(xnode, itemDefinition.getName(),
 					itemDefinition);
-			realValue = subItem.getValue(0);
+			value = subItem.getValue(0);
 		} else {
 			if (itemDefinition == null) {
 				throw new SchemaException("No definition for item " + realValue
@@ -432,27 +435,45 @@ public class RawType implements Serializable{
 			}
 			if (itemDefinition instanceof PrismPropertyDefinition<?>) {
 				// property
-				PrismProperty<?> property = ((PrismPropertyDefinition<?>) itemDefinition).instantiate();
-				property.setRealValue(realValue);
-				subItem = (Item<V>) property;
+//				PrismProperty<?> property = ((PrismPropertyDefinition<?>) itemDefinition).instantiate();
+//				property.setRealValue(realValue);
+//				subItem = (Item<V>) property;
+				if (realValue != null){
+					PrismPropertyValue ppValue = new PrismPropertyValue(realValue);
+					value = (V) ppValue;
+//				} else{
+//					PrismPropertyValue ppValue = new PrismPropertyValue("");
+//					value = (V) ppValue;
+				}
+				
 			} else if (itemDefinition instanceof PrismContainerDefinition<?>) {
 				if (realValue instanceof Containerable) {
-					PrismContainer<?> container = ((PrismContainerDefinition<?>) itemDefinition)
-							.instantiate();
+//					PrismContainer<?> container = ((PrismContainerDefinition<?>) itemDefinition)
+//							.instantiate();
 					PrismContainerValue subValue = ((Containerable) realValue).asPrismContainerValue();
-					container.add(subValue);
-					subItem = (Item<V>) container;
+					value = (V) subValue;
+//					container.add(subValue);
+//					subItem = (Item<V>) container;
 				} else {
 					throw new IllegalArgumentException("Unsupported JAXB bean " + realValue.getClass());
 				}
 			} else if (itemDefinition instanceof PrismReferenceDefinition) {
 				// TODO
 				if (realValue instanceof Referencable) {
-					PrismReference reference = ((PrismReferenceDefinition) itemDefinition).instantiate();
+//					PrismReference reference = ((PrismReferenceDefinition) itemDefinition).instantiate();
 					PrismReferenceValue refValue = ((Referencable) realValue).asReferenceValue();
-					reference.merge(refValue);
-					subItem = (Item<V>) reference;
-				} else {
+					value = (V) refValue;
+//					reference.merge(refValue);
+//					subItem = (Item<V>) reference;
+				} else if (realValue instanceof Objectable){
+					// TODO: adding reference with object??
+//					PrismReference reference = ((PrismReferenceDefinition) itemDefinition).instantiate();
+					PrismReferenceValue refVal = new PrismReferenceValue();
+					refVal.setObject(((Objectable) realValue).asPrismObject());
+					value = (V) refVal;
+//					reference.merge(refVal);
+//					subItem = (Item<V>) reference;
+				} else{
 					throw new IllegalArgumentException("Unsupported JAXB bean" + realValue);
 				}
 
@@ -461,7 +482,7 @@ public class RawType implements Serializable{
 			}
 
 		}
-		return subItem;
+		return value;
         }
         
     // Shallow clone. Do we need deep clone?

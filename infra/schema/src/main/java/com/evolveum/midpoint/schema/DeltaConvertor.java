@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.parser.XNodeSerializer;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.RawTypeUtil;
 import com.evolveum.midpoint.prism.util.ValueSerializationUtil;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -268,9 +269,12 @@ public class DeltaConvertor {
         if (propMod.getValue() == null) {
             throw new IllegalArgumentException("No value in item delta (path: " + parentPath + ") while creating a property delta");
         }
+        for (ItemDefinition def : pcDef.getDefinitions()){
+        	System.out.println("def: " + def.debugDump());
+        }
         ItemDefinition containingPcd = pcDef.findItemDefinition(parentPath);
         if (containingPcd == null) {
-            throw new SchemaException("No container definition for " + parentPath + " (while creating delta for " + pcDef + ")");
+            throw new SchemaException("No definition for " + parentPath + " (while creating delta for " + pcDef + ")");
         }
 //        System.out.println("DELTA: " + propMod.getValue().getXnode().debugDump());
 //        Collection<Item<V>> items = pcDef.getPrismContext().getJaxbDomHack().fromAny(propMod.getValue().getContent(), 
@@ -290,7 +294,7 @@ public class DeltaConvertor {
 //        	}
 //        }
 //        Item<V> item = items.iterator().next();
-        Item item = propMod.getValue().getParsedValue(containingPcd);
+        Item item = RawTypeUtil.getParsedItem(containingPcd, propMod.getValue());//propMod.getValue().getParsedValue(containingPcd);
 //        ItemDelta<V> itemDelta = item.createDelta(parentPath.subPath(item.getElementName()));
         ItemDelta<V> itemDelta = item.createDelta(parentPath);
         if (propMod.getModificationType() == ModificationTypeType.ADD) {
@@ -354,7 +358,7 @@ public class DeltaConvertor {
             Document document) throws SchemaException {
 //    	QName elementName = delta.getElementName();
     	RawType modValue = new RawType();
-        mod.setValue(modValue);
+        mod.getValue().add(modValue);
         if (values == null || values.isEmpty()) {
         	// We need to create "nil" element otherwise the element name will be lost
         	// (and this is different from empty element)
@@ -366,10 +370,10 @@ public class DeltaConvertor {
         } else {
 	        for (PrismValue value : values) {
 	        	//FIXME: serilaize to XNode instead of dom??
-//	        	Object xmlValue = toAny(delta, value, document);
-//	            modValue.getContent().add(xmlValue);
-	        	XNode xnode = toXNode(delta, value);
-	        	modValue.setXnode(xnode);
+	        	Object xmlValue = toAny(delta, value, document);
+	            modValue.getContent().add(xmlValue);
+//	        	XNode xnode = toXNode(delta, value);
+//	        	modValue.setXnode(xnode);
 	        }
         }
     }
@@ -404,7 +408,8 @@ public class DeltaConvertor {
 	private static Object toAny(ItemDelta delta, PrismValue value, Document document) throws SchemaException {
 		PrismContext prismContext = delta.getPrismContext();
 		if (prismContext != null) {
-			return delta.getPrismContext().getJaxbDomHack().toAny(value);
+			return RawTypeUtil.toAny(value, document, prismContext);
+//			return delta.getPrismContext().getJaxbDomHack().toAny(value);
 		}
 		if (value instanceof PrismPropertyValue<?>) {
 			PrismPropertyValue<?> pval = (PrismPropertyValue<?>)value;

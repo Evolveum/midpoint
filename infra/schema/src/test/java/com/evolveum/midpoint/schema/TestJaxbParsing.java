@@ -224,7 +224,7 @@ public class TestJaxbParsing {
         protectedString.setEncryptedData(new EncryptedDataType());
         RawType value = new RawType();
         value.getContent().add(new JAXBElement(new QName(SchemaConstants.NS_C, "protectedString"), ProtectedStringType.class, protectedString));
-        item1.setValue(value);
+        item1.getValue().add(value);
 
         //fix marshalling somehow, or change the way how to create XML from ObjectDeltaType
         PrismContext prismContext = PrismTestUtil.getPrismContext();

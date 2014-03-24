@@ -289,7 +289,7 @@ public class TestJaxbSanity {
 		assertNotNull(mod);
 		
 		//FIXME : modification value -> rawType...
-		JAXBElement<AssignmentType> assignmentTypeEl = (JAXBElement<AssignmentType>) mod.getItemDelta().get(0).getValue().getContent().get(0);
+		JAXBElement<AssignmentType> assignmentTypeEl = (JAXBElement<AssignmentType>) mod.getItemDelta().get(0).getValue().get(0).getContent().get(0);
 		AssignmentType assignmentType = assignmentTypeEl.getValue();
 		assertNotNull(assignmentType);
 		

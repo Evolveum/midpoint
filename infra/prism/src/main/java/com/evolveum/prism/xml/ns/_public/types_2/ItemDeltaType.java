@@ -117,7 +117,7 @@ public class ItemDeltaType implements Serializable, Cloneable {
 //    @XmlAnyElement
     protected ItemPathType path;
     @XmlElement(required = true)
-    protected RawType value;
+    protected List<RawType> value;
 
     /**
      * Gets the value of the modificationType property.
@@ -175,7 +175,10 @@ public class ItemDeltaType implements Serializable, Cloneable {
      *     {@link ItemDeltaType.Value }
      *     
      */
-    public RawType getValue() {
+    public List<RawType> getValue() {
+    	if (value == null){
+    		value = new ArrayList<RawType>();
+    	}
         return value;
     }
 
@@ -187,9 +190,9 @@ public class ItemDeltaType implements Serializable, Cloneable {
      *     {@link ItemDeltaType.Value }
      *     
      */
-    public void setValue(RawType value) {
-        this.value = value;
-    }
+//    public void setValue(List<RawType> value) {
+//        this.value = value;
+//    }
 
 
     /**
@@ -295,8 +298,9 @@ public class ItemDeltaType implements Serializable, Cloneable {
     public ItemDeltaType clone() {
         ItemDeltaType delta = new ItemDeltaType();
         delta.setModificationType(getModificationType());
-        delta.setPath(getPath());  //todo clone path
-        delta.setValue(value != null ? value.clone() : null);
+        delta.setPath(getPath());  //TODO clone path
+        delta.getValue().addAll(getValue());
+//        delta.setValue(value != null ? value.clone() : null);
 
         return delta;
     }

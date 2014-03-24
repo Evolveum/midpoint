@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.parser.XPathSegment;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -258,40 +259,48 @@ public class ObjectTypeUtil {
         return isModificationOf(modification, elementName, null);
     }
 
+    //TODO: refactor after new schema
     public static boolean isModificationOf(ItemDeltaType modification, QName elementName, ItemPathType path) {
 
 //        if (path == null && XPathHolder.isDefault(modification.getPath())) {
 //            return (elementName.equals(ObjectTypeUtil.getElementName(modification)));
 //        }
+    	
     	ItemPathType modificationPath = modification.getPath();
-    	  if (path == null && ItemPathUtil.isDefault(modificationPath)) {
-            return (elementName.equals(getElementName(modification)));
-        }
+    	if (ItemPathUtil.isDefault(modificationPath)){
+    		throw new IllegalArgumentException("Path in the delta must not be null");
+    	}
+//    	  if (path == null && ItemPathUtil.isDefault(modificationPath)) {
+//            return (elementName.equals(getElementName(modification)));
+//        }
     	
         if (path == null) {
             return false;
         }
 //        XPathHolder modPath = new XPathHolder(modification.getPath());
-        if (path.equals(modificationPath)) {
-            return (elementName.equals(getElementName(modification)));
-        }
-        return false;
+        ItemPath full = new ItemPath(path.getItemPath(), elementName);
+        ItemPathType fullPath = new ItemPathType(full);
+        return fullPath.equals(modificationPath);
+//        if (fullPath.equals(modificationPath)) {
+//            return (elementName.equals(getElementName(modification)));
+//        }
+//        return false;
     }
 
-    public static QName getElementName(ItemDeltaType propertyModification) {
-        if (propertyModification.getValue() == null) {
-            throw new IllegalArgumentException("Modification without value element");
-        }
-        if (propertyModification.getValue().getContent() == null || propertyModification.getValue().getContent().isEmpty()) {
-            throw new IllegalArgumentException("Modification with empty value element");
-        }
-        return JAXBUtil.getElementQName(propertyModification.getValue().getContent().get(0));
-    }
+//    public static QName getElementName(ItemDeltaType propertyModification) {
+//        if (propertyModification.getValue() == null) {
+//            throw new IllegalArgumentException("Modification without value element");
+//        }
+//        if (propertyModification.getValue().getContent() == null || propertyModification.getValue().getContent().isEmpty()) {
+//            throw new IllegalArgumentException("Modification with empty value element");
+//        }
+//        return JAXBUtil.getElementQName(propertyModification.getValue().getContent().get(0));
+//    }
 
-    public static boolean isEmpty(ObjectModificationType objectModification) {
-        return (objectModification.getItemDelta() == null) ||
-                objectModification.getItemDelta().isEmpty();
-    }
+//    public static boolean isEmpty(ObjectModificationType objectModification) {
+//        return (objectModification.getItemDelta() == null) ||
+//                objectModification.getItemDelta().isEmpty();
+//    }
     
     public static void assertConcreteType(Class<? extends Objectable> type) {
     	// The abstract object types are enumerated here. It should be switched to some flag later on
