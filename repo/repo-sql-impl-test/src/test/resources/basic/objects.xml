@@ -50,7 +50,7 @@
         <assignment id="1">
             <description>Some assignment description</description>
             <extension>
-                <!--<my:dead>123</my:dead>-->
+                <my:dead xsi:type="xsd:int">123</my:dead>
             </extension>
             <metadata>
                 <creatorRef oid="dddccccc-cccc-cccc-cccc-000022222222" type="c:UserType"/>
