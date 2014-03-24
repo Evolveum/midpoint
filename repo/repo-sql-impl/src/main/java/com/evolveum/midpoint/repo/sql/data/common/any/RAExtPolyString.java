@@ -32,7 +32,7 @@ import javax.persistence.*;
 @IdClass(RAExtPolyStringId.class)
 @Table(name = "m_assignment_ext_poly")
 @org.hibernate.annotations.Table(appliesTo = "m_assignment_ext_poly",
-        indexes = {@Index(name = "iAExtensionPolyString", columnNames = {"extensionType", "orig", "eName", "eType"})})
+        indexes = {@Index(name = "iAExtensionPolyString", columnNames = {"extensionType", "eName", "eType", "orig"})})
 public class RAExtPolyString implements RAExtValue {
 
     //owner entity

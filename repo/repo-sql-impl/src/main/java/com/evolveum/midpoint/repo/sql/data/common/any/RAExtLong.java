@@ -31,7 +31,7 @@ import javax.persistence.*;
 @IdClass(RAExtLongId.class)
 @Table(name = "m_assignment_ext_long")
 @org.hibernate.annotations.Table(appliesTo = "m_assignment_ext_long",
-        indexes = {@Index(name = "iAExtensionLong", columnNames = {"extensionType", "longValue", "eName", "eType"})})
+        indexes = {@Index(name = "iAExtensionLong", columnNames = {"extensionType", "eName", "eType", "longValue"})})
 public class RAExtLong implements RAExtValue {
 
     //owner entity
