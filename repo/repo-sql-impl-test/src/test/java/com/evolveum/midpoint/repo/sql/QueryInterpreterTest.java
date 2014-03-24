@@ -655,6 +655,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         ProjectionList list = Projections.projectionList();
         list.add(Projections.groupProperty("closure.descendant"));
         list.add(Projections.groupProperty("o.name.orig"));
+        list.add(Projections.groupProperty("o.fullObject"));
         list.add(Projections.property("o.fullObject"));
 
         Criteria main = session.createCriteria(RObject.class, "o");
@@ -786,6 +787,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         ProjectionList list = Projections.projectionList();
         list.add(Projections.groupProperty("closure.descendant"));
         list.add(Projections.groupProperty("o.name.orig"));
+        list.add(Projections.groupProperty("o.fullObject"));
         list.add(Projections.property("o.fullObject"));
 
         Criteria main = session.createCriteria(ROrg.class, "o");

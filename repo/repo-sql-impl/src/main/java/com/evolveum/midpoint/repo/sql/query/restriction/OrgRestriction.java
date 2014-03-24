@@ -101,6 +101,7 @@ public class OrgRestriction extends Restriction<OrgFilter> {
         list.add(Projections.groupProperty(CLOSURE_ALIAS + ".descendant"));
         String alias = getContext().getAlias(null);
         list.add(Projections.groupProperty(alias + ".name.orig"));     //just used for sorting by name
+        list.add(Projections.groupProperty(alias + ".fullObject"));
         list.add(Projections.property(alias + ".fullObject"));
 
         pCriteria.createCriteria(QUERY_PATH, CLOSURE_ALIAS).setFetchMode(ANCESTOR, FetchMode.DEFAULT)
