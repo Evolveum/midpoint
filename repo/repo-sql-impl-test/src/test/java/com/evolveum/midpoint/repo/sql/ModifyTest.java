@@ -491,8 +491,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         }
     }
 
-    private void hasLong(Set<RAnyLong> longs, Long value) {
-        for (RAnyLong any : longs) {
+    private void hasLong(Set<ROExtLong> longs, Long value) {
+        for (ROExtLong any : longs) {
             Long other = any.getValue();
 
             if (other == null) {
@@ -517,12 +517,12 @@ public class ModifyTest extends BaseSQLRepoTest {
         user.setFamilyName(new RPolyString("fa1", "fa1"));
         user.setGivenName(new RPolyString("gi1", "gi1"));
 
-        Set<RAnyDate> dates = new HashSet<RAnyDate>();
+        Set<ROExtDate> dates = new HashSet<ROExtDate>();
         user.setDates(dates);
 
         final String namespace = "http://example.com/p";
 
-        RAnyDate date = new RAnyDate();
+        ROExtDate date = new ROExtDate();
         date.setOwner(user);
         date.setOwnerType(RObjectType.OBJECT);
         date.setDynamic(false);
@@ -532,10 +532,10 @@ public class ModifyTest extends BaseSQLRepoTest {
         dates.add(date);
         date.setValueType(RValueType.PROPERTY);
 
-        Set<RAnyLong> longs = new HashSet<RAnyLong>();
+        Set<ROExtLong> longs = new HashSet<ROExtLong>();
         user.setLongs(longs);
 
-        RAnyLong l = new RAnyLong();
+        ROExtLong l = new ROExtLong();
         l.setOwner(user);
         l.setOwnerType(RObjectType.OBJECT);
         longs.add(l);
@@ -545,10 +545,10 @@ public class ModifyTest extends BaseSQLRepoTest {
         l.setValue(lootValue);
         l.setValueType(RValueType.PROPERTY);
 
-        Set<RAnyString> strings = new HashSet<RAnyString>();
+        Set<ROExtString> strings = new HashSet<ROExtString>();
         user.setStrings(strings);
 
-        RAnyString s1 = new RAnyString();
+        ROExtString s1 = new ROExtString();
         s1.setOwner(user);
         s1.setOwnerType(RObjectType.OBJECT);
         strings.add(s1);
@@ -558,7 +558,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         s1.setValue("gun");
         s1.setValueType(RValueType.PROPERTY);
 
-        RAnyString s2 = new RAnyString();
+        ROExtString s2 = new ROExtString();
         s2.setOwner(user);
         s2.setOwnerType(RObjectType.OBJECT);
         strings.add(s2);
@@ -568,10 +568,10 @@ public class ModifyTest extends BaseSQLRepoTest {
         s2.setValue("pltka");
         s2.setValueType(RValueType.PROPERTY);
 
-        Set<RAnyClob> clobs = new HashSet<RAnyClob>();
+        Set<ROExtClob> clobs = new HashSet<ROExtClob>();
         user.setClobs(clobs);
 
-        RAnyClob c1 = new RAnyClob();
+        ROExtClob c1 = new ROExtClob();
         clobs.add(c1);
         c1.setOwner(user);
         c1.setOwnerType(RObjectType.OBJECT);

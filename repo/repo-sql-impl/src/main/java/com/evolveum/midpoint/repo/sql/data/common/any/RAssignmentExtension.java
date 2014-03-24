@@ -19,21 +19,15 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
-import com.evolveum.midpoint.repo.sql.data.common.id.RAnyContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAssignmentExtensionId;
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
 import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -60,12 +54,12 @@ public class RAssignmentExtension implements Serializable {
     private Short clobsCount;
     private Short polysCount;
 
-    private Set<RAString> strings;
-    private Set<RALong> longs;
-    private Set<RADate> dates;
-    private Set<RAReference> references;
-    private Set<RAClob> clobs;
-    private Set<RAPolyString> polys;
+    private Set<RAExtString> strings;
+    private Set<RAExtLong> longs;
+    private Set<RAExtDate> dates;
+    private Set<RAExtReference> references;
+    private Set<RAExtClob> clobs;
+    private Set<RAExtPolyString> polys;
 
     @ForeignKey(name = "none")
     @MapsId("owner")
@@ -92,54 +86,54 @@ public class RAssignmentExtension implements Serializable {
         return ownerId;
     }
 
-    @OneToMany(mappedBy = RAnyClob.ANY_CONTAINER, orphanRemoval = true)
+    @OneToMany(mappedBy = ROExtClob.ANY_CONTAINER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RAClob> getClobs() {
+    public Set<RAExtClob> getClobs() {
         if (clobs == null) {
             clobs = new HashSet<>();
         }
         return clobs;
     }
 
-    @OneToMany(mappedBy = RAnyLong.ANY_CONTAINER, orphanRemoval = true)
+    @OneToMany(mappedBy = ROExtLong.ANY_CONTAINER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RALong> getLongs() {
+    public Set<RAExtLong> getLongs() {
         if (longs == null) {
             longs = new HashSet<>();
         }
         return longs;
     }
 
-    @OneToMany(mappedBy = RAnyString.ANY_CONTAINER, orphanRemoval = true)
+    @OneToMany(mappedBy = ROExtString.ANY_CONTAINER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RAString> getStrings() {
+    public Set<RAExtString> getStrings() {
         if (strings == null) {
             strings = new HashSet<>();
         }
         return strings;
     }
 
-    @OneToMany(mappedBy = RAnyDate.ANY_CONTAINER, orphanRemoval = true)
+    @OneToMany(mappedBy = ROExtDate.ANY_CONTAINER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RADate> getDates() {
+    public Set<RAExtDate> getDates() {
         if (dates == null) {
             dates = new HashSet<>();
         }
         return dates;
     }
 
-    @OneToMany(mappedBy = RAnyReference.ANY_CONTAINER, orphanRemoval = true)
+    @OneToMany(mappedBy = ROExtReference.ANY_CONTAINER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RAReference> getReferences() {
+    public Set<RAExtReference> getReferences() {
         if (references == null) {
             references = new HashSet<>();
         }
         return references;
     }
 
-    @OneToMany(mappedBy = RAnyPolyString.ANY_CONTAINER, orphanRemoval = true)
+    @OneToMany(mappedBy = ROExtPolyString.ANY_CONTAINER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RAPolyString> getPolys() {
+    public Set<RAExtPolyString> getPolys() {
         if (polys == null) {
             polys = new HashSet<>();
         }
@@ -194,23 +188,23 @@ public class RAssignmentExtension implements Serializable {
         this.polysCount = polysCount;
     }
 
-    public void setPolys(Set<RAPolyString> polys) {
+    public void setPolys(Set<RAExtPolyString> polys) {
         this.polys = polys;
     }
 
-    public void setClobs(Set<RAClob> clobs) {
+    public void setClobs(Set<RAExtClob> clobs) {
         this.clobs = clobs;
     }
 
-    public void setReferences(Set<RAReference> references) {
+    public void setReferences(Set<RAExtReference> references) {
         this.references = references;
     }
 
-    public void setDates(Set<RADate> dates) {
+    public void setDates(Set<RAExtDate> dates) {
         this.dates = dates;
     }
 
-    public void setLongs(Set<RALong> longs) {
+    public void setLongs(Set<RAExtLong> longs) {
         this.longs = longs;
     }
 
@@ -218,7 +212,7 @@ public class RAssignmentExtension implements Serializable {
         this.ownerOid = ownerOid;
     }
 
-    public void setStrings(Set<RAString> strings) {
+    public void setStrings(Set<RAExtString> strings) {
         this.strings = strings;
     }
 
@@ -339,20 +333,20 @@ public class RAssignmentExtension implements Serializable {
         }
 
         for (RAnyValue value : values) {
-            ((RAExtensionValue) value).setAnyContainer(repo);
+            ((RAExtValue) value).setAnyContainer(repo);
 
-            if (value instanceof RAClob) {
-                repo.getClobs().add((RAClob) value);
-            } else if (value instanceof RADate) {
-                repo.getDates().add((RADate) value);
-            } else if (value instanceof RALong) {
-                repo.getLongs().add((RALong) value);
-            } else if (value instanceof RAReference) {
-                repo.getReferences().add((RAReference) value);
-            } else if (value instanceof RAString) {
-                repo.getStrings().add((RAString) value);
-            } else if (value instanceof RAPolyString) {
-                repo.getPolys().add((RAPolyString) value);
+            if (value instanceof RAExtClob) {
+                repo.getClobs().add((RAExtClob) value);
+            } else if (value instanceof RAExtDate) {
+                repo.getDates().add((RAExtDate) value);
+            } else if (value instanceof RAExtLong) {
+                repo.getLongs().add((RAExtLong) value);
+            } else if (value instanceof RAExtReference) {
+                repo.getReferences().add((RAExtReference) value);
+            } else if (value instanceof RAExtString) {
+                repo.getStrings().add((RAExtString) value);
+            } else if (value instanceof RAExtPolyString) {
+                repo.getPolys().add((RAExtPolyString) value);
             }
         }
 

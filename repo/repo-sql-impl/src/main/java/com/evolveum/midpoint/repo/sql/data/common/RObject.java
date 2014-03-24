@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
-import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -93,12 +92,12 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     private Short referencesCount;
     private Short clobsCount;
     private Short polysCount;
-    private Set<RAnyString> strings;
-    private Set<RAnyLong> longs;
-    private Set<RAnyDate> dates;
-    private Set<RAnyReference> references;
-    private Set<RAnyClob> clobs;
-    private Set<RAnyPolyString> polys;
+    private Set<ROExtString> strings;
+    private Set<ROExtLong> longs;
+    private Set<ROExtDate> dates;
+    private Set<ROExtReference> references;
+    private Set<ROExtClob> clobs;
+    private Set<ROExtPolyString> polys;
 
     @Id
     @GeneratedValue(generator = "ContainerOidGenerator")
@@ -279,7 +278,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
 
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RAnyClob> getClobs() {
+    public Set<ROExtClob> getClobs() {
         if (clobs == null) {
             clobs = new HashSet<>();
         }
@@ -288,7 +287,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
 
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RAnyLong> getLongs() {
+    public Set<ROExtLong> getLongs() {
         if (longs == null) {
             longs = new HashSet<>();
         }
@@ -297,7 +296,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
 
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RAnyString> getStrings() {
+    public Set<ROExtString> getStrings() {
         if (strings == null) {
             strings = new HashSet<>();
         }
@@ -306,7 +305,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
 
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RAnyDate> getDates() {
+    public Set<ROExtDate> getDates() {
         if (dates == null) {
             dates = new HashSet<>();
         }
@@ -315,7 +314,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
 
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RAnyReference> getReferences() {
+    public Set<ROExtReference> getReferences() {
         if (references == null) {
             references = new HashSet<>();
         }
@@ -324,7 +323,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
 
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RAnyPolyString> getPolys() {
+    public Set<ROExtPolyString> getPolys() {
         if (polys == null) {
             polys = new HashSet<>();
         }
@@ -397,27 +396,27 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         this.polysCount = polysCount;
     }
 
-    public void setPolys(Set<RAnyPolyString> polys) {
+    public void setPolys(Set<ROExtPolyString> polys) {
         this.polys = polys;
     }
 
-    public void setClobs(Set<RAnyClob> clobs) {
+    public void setClobs(Set<ROExtClob> clobs) {
         this.clobs = clobs;
     }
 
-    public void setReferences(Set<RAnyReference> references) {
+    public void setReferences(Set<ROExtReference> references) {
         this.references = references;
     }
 
-    public void setDates(Set<RAnyDate> dates) {
+    public void setDates(Set<ROExtDate> dates) {
         this.dates = dates;
     }
 
-    public void setLongs(Set<RAnyLong> longs) {
+    public void setLongs(Set<ROExtLong> longs) {
         this.longs = longs;
     }
 
-    public void setStrings(Set<RAnyString> strings) {
+    public void setStrings(Set<ROExtString> strings) {
         this.strings = strings;
     }
 
@@ -577,22 +576,22 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         }
 
         for (RAnyValue value : values) {
-            RExtensionValue ex = (RExtensionValue) value;
+            ROExtValue ex = (ROExtValue) value;
             ex.setOwner(repo);
             ex.setOwnerType(ownerType);
 
-            if (value instanceof RAnyClob) {
-                repo.getClobs().add((RAnyClob) value);
-            } else if (value instanceof RAnyDate) {
-                repo.getDates().add((RAnyDate) value);
-            } else if (value instanceof RAnyLong) {
-                repo.getLongs().add((RAnyLong) value);
-            } else if (value instanceof RAnyReference) {
-                repo.getReferences().add((RAnyReference) value);
-            } else if (value instanceof RAnyString) {
-                repo.getStrings().add((RAnyString) value);
-            } else if (value instanceof RAnyPolyString) {
-                repo.getPolys().add((RAnyPolyString) value);
+            if (value instanceof ROExtClob) {
+                repo.getClobs().add((ROExtClob) value);
+            } else if (value instanceof ROExtDate) {
+                repo.getDates().add((ROExtDate) value);
+            } else if (value instanceof ROExtLong) {
+                repo.getLongs().add((ROExtLong) value);
+            } else if (value instanceof ROExtReference) {
+                repo.getReferences().add((ROExtReference) value);
+            } else if (value instanceof ROExtString) {
+                repo.getStrings().add((ROExtString) value);
+            } else if (value instanceof ROExtPolyString) {
+                repo.getPolys().add((ROExtPolyString) value);
             }
         }
 
@@ -624,7 +623,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         }
 
         for (RAnyValue value : values) {
-            RExtensionValue ex = (RExtensionValue) value;
+            ROExtValue ex = (ROExtValue) value;
             if (!ownerType.equals(ex.getOwnerType())) {
                 continue;
             }

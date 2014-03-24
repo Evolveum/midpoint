@@ -6,7 +6,7 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 /**
  * @author lazyman
  */
-public interface RExtensionValue extends RAnyValue {
+public interface ROExtValue extends RAnyValue {
 
     RObject getOwner();
 

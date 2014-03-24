@@ -16,8 +16,10 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
-import com.evolveum.midpoint.repo.sql.data.common.id.RAStringId;
-import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.id.RAnyPolyStringId;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -28,66 +30,59 @@ import javax.persistence.*;
  * @author lazyman
  */
 @Entity
-@IdClass(RAStringId.class)
-@Table(name = "m_a_string")
-@org.hibernate.annotations.Table(appliesTo = "m_a_string",
-        indexes = {@Index(name = "iAExtensionString", columnNames = {"extensionType", "stringValue", "eName", "eType"})})
-public class RAString implements RAExtensionValue {
+@IdClass(RAnyPolyStringId.class)
+@Table(name = "m_object_ext_poly")
+@org.hibernate.annotations.Table(appliesTo = "m_object_ext_poly",
+        indexes = {@Index(name = "iExtensionPolyString", columnNames = {"ownerType", "orig", "eName", "eType"})})
+public class ROExtPolyString implements ROExtValue {
 
     //owner entity
-    private RAssignmentExtension anyContainer;
+    private RObject owner;
     private String ownerOid;
-    private Short ownerId;
-
-    private RAssignmentExtensionType extensionType;
+    private RObjectType ownerType;
 
     private boolean dynamic;
     private String name;
     private String type;
     private RValueType valueType;
 
+    //orig value
     private String value;
+    private String norm;
 
-    public RAString() {
+    public ROExtPolyString() {
+        this(null);
     }
 
-    public RAString(String value) {
-        this.value = value;
-    }
-
-    @ForeignKey(name = "fk_a_string")
-    @MapsId("owner")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @PrimaryKeyJoinColumns({
-            @PrimaryKeyJoinColumn(name = "anyContainer_owner_owner_oid", referencedColumnName = "ownerOid"),
-            @PrimaryKeyJoinColumn(name = "anyContainer_owner_id", referencedColumnName = "ownerId")
-    })
-    public RAssignmentExtension getAnyContainer() {
-        return anyContainer;
+    public ROExtPolyString(PolyString polyString) {
+        if (polyString != null) {
+            value = polyString.getOrig();
+            norm = polyString.getNorm();
+        }
     }
 
     @Id
-    @Column(name = "anyContainer_owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
+    @ForeignKey(name = "fk_object_ext_poly")
+    @MapsId("owner")
+    @ManyToOne(fetch = FetchType.LAZY)
+    public RObject getOwner() {
+        return owner;
+    }
+
+    @Id
+    @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     public String getOwnerOid() {
-        if (ownerOid == null && anyContainer != null) {
-            ownerOid = anyContainer.getOwnerOid();
+        if (ownerOid == null && owner != null) {
+            ownerOid = owner.getOid();
         }
         return ownerOid;
     }
 
     @Id
-    @Column(name = "anyContainer_owner_id")
-    public Short getOwnerId() {
-        if (ownerId == null && anyContainer != null) {
-            ownerId = anyContainer.getOwnerId();
-        }
-        return ownerId;
-    }
-
-    @Id
+    @Column(name = "ownerType")
     @Enumerated(EnumType.ORDINAL)
-    public RAssignmentExtensionType getExtensionType() {
-        return extensionType;
+    public RObjectType getOwnerType() {
+        return ownerType;
     }
 
     @Id
@@ -115,9 +110,17 @@ public class RAString implements RAExtensionValue {
         return dynamic;
     }
 
-    @Column(name = "stringValue")
+    @Column(name = "orig")
     public String getValue() {
         return value;
+    }
+
+    public String getNorm() {
+        return norm;
+    }
+
+    public void setNorm(String norm) {
+        this.norm = norm;
     }
 
     public void setValue(String value) {
@@ -140,20 +143,16 @@ public class RAString implements RAExtensionValue {
         this.dynamic = dynamic;
     }
 
-    public void setAnyContainer(RAssignmentExtension anyContainer) {
-        this.anyContainer = anyContainer;
+    public void setOwner(RObject owner) {
+        this.owner = owner;
     }
 
     public void setOwnerOid(String ownerOid) {
         this.ownerOid = ownerOid;
     }
 
-    public void setOwnerId(Short ownerId) {
-        this.ownerId = ownerId;
-    }
-
-    public void setExtensionType(RAssignmentExtensionType extensionType) {
-        this.extensionType = extensionType;
+    public void setOwnerType(RObjectType ownerType) {
+        this.ownerType = ownerType;
     }
 
     @Override
@@ -161,13 +160,14 @@ public class RAString implements RAExtensionValue {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RAString that = (RAString) o;
+        ROExtPolyString that = (ROExtPolyString) o;
 
         if (dynamic != that.dynamic) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (type != null ? !type.equals(that.type) : that.type != null) return false;
         if (valueType != that.valueType) return false;
         if (value != null ? !value.equals(that.value) : that.value != null) return false;
+        if (norm != null ? !norm.equals(that.norm) : that.norm != null) return false;
 
         return true;
     }

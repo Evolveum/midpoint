@@ -17,11 +17,12 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.id.RAnyStringId;
+import com.evolveum.midpoint.repo.sql.data.common.id.RAnyClobId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 
@@ -29,11 +30,9 @@ import javax.persistence.*;
  * @author lazyman
  */
 @Entity
-@IdClass(RAnyStringId.class)
-@Table(name = "m_object_string")
-@org.hibernate.annotations.Table(appliesTo = "m_object_string",
-        indexes = {@Index(name = "iExtensionString", columnNames = {"ownerType", "stringValue", "eName", "eType"})})
-public class RAnyString implements RExtensionValue {
+@IdClass(RAnyClobId.class)
+@Table(name = "m_object_ext_clob")
+public class ROExtClob implements ROExtValue {
 
     //owner entity
     private RObject owner;
@@ -44,18 +43,17 @@ public class RAnyString implements RExtensionValue {
     private String name;
     private String type;
     private RValueType valueType;
+    private String checksum;
 
-    private String value;
-
-    public RAnyString() {
+    public ROExtClob() {
     }
 
-    public RAnyString(String value) {
-        this.value = value;
+    public ROExtClob(String value) {
+        setValue(value);
     }
 
     @Id
-    @ForeignKey(name = "fk_extension_string")
+    @ForeignKey(name = "fk_object_ext_clob")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     public RObject getOwner() {
@@ -76,6 +74,17 @@ public class RAnyString implements RExtensionValue {
     @Enumerated(EnumType.ORDINAL)
     public RObjectType getOwnerType() {
         return ownerType;
+    }
+
+    /**
+     * This method is used for content comparing when querying database (we don't want to compare clob values).
+     *
+     * @return md5 hash of {@link ROExtClob#getValue()}
+     */
+    @Id
+    @Column(length = 32, name = "checksum")
+    public String getChecksum() {
+        return checksum;
     }
 
     @Id
@@ -103,13 +112,18 @@ public class RAnyString implements RExtensionValue {
         return dynamic;
     }
 
-    @Column(name = "stringValue")
+    @Transient
     public String getValue() {
-        return value;
+        return null;
+    }
+
+    public void setChecksum(String checksum) {
+        //checksum is always computed from value, this setter is only for hibernate satisfaction
+        this.checksum = checksum;
     }
 
     public void setValue(String value) {
-        this.value = value;
+        checksum = StringUtils.isNotEmpty(value) ? DigestUtils.md5Hex(value) : "";
     }
 
     public void setValueType(RValueType valueType) {
@@ -145,13 +159,13 @@ public class RAnyString implements RExtensionValue {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RAnyString that = (RAnyString) o;
+        ROExtClob that = (ROExtClob) o;
 
         if (dynamic != that.dynamic) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (type != null ? !type.equals(that.type) : that.type != null) return false;
         if (valueType != that.valueType) return false;
-        if (value != null ? !value.equals(that.value) : that.value != null) return false;
+        if (checksum != null ? !checksum.equals(that.checksum) : that.checksum != null) return false;
 
         return true;
     }
@@ -162,7 +176,7 @@ public class RAnyString implements RExtensionValue {
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (valueType != null ? valueType.hashCode() : 0);
-        result = 31 * result + (value != null ? value.hashCode() : 0);
+        result = 31 * result + (checksum != null ? checksum.hashCode() : 0);
         return result;
     }
 }

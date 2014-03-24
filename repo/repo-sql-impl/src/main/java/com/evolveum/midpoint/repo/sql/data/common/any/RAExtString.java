@@ -16,12 +16,11 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
-import com.evolveum.midpoint.repo.sql.data.common.id.RAClobId;
+import com.evolveum.midpoint.repo.sql.data.common.id.RAStringId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 
@@ -29,9 +28,11 @@ import javax.persistence.*;
  * @author lazyman
  */
 @Entity
-@IdClass(RAClobId.class)
-@Table(name = "m_a_clob")
-public class RAClob implements RAExtensionValue {
+@IdClass(RAStringId.class)
+@Table(name = "m_assignment_ext_string")
+@org.hibernate.annotations.Table(appliesTo = "m_assignment_ext_string",
+        indexes = {@Index(name = "iAExtensionString", columnNames = {"extensionType", "stringValue", "eName", "eType"})})
+public class RAExtString implements RAExtValue {
 
     //owner entity
     private RAssignmentExtension anyContainer;
@@ -44,16 +45,17 @@ public class RAClob implements RAExtensionValue {
     private String name;
     private String type;
     private RValueType valueType;
-    private String checksum;
 
-    public RAClob() {
+    private String value;
+
+    public RAExtString() {
     }
 
-    public RAClob(String value) {
-        setValue(value);
+    public RAExtString(String value) {
+        this.value = value;
     }
 
-    @ForeignKey(name = "fk_a_clob")
+    @ForeignKey(name = "fk_assignment_ext_string")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({
@@ -88,17 +90,6 @@ public class RAClob implements RAExtensionValue {
         return extensionType;
     }
 
-    /**
-     * This method is used for content comparing when querying database (we don't want to compare clob values).
-     *
-     * @return md5 hash of {@link com.evolveum.midpoint.repo.sql.data.common.any.RAnyClob#getValue()}
-     */
-    @Id
-    @Column(length = 32, name = "checksum")
-    public String getChecksum() {
-        return checksum;
-    }
-
     @Id
     @Column(name = "eName", length = RUtil.COLUMN_LENGTH_QNAME)
     public String getName() {
@@ -124,18 +115,13 @@ public class RAClob implements RAExtensionValue {
         return dynamic;
     }
 
-    @Transient
+    @Column(name = "stringValue")
     public String getValue() {
-        return null;
-    }
-
-    public void setChecksum(String checksum) {
-        //checksum is always computed from value, this setter is only for hibernate satisfaction
-        this.checksum = checksum;
+        return value;
     }
 
     public void setValue(String value) {
-        checksum = StringUtils.isNotEmpty(value) ? DigestUtils.md5Hex(value) : "";
+        this.value = value;
     }
 
     public void setValueType(RValueType valueType) {
@@ -175,13 +161,13 @@ public class RAClob implements RAExtensionValue {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RAClob that = (RAClob) o;
+        RAExtString that = (RAExtString) o;
 
         if (dynamic != that.dynamic) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (type != null ? !type.equals(that.type) : that.type != null) return false;
         if (valueType != that.valueType) return false;
-        if (checksum != null ? !checksum.equals(that.checksum) : that.checksum != null) return false;
+        if (value != null ? !value.equals(that.value) : that.value != null) return false;
 
         return true;
     }
@@ -192,7 +178,7 @@ public class RAClob implements RAExtensionValue {
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (valueType != null ? valueType.hashCode() : 0);
-        result = 31 * result + (checksum != null ? checksum.hashCode() : 0);
+        result = 31 * result + (value != null ? value.hashCode() : 0);
         return result;
     }
 }

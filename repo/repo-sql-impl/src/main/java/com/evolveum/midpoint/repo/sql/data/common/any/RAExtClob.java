@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.sql.data.common.id.RAPolyStringId;
+import com.evolveum.midpoint.repo.sql.data.common.id.RAClobId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 
@@ -29,11 +29,9 @@ import javax.persistence.*;
  * @author lazyman
  */
 @Entity
-@IdClass(RAPolyStringId.class)
-@Table(name = "m_a_poly_string")
-@org.hibernate.annotations.Table(appliesTo = "m_a_poly_string",
-        indexes = {@Index(name = "iAExtensionPolyString", columnNames = {"extensionType", "orig", "eName", "eType"})})
-public class RAPolyString implements RAExtensionValue {
+@IdClass(RAClobId.class)
+@Table(name = "m_assignment_ext_clob")
+public class RAExtClob implements RAExtValue {
 
     //owner entity
     private RAssignmentExtension anyContainer;
@@ -46,28 +44,21 @@ public class RAPolyString implements RAExtensionValue {
     private String name;
     private String type;
     private RValueType valueType;
+    private String checksum;
 
-    //orig value
-    private String value;
-    private String norm;
-
-    public RAPolyString() {
-        this(null);
+    public RAExtClob() {
     }
 
-    public RAPolyString(PolyString polyString) {
-        if (polyString != null) {
-            value = polyString.getOrig();
-            norm = polyString.getNorm();
-        }
+    public RAExtClob(String value) {
+        setValue(value);
     }
 
-    @ForeignKey(name = "fk_a_poly_string")
+    @ForeignKey(name = "fk_assignment_ext_clob")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({
             @PrimaryKeyJoinColumn(name = "anyContainer_owner_owner_oid", referencedColumnName = "ownerOid"),
-            @PrimaryKeyJoinColumn(name = "anyContainer_owner_id", referencedColumnName = "owner_type")
+            @PrimaryKeyJoinColumn(name = "anyContainer_owner_id", referencedColumnName = "ownerId")
     })
     public RAssignmentExtension getAnyContainer() {
         return anyContainer;
@@ -97,6 +88,17 @@ public class RAPolyString implements RAExtensionValue {
         return extensionType;
     }
 
+    /**
+     * This method is used for content comparing when querying database (we don't want to compare clob values).
+     *
+     * @return md5 hash of {@link ROExtClob#getValue()}
+     */
+    @Id
+    @Column(length = 32, name = "checksum")
+    public String getChecksum() {
+        return checksum;
+    }
+
     @Id
     @Column(name = "eName", length = RUtil.COLUMN_LENGTH_QNAME)
     public String getName() {
@@ -122,21 +124,18 @@ public class RAPolyString implements RAExtensionValue {
         return dynamic;
     }
 
-    @Column(name = "orig")
+    @Transient
     public String getValue() {
-        return value;
+        return null;
     }
 
-    public String getNorm() {
-        return norm;
-    }
-
-    public void setNorm(String norm) {
-        this.norm = norm;
+    public void setChecksum(String checksum) {
+        //checksum is always computed from value, this setter is only for hibernate satisfaction
+        this.checksum = checksum;
     }
 
     public void setValue(String value) {
-        this.value = value;
+        checksum = StringUtils.isNotEmpty(value) ? DigestUtils.md5Hex(value) : "";
     }
 
     public void setValueType(RValueType valueType) {
@@ -176,14 +175,13 @@ public class RAPolyString implements RAExtensionValue {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RAPolyString that = (RAPolyString) o;
+        RAExtClob that = (RAExtClob) o;
 
         if (dynamic != that.dynamic) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (type != null ? !type.equals(that.type) : that.type != null) return false;
         if (valueType != that.valueType) return false;
-        if (value != null ? !value.equals(that.value) : that.value != null) return false;
-        if (norm != null ? !norm.equals(that.norm) : that.norm != null) return false;
+        if (checksum != null ? !checksum.equals(that.checksum) : that.checksum != null) return false;
 
         return true;
     }
@@ -194,7 +192,7 @@ public class RAPolyString implements RAExtensionValue {
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (valueType != null ? valueType.hashCode() : 0);
-        result = 31 * result + (value != null ? value.hashCode() : 0);
+        result = 31 * result + (checksum != null ? checksum.hashCode() : 0);
         return result;
     }
 }

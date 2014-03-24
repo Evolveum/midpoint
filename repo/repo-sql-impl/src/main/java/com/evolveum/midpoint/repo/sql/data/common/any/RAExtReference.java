@@ -18,7 +18,6 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAReferenceId;
-import com.evolveum.midpoint.repo.sql.data.common.id.RAnyReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
@@ -33,10 +32,10 @@ import javax.persistence.*;
  */
 @Entity
 @IdClass(RAReferenceId.class)
-@Table(name = "m_a_reference")
-@org.hibernate.annotations.Table(appliesTo = "m_a_reference",
+@Table(name = "m_assignment_ext_reference")
+@org.hibernate.annotations.Table(appliesTo = "m_assignment_ext_reference",
         indexes = {@Index(name = "iAExtensionReference", columnNames = {"extensionType", "targetoid", "eName", "eType"})})
-public class RAReference implements RAExtensionValue {
+public class RAExtReference implements RAExtValue {
 
     //owner entity
     private RAssignmentExtension anyContainer;
@@ -56,10 +55,10 @@ public class RAReference implements RAExtensionValue {
     private RObjectType targetType;
     private String relation;
 
-    public RAReference() {
+    public RAExtReference() {
     }
 
-    @ForeignKey(name = "fk_a_reference")
+    @ForeignKey(name = "fk_assignment_ext_reference")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({
@@ -184,7 +183,7 @@ public class RAReference implements RAExtensionValue {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RAReference that = (RAReference) o;
+        RAExtReference that = (RAExtReference) o;
 
         if (dynamic != that.dynamic) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
@@ -210,7 +209,7 @@ public class RAReference implements RAExtensionValue {
         return result;
     }
 
-    public static PrismReferenceValue createReference(RAReference repo) {
+    public static PrismReferenceValue createReference(RAExtReference repo) {
         PrismReferenceValue value = new PrismReferenceValue();
         value.setOid(repo.getValue());
         value.setRelation(RUtil.stringToQName(repo.getRelation()));
@@ -219,8 +218,8 @@ public class RAReference implements RAExtensionValue {
         return value;
     }
 
-    public static RAReference createReference(PrismReferenceValue jaxb) {
-        RAReference repo = new RAReference();
+    public static RAExtReference createReference(PrismReferenceValue jaxb) {
+        RAExtReference repo = new RAExtReference();
 
         repo.setValue(jaxb.getOid());
         repo.setRelation(RUtil.qnameToString(jaxb.getRelation()));

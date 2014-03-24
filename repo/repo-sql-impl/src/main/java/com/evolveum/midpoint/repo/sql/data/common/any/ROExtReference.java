@@ -16,79 +16,68 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
-import com.evolveum.midpoint.repo.sql.data.common.id.RADateId;
-import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.id.RAnyReferenceId;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
 
 /**
  * @author lazyman
  */
 @Entity
-@IdClass(RADateId.class)
-@Table(name = "m_a_date")
-@org.hibernate.annotations.Table(appliesTo = "m_a_date",
-        indexes = {@Index(name = "iAExtensionDate", columnNames = {"extensionType", "dateValue", "eName", "eType"})})
-public class RADate implements RAExtensionValue {
+@IdClass(RAnyReferenceId.class)
+@Table(name = "m_object_ext_reference")
+@org.hibernate.annotations.Table(appliesTo = "m_object_ext_reference",
+        indexes = {@Index(name = "iExtensionReference", columnNames = {"ownerType", "targetoid", "eName", "eType"})})
+public class ROExtReference implements ROExtValue {
 
     //owner entity
-    private RAssignmentExtension anyContainer;
+    private RObject owner;
     private String ownerOid;
-    private Short ownerId;
-
-    private RAssignmentExtensionType extensionType;
+    private RObjectType ownerType;
 
     private boolean dynamic;
     private String name;
     private String type;
     private RValueType valueType;
 
-    private Timestamp value;
+    //this is target oid
+    private String value;
+    //this is type attribute
+    private RObjectType targetType;
+    private String relation;
 
-    public RADate() {
-    }
-
-    public RADate(Timestamp value) {
-        this.value = value;
-    }
-
-    @ForeignKey(name = "fk_a_date")
-    @MapsId("owner")
-    @ManyToOne(fetch = FetchType.LAZY)
-    @PrimaryKeyJoinColumns({
-            @PrimaryKeyJoinColumn(name = "anyContainer_owner_owner_oid", referencedColumnName = "ownerOid"),
-            @PrimaryKeyJoinColumn(name = "anyContainer_owner_id", referencedColumnName = "owner_type")
-    })
-    public RAssignmentExtension getAnyContainer() {
-        return anyContainer;
+    public ROExtReference() {
     }
 
     @Id
-    @Column(name = "anyContainer_owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
+    @ForeignKey(name = "fk_object_ext_reference")
+    @MapsId("owner")
+    @ManyToOne(fetch = FetchType.LAZY)
+    public RObject getOwner() {
+        return owner;
+    }
+
+    @Id
+    @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     public String getOwnerOid() {
-        if (ownerOid == null && anyContainer != null) {
-            ownerOid = anyContainer.getOwnerOid();
+        if (ownerOid == null && owner != null) {
+            ownerOid = owner.getOid();
         }
         return ownerOid;
     }
 
     @Id
-    @Column(name = "anyContainer_owner_id")
-    public Short getOwnerId() {
-        if (ownerId == null && anyContainer != null) {
-            ownerId = anyContainer.getOwnerId();
-        }
-        return ownerId;
-    }
-
-    @Id
+    @Column(name = "ownerType")
     @Enumerated(EnumType.ORDINAL)
-    public RAssignmentExtensionType getExtensionType() {
-        return extensionType;
+    public RObjectType getOwnerType() {
+        return ownerType;
     }
 
     @Id
@@ -116,12 +105,22 @@ public class RADate implements RAExtensionValue {
         return dynamic;
     }
 
-    @Column(name = "dateValue")
-    public Timestamp getValue() {
+    @Column(name = "targetoid", length = RUtil.COLUMN_LENGTH_OID)
+    public String getValue() {
         return value;
     }
 
-    public void setValue(Timestamp value) {
+    @Enumerated(EnumType.ORDINAL)
+    public RObjectType getTargetType() {
+        return targetType;
+    }
+
+    @Column(name = "relation", length = RUtil.COLUMN_LENGTH_QNAME)
+    public String getRelation() {
+        return relation;
+    }
+
+    public void setValue(String value) {
         this.value = value;
     }
 
@@ -141,20 +140,24 @@ public class RADate implements RAExtensionValue {
         this.dynamic = dynamic;
     }
 
-    public void setAnyContainer(RAssignmentExtension anyContainer) {
-        this.anyContainer = anyContainer;
+    public void setOwner(RObject owner) {
+        this.owner = owner;
     }
 
     public void setOwnerOid(String ownerOid) {
         this.ownerOid = ownerOid;
     }
 
-    public void setOwnerId(Short ownerId) {
-        this.ownerId = ownerId;
+    public void setOwnerType(RObjectType ownerType) {
+        this.ownerType = ownerType;
     }
 
-    public void setExtensionType(RAssignmentExtensionType extensionType) {
-        this.extensionType = extensionType;
+    public void setTargetType(RObjectType targetType) {
+        this.targetType = targetType;
+    }
+
+    public void setRelation(String relation) {
+        this.relation = relation;
     }
 
     @Override
@@ -162,13 +165,15 @@ public class RADate implements RAExtensionValue {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RADate that = (RADate) o;
+        ROExtReference that = (ROExtReference) o;
 
         if (dynamic != that.dynamic) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (relation != null ? !relation.equals(that.relation) : that.relation != null) return false;
+        if (targetType != that.targetType) return false;
         if (type != null ? !type.equals(that.type) : that.type != null) return false;
-        if (valueType != that.valueType) return false;
         if (value != null ? !value.equals(that.value) : that.value != null) return false;
+        if (valueType != that.valueType) return false;
 
         return true;
     }
@@ -180,6 +185,28 @@ public class RADate implements RAExtensionValue {
         result = 31 * result + (type != null ? type.hashCode() : 0);
         result = 31 * result + (valueType != null ? valueType.hashCode() : 0);
         result = 31 * result + (value != null ? value.hashCode() : 0);
+        result = 31 * result + (targetType != null ? targetType.hashCode() : 0);
+        result = 31 * result + (relation != null ? relation.hashCode() : 0);
+
         return result;
+    }
+
+    public static PrismReferenceValue createReference(ROExtReference repo) {
+        PrismReferenceValue value = new PrismReferenceValue();
+        value.setOid(repo.getValue());
+        value.setRelation(RUtil.stringToQName(repo.getRelation()));
+        value.setTargetType(ClassMapper.getQNameForHQLType(repo.getTargetType()));
+
+        return value;
+    }
+
+    public static ROExtReference createReference(PrismReferenceValue jaxb) {
+        ROExtReference repo = new ROExtReference();
+
+        repo.setValue(jaxb.getOid());
+        repo.setRelation(RUtil.qnameToString(jaxb.getRelation()));
+        repo.setTargetType(ClassMapper.getHQLTypeForQName(jaxb.getTargetType()));
+
+        return repo;
     }
 }

@@ -16,9 +16,8 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.id.RAnyLongId;
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.data.common.id.RALongId;
+import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -29,16 +28,18 @@ import javax.persistence.*;
  * @author lazyman
  */
 @Entity
-@IdClass(RAnyLongId.class)
-@Table(name = "m_object_long")
-@org.hibernate.annotations.Table(appliesTo = "m_object_long",
-        indexes = {@Index(name = "iExtensionLong", columnNames = {"ownerType", "longValue", "eName", "eType"})})
-public class RAnyLong implements RExtensionValue {
+@IdClass(RALongId.class)
+@Table(name = "m_assignment_ext_long")
+@org.hibernate.annotations.Table(appliesTo = "m_assignment_ext_long",
+        indexes = {@Index(name = "iAExtensionLong", columnNames = {"extensionType", "longValue", "eName", "eType"})})
+public class RAExtLong implements RAExtValue {
 
     //owner entity
-    private RObject owner;
+    private RAssignmentExtension anyContainer;
     private String ownerOid;
-    private RObjectType ownerType;
+    private Short ownerId;
+
+    private RAssignmentExtensionType extensionType;
 
     private boolean dynamic;
     private String name;
@@ -47,35 +48,46 @@ public class RAnyLong implements RExtensionValue {
 
     private Long value;
 
-    public RAnyLong() {
+    public RAExtLong() {
     }
 
-    public RAnyLong(Long value) {
+    public RAExtLong(Long value) {
         this.value = value;
     }
 
-    @Id
-    @ForeignKey(name = "fk_extension_long")
+    @ForeignKey(name = "fk_assignment_ext_long")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
-    public RObject getOwner() {
-        return owner;
+    @PrimaryKeyJoinColumns({
+            @PrimaryKeyJoinColumn(name = "anyContainer_owner_owner_oid", referencedColumnName = "ownerOid"),
+            @PrimaryKeyJoinColumn(name = "anyContainer_owner_id", referencedColumnName = "owner_type")
+    })
+    public RAssignmentExtension getAnyContainer() {
+        return anyContainer;
     }
 
     @Id
-    @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID)
+    @Column(name = "anyContainer_owner_owner_oid", length = RUtil.COLUMN_LENGTH_OID)
     public String getOwnerOid() {
-        if (ownerOid == null && owner != null) {
-            ownerOid = owner.getOid();
+        if (ownerOid == null && anyContainer != null) {
+            ownerOid = anyContainer.getOwnerOid();
         }
         return ownerOid;
     }
 
     @Id
-    @Column(name = "ownerType")
+    @Column(name = "anyContainer_owner_id")
+    public Short getOwnerId() {
+        if (ownerId == null && anyContainer != null) {
+            ownerId = anyContainer.getOwnerId();
+        }
+        return ownerId;
+    }
+
+    @Id
     @Enumerated(EnumType.ORDINAL)
-    public RObjectType getOwnerType() {
-        return ownerType;
+    public RAssignmentExtensionType getExtensionType() {
+        return extensionType;
     }
 
     @Id
@@ -128,16 +140,20 @@ public class RAnyLong implements RExtensionValue {
         this.dynamic = dynamic;
     }
 
-    public void setOwner(RObject owner) {
-        this.owner = owner;
+    public void setAnyContainer(RAssignmentExtension anyContainer) {
+        this.anyContainer = anyContainer;
     }
 
     public void setOwnerOid(String ownerOid) {
         this.ownerOid = ownerOid;
     }
 
-    public void setOwnerType(RObjectType ownerType) {
-        this.ownerType = ownerType;
+    public void setOwnerId(Short ownerId) {
+        this.ownerId = ownerId;
+    }
+
+    public void setExtensionType(RAssignmentExtensionType extensionType) {
+        this.extensionType = extensionType;
     }
 
     @Override
@@ -145,7 +161,7 @@ public class RAnyLong implements RExtensionValue {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RAnyLong that = (RAnyLong) o;
+        RAExtLong that = (RAExtLong) o;
 
         if (dynamic != that.dynamic) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;

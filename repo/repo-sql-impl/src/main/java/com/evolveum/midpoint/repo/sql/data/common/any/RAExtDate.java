@@ -16,23 +16,24 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
-import com.evolveum.midpoint.repo.sql.data.common.id.RALongId;
+import com.evolveum.midpoint.repo.sql.data.common.id.RADateId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 
 /**
  * @author lazyman
  */
 @Entity
-@IdClass(RALongId.class)
-@Table(name = "m_a_long")
-@org.hibernate.annotations.Table(appliesTo = "m_a_long",
-        indexes = {@Index(name = "iAExtensionLong", columnNames = {"extensionType", "longValue", "eName", "eType"})})
-public class RALong implements RAExtensionValue {
+@IdClass(RADateId.class)
+@Table(name = "m_assignment_ext_date")
+@org.hibernate.annotations.Table(appliesTo = "m_assignment_ext_date",
+        indexes = {@Index(name = "iAExtensionDate", columnNames = {"extensionType", "dateValue", "eName", "eType"})})
+public class RAExtDate implements RAExtValue {
 
     //owner entity
     private RAssignmentExtension anyContainer;
@@ -46,16 +47,16 @@ public class RALong implements RAExtensionValue {
     private String type;
     private RValueType valueType;
 
-    private Long value;
+    private Timestamp value;
 
-    public RALong() {
+    public RAExtDate() {
     }
 
-    public RALong(Long value) {
+    public RAExtDate(Timestamp value) {
         this.value = value;
     }
 
-    @ForeignKey(name = "fk_a_long")
+    @ForeignKey(name = "fk_assignment_ext_date")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({
@@ -115,12 +116,12 @@ public class RALong implements RAExtensionValue {
         return dynamic;
     }
 
-    @Column(name = "longValue")
-    public Long getValue() {
+    @Column(name = "dateValue")
+    public Timestamp getValue() {
         return value;
     }
 
-    public void setValue(Long value) {
+    public void setValue(Timestamp value) {
         this.value = value;
     }
 
@@ -161,7 +162,7 @@ public class RALong implements RAExtensionValue {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RALong that = (RALong) o;
+        RAExtDate that = (RAExtDate) o;
 
         if (dynamic != that.dynamic) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;

@@ -16,9 +16,8 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.id.RAnyPolyStringId;
+import com.evolveum.midpoint.repo.sql.data.common.id.RAnyLongId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
@@ -30,11 +29,11 @@ import javax.persistence.*;
  * @author lazyman
  */
 @Entity
-@IdClass(RAnyPolyStringId.class)
-@Table(name = "m_object_poly_string")
-@org.hibernate.annotations.Table(appliesTo = "m_object_poly_string",
-        indexes = {@Index(name = "iExtensionPolyString", columnNames = {"ownerType", "orig", "eName", "eType"})})
-public class RAnyPolyString implements RExtensionValue {
+@IdClass(RAnyLongId.class)
+@Table(name = "m_object_ext_long")
+@org.hibernate.annotations.Table(appliesTo = "m_object_ext_long",
+        indexes = {@Index(name = "iExtensionLong", columnNames = {"ownerType", "longValue", "eName", "eType"})})
+public class ROExtLong implements ROExtValue {
 
     //owner entity
     private RObject owner;
@@ -46,23 +45,17 @@ public class RAnyPolyString implements RExtensionValue {
     private String type;
     private RValueType valueType;
 
-    //orig value
-    private String value;
-    private String norm;
+    private Long value;
 
-    public RAnyPolyString() {
-        this(null);
+    public ROExtLong() {
     }
 
-    public RAnyPolyString(PolyString polyString) {
-        if (polyString != null) {
-            value = polyString.getOrig();
-            norm = polyString.getNorm();
-        }
+    public ROExtLong(Long value) {
+        this.value = value;
     }
 
     @Id
-    @ForeignKey(name = "fk_extension_poly")
+    @ForeignKey(name = "fk_object_ext_long")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     public RObject getOwner() {
@@ -110,20 +103,12 @@ public class RAnyPolyString implements RExtensionValue {
         return dynamic;
     }
 
-    @Column(name = "orig")
-    public String getValue() {
+    @Column(name = "longValue")
+    public Long getValue() {
         return value;
     }
 
-    public String getNorm() {
-        return norm;
-    }
-
-    public void setNorm(String norm) {
-        this.norm = norm;
-    }
-
-    public void setValue(String value) {
+    public void setValue(Long value) {
         this.value = value;
     }
 
@@ -160,14 +145,13 @@ public class RAnyPolyString implements RExtensionValue {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RAnyPolyString that = (RAnyPolyString) o;
+        ROExtLong that = (ROExtLong) o;
 
         if (dynamic != that.dynamic) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (type != null ? !type.equals(that.type) : that.type != null) return false;
         if (valueType != that.valueType) return false;
         if (value != null ? !value.equals(that.value) : that.value != null) return false;
-        if (norm != null ? !norm.equals(that.norm) : that.norm != null) return false;
 
         return true;
     }

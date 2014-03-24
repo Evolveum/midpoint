@@ -988,8 +988,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             query.setParameter("oid", prismObject.getOid());
 
             Object[] counts = (Object[]) query.uniqueResult();
-            Class[] classes = new Class[]{RAnyString.class, RAnyLong.class, RAnyDate.class, RAnyReference.class,
-                    RAnyClob.class, RAnyPolyString.class};
+            Class[] classes = new Class[]{ROExtString.class, ROExtLong.class, ROExtDate.class, ROExtReference.class,
+                    ROExtClob.class, ROExtPolyString.class};
 
             if (counts != null) {
                 for (int i = 0; i < classes.length; i++) {

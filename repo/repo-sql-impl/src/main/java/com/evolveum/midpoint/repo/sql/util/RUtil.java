@@ -387,20 +387,20 @@ public final class RUtil {
         fixCompositeIdentifierInMetaModel(sessionFactory, RObjectDeltaOperation.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RSynchronizationSituationDescription.class);
 
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAnyClob.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAnyDate.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAnyString.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAnyPolyString.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAnyReference.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAnyLong.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtClob.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtDate.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtString.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtPolyString.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtReference.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtLong.class);
 
         fixCompositeIdentifierInMetaModel(sessionFactory, RAssignmentExtension.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAClob.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RADate.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAString.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAPolyString.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAReference.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RALong.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtClob.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtDate.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtString.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtPolyString.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtReference.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtLong.class);
 
         fixCompositeIdentifierInMetaModel(sessionFactory, RObjectReference.class);
         for (RReferenceOwner owner : RReferenceOwner.values()) {

@@ -31,10 +31,10 @@ import java.sql.Timestamp;
  */
 @Entity
 @IdClass(RAnyDateId.class)
-@Table(name = "m_object_date")
-@org.hibernate.annotations.Table(appliesTo = "m_object_date",
+@Table(name = "m_object_ext_date")
+@org.hibernate.annotations.Table(appliesTo = "m_object_ext_date",
         indexes = {@Index(name = "iExtensionDate", columnNames = {"ownerType", "dateValue", "eName", "eType"})})
-public class RAnyDate implements RExtensionValue {
+public class ROExtDate implements ROExtValue {
 
     //owner entity
     private RObject owner;
@@ -48,15 +48,15 @@ public class RAnyDate implements RExtensionValue {
 
     private Timestamp value;
 
-    public RAnyDate() {
+    public ROExtDate() {
     }
 
-    public RAnyDate(Timestamp value) {
+    public ROExtDate(Timestamp value) {
         this.value = value;
     }
 
     @Id
-    @ForeignKey(name = "fk_extension_date")
+    @ForeignKey(name = "fk_object_ext_date")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     public RObject getOwner() {
@@ -146,7 +146,7 @@ public class RAnyDate implements RExtensionValue {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RAnyDate that = (RAnyDate) o;
+        ROExtDate that = (ROExtDate) o;
 
         if (dynamic != that.dynamic) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
