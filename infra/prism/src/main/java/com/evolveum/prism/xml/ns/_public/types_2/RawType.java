@@ -96,6 +96,9 @@ public class RawType implements Serializable{
 	@XmlTransient
 	private Object realValue;
 	
+	@XmlTransient
+	private PrismValue parsed;
+	
     @XmlMixed
     @XmlAnyElement(lax = true)
     protected List<Object> content;
@@ -284,7 +287,7 @@ public class RawType implements Serializable{
 				} else if (e instanceof Element){
 					DomParser domParser = new DomParser(null);
 					try{
-						xnode = domParser.parseElementAsMap((Element) e);
+						xnode = domParser.parseElementContent((Element) e);
 //						xnode = domParser.parseElementAsMap((Element) e);
 						return true;
 					} catch (SchemaException ex){
@@ -418,16 +421,20 @@ public class RawType implements Serializable{
         	return realValue;
         }
         
-        public <V extends PrismValue> V getParsedValue(ItemDefinition itemDefinition) throws SchemaException{
-//		Item<V> subItem = null;
+	public <V extends PrismValue> V getParsedValue(ItemDefinition itemDefinition) throws SchemaException {
 		V value = null;
-        	
+		
+		if (parsed != null){
+			return (V) parsed;
+		}
+
 		if (xnode != null) {
 			System.out.println("xnode: " + xnode.debugDump());
 			PrismContext prismContext = itemDefinition.getPrismContext();
 			Item<V> subItem = prismContext.getXnodeProcessor().parseItem(xnode, itemDefinition.getName(),
 					itemDefinition);
 			value = subItem.getValue(0);
+			xnode = null;
 		} else {
 			if (itemDefinition == null) {
 				throw new SchemaException("No definition for item " + realValue
@@ -435,45 +442,29 @@ public class RawType implements Serializable{
 			}
 			if (itemDefinition instanceof PrismPropertyDefinition<?>) {
 				// property
-//				PrismProperty<?> property = ((PrismPropertyDefinition<?>) itemDefinition).instantiate();
-//				property.setRealValue(realValue);
-//				subItem = (Item<V>) property;
-				if (realValue != null){
+				if (realValue != null) {
 					PrismPropertyValue ppValue = new PrismPropertyValue(realValue);
 					value = (V) ppValue;
-//				} else{
-//					PrismPropertyValue ppValue = new PrismPropertyValue("");
-//					value = (V) ppValue;
 				}
-				
+
 			} else if (itemDefinition instanceof PrismContainerDefinition<?>) {
 				if (realValue instanceof Containerable) {
-//					PrismContainer<?> container = ((PrismContainerDefinition<?>) itemDefinition)
-//							.instantiate();
 					PrismContainerValue subValue = ((Containerable) realValue).asPrismContainerValue();
 					value = (V) subValue;
-//					container.add(subValue);
-//					subItem = (Item<V>) container;
 				} else {
 					throw new IllegalArgumentException("Unsupported JAXB bean " + realValue.getClass());
 				}
 			} else if (itemDefinition instanceof PrismReferenceDefinition) {
 				// TODO
 				if (realValue instanceof Referencable) {
-//					PrismReference reference = ((PrismReferenceDefinition) itemDefinition).instantiate();
 					PrismReferenceValue refValue = ((Referencable) realValue).asReferenceValue();
 					value = (V) refValue;
-//					reference.merge(refValue);
-//					subItem = (Item<V>) reference;
-				} else if (realValue instanceof Objectable){
+				} else if (realValue instanceof Objectable) {
 					// TODO: adding reference with object??
-//					PrismReference reference = ((PrismReferenceDefinition) itemDefinition).instantiate();
 					PrismReferenceValue refVal = new PrismReferenceValue();
 					refVal.setObject(((Objectable) realValue).asPrismObject());
 					value = (V) refVal;
-//					reference.merge(refVal);
-//					subItem = (Item<V>) reference;
-				} else{
+				} else {
 					throw new IllegalArgumentException("Unsupported JAXB bean" + realValue);
 				}
 
@@ -482,8 +473,9 @@ public class RawType implements Serializable{
 			}
 
 		}
+		parsed = value;
 		return value;
-        }
+	}
         
     // Shallow clone. Do we need deep clone?
     public RawType clone() {

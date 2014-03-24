@@ -143,6 +143,8 @@ public class ResourceModifyTest extends BaseSQLRepoTest {
     	ItemDelta<?> itemDelta = ant.createDelta(iteration);
 		Collection<? extends ItemDelta<?>> modifications = MiscSchemaUtil.createCollection(itemDelta);
 		
+		System.out.println("itemDelta: " + itemDelta.debugDump());
+		
 		// WHEN
 		repositoryService.modifyObject(ResourceType.class, RESOURCE_OPENDJ_OID, modifications, result);
     	

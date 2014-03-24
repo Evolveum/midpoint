@@ -22,6 +22,7 @@
     <oid>00000000-8888-6666-0000-100000000006</oid>
     <itemDelta>
         <t:modificationType>delete</t:modificationType>
+        <t:path>c:parentOrgRef</t:path>
         <t:value>
             <c:parentOrgRef oid="00000000-8888-6666-0000-100000000003" type="c:OrgType"/>
         </t:value>

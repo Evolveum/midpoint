@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.prism.util;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
@@ -41,14 +42,23 @@ public class RawTypeUtil {
 		
 		Item<V> subItem = null;
 		
+		List<V> parsedValues = new ArrayList<V>();
 		for (RawType rawValue : values){
 			V parsed = rawValue.getParsedValue(itemDefinition);
+			if (parsed != null){
+				parsedValues.add(parsed);
+			}
+		}
+		
 			if (itemDefinition instanceof PrismPropertyDefinition<?>) {
 				// property
 				PrismProperty<?> property = ((PrismPropertyDefinition<?>) itemDefinition).instantiate();
-				if (parsed != null){
-					property.setValue((PrismPropertyValue)parsed.clone());
+				for (V val : parsedValues){
+					property.add((PrismPropertyValue) val.clone());
 				}
+//				if (parsed != null){
+//					property.setValue((PrismPropertyValue)parsed.clone());
+//				}
 				subItem = (Item<V>) property;
 				
 			} else if (itemDefinition instanceof PrismContainerDefinition<?>) {
@@ -56,7 +66,10 @@ public class RawTypeUtil {
 					PrismContainer<?> container = ((PrismContainerDefinition<?>) itemDefinition)
 							.instantiate();
 //					PrismContainerValue subValue = ((Containerable) realValue).asPrismContainerValue();
-					container.add((PrismContainerValue) parsed.clone());
+					for (V val : parsedValues){
+						container.add((PrismContainerValue) val.clone());
+					}
+//					container.add((PrismContainerValue) parsed.clone());
 					subItem = (Item<V>) container;
 //				} else {
 //					throw new IllegalArgumentException("Unsupported JAXB bean " + realValue.getClass());
@@ -66,7 +79,10 @@ public class RawTypeUtil {
 //				if (realValue instanceof Referencable) {
 					PrismReference reference = ((PrismReferenceDefinition) itemDefinition).instantiate();
 //					PrismReferenceValue refValue = ((Referencable) realValue).asReferenceValue();
-					reference.merge((PrismReferenceValue) parsed.clone());
+					for (V val : parsedValues){
+						reference.merge((PrismReferenceValue) val.clone());
+					}
+//					reference.merge((PrismReferenceValue) parsed.clone());
 					subItem = (Item<V>) reference;
 //				} else if (realValue instanceof Objectable){
 //					// TODO: adding reference with object??
@@ -83,7 +99,6 @@ public class RawTypeUtil {
 				throw new IllegalArgumentException("Unsupported definition type " + itemDefinition.getClass());
 			}
 			
-		}
 		return subItem;
 	}
 	

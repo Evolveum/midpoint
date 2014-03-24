@@ -22,10 +22,12 @@
     <oid>00000000-8888-6666-0000-1000000000006</oid>
     <itemDelta>
         <t:modificationType>add</t:modificationType>
+        <t:path>c:parentOrgRef</t:path>
         <t:value>
 			<c:parentOrgRef oid="00000000-8888-6666-0000-100000000002" type="c:OrgType"/>
-			<c:parentOrgRef oid="00000000-8888-6666-0000-100000000012" type="c:OrgType"/>
-			
+        </t:value>
+        <t:value>
+        	<c:parentOrgRef oid="00000000-8888-6666-0000-100000000012" type="c:OrgType"/>
         </t:value>
     </itemDelta>
 </objectModification>

@@ -25,6 +25,7 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
@@ -400,6 +401,8 @@ public class XNodeProcessor {
         T realValue;
         if (ItemPathType.COMPLEX_TYPE.equals(typeName)){
             return (T) parseItemPathType(xprim);
+        } else if (ProtectedStringType.COMPLEX_TYPE.equals(typeName)){
+        	return (T) parseProtectedTypeFromPrimitive(xprim);
         } else
         if (prismContext.getBeanConverter().canProcess(typeName) && !typeName.equals(PolyStringType.COMPLEX_TYPE) && !typeName.equals(ItemPathType.COMPLEX_TYPE)) {
             // Primitive elements may also have complex Java representations (e.g. enums)
@@ -429,6 +432,12 @@ public class XNodeProcessor {
         return realValue;
     }
 
+    private ProtectedStringType parseProtectedTypeFromPrimitive(PrimitiveXNode xPrim) throws SchemaException{
+    	String clearValue = (String) xPrim.getParsedValue(DOMUtil.XSD_STRING);
+    	ProtectedStringType protectedString = new ProtectedStringType();
+    	protectedString.setClearValue(clearValue);
+    	return protectedString;
+    }
     /**
      * This method is called either with a type name only, or with a property definition only, or with both.
      * Property definition is useful to correctly formulate exception message.

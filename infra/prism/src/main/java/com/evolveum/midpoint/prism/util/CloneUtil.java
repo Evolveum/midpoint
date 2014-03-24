@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.RawType;
 
 /**
@@ -59,6 +60,9 @@ public class CloneUtil {
 		if (orig instanceof ObjectDelta<?>) {
 			return (T) ((ObjectDelta<?>)orig).clone();
 		}
+		if (orig instanceof ObjectDeltaType) {
+			return (T) ((ObjectDeltaType) orig).clone();
+		}
 		if (orig instanceof ItemDelta<?>) {
 			return (T) ((ItemDelta<?>)orig).clone();
 		}
@@ -69,7 +73,7 @@ public class CloneUtil {
 			T clone = javaLangClone(orig);
 			if (clone != null) {
 				return clone;
-			}
+			} 
 		}
 		if (orig instanceof Serializable) {
 			// Brute force
@@ -80,7 +84,7 @@ public class CloneUtil {
 	
 	public static <T> T javaLangClone(T orig) {
 		try {
-			Method cloneMethod = Object.class.getMethod("clone");
+			Method cloneMethod = orig.getClass().getMethod("clone");
 			Object clone = cloneMethod.invoke(orig);
 			return (T) clone;
 		} catch (SecurityException e) {

@@ -347,6 +347,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         System.out.println(repoShadow.debugDump());
         prismContext.adopt(repoShadow);
         prismContext.adopt(accShadow);
+        AssertJUnit.assertTrue("repo shadow must have full definitions", repoShadow.hasCompleteDefinition());
+        AssertJUnit.assertTrue("shadow must have full definitions", repoShadow.hasCompleteDefinition());
         ObjectDelta d = repoShadow.diff(accShadow);
         System.out.println("\nDelta");
         System.out.println(d.debugDump());

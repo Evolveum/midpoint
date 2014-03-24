@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.prism.xnode;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
@@ -32,7 +33,7 @@ import com.evolveum.midpoint.util.Transformer;
  * @author semancik
  *
  */
-public abstract class XNode implements DebugDumpable, Visitable, Cloneable {
+public abstract class XNode implements DebugDumpable, Visitable, Cloneable, Serializable {
 	
 	public static final QName KEY_OID = new QName(null, "oid");
 	public static final QName KEY_VERSION = new QName(null, "version");

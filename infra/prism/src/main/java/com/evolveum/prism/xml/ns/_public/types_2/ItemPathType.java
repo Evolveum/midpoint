@@ -144,7 +144,11 @@ public class ItemPathType implements Serializable, Equals{
 
     public ItemPathType clone() {
     	ItemPathType clone = new ItemPathType();
-    	// TODO
+    	clone.setItemPath(itemPath);
+    	for (Object o : getContent()){
+    		clone.getContent().add(o);
+    	}
+//    	clone.getContent().addAll(content);
     	return clone;
     }
     
@@ -220,6 +224,7 @@ public class ItemPathType implements Serializable, Equals{
 					public Object next() {
 						if (i== 0){
 							i++;
+							//TODO it should be itemPathType not string..
 							XPathHolder holder = new XPathHolder(itemPath);	
 							return new JAXBElement<String>(F_PATH, String.class, holder.getXPath());
 //							return itemPath;
@@ -254,6 +259,13 @@ public class ItemPathType implements Serializable, Equals{
 					return true;
 				} else if (e instanceof QName){
 					itemPath = new ItemPath((QName) e);
+					return true;
+				} else if (e instanceof JAXBElement){
+					JAXBElement jaxb = (JAXBElement) e;
+					// TODO: after refactoring next method, change to item path type
+					String s = (String)((JAXBElement) e).getValue();
+					XPathHolder holder = new XPathHolder(s);
+					itemPath = holder.toItemPath();
 					return true;
 				}
 				throw new IllegalArgumentException("PATH ADD: "+e+" "+e.getClass());

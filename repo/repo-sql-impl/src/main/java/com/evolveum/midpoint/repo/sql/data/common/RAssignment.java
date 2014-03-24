@@ -16,7 +16,9 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
@@ -30,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -315,8 +318,9 @@ public class RAssignment extends RContainer implements ROwnable {
         }
 
         try {
-            repo.setAccountConstruction(RUtil.toRepo(jaxb.getAccountConstruction(), prismContext));
-            repo.setConstruction(RUtil.toRepo(jaxb.getConstruction(), prismContext));
+        	ItemDefinition assignmentDef = jaxb.asPrismContainerValue().getParent().getDefinition();
+            repo.setAccountConstruction(RUtil.toRepo(assignmentDef, AssignmentType.F_ACCOUNT_CONSTRUCTION, jaxb.getAccountConstruction(), prismContext));
+            repo.setConstruction(RUtil.toRepo(assignmentDef, AssignmentType.F_CONSTRUCTION, jaxb.getConstruction(), prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }

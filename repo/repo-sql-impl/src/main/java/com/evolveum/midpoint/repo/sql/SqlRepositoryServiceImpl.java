@@ -41,6 +41,7 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -1115,7 +1116,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             throws SchemaException, DtoTranslationException {
 
         for (ItemDelta delta : modifications) {
-            if (!delta.getElementName().equals(OrgType.F_PARENT_ORG_REF)) continue;
+            if (!QNameUtil.match(delta.getElementName(), OrgType.F_PARENT_ORG_REF)) continue;
 
             // if modification is one of the modify or delete, delete old
             // record in org closure table and in the next step fill the

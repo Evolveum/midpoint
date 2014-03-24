@@ -269,9 +269,7 @@ public class DeltaConvertor {
         if (propMod.getValue() == null) {
             throw new IllegalArgumentException("No value in item delta (path: " + parentPath + ") while creating a property delta");
         }
-        for (ItemDefinition def : pcDef.getDefinitions()){
-        	System.out.println("def: " + def.debugDump());
-        }
+       
         ItemDefinition containingPcd = pcDef.findItemDefinition(parentPath);
         if (containingPcd == null) {
             throw new SchemaException("No definition for " + parentPath + " (while creating delta for " + pcDef + ")");

@@ -667,7 +667,12 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		}
 		
 		if (itemDefinition != null) {
-			newItem = itemDefinition.instantiate(name);
+			if (StringUtils.isNotBlank(name.getNamespaceURI())){
+				newItem = itemDefinition.instantiate(name);
+			} else {
+				QName computed = new QName(itemDefinition.getNamespace(), name.getLocalPart());
+				newItem = itemDefinition.instantiate(computed);
+			}
 			if (newItem instanceof PrismObject) {
 				throw new IllegalStateException("PrismObject instantiated as a subItem in "+this+" from definition "+itemDefinition);
 			}

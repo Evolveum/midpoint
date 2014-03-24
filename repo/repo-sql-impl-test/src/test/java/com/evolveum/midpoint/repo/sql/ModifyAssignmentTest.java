@@ -105,6 +105,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         //check role and its assignments and inducements
         result = new OperationResult("get role");
         PrismObject repoRole = repositoryService.getObject(RoleType.class, ROLE_OID, null, result);
+        System.out.println("role: "  + repoRole.debugDump());
         result.recomputeStatus();
         result.recordSuccessIfUnknown();
         AssertJUnit.assertTrue(result.isSuccess());
@@ -147,6 +148,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         //check role and its assignments and inducements
         result = new OperationResult("get role");
         PrismObject repoRole = repositoryService.getObject(RoleType.class, ROLE_OID, null, result);
+        System.out.println("role: " + repoRole.debugDump());
         result.recomputeStatus();
         result.recordSuccessIfUnknown();
         AssertJUnit.assertTrue(result.isSuccess());

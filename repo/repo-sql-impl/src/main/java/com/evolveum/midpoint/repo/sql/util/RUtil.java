@@ -210,7 +210,7 @@ public final class RUtil {
 
 		if (definition == null) {
 			definition = prismContext.getSchemaRegistry().findItemDefinitionByElementName(path);
-			System.out.println("definition: " + definition);
+//			System.out.println("definition: " + definition);
 		}
 
 		T jaxbValue = ValueSerializationUtil.deserializeValue(value, parentClass, path, definition,
@@ -254,18 +254,11 @@ public final class RUtil {
 			return null;
 		}
 
-		// PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
 		if (value instanceof Objectable) {
 			return prismContext.serializeObjectToString(((Objectable) value).asPrismObject(),
 					PrismContext.LANG_XML);
 		}
 
-		// if (value instanceof Containerable) {
-		// //TODO: createFakeParentElement??? why we don't use the real name???
-		// return prismContext.serializeContainerValueToString(((Containerable)
-		// value).asPrismContainerValue(),
-		// itemName, prismContext.LANG_XML);
-		// }
 		ItemDefinition definition = null;
 		if (parentDefinition instanceof PrismContainerDefinition) {
 

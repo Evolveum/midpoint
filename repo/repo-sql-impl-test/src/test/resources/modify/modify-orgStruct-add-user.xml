@@ -22,6 +22,7 @@
     <oid>will be replaced by source code</oid>
     <itemDelta>
         <t:modificationType>add</t:modificationType>
+        <t:path>c:orgRef</t:path>
         <t:value>
             <c:orgRef oid="00000000-8888-6666-0000-100000000006"/>
         </t:value>
