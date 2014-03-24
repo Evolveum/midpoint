@@ -17,15 +17,16 @@
 package com.evolveum.midpoint.repo.sql.data.common.id;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
 
 /**
  * @author lazyman
  */
-public class RALongId implements Serializable {
+public class RAExtDateId implements Serializable {
 
     private String ownerOid;
     private Short ownerId;
-    private Long value;
+    private Timestamp value;
     private String name;
     private String type;
 
@@ -45,11 +46,11 @@ public class RALongId implements Serializable {
         this.ownerId = ownerId;
     }
 
-    public Long getValue() {
+    public Timestamp getValue() {
         return value;
     }
 
-    public void setValue(Long value) {
+    public void setValue(Timestamp value) {
         this.value = value;
     }
 
@@ -74,13 +75,13 @@ public class RALongId implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RALongId raLongId = (RALongId) o;
+        RAExtDateId raDateId = (RAExtDateId) o;
 
-        if (name != null ? !name.equals(raLongId.name) : raLongId.name != null) return false;
-        if (ownerId != null ? !ownerId.equals(raLongId.ownerId) : raLongId.ownerId != null) return false;
-        if (ownerOid != null ? !ownerOid.equals(raLongId.ownerOid) : raLongId.ownerOid != null) return false;
-        if (type != null ? !type.equals(raLongId.type) : raLongId.type != null) return false;
-        if (value != null ? !value.equals(raLongId.value) : raLongId.value != null) return false;
+        if (name != null ? !name.equals(raDateId.name) : raDateId.name != null) return false;
+        if (ownerId != null ? !ownerId.equals(raDateId.ownerId) : raDateId.ownerId != null) return false;
+        if (ownerOid != null ? !ownerOid.equals(raDateId.ownerOid) : raDateId.ownerOid != null) return false;
+        if (type != null ? !type.equals(raDateId.type) : raDateId.type != null) return false;
+        if (value != null ? !value.equals(raDateId.value) : raDateId.value != null) return false;
 
         return true;
     }
@@ -97,10 +98,12 @@ public class RALongId implements Serializable {
 
     @Override
     public String toString() {
-        return "RALongId{" +
+        return "RADateId{" +
                 "ownerOid='" + ownerOid + '\'' +
                 ", ownerId=" + ownerId +
                 ", value=" + value +
+                ", name='" + name + '\'' +
+                ", type='" + type + '\'' +
                 '}';
     }
 }

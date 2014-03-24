@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
-import com.evolveum.midpoint.repo.sql.data.common.id.RAStringId;
+import com.evolveum.midpoint.repo.sql.data.common.id.RAExtStringId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
@@ -28,7 +28,7 @@ import javax.persistence.*;
  * @author lazyman
  */
 @Entity
-@IdClass(RAStringId.class)
+@IdClass(RAExtStringId.class)
 @Table(name = "m_assignment_ext_string")
 @org.hibernate.annotations.Table(appliesTo = "m_assignment_ext_string",
         indexes = {@Index(name = "iAExtensionString", columnNames = {"extensionType", "stringValue", "eName", "eType"})})

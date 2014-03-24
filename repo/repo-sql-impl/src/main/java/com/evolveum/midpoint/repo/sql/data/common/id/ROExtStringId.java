@@ -23,11 +23,11 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
-public class RAnyClobId implements Serializable {
+public class ROExtStringId implements Serializable {
 
     private String ownerOid;
     private RObjectType ownerType;
-    private String checksum;
+    private String value;
     private String name;
     private String type;
 
@@ -47,12 +47,12 @@ public class RAnyClobId implements Serializable {
         this.ownerType = ownerType;
     }
 
-    public String getChecksum() {
-        return checksum;
+    public String getValue() {
+        return value;
     }
 
-    public void setChecksum(String checksum) {
-        this.checksum = checksum;
+    public void setValue(String value) {
+        this.value = value;
     }
 
     public String getName() {
@@ -76,13 +76,13 @@ public class RAnyClobId implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RAnyClobId that = (RAnyClobId) o;
+        ROExtStringId that = (ROExtStringId) o;
 
-        if (checksum != null ? !checksum.equals(that.checksum) : that.checksum != null) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (ownerOid != null ? !ownerOid.equals(that.ownerOid) : that.ownerOid != null) return false;
         if (ownerType != that.ownerType) return false;
         if (type != null ? !type.equals(that.type) : that.type != null) return false;
+        if (value != null ? !value.equals(that.value) : that.value != null) return false;
 
         return true;
     }
@@ -91,7 +91,7 @@ public class RAnyClobId implements Serializable {
     public int hashCode() {
         int result = ownerOid != null ? ownerOid.hashCode() : 0;
         result = 31 * result + (ownerType != null ? ownerType.hashCode() : 0);
-        result = 31 * result + (checksum != null ? checksum.hashCode() : 0);
+        result = 31 * result + (value != null ? value.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (type != null ? type.hashCode() : 0);
         return result;
@@ -99,6 +99,6 @@ public class RAnyClobId implements Serializable {
 
     @Override
     public String toString() {
-        return "RAnyClobId[" + ownerOid + "," + ownerType + "," + checksum + "]";
+        return "RAnyStringId[" + ownerOid + "," + ownerType + "," + value + "]";
     }
 }

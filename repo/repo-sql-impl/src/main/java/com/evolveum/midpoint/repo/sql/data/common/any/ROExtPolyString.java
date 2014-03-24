@@ -18,7 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.id.RAnyPolyStringId;
+import com.evolveum.midpoint.repo.sql.data.common.id.ROExtPolyStringId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
@@ -30,7 +30,7 @@ import javax.persistence.*;
  * @author lazyman
  */
 @Entity
-@IdClass(RAnyPolyStringId.class)
+@IdClass(ROExtPolyStringId.class)
 @Table(name = "m_object_ext_poly")
 @org.hibernate.annotations.Table(appliesTo = "m_object_ext_poly",
         indexes = {@Index(name = "iExtensionPolyString", columnNames = {"ownerType", "orig", "eName", "eType"})})

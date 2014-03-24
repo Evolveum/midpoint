@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.repo.sql.data.common.id.RAReferenceId;
+import com.evolveum.midpoint.repo.sql.data.common.id.RAExtReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
@@ -31,7 +31,7 @@ import javax.persistence.*;
  * @author lazyman
  */
 @Entity
-@IdClass(RAReferenceId.class)
+@IdClass(RAExtReferenceId.class)
 @Table(name = "m_assignment_ext_reference")
 @org.hibernate.annotations.Table(appliesTo = "m_assignment_ext_reference",
         indexes = {@Index(name = "iAExtensionReference", columnNames = {"extensionType", "targetoid", "eName", "eType"})})

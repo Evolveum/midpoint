@@ -23,7 +23,7 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
-public class RAnyPolyStringId implements Serializable {
+public class ROExtReferenceId implements Serializable {
 
     private String ownerOid;
     private RObjectType ownerType;
@@ -76,7 +76,7 @@ public class RAnyPolyStringId implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RAnyPolyStringId that = (RAnyPolyStringId) o;
+        ROExtReferenceId that = (ROExtReferenceId) o;
 
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (ownerOid != null ? !ownerOid.equals(that.ownerOid) : that.ownerOid != null) return false;
@@ -99,6 +99,6 @@ public class RAnyPolyStringId implements Serializable {
 
     @Override
     public String toString() {
-        return "RAnyPolyStringId[" + ownerOid + "," + ownerType + "," + value + "]";
+        return "RAnyReferenceId[" + ownerOid + "," + ownerType + "," + value + "]";
     }
 }

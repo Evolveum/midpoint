@@ -19,16 +19,15 @@ package com.evolveum.midpoint.repo.sql.data.common.id;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 
 import java.io.Serializable;
-import java.sql.Timestamp;
 
 /**
  * @author lazyman
  */
-public class RAnyDateId implements Serializable {
+public class ROExtLongId implements Serializable {
 
     private String ownerOid;
     private RObjectType ownerType;
-    private Timestamp value;
+    private Long value;
     private String name;
     private String type;
 
@@ -48,11 +47,11 @@ public class RAnyDateId implements Serializable {
         this.ownerType = ownerType;
     }
 
-    public Timestamp getValue() {
+    public Long getValue() {
         return value;
     }
 
-    public void setValue(Timestamp value) {
+    public void setValue(Long value) {
         this.value = value;
     }
 
@@ -77,7 +76,7 @@ public class RAnyDateId implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RAnyDateId that = (RAnyDateId) o;
+        ROExtLongId that = (ROExtLongId) o;
 
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (ownerOid != null ? !ownerOid.equals(that.ownerOid) : that.ownerOid != null) return false;
@@ -100,6 +99,6 @@ public class RAnyDateId implements Serializable {
 
     @Override
     public String toString() {
-        return "RAnyDateId[" + ownerOid + "," + ownerType + "," + value + "]";
+        return "RAnyLongId[" + ownerOid + "," + ownerType + "," + value + "]";
     }
 }

@@ -16,18 +16,16 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.id;
 
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-
 import java.io.Serializable;
 
 /**
  * @author lazyman
  */
-public class RAnyLongId implements Serializable {
+public class RAExtReferenceId implements Serializable {
 
     private String ownerOid;
-    private RObjectType ownerType;
-    private Long value;
+    private Short ownerId;
+    private String value;
     private String name;
     private String type;
 
@@ -39,19 +37,19 @@ public class RAnyLongId implements Serializable {
         this.ownerOid = ownerOid;
     }
 
-    public RObjectType getOwnerType() {
-        return ownerType;
+    public Short getOwnerId() {
+        return ownerId;
     }
 
-    public void setOwnerType(RObjectType ownerType) {
-        this.ownerType = ownerType;
+    public void setOwnerId(Short ownerId) {
+        this.ownerId = ownerId;
     }
 
-    public Long getValue() {
+    public String getValue() {
         return value;
     }
 
-    public void setValue(Long value) {
+    public void setValue(String value) {
         this.value = value;
     }
 
@@ -76,11 +74,11 @@ public class RAnyLongId implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RAnyLongId that = (RAnyLongId) o;
+        RAExtReferenceId that = (RAExtReferenceId) o;
 
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
+        if (ownerId != null ? !ownerId.equals(that.ownerId) : that.ownerId != null) return false;
         if (ownerOid != null ? !ownerOid.equals(that.ownerOid) : that.ownerOid != null) return false;
-        if (ownerType != that.ownerType) return false;
         if (type != null ? !type.equals(that.type) : that.type != null) return false;
         if (value != null ? !value.equals(that.value) : that.value != null) return false;
 
@@ -90,7 +88,7 @@ public class RAnyLongId implements Serializable {
     @Override
     public int hashCode() {
         int result = ownerOid != null ? ownerOid.hashCode() : 0;
-        result = 31 * result + (ownerType != null ? ownerType.hashCode() : 0);
+        result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
         result = 31 * result + (value != null ? value.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (type != null ? type.hashCode() : 0);
@@ -99,6 +97,10 @@ public class RAnyLongId implements Serializable {
 
     @Override
     public String toString() {
-        return "RAnyLongId[" + ownerOid + "," + ownerType + "," + value + "]";
+        return "RAReferenceId{" +
+                "ownerOid='" + ownerOid + '\'' +
+                ", ownerId=" + ownerId +
+                ", value='" + value + '\'' +
+                '}';
     }
 }

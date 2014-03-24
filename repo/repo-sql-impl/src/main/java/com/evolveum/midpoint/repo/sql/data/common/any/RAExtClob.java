@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
-import com.evolveum.midpoint.repo.sql.data.common.id.RAClobId;
+import com.evolveum.midpoint.repo.sql.data.common.id.RAExtClobId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -29,7 +29,7 @@ import javax.persistence.*;
  * @author lazyman
  */
 @Entity
-@IdClass(RAClobId.class)
+@IdClass(RAExtClobId.class)
 @Table(name = "m_assignment_ext_clob")
 public class RAExtClob implements RAExtValue {
 

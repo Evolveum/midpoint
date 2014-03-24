@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.id.RAnyDateId;
+import com.evolveum.midpoint.repo.sql.data.common.id.ROExtDateId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
@@ -30,7 +30,7 @@ import java.sql.Timestamp;
  * @author lazyman
  */
 @Entity
-@IdClass(RAnyDateId.class)
+@IdClass(ROExtDateId.class)
 @Table(name = "m_object_ext_date")
 @org.hibernate.annotations.Table(appliesTo = "m_object_ext_date",
         indexes = {@Index(name = "iExtensionDate", columnNames = {"ownerType", "dateValue", "eName", "eType"})})

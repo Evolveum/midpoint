@@ -21,11 +21,11 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
-public class RAReferenceId implements Serializable {
+public class RAExtLongId implements Serializable {
 
     private String ownerOid;
     private Short ownerId;
-    private String value;
+    private Long value;
     private String name;
     private String type;
 
@@ -45,11 +45,11 @@ public class RAReferenceId implements Serializable {
         this.ownerId = ownerId;
     }
 
-    public String getValue() {
+    public Long getValue() {
         return value;
     }
 
-    public void setValue(String value) {
+    public void setValue(Long value) {
         this.value = value;
     }
 
@@ -74,13 +74,13 @@ public class RAReferenceId implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        RAReferenceId that = (RAReferenceId) o;
+        RAExtLongId raLongId = (RAExtLongId) o;
 
-        if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (ownerId != null ? !ownerId.equals(that.ownerId) : that.ownerId != null) return false;
-        if (ownerOid != null ? !ownerOid.equals(that.ownerOid) : that.ownerOid != null) return false;
-        if (type != null ? !type.equals(that.type) : that.type != null) return false;
-        if (value != null ? !value.equals(that.value) : that.value != null) return false;
+        if (name != null ? !name.equals(raLongId.name) : raLongId.name != null) return false;
+        if (ownerId != null ? !ownerId.equals(raLongId.ownerId) : raLongId.ownerId != null) return false;
+        if (ownerOid != null ? !ownerOid.equals(raLongId.ownerOid) : raLongId.ownerOid != null) return false;
+        if (type != null ? !type.equals(raLongId.type) : raLongId.type != null) return false;
+        if (value != null ? !value.equals(raLongId.value) : raLongId.value != null) return false;
 
         return true;
     }
@@ -97,10 +97,10 @@ public class RAReferenceId implements Serializable {
 
     @Override
     public String toString() {
-        return "RAReferenceId{" +
+        return "RALongId{" +
                 "ownerOid='" + ownerOid + '\'' +
                 ", ownerId=" + ownerId +
-                ", value='" + value + '\'' +
+                ", value=" + value +
                 '}';
     }
 }

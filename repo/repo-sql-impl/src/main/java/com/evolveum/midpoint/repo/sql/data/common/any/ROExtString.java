@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.id.RAnyStringId;
+import com.evolveum.midpoint.repo.sql.data.common.id.ROExtStringId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
@@ -29,7 +29,7 @@ import javax.persistence.*;
  * @author lazyman
  */
 @Entity
-@IdClass(RAnyStringId.class)
+@IdClass(ROExtStringId.class)
 @Table(name = "m_object_ext_string")
 @org.hibernate.annotations.Table(appliesTo = "m_object_ext_string",
         indexes = {@Index(name = "iExtensionString", columnNames = {"ownerType", "stringValue", "eName", "eType"})})
