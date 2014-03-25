@@ -322,7 +322,7 @@ public class PageOrgUnit extends PageAdminUsers {
         setResponsePage(PageOrgTree.class);
     }
 
-    private PrismObject<OrgType> buildUnitFromModel() throws SchemaException {
+    private PrismObject<OrgType> buildUnitFromModel(List<ObjectReferenceType> parentOrgList) throws SchemaException {
         PrismObject<OrgType> org = orgModel.getObject();
 
         //update orgType values
@@ -339,9 +339,11 @@ public class PageOrgUnit extends PageAdminUsers {
         if (parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null) {
             for (OrgType parent : parentOrgUnitsModel.getObject()) {
                 if (parent != null && WebMiscUtil.getName(parent) != null && !WebMiscUtil.getName(parent).isEmpty()) {
-                    ObjectReferenceType ref = new ObjectReferenceType();
-                    ref.setOid(parent.getOid());
-                    org.asObjectable().getParentOrgRef().add(ref);
+                    if(!isOrgParent(parent, parentOrgList)){
+                        ObjectReferenceType ref = new ObjectReferenceType();
+                        ref.setOid(parent.getOid());
+                        org.asObjectable().getParentOrgRef().add(ref);
+                    }
                 }
             }
         }
@@ -349,12 +351,23 @@ public class PageOrgUnit extends PageAdminUsers {
         return org;
     }
 
+    private boolean isOrgParent(OrgType unit, List<ObjectReferenceType> parentList){
+        for(ObjectReferenceType parentRef: parentList){
+            if(unit.getOid().equals(parentRef.getOid())){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private void savePerformed(AjaxRequestTarget target) {
         OperationResult result = new OperationResult(SAVE_UNIT);
         try {
             ModelService model = getModelService();
 
-            PrismObject<OrgType> newOrgUnit = buildUnitFromModel();
+            PrismObject<OrgType> oldOrgUnit = WebModelUtils.loadObject(OrgType.class, orgModel.getObject().asObjectable().getOid(), result, this);
+            PrismObject<OrgType> newOrgUnit = buildUnitFromModel(oldOrgUnit.asObjectable().getParentOrgRef());
 
             ObjectDelta delta = null;
             if (!isEditing()) {
@@ -372,7 +385,6 @@ public class PageOrgUnit extends PageAdminUsers {
                 inducementPanel.handleAssignmentsWhenAdd(newOrgUnit, inducementDef, newOrgUnit.asObjectable().getInducement());
 
             } else {
-                PrismObject<OrgType> oldOrgUnit = WebModelUtils.loadObject(OrgType.class, newOrgUnit.getOid(), result, this);
                 if (oldOrgUnit != null) {
                     delta = oldOrgUnit.diff(newOrgUnit);
 

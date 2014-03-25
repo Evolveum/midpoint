@@ -322,6 +322,15 @@ public class TreeTablePanel extends SimplePanel<String> {
         });
         items.add(item);
 
+        item = new InlineMenuItem(createStringResource("TreeTablePanel.editRoot"), new InlineMenuItemAction() {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                editRootPerformed(target);
+            }
+        });
+        items.add(item);
+
         return items;
     }
 
@@ -908,5 +917,12 @@ public class TreeTablePanel extends SimplePanel<String> {
         public void collapseAll() {
             set.collapseAll();
         }
+    }
+
+    private void editRootPerformed(AjaxRequestTarget target){
+        OrgTreeDto root = getRootFromProvider();
+        PageParameters parameters = new PageParameters();
+        parameters.add(OnePageParameterEncoder.PARAMETER, root.getOid());
+        setResponsePage(PageOrgUnit.class, parameters);
     }
 }
