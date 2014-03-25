@@ -152,7 +152,11 @@ public class MailTransport implements Transport {
                     mimeMessage.addRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(recipient));
                 }
                 mimeMessage.setSubject(mailMessage.getSubject());
-                mimeMessage.setContent(mailMessage.getBody(), mailMessage.getContentType());
+                String contentType = mailMessage.getContentType();
+                if (StringUtils.isEmpty(contentType)) {
+                    contentType = "text/plain; charset=UTF-8";
+                }
+                mimeMessage.setContent(mailMessage.getBody(), contentType);
                 javax.mail.Transport t = session.getTransport("smtp");
                 if (StringUtils.isNotEmpty(mailServerConfigurationType.getUsername())) {
                     ProtectedStringType passwordProtected = mailServerConfigurationType.getPassword();
