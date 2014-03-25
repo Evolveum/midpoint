@@ -22,6 +22,7 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectDeltaListType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -417,4 +418,11 @@ public class DeltaConvertor {
 		}
 	}
 
+    public static Collection<ObjectDelta> createObjectDeltas(ObjectDeltaListType deltaList, PrismContext prismContext) throws SchemaException {
+        List<ObjectDelta> retval = new ArrayList<>();
+        for (ObjectDeltaType deltaType : deltaList.getDelta()) {
+            retval.add(createObjectDelta(deltaType, prismContext));
+        }
+        return retval;
+    }
 }

@@ -281,7 +281,7 @@ public class ModelCrudService {
 			LOGGER.trace("Deleting object with oid {}.", new Object[] { oid });
 			
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-			modelController.executeChanges(deltas, null, task, result);
+			modelController.executeChanges(deltas, options, task, result);
 
 			result.recordSuccess();
 

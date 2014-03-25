@@ -33,7 +33,7 @@
     <!-- protector initialization -->
     <bean name="keyStoreFactory" class="com.evolveum.midpoint.init.ConfigurableProtectorFactory" init-method="init" />
 
-    <bean name="protector" class="com.evolveum.midpoint.common.crypto.Protector" factory-bean="keyStoreFactory"
+    <bean name="protector" class="com.evolveum.midpoint.prism.crypto.AESProtector" factory-bean="keyStoreFactory"
           factory-method="getProtector" />
 
 	<bean name="repositoryFactory" class="com.evolveum.midpoint.init.RepositoryFactory" init-method="init"

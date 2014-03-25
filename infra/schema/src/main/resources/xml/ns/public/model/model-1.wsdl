@@ -83,7 +83,7 @@
                 <xsd:complexType>
                     <xsd:sequence>
                         <xsd:element name="deltaList" type="apit:ObjectDeltaListType"/>
-                        <xsd:element name="options" type="apit:ModelExecuteOptionsType"/>
+                        <xsd:element name="options" type="c:ModelExecuteOptionsType"/>
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>
@@ -134,24 +134,6 @@
                 <xsd:complexType>
                     <xsd:sequence>
                         <xsd:element name="user" type="c:UserType"/>
-                        <xsd:element name="result" type="c:OperationResultType" />
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
-
-            <xsd:element name="listResourceObjects">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="resourceOid" type="xsd:string"/>
-                        <xsd:element name="resourceObjectShadowType" type="xsd:QName"/>
-                        <xsd:element name="paging" type="q:PagingType"/>
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="listResourceObjectsResponse">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="resourceObjectShadowList" type="apit:ResourceObjectShadowListType"/>
                         <xsd:element name="result" type="c:OperationResultType" />
                     </xsd:sequence>
                 </xsd:complexType>
@@ -256,13 +238,6 @@
     </message>
     <message name="findShadowOwnerResponse">
         <part name="parameters" element="tns:findShadowOwnerResponse" />
-    </message>
-
-    <message name="listResourceObjects">
-        <part name="parameters" element="tns:listResourceObjects" />
-    </message>
-    <message name="listResourceObjectsResponse">
-        <part name="parameters" element="tns:listResourceObjectsResponse" />
     </message>
 
     <message name="testResource">
@@ -406,26 +381,6 @@
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
 
-        <operation name="listResourceObjects">
-            <documentation>
-                Search for resource object shadows of a specified type that
-                belong to the specified resource. Returns a list of such object
-                shadows or empty list if nothing was found.
-
-                Implements the backward "has" association between resource and
-                resource object shadows. Forward association is implemented by
-                property "resource" of resource object shadow.
-
-                Faults:
-                      any SystemFaultType
-                      IllegalArgumentFaultType: wrong OID format
-                      ObjectNotFoundFaultType: object with specified OID does not exists
-            </documentation>
-            <input name="listResourceObjectsInput" message="tns:listResourceObjects"/>
-            <output name="listResourceObjectsOutput" message="tns:listResourceObjectsResponse"/>
-            <fault name="fault" message="f:FaultMessage"/>
-        </operation>
-
         <operation name="testResource">
             <documentation>
                 WARNING:
@@ -531,18 +486,6 @@
                 <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
             </input>
             <output name="findShadowOwnerOutput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
-            </output>
-            <fault name="fault">
-                <soap:fault name="fault" use="literal"/>
-            </fault>
-        </operation>
-        <operation name="listResourceObjects">
-            <soap:operation/>
-            <input name="listResourceObjectsInput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
-            </input>
-            <output name="listResourceObjectsOutput">
                 <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
             </output>
             <fault name="fault">
