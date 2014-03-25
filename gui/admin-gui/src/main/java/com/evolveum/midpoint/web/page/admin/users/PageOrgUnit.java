@@ -431,21 +431,20 @@ public class PageOrgUnit extends PageAdminUsers {
             if (!isEditing()) {
                 if (unitToEdit == null) {
                     OrgType o = new OrgType();
-                    getMidpointApplication().getPrismContext().adopt(o);
+                    getPrismContext().adopt(o);
                     org = o.asPrismObject();
                 } else {
                     org = unitToEdit;
                 }
             } else {
                 StringValue oid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-                org = getModelService().getObject(OrgType.class, oid.toString(), null,
-                        createSimpleTask(LOAD_UNIT), result);
+                org = WebModelUtils.loadObject(OrgType.class, oid.toString(), result, this);
             }
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't load org. unit", ex);
             result.recordFatalError("Couldn't load org. unit.", ex);
         } finally {
-            result.computeStatus();
+            result.computeStatusIfUnknown();
         }
 
         if (WebMiscUtil.showResultInPage(result)) {
@@ -453,15 +452,16 @@ public class PageOrgUnit extends PageAdminUsers {
         }
 
         if (org == null) {
-            throw new RestartResponseException(PageOrgUnit.class);
+            showResultInSession(result);
+            throw new RestartResponseException(PageOrgTree.class);
         }
 
         return org;
     }
 
     private List<OrgType> loadParentOrgUnits() {
-        List<OrgType> parentList = new ArrayList<OrgType>();
-        List<ObjectReferenceType> refList = new ArrayList<ObjectReferenceType>();
+        List<OrgType> parentList = new ArrayList<>();
+        List<ObjectReferenceType> refList = new ArrayList<>();
         OrgType orgHelper;
         Task loadTask = createSimpleTask(LOAD_PARENT_UNITS);
         OperationResult result = new OperationResult(LOAD_PARENT_UNITS);
@@ -474,7 +474,7 @@ public class PageOrgUnit extends PageAdminUsers {
 
         try {
             if (!refList.isEmpty()) {
-                //todo imrove, use IN OID search
+                //todo improve, use IN OID search, use WebModelUtils
                 for (ObjectReferenceType ref : refList) {
                     String oid = ref.getOid();
                     orgHelper = getModelService().getObject(OrgType.class, oid, null, loadTask, result).asObjectable();
