@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.notifications.api.transports;
 
+import com.evolveum.midpoint.common.crypto.EncryptionException;
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.NotificationsUtil;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -57,6 +59,9 @@ public class MailTransport implements Transport {
     @Autowired(required = true)
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
+
+    @Autowired
+    private Protector protector;
 
     @Autowired
     private NotificationManager notificationManager;
@@ -147,10 +152,26 @@ public class MailTransport implements Transport {
                     mimeMessage.addRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(recipient));
                 }
                 mimeMessage.setSubject(mailMessage.getSubject());
-                mimeMessage.setContent(mailMessage.getBody(), mailMessage.getContentType());
+                String contentType = mailMessage.getContentType();
+                if (StringUtils.isEmpty(contentType)) {
+                    contentType = "text/plain; charset=UTF-8";
+                }
+                mimeMessage.setContent(mailMessage.getBody(), contentType);
                 javax.mail.Transport t = session.getTransport("smtp");
                 if (StringUtils.isNotEmpty(mailServerConfigurationType.getUsername())) {
-                    t.connect(mailServerConfigurationType.getUsername(), mailServerConfigurationType.getPassword());
+                    ProtectedStringType passwordProtected = mailServerConfigurationType.getPassword();
+                    String password = null;
+                    if (passwordProtected != null) {
+                        try {
+                            password = protector.decryptString(passwordProtected);
+                        } catch (EncryptionException e) {
+                            String msg = "Couldn't send mail message to " + mailMessage.getTo() + " via " + mailServerConfigurationType.getHost() + ", because the plaintext password value couldn't be obtained. Trying another mail server, if there is any.";
+                            LoggingUtils.logException(LOGGER, msg, e);
+                            resultForServer.recordFatalError(msg, e);
+                            continue;
+                        }
+                    }
+                    t.connect(mailServerConfigurationType.getUsername(), password);
                 } else {
                     t.connect();
                 }
@@ -159,10 +180,10 @@ public class MailTransport implements Transport {
                 resultForServer.recordSuccess();
                 result.recordSuccess();
                 return;
-            } catch (MessagingException mex) {
+            } catch (MessagingException e) {
                 String msg = "Couldn't send mail message to " + mailMessage.getTo() + " via " + mailServerConfigurationType.getHost() + ", trying another mail server, if there is any";
-                LoggingUtils.logException(LOGGER, msg, mex);
-                resultForServer.recordFatalError(msg, mex);
+                LoggingUtils.logException(LOGGER, msg, e);
+                resultForServer.recordFatalError(msg, e);
             }
         }
         LOGGER.warn("No more mail servers to try, mail notification to " + mailMessage.getTo() + " will not be sent.") ;
