@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
@@ -228,9 +229,9 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         //and
         Conjunction c2 = Restrictions.conjunction();
         c2.add(Restrictions.eq("l.ownerType", RObjectType.OBJECT));
-        c2.add(Restrictions.eq("l.value", 123L));
-        c2.add(Restrictions.eq("l.name", new QName("http://example.com/p", "intType")));
+``        c2.add(Restrictions.eq("l.name", new QName("http://example.com/p", "intType")));
         c2.add(Restrictions.eq("l.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "integer")));
+        c2.add(Restrictions.eq("l.value", 123L));
 
         Conjunction conjunction = Restrictions.conjunction();
         conjunction.add(c1);
@@ -261,15 +262,15 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         //or
         Conjunction c2 = Restrictions.conjunction();
         c2.add(Restrictions.eq("s1.ownerType", RObjectType.SHADOW));
-        c2.add(Restrictions.eq("s1.value", "foo value"));
         c2.add(Restrictions.eq("s1.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
         c2.add(Restrictions.eq("s1.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
+        c2.add(Restrictions.eq("s1.value", "foo value"));
         //or
         Conjunction c3 = Restrictions.conjunction();
         c3.add(Restrictions.eq("s1.ownerType", RObjectType.OBJECT));
-        c3.add(Restrictions.eq("s1.value", "uid=test,dc=example,dc=com"));
         c3.add(Restrictions.eq("s1.name", new QName("http://example.com/p", "stringType")));
         c3.add(Restrictions.eq("s1.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
+        c3.add(Restrictions.eq("s1.value", "uid=test,dc=example,dc=com"));
         //or
         Criterion c4 = Restrictions.conjunction().add(
                 Restrictions.eq("r.resourceRef.targetOid", "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e"));
@@ -410,9 +411,9 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         //and
         Conjunction c2 = Restrictions.conjunction();
         c2.add(Restrictions.eq("s1x.ownerType", RObjectType.SHADOW));
-        c2.add(Restrictions.eq("s1x.value", "uid=jbond,ou=People,dc=example,dc=com"));
         c2.add(Restrictions.eq("s1x.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
         c2.add(Restrictions.eq("s1x.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
+        c2.add(Restrictions.eq("s1x.value", "uid=jbond,ou=People,dc=example,dc=com"));
 
         Conjunction conjunction = Restrictions.conjunction();
         conjunction.add(c1);
@@ -817,5 +818,36 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(expected, real);
 
         close(session);
+    }
+
+    @Test
+    public void asdf() throws Exception {
+        Session session = open();
+
+        Criteria main = session.createCriteria(RUser.class, "u");
+        Criteria a = main.createCriteria("assignments", "a");
+        a.add(Restrictions.eq("a.assignmentOwner", RAssignmentOwner.FOCUS));
+        Criteria e = a.createCriteria("a.extension");
+
+        Criteria s = e.createCriteria("strings", "s");
+
+        Conjunction c2 = Restrictions.conjunction();
+        c2.add(Restrictions.eq("s.extensionType", RAssignmentExtensionType.EXTENSION));
+        c2.add(Restrictions.eq("s.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
+        c2.add(Restrictions.eq("s.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
+        c2.add(Restrictions.eq("s.value", "uid=jbond,ou=People,dc=example,dc=com"));
+
+        Conjunction c1 = Restrictions.conjunction();
+        c1.add(Restrictions.eq("a.targetRef.targetOid", "1234"));
+        c1.add(Restrictions.eq("a.targetRef.type", RObjectType.ORG));
+
+        main.add(Restrictions.and(c1, c2));
+
+        main.setProjection(Projections.property("u.fullObject"));
+
+        String expected = HibernateToSqlTranslator.toSql(main);
+        LOGGER.info(">>> >>> {}",expected);
+
+        session.close();
     }
 }
