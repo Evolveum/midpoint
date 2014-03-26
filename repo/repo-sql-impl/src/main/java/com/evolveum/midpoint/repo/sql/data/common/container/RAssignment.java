@@ -25,6 +25,8 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
+import com.evolveum.midpoint.repo.sql.data.common.type.RACreateApproverRef;
+import com.evolveum.midpoint.repo.sql.data.common.type.RAModifyApproverRef;
 import com.evolveum.midpoint.repo.sql.data.common.type.RCreateApproverRef;
 import com.evolveum.midpoint.repo.sql.data.common.type.RModifyApproverRef;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
@@ -159,8 +161,8 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return order;
     }
 
-    @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RCreateApproverRef.DISCRIMINATOR)
-    @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
+    @Where(clause = RAssignmentReference.REFERENCE_TYPE + "=" + RACreateApproverRef.DISCRIMINATOR)
+    @OneToMany(mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAssignmentReference> getCreateApproverRef() {
@@ -188,8 +190,8 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return modifierRef;
     }
 
-    @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RModifyApproverRef.DISCRIMINATOR)
-    @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
+    @Where(clause = RAssignmentReference.REFERENCE_TYPE + "=" + RAModifyApproverRef.DISCRIMINATOR)
+    @OneToMany(mappedBy = RAssignmentReference.F_OWNER, orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAssignmentReference> getModifyApproverRef() {

@@ -112,7 +112,7 @@ public class DeleteTest extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled = false)
+    @Test
     public void test100DeleteObjects() throws Exception {
         PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
         List<PrismObject<? extends Objectable>> objects = domProcessor.parseObjects(
