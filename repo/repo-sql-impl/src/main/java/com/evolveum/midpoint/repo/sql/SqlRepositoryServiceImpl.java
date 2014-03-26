@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -82,8 +83,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     private static final String DETAILS_HIBERNATE_DIALECT = "hibernateDialect";
     private static final String DETAILS_HIBERNATE_HBM_2_DDL = "hibernateHbm2ddl";
 
+    private OrgClosureManager orgClosureManager;
+
     public SqlRepositoryServiceImpl(SqlRepositoryFactory repositoryFactory) {
         super(repositoryFactory);
+
+        //there maybe different implementations for different RMDBs
+        orgClosureManager = new OrgClosureManager();
     }
 
     private <T extends ObjectType> PrismObject<T> getObject(Session session, Class<T> type, String oid,
@@ -228,12 +234,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             rollbackTransaction(session, ex, "Schema error while getting object with oid: "
                     + oid + ". Reason: " + ex.getMessage(), result, true);
             throw ex;
-        } catch (QueryException ex) {
-            handleGeneralCheckedException(ex, session, result);
-        } catch (DtoTranslationException ex) {
-            handleGeneralCheckedException(ex, session, result);
-        } catch (RuntimeException ex) {
-            handleGeneralRuntimeException(ex, session, result);
+        } catch (QueryException | DtoTranslationException | RuntimeException ex) {
+            handleGeneralException(ex, session, result);
         } finally {
             cleanupSessionAndResult(session, result);
         }
@@ -276,16 +278,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Session session = null;
         try {
             session = beginReadOnlyTransaction();
-            Query query = session.createQuery("select s.oid from " + ClassMapper.getHQLType(ShadowType.class)
-                    + " as s where s.oid = :oid");
+            Query query = session.createQuery("select s.oid from RShadow as s where s.oid = :oid");
             query.setString("oid", shadowOid);
             if (query.uniqueResult() == null) {
                 throw new ObjectNotFoundException("Shadow with oid '" + shadowOid + "' doesn't exist.");
             }
 
             LOGGER.trace("Selecting account shadow owner for account {}.", new Object[]{shadowOid});
-            query = session.createQuery("select owner.fullObject from " + ClassMapper.getHQLType(FocusType.class)
-                    + " as owner left join owner.linkRef as ref where ref.targetOid = :oid");
+            query = session.createQuery("select owner.fullObject from RFocus as owner left join owner.linkRef as ref where ref.targetOid = :oid");
             query.setString("oid", shadowOid);
 
             List<String> focuses = query.list();
@@ -517,7 +517,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         RObject merged = (RObject) session.merge(rObject);
-
+        //todo finish orgClosureManager
+        //orgClosureManager.updateOrgClosure(modifications, session, originalOid, object.getCompileTimeClass(), operation);
         updateFullObject(session, rObject, object);
 
         //update org. unit hierarchy based on modifications
@@ -584,6 +585,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         LOGGER.trace("Saving object (non overwrite).");
         String oid = (String) session.save(rObject);
+
+        //todo finish orgClosureManager
+        //Collection<ReferenceDelta> modifications = createAddParentRefDelta(object);
+        //orgClosureManager.updateOrgClosure(modifications, session, oid, object.getCompileTimeClass(),
+        //        OrgClosureManager.Operation.ADD);
 
         updateFullObject(session, rObject, object);
 
@@ -723,6 +729,44 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } finally {
             pm.registerOperationFinish(opHandle, attempt);
         }
+    }
+
+    private <T extends ObjectType> List<ReferenceDelta> createAddParentRefDelta(PrismObject<T> object) {
+        PrismReference parentOrgRef = object.findReference(ObjectType.F_PARENT_ORG_REF);
+        if (parentOrgRef == null) {
+            return new ArrayList<>();
+        }
+
+        PrismObjectDefinition def = object.getDefinition();
+        ReferenceDelta delta = ReferenceDelta.createModificationAdd(new ItemPath(ObjectType.F_PARENT_ORG_REF),
+                def, parentOrgRef.getClonedValues());
+
+        return Arrays.asList(delta);
+    }
+
+    private <T extends ObjectType> List<ReferenceDelta> createDeleteParentRefDelta(Class<T> type, String oid,
+                                                                                   Session session) {
+        Query query = session.createQuery("from RParentOrgRef as r where r.ownerId = 0 and r.ownerOid = :oid");
+        query.setString("oid", oid);
+
+        List<RObjectReference> references = query.list();
+        if (references == null || references.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        List<PrismReferenceValue> values = new ArrayList<>();
+        for (RObjectReference ref : references) {
+            ObjectReferenceType refType = new ObjectReferenceType();
+            RObjectReference.copyToJAXB(ref, refType, getPrismContext());
+
+            values.add(refType.asReferenceValue());
+        }
+
+        PrismObjectDefinition def = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
+        ReferenceDelta delta = ReferenceDelta.createModificationDelete(new ItemPath(ObjectType.F_PARENT_ORG_REF),
+                def, values);
+
+        return Arrays.asList(delta);
     }
 
     private <T extends ObjectType> void deleteObjectAttempt(Class<T> type, String oid, OperationResult result)
@@ -1146,6 +1190,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
             session.merge(rObject);
 
+            //todo finish orgClosureManager
+            //orgClosureManager.updateOrgClosure(modifications, session, oid, type, OrgClosureManager.Operation.MODIFY);
             updateFullObject(session, rObject, prismObject);
 
             recomputeHierarchy(rObject, session, modifications);
@@ -1455,7 +1501,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             diag.setDriverVersion(driver.getMajorVersion() + "." + driver.getMinorVersion());
         }
 
-        List<LabeledString> details = new ArrayList<LabeledString>();
+        List<LabeledString> details = new ArrayList<>();
         diag.setAdditionalDetails(details);
         details.add(new LabeledString(DETAILS_DATA_SOURCE, config.getDataSource()));
         details.add(new LabeledString(DETAILS_HIBERNATE_DIALECT, config.getHibernateDialect()));
@@ -1877,5 +1923,4 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         return sb.toString();
     }
-
 }
