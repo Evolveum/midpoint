@@ -355,22 +355,6 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="ModelExecuteOptionsType">
-        <xsd:annotation>
-            <xsd:documentation>
-                See ModelExecuteOptions for a description.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="force" type="xsd:boolean" minOccurs="0"/>
-            <xsd:element name="raw" type="xsd:boolean" minOccurs="0"/>
-            <xsd:element name="noCrypt" type="xsd:boolean" minOccurs="0"/>
-            <xsd:element name="reconcile" type="xsd:boolean" minOccurs="0"/>
-            <xsd:element name="executeImmediatelyAfterApproval" type="xsd:boolean" minOccurs="0"/>
-            <xsd:element name="overwrite" type="xsd:boolean" minOccurs="0"/>
-        </xsd:sequence>
-    </xsd:complexType>
-
     <xsd:complexType name="ObjectDeltaListType">
         <xsd:annotation>
             <xsd:documentation>

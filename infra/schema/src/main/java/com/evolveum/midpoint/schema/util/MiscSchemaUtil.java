@@ -25,7 +25,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.GetOperationOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.RetrieveOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.SelectorQualifiedGetOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.SelectorQualifiedGetOptionsType;
 import org.w3c.dom.Element;
@@ -38,7 +37,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.ObjectSelector;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -144,7 +142,18 @@ public class MiscSchemaUtil {
 		return itemPathList;
 	}
 
-	private static SelectorOptions<GetOperationOptions> objectOptionsTypeToOptions(SelectorQualifiedGetOptionType objectOptionsType) {
+    public static List<SelectorOptions<GetOperationOptions>> optionsTypeToOptions(SelectorQualifiedGetOptionsType objectOptionsType) {
+        if (objectOptionsType == null) {
+            return null;
+        }
+        List<SelectorOptions<GetOperationOptions>> retval = new ArrayList<>();
+        for (SelectorQualifiedGetOptionType optionType : objectOptionsType.getOption()) {
+            retval.add(selectorQualifiedGetOptionTypeToSelectorOption(optionType));
+        }
+        return retval;
+    }
+
+	private static SelectorOptions<GetOperationOptions> selectorQualifiedGetOptionTypeToSelectorOption(SelectorQualifiedGetOptionType objectOptionsType) {
 		ObjectSelector selector = selectorTypeToSelector(objectOptionsType.getSelector());
 		GetOperationOptions options = getOptionsTypeToOptions(objectOptionsType.getOptions());
 		return new SelectorOptions<>(selector, options);

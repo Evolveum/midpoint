@@ -15,25 +15,14 @@
  */
 package com.evolveum.midpoint.model;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import javax.xml.namespace.QName;
-import javax.xml.ws.Holder;
-
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelPort;
+import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -42,12 +31,9 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.PagingConvertor;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceEventDescription;
-import com.evolveum.midpoint.provisioning.api.ResourceEventListener;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -56,10 +42,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -70,14 +54,13 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectDeltaListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ResourceObjectShadowListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.SelectorQualifiedGetOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ModelExecuteOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowChangeDescriptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -88,10 +71,20 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultTy
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.SystemFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
-import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
+import javax.xml.namespace.QName;
+import javax.xml.ws.Holder;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * 
@@ -105,6 +98,10 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	
 	@Autowired(required = true)
 	private ModelCrudService model;
+
+    // for more complicated interactions (like executeChanges)
+    @Autowired
+    private ModelController modelController;
 	
 	@Autowired(required = true)
 	private TaskManager taskManager;
@@ -122,39 +119,18 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	private Protector protector;
 
 	@Override
-	public void addObject(ObjectType objectType, Holder<String> oidHolder, Holder<OperationResultType> result) throws FaultMessage {
-		notNullArgument(objectType, "Object must not be null.");
-
-		Task task = createTaskInstance(ADD_OBJECT);
-		auditLogin(task);
-		OperationResult operationResult = task.getResult();
-		try {
-			PrismObject object = objectType.asPrismObject();
-			prismContext.adopt(objectType);
-			String oid = model.addObject(object, null, task, operationResult);
-			handleOperationResult(operationResult, result);
-			oidHolder.value = oid;
-			return;
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL addObject() failed", ex);
-			auditLogout(task);
-			throw createSystemFault(ex, operationResult);
-		}
-	}
-
-	@Override
-	public void getObject(String objectTypeUri, String oid, OperationOptionsType options,
+	public void getObject(QName objectType, String oid, SelectorQualifiedGetOptionsType optionsType,
 			Holder<ObjectType> objectHolder, Holder<OperationResultType> resultHolder) throws FaultMessage {
+        notNullArgument(objectType, "Object type must not be null.");
 		notEmptyArgument(oid, "Oid must not be null or empty.");
-		notNullArgument(options, "options  must not be null.");
 
 		Task task = createTaskInstance(GET_OBJECT);
 		auditLogin(task);
 		OperationResult operationResult = task.getResult();
-		try {			
-			PrismObject<? extends ObjectType> object = model.getObject(
-					ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), oid,
-					MiscSchemaUtil.optionsTypeToOptions(options), task, operationResult);
+		try {
+            Class objectClass = ObjectTypes.getObjectTypeFromTypeQName(objectType).getClassDefinition();
+            Collection<SelectorOptions<GetOperationOptions>> options = MiscSchemaUtil.optionsTypeToOptions(optionsType);
+            PrismObject<? extends ObjectType> object = model.getObject(objectClass, oid, options, task, operationResult);
 			handleOperationResult(operationResult, resultHolder);
 			objectHolder.value = object.asObjectable();
 			return;
@@ -166,45 +142,18 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	}
 
 	@Override
-	public void listObjects(String objectType, PagingType paging, OperationOptionsType options,
-                    Holder<ObjectListType> objectListHolder, Holder<OperationResultType> result) throws FaultMessage {
-		notEmptyArgument(objectType, "Object type must not be null or empty.");
-
-		Task task = createTaskInstance(LIST_OBJECTS);
-		auditLogin(task);
-		OperationResult operationResult = task.getResult();
-		try {
-			ObjectQuery query = ObjectQuery.createObjectQuery(PagingConvertor.createObjectPaging(paging));
-			List<PrismObject<? extends ObjectType>> list = (List) model.searchObjects(ObjectTypes.getObjectTypeFromUri(objectType)
-					.getClassDefinition(), query, MiscSchemaUtil.optionsTypeToOptions(options), task, operationResult);
-			handleOperationResult(operationResult, result);
-
-			ObjectListType listType = new ObjectListType();
-			for (PrismObject<? extends ObjectType> o : list) {
-				listType.getObject().add(o.asObjectable());
-			}
-			objectListHolder.value = listType;
-			return;
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL listObjects() failed", ex);
-			auditLogout(task);
-			throw createSystemFault(ex, operationResult);
-		}
-	}
-
-	@Override
-	public void searchObjects(String objectTypeUri, QueryType query, OperationOptionsType options,
+	public void searchObjects(QName objectType, QueryType query, SelectorQualifiedGetOptionsType optionsType,
                   Holder<ObjectListType> objectListHolder, Holder<OperationResultType> result) throws FaultMessage {
-		notNullArgument(query, "Query must not be null.");
+        notNullArgument(objectType, "Object type must not be null.");
 
 		Task task = createTaskInstance(SEARCH_OBJECTS);
 		auditLogin(task);
 		OperationResult operationResult = task.getResult();
 		try {
-			ObjectQuery q = QueryJaxbConvertor.createObjectQuery(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), query, prismContext);
-			List<PrismObject<? extends ObjectType>> list = (List)model.searchObjects(
-					ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), q,
-                    MiscSchemaUtil.optionsTypeToOptions(options), task, operationResult);
+            Class objectClass = ObjectTypes.getObjectTypeFromTypeQName(objectType).getClassDefinition();
+            Collection<SelectorOptions<GetOperationOptions>> options = MiscSchemaUtil.optionsTypeToOptions(optionsType);
+			ObjectQuery q = QueryJaxbConvertor.createObjectQuery(objectClass, query, prismContext);
+			List<PrismObject<? extends ObjectType>> list = (List)model.searchObjects(objectClass, q, options, task, operationResult);
 			handleOperationResult(operationResult, result);
 			ObjectListType listType = new ObjectListType();
 			for (PrismObject<? extends ObjectType> o : list) {
@@ -218,49 +167,27 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		}
 	}
 
-	@Override
-	public OperationResultType modifyObject(String objectTypeUri, ObjectModificationType change) throws FaultMessage {
-		notNullArgument(change, "Object modification must not be null.");
+    @Override
+    public OperationResultType executeChanges(ObjectDeltaListType deltaList, ModelExecuteOptionsType optionsType) throws FaultMessage {
+		notNullArgument(deltaList, "Object delta list must not be null.");
 
-		Task task = createTaskInstance(MODIFY_OBJECT);
+		Task task = createTaskInstance(EXECUTE_CHANGES);
 		auditLogin(task);
 		OperationResult operationResult = task.getResult();
 		try {
-			Class<? extends ObjectType> type = ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition();
-			Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(change, type, prismContext);
-			model.modifyObject(type, change.getOid(),
-					modifications, null, task, operationResult);
+			Collection<ObjectDelta> deltas = DeltaConvertor.createObjectDeltas(deltaList, prismContext);
+            ModelExecuteOptions options = ModelExecuteOptions.fromModelExecutionOptionsType(optionsType);
+            modelController.executeChanges((Collection) deltas, options, task, operationResult);        // brutally eliminating type-safety compiler barking
 			return handleOperationResult(operationResult);
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL modifyObject() failed", ex);
+			LoggingUtils.logException(LOGGER, "# MODEL executeChanges() failed", ex);
 			auditLogout(task);
 			throw createSystemFault(ex, operationResult);
 		}
 	}
 
 	@Override
-	public OperationResultType deleteObject(String objectTypeUri, String oid)
-			throws FaultMessage {
-		notEmptyArgument(oid, "Oid must not be null or empty.");
-		notEmptyArgument(objectTypeUri, "objectType must not be null or empty.");
-
-		Task task = createTaskInstance(DELETE_OBJECT);
-		auditLogin(task);
-		OperationResult operationResult = task.getResult();
-		try {
-			model.deleteObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), oid,
-					null, task, operationResult);
-			return handleOperationResult(operationResult);
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL deleteObject() failed", ex);
-			auditLogout(task);
-			throw createSystemFault(ex, operationResult);
-		}
-	}
-
-	@Override
-	public void listAccountShadowOwner(String accountOid, Holder<UserType> userHolder, 
-			Holder<OperationResultType> result)
+	public void findShadowOwner(String accountOid, Holder<UserType> userHolder, Holder<OperationResultType> result)
 			throws FaultMessage {
 		notEmptyArgument(accountOid, "Account oid must not be null or empty.");
 
@@ -275,17 +202,10 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			}
 			return;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL listAccountShadowOwner() failed", ex);
+			LoggingUtils.logException(LOGGER, "# MODEL findShadowOwner() failed", ex);
 			auditLogout(task);
 			throw createSystemFault(ex, operationResult);
 		}
-	}
-
-	@Override
-	public void listResourceObjectShadows(String resourceOid, String resourceObjectShadowType,
-			Holder<ResourceObjectShadowListType> resourceObjectShadowListHolder,
-			Holder<OperationResultType> result) throws FaultMessage {
-		throw new UnsupportedOperationException("Not supported. DEPRECATED. Use searchObjects instead.");
 	}
 
 	@Override
