@@ -429,7 +429,7 @@ public class RTask extends RObject<TaskType> {
         }
 
         try {
-            jaxb.setOtherHandlersUriStack(RUtil.toJAXB(TaskType.class, new ItemPath(TaskType.F_OTHER_HANDLERS_URI_STACK),
+            jaxb.setOtherHandlersUriStack(RUtil.toJAXB(TaskType.class, TaskType.F_OTHER_HANDLERS_URI_STACK,
                     repo.getOtherHandlersUriStack(), UriStack.class, prismContext));
             jaxb.setSchedule(RUtil.toJAXB(TaskType.class, TaskType.F_SCHEDULE, repo.getSchedule(),
                     ScheduleType.class, prismContext));
@@ -475,7 +475,7 @@ public class RTask extends RObject<TaskType> {
         }
 
         try {
-            repo.setOtherHandlersUriStack(RUtil.toRepo(jaxb.getOtherHandlersUriStack(), prismContext));
+            repo.setOtherHandlersUriStack(RUtil.toRepo(taskDefinition, TaskType.F_OTHER_HANDLERS_URI_STACK, jaxb.getOtherHandlersUriStack(), prismContext));
             repo.setSchedule(RUtil.toRepo(taskDefinition, TaskType.F_SCHEDULE, jaxb.getSchedule(), prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);

@@ -38,12 +38,15 @@ import com.evolveum.prism.xml.ns._public.types_2.RawType;
 public class RawTypeUtil {
 
 	
-	public static <V extends PrismValue> Item<V> getParsedItem(ItemDefinition itemDefinition, List<RawType> values) throws SchemaException{
+	public static <V extends PrismValue> Item<V> getParsedItem(ItemDefinition itemDefinition, List<RawType> values, QName elementQName, PrismContainerDefinition containerDef) throws SchemaException{
 		
 		Item<V> subItem = null;
 		
 		List<V> parsedValues = new ArrayList<V>();
 		for (RawType rawValue : values){
+			if (itemDefinition == null && containerDef != null){
+				itemDefinition = containerDef.getPrismContext().getXnodeProcessor().locateItemDefinition(containerDef, elementQName, rawValue.getXnode());
+			}
 			V parsed = rawValue.getParsedValue(itemDefinition);
 			if (parsed != null){
 				parsedValues.add(parsed);

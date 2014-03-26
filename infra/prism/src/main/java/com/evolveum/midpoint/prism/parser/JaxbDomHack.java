@@ -35,6 +35,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.schema.SchemaDescription;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
@@ -62,6 +63,7 @@ import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
@@ -119,7 +121,7 @@ public class JaxbDomHack {
 		}
 	}
 	
-	protected <T extends Containerable> ItemDefinition locateItemDefinition(
+	public <T extends Containerable> ItemDefinition locateItemDefinition(
 			PrismContainerDefinition<T> containerDefinition, QName elementQName, Object valueElements)
 			throws SchemaException {
 		ItemDefinition def = containerDefinition.findItemDefinition(elementQName);
@@ -131,6 +133,23 @@ public class JaxbDomHack {
 			// Try to locate xsi:type definition in the element
 			def = resolveDynamicItemDefinition(containerDefinition, elementQName, (Element) valueElements,
 					prismContext);
+		} 
+		
+		if (valueElements instanceof List){
+			List elements = (List) valueElements;
+			if (elements.size() == 1){
+				Object element = elements.get(0);
+				if (element instanceof JAXBElement){
+					Object val = ((JAXBElement) element).getValue();
+					if (val.getClass().isPrimitive()){
+						QName typeName = XsdTypeMapper.toXsdType(val.getClass());
+						PrismPropertyDefinition propDef = new PrismPropertyDefinition(elementQName, typeName, prismContext);
+//						propDef.setMaxOccurs(maxOccurs);
+						propDef.setDynamic(true);
+						return propDef;
+					}
+				}
+			}
 		}
 		if (def != null) {
 			return def;

@@ -181,6 +181,14 @@ public class ItemDeltaType implements Serializable, Cloneable {
     	}
         return value;
     }
+    
+    public List<Object> getAnyValues(){
+    	List<Object> vals = new ArrayList<Object>();
+    	for (RawType raw : value){
+    		vals.addAll(raw.getContent());
+    	}
+    	return vals;
+    }
 
     /**
      * Sets the value of the value property.

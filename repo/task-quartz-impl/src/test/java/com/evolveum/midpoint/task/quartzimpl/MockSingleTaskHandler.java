@@ -39,8 +39,8 @@ public class MockSingleTaskHandler implements TaskHandler {
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(MockSingleTaskHandler.class);
     private String MOCK_HANDLER_URI = "http://midpoint.evolveum.com/test/mock";
-    private QName L1_FLAG_QNAME = new QName(MOCK_HANDLER_URI, "l1Flag");
-    private QName WFS_FLAG_QNAME = new QName(MOCK_HANDLER_URI, "wfsFlag");
+    private QName L1_FLAG_QNAME = new QName(MOCK_HANDLER_URI, "l1Flag", "m");
+    private QName WFS_FLAG_QNAME = new QName(MOCK_HANDLER_URI, "wfsFlag", "m");
 
     private TaskManagerQuartzImpl taskManager;
 

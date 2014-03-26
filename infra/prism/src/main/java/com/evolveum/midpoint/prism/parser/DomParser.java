@@ -121,6 +121,7 @@ public class DomParser implements Parser {
 		QName xsiType = DOMUtil.resolveXsiType(element);
 		if (xsiType != null) {
 			xnode.setTypeQName(xsiType);
+			xnode.setExplicitTypeDeclaration(true);
 		}
 
 		String maxOccursString = element.getAttributeNS(

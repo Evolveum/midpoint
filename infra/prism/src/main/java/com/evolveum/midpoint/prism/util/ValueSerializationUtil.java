@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.parser.XNodeSerializer;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
@@ -29,10 +30,15 @@ import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
+import com.sun.tools.xjc.model.CNonElement;
 
 public class ValueSerializationUtil {
 	
-	public static <T> String serializeValue(T value, ItemDefinition def, QName parentName, PrismContext prismContext, String language) throws SchemaException{
+	public static <T> String serializeValue(T value, ItemDefinition def, QName itemName, PrismContext prismContext, String language) throws SchemaException{
+		return serializeValue(value, def, itemName, null, prismContext, language);
+	}
+	
+	public static <T> String serializeValue(T value, ItemDefinition def, QName itemName, QName parentName, PrismContext prismContext, String language) throws SchemaException{
 //		System.out.println("value serialization");
 		if (value == null){
 			return null;
@@ -47,11 +53,12 @@ public class ValueSerializationUtil {
 			}
 			
 			if (def instanceof PrismPropertyDefinition){
-				PrismProperty prop = (PrismProperty) def.instantiate();
+				PrismProperty prop = (PrismProperty) def.instantiate(itemName);
 				for (T val : values){
 					PrismPropertyValue<T> pValue = new PrismPropertyValue<T>(val);
 					prop.add(pValue);
 				}
+		
 				XNode node = serializer.serializeItem(prop);
 				if (node instanceof ListXNode){
 					ListXNode xList = (ListXNode) node;
@@ -61,13 +68,13 @@ public class ValueSerializationUtil {
 							throw new IllegalArgumentException("must be a map");
 						}
 						
-						String s = prismContext.getParserDom().serializeToString(sub, def.getName());
+						String s = prismContext.getParserDom().serializeToString(sub, parentName);
 //						System.out.println("serialized: " + s);
 						return s;
 						
 					}else{
 						MapXNode xmap = new MapXNode();
-						xmap.put(def.getName(), xList);
+						xmap.put(itemName, xList);
 						String s = prismContext.getParserDom().serializeToString(xmap, parentName);
 //						System.out.println("serialized: " + s);
 						return s;
@@ -119,7 +126,7 @@ public class ValueSerializationUtil {
 //		
 //		ItemDefinition def = prismContext.getSchemaRegistry().findItemDefinitionByElementName(itemName);
 		
-		QName itemName = null;
+//		QName itemName = null;
 		if (def != null){
 			itemName = def.getName();
 		}
@@ -169,7 +176,7 @@ public class ValueSerializationUtil {
 		XNodeSerializer serializer = prismContext.getXnodeProcessor().createSerializer();
 		XNode node = serializer.serializeItemValue(value, def);
 		String s = prismContext.getParserDom().serializeToString(node, itemName);
-//		System.out.println("serialized: " + s);
+		System.out.println("serialized ITEM VALUE: " + s);
 		return s;
 	}
 	
@@ -189,6 +196,8 @@ public class ValueSerializationUtil {
 		if (xnode instanceof RootXNode){
 			xmap = ((RootXNode) xnode).getSubnode();
 		} 
+		
+//		System.out.println("xmap: " + xmap);
 //		else if (xnode instanceof MapXNode){
 //			xmap = (MapXNode) xnode;
 //		} else if (xnode instanceof PrimitiveXNode){
@@ -202,6 +211,7 @@ public class ValueSerializationUtil {
 		
 		if (item instanceof PrismProperty){
 			PrismProperty prop = (PrismProperty) item;
+			
 			if (prop.isSingleValue()){
 				return (T) prop.getRealValue();
 			}
@@ -225,9 +235,17 @@ public class ValueSerializationUtil {
 		throw new UnsupportedOperationException("need to be implemented");
 	}
 	
-	public static Collection<? extends PrismValue> deserializeItemValues(String value, String language){
+	public static Collection<? extends PrismValue> deserializeItemValues(String value, Item item, String language) throws SchemaException{
 		System.out.println("item value deserialization");
-		throw new UnsupportedOperationException("need to be implemented");
+		PrismContext prismContext = item.getPrismContext();
+		XNode xnode = prismContext.getParserDom().parse(value);
+		if (xnode instanceof RootXNode){
+			xnode = ((RootXNode) xnode).getSubnode();
+		}
+		System.out.println("value: " + value);
+		Item parsedItem = prismContext.getXnodeProcessor().parseItem(xnode, item.getElementName(), item.getDefinition());
+		return parsedItem.getValues();
+//		throw new UnsupportedOperationException("need to be implemented");
 	}
 	
 	public static SearchFilterType deserializeFilter(String query, String language){

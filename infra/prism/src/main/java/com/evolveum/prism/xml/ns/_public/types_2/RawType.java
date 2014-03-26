@@ -19,12 +19,16 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlMixed;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.jvnet.jaxb2_commons.lang.Equals;
+import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
+import org.jvnet.jaxb2_commons.locator.ObjectLocator;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Containerable;
@@ -46,6 +50,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.parser.DomParser;
 import com.evolveum.midpoint.prism.parser.XNodeProcessor;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
@@ -83,7 +88,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 @XmlType(name = "RawType", propOrder = {
     "content"
 })
-public class RawType implements Serializable{
+public class RawType implements Serializable, Equals{
 	private static final long serialVersionUID = 4430291958902286779L;
 	
 	public RawType() {
@@ -102,7 +107,7 @@ public class RawType implements Serializable{
     @XmlMixed
     @XmlAnyElement(lax = true)
     protected List<Object> content;
-
+    
 	public XNode getXnode() {
 		return xnode;
 	}
@@ -110,6 +115,7 @@ public class RawType implements Serializable{
 	public void setXnode(XNode xnode) {
 		this.xnode = xnode;
 	}
+
 
 	/**
      * 
@@ -205,7 +211,12 @@ public class RawType implements Serializable{
 //						 	try{
 //						 		Element e = parser.serializeXPrimitiveToElement(prim, new QName(PrismConstants.NS_TYPES, "value"));
 //						 		return e;
-						 		return prim.getStringValue();
+						 		try {
+									return prim.getParsedValue(typeName);
+								} catch (SchemaException e) {
+									// TODO: is this exception really needed?? isn't it better to just return string value??
+									throw new IllegalStateException("Cannot get value from " + prim);
+								}
 //						 	}catch (SchemaException ex){
 //						 		throw new IllegalStateException(ex.getMessage(), ex);
 //						 	}
@@ -430,11 +441,22 @@ public class RawType implements Serializable{
 
 		if (xnode != null) {
 			System.out.println("xnode: " + xnode.debugDump());
-			PrismContext prismContext = itemDefinition.getPrismContext();
-			Item<V> subItem = prismContext.getXnodeProcessor().parseItem(xnode, itemDefinition.getName(),
-					itemDefinition);
-			value = subItem.getValue(0);
-			xnode = null;
+			if (itemDefinition != null) {
+				PrismContext prismContext = itemDefinition.getPrismContext();
+				Item<V> subItem = prismContext.getXnodeProcessor().parseItem(xnode, itemDefinition.getName(),
+						itemDefinition);
+				value = subItem.getValue(0);
+				xnode = null;
+			} else 
+				throw new SchemaException("no definition..cannot parse xnode " + xnode);
+//			} else {
+//				if (xnode instanceof PrimitiveXNode){
+//					if (((PrimitiveXNode) xnode).isParsed()){
+//						value = (V) new PrismPropertyValue(((PrimitiveXNode) xnode).getValue());
+//					}
+//					((PrimitiveXNode) xnode).getParsedValue(typeName);
+//				}
+//			}
 		} else {
 			if (itemDefinition == null) {
 				throw new SchemaException("No definition for item " + realValue
@@ -511,6 +533,36 @@ public class RawType implements Serializable{
 		} else if (!xnode.equals(other.xnode))
 			return false;
 		return true;
+	}
+	
+	@Override
+	public boolean equals(ObjectLocator thisLocator, ObjectLocator thatLocator, Object that,
+			EqualsStrategy equalsStrategy) {
+		boolean res = equals(that);
+		System.out.println("raw type equals: " + res);
+		if (!res){
+			System.out.println("this " + this.xnode.debugDump());
+			System.out.println("that " + ((RawType)that).getXnode().debugDump());
+		}
+		return res;
+//		if (!(that instanceof ItemPathType)){
+//    		return false;
+//    	}
+//    	
+//    	ItemPathType other = (ItemPathType) that;
+//    	
+//    	ItemPath thisPath = getItemPath();
+//    	ItemPath otherPath = other.getItemPath();
+//    	
+//    	if (thisPath != null){
+//    		return thisPath.equivalent(otherPath);
+//    	}
+//    	
+//    	List<Object> thsContent = getContent();
+//    	List<Object> othContent = other.getContent();
+    	
+//    	return equalsStrategy.equals(thisLocator, thatLocator, thsContent, othContent);
+    	
 	}
 
 }

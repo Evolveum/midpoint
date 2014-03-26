@@ -50,6 +50,7 @@ import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
@@ -99,12 +100,19 @@ public class DomSerializer {
 	public Element serialize(RootXNode rootxnode) throws SchemaException {
 		initialize();
 		QName rootElementName = rootxnode.getRootElementName();
-		Element topElement = createElement(rootxnode.getRootElementName());
+		Element topElement = createElement(rootElementName);
 		QName typeQName = rootxnode.getTypeQName();
 		if (typeQName != null && !schemaRegistry.hasImplicitTypeDefinition(rootElementName, typeQName)) {
 			DOMUtil.setXsiType(topElement, rootxnode.getTypeQName());
 		}
 		XNode subnode = rootxnode.getSubnode();
+		if (subnode instanceof PrimitiveXNode){
+			serializePrimitiveElement((PrimitiveXNode)subnode, topElement, rootElementName);
+			
+//			String val = ((PrimitiveXNode) subnode).getStringValue();
+//			topElement.setTextContent(val);
+			return DOMUtil.getFirstChildElement(topElement);
+		} 
 		if (!(subnode instanceof MapXNode)) {
 			throw new SchemaException("Sub-root xnode is not map, cannot serialize to XML (it is "+subnode+")");
 		}
@@ -144,7 +152,7 @@ public class DomSerializer {
 				DOMUtil.setXsiType(element, xsubnode.getTypeQName());
 			}
 			parentElement.appendChild(element);
-			System.out.println("subnode " + xsubnode.debugDump());
+//			System.out.println("subnode " + xsubnode.debugDump());
 			serializeMap((MapXNode)xsubnode, element);
 		} else if (xsubnode instanceof PrimitiveXNode<?>) {
 			PrimitiveXNode<?> xprim = (PrimitiveXNode<?>)xsubnode;
@@ -232,8 +240,14 @@ public class DomSerializer {
 			}
 			parentElement.appendChild(element);
 			
+			//TODO: refactor after suporting types, qnames and other values without ns declared...
 			if (xprim.isExplicitTypeDeclaration()) {
-				DOMUtil.setXsiType(element, typeQName);
+				if (StringUtils.isBlank(typeQName.getNamespaceURI())) {
+					typeQName = XsdTypeMapper.determineQNameWithNs(typeQName);
+				}
+				if (typeQName != null) {
+					DOMUtil.setXsiType(element, typeQName);
+				}
 			}
 			
 	    	if (typeQName.equals(DOMUtil.XSD_QNAME)) {

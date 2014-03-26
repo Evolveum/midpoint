@@ -50,6 +50,7 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.ValueSerializationUtil;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
 import com.evolveum.midpoint.repo.sql.data.common.OperationResult;
 import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
@@ -182,8 +183,8 @@ public final class RUtil {
 
 		return jaxbValue;
 	}
-
-	public static <T> T toJAXB(Class parentClass, QName path, String value, Class<T> clazz, PrismContext prismContext) throws SchemaException, JAXBException {
+	
+	public static <T> T toJAXB(Class parentClass, QName path, QName elementName, String value, Class<T> clazz, PrismContext prismContext) throws SchemaException, JAXBException{
 		if (StringUtils.isEmpty(value)) {
 			return null;
 		}
@@ -194,6 +195,7 @@ public final class RUtil {
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Parsing:\n{}", value);
 			}
+			System.out.println("value" + value);
 			PrismObject object = prismContext.parseObject(value);
 			return (T) object.asObjectable();
 		}
@@ -204,20 +206,76 @@ public final class RUtil {
 			if (cDefinition != null){
 				definition = cDefinition.findItemDefinition(path);
 			} else {
-				definition = registry.findPropertyDefinitionByElementName(SchemaConstantsGenerated.C_OPERATION_RESULT);
+//				definition = registry.findPropertyDefinitionByElementName(SchemaConstantsGenerated.C_OPERATION_RESULT);
+				definition = registry.findPropertyDefinitionByElementName(path);
+				
 			}
 			
 
 		if (definition == null) {
 			definition = prismContext.getSchemaRegistry().findItemDefinitionByElementName(path);
-//			System.out.println("definition: " + definition);
+			
 		}
+		
+		if (definition == null && elementName != null){
+			definition = registry.findItemDefinitionByElementName(elementName);
+		}
+//		System.out.println("definition: " + definition);
+//		System.out.println("value: " + value);
 
 		T jaxbValue = ValueSerializationUtil.deserializeValue(value, parentClass, path, definition,
 				prismContext, PrismContext.LANG_XML);
+		
+//		if (OperationResultType.F_PARTIAL_RESULTS.equals(path)){
+//			System.out.println("op result: " + );
+//			return (T) ((List)jaxbValue).get(0);
+//		}
+		
+		System.out.println("jaxbValue " + jaxbValue);
 
 		return jaxbValue;
 	}
+
+	public static <T> T toJAXB(Class parentClass, QName path, String value, Class<T> clazz, PrismContext prismContext) throws SchemaException, JAXBException {
+		return toJAXB(parentClass, path, null, value, clazz, prismContext);
+//		if (StringUtils.isEmpty(value)) {
+//			return null;
+//		}
+//		if (Objectable.class.isAssignableFrom(clazz)) {
+//			// if (root == null) {
+//			// return null;
+//			// }
+//			if (LOGGER.isTraceEnabled()) {
+//				LOGGER.trace("Parsing:\n{}", value);
+//			}
+//			PrismObject object = prismContext.parseObject(value);
+//			return (T) object.asObjectable();
+//		}
+//		SchemaRegistry registry = prismContext.getSchemaRegistry();
+//		 
+//			PrismContainerDefinition cDefinition = registry.findContainerDefinitionByCompileTimeClass(parentClass);
+//			ItemDefinition definition = null;
+//			if (cDefinition != null){
+//				definition = cDefinition.findItemDefinition(path);
+//			} else {
+////				definition = registry.findPropertyDefinitionByElementName(SchemaConstantsGenerated.C_OPERATION_RESULT);
+//				definition = registry.findPropertyDefinitionByElementName(path);
+//			}
+//			
+//
+//		if (definition == null) {
+//			definition = prismContext.getSchemaRegistry().findItemDefinitionByElementName(path);
+//			System.out.println("definition: " + definition);
+//		}
+//		System.out.println("value: " + value);
+//
+//		T jaxbValue = ValueSerializationUtil.deserializeValue(value, parentClass, path, definition,
+//				prismContext, PrismContext.LANG_XML);
+//
+//		return jaxbValue;
+	}
+	
+	
 
 	private static PrismContainerDefinition findContainerDefinition(Class clazz, ItemPath path,
 			QName complexType, PrismContext prismContext) throws SchemaException {
@@ -270,7 +328,7 @@ public final class RUtil {
 			definition = parentDefinition;
 		}
 
-		return ValueSerializationUtil.serializeValue(value, definition, parentDefinition.getName(), prismContext, PrismContext.LANG_XML);
+		return ValueSerializationUtil.serializeValue(value, definition, itemName, parentDefinition.getName(), prismContext, PrismContext.LANG_XML);
 	}
 
 	@Deprecated
@@ -569,8 +627,19 @@ public final class RUtil {
 					OperationResultType.F_RETURNS, repo.getReturns(), ParamsType.class, prismContext));
 
 			if (StringUtils.isNotEmpty(repo.getPartialResults())) {
-				List result = (List) RUtil.toJAXB(OperationResultType.class, OperationResultType.F_PARTIAL_RESULTS, repo.getPartialResults(), OperationResultType.class, prismContext);
-				jaxb.getPartialResults().addAll(result);
+				System.out.println("PARTIAL RESULTS DESERIALIZATION");
+				List result = RUtil.toJAXB(OperationResultType.class, OperationResultType.F_PARTIAL_RESULTS, SchemaConstantsGenerated.C_OPERATION_RESULT, repo.getPartialResults(), List.class, prismContext);
+				// TODO: this is brutal ugly hack..it will be remove and refactored after new repo implementation..for now, it is only time wasting..
+				if (result.size() == 1){
+					OperationResultType res = (OperationResultType) result.get(0);
+					if (StringUtils.isEmpty(res.getOperation())){
+						jaxb.getPartialResults().addAll(res.getPartialResults());
+					} else{
+						jaxb.getPartialResults().add(res);
+					}
+				} else {
+					jaxb.getPartialResults().addAll(result);
+				}
 			}
 		} catch (Exception ex) {
 			throw new DtoTranslationException(ex.getMessage(), ex);
@@ -603,7 +672,9 @@ public final class RUtil {
 			if (!jaxb.getPartialResults().isEmpty()) {
 				OperationResultType result = new OperationResultType();
 				result.getPartialResults().addAll(jaxb.getPartialResults());
-				repo.setPartialResults(RUtil.toRepo(def, OperationResultType.F_PARTIAL_RESULTS, jaxb.getPartialResults(), prismContext));
+				String serialized = RUtil.toRepo(def, OperationResultType.F_PARTIAL_RESULTS, jaxb.getPartialResults(), prismContext);
+				System.out.println("serialized operation result: " + serialized);
+				repo.setPartialResults(serialized);
 			}
 		} catch (Exception ex) {
 			throw new DtoTranslationException(ex.getMessage(), ex);

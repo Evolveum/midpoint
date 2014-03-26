@@ -225,12 +225,16 @@ public class PrimitiveXNode<T> extends XNode {
 		
 		PrimitiveXNode other = (PrimitiveXNode) obj;
 		if (other.isParsed() && isParsed()){
-			return value.equals(obj);
+			return value.equals(other.value);
 		} else if (!other.isParsed() && !isParsed()){
 			String thisStringVal = valueParser.getStringValue();
 			String otherStringVal = other.getValueParser().getStringValue();
 			return thisStringVal.equals(otherStringVal);
-		} 
+		} else if (other.isParsed() && !isParsed()){
+			return other.value.equals(this.getStringValue());
+		} else if (!other.isParsed() && isParsed()){
+			return value.equals(other.getStringValue());
+		}
 		
 		return false;
 	}

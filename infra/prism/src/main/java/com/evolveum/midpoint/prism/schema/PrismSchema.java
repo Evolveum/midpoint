@@ -33,6 +33,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.EntityResolver;
 
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -185,6 +186,10 @@ public class PrismSchema implements DebugDumpable {
 		return findContainerDefinitionByType(typeName,PrismObjectDefinition.class);
 	}
 	
+	public <X extends Objectable> PrismObjectDefinition<X> findObjectDefinitionByTypeAssumeNs(QName typeName) {
+		return findContainerDefinitionByTypeAssumeNs(typeName,PrismObjectDefinition.class);
+	}
+	
 	public <X extends Objectable> PrismObjectDefinition<X> findObjectDefinitionByElementName(QName elementName) {
 		return findContainerDefinitionByElementName(elementName, PrismObjectDefinition.class);
 	}
@@ -213,6 +218,20 @@ public class PrismSchema implements DebugDumpable {
 		for (Definition definition : definitions) {
 			if (type.isAssignableFrom(definition.getClass())
 					&& typeName.equals(definition.getTypeName())) {
+				return (T) definition;
+			}
+		}
+		return null;
+	}
+	
+	private <T extends PrismContainerDefinition> T findContainerDefinitionByTypeAssumeNs(QName typeName, Class<T> type) {
+		if (typeName == null) {
+			throw new IllegalArgumentException("typeName must be supplied");
+		}
+		// TODO: check for multiple definition with the same type
+		for (Definition definition : definitions) {
+			if (type.isAssignableFrom(definition.getClass())
+					&& QNameUtil.match(typeName,definition.getTypeName())) {
 				return (T) definition;
 			}
 		}

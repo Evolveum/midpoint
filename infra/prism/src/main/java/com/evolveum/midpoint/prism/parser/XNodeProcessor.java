@@ -692,14 +692,20 @@ public class XNodeProcessor {
             }
         } else {
             QName defTargetType = referenceDefinition.getTargetTypeName();
-            if (defTargetType != null && !type.equals(defTargetType)) {
+            if (defTargetType != null && !QNameUtil.match(defTargetType, type)) {
                 //one more check - if the type is not a subtype of the schema type
 
                 if (!qnameToClass(defTargetType).isAssignableFrom(qnameToClass(type))){
                     throw new SchemaException("Target type specified in reference ("+type+") does not match target type in schema ("+defTargetType+")");
                 }
             }
+            // if the type is specified without namespace, use the full qname..this is maybe FIXME later..
+            if (defTargetType != null && StringUtils.isBlank(type.getNamespaceURI())){
+            	type = defTargetType;
+            }
         }
+        
+        
         PrismObjectDefinition<Objectable> objectDefinition = getSchemaRegistry().findObjectDefinitionByType(type);
         if (objectDefinition == null) {
             throw new SchemaException("No definition for type "+type+" in reference");
@@ -802,7 +808,7 @@ public class XNodeProcessor {
     //endregion
 
     //region Resolving definitions
-    protected <T extends Containerable> ItemDefinition locateItemDefinition(
+    public <T extends Containerable> ItemDefinition locateItemDefinition(
 			PrismContainerDefinition<T> containerDefinition, QName elementQName, XNode xnode)
 			throws SchemaException {
 		ItemDefinition def = containerDefinition.findItemDefinition(elementQName);

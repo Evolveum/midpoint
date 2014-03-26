@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -762,7 +763,20 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	
 	public <T extends Objectable> PrismObjectDefinition<T> findObjectDefinitionByType(QName typeName) {
 		PrismSchema schema = findSchemaByNamespace(typeName.getNamespaceURI());
-		if (schema == null) {
+		if (schema == null){
+			//TODO: check for confilicted objects
+//			Iterator<PrismSchema> schemaIterator = getSchemas().iterator();
+//			while (schemaIterator.hasNext()){
+//				schema = schemaIterator.next();
+//				if (schema == null){
+//					continue;
+//				}
+//				PrismObjectDefinition<T> def = schema.findObjectDefinitionByTypeAssumeNs(typeName);
+//				if (def != null){
+//					return def;
+//				}
+//				
+//			}
 			return null;
 		}
 		return schema.findObjectDefinitionByType(typeName);
@@ -853,6 +867,23 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	public SchemaDescription findSchemaDescriptionByNamespace(String namespaceURI) {
 		for (SchemaDescription desc: schemaDescriptions) {
 			if (namespaceURI.equals(desc.getNamespace())) {
+				return desc;
+			}
+		}
+		return null;
+	}
+	
+	public PrismSchema findSchemaByPrefix(String prefix) {
+		SchemaDescription desc = findSchemaDescriptionByPrefix(prefix);
+		if (desc == null) {
+			return null;
+		}
+		return desc.getSchema();
+	}
+		
+	public SchemaDescription findSchemaDescriptionByPrefix(String prefix) {
+		for (SchemaDescription desc: schemaDescriptions) {
+			if (prefix.equals(desc.getUsualPrefix())) {
 				return desc;
 			}
 		}

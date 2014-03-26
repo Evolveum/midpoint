@@ -125,6 +125,20 @@ public class XsdTypeMapper {
         return null;
     }
     
+    public static QName determineQNameWithNs(QName xsdType){
+    	if (StringUtils.isNotBlank(xsdType.getNamespaceURI())){
+    		return xsdType;
+    	}
+    	Set<QName> keys = xsdToJavaTypeMap.keySet();
+    	for (Iterator<QName> iterator = keys.iterator(); iterator.hasNext();){
+    		QName key = iterator.next();
+    		if (QNameUtil.match(key, xsdType)){
+    			return key;
+    		}
+    	}
+    	return null;
+    }
+    
     public static <T> Class<T> getXsdToJavaMapping(QName xsdType) {
     	Class clazz = xsdToJavaTypeMap.get(xsdType);
     	if (clazz == null){

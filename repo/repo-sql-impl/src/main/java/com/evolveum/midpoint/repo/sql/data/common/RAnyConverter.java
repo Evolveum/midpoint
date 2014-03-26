@@ -292,7 +292,8 @@ public class RAnyConverter {
 //        Element root = DOMUtil.parseDocument(value.getValue()).getDocumentElement();
 
 //        Item parsedItem = domProcessor.parseItem(DOMUtil.listChildElements(root), value.getName(), item.getDefinition());
-    	Collection<? extends PrismValue> parsedValues = ValueSerializationUtil.deserializeItemValues(value.getValue(), PrismContext.LANG_XML);
+//    	System.out.println("deserialize from clob: " + value.getValue());
+    	Collection<? extends PrismValue> parsedValues = ValueSerializationUtil.deserializeItemValues(value.getValue(), item, PrismContext.LANG_XML);
 
         item.addAll(PrismValue.resetParentCollection(parsedValues));
     }

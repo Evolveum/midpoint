@@ -233,7 +233,7 @@ public class XNodeSerializer {
 		if (definition.isDynamic()) {
 			xnode.setExplicitTypeDeclaration(true);
 		}
-		System.out.println("item value serialization: \n" + xnode.debugDump());
+//		System.out.println("item value serialization: \n" + xnode.debugDump());
 		return xnode;
 	}
 	

@@ -271,8 +271,20 @@ public class DeltaConvertor {
         }
        
         ItemDefinition containingPcd = pcDef.findItemDefinition(parentPath);
+        PrismContainerDefinition containerDef = null;
         if (containingPcd == null) {
-            throw new SchemaException("No definition for " + parentPath + " (while creating delta for " + pcDef + ")");
+        	QName elementName = parentPath.lastNamed().getName();
+        	containerDef = pcDef.findContainerDefinition(parentPath.allExceptLast());
+        	if (containerDef == null){
+        		throw new SchemaException("No definition for " + parentPath.allExceptLast().lastNamed().getName() + " (while creating delta for " + pcDef + ")");
+        	} 
+        	
+//        	containingPcd = pcDef.getPrismContext().getXnodeProcessor().locateItemDefinition(containerDef, elementName, propMod.getValue().);
+        	
+//        	if (containingPcd == null){
+//        		throw new SchemaException("No definition for " + parentPath + " (while creating delta for " + pcDef + ")");
+//        	}
+            
         }
 //        System.out.println("DELTA: " + propMod.getValue().getXnode().debugDump());
 //        Collection<Item<V>> items = pcDef.getPrismContext().getJaxbDomHack().fromAny(propMod.getValue().getContent(), 
@@ -292,7 +304,8 @@ public class DeltaConvertor {
 //        	}
 //        }
 //        Item<V> item = items.iterator().next();
-        Item item = RawTypeUtil.getParsedItem(containingPcd, propMod.getValue());//propMod.getValue().getParsedValue(containingPcd);
+        QName elementName = parentPath.lastNamed().getName();
+        Item item = RawTypeUtil.getParsedItem(containingPcd, propMod.getValue(), elementName, containerDef);//propMod.getValue().getParsedValue(containingPcd);
 //        ItemDelta<V> itemDelta = item.createDelta(parentPath.subPath(item.getElementName()));
         ItemDelta<V> itemDelta = item.createDelta(parentPath);
         if (propMod.getModificationType() == ModificationTypeType.ADD) {

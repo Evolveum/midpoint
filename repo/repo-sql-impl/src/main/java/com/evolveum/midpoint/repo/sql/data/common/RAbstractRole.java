@@ -29,6 +29,7 @@ import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
@@ -251,7 +252,7 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
 
             if (SelectorOptions.hasToLoadPath(AbstractRoleType.F_APPROVER_EXPRESSION, options)) {
                 if (StringUtils.isNotEmpty(repo.getApprovalExpression())) {
-                    RoleType expressions = RUtil.toJAXB(RoleType.class, RoleType.F_APPROVER_EXPRESSION,
+                    RoleType expressions = RUtil.toJAXB(RoleType.class, RoleType.F_APPROVER_EXPRESSION, SchemaConstantsGenerated.C_ROLE,
                             repo.getApprovalExpression(), RoleType.class, prismContext);
                     jaxb.getApproverExpression().addAll(expressions.getApproverExpression());
                 }

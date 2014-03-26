@@ -986,6 +986,23 @@ public class PrismBeanConverter {
 	}
 
 	private XNode marshalRawValue(RawType value) {
+		
+		XNode xnode = value.getXnode();
+		if (xnode != null){
+			return xnode;
+		} else {
+			Object realValue = value.getRealValue();
+			if (XmlTypeConverter.canConvert(realValue.getClass())){
+//			if (realValue.getClass().isPrimitive()){
+				QName type = XsdTypeMapper.toXsdType(realValue.getClass());
+				PrimitiveXNode xprim = new PrimitiveXNode();
+				xprim.setValue(realValue);
+				xprim.setExplicitTypeDeclaration(true);
+				xprim.setTypeQName(type);
+				return xprim;
+			}
+		}
+ 		
 		return value.getXnode();
 	}
 

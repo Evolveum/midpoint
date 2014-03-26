@@ -407,7 +407,7 @@ public class XPathHolder {
 				}
 			}
 		}
-		element.setTextContent(getXPath());
+		element.setTextContent(getXPathWithDeclarations());
 		Map<String, String> namespaceMap = getNamespaceMap();
 		if (namespaceMap != null) {
 			for (Entry<String, String> entry : namespaceMap.entrySet()) {
