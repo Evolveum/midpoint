@@ -16,10 +16,6 @@
 
 package com.evolveum.midpoint.prism.query;
 
-import java.io.Serializable;
-
-import org.w3c.dom.Element;
-
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -27,21 +23,13 @@ import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
+import java.io.Serializable;
+
 public class ObjectQuery implements DebugDumpable, Serializable {
 
-	private XNode condition;
 	private ObjectFilter filter;
 	private ObjectPaging paging;
 
-	
-	public XNode getCondition() {
-		return condition;
-	}
-	
-	public void setCondition(XNode condition) {
-		this.condition = condition;
-	}
-	
 	public ObjectFilter getFilter() {
 		return filter;
 	}
@@ -67,7 +55,6 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 	public static ObjectQuery createObjectQuery(XNode condition, ObjectFilter filter) {
 		ObjectQuery query = new ObjectQuery();
 		query.setFilter(filter);
-		query.setCondition(condition);
 		return query;
 	}
 
@@ -79,14 +66,6 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 
 	public static ObjectQuery createObjectQuery(ObjectFilter filter, ObjectPaging paging) {
 		ObjectQuery query = new ObjectQuery();
-		query.setFilter(filter);
-		query.setPaging(paging);
-		return query;
-	}
-	
-	public static ObjectQuery createObjectQuery(XNode condition, ObjectFilter filter, ObjectPaging paging) {
-		ObjectQuery query = new ObjectQuery();
-		query.setCondition(condition);
 		query.setFilter(filter);
 		query.setPaging(paging);
 		return query;
@@ -104,9 +83,6 @@ public class ObjectQuery implements DebugDumpable, Serializable {
 		}
 		if (this.paging != null) {
 			clone.paging = this.paging.clone();
-		}
-		if (this.condition != null) {
-			clone.condition = condition;
 		}
 		return clone;
 	}

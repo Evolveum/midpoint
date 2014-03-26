@@ -122,11 +122,6 @@ public class QueryConvertor {
 		ObjectQuery query = new ObjectQuery();
 		query.setFilter(filter);
 		
-		XNode xnodeCondition = xmap.get(KEY_CONDITION);
-		if (xnodeCondition != null) {
-			query.setCondition(xnodeCondition);
-		}
-
 		XNode xnodePaging = xmap.get(KEY_PAGING);
 		if (xnodePaging != null) {
 			throw new UnsupportedOperationException("work in progress");
@@ -482,6 +477,11 @@ public class QueryConvertor {
 		}
 		return itemDefinition;
 	}
+
+    public static SearchFilterType createSearchFilterType(ObjectFilter filter, PrismContext prismContext) throws SchemaException {
+        MapXNode xnode = serializeFilter(filter, prismContext);
+        return SearchFilterType.createFromXNode(xnode);
+    }
 
 	public static MapXNode serializeFilter(ObjectFilter filter, PrismContext prismContext) throws SchemaException{
 		return serializeFilter(filter, PrismUtil.getXnodeProcessor(prismContext).createSerializer());

@@ -73,7 +73,7 @@ public class ResolveExecutor extends BaseActionExecutor {
                     if (targetTypeQName == null) {
                         throw new ScriptExecutionException("Couldn't resolve reference, because target type is unknown: " + prismReferenceValue);
                     }
-                    Class<? extends ObjectType> typeClass = (Class<? extends ObjectType>) prismContext.getSchemaRegistry().determineCompileTimeClass(targetTypeQName);
+                    Class<? extends ObjectType> typeClass = (Class) prismContext.getSchemaRegistry().determineCompileTimeClass(targetTypeQName);
                     if (typeClass == null) {
                         throw new ScriptExecutionException("Couldn't resolve reference, because target type class is unknown for target type " + targetTypeQName);
                     }

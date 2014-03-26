@@ -26,19 +26,12 @@ import com.evolveum.midpoint.model.scripting.Data;
 import com.evolveum.midpoint.model.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.scripting.ScriptExecutionException;
 import com.evolveum.midpoint.model.scripting.ScriptingExpressionEvaluator;
-import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
-import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
-import com.evolveum.midpoint.provisioning.api.ResourceEventDescription;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -71,7 +64,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ModelExecuteOptions
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowChangeDescriptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
@@ -83,11 +75,8 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ExecuteScripts;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ExecuteScriptsResponse;
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ItemListType;
-import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_2.RawType;
 import org.apache.commons.lang.StringUtils;
@@ -96,24 +85,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import javax.xml.namespace.QName;
-import javax.xml.ws.Holder;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-import org.w3c.dom.Document;
-
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -259,7 +234,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
         auditLogin(task);
         OperationResult result = task.getResult();
         try {
-            List<ExpressionType> scriptsToExecute = parseScripts(parameters);
+            List<JAXBElement<?>> scriptsToExecute = parseScripts(parameters);
             return doExecuteScripts(scriptsToExecute, parameters.getOptions(), task, result);
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "# MODEL executeScripts() failed", ex);
@@ -268,12 +243,12 @@ public class ModelWebService implements ModelPortType, ModelPort {
         }
     }
 
-    private List<ExpressionType> parseScripts(ExecuteScripts parameters) throws JAXBException, SchemaException {
-        List<ExpressionType> scriptsToExecute = new ArrayList<>();
+    private List<JAXBElement<?>> parseScripts(ExecuteScripts parameters) throws JAXBException, SchemaException {
+        List<JAXBElement<?>> scriptsToExecute = new ArrayList<>();
         if (parameters.getXmlScripts() != null) {
             for (Object scriptAsObject : parameters.getXmlScripts().getAny()) {
-                if (scriptAsObject instanceof ExpressionType) {
-                    scriptsToExecute.add((ExpressionType) scriptAsObject);
+                if (scriptAsObject instanceof JAXBElement) {
+                    scriptsToExecute.add((JAXBElement) scriptAsObject);
                 } else {
                     throw new IllegalArgumentException("Invalid script type: " + scriptAsObject.getClass());
                 }
@@ -282,20 +257,22 @@ public class ModelWebService implements ModelPortType, ModelPort {
             // here comes MSL script decoding (however with a quick hack to allow passing XML as text here)
             String scriptsAsString = parameters.getMslScripts();
             if (scriptsAsString.startsWith("<?xml")) {
-                ExpressionType expressionType = prismContext.parsePrismPropertyRealValue(scriptsAsString, ExpressionType.COMPLEX_TYPE, PrismContext.LANG_XML);
-                scriptsToExecute.add(expressionType);
+                // FIXME parse expressions
+                throw new UnsupportedOperationException("scripts couldn't be parsed yet");
+                //JAXBElement<?> expressionType = prismContext.parsePrismPropertyRealValue(scriptsAsString, ExpressionType.COMPLEX_TYPE, PrismContext.LANG_XML);
+                //scriptsToExecute.add(expressionType);
             }
         }
         return scriptsToExecute;
     }
 
-    private ExecuteScriptsResponse doExecuteScripts(List<ExpressionType> scriptsToExecute, ExecuteScriptsOptionsType options, Task task, OperationResult result) throws ScriptExecutionException, JAXBException, SchemaException {
+    private ExecuteScriptsResponse doExecuteScripts(List<JAXBElement<?>> scriptsToExecute, ExecuteScriptsOptionsType options, Task task, OperationResult result) throws ScriptExecutionException, JAXBException, SchemaException {
         ExecuteScriptsResponse response = new ExecuteScriptsResponse();
         ScriptOutputsType outputs = new ScriptOutputsType();
         response.setOutputs(outputs);
 
         try {
-            for (ExpressionType script : scriptsToExecute) {
+            for (JAXBElement<?> script : scriptsToExecute) {
 
                 ExecutionContext outputContext = scriptingExpressionEvaluator.evaluateExpression(script, task, result);
 

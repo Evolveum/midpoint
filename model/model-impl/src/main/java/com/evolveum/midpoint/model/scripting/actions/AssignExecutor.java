@@ -21,12 +21,8 @@ import com.evolveum.midpoint.model.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.scripting.ScriptExecutionException;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -38,14 +34,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ActionExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionType;
-import com.evolveum.prism.xml.ns._public.types_2.ChangeTypeType;
-import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.xml.bind.JAXBElement;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -69,8 +62,8 @@ public class AssignExecutor extends BaseActionExecutor {
     @Override
     public Data execute(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
 
-        ExpressionType resourceExpression = expressionHelper.getArgument(expression.getParameter(), PARAM_RESOURCE, false, false, NAME);
-        ExpressionType roleExpression = expressionHelper.getArgument(expression.getParameter(), PARAM_ROLE, false, false, NAME);
+        JAXBElement<?> resourceExpression = expressionHelper.getArgument(expression.getParameter(), PARAM_RESOURCE, false, false, NAME);
+        JAXBElement<?> roleExpression = expressionHelper.getArgument(expression.getParameter(), PARAM_ROLE, false, false, NAME);
 
         Collection<ObjectReferenceType> resources;
         if (resourceExpression != null) {

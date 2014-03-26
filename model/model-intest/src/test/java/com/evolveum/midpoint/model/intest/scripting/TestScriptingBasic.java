@@ -34,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionPipelineType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionSequenceType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -94,9 +95,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + "test100EmptySequence");
         ExpressionSequenceType sequence = new ExpressionSequenceType();
+        ObjectFactory of = new ObjectFactory();
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(sequence, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(of.createSequence(sequence), result);
 
         // THEN
         assertNoOutputData(output);
@@ -111,9 +113,10 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + "test110EmptyPipeline");
         ExpressionPipelineType pipeline = new ExpressionPipelineType();
+        ObjectFactory of = new ObjectFactory();
 
         // WHEN
-        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(pipeline, result);
+        ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(of.createPipeline(pipeline), result);
 
         // THEN
         assertNoOutputData(output);

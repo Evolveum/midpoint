@@ -22,8 +22,9 @@ import com.evolveum.midpoint.model.scripting.ScriptExecutionException;
 import com.evolveum.midpoint.model.scripting.helpers.ExpressionHelper;
 import com.evolveum.midpoint.model.scripting.helpers.OperationsHelper;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -34,13 +35,14 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.SearchExpressionType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.mutable.MutableBoolean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import javax.xml.bind.JAXBElement;
 
 /**
  * @author mederly
@@ -66,12 +68,12 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
         ObjectQuery objectQuery = null;
         if (searchExpression.getSearchFilter() != null) {
             // todo resolve variable references in the filter
-            QueryType queryType = new QueryType();
-            queryType.setFilter(searchExpression.getSearchFilter());
+            objectQuery = new ObjectQuery();
             try {
-                objectQuery = QueryConvertor.createObjectQuery(objectClass, queryType, prismContext);
+                ObjectFilter filter = QueryConvertor.parseFilter(searchExpression.getSearchFilter(), objectClass, prismContext);
+                objectQuery.setFilter(filter);
             } catch (SchemaException e) {
-                throw new ScriptExecutionException("Couldn't parse object query due to schema exception", e);
+                throw new ScriptExecutionException("Couldn't parse object filter due to schema exception", e);
             }
         }
 
@@ -94,7 +96,7 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
                     if (variableName != null) {
                         context.setVariable(variableName, object);
                     }
-                    ExpressionType childExpression = searchExpression.getExpression().getValue();
+                    JAXBElement<?> childExpression = searchExpression.getExpression();
                     try {
                         outputData.addAllFrom(scriptingExpressionEvaluator.evaluateExpression(childExpression, Data.create(object), context, result));
                     } catch (ScriptExecutionException e) {
