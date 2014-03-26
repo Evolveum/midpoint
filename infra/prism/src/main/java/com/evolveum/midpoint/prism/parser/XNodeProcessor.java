@@ -24,6 +24,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 
 import org.apache.commons.lang.StringUtils;
@@ -914,7 +915,12 @@ public class XNodeProcessor {
 		return serializer.serializeItem(item);
 	}
 
-	public XNodeSerializer createSerializer() {
+    public <V extends PrismValue> RootXNode serializeItemAsRoot(Item<V> item) throws SchemaException {
+        XNodeSerializer serializer = createSerializer();
+        return serializer.serializeItemAsRoot(item);
+    }
+
+    public XNodeSerializer createSerializer() {
 		return new XNodeSerializer(PrismUtil.getBeanConverter(prismContext));
 	}
     //endregion

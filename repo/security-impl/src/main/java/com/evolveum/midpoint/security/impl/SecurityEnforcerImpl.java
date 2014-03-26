@@ -22,6 +22,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -236,7 +238,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			LOGGER.trace("  Authorization not applicable for {} because of null object specification");
 			return false;
 		}
-		QueryType specFilter = objectSpecType.getFilter();
+		SearchFilterType specFilter = objectSpecType.getFilter();
 		QName specTypeQName = objectSpecType.getType();
 		PrismObjectDefinition<O> objectDefinition = object.getDefinition();
 		if (specTypeQName != null && !QNameUtil.match(specTypeQName, objectDefinition.getTypeName())) {
@@ -272,8 +274,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			LOGGER.trace("  specials empty: {}", specSpecial);
 		}
 		if (specFilter != null) {
-			ObjectQuery q = QueryConvertor.parseQuery(object.getCompileTimeClass(), specFilter, object.getPrismContext());
-			boolean applicable = ObjectQuery.match(object, q.getFilter(), matchingRuleRegistry);
+			ObjectFilter filter = QueryConvertor.parseFilter(specFilter, object.getCompileTimeClass(), object.getPrismContext());
+			boolean applicable = ObjectQuery.match(object, filter, matchingRuleRegistry);
 			if (applicable) {
 				LOGGER.trace("  Authorization applicable for {} (filter)", desc);
 			} else {

@@ -197,8 +197,13 @@ public class XNodeSerializer {
 			}
 		}
 	}
-	
-	public <V extends PrismValue> XNode serializeItemValue(V itemValue, ItemDefinition definition) throws SchemaException {
+
+    public <V extends PrismValue> RootXNode serializeItemAsRoot(Item<V> item) throws SchemaException {
+        XNode valueNode = serializeItem(item);
+        return new RootXNode(item.getDefinition().getName(), valueNode);
+    }
+
+    public <V extends PrismValue> XNode serializeItemValue(V itemValue, ItemDefinition definition) throws SchemaException {
 		XNode xnode;
 		if (definition == null){
 			return serializePropertyRawValue((PrismPropertyValue<?>) itemValue);

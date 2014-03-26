@@ -154,6 +154,14 @@ public class QueryConvertor {
 		return parseFilterContainer(xmap, objDef, objDef.getPrismContext());
 	}
 
+    public static <O extends Objectable> ObjectFilter parseFilter(SearchFilterType filter, Class<O> clazz, PrismContext prismContext) throws SchemaException {
+        PrismObjectDefinition<O> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
+        if (objDef == null) {
+            throw new SchemaException("Cannot find obj definition for "+clazz);
+        }
+        return parseFilter(filter, objDef);
+    }
+
     public static ObjectFilter parseFilter(SearchFilterType filter, PrismObjectDefinition objDef) throws SchemaException {
         Validate.notNull(objDef);
         return parseFilter(filter.getFilterClauseXNode(objDef.getPrismContext()), objDef);

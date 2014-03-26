@@ -6299,7 +6299,7 @@
             		</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-        	<xsd:element name="filter" type="q:QueryType" minOccurs="0" maxOccurs="1">
+        	<xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
         		<xsd:annotation>
         			<xsd:documentation>
         				Filter that an object must match to be considered selected by this statement.

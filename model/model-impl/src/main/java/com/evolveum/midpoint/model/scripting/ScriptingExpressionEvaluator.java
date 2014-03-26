@@ -20,8 +20,8 @@ import com.evolveum.midpoint.model.scripting.expressions.SearchEvaluator;
 import com.evolveum.midpoint.model.scripting.expressions.SelectEvaluator;
 import com.evolveum.midpoint.model.scripting.helpers.JaxbHelper;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -246,7 +246,7 @@ public class ScriptingExpressionEvaluator {
                         throw new ScriptExecutionException("More than one expression value is not supported for now");
                     }
                     try {
-                        jaxbValue = prismContext.getPrismJaxbProcessor().unmarshalElement(child, Object.class);
+                        jaxbValue = prismContext.getJaxbDomHack(), Object.class);
                     } catch (JAXBException|SchemaException e) {
                         throw new ScriptExecutionException("Couldn't unmarshal value of element: " + element.getNodeName());
                     }

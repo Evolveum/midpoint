@@ -38,7 +38,14 @@ public class RootXNode extends XNode {
 		this.rootElementName = rootElementName;
 	}
 
-	public QName getRootElementName() {
+    public RootXNode(QName rootElementName, XNode subnode) {
+        super();
+        this.rootElementName = rootElementName;
+        this.subnode = subnode;
+    }
+
+
+    public QName getRootElementName() {
 		return rootElementName;
 	}
 

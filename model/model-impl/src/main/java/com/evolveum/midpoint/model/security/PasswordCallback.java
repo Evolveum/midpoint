@@ -22,12 +22,8 @@ import javax.security.auth.callback.UnsupportedCallbackException;
 
 import java.io.IOException;
 
-import com.evolveum.midpoint.common.security.MidPointPrincipal;
-import com.evolveum.midpoint.model.security.api.UserDetailsService;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.common.crypto.EncryptionException;
-import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;

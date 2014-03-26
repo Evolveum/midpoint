@@ -35,6 +35,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
@@ -391,11 +392,36 @@ public class PrismContext {
 		return parser.serializeToString(xroot);
 	}
 
-	@Deprecated
+    public <T> String serializePrismPropertyRealValues(QName elementName, String language, T... values) throws SchemaException {
+        Parser parser = getParserNotNull(language);
+        PrismPropertyDefinition<T> definition = schemaRegistry.findPropertyDefinitionByElementName(elementName);
+        if (definition == null) {
+            throw new SchemaException("Prism property with name " + elementName + " couldn't be found");
+        }
+        PrismProperty property = definition.instantiate();
+        for (T value : values) {
+            property.addRealValue(value);
+        }
+        RootXNode xroot = xnodeProcessor.serializeItemAsRoot(property);
+        return parser.serializeToString(xroot);
+    }
+
+    @Deprecated
 	public <O extends Objectable> Element serializeToDom(PrismObject<O> object) throws SchemaException {
 		RootXNode xroot = xnodeProcessor.serializeObject(object);
 		return parserDom.serializeXRootToElement(xroot);
 	}
+
+    /**
+     * A bit of hack: serializes any Item into a RawType.
+     * Currently used for serializing script output, until a better method is devised.
+     * @param value
+     * @return
+     */
+    public RawType toRawType(Item item) throws SchemaException {
+        RootXNode rootXNode = xnodeProcessor.serializeItemAsRoot(item);
+        return new RawType(rootXNode);
+    }
 
     /**
      * Method used to marshal objects to xml in debug messages.

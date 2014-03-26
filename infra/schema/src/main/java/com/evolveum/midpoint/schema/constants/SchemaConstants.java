@@ -201,4 +201,6 @@ public abstract class SchemaConstants {
     public static final QName C_MESSAGE = new QName(NS_C, "message");
     public static final QName C_WORK_ITEM = new QName(NS_C, "workItem");
     public static final QName C_WF_PROCESS_INSTANCE = new QName(NS_C, "wfProcessInstance");
+
+    public static final QName APIT_ITEM_LIST = new QName(SchemaConstants.NS_API_TYPES, "itemList");
 }

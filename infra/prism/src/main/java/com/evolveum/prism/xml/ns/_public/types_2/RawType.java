@@ -95,7 +95,13 @@ public class RawType implements Serializable, Equals{
 		content = new ContentList();
 	}
 
-	@XmlTransient
+    public RawType(XNode xnode) {
+        this();
+        setXnode(xnode);
+    }
+
+
+    @XmlTransient
 	private XNode xnode;
 	
 	@XmlTransient
