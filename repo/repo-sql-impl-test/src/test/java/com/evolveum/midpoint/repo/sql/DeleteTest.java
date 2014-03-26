@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -109,5 +110,28 @@ public class DeleteTest extends BaseSQLRepoTest {
         } finally {
             session.close();
         }
+    }
+
+    @Test(enabled = false)
+    public void test100DeleteObjects() throws Exception {
+        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+        List<PrismObject<? extends Objectable>> objects = domProcessor.parseObjects(
+                new File(FOLDER_BASIC, "objects.xml"));
+        OperationResult result = new OperationResult("add objects");
+
+        List<String> oids = new ArrayList<>();
+        for (PrismObject object : objects) {
+            oids.add(repositoryService.addObject(object, null, result));
+        }
+
+        result.recomputeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
+
+        for (int i=0; i< objects.size(); i++ ){
+            repositoryService.deleteObject((Class) objects.get(i).getCompileTimeClass(), oids.get(i), result);
+        }
+
+        result.recomputeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
     }
 }
