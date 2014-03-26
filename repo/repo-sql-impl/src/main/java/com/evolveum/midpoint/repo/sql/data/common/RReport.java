@@ -30,6 +30,7 @@ public class RReport extends RObject<ReportType> {
     private Boolean useHibernateSession;
     private RDataSource dataSource;
 
+    @Embedded
     public RPolyString getName() {
         return name;
     }

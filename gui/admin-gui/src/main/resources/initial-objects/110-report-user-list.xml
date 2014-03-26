@@ -59,6 +59,9 @@
 			<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
 			<property name="net.sf.jasperreports.export.pdf.force.linebreak.policy" value="true"/>
 			<property name="net.sf.jasperreports.export.csv.exclude.origin.band.1" value="title"/>
+			<property name="net.sf.jasperreports.export.csv.exclude.origin.band.2" value="pageFooter"/>
+			<parameter name="activation" class="java.lang.Integer"/>
+			<parameter name="activationDescription" class="java.lang.String"/>
 			<parameter name="role" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
 			<parameter name="org" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
 			<parameter name="account" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
@@ -71,8 +74,8 @@
 			<field name="name" class="java.lang.String"/>
 			<field name="firstName" class="java.lang.String"/>
 			<field name="lastName" class="java.lang.String"/>
-			<field name="activation" class="com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation">
-				<fieldDescription><![CDATA[activation]]></fieldDescription>
+			<field name="activationField" class="com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus">
+				<fieldDescription><![CDATA[activationField]]></fieldDescription>
 			</field>
 			<background>
 				<band height="30" splitType="Stretch"/>
@@ -350,10 +353,13 @@
 			u.name.orig as name, 
 			u.givenName.orig as firstName, 
 			u.familyName.orig as lastName, 
-			u.activation as activation 
+			u.activation.administrativeStatus as activationField 
 			from RUser as u 
+			where $P{activation} = null or u.activation.administrativeStatus = $P{activation}
 			order by u.name.orig
 		</r:hqlQuery>
+		<!--<r:activation>nu</r:activation>
+		<r:activationDescription>Disabled</r:activationDescription>	-->
 	</configuration>
 	<!-- report parameters configuration schema sample with different options -->
 	<configurationSchema>
@@ -379,8 +385,49 @@
 					<xsd:sequence>
 						<!-- HQL query for jasper design (queryString element) -->
 						<xsd:element name="hqlQuery" type="xsd:string"/>
+
+						<xsd:element name="activation" type="r:ActivationStatus">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Activation ID:</a:displayName>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+
+						<xsd:element name="activationDescription" type="xsd:string">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Activation description:</a:displayName>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
 					</xsd:sequence>
 				</xsd:complexType>
+
+				<xsd:simpleType name="ActivationStatus">
+					<xsd:restriction base="xsd:int">
+						<xsd:enumeration value="null">
+							<xsd:annotation>
+								<xsd:appinfo>All</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+						<xsd:enumeration value="0">
+							<xsd:annotation>
+								<xsd:appinfo>Enabled</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+						<xsd:enumeration value="1">
+							<xsd:annotation>
+								<xsd:appinfo>Disabled</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+						<xsd:enumeration value="2">
+							<xsd:annotation>
+								<xsd:appinfo>Archived</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+					</xsd:restriction>
+				</xsd:simpleType>
 				<xsd:element name="configuration" type="r:ConfigurationType"/>
 			</xsd:schema>
 		</definition>

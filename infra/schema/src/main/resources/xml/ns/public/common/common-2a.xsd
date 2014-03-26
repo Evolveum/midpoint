@@ -2442,11 +2442,22 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="securityQuestions" type="tns:SecurityQuestionsCredentialsType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>Security Questions</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <!-- More credentail types may be here, such as OTP seeds, X.509 credentials, 
 				etc. -->
             <xsd:element name="allowedIdmAdminGuiAccess" type="xsd:boolean" minOccurs="0" default="false">
                 <xsd:annotation>
                     <xsd:documentation>
+                    	DEPRECATED. DO NO USE.
+                    	Use the authorization mechanism instead.
+                    	This option will be removed in the next version.
+                    	
                         If true, the user will have access to the IDM ADMIN GUI. The
                         access will provide access to all functions, therefore
                         this is kind of "superuser" flag.
@@ -2456,6 +2467,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>Admin Gui Access</a:displayName>
+                        <a:deprecated/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2463,15 +2475,14 @@
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
     <xsd:element name="credentials" type="tns:CredentialsType"/>
-
-    <xsd:complexType name="PasswordType">
+    
+    <xsd:complexType name="AbstractCredentialType" abstract="true">
         <xsd:annotation>
             <xsd:appinfo>
                 <a:container/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="value" type="tns:ProtectedStringType" minOccurs="0"/>
             <xsd:element name="failedLogins" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2507,6 +2518,61 @@
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="PasswordType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:AbstractCredentialType">
+        		<xsd:sequence>
+            		<xsd:element name="value" type="tns:ProtectedStringType" minOccurs="0"/>
+            	</xsd:sequence>	
+        	</xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    
+    <xsd:complexType name="SecurityQuestionsCredentialsType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:AbstractCredentialType">
+        		<xsd:sequence>
+            		<xsd:element name="questionAnswer" type="tns:SecurityQuestionAnswerType" minOccurs="0" maxOccurs="unbounded"/>
+            	</xsd:sequence>	
+        	</xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    
+    <xsd:complexType name="SecurityQuestionAnswerType">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			Answer to the security question. This is a "personalized" answer and it is supposed to
+    			be associated with a single user. However, it may also optionally contain a question.
+    			E.g. in case a user specified a custom question.
+    		</xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+    	</xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="questionIdentifier" type="xsd:anyURI" minOccurs="0">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Identifier of a question that this answer applies to. It is expected to be
+        				present only if this is an answer to a "configured question", i.e. a question
+        				that is defined in a security policy.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+            <!--  TODO: sabri  -->
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:complexType name="LoginEventType">
@@ -6232,11 +6298,25 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
+			<xsd:element name="orgRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                        	Top node of an organizational hierarchy. This node and all of its subnodes
+                        	(transitively, unlimited depth) are considered selected.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+            			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+            		</xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         	<xsd:element name="filter" type="q:QueryType" minOccurs="0" maxOccurs="1">
         		<xsd:annotation>
         			<xsd:documentation>
-        				Action part from the (subject,action,object) authorization triple. It is an URL to allow extension.
-        				Multiple actions may be specified. In that case the authorization applies to all of them.
+        				Filter that an object must match to be considered selected by this statement.
+        				This filter MUST NOT containt organization unit clauses. It may only contain
+        				property clauses, logical operations and so on.
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
@@ -6253,6 +6333,9 @@
 
 	<xsd:simpleType name="SpecialObjectSpecificationType">
         <xsd:annotation>
+        	<xsd:documentation>
+        		Specification used to select special cases that are usually context-relative.
+        	</xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
             </xsd:appinfo>
@@ -6261,6 +6344,11 @@
             <xsd:enumeration value="self">
                 <xsd:annotation>
                     <xsd:appinfo>
+                    	<xsd:documentation>
+                    		Object that represents itself. This usually represents an
+                    		object that corresponds to a currently logged-in user.
+                    		E.g. it may be used to allow each user to change his own password.
+                    	</xsd:documentation>
                         <jaxb:typesafeEnumMember name="SELF"/>
                     </xsd:appinfo>
                 </xsd:annotation>
@@ -7065,6 +7153,19 @@
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    
+                    <xsd:element name="globalSecurityPolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference to the global security policy settings.
+
+                                TODO: better documentation
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
+                    		</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
 
                     <xsd:element name="modelHooks" type="tns:ModelHooksType" minOccurs="0"/>
                     <xsd:element name="logging" type="tns:LoggingConfigurationType" minOccurs="0">
@@ -7159,6 +7260,7 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="systemConfiguration" type="tns:SystemConfigurationType"/>
+   
 
 	<xsd:complexType name="ObjectTypeTemplateType">
 		<xsd:annotation>
@@ -7671,6 +7773,164 @@
         </xsd:complexContent>
     </xsd:complexType>
 
+    <xsd:complexType name="SecurityPolicyType">
+        <xsd:annotation>
+            <xsd:documentation>
+                System that contains definitions of overall security policy.
+                It contains configuration of authentication mechanisms, credentials management
+                (such as password resets) and so on.
+                Please note that this NOT contain authorization and auditing. Authorization is
+                defined in roles (see RoleType) and auditing has a separate configuration.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ObjectType">
+                <xsd:sequence>
+                	<xsd:element name="authentication" type="tns:AuthenticationPolicyType" minOccurs="0">
+                	</xsd:element>
+                	<xsd:element name="credentials" type="tns:CredentialsPolicyType" minOccurs="0">
+                	</xsd:element>
+                    <!--  TODO: radovan -->
+                    
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="securityPolicy" type="tns:SecurityPolicyType"/>
+    
+    <xsd:complexType name="AuthenticationPolicyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Definition of the use of authentication mechanisms. This is in fact practically
+				applicable only in default security policy (the policy that is referenced from
+				system configuration).
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<!-- TODO: radovan -->
+		</xsd:sequence>
+	</xsd:complexType>
+    
+    <xsd:complexType name="CredentialsPolicyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Credentials management policy. It specifies the management details for each supported
+				credentials type. It defines parameteres such as credential lifetyme. It may define even
+				a very complex schemes for some credential types. E.g. it may define a complete security
+				questions.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="password" type="tns:PasswordCredentialsPolicyType" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="securityQuestions" type="tns:SecurityQuestionsCredentialsPolicyType" minOccurs="0">
+             </xsd:element>
+             <!-- More credential types may come here in the future. -->
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	 <xsd:complexType name="PasswordCredentialsPolicyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Structure that specifies policy for password management. It is in fact only a simple reference
+				to a password policy.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="passwordPolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference to the password policy settings.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
+                    		</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="SecurityQuestionsCredentialsPolicyType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Structure that specifies policy for security questions. It actually contains text for the
+				questions (or rather a reference to localization catalog file). But it also contains a policy
+				how the questions can be used, e.g. how many questions to display to a user.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<!-- TODO: sabri 
+				settings that apply to all questions should go here, like this:
+				<xsd:element name="whatever" type="xsd:string" minOccurs="0"/>
+				This is good place to specify an overall policy, e.g. "display all questions" or "randomly select 3 questions".
+			 -->
+			 <xsd:element name="question" type="tns:SecurityQuestionDefinitionType" minOccurs="0" maxOccurs="unbounded">
+			 	<xsd:annotation>
+			 		<xsd:documentation>
+			 			The set of all the security questions in this policy.
+			 		</xsd:documentation>
+			 	</xsd:annotation>
+			 </xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="SecurityQuestionDefinitionType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Definition of a single security question.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="identifier" type="xsd:anyURI">
+				<xsd:annotation>
+					<xsd:documentation>
+						Unique identified of a security question. This can be used in the answer to refer to this
+						definition (see SecurityQuestionAnswerType).
+						
+						It is expected that midPoint will come with a pre-configured set of frequently used security
+						questions (such as "what is your mother's maiden name?"). Therefore URI is a good mechanism for
+						this identifier. URI has a natural namespacing. Which means that the identifiers of built-in
+						questions will not clash with identifiers of questions configured by midPoint administrators.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+						Simple flag that could be used to disable a use of a specific question without actually
+						deleting it. This may be used to select only some questions, e.g. to disable the low-security
+						built-in questions such as "what is your mother's maiden name?".
+						If not present at all then the question is assumed to be enabled.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<!-- TODO: sabri 
+				settings that apply to a specific security question should go here, like this:
+				<xsd:element name="something" type="xsd:string" minOccurs="0"/>
+				What comes to my mind here is a key to localization file. That definitelly should be here.
+				What else?
+			 -->
+			 <!-- In later versions we may want to add an expression here. The expression could product an expected answer
+			 to the question. This can work well for questions such as "what is your employee number?". We already store
+			 employee number in each user therefore there is no need for each user to manually fill-in the expected answer.
+			 We can use expression instead. Something like "$user/employeeNumber" -->
+		</xsd:sequence>
+	</xsd:complexType>
 
     <xsd:simpleType name="SystemObjectsType">
         <xsd:annotation>
@@ -7784,6 +8044,9 @@
             <xsd:documentation>
                 Where and how to send mail notifications (or any other mail messages).
             </xsd:documentation>
+            <!--<xsd:appinfo>-->
+                <!--<a:container/>-->
+            <!--</xsd:appinfo>-->
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="server" type="tns:MailServerConfigurationType" minOccurs="0" maxOccurs="unbounded">
@@ -7823,6 +8086,9 @@
             <xsd:documentation>
                 Configuration of a particular mail server host.
             </xsd:documentation>
+            <!--<xsd:appinfo>-->
+                <!--<a:container/>-->
+            <!--</xsd:appinfo>-->
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="host" type="xsd:string">
@@ -7846,7 +8112,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="password" type="xsd:string" minOccurs="0">
+            <xsd:element name="password" type="tns:ProtectedStringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         How to authenticate to the mail server.
@@ -7924,6 +8190,9 @@
             <xsd:documentation>
                 Where and how to send SMS notifications (or any other SMS).
             </xsd:documentation>
+            <!--<xsd:appinfo>-->
+                <!--<a:container/>-->
+            <!--</xsd:appinfo>-->
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="gateway" type="tns:SmsGatewayConfigurationType" minOccurs="0" maxOccurs="unbounded">
@@ -7959,6 +8228,9 @@
 
                 Currently, we only support sending via HTTP GET method.
             </xsd:documentation>
+            <!--<xsd:appinfo>-->
+                <!--<a:container/>-->
+            <!--</xsd:appinfo>-->
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="url" type="c:ExpressionType" minOccurs="0">
@@ -7975,7 +8247,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="password" type="xsd:string" minOccurs="0">
+            <xsd:element name="password" type="tns:ProtectedStringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         How to authenticate to the SMS gateway.
@@ -8307,6 +8579,9 @@
                 A configuration for user notifications. It defines how should be notifications created in various
                 situations, e.g. when an account is created or removed.
             </xsd:documentation>
+            <!--<xsd:appinfo>-->
+                <!--<a:container/>-->
+            <!--</xsd:appinfo>-->
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:handler" minOccurs="0" maxOccurs="unbounded"/>       <!-- implicit fork -->

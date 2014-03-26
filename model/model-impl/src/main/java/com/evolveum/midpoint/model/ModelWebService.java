@@ -125,14 +125,14 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	@Autowired(required = true)
 	private AuditService auditService;
 	
-	@Autowired(required = true)
-	private ChangeNotificationDispatcher dispatcher;
+//	@Autowired(required = true)
+//	private ChangeNotificationDispatcher dispatcher;
 	
 	@Autowired(required = true)
 	private PrismContext prismContext;
 	
-	@Autowired(required = true)
-	private Protector protector;
+//	@Autowired(required = true)
+//	private Protector protector;
 
     @Autowired
     private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
@@ -506,73 +506,75 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		Task task = createTaskInstance(NOTIFY_CHANGE);
 		OperationResult parentResult = task.getResult();
 		
-		String oldShadowOid = changeDescription.getOldShadowOid();
 		
-		ResourceEventDescription eventDescription = new ResourceEventDescription();
-		
+//		String oldShadowOid = changeDescription.getOldShadowOid();
+//		
+//		ResourceEventDescription eventDescription = new ResourceEventDescription();
+//		
 		try {
-			PrismObject<ShadowType> oldShadow = null;
-			LOGGER.trace("resolving old object");
-			if (!StringUtils.isEmpty(oldShadowOid)){
-				oldShadow = model.getObject(ShadowType.class, oldShadowOid, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), task, parentResult);
-				eventDescription.setOldShadow(oldShadow);
-				LOGGER.trace("old object resolved to: {}", oldShadow.debugDump());
-			} else{
-				LOGGER.trace("Old shadow null");
-			}
-			
-				PrismObject<ShadowType> currentShadow = null;
-				ShadowType currentShadowType = changeDescription.getCurrentShadow();
-				LOGGER.trace("resolving current shadow");
-				if (currentShadowType != null){
-					prismContext.adopt(currentShadowType);
-					currentShadow = currentShadowType.asPrismObject();
-					LOGGER.trace("current shadow resolved to {}", currentShadow.debugDump());
-				}
-				
-				eventDescription.setCurrentShadow(currentShadow);
-				
-				ObjectDeltaType deltaType = changeDescription.getObjectDelta();
-				ObjectDelta delta = null;
-				
-				PrismObject<ShadowType> shadowToAdd = null;
-				if (deltaType != null){
-				
-					delta = ObjectDelta.createEmptyDelta(ShadowType.class, deltaType.getOid(), prismContext, ChangeType.toChangeType(deltaType.getChangeType()));
-					
-					if (delta.getChangeType() == ChangeType.ADD) {
-//						LOGGER.trace("determined ADD change ");
-						if (deltaType.getObjectToAdd() == null){
-							LOGGER.trace("No object to add specified. Check your delta. Add delta must contain object to add");
-							createIllegalArgumentFault("No object to add specified. Check your delta. Add delta must contain object to add");
-							return handleTaskResult(task);
-						}
-						Object objToAdd = deltaType.getObjectToAdd().getAny();
-						if (!(objToAdd instanceof ShadowType)){
-							LOGGER.trace("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
-							createIllegalArgumentFault("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
-							return handleTaskResult(task);
-						}
-						prismContext.adopt((ShadowType)objToAdd);
-						
-						shadowToAdd = ((ShadowType) objToAdd).asPrismObject();
-						LOGGER.trace("object to add: {}", shadowToAdd.debugDump());
-						delta.setObjectToAdd(shadowToAdd);
-					} else {
-						Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(deltaType.getModification(), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class));
-						delta.getModifications().addAll(modifications);
-					} 
-				}
-				Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-				deltas.add(delta);
-				Utils.encrypt(deltas, protector, null, parentResult);
-				eventDescription.setDelta(delta);
-					
-				eventDescription.setSourceChannel(changeDescription.getChannel());
-			
-					dispatcher.notifyEvent(eventDescription, task, parentResult);
-					parentResult.computeStatus();
-					task.setResult(parentResult);
+			model.notifyChange(changeDescription, parentResult, task);
+//			PrismObject<ShadowType> oldShadow = null;
+//			LOGGER.trace("resolving old object");
+//			if (!StringUtils.isEmpty(oldShadowOid)){
+//				oldShadow = model.getObject(ShadowType.class, oldShadowOid, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), task, parentResult);
+//				eventDescription.setOldShadow(oldShadow);
+//				LOGGER.trace("old object resolved to: {}", oldShadow.debugDump());
+//			} else{
+//				LOGGER.trace("Old shadow null");
+//			}
+//			
+//				PrismObject<ShadowType> currentShadow = null;
+//				ShadowType currentShadowType = changeDescription.getCurrentShadow();
+//				LOGGER.trace("resolving current shadow");
+//				if (currentShadowType != null){
+//					prismContext.adopt(currentShadowType);
+//					currentShadow = currentShadowType.asPrismObject();
+//					LOGGER.trace("current shadow resolved to {}", currentShadow.debugDump());
+//				}
+//				
+//				eventDescription.setCurrentShadow(currentShadow);
+//				
+//				ObjectDeltaType deltaType = changeDescription.getObjectDelta();
+//				ObjectDelta delta = null;
+//				
+//				PrismObject<ShadowType> shadowToAdd = null;
+//				if (deltaType != null){
+//				
+//					delta = ObjectDelta.createEmptyDelta(ShadowType.class, deltaType.getOid(), prismContext, ChangeType.toChangeType(deltaType.getChangeType()));
+//					
+//					if (delta.getChangeType() == ChangeType.ADD) {
+////						LOGGER.trace("determined ADD change ");
+//						if (deltaType.getObjectToAdd() == null){
+//							LOGGER.trace("No object to add specified. Check your delta. Add delta must contain object to add");
+//							createIllegalArgumentFault("No object to add specified. Check your delta. Add delta must contain object to add");
+//							return handleTaskResult(task);
+//						}
+//						Object objToAdd = deltaType.getObjectToAdd().getAny();
+//						if (!(objToAdd instanceof ShadowType)){
+//							LOGGER.trace("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
+//							createIllegalArgumentFault("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
+//							return handleTaskResult(task);
+//						}
+//						prismContext.adopt((ShadowType)objToAdd);
+//						
+//						shadowToAdd = ((ShadowType) objToAdd).asPrismObject();
+//						LOGGER.trace("object to add: {}", shadowToAdd.debugDump());
+//						delta.setObjectToAdd(shadowToAdd);
+//					} else {
+//						Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(deltaType.getModification(), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class));
+//						delta.getModifications().addAll(modifications);
+//					} 
+//				}
+//				Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+//				deltas.add(delta);
+//				Utils.encrypt(deltas, protector, null, parentResult);
+//				eventDescription.setDelta(delta);
+//					
+//				eventDescription.setSourceChannel(changeDescription.getChannel());
+//			
+//					dispatcher.notifyEvent(eventDescription, task, parentResult);
+//					parentResult.computeStatus();
+//					task.setResult(parentResult);
 			} catch (ObjectNotFoundException ex) {
 				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
 				auditLogout(task);

@@ -510,6 +510,17 @@
         unique (name_norm)
     ) INITRANS 30;
 
+    create table m_security_policy (
+        authentication clob,
+        credentials clob,
+        name_norm varchar2(255 char),
+        name_orig varchar2(255 char),
+        id number(19,0) not null,
+        oid varchar2(36 char) not null,
+        primary key (id, oid),
+        unique (name_norm)
+    ) INITRANS 30;
+
     create table m_shadow (
         administrativeStatus number(10,0),
         archiveTimestamp timestamp,
@@ -936,6 +947,13 @@
         add constraint fk_role 
         foreign key (id, oid) 
         references m_abstract_role;
+
+    create index iSecurityPolicyName on m_security_policy (name_orig) INITRANS 30;
+
+    alter table m_security_policy 
+        add constraint fk_security_policy 
+        foreign key (id, oid) 
+        references m_object;
 
     create index iShadowNameOrig on m_shadow (name_orig) INITRANS 30;
 

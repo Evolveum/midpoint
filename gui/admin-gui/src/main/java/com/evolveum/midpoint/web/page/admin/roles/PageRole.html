@@ -34,38 +34,8 @@
             </div>
 
             <div class="col-md-6">
-                <div wicket:id="inducements">
-                    <div class="row assignable-header">
-
-                        <div class="col-xs-10">
-                            <input type="checkbox" wicket:id="inducementsCheckAll" />
-                            <h3><wicket:message key="PageRoleEditor.title.inducements" /></h3>
-                        </div>
-
-                        <div class="col-xs-2 cog" wicket:id="inducementsMenu" />
-                    </div>
-
-                    <div wicket:id="inducementList">
-                        <div wicket:id="inducementEditor" />
-                    </div>
-                </div>
-
-                <div wicket:id="assignments" style="margin-top: 30px;">
-                    <div class="row assignable-header">
-
-                        <div class="col-xs-10">
-                            <input type="checkbox" wicket:id="assignmentsCheckAll" />
-                            <h3><wicket:message key="PageRoleEditor.title.assignments" /></h3>
-                        </div>
-
-                        <div class="col-xs-2 cog" wicket:id="assignmentsMenu" />
-
-                    </div>
-
-                    <div wicket:id="assignmentList">
-                        <div class="assignment-item" wicket:id="assignmentEditor"/>
-                    </div>
-                </div>
+                <div wicket:id="inducementsPanel" />
+                <div wicket:id="assignmentsPanel" style="margin-top: 30px" />
             </div>
         </div>
 

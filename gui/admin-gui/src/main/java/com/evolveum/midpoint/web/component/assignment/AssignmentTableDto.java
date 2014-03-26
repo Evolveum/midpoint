@@ -16,10 +16,29 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+
 import java.io.Serializable;
 
 /**
  *  @author shood
  * */
-public class AssignmentTableDto implements Serializable {
+public class AssignmentTableDto<T extends ObjectType> implements Serializable {
+
+    private PrismObject<T> assignmentParent;
+
+    public AssignmentTableDto(){}
+
+    public AssignmentTableDto(PrismObject<T> assignmentParent){
+        this.assignmentParent = assignmentParent;
+    }
+
+    public PrismObject<T> getAssignmentParent() {
+        return assignmentParent;
+    }
+
+    public void setAssignmentParent(PrismObject<T> assignmentParent) {
+        this.assignmentParent = assignmentParent;
+    }
 }

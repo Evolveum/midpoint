@@ -51,6 +51,7 @@ DETERMINISTIC
 	DELETE FROM m_trigger;
 	DELETE FROM m_report;
 	DELETE FROM m_report_output;
+	DELETE FROM m_security_policy;
 	
     DELETE FROM m_org_closure;
     DELETE FROM m_org_incorrect;

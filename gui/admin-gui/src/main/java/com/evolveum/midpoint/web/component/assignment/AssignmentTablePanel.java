@@ -15,37 +15,49 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.page.admin.users.component.AssignablePopupContent;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 /**
  *  @author shood
  * */
-public class AssignmentTablePanel extends SimplePanel<AssignmentTableDto>{
+public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<AssignmentTableDto>{
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentTablePanel.class);
 
@@ -62,12 +74,12 @@ public class AssignmentTablePanel extends SimplePanel<AssignmentTableDto>{
     private static final String ID_MODAL_ASSIGN = "assignablePopup";
     private static final String ID_MODAL_DELETE_ASSIGNMENT = "deleteAssignmentPopup";
 
-    IModel<List<AssignmentEditorDto>> assignmentModel;
+    private LoadableModel<List<AssignmentEditorDto>> assignmentModel;
 
     public AssignmentTablePanel(String id, IModel<AssignmentTableDto> model, IModel<String> label){
         super(id, model);
 
-        assignmentModel = new LoadableModel<List<AssignmentEditorDto>>() {
+        assignmentModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
 
             @Override
             protected List<AssignmentEditorDto> load() {
@@ -144,7 +156,7 @@ public class AssignmentTablePanel extends SimplePanel<AssignmentTableDto>{
     }
 
     private void initPanelLayout(IModel<String> labelModel){
-        WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
+        final WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
         assignments.setOutputMarkupId(true);
         add(assignments);
 
@@ -154,7 +166,7 @@ public class AssignmentTablePanel extends SimplePanel<AssignmentTableDto>{
         InlineMenu assignmentMenu = new InlineMenu(ID_MENU, new Model((Serializable) createAssignmentMenu()));
         assignments.add(assignmentMenu);
 
-        final ListView<AssignmentEditorDto> list = new ListView<AssignmentEditorDto>(ID_LIST, assignmentModel) {
+        ListView<AssignmentEditorDto> list = new ListView<AssignmentEditorDto>(ID_LIST, assignmentModel) {
 
             @Override
                 protected void populateItem(ListItem<AssignmentEditorDto> item) {
@@ -165,14 +177,54 @@ public class AssignmentTablePanel extends SimplePanel<AssignmentTableDto>{
         list.setOutputMarkupId(true);
         assignments.add(list);
 
-        AjaxCheckBox checkAll = new AjaxCheckBox(ID_CHECK_ALL, new Model<Boolean>()) {
+        AjaxCheckBox checkAll = new AjaxCheckBox(ID_CHECK_ALL, new Model()) {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                //TODO
+                List<AssignmentEditorDto> assignmentEditors = assignmentModel.getObject();
+
+                for(AssignmentEditorDto dto: assignmentEditors){
+                    dto.setSelected(this.getModelObject());
+                }
+
+                target.add(assignments);
             }
         };
         assignments.add(checkAll);
+
+        initModalWindows();
+    }
+
+    private void initModalWindows(){
+        ModalWindow assignWindow = createModalWindow(ID_MODAL_ASSIGN,
+                createStringResource("AssignmentTablePanel.modal.title.selectAssignment"), 1100, 520);
+        assignWindow.setContent(new AssignablePopupContent(assignWindow.getContentId()){
+
+            @Override
+            protected void addPerformed(AjaxRequestTarget target, List<ObjectType> selected){
+                addSelectedAssignablePerformed(target, selected);
+            }
+        });
+        add(assignWindow);
+
+        ModalWindow deleteDialog = new ConfirmationDialog(ID_MODAL_DELETE_ASSIGNMENT,
+                createStringResource("AssignmentTablePanel.modal.title.confirmDeletion"),
+                new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        return createStringResource("AssignmentTablePanel.modal.message.delete",
+                                getSelectedAssignments().size()).getString();
+                    }
+                }) {
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target){
+                close(target);
+                deleteAssignmentConfirmedPerformed(target, getSelectedAssignments());
+            }
+        };
+        add(deleteDialog);
     }
 
     private List<InlineMenuItem> createAssignmentMenu(){
@@ -222,11 +274,250 @@ public class AssignmentTablePanel extends SimplePanel<AssignmentTableDto>{
         return items;
     }
 
+    private List<AssignmentEditorDto> getSelectedAssignments(){
+        List<AssignmentEditorDto> selected = new ArrayList<AssignmentEditorDto>();
+
+        List<AssignmentEditorDto> all = assignmentModel.getObject();
+
+        for(AssignmentEditorDto dto: all){
+            if(dto.isSelected()){
+                selected.add(dto);
+            }
+        }
+
+        return selected;
+    }
+
+    private void showModalWindow(String id, AjaxRequestTarget target){
+        ModalWindow window = (ModalWindow) get(id);
+        window.show(target);
+    }
+
     private void showAssignablePopupPerformed(AjaxRequestTarget target, Class<? extends ObjectType> type){
-        //TODO
+        ModalWindow modal = (ModalWindow) get(ID_MODAL_ASSIGN);
+        AssignablePopupContent content = (AssignablePopupContent)modal.get(modal.getContentId());
+        content.setType(type);
+        showModalWindow(ID_MODAL_ASSIGN, target);
     }
 
     private void deleteAssignmentPerformed(AjaxRequestTarget target){
-        //TODO
+        List<AssignmentEditorDto> selected = getSelectedAssignments();
+
+        if(selected.isEmpty()){
+            warn(getString("AssignmentTablePanel.message.noAssignmentSelected"));
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+
+        showModalWindow(ID_MODAL_DELETE_ASSIGNMENT, target);
+    }
+
+    private void deleteAssignmentConfirmedPerformed(AjaxRequestTarget target, List<AssignmentEditorDto> toDelete){
+        List<AssignmentEditorDto> assignments = assignmentModel.getObject();
+
+        for(AssignmentEditorDto assignment: toDelete){
+            if(UserDtoStatus.ADD.equals(assignment.getStatus())){
+                assignments.remove(assignment);
+            } else {
+                assignment.setStatus(UserDtoStatus.DELETE);
+                assignment.setSelected(false);
+            }
+        }
+
+        target.add(getPageBase().getFeedbackPanel(), get(ID_ASSIGNMENTS));
+    }
+
+    private void addSelectedAssignablePerformed(AjaxRequestTarget target, List<ObjectType> newAssignments){
+        ModalWindow window = (ModalWindow) get(ID_MODAL_ASSIGN);
+        window.close(target);
+
+        if(newAssignments.isEmpty()){
+            warn(getString("AssignmentTablePanel.message.noAssignmentSelected"));
+            target.add(getPageBase().getFeedbackPanel());
+            return;
+        }
+
+        List<AssignmentEditorDto> assignments = assignmentModel.getObject();
+
+        for(ObjectType object: newAssignments){
+            try {
+
+                if(object instanceof ResourceType){
+                    addSelectedResourceAssignPerformed((ResourceType) object);
+                    continue;
+                }
+
+                AssignmentEditorDtoType aType = AssignmentEditorDtoType.getType(object.getClass());
+
+                ObjectReferenceType targetRef = new ObjectReferenceType();
+                targetRef.setOid(object.getOid());
+                targetRef.setType(aType.getQname());
+
+                AssignmentType assignment = new AssignmentType();
+                assignment.setTargetRef(targetRef);
+
+                AssignmentEditorDto dto = new AssignmentEditorDto(object, aType, UserDtoStatus.ADD, assignment);
+                dto.setMinimized(false);
+                dto.setShowEmpty(true);
+
+                assignments.add(dto);
+            } catch (Exception e){
+                error(getString("AssignmentTablePanel.message.couldntAssignObject", object.getName(), e.getMessage()));
+                LoggingUtils.logException(LOGGER, "Couldn't assign object", e);
+            }
+        }
+
+        target.add(getPageBase().getFeedbackPanel(), get(ID_ASSIGNMENTS));
+    }
+
+    private void addSelectedResourceAssignPerformed(ResourceType resource) {
+        AssignmentType assignment = new AssignmentType();
+        ConstructionType construction = new ConstructionType();
+        assignment.setConstruction(construction);
+
+        try {
+            getPageBase().getPrismContext().adopt(assignment, UserType.class, new ItemPath(UserType.F_ASSIGNMENT));
+        } catch (SchemaException e) {
+            error(getString("Could not create assignment", resource.getName(), e.getMessage()));
+            LoggingUtils.logException(LOGGER, "Couldn't create assignment", e);
+            return;
+        }
+
+        construction.setResource(resource);
+
+        List<AssignmentEditorDto> assignments = assignmentModel.getObject();
+        AssignmentEditorDto dto = new AssignmentEditorDto(resource, AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION,
+                UserDtoStatus.ADD, assignment);
+        assignments.add(dto);
+
+        dto.setMinimized(false);
+        dto.setShowEmpty(true);
+    }
+
+    public void handleAssignmentsWhenAdd(PrismObject<T> object, PrismContainerDefinition assignmentDef,
+                                          List<AssignmentType> objectAssignments) throws SchemaException{
+
+        List<AssignmentEditorDto> assignments = assignmentModel.getObject();
+        for (AssignmentEditorDto assDto : assignments) {
+            if (!UserDtoStatus.ADD.equals(assDto.getStatus())) {
+                warn(getString("AssignmentTablePanel.message.illegalAssignmentState", assDto.getStatus()));
+                continue;
+            }
+
+            AssignmentType assignment = new AssignmentType();
+            PrismContainerValue value = assDto.getNewValue();
+            assignment.setupContainerValue(value);
+            value.applyDefinition(assignmentDef, false);
+            objectAssignments.add(assignment.clone());
+
+            // todo remove this block [lazyman] after model is updated - it has
+            // to remove resource from accountConstruction
+            removeResourceFromAccConstruction(assignment);
+        }
+    }
+
+    public ContainerDelta handleAssignmentDeltas(ObjectDelta<T> userDelta, PrismContainerDefinition def, QName assignmentPath)
+            throws SchemaException {
+        ContainerDelta assDelta = new ContainerDelta(new ItemPath(), assignmentPath, def);
+
+        //PrismObject<OrgType> org = (PrismObject<OrgType>)getModel().getObject().getAssignmentParent();
+        //PrismObjectDefinition orgDef = org.getDefinition();
+        //PrismContainerDefinition assignmentDef = def.findContainerDefinition(assignmentPath);
+
+        List<AssignmentEditorDto> assignments = assignmentModel.getObject();
+        for (AssignmentEditorDto assDto : assignments) {
+            PrismContainerValue newValue = assDto.getNewValue();
+            switch (assDto.getStatus()) {
+                case ADD:
+                    newValue.applyDefinition(def, false);
+                    assDelta.addValueToAdd(newValue.clone());
+                    break;
+                case DELETE:
+                    PrismContainerValue oldValue = assDto.getOldValue();
+                    oldValue.applyDefinition(def);
+                    assDelta.addValueToDelete(oldValue.clone());
+                    break;
+                case MODIFY:
+                    if (!assDto.isModified()) {
+                        LOGGER.trace("Assignment '{}' not modified.", new Object[]{assDto.getName()});
+                        continue;
+                    }
+
+                    handleModifyAssignmentDelta(assDto, def, newValue, userDelta);
+                    break;
+                default:
+                    warn(getString("pageUser.message.illegalAssignmentState", assDto.getStatus()));
+            }
+        }
+
+        if (!assDelta.isEmpty()) {
+            userDelta.addModification(assDelta);
+        }
+
+        // todo remove this block [lazyman] after model is updated - it has to
+        // remove resource from accountConstruction
+        Collection<PrismContainerValue> values = assDelta.getValues(PrismContainerValue.class);
+        for (PrismContainerValue value : values) {
+            AssignmentType ass = new AssignmentType();
+            ass.setupContainerValue(value);
+            removeResourceFromAccConstruction(ass);
+        }
+
+        return assDelta;
+    }
+
+    private void handleModifyAssignmentDelta(AssignmentEditorDto assDto, PrismContainerDefinition assignmentDef,
+                                             PrismContainerValue newValue, ObjectDelta<T> userDelta) throws SchemaException {
+        LOGGER.debug("Handling modified assignment '{}', computing delta.", new Object[]{assDto.getName()});
+
+        PrismValue oldValue = assDto.getOldValue();
+        Collection<? extends ItemDelta> deltas = oldValue.diff(newValue);
+
+        for (ItemDelta delta : deltas) {
+            ItemPath deltaPath = delta.getPath().rest();
+            ItemDefinition deltaDef = assignmentDef.findItemDefinition(deltaPath);
+
+            delta.setParentPath(joinPath(oldValue.getPath(), delta.getPath().allExceptLast()));
+            delta.applyDefinition(deltaDef);
+
+            userDelta.addModification(delta);
+        }
+    }
+
+    private ItemPath joinPath(ItemPath path, ItemPath deltaPath) {
+        List<ItemPathSegment> newPath = new ArrayList<ItemPathSegment>();
+
+        ItemPathSegment firstDeltaSegment = deltaPath != null ? deltaPath.first() : null;
+        if (path != null) {
+            for (ItemPathSegment seg : path.getSegments()) {
+                if (seg.equals(firstDeltaSegment)) {
+                    break;
+                }
+                newPath.add(seg);
+            }
+        }
+        if (deltaPath != null) {
+            newPath.addAll(deltaPath.getSegments());
+        }
+
+        return new ItemPath(newPath);
+    }
+
+    /**
+     * remove this method after model is updated - it has to remove resource
+     * from accountConstruction
+     */
+    @Deprecated
+    private void removeResourceFromAccConstruction(AssignmentType assignment) {
+        ConstructionType accConstruction = assignment.getConstruction();
+        if (accConstruction == null || accConstruction.getResource() == null) {
+            return;
+        }
+
+        ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setOid(assignment.getConstruction().getResource().getOid());
+        ref.setType(ResourceType.COMPLEX_TYPE);
+        assignment.getConstruction().setResourceRef(ref);
+        assignment.getConstruction().setResource(null);
     }
 }

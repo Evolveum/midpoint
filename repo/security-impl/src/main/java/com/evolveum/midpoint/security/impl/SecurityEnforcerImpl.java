@@ -22,6 +22,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.aopalliance.intercept.MethodInvocation;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.SecurityConfig;
@@ -33,19 +34,27 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.api.UserProfileService;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisionType;
@@ -63,6 +72,9 @@ import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 public class SecurityEnforcerImpl implements SecurityEnforcer {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);
+	
+	@Autowired(required = true)
+	private MatchingRuleRegistry matchingRuleRegistry;
 	
 	private UserProfileService userProfileService = null;
 	
@@ -127,27 +139,21 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							}
 							
 							// object
-							List<ObjectSpecificationType> autzObjects = autz.getObject();
-							if (autzObjects != null && !autzObjects.isEmpty()) {
-								if (object == null) {
-									LOGGER.trace("  Authorization not applicable for null object");
-									continue;
-								}
-								boolean applicable = false;
-								for (ObjectSpecificationType autzObject: autzObjects) {
-									if (isApplicable(autzObject, object, midPointPrincipal)) {
-										applicable = true;
-										break;
-									}
-								}
-								if (applicable) {
-									LOGGER.trace("  Authorization applicable for object {}", object);
-								} else {
-									LOGGER.trace("  Authorization not applicable for object {}, none of the object specifications match", 
-											object);
-								}
+							if (isApplicable(autz.getObject(), object, midPointPrincipal, "object")) {
+								LOGGER.trace("  Authorization applicable for object {} (continuing evaluation)", object);
 							} else {
-								LOGGER.trace("  No object specification in authorization (authorization is applicable)");
+								LOGGER.trace("  Authorization not applicable for object {}, none of the object specifications match (breaking evaluation)", 
+										object);
+								continue;
+							}
+							
+							// target
+							if (isApplicable(autz.getTarget(), target, midPointPrincipal, "target")) {
+								LOGGER.trace("  Authorization applicable for target {} (continuing evaluation)", object);
+							} else {
+								LOGGER.trace("  Authorization not applicable for target {}, none of the target specifications match (breaking evaluation)", 
+										object);
+								continue;
 							}
 							
 							// authority is applicable to this situation. now we can process the decision.
@@ -205,35 +211,76 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 	}
 	
+	private <O extends ObjectType> boolean isApplicable(List<ObjectSpecificationType> objectSpecTypes, PrismObject<O> object, 
+			MidPointPrincipal midPointPrincipal, String desc) throws SchemaException {
+		if (objectSpecTypes != null && !objectSpecTypes.isEmpty()) {
+			if (object == null) {
+				LOGGER.trace("  Authorization not applicable for null "+desc);
+				return false;
+			}
+			for (ObjectSpecificationType autzObject: objectSpecTypes) {
+				if (isApplicable(autzObject, object, midPointPrincipal, desc)) {
+					return true;
+				}
+			}
+			return false;
+		} else {
+			LOGGER.trace("  No "+desc+" specification in authorization (authorization is applicable)");
+			return true;
+		}
+	}
+	
 	private <O extends ObjectType> boolean isApplicable(ObjectSpecificationType objectSpecType, PrismObject<O> object, 
-			MidPointPrincipal principal) throws SchemaException {
+			MidPointPrincipal principal, String desc) throws SchemaException {
 		if (objectSpecType == null) {
+			LOGGER.trace("  Authorization not applicable for {} because of null object specification");
 			return false;
 		}
 		QueryType specFilter = objectSpecType.getFilter();
 		QName specTypeQName = objectSpecType.getType();
+		PrismObjectDefinition<O> objectDefinition = object.getDefinition();
+		if (specTypeQName != null && !QNameUtil.match(specTypeQName, objectDefinition.getTypeName())) {
+			LOGGER.trace("  Authorization not applicable for {} because of type mismatch, expected {}, was {}",
+					new Object[]{desc, specTypeQName, objectDefinition.getTypeName()});
+			return false;
+		}
 		List<SpecialObjectSpecificationType> specSpecial = objectSpecType.getSpecial();
 		if (specSpecial != null && !specSpecial.isEmpty()) {
 			if (specFilter != null) {
-				throw new SchemaException("Both filter and special object specification specified in authorization");
+				throw new SchemaException("Both filter and special "+desc+" specification specified in authorization");
 			}
 			for (SpecialObjectSpecificationType special: specSpecial) {
 				if (special == SpecialObjectSpecificationType.SELF) {
 					String principalOid = principal.getOid();
-					if (principalOid != null) {
+					if (principalOid == null) {
 						// This is a rare case. It should not normally happen. But it may happen in tests
 						// or during initial import. Therefore we are not going to die here. Just ignore it.
 					} else {
 						if (principalOid.equals(object.getOid())) {
+							LOGGER.trace("  'self' authorization applicable for {}", desc);
 							return true;
+						} else {
+							LOGGER.trace("  'self' authorization not applicable for {}, principal OID: {}, {} OID {}",
+									new Object[]{desc, principalOid, desc, object.getOid()});
 						}
 					}
 				} else {
-					throw new SchemaException("Unsupported special object specification specified in authorization: "+special);
+					throw new SchemaException("Unsupported special "+desc+" specification specified in authorization: "+special);
 				}
 			}
+		} else {
+			LOGGER.trace("  specials empty: {}", specSpecial);
 		}
-		// TODO: filter
+		if (specFilter != null) {
+			ObjectQuery q = QueryConvertor.createObjectQuery(object.getCompileTimeClass(), specFilter, object.getPrismContext());
+			boolean applicable = ObjectQuery.match(object, q.getFilter(), matchingRuleRegistry);
+			if (applicable) {
+				LOGGER.trace("  Authorization applicable for {} (filter)", desc);
+			} else {
+				LOGGER.trace("  Authorization not applicable for {} (filter)", desc);
+			}
+			return applicable;
+		}
 		return false;
 	}
 	

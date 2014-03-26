@@ -15,7 +15,11 @@
  */
 package com.evolveum.midpoint.web.page.admin.roles;
 
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -24,39 +28,27 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
-import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
+import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.component.form.*;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.page.admin.roles.dto.RoleDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.string.StringValue;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -71,8 +63,6 @@ public class PageRole extends PageAdminRoles{
 
     private static final String DOT_CLASS = PageRole.class.getName() + ".";
     private static final String OPERATION_LOAD_ROLE = DOT_CLASS + "loadRole";
-    private static final String OPERATION_LOAD_INDUCEMENTS = DOT_CLASS + "loadInducements";
-    private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
     private static final String OPERATION_LOAD_ASSIGNMENT = DOT_CLASS + "loadAssignment";
     private static final String OPERATION_SAVE_ROLE = DOT_CLASS + "saveRole";
 
@@ -87,45 +77,21 @@ public class PageRole extends PageAdminRoles{
     private static final String ID_DATE_TO = "dateTo";
     private static final String ID_ADMIN_STATUS = "adminStatus";
 
-    private static final String ID_INDUCEMENTS = "inducements";
-    private static final String ID_INDUCEMENTS_CHECK_ALL = "inducementsCheckAll";
-    private static final String ID_INDUCEMENTS_MENU = "inducementsMenu";
-    private static final String ID_INDUCEMENTS_LIST = "inducementList";
-    private static final String ID_INDUCEMENTS_ROW = "inducementEditor";
-    private static final String ID_ASSIGNMENTS = "assignments";
-    private static final String ID_ASSIGNMENTS_CHECK_ALL = "assignmentsCheckAll";
-    private static final String ID_ASSIGNMENTS_MENU = "assignmentsMenu";
-    private static final String ID_ASSIGNMENTS_LIST = "assignmentList";
-    private static final String ID_ASSIGNMENTS_ROW = "assignmentEditor";
+    private static final String ID_INDUCEMENTS = "inducementsPanel";
+    private static final String ID_ASSIGNMENTS = "assignmentsPanel";
+
 
     private static final String ID_LABEL_SIZE = "col-md-4";
     private static final String ID_INPUT_SIZE = "col-md-8";
 
-    private IModel<RoleDto> model;
-    private IModel<List<AssignmentEditorDto>> inducementsModel;
-    private IModel<List<AssignmentEditorDto>> assignmentsModel;
-
+    private IModel<PrismObject<RoleType>> model;
 
     public PageRole(){
 
-        model = new LoadableModel<RoleDto>() {
+        model = new LoadableModel<PrismObject<RoleType>>(false) {
             @Override
-            protected RoleDto load() {
+            protected PrismObject<RoleType> load() {
                 return loadRole();
-            }
-        };
-
-        inducementsModel = new LoadableModel<List<AssignmentEditorDto>>() {
-            @Override
-            protected List<AssignmentEditorDto> load() {
-                return model.getObject().getInducements();
-            }
-        };
-
-        assignmentsModel = new LoadableModel<List<AssignmentEditorDto>>() {
-            @Override
-            protected List<AssignmentEditorDto> load() {
-                return model.getObject().getAssignments();
             }
         };
 
@@ -142,103 +108,47 @@ public class PageRole extends PageAdminRoles{
                     return createStringResource("PageRoleEditor.title.newRole").getObject();
                 }
 
-                String roleName = model.getObject().getName();
+                String roleName = model.getObject().asObjectable().getName().getOrig();
                 return new StringResourceModel("PageRoleEditor.title.editingRole", PageRole.this, null, null, roleName).getString();
             }
         };
     }
 
-    private RoleDto loadRole(){
-        StringValue roleOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-        if (roleOid == null || StringUtils.isEmpty(roleOid.toString())) {
-            return new RoleDto();
-        }
-
-        RoleDto dto = null;
+    private PrismObject<RoleType> loadRole(){
         OperationResult result = new OperationResult(OPERATION_LOAD_ROLE);
 
-        try{
-            Task task = getTaskManager().createTaskInstance(OPERATION_LOAD_ROLE);
-            PrismObject<RoleType> rolePrism = getModelService().getObject(RoleType.class, roleOid.toString(),
-                    null, task, result);
-
-            RoleType role = rolePrism.asObjectable();
-
-            dto = new RoleDto(WebMiscUtil.getOrigStringFromPoly(role.getName()), role.getDescription(), role.getRoleType(), role.isRequestable(),
-                    role.getActivation().getValidFrom(), role.getActivation().getValidTo(), role.getActivation().getAdministrativeStatus());
-
-            dto.setInducements(loadInducements(role));
-            dto.setAssignments(loadAssignments(role));
-
-            result.recordSuccess();
-        } catch (Exception e){
-            result.recordFatalError(e.getMessage(), e);
+        PrismObject<RoleType> role = null;
+        try {
+            if (!isEditing()) {
+                RoleType r = new RoleType();
+                getMidpointApplication().getPrismContext().adopt(r);
+                role = r.asPrismObject();
+            } else {
+                StringValue oid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
+                role = getModelService().getObject(RoleType.class, oid.toString(), null,
+                        createSimpleTask(OPERATION_LOAD_ROLE), result);
+            }
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't load role", ex);
+            result.recordFatalError("Couldn't load role.", ex);
+        } finally {
+            result.computeStatus();
         }
 
-        if(!result.isSuccess()){
+        if (WebMiscUtil.showResultInPage(result)) {
             showResult(result);
         }
 
-        if(dto != null){
-            return dto;
-        } else{
-            return new RoleDto();
-        }
-    }
-
-    private List<AssignmentEditorDto> loadInducements(RoleType role){
-        OperationResult result = new OperationResult(OPERATION_LOAD_INDUCEMENTS);
-        List<AssignmentType> list = role.getInducement();
-
-        return loadFromAssignmentTypeList(list, result);
-    }
-
-    private List<AssignmentEditorDto> loadAssignments(RoleType role){
-        OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENTS);
-        List<AssignmentType> list = role.getAssignment();
-
-        return loadFromAssignmentTypeList(list, result);
-    }
-
-    private List<AssignmentEditorDto> loadFromAssignmentTypeList(List<AssignmentType> asgList, OperationResult result){
-        List<AssignmentEditorDto> list = new ArrayList<AssignmentEditorDto>();
-
-        for (AssignmentType assignment : asgList) {
-            ObjectType targetObject = null;
-            AssignmentEditorDtoType type = AssignmentEditorDtoType.ACCOUNT_CONSTRUCTION;
-            if (assignment.getTarget() != null) {
-                // object assignment
-                targetObject = assignment.getTarget();
-                type = AssignmentEditorDtoType.getType(targetObject.getClass());
-            } else if (assignment.getTargetRef() != null) {
-                // object assignment through reference
-                ObjectReferenceType ref = assignment.getTargetRef();
-                PrismObject target = getReference(ref, result);
-
-                if (target != null) {
-                    targetObject = (ObjectType) target.asObjectable();
-                    type = AssignmentEditorDtoType.getType(target.getCompileTimeClass());
-                }
-            } else if (assignment.getConstruction() != null) {
-                // account assignment through account construction
-                ConstructionType construction = assignment.getConstruction();
-                if (construction.getResource() != null) {
-                    targetObject = construction.getResource();
-                } else if (construction.getResourceRef() != null) {
-                    ObjectReferenceType ref = construction.getResourceRef();
-                    PrismObject target = getReference(ref, result);
-                    if (target != null) {
-                        targetObject = (ObjectType) target.asObjectable();
-                    }
-                }
-            }
-
-            list.add(new AssignmentEditorDto(targetObject, type, UserDtoStatus.MODIFY, assignment));
+        if (role == null) {
+            throw new RestartResponseException(PageRole.class);
         }
 
-        Collections.sort(list);
+        return role;
+    }
 
-        return list;
+    private boolean isEditing(){
+        StringValue oid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
+        return oid != null && StringUtils.isNotEmpty(oid.toString());
     }
 
     private PrismObject getReference(ObjectReferenceType ref, OperationResult result) {
@@ -265,101 +175,60 @@ public class PageRole extends PageAdminRoles{
         Form form = new Form(ID_MAIN_FORM);
         add(form);
 
-        TextFormGroup name = new TextFormGroup(ID_NAME, new PropertyModel<String>(model, RoleDto.F_NAME),
+        TextFormGroup name = new TextFormGroup(ID_NAME, new PrismPropertyModel(model, RoleType.F_NAME),
                 createStringResource("PageRoleEditor.label.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
         form.add(name);
 
-        TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION, new PropertyModel<String>(model, RoleDto.F_DESCRIPTION),
+        TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION, new PrismPropertyModel(model, RoleType.F_DESCRIPTION),
                 createStringResource("PageRoleEditor.label.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(description);
 
-        TextFormGroup roleType = new TextFormGroup(ID_ROLE_TYPE, new PropertyModel<String>(model, RoleDto.F_TYPE),
+        TextFormGroup roleType = new TextFormGroup(ID_ROLE_TYPE, new PrismPropertyModel(model, RoleType.F_ROLE_TYPE),
                 createStringResource("PageRoleEditor.label.type"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(roleType);
 
-        CheckFormGroup requestable = new CheckFormGroup(ID_REQUESTABLE, new PropertyModel<Boolean>(model, RoleDto.F_REQUESTABLE),
+        CheckFormGroup requestable = new CheckFormGroup(ID_REQUESTABLE, new PrismPropertyModel(model, RoleType.F_REQUESTABLE),
                 createStringResource("PageRoleEditor.label.requestable"), ID_LABEL_SIZE, ID_INPUT_SIZE);
         form.add(requestable);
 
         IModel choices = WebMiscUtil.createReadonlyModelFromEnum(ActivationStatusType.class);
         IChoiceRenderer renderer = new EnumChoiceRenderer();
-        DropDownFormGroup adminStatus = new DropDownFormGroup(ID_ADMIN_STATUS, new PropertyModel(model, RoleDto.F_ADMIN_STATUS),
+        DropDownFormGroup adminStatus = new DropDownFormGroup(ID_ADMIN_STATUS, new PrismPropertyModel(model,
+                new ItemPath(RoleType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)),
                 choices, renderer, createStringResource("ActivationType.administrativeStatus"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(adminStatus);
 
-        DateFormGroup validFrom = new DateFormGroup(ID_DATE_FROM, new PropertyModel<XMLGregorianCalendar>(model, RoleDto.F_FROM),
+        DateFormGroup validFrom = new DateFormGroup(ID_DATE_FROM, new PrismPropertyModel(model,
+                new ItemPath(RoleType.F_ACTIVATION, ActivationType.F_VALID_FROM)),
                 createStringResource("ActivationType.validFrom"),ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(validFrom);
 
-        DateFormGroup validTo = new DateFormGroup(ID_DATE_TO, new PropertyModel<XMLGregorianCalendar>(model, RoleDto.F_TO),
+        DateFormGroup validTo = new DateFormGroup(ID_DATE_TO, new PrismPropertyModel(model,
+                new ItemPath(RoleType.F_ACTIVATION, ActivationType.F_VALID_TO)),
                 createStringResource("ActivationType.validTo"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(validTo);
 
-        WebMarkupContainer inducements = new WebMarkupContainer(ID_INDUCEMENTS);
-        inducements.setOutputMarkupId(true);
-        form.add(inducements);
-        initInducements(inducements);
+        AssignmentTablePanel assignments = new AssignmentTablePanel(ID_ASSIGNMENTS, new Model<AssignmentTableDto>(),
+                createStringResource("PageRoleEditor.title.assignments")){
 
-        WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
-        assignments.setOutputMarkupId(true);
+            @Override
+            public List<AssignmentType> getAssignmentTypeList(){
+                return model.getObject().asObjectable().getAssignment();
+            }
+        };
         form.add(assignments);
-        initAssignments(assignments);
+
+        AssignmentTablePanel inducements = new AssignmentTablePanel(ID_INDUCEMENTS, new Model<AssignmentTableDto>(),
+                createStringResource("PageRoleEditor.title.inducements")){
+
+            @Override
+            public List<AssignmentType> getAssignmentTypeList(){
+                return model.getObject().asObjectable().getInducement();
+            }
+        };
+        form.add(inducements);
 
         initButtons(form);
-    }
-
-    private void initInducements(final WebMarkupContainer inducements){
-        InlineMenu inducementMenu = new InlineMenu(ID_INDUCEMENTS_MENU, new Model((Serializable) createInducementsMenu()));
-        inducements.add(inducementMenu);
-
-        final ListView<AssignmentEditorDto> inducementList = new ListView<AssignmentEditorDto>(ID_INDUCEMENTS_LIST,
-                inducementsModel){
-
-            @Override
-            protected void populateItem(final ListItem<AssignmentEditorDto> item){
-                AssignmentEditorPanel inducementEditor = new AssignmentEditorPanel(ID_INDUCEMENTS_ROW,
-                        item.getModel());
-                item.add(inducementEditor);
-            }
-        };
-        inducementList.setOutputMarkupId(true);
-        inducements.add(inducementList);
-
-        AjaxCheckBox inducementsCheckAll = new AjaxCheckBox(ID_INDUCEMENTS_CHECK_ALL, new Model<Boolean>()) {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                //TODO
-            }
-        };
-        inducements.add(inducementsCheckAll);
-    }
-
-    private void initAssignments(final WebMarkupContainer assignments){
-        InlineMenu assignmentsMenu = new InlineMenu(ID_ASSIGNMENTS_MENU, new Model((Serializable)createAssignmentsMenu()));
-        assignments.add(assignmentsMenu);
-
-        final ListView<AssignmentEditorDto> assignmentList = new ListView<AssignmentEditorDto>(ID_ASSIGNMENTS_LIST,
-                assignmentsModel){
-
-            @Override
-            protected void populateItem(final ListItem<AssignmentEditorDto> item){
-                AssignmentEditorPanel inducementEditor = new AssignmentEditorPanel(ID_ASSIGNMENTS_ROW,
-                        item.getModel());
-                item.add(inducementEditor);
-            }
-        };
-        assignmentList.setOutputMarkupId(true);
-        assignments.add(assignmentList);
-
-        AjaxCheckBox assignmentsCheckAll = new AjaxCheckBox(ID_ASSIGNMENTS_CHECK_ALL, new Model<Boolean>()) {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                //TODO
-            }
-        };
-        assignments.add(assignmentsCheckAll);
     }
 
     private void initButtons(Form form){
@@ -388,28 +257,68 @@ public class PageRole extends PageAdminRoles{
         form.add(back);
     }
 
-    private List<InlineMenuItem> createInducementsMenu(){
-        return null;
-    }
-
-    private List<InlineMenuItem> createAssignmentsMenu(){
-        return null;
-    }
-
-    private boolean isEditing() {
-        StringValue roleOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-        if (roleOid == null || StringUtils.isEmpty(roleOid.toString())) {
-            return false;
-        }
-        return true;
-    }
-
     private void savePerformed(AjaxRequestTarget target){
-        //TODO - save
+        OperationResult result = new OperationResult(OPERATION_SAVE_ROLE);
+        try {
+            ModelService modelService = getModelService();
+
+            PrismObject<RoleType> newRole = model.getObject();
+
+            ObjectDelta delta = null;
+            if (!isEditing()) {
+                delta = ObjectDelta.createAddDelta(newRole);
+
+                //handle assignments
+                PrismObjectDefinition orgDef = newRole.getDefinition();
+                PrismContainerDefinition assignmentDef = orgDef.findContainerDefinition(RoleType.F_ASSIGNMENT);
+                AssignmentTablePanel assignmentPanel = (AssignmentTablePanel)get(createComponentPath(ID_MAIN_FORM, ID_ASSIGNMENTS));
+                assignmentPanel.handleAssignmentsWhenAdd(newRole, assignmentDef, newRole.asObjectable().getAssignment());
+
+                //handle inducements
+                PrismContainerDefinition inducementDef = orgDef.findContainerDefinition(RoleType.F_INDUCEMENT);
+                AssignmentTablePanel inducementPanel = (AssignmentTablePanel)get(createComponentPath(ID_MAIN_FORM, ID_INDUCEMENTS));
+                inducementPanel.handleAssignmentsWhenAdd(newRole, inducementDef, newRole.asObjectable().getInducement());
+
+            } else {
+                PrismObject<RoleType> oldRole = WebModelUtils.loadObject(RoleType.class, newRole.getOid(), result, this);
+                if (oldRole != null) {
+                    delta = oldRole.diff(newRole);
+
+                    //handle assignments
+                    SchemaRegistry registry = getPrismContext().getSchemaRegistry();
+                    PrismObjectDefinition objectDefinition = registry.findObjectDefinitionByCompileTimeClass(RoleType.class);
+                    PrismContainerDefinition assignmentDef = objectDefinition.findContainerDefinition(RoleType.F_ASSIGNMENT);
+                    AssignmentTablePanel assignmentPanel = (AssignmentTablePanel)get(createComponentPath(ID_MAIN_FORM, ID_ASSIGNMENTS));
+                    assignmentPanel.handleAssignmentDeltas(delta, assignmentDef, RoleType.F_ASSIGNMENT);
+
+                    //handle inducements
+                    PrismContainerDefinition inducementDef = objectDefinition.findContainerDefinition(RoleType.F_INDUCEMENT);
+                    AssignmentTablePanel inducementPanel = (AssignmentTablePanel)get(createComponentPath(ID_MAIN_FORM, ID_INDUCEMENTS));
+                    inducementPanel.handleAssignmentDeltas(delta, inducementDef, RoleType.F_INDUCEMENT);
+                }
+            }
+
+            if (delta != null) {
+                Collection<ObjectDelta<? extends ObjectType>> deltas = WebMiscUtil.createDeltaCollection(delta);
+                modelService.executeChanges(deltas, null, createSimpleTask(OPERATION_SAVE_ROLE), result);
+            }
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't save role", ex);
+            result.recordFatalError("Couldn't save role.", ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+
+        if (WebMiscUtil.isSuccessOrHandledError(result)) {
+            showResultInSession(result);
+            setResponsePage(PageRoles.class);
+        } else {
+            showResult(result);
+            target.add(getFeedbackPanel());
+        }
     }
 
     private void backPerformed(AjaxRequestTarget target){
         setResponsePage(PageRoles.class);
     }
-
 }
