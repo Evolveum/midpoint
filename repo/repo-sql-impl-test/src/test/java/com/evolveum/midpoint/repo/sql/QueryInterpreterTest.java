@@ -229,7 +229,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         //and
         Conjunction c2 = Restrictions.conjunction();
         c2.add(Restrictions.eq("l.ownerType", RObjectType.OBJECT));
-``        c2.add(Restrictions.eq("l.name", new QName("http://example.com/p", "intType")));
+        c2.add(Restrictions.eq("l.name", new QName("http://example.com/p", "intType")));
         c2.add(Restrictions.eq("l.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "integer")));
         c2.add(Restrictions.eq("l.value", 123L));
 
