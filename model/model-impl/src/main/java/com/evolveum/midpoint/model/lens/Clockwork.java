@@ -654,10 +654,14 @@ public class Clockwork {
 				ObjectDelta<ShadowType> syncDelta = projectionContext.getSyncDelta();
 				if (syncDelta != null) {
 					sb.append(syncDelta.debugDump(1));
-					sb.append(": ");
-					sb.append(projectionContext.getSynchronizationSituationDetected());
 					sb.append("\n");
 				}
+				DebugUtil.debugDumpLabel(sb, "Situation", 1);
+				sb.append(" ");
+				sb.append(projectionContext.getSynchronizationSituationDetected());
+				sb.append(" -> ");
+				sb.append(projectionContext.getSynchronizationSituationResolved());
+				sb.append("\n");
 			}
 		}
 		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
@@ -665,6 +669,8 @@ public class Clockwork {
 				sb.append("Triggered by absolute state of ").append(projectionContext.getHumanReadableName());
 				sb.append(": ");
 				sb.append(projectionContext.getSynchronizationSituationDetected());
+				sb.append(" -> ");
+				sb.append(projectionContext.getSynchronizationSituationResolved());
 				sb.append("\n");
 			}
 		}
