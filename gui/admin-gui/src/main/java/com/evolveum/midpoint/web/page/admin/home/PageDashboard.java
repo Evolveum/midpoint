@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.web.page.admin.home;
 
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
-import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
@@ -37,6 +37,7 @@ import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
@@ -378,13 +379,12 @@ public class PageDashboard extends PageAdminHome {
         PrismReference targetRef = assignment.findReference(AssignmentType.F_TARGET_REF);
         if (targetRef == null || targetRef.isEmpty()) {
             //account construction
-            PrismProperty construction = assignment.findProperty(AssignmentType.F_CONSTRUCTION);
+            PrismContainer construction = assignment.findContainer(AssignmentType.F_CONSTRUCTION);
             String name = null;
             String description = null;
-            if (construction != null && !construction.isEmpty()) {
-                ConstructionType constr = (ConstructionType)
-                        construction.getRealValue(ConstructionType.class);
-                description = constr.getDescription();
+            if (construction.getValue().asContainerable() != null && !construction.isEmpty()) {
+                ConstructionType constr = (ConstructionType) construction.getValue().asContainerable();
+                description =  (String) construction.getPropertyRealValue(ConstructionType.F_DESCRIPTION, String.class);
 
                 if (constr.getResourceRef() != null) {
                     ObjectReferenceType resourceRef = constr.getResourceRef();

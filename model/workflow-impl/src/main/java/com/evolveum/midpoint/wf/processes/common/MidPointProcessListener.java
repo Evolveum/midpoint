@@ -18,7 +18,6 @@ package com.evolveum.midpoint.wf.processes.common;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.ExecutionListener;
 
@@ -43,7 +42,7 @@ public class MidPointProcessListener implements ExecutionListener {
             LOGGER.trace("Signalling process end; execution id = {}, current activity id = {}, current activity name = {}, instance id = {}",
                     new Object[] { execution.getId(), execution.getCurrentActivityId(), execution.getCurrentActivityName(), execution.getProcessInstanceId() });
             try {
-                SpringApplicationContextHolder.getActivitiInterface().notifyMidpointFinal(execution);
+                SpringApplicationContextHolder.getActivitiInterface().notifyMidpointAboutProcessFinishedEvent(execution);
             } catch (Exception e) {
                 LOGGER.trace("Got exception while processing process end event in midpoint", e);
                 if (Boolean.TRUE.equals(execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_IS_PROCESS_INSTANCE_STOPPING))) {

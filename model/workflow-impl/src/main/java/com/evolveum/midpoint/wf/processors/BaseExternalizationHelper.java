@@ -16,10 +16,15 @@
 
 package com.evolveum.midpoint.wf.processors;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.wf.processes.ProcessMidPointInterface;
 import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.processes.ProcessInterfaceFinder;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -35,16 +40,28 @@ import java.util.Map;
 @Component
 public class BaseExternalizationHelper {
 
-    public void externalizeState(PrismObject<? extends ProcessInstanceState> statePrism, Map<String, Object> variables) {
-        ProcessInstanceState state = statePrism.asObjectable();
-        state.setProcessInstanceName((String) variables.get(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME));
-        state.setMidPointAnswer((String) variables.get(CommonProcessVariableNames.VARIABLE_WF_ANSWER));
-        state.setStartTime(XmlTypeConverter.createXMLGregorianCalendar((Date) variables.get(CommonProcessVariableNames.VARIABLE_START_TIME)));
-        state.setMidPointTaskOid((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID));
-        state.setMidPointChangeProcessor((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR));
-        state.setMidPointRequesterOid((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID));
-        state.setMidPointState((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_STATE));
-        state.setMidPointAnswer((String) variables.get(CommonProcessVariableNames.VARIABLE_WF_ANSWER));
-    }
+    @Autowired
+    private PrismContext prismContext;
 
+    @Autowired
+    private ProcessInterfaceFinder processInterfaceFinder;
+
+    public PrismObject<ProcessInstanceState> externalizeState(Map<String, Object> variables) {
+        PrismObjectDefinition<ProcessInstanceState> extDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(ProcessInstanceState.COMPLEX_TYPE);
+        PrismObject<ProcessInstanceState> extStateObject = extDefinition.instantiate();
+        ProcessInstanceState extState = extStateObject.asObjectable();
+
+        extState.setProcessInstanceName((String) variables.get(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME));
+        extState.setStartTime(XmlTypeConverter.createXMLGregorianCalendar((Date) variables.get(CommonProcessVariableNames.VARIABLE_START_TIME)));
+        extState.setShadowTaskOid((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID));
+        extState.setChangeProcessor((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR));
+        extState.setRequesterOid((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID));
+        extState.setObjectOid((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID));
+
+        ProcessMidPointInterface processMidPointInterface = processInterfaceFinder.getProcessInterface(variables);
+        extState.setAnswer(processMidPointInterface.getAnswer(variables));
+        extState.setState(processMidPointInterface.getState(variables));
+
+        return extStateObject;
+    }
 }

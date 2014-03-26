@@ -30,6 +30,12 @@ import org.apache.wicket.model.StringResourceModel;
  */
 public class ConfirmationDialog extends ModalWindow {
 
+    private static final String ID_CONFIRM_TEXT = "confirmText";
+    private static final String ID_YES = "yes";
+    private static final String ID_NO = "no";
+
+    private int confirmType;
+
     public ConfirmationDialog(String id) {
         this(id, null, null);
     }
@@ -73,19 +79,21 @@ public class ConfirmationDialog extends ModalWindow {
         initLayout(content, message);
     }
 
+    public boolean getLabelEscapeModelStrings(){
+        return true;
+    }
+
     public void setMessage(IModel<String> message) {
-        Label label = (Label) getContent().get("confirmText");
+        Label label = (Label) getContent().get(ID_CONFIRM_TEXT);
         label.setDefaultModel(message);
     }
 
-    public void setEscapeModelStringsByCaller(boolean value){
-        Label label = (Label)getContent().get("confirmText").setEscapeModelStrings(value);
-    }
-
     private void initLayout(WebMarkupContainer content, IModel<String> message) {
-        content.add(new Label("confirmText", message));
+        Label label = new Label(ID_CONFIRM_TEXT, message);
+        label.setEscapeModelStrings(getLabelEscapeModelStrings());
+        content.add(label);
 
-        AjaxButton yesButton = new AjaxButton("yes", new StringResourceModel("confirmationDialog.yes",
+        AjaxButton yesButton = new AjaxButton(ID_YES, new StringResourceModel("confirmationDialog.yes",
                 this, null)) {
 
             @Override
@@ -95,7 +103,7 @@ public class ConfirmationDialog extends ModalWindow {
         };
         content.add(yesButton);
 
-        AjaxButton noButton = new AjaxButton("no", new StringResourceModel("confirmationDialog.no",
+        AjaxButton noButton = new AjaxButton(ID_NO, new StringResourceModel("confirmationDialog.no",
                 this, null)) {
 
             @Override
@@ -106,16 +114,28 @@ public class ConfirmationDialog extends ModalWindow {
         content.add(noButton);
     }
 
-    public void setButtonVisibility(boolean visibility){
-        getContent().get("yes").setVisible(visibility);
-        getContent().get("no").setVisible(visibility);
-    }
-
     public void yesPerformed(AjaxRequestTarget target) {
 
     }
 
     public void noPerformed(AjaxRequestTarget target) {
         close(target);
+    }
+
+    /**
+     * @return confirmation type identifier
+     */
+    public int getConfirmType() {
+        return confirmType;
+    }
+
+    /**
+     * This method provides solution for reusing one confirmation dialog for more messages/actions
+     * by using confirmType identifier. See for example {@link com.evolveum.midpoint.web.page.admin.users.component.TreeTablePanel}
+     *
+     * @param confirmType
+     */
+    public void setConfirmType(int confirmType) {
+        this.confirmType = confirmType;
     }
 }

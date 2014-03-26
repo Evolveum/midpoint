@@ -171,6 +171,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Override
     public Collection<String> getOrgUnits(UserType user) {
         Set<String> retval = new HashSet<String>();
+        if (user == null){
+        	return retval;
+        }
         for (ObjectReferenceType orgRef : user.getParentOrgRef()) {
             retval.add(orgRef.getOid());
         }

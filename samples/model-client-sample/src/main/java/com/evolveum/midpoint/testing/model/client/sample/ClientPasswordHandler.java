@@ -28,13 +28,19 @@ import org.apache.ws.security.WSPasswordCallback;
  *
  */
 public class ClientPasswordHandler implements CallbackHandler {
-	
-	@Override
+
+    private static String password;
+
+    public static void setPassword(String password) {
+        ClientPasswordHandler.password = password;
+    }
+
+    @Override
 	public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
 		WSPasswordCallback pc = (WSPasswordCallback) callbacks[0];
 
         // set the password for our message.
-        pc.setPassword(Main.ADM_PASSWORD);
+        pc.setPassword(password != null ? password : Main.ADM_PASSWORD);
 	}
 
 }

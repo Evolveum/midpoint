@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -24,6 +23,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -47,6 +47,7 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.Component;
@@ -117,7 +118,14 @@ public class PageTasks extends PageAdminTasks {
     }
 
     private TasksSearchDto loadTasksSearchDto() {
-        TasksSearchDto dto = new TasksSearchDto();
+        TasksStorage storage = getSessionStorage().getTasks();
+        TasksSearchDto dto = storage.getTasksSearch();
+
+        if(dto == null){
+            dto = new TasksSearchDto();
+            dto.setShowSubtasks(false);
+        }
+
         if (dto.getStatus() == null) {
             dto.setStatus(TaskDtoExecutionStatusFilter.ALL);
         }
@@ -142,7 +150,7 @@ public class PageTasks extends PageAdminTasks {
         options.setResolveOwnerRef(false);
         TaskDtoProvider provider = new TaskDtoProvider(PageTasks.this, options);
 
-        provider.setQuery(createTaskQuery(null, null, false));      // show only root tasks
+        provider.setQuery(createTaskQuery());
         TablePanel<TaskDto> taskTable = new TablePanel<TaskDto>(ID_TASK_TABLE, provider,
                 taskColumns);
         taskTable.setOutputMarkupId(true);
@@ -1038,7 +1046,8 @@ public class PageTasks extends PageAdminTasks {
     private void searchFilterPerformed(AjaxRequestTarget target) {
         TasksSearchDto dto = searchModel.getObject();
 
-        ObjectQuery query = createTaskQuery(dto.getStatus(), dto.getCategory(), dto.isShowSubtasks());
+//        ObjectQuery query = createTaskQuery(dto.getStatus(), dto.getCategory(), dto.isShowSubtasks());
+        ObjectQuery query = createTaskQuery();
 
         TablePanel panel = getTaskTable();
         DataTable table = panel.getDataTable();
@@ -1046,11 +1055,19 @@ public class PageTasks extends PageAdminTasks {
         provider.setQuery(query);
         table.setCurrentPage(0);
 
+        TasksStorage storage = getSessionStorage().getTasks();
+        storage.setTasksSearch(dto);
+
         target.add(getFeedbackPanel());
         target.add(getTaskTable());
     }
 
-    private ObjectQuery createTaskQuery(TaskDtoExecutionStatusFilter status, String category, Boolean showSubtasks) {
+    private ObjectQuery createTaskQuery(){
+        TasksSearchDto dto = searchModel.getObject();
+        TaskDtoExecutionStatusFilter status = dto.getStatus();
+        String category = dto.getCategory();
+        boolean showSubtasks = dto.isShowSubtasks();
+
         ObjectQuery query = null;
         try {
             List<ObjectFilter> filters = new ArrayList<ObjectFilter>();

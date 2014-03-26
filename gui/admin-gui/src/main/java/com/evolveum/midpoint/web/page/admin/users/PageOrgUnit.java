@@ -16,16 +16,13 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -35,6 +32,8 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.MultiValueChoosePanel;
+import com.evolveum.midpoint.web.component.assignment.AssignmentTableDto;
+import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.form.*;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
@@ -42,16 +41,14 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.*;
 import org.apache.wicket.util.string.StringValue;
 
 import java.io.Serializable;
@@ -72,6 +69,8 @@ public class PageOrgUnit extends PageAdminUsers {
     private static final String LOAD_UNIT = DOT_CLASS + "loadOrgUnit";
     private static final String SAVE_UNIT = DOT_CLASS + "saveOrgUnit";
     private static final String LOAD_PARENT_UNITS = DOT_CLASS + "loadParentOrgUnits";
+    private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
+    private static final String OPERATION_LOAD_ASSIGNMENT = DOT_CLASS + "loadAssignment";
 
     private static final String ID_LABEL_SIZE = "col-md-4";
     private static final String ID_INPUT_SIZE = "col-md-6";
@@ -92,6 +91,10 @@ public class PageOrgUnit extends PageAdminUsers {
     private static final String ID_BACK = "back";
     private static final String ID_SAVE = "save";
 
+    private static final String ID_ASSIGNMENTS_TABLE = "assignmentsPanel";
+    private static final String ID_INDUCEMENTS_TABLE = "inducementsPanel";
+
+    //private ContainerStatus status;
     private IModel<PrismObject<OrgType>> orgModel;
     private IModel<List<OrgType>> parentOrgUnitsModel;
     private IModel<List<PrismPropertyValue>> orgTypeModel;
@@ -134,6 +137,8 @@ public class PageOrgUnit extends PageAdminUsers {
                 return loadParentOrgUnits();
             }
         };
+
+        //status = isEditing() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
 
         initLayout();
     }
@@ -259,6 +264,26 @@ public class PageOrgUnit extends PageAdminUsers {
         };
         form.add(parentOrgType);
 
+        AssignmentTablePanel assignments = new AssignmentTablePanel(ID_ASSIGNMENTS_TABLE, new Model<AssignmentTableDto>(),
+                createStringResource("PageOrgUnit.title.assignments")){
+
+            @Override
+            public List<AssignmentType> getAssignmentTypeList(){
+                return orgModel.getObject().asObjectable().getAssignment();
+            }
+        };
+        form.add(assignments);
+
+        AssignmentTablePanel inducements = new AssignmentTablePanel(ID_INDUCEMENTS_TABLE, new Model<AssignmentTableDto>(),
+                createStringResource("PageOrgUnit.title.inducements")){
+
+            @Override
+            public List<AssignmentType> getAssignmentTypeList(){
+                return orgModel.getObject().asObjectable().getInducement();
+            }
+        };
+        form.add(inducements);
+
         initButtons(form);
     }
 
@@ -294,10 +319,10 @@ public class PageOrgUnit extends PageAdminUsers {
     }
 
     private void backPerformed(AjaxRequestTarget target) {
-
+        setResponsePage(PageOrgTree.class);
     }
 
-    private PrismObject<OrgType> buildUnitFromModel() throws SchemaException {
+    private PrismObject<OrgType> buildUnitFromModel(List<ObjectReferenceType> parentOrgList) throws SchemaException {
         PrismObject<OrgType> org = orgModel.getObject();
 
         //update orgType values
@@ -314,9 +339,11 @@ public class PageOrgUnit extends PageAdminUsers {
         if (parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null) {
             for (OrgType parent : parentOrgUnitsModel.getObject()) {
                 if (parent != null && WebMiscUtil.getName(parent) != null && !WebMiscUtil.getName(parent).isEmpty()) {
-                    ObjectReferenceType ref = new ObjectReferenceType();
-                    ref.setOid(parent.getOid());
-                    org.asObjectable().getParentOrgRef().add(ref);
+                    if(!isOrgParent(parent, parentOrgList)){
+                        ObjectReferenceType ref = new ObjectReferenceType();
+                        ref.setOid(parent.getOid());
+                        org.asObjectable().getParentOrgRef().add(ref);
+                    }
                 }
             }
         }
@@ -324,20 +351,54 @@ public class PageOrgUnit extends PageAdminUsers {
         return org;
     }
 
+    private boolean isOrgParent(OrgType unit, List<ObjectReferenceType> parentList){
+        for(ObjectReferenceType parentRef: parentList){
+            if(unit.getOid().equals(parentRef.getOid())){
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private void savePerformed(AjaxRequestTarget target) {
         OperationResult result = new OperationResult(SAVE_UNIT);
         try {
             ModelService model = getModelService();
 
-            PrismObject<OrgType> newOrgUnit = buildUnitFromModel();
+            PrismObject<OrgType> oldOrgUnit = WebModelUtils.loadObject(OrgType.class, orgModel.getObject().asObjectable().getOid(), result, this);
+            PrismObject<OrgType> newOrgUnit = buildUnitFromModel(oldOrgUnit.asObjectable().getParentOrgRef());
 
             ObjectDelta delta = null;
             if (!isEditing()) {
                 delta = ObjectDelta.createAddDelta(newOrgUnit);
+
+                //handle assignments
+                PrismObjectDefinition orgDef = newOrgUnit.getDefinition();
+                PrismContainerDefinition assignmentDef = orgDef.findContainerDefinition(OrgType.F_ASSIGNMENT);
+                AssignmentTablePanel assignmentPanel = (AssignmentTablePanel)get(createComponentPath(ID_FORM, ID_ASSIGNMENTS_TABLE));
+                assignmentPanel.handleAssignmentsWhenAdd(newOrgUnit, assignmentDef, newOrgUnit.asObjectable().getAssignment());
+
+                //handle inducements
+                PrismContainerDefinition inducementDef = orgDef.findContainerDefinition(OrgType.F_INDUCEMENT);
+                AssignmentTablePanel inducementPanel = (AssignmentTablePanel)get(createComponentPath(ID_FORM, ID_INDUCEMENTS_TABLE));
+                inducementPanel.handleAssignmentsWhenAdd(newOrgUnit, inducementDef, newOrgUnit.asObjectable().getInducement());
+
             } else {
-                PrismObject<OrgType> oldOrgUnit = WebModelUtils.loadObject(OrgType.class, newOrgUnit.getOid(), result, this);
                 if (oldOrgUnit != null) {
                     delta = oldOrgUnit.diff(newOrgUnit);
+
+                    //handle assignments
+                    SchemaRegistry registry = getPrismContext().getSchemaRegistry();
+                    PrismObjectDefinition objectDefinition = registry.findObjectDefinitionByCompileTimeClass(OrgType.class);
+                    PrismContainerDefinition assignmentDef = objectDefinition.findContainerDefinition(OrgType.F_ASSIGNMENT);
+                    AssignmentTablePanel assignmentPanel = (AssignmentTablePanel)get(createComponentPath(ID_FORM, ID_ASSIGNMENTS_TABLE));
+                    assignmentPanel.handleAssignmentDeltas(delta, assignmentDef, OrgType.F_ASSIGNMENT);
+
+                    //handle inducements
+                    PrismContainerDefinition inducementDef = objectDefinition.findContainerDefinition(OrgType.F_INDUCEMENT);
+                    AssignmentTablePanel inducementPanel = (AssignmentTablePanel)get(createComponentPath(ID_FORM, ID_INDUCEMENTS_TABLE));
+                    inducementPanel.handleAssignmentDeltas(delta, inducementDef, OrgType.F_INDUCEMENT);
                 }
             }
 

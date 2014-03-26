@@ -112,7 +112,7 @@ public class SearchTest extends BaseSQLRepoTest {
         result.recomputeStatus();
 
         AssertJUnit.assertTrue(result.isSuccess());
-        AssertJUnit.assertEquals(2, objects.size());
+        AssertJUnit.assertEquals(3, objects.size());
     }
 
     @Test

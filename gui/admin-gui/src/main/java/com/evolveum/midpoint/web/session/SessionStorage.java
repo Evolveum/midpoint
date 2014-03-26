@@ -43,11 +43,13 @@ public class SessionStorage implements Serializable {
      * Store sessions information for "users" and other pages
      */
     private UsersStorage users;
+    private CreatedReportsStorage createdReports;
     private ReportsStorage reports;
     private ResourcesStorage resources;
     private RolesStorage roles;
     private TasksStorage tasks;
     private ResourceContentStorage resourceContent;
+    private OrgUnitStorage orgUnitStorage;
 
     public Class<? extends WebPage> getPreviousPage() {
         return previousPage;
@@ -79,11 +81,11 @@ public class SessionStorage implements Serializable {
         return users;
     }
 
-    public ReportsStorage getReports(){
-        if(reports == null){
-            reports = new ReportsStorage();
+    public CreatedReportsStorage getCreatedReports(){
+        if(createdReports == null){
+            createdReports = new CreatedReportsStorage();
         }
-        return reports;
+        return createdReports;
     }
 
     public ResourcesStorage getResources(){
@@ -112,5 +114,19 @@ public class SessionStorage implements Serializable {
             resourceContent = new ResourceContentStorage();
         }
         return resourceContent;
+    }
+
+    public ReportsStorage getReports(){
+        if(reports == null){
+            reports = new ReportsStorage();
+        }
+        return reports;
+    }
+
+    public OrgUnitStorage getOrgUnits(){
+        if(orgUnitStorage == null){
+            orgUnitStorage = new OrgUnitStorage();
+        }
+        return orgUnitStorage;
     }
 }

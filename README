@@ -30,12 +30,15 @@ For bugtracking system please go to:
 
   http://jira.evolveum.com/
 
+MidPoint source code is maintained on github:
+
+  https://github.com/Evolveum/midpoint 
+
 Latest source code can be obtained from our Git repository using one of the 
 following repository locations:
 
-  git://git.evolveum.com/midpoint.git (public, read-only)
-  http://git.evolveum.com/public/midpoint.git (public, read-only)
-  git.evolveum.com:/srv/git/projects/midpoint.git (SSH, read-write, requires developer account)
+  https://github.com/Evolveum/midpoint.git
+  git@github.com:Evolveum/midpoint.git
 
 This project is developed under Apache license (version 2.0) You may get copy
 of licence in LICENSE file. Please also see NOTICE file for addtional

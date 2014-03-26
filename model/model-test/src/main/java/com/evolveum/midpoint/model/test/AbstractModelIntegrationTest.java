@@ -23,7 +23,6 @@ import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.api.ModelDiagnosticService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -75,6 +74,10 @@ import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
@@ -98,6 +101,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
@@ -125,6 +129,9 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.testng.AssertJUnit;
 
@@ -205,6 +212,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     @Autowired(required = false)
     protected NotificationManager notificationManager;
+    
+    @Autowired(required = false)
+    protected UserProfileService userProfileService;
 	
 	protected DummyAuditService dummyAuditService;
 	
@@ -546,6 +556,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.executeChanges(deltas, null, task, result);	
 	}
 	
+	protected <O extends ObjectType> void modifyObjectReplace(Class<O> type, String oid, QName propertyName, Task task, OperationResult result, Object... newRealValue) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		modifyObjectReplace(type, oid, new ItemPath(propertyName), task, result, newRealValue);
+	}
+	
+	protected <O extends ObjectType> void modifyObjectReplace(Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, Object... newRealValue) 
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, 
+			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<O> objectDelta = ObjectDelta.createModificationReplaceProperty(type, oid, propertyPath, prismContext, newRealValue);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+		modelService.executeChanges(deltas, null, task, result);	
+	}
+	
 	protected void modifyUserAdd(String userOid, QName propertyName, Task task, OperationResult result, Object... newRealValue) 
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, 
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
@@ -589,10 +611,26 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.recompute(UserType.class, userOid, task, result);
 	}
 	
+	protected void assignRole(String userOid, String roleOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".assignRole");
+		OperationResult result = task.getResult();
+		assignRole(userOid, roleOid, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+	}
+	
 	protected void assignRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
 		modifyUserAssignment(userOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, true, result);
+	}
+	
+	protected void unassignRole(String userOid, String roleOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".unassignRole");
+		OperationResult result = task.getResult();
+		unassignRole(userOid, roleOid, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
 	}
 	
 	protected void unassignRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
@@ -611,6 +649,32 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
 		modifyUserAssignment(userOid, roleOid, RoleType.COMPLEX_TYPE, null, task, extension, false, result);
+	}
+	
+	protected void unassignAllRoles(String userOid) throws ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".unassignAllRoles");
+		OperationResult result = task.getResult();
+		PrismObject<UserType> user = modelService.getObject(UserType.class, userOid, null, task, result);
+		Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+		for (AssignmentType assignment: user.asObjectable().getAssignment()) {
+			ObjectReferenceType targetRef = assignment.getTargetRef();
+			if (targetRef != null) {
+				if (targetRef.getType().equals(RoleType.COMPLEX_TYPE)) {
+					modifications.add((createAssignmentModification(targetRef.getOid(), targetRef.getType(), 
+							targetRef.getRelation(), null, false)));
+				}
+			}
+		}
+		if (modifications.isEmpty()) {
+			return;
+		}
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, modifications, UserType.class, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
+		modelService.executeChanges(deltas, null, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
 	}
 	
 	protected void assignOrg(String userOid, String orgOid, Task task, OperationResult result)
@@ -2111,6 +2175,78 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected void assertNoGroupMembers(DummyGroup group) {
 		IntegrationTestTools.assertNoGroupMembers(group);
+	}
+	
+	protected void login(String principalName) {
+		MidPointPrincipal principal = userProfileService.getPrincipal(principalName);
+		login(principal);
+	}
+	
+	protected void login(PrismObject<UserType> user) {
+		MidPointPrincipal principal = userProfileService.getPrincipal(user);
+		login(principal);
+	}
+	
+	protected void login(MidPointPrincipal principal) {
+		SecurityContext securityContext = SecurityContextHolder.getContext();
+		Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
+		securityContext.setAuthentication(authentication);
+	}
+	
+	protected void loginSuperUser(String principalName) throws SchemaException {
+		MidPointPrincipal principal = userProfileService.getPrincipal(principalName);
+		loginSuperUser(principal);
+	}
+
+	protected void loginSuperUser(PrismObject<UserType> user) throws SchemaException {
+		MidPointPrincipal principal = userProfileService.getPrincipal(user);
+		loginSuperUser(principal);
+	}
+
+	protected void loginSuperUser(MidPointPrincipal principal) throws SchemaException {
+		AuthorizationType superAutzType = new AuthorizationType();
+		prismContext.adopt(superAutzType, RoleType.class, new ItemPath(RoleType.F_AUTHORIZATION));
+		superAutzType.getAction().add(AuthorizationConstants.AUTZ_ALL_URL);
+		Authorization superAutz = new Authorization(superAutzType);
+		Collection<Authorization> authorities = principal.getAuthorities();
+		authorities.add(superAutz);
+		SecurityContext securityContext = SecurityContextHolder.getContext();
+		Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
+		securityContext.setAuthentication(authentication);
+	}
+	
+	protected void assertLoggedInUser(String username) {
+		SecurityContext securityContext = SecurityContextHolder.getContext();
+		Authentication authentication = securityContext.getAuthentication();
+		if (authentication == null) {
+			if (username == null) {
+				return;
+			} else {
+				AssertJUnit.fail("Expected logged in user '"+username+"' but there was no authentication in the spring security context");
+			}
+		}
+		Object principal = authentication.getPrincipal();
+		if (principal == null) {
+			if (username == null) {
+				return;
+			} else {
+				AssertJUnit.fail("Expected logged in user '"+username+"' but there was no principal in the spring security context");
+			}
+		}
+		if (principal instanceof MidPointPrincipal) {
+			MidPointPrincipal midPointPrincipal = (MidPointPrincipal)principal;
+			UserType user = midPointPrincipal.getUser();
+			if (user == null) {
+				if (username == null) {
+					return;
+				} else {
+					AssertJUnit.fail("Expected logged in user '"+username+"' but there was no user in the spring security context");
+				}
+			}
+			assertEquals("Wrong logged-in user", username, user.getName().getOrig());
+		} else {
+			AssertJUnit.fail("Expected logged in user '"+username+"' but there was unknown principal in the spring security context: "+principal);
+		}
 	}
 
 }

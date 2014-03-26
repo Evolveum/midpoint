@@ -1079,7 +1079,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		Validate.notNull(handler, "Handler must not be null.");
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Start to search object. Query {}", query.debugDump());
+			LOGGER.trace("Start to search object. Query {}", query != null ? query.debugDump() : "(null)");
 		}
 
 		final OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()

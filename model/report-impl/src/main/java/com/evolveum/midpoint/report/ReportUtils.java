@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +17,7 @@ import javax.xml.namespace.QName;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRExpression;
 import net.sf.jasperreports.engine.JRStyle;
+import net.sf.jasperreports.engine.JRTemplate;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.base.JRBasePen;
@@ -40,28 +43,26 @@ import net.sf.jasperreports.engine.type.SplitTypeEnum;
 import net.sf.jasperreports.engine.type.VerticalAlignEnum;
 import net.sf.jasperreports.engine.type.WhenNoDataTypeEnum;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
+import net.sf.jasperreports.engine.xml.JRXmlTemplateLoader;
 
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -70,9 +71,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportTemplateStyleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SubreportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 
@@ -84,19 +86,23 @@ public class ReportUtils {
     // parameters define objectQuery
     private static String PARAMETER_OBJECT_TYPE = "type";
     private static String PARAMETER_QUERY_FILTER = "filter";
+
+    // parameters define datasource
+    private static String PARAMETER_REPORT_OID = "reportOid";
+    private static String PARAMETER_OPERATION_RESULT = "operationResult";
     
-   
-    
+    // parameter for design
     private static String PARAMETER_LOGO = "logoPath";
     private static String PARAMETER_TEMPLATE_STYLES = "baseTemplateStyles";
+    private static String TEMPLATE_STYLE_SCHEMA = "<!DOCTYPE jasperTemplate  PUBLIC \"-//JasperReports//DTD Template//EN\" \"http://jasperreports.sourceforge.net/dtds/jaspertemplate.dtd\">";
     
     private static final Trace LOGGER = TraceManager
 			.getTrace(ReportUtils.class);
 
     
-	public static Class getClassType(QName clazz, String namespace)
+	public static Class<?> getClassType(QName clazz, String namespace)
     {
-		Class classType = String.class; 
+		Class<?> classType = String.class; 
     	try
     	{
     		classType = XsdTypeMapper.getXsdToJavaMapping(clazz);
@@ -129,7 +135,7 @@ public class ReportUtils {
 			return null;
 		}
 
-		LOGGER.trace("Parameters schema element : {}", parametersSchemaElement.getElementsByTagName("simpleType"));
+		/*LOGGER.trace("Parameters schema element : {}", parametersSchemaElement.getElementsByTagName("simpleType"));
 		LOGGER.trace("Parameters schema attribut : {}", parametersSchemaElement.getAttributeNode("simpleType"));
 		NodeList childNodes = parametersSchemaElement.getChildNodes();
 		for (int i=0; i< childNodes.getLength(); i++)
@@ -157,7 +163,7 @@ public class ReportUtils {
 				}
 			}
 		}
-		
+		*/
 		PrismSchema parametersSchema = PrismSchema.parse(parametersSchemaElement, true, "schema for " + reportType, prismContext);
 		if (parametersSchema == null) {
 			throw new SchemaException("No parameters schema in "+ reportType);
@@ -166,36 +172,6 @@ public class ReportUtils {
 		
 		return parametersSchema;
 	}
-
-    public static void applyDefinition(PrismObject<ReportType> report, PrismContext prismContext, boolean raw)
-            throws SchemaException {
-        if (raw) {
-            return;
-        }
-
-        PrismContainer<Containerable> configuration = report.findContainer(ReportType.F_CONFIGURATION);
-        if (configuration == null) {
-            //nothing to apply definitions on
-            return;
-        }
-
-        PrismContainer xmlSchema = report.findContainer(ReportType.F_CONFIGURATION_SCHEMA);
-        Element xmlSchemaElement = ObjectTypeUtil.findXsdElement(xmlSchema);
-        if (xmlSchemaElement == null) {
-            //no schema definition available
-            throw new SchemaException("Couldn't find schema for configuration in report type " + report + ".");
-        }
-
-        PrismSchema schema = ReportTypeUtil.parseReportConfigurationSchema(report, prismContext);
-        PrismContainerDefinition<ReportConfigurationType> definition =  ReportTypeUtil.findReportConfigurationDefinition(schema);
-        if (definition == null) {
-            //no definition found for container
-            throw new SchemaException("Couldn't find definitions for report type " + report + ".");
-        }
-
-        configuration.applyDefinition(definition, true);
-    }
-	
 	
     public static PrismContainer<Containerable> getParametersContainer(ReportType reportType, PrismSchema schema)
 			throws SchemaException, ObjectNotFoundException {
@@ -245,21 +221,84 @@ public class ReportUtils {
 		return configuration;
 	}
     
- 
+ public static JasperReport getJasperReport(ReportType reportType, PrismContainer<Containerable> parameterConfiguration, PrismSchema reportSchema) throws JRException
+ {
+	 JasperDesign jasperDesign;
+	 JasperReport jasperReport;
+	 try
+	 {
+		 if (reportType.getTemplate() == null || reportType.getTemplate().getAny() == null)
+		 {
+			jasperDesign = createJasperDesign(reportType, parameterConfiguration, reportSchema);
+    	 	LOGGER.trace("create jasper design : {}", jasperDesign);
+		 }
+		 else
+		 {
+    	 	String reportTemplate = DOMUtil.serializeDOMToString((Node)reportType.getTemplate().getAny());
+    	 	InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate.getBytes());
+    	 	jasperDesign = JRXmlLoader.load(inputStreamJRXML);
+    	 	LOGGER.trace("load jasper design : {}", jasperDesign);
+		 }
+		 
+		 if (reportType.getTemplateStyle() != null)
+		 {
+			JRDesignReportTemplate templateStyle = new JRDesignReportTemplate(new JRDesignExpression("$P{" + PARAMETER_TEMPLATE_STYLES + "}"));
+			jasperDesign.addTemplate(templateStyle);
+			JRDesignParameter parameter = new JRDesignParameter();
+			parameter.setName(PARAMETER_TEMPLATE_STYLES);
+			parameter.setValueClass(JRTemplate.class);
+			parameter.setForPrompting(false);
+			jasperDesign.addParameter(parameter);
+		 } 
+		 
+		 jasperReport = JasperCompileManager.compileReport(jasperDesign);
+		 
+		 
+	 } catch (JRException ex){ 
+		 LOGGER.error("Couldn't create jasper report design {}", ex.getMessage());
+		 throw ex;
+	 }
+	 
+	 return jasperReport;
+ }
     		
     
-    public static Map<String, Object> getReportParams(ReportType reportType, PrismContainer<Containerable> parameterConfiguration, PrismSchema reportSchema, OperationResult parentResult)
+    public static Map<String, Object> getReportParameters(ReportType reportType, PrismContainer<Containerable> parameterConfiguration, PrismSchema reportSchema, OperationResult parentResult)
 	{
 		Map<String, Object> params = new HashMap<String, Object>();
-		 	
+		ReportTemplateStyleType styleType = reportType.getTemplateStyle();
+		
+		if (reportType.getTemplateStyle() != null)
+		{	 
+			String reportTemplateStyle = DOMUtil.serializeDOMToString((Node)reportType.getTemplateStyle().getAny());
+			//TODO must be changed
+			//without replace strings, without xmlns namespace, with insert into schema special xml element DOCTYPE
+			int first = reportTemplateStyle.indexOf(">");
+			int last = reportTemplateStyle.lastIndexOf("<");
+			reportTemplateStyle = "<jasperTemplate>" + reportTemplateStyle.substring(first+1, last) + "</jasperTemplate>";
+			reportTemplateStyle = TEMPLATE_STYLE_SCHEMA + "\n" + reportTemplateStyle;  
+			LOGGER.trace("Style template string {}", reportTemplateStyle);
+	    	InputStream inputStreamJRTX = new ByteArrayInputStream(reportTemplateStyle.getBytes());
+	    	try
+			{    		
+	    		JRTemplate templateStyle = JRXmlTemplateLoader.load(inputStreamJRTX);
+				params.put(PARAMETER_TEMPLATE_STYLES, templateStyle);
+				LOGGER.trace("Style template parameter {}", templateStyle);
+				
+			} catch(Exception ex)
+			{
+				LOGGER.error("Error create style template parameter {}", ex.getMessage());
+			}
+			
+		 } 
 		OperationResult subResult = parentResult.createSubresult("get report parameters");
 		if (parameterConfiguration != null) 	
 		{
-			for(PrismProperty parameter : parameterConfiguration.getValue().getProperties())
+			for(PrismProperty<?> parameter : parameterConfiguration.getValue().getProperties())
 			{
 				LOGGER.trace("parameter {}, {}, {} ", new Object[]{parameter.getElementName().getLocalPart(), parameter.getRealValue(), parameter.getValues()});
-				if ((parameter.getElementName().getLocalPart() != PARAMETER_OBJECT_TYPE) && (parameter.getElementName().getLocalPart() != PARAMETER_QUERY_FILTER))
-				{
+				//if ((parameter.getElementName().getLocalPart() != PARAMETER_OBJECT_TYPE) && (parameter.getElementName().getLocalPart() != PARAMETER_QUERY_FILTER))
+				//{
 					/*LOGGER.trace("Parameter : {} ", parameter.dump());
 					LOGGER.trace("Display Name : {}", parameter.getDisplayName());
 					LOGGER.trace("Real value : {}", parameter.getRealValue());
@@ -276,7 +315,7 @@ public class ReportUtils {
 						params.put(parameter.getElementName().getLocalPart(), Integer.decode(ccc.getTextContent()));
 					} else {
 						
-						Class classType = ReportUtils.getClassType(parameter.getDefinition().getTypeName(), reportSchema.getNamespace());
+						Class<?> classType = ReportUtils.getClassType(parameter.getDefinition().getTypeName(), reportSchema.getNamespace());
 						if (classType == java.sql.Timestamp.class) {
 							params.put(parameter.getElementName().getLocalPart(), ReportUtils.convertDateTime((XMLGregorianCalendar)parameter.getRealValue(XMLGregorianCalendar.class)));
 						} else {
@@ -285,45 +324,53 @@ public class ReportUtils {
 					}
 					
 					//LOGGER.trace("--------------------------------------------------------------------------------");
-				}
+				//}
 			}
 		}
-		  
+		// for our special datasource
+		params.put(PARAMETER_REPORT_OID, reportType.getOid());
+		params.put(PARAMETER_OPERATION_RESULT, parentResult);
+		
 		subResult.computeStatus();	
 		 
 		return params;
 	}
-    
-	public static Class getObjectTypeClass(ReportType reportType, PrismContainer<Containerable> parameterConfiguration, String namespace)
-			throws SchemaException, ObjectNotFoundException {
+    /*
+	public static Class getObjectTypeClass(PrismContainer<Containerable> parameterConfiguration, String namespace)
+	{
 		
 		PrismProperty objectTypeProp = getParameter(PARAMETER_OBJECT_TYPE, parameterConfiguration, namespace);
-		Class clazz = ObjectType.class;
-		if (objectTypeProp != null)
+		return getObjectTypeClass(objectTypeProp.getRealValue());
+	}
+	*/
+	public static Class<?> getObjectTypeClass(Map<?, ?> params){
+		
+		Object parameterClass = params.get(PARAMETER_OBJECT_TYPE);
+		return getObjectTypeClass(parameterClass);
+	}
+	
+	public static Class<?> getObjectTypeClass(Object objectClass)
+	{
+		Class<?> clazz = ObjectType.class;
+		try
 		{
-			try
-			{
-				QName objectType = (QName) objectTypeProp.getRealValue();
-				
-				LOGGER.trace("Parameter object type : {}", objectType);
-				
-				clazz = ObjectTypes.getObjectTypeClass(objectType.getLocalPart());
-				
-				LOGGER.trace("Parameter clas of object type : {}", clazz);
-				
-			} catch (Exception ex){
-				LOGGER.trace("not object type parameter");
-			}
+			QName objectType = (QName) objectClass;			
+			LOGGER.trace("Parameter object type : {}", objectType);
+			clazz = ObjectTypes.getObjectTypeClass(objectType.getLocalPart());
+			LOGGER.trace("Parameter class of object type : {}", clazz);
+		} catch (Exception ex){
+			LOGGER.trace("Couldn't load object type parameter : {}", ex.getMessage());
 		}
 		return clazz;
 	}
+
 	
-	public static PrismProperty getParameter(String parameterName, PrismContainer<Containerable> parameterConfiguration, String namespace)
+	public static PrismProperty<?> getParameter(String parameterName, PrismContainer<Containerable> parameterConfiguration, String namespace)
 	{
-		PrismProperty property = parameterConfiguration.findProperty(new QName(namespace, parameterName));	
+		PrismProperty<?> property = parameterConfiguration.findProperty(new QName(namespace, parameterName));	
 		/*for(PrismProperty parameter : parameterConfiguration.getValue().getProperties())
 		{
-			LOGGER.trace("Parameter : {} ", parameter.dump());
+			LOGGER.trace("Parameter : {} ", parameter.debugDump());
 			LOGGER.trace("Display Name : {}", parameter.getDisplayName());
 			LOGGER.trace("Real value : {}", parameter.getRealValue());
 			LOGGER.trace("Element Name : {}", parameter.getElementName());
@@ -347,11 +394,12 @@ public class ReportUtils {
 		return timestamp;
 	}
 	
-	private static JRDesignParameter createParameter(PrismProperty parameterConfig, PrismSchema reportSchema)
+	private static JRDesignParameter createParameter(PrismProperty<?> parameterConfig, PrismSchema reportSchema)
 	{
 		JRDesignParameter parameter = new JRDesignParameter();
 		parameter.setName(parameterConfig.getElementName().getLocalPart());
 		parameter.setValueClass(getClassType(parameterConfig.getDefinition().getTypeName(), reportSchema.getNamespace()));
+		parameter.setForPrompting(false);
 		return parameter;
 	}
     
@@ -578,7 +626,7 @@ public class ReportUtils {
 		if (parameterConfiguration != null)
 		{
 			int y = 70;
-			for(PrismProperty parameter : parameterConfiguration.getValue().getProperties())
+			for(PrismProperty<?> parameter : parameterConfiguration.getValue().getProperties())
 			{/*
 				LOGGER.trace("Parameter : {} ", parameter);
 				LOGGER.trace("Display Name : {}", parameter.getDisplayName());
@@ -697,7 +745,7 @@ public class ReportUtils {
 		//Parameters
 		if (parameterConfiguration != null)
 		{
-			for(PrismProperty parameterConfig : parameterConfiguration.getValue().getProperties())
+			for(PrismProperty<?> parameterConfig : parameterConfiguration.getValue().getProperties())
 			{
 				JRDesignParameter parameter = createParameter(parameterConfig, reportSchema);
 				jasperDesign.addParameter(parameter);	
@@ -753,10 +801,17 @@ public class ReportUtils {
 		return jasperDesign;
 	}
 
+    public static String getDateTime()
+    {
+    	Date createDate = new Date(System.currentTimeMillis());
+    	SimpleDateFormat formatDate = new SimpleDateFormat("dd-MM-yyyy hh-mm-ss");
+        return formatDate.format(createDate);
+    }
        
     public static String getReportOutputFilePath(ReportType reportType){
     	
-    	String output =  EXPORT_DIR + reportType.getName().getOrig();
+    	
+    	String output = EXPORT_DIR +  reportType.getName().getOrig() + " " + getDateTime();
     	switch (reportType.getExport())
         {
         	case PDF : output = output + ".pdf";
@@ -793,21 +848,140 @@ public class ReportUtils {
     	
     	return output;
     }
-
-//    comment out by mederly because it's not used and it's not clear what can be in the "delta" string (necessary to be correctly parsed)
-//    public static String getDeltaAudit(String delta)
-//    {
-//    	String deltaAudit = null;
-//    	try
-//    	{
-//    		PrismContext prismContext = PrismTestUtil.createPrismContext();
-//    		ObjectDeltaType xmlDelta = prismContext.getPrismJaxbProcessor().unmarshalObject(delta, ObjectDeltaType.class);
-//    		deltaAudit = xmlDelta.getChangeType().toString() + " - " + xmlDelta.getObjectType().getLocalPart().toString();
-//    	} catch (Exception ex) {
-//    		return ex.getMessage();
-//    	}
-//
-//    	return deltaAudit;
-//    }
     
+    // TODO is this used? 
+    public static String getDeltaAudit(String delta)
+    {
+    	String deltaAudit = null;
+    	try
+    	{
+    		SchemaRegistry schemaRegistry = new SchemaRegistry();
+    		PrismContext prismContext = PrismContext.createEmptyContext(schemaRegistry);
+    		ObjectDeltaType xmlDelta = prismContext.getPrismJaxbProcessor().unmarshalObject(delta, ObjectDeltaType.class);
+    		deltaAudit = xmlDelta.getChangeType().toString() + " - " + xmlDelta.getObjectType().getLocalPart().toString();
+    	} catch (Exception ex) {
+    		return ex.getMessage();
+    	}
+    	
+    	return deltaAudit;
+    }
+   /* 
+    public static ObjectQuery getObjectQuery(PrismContainer<Containerable> parameterConfiguration, String namespace, PrismContext prismContext)
+    {/*
+    	PrismProperty<FilterType> filterProp = getParameter(PARAMETER_QUERY_FILTER, parameterConfiguration, namespace);
+    	
+    	PrismContainerDefinition def = parameterConfiguration.getDefinition();
+    	ObjectQuery objectQuery = new ObjectQuery();
+    	if (filterProp != null)
+    	{
+    		try
+        	{
+    			ObjectFilter objectFilter = QueryConvertor.parseFilter(def, (Node)filterProp.getRealValue());
+        	    objectQuery = ObjectQuery.createObjectQuery(objectFilter);
+        	} catch(SchemaException ex){
+        		LOGGER.error("Couldn't create object query : {}", ex.getMessage());
+        		throw ex;
+        	}
+    	}
+    *//*
+    	PrismProperty<QueryType> filterProp = getParameter(PARAMETER_QUERY_FILTER, parameterConfiguration, namespace);
+    	
+    	ObjectQuery objectQuery = new ObjectQuery();
+    	try
+        {
+    		Class<?> clazz = getObjectTypeClass(parameterConfiguration, namespace);
+        	QueryType queryType = filterProp.getRealValue();
+    		LOGGER.info(DOMUtil.serializeDOMToString(filterProp.asDomElements().get(0)));
+    		
+    		objectQuery = QueryConvertor.createObjectQuery(clazz, queryType, prismContext);
+        } catch(Exception ex){
+        	LOGGER.error("Couldn't create object query : {}", ex.getMessage());
+        }
+   
+    	return objectQuery;
+    }
+    */
+    public static ObjectQuery getObjectQuery(Map<?, ?> params, Class<?> clazz, PrismContext prismContext){
+		ObjectQuery objectQuery = new ObjectQuery();
+    	try
+        {
+        	QueryType queryType = (QueryType)params.get(PARAMETER_QUERY_FILTER);
+    		LOGGER.info("DataSource Query type : {}", queryType);
+    		objectQuery = queryType != null ? QueryConvertor.createObjectQuery(clazz, queryType, prismContext) : objectQuery;
+        } catch(Exception ex){
+        	LOGGER.error("Couldn't create object query : {}", ex.getMessage());
+        }
+   
+    	return objectQuery;
+	}
+	
+  
+    public static ReportType getReport(String reportOid, OperationResult parentResult, ModelService modelService) throws Exception
+    {
+		parentResult.addContext("reportOid", reportOid);
+
+		if (reportOid == null) {
+			throw new IllegalArgumentException("Report OID is missing in task extension");
+		}
+        ReportType reportType = null;
+        try {
+        	LOGGER.trace("get report : {}", reportOid);
+        	reportType = modelService.getObject(ReportType.class, reportOid, null, null, parentResult).asObjectable();; 
+		} catch (ObjectNotFoundException ex) {
+			LOGGER.error("Report does not exist: {}", ex.getMessage(), ex);
+			parentResult.recordFatalError("Report does not exist: " + ex.getMessage(), ex);
+			throw ex;
+		} catch (Exception ex) {
+			LOGGER.error("Create Report: {}", ex.getMessage(), ex);
+			parentResult.recordFatalError("Report: " + ex.getMessage(), ex);
+			throw ex;
+		}
+        
+        return reportType;
+    }
+
+    
+    public static ReportType getReport(Map<?, ?> params, ModelService modelService, PrismContext prismContext) throws Exception
+    {
+    	OperationResult parentResult = getOperationResult(params);
+    	String reportOid = params.get(PARAMETER_REPORT_OID).toString();
+		parentResult.addContext("reportOid", reportOid);
+
+		if (reportOid == null) {
+			throw new IllegalArgumentException("Report OID is missing in datasource");
+		}
+        ReportType reportType = null;
+        try {
+        	LOGGER.trace("get report : {}", reportOid);
+        	reportType = modelService.getObject(ReportType.class, reportOid, null, null, parentResult).asObjectable();; 
+		} catch (ObjectNotFoundException ex) {
+			LOGGER.error("Report does not exist: {}", ex.getMessage(), ex);
+			parentResult.recordFatalError("Report does not exist: " + ex.getMessage(), ex);
+			throw ex;
+		} catch (Exception ex) {
+			LOGGER.error("Create Report: {}", ex.getMessage(), ex);
+			parentResult.recordFatalError("Report: " + ex.getMessage(), ex);
+			throw ex;
+		}
+        
+        return reportType;
+    }
+    
+    public static OperationResult getOperationResult(Map<?, ?> params){
+		OperationResult result = new OperationResult("DataSource - create");
+    	try
+        {
+        	result = (OperationResult) params.get(PARAMETER_OPERATION_RESULT);
+    		LOGGER.info("Datasource Operation result : {}", result);
+    		
+        } catch(Exception ex){
+        	LOGGER.error("Couldn't create operation result : {}", ex.getMessage());
+        }
+   
+    	return result;
+	}
+	
+
+   
+	
 }

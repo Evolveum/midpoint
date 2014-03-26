@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,42 +13,38 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
-<!-- Test report. It specifies creation of simple report, user in midpoint. -->
 <report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-        oid="00000000-3333-3333-TEST-10000000000"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+		oid="00000000-3333-3333-TEST-10000000000"
         version="0">
 	<name>
 		<orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Test report</orig>
 		<norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">test report</norm>
 	</name>
 	<description>TEST Report with DataSource parameter.</description>
-	<metadata>
-		<createTimestamp>2013-12-22T17:14:12.867+01:00</createTimestamp>
-	</metadata>
-	<reportTemplate>
-		<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" 
-					  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-					  xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" 
-					  name="reportTest" 
-					  pageWidth="842" 
-					  pageHeight="595" 
-					  orientation="Landscape" 
-					  whenNoDataType="AllSectionsNoDetail" 
-					  columnWidth="802" 
-					  leftMargin="20" 
-					  rightMargin="20" 
-					  topMargin="20" 
-					  bottomMargin="20" 
-					  uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
-			<template><![CDATA[$P{BaseTemplateStyles}]]></template>
-			<parameter name="BaseTemplateStyles" class="java.lang.String"/>
-			<parameter name="LOGO_PATH" class="java.lang.String"/>
-			<field name="Name" class="java.lang.String"/>
-			<field name="FirstName" class="java.lang.String"/>
-			<field name="LastName" class="java.lang.String"/>
-			<field name="Activation" class="java.lang.String"/>
-			<sortField name="Name"/>
+	<template>
+		<jasperReport 
+			xmlns="http://jasperreports.sourceforge.net/jasperreports" 
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+			xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" 
+			name="reportUserTestDatasource" 
+			pageWidth="842" 
+			pageHeight="595" 
+			orientation="Landscape" 
+			whenNoDataType="AllSectionsNoDetail" 
+			columnWidth="802" 
+			leftMargin="20" 
+			rightMargin="20" 
+			topMargin="20" 
+			bottomMargin="20" 
+			uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
+			<parameter name="logoPath" class="java.lang.String"/>
+			<field name="name" class="java.lang.String"/>
+			<field name="firstName" class="java.lang.String"/>
+			<field name="lastName" class="java.lang.String"/>
+			<field name="activation" class="java.lang.String"/>
 			<background>
 				<band height="30" splitType="Stretch"/>
 			</background>
@@ -63,7 +59,7 @@
 						</staticText>
 						<image>
 							<reportElement style="Title" x="589" y="13" width="203" height="45" uuid="b0a76e6a-8f61-4d60-8dcd-3e51adb4cd4c"/>
-							<imageExpression><![CDATA[$P{LOGO_PATH}]]></imageExpression>
+							<imageExpression><![CDATA[$P{logoPath}]]></imageExpression>
 						</image>
 					</frame>
 					<staticText>
@@ -123,28 +119,28 @@
 				</band>
 			</columnHeader>
 			<detail>
-				<band height="20" splitType="Prevent">
+				<band height="20" splitType="Stretch">
 					<frame>
 						<reportElement style="Detail" x="0" y="1" width="800" height="19" uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a"/>
 						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
 							<reportElement style="Detail" x="0" y="1" width="120" height="18" uuid="ebaef16d-2903-4029-9a6b-d4d244558ae9"/>
 							<textElement verticalAlignment="Middle"/>
-							<textFieldExpression><![CDATA[$F{Name}]]></textFieldExpression>
+							<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
 						</textField>
 						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
 							<reportElement style="Detail" x="120" y="1" width="100" height="18" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
 							<textElement verticalAlignment="Middle"/>
-							<textFieldExpression><![CDATA[$F{FirstName}]]></textFieldExpression>
+							<textFieldExpression><![CDATA[$F{firstName}]]></textFieldExpression>
 						</textField>
 						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
 							<reportElement style="Detail" x="220" y="1" width="100" height="18" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
 							<textElement verticalAlignment="Middle"/>
-							<textFieldExpression><![CDATA[$F{LastName}]]></textFieldExpression>
+							<textFieldExpression><![CDATA[$F{lastName}]]></textFieldExpression>
 						</textField>
 						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
 							<reportElement style="Detail" x="320" y="1" width="100" height="18" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
 							<textElement verticalAlignment="Middle"/>
-							<textFieldExpression><![CDATA[$F{Activation}]]></textFieldExpression>
+							<textFieldExpression><![CDATA[$F{activation}]]></textFieldExpression>
 						</textField>
 						<line>
 							<reportElement positionType="FixRelativeToBottom" x="0" y="17" width="800" height="1" uuid="a591d4c1-1cad-4da2-9f9d-081f539e9043"/>
@@ -188,14 +184,13 @@
 				</band>
 			</pageFooter>
 		</jasperReport>
-   </reportTemplate>
-   <reportTemplateStyle>
-		<jasperTemplate>
+	</template>
+	<templateStyle>
+		<jasperTemplate xmlns="http://jasperreports.sourceforge.net/dtds/jaspertemplate.dtd">
 			<style fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="false" name="Base"
 				   pdfEncoding="Cp1252"
 				   pdfFontName="Helvetica"
-                   vAlign="Middle">
-			</style>
+                   vAlign="Middle"/>
 			<style backcolor="#267994" fontSize="26" forecolor="#FFFFFF" isDefault="false"
                    mode="Opaque"
                    name="Title"
@@ -210,50 +205,98 @@
 			<style isBold="false" isDefault="false" name="Detail" style="Base"/>
 			<style fontSize="9" forecolor="#000000" isDefault="false" name="Page footer"
                    style="Base"/>
-       </jasperTemplate>
-   </reportTemplateStyle>
-   <reportOrientation>landscape</reportOrientation>
-   <reportExport>csv</reportExport>
-   <query></query>
-   <objectClass>UserType</objectClass>
-   <reportField>
-		<nameReportField>Name</nameReportField>
-		<nameHeaderField>Name</nameHeaderField>
-		<itemPathField>c:name</itemPathField>
+		</jasperTemplate>
+	</templateStyle>
+	<orientation>landscape</orientation>
+	<export>csv</export>
+	<!-- datasource sample, provider instance is obtained from spring context -->
+	<dataSource>
+		<providerClass>com.evolveum.midpoint.report.DataSourceReportProvider</providerClass>
+		<springBean>true</springBean>
+	</dataSource>
+	<field>
+		<nameReport>name</nameReport>
+		<nameHeader>Name</nameHeader>
+		<itemPath>c:name</itemPath>
 		<sortOrderNumber>1</sortOrderNumber>
 		<sortOrder>ascending</sortOrder>
-		<widthField>25</widthField>
-		<classTypeField>t:PolyStringType</classTypeField>
-   </reportField>
-   <reportField>
-		<nameReportField>FirstName</nameReportField>
-		<nameHeaderField>First Name</nameHeaderField>
-		<itemPathField>c:givenName</itemPathField>
-		<widthField>25</widthField>
-		<classTypeField>t:PolyStringType</classTypeField>
-	</reportField>
-	<reportField>
-		<nameReportField>LastName</nameReportField>
-		<nameHeaderField>Last Name</nameHeaderField>
-		<itemPathField>c:familyName</itemPathField>
-		<widthField>25</widthField>
-		<classTypeField>t:PolyStringType</classTypeField>
-	</reportField>
-	<reportField>
-		<nameReportField>Activation</nameReportField>
-		<nameHeaderField>Activation</nameHeaderField>
-		<itemPathField>c:activation/c:administrativeStatus</itemPathField>
-		<widthField>25</widthField>
-		<classTypeField>c:ActivationStatusType</classTypeField>
-	</reportField>
-	<reportParameter>
-		<nameParameter>LOGO_PATH</nameParameter>
-		<valueParameter>src/test/resources/reports/logo.jpg</valueParameter>
-		<classTypeParameter>xsd:string</classTypeParameter>
-	</reportParameter>
-	<reportParameter>
-		<nameParameter>BaseTemplateStyles</nameParameter>
-		<valueParameter>src/test/resources/styles/midpoint_base_styles.jrtx</valueParameter>
-		<classTypeParameter>xsd:string</classTypeParameter>
-	</reportParameter>
+		<width>10</width>
+		<classType>t:PolyStringType</classType>
+	</field>
+	<field>
+		<nameReport>firstName</nameReport>
+		<nameHeader>First Name</nameHeader>
+		<itemPath>c:givenName</itemPath>
+		<width>10</width>
+		<classType>t:PolyStringType</classType>
+	</field>
+	<field>
+		<nameReport>lastName</nameReport>
+		<nameHeader>Last Name</nameHeader>
+		<itemPath>c:familyName</itemPath>
+		<width>10</width>
+		<classType>t:PolyStringType</classType>
+	</field>
+	<field>
+		<nameReport>activation</nameReport>
+		<nameHeader>Activation</nameHeader>
+		<itemPath>c:activation/c:administrativeStatus</itemPath>
+		<width>10</width>
+		<classType>c:ActivationStatusType</classType>
+	</field>	
+	<!-- configuration properties -->
+	<configuration xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report"
+				   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2">
+		<r:logoPath>src/test/resources/reports/logo.jpg</r:logoPath>
+		<r:type>c:UserType</r:type>
+		<r:filter>
+			<q:substring>
+				<q:matching>normIgnoreCase</q:matching>
+				<q:path>c:name</q:path>
+				<q:value>user</q:value>
+			</q:substring>
+		</r:filter>
+	</configuration>
+	<!-- report parameters configuration schema sample with different options -->
+	<configurationSchema>
+		<definition>
+			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+                    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+                    xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report"
+					xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+                    elementFormDefault="qualified"
+                    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/report">
+
+				<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"/>
+				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"/>
+				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-2"/>
+
+				<xsd:complexType name="ConfigurationType">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<a:container/>
+						</xsd:appinfo>
+					</xsd:annotation>
+					<xsd:sequence>
+						<!-- sample how query api datasource configuration should look like-->
+						<xsd:element name="type" type="xsd:QName"/>
+						<xsd:element name="filter" type="q:QueryType">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<jaxb:dom/>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+
+						<!-- special design parameters for all evolveum reports -->
+						<xsd:element name="logoPath" type="xsd:string"/>
+
+					</xsd:sequence>
+				</xsd:complexType>
+				<xsd:element name="configuration" type="r:ConfigurationType"/>
+			</xsd:schema>
+		</definition>
+	</configurationSchema>
 </report>

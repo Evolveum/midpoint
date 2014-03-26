@@ -1,0 +1,484 @@
+<!--
+  ~ Copyright (c) 2010-2014 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+		oid="AUDITLOG-3333-3333-TEST-10000000000"
+        version="0">
+	<name>
+		<orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Audit logs report</orig>
+		<norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Audit logs report</norm>
+	</name>
+	<description>Report made from audit records.</description>
+	<!-- flag if this report is "parent" report, used for gui -->
+	<parent>true</parent>
+	<template>
+		<jasperReport 
+			xmlns="http://jasperreports.sourceforge.net/jasperreports" 
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+			xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" 
+			name="reportAuditLogs" 
+			pageWidth="842" 
+			pageHeight="595" 
+			orientation="Landscape" 
+			whenNoDataType="AllSectionsNoDetail" 
+			columnWidth="802" 
+			leftMargin="20" 
+			rightMargin="20" 
+			topMargin="20" 
+			bottomMargin="20" 
+			uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
+			<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
+			<property name="net.sf.jasperreports.export.pdf.force.linebreak.policy" value="true"/>
+			<property name="net.sf.jasperreports.export.csv.exclude.origin.band.1" value="title"/>
+			<property name="net.sf.jasperreports.export.csv.exclude.origin.band.2" value="pageFooter"/>
+			<import value="com.evolveum.midpoint.report.ReportUtils"/>
+			<parameter name="from" class="java.sql.Timestamp"/>
+			<parameter name="to" class="java.sql.Timestamp"/>
+			<parameter name="hqlQuery" class="java.lang.String"/>
+			<parameter name="eventType" class="java.lang.Integer"/>
+			<parameter name="eventDescription" class="java.lang.String"/>
+			<queryString language="hql"><![CDATA[$P!{hqlQuery}]]></queryString>
+			<field name="timestamp" class="java.sql.Timestamp"/>
+			<field name="initiator" class="java.lang.String"/>
+			<field name="eventType" class="com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType">
+				<fieldDescription><![CDATA[eventType]]></fieldDescription>
+			</field>
+			<field name="eventStage" class="com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage">
+				<fieldDescription><![CDATA[eventStage]]></fieldDescription>
+			</field>
+			<field name="targetName" class="java.lang.String"/>
+			<field name="targetType" class="com.evolveum.midpoint.repo.sql.data.common.other.RContainerType">
+				<fieldDescription><![CDATA[targetType]]></fieldDescription>
+			</field>
+			<field name="targetOwnerName" class="java.lang.String"/>
+			<field name="outcome" class="com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus">
+				<fieldDescription><![CDATA[outcome]]></fieldDescription>
+			</field>
+			<field name="message" class="java.lang.String"/>
+			<field name="delta" class="java.lang.String"/>
+			<background>
+				<band splitType="Stretch"/>
+			</background>
+			<title>
+				<band height="168" splitType="Stretch">
+					<frame>
+						<reportElement uuid="44bedacc-fa23-4fe1-b71f-e5afa943f553" style="Title" mode="Opaque" x="0" y="0" width="800" height="67" backcolor="#267994"/>
+						<staticText>
+							<reportElement uuid="f2d99cad-9d84-4f50-b455-453c87f62c4c" style="Title" x="10" y="13" width="266" height="38"/>
+							<textElement verticalAlignment="Middle"/>
+							<text><![CDATA[Audit Log Report]]></text>
+						</staticText>
+					</frame>
+					<staticText>
+						<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" style="Page header" x="2" y="85" width="100" height="20"/>
+						<textElement verticalAlignment="Middle"/>
+						<text><![CDATA[From:]]></text>
+					</staticText>
+					<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
+						<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Page header" isPrintRepeatedValues="false" x="110" y="85" width="644" height="20"/>
+						<textElement verticalAlignment="Middle">
+							<font isBold="false"/>
+						</textElement>
+						<textFieldExpression><![CDATA[$P{from}]]></textFieldExpression>
+					</textField>
+					<staticText>
+						<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" style="Page header" x="2" y="115" width="100" height="20"/>
+						<textElement verticalAlignment="Middle"/>
+						<text><![CDATA[To:]]></text>
+					</staticText>
+					<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
+						<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Page header" isPrintRepeatedValues="false" x="110" y="115" width="644" height="20"/>
+						<textElement verticalAlignment="Middle">
+							<font isBold="false"/>
+						</textElement>
+						<textFieldExpression><![CDATA[$P{to}]]></textFieldExpression>
+					</textField>
+					<staticText>
+						<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" style="Page header" x="2" y="145" width="100" height="20"/>
+						<textElement verticalAlignment="Middle"/>
+						<text><![CDATA[Event Type:]]></text>
+					</staticText>
+					<textField>
+						<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Page header" isPrintRepeatedValues="false" x="110" y="145" width="644" height="20"/>
+
+						<textElement verticalAlignment="Middle">
+							<font isBold="false"/>
+						</textElement>
+						<textFieldExpression><![CDATA[$P{eventType} != null ? $P{eventDescription} : "All"]]></textFieldExpression>
+					</textField>
+				</band>
+			</title>
+			<pageHeader>
+				<band splitType="Stretch"/>
+			</pageHeader>
+			<columnHeader>
+				<band height="24" splitType="Stretch">
+					<frame>
+						<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Column header" mode="Transparent" x="0" y="1" width="800" height="19" isRemoveLineWhenBlank="true"/>
+						<staticText>
+							<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" x="0" y="0" width="100" height="18"/>
+							<textElement textAlignment="Center" verticalAlignment="Middle"/>
+							<text><![CDATA[Timestamp]]></text>
+						</staticText>
+						<staticText>
+							<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" x="100" y="0" width="80" height="18"/>
+							<textElement textAlignment="Center" verticalAlignment="Middle"/>
+							<text><![CDATA[Initiator]]></text>
+						</staticText>
+						<staticText>
+							<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" x="180" y="0" width="90" height="18"/>
+							<textElement textAlignment="Center" verticalAlignment="Middle"/>
+							<text><![CDATA[Event Type]]></text>
+						</staticText>
+						<staticText>
+							<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" x="270" y="0" width="90" height="18"/>
+							<textElement textAlignment="Center" verticalAlignment="Middle"/>
+							<text><![CDATA[Event Stage]]></text>
+						</staticText>
+						<staticText>
+							<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" x="360" y="0" width="100" height="18"/>
+							<textElement textAlignment="Center" verticalAlignment="Middle"/>
+							<text><![CDATA[Target]]></text>
+						</staticText>
+						<staticText>
+							<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" x="460" y="0" width="80" height="18"/>
+							<textElement textAlignment="Center" verticalAlignment="Middle"/>
+							<text><![CDATA[Outcome]]></text>
+						</staticText>
+						<staticText>
+							<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" x="540" y="0" width="160" height="18"/>
+							<textElement textAlignment="Center" verticalAlignment="Middle"/>
+							<text><![CDATA[Message]]></text>
+						</staticText>
+						<staticText>
+							<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" x="700" y="0" width="100" height="18"/>
+							<textElement textAlignment="Center" verticalAlignment="Middle"/>
+							<text><![CDATA[Delta]]></text>
+						</staticText>
+					</frame>
+				</band>
+			</columnHeader>
+			<detail>
+				<band height="15" splitType="Stretch">
+					<frame>
+						<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Detail" mode="Opaque" x="0" y="0" width="800" height="14"/>
+						<textField isStretchWithOverflow="true" pattern="dd.MM.yy, HH:mm:ss">
+							<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="0" y="0" width="100" height="13" isPrintWhenDetailOverflows="true"/>
+							<textElement verticalAlignment="Middle"/>
+							<textFieldExpression><![CDATA[$F{timestamp}]]></textFieldExpression>
+						</textField>
+						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+							<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="100" y="0" width="80" height="13" isPrintWhenDetailOverflows="true"/>
+							<textElement verticalAlignment="Middle"/>
+							<textFieldExpression><![CDATA[$F{initiator}]]></textFieldExpression>
+						</textField>
+						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+							<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="180" y="0" width="90" height="13" isPrintWhenDetailOverflows="true"/>
+							<textElement textAlignment="Center" verticalAlignment="Middle"/>
+							<textFieldExpression><![CDATA[$F{eventType}.getType()]]></textFieldExpression>
+						</textField>
+						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+							<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="270" y="0" width="90" height="13" isPrintWhenDetailOverflows="true"/>
+							<textElement textAlignment="Center" verticalAlignment="Middle"/>
+							<textFieldExpression><![CDATA[$F{eventStage}.getStage()]]></textFieldExpression>
+						</textField>
+						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+							<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="360" y="0" width="100" height="13" isPrintWhenDetailOverflows="true">
+								<printWhenExpression><![CDATA[!$F{targetType}.equals(null)]]></printWhenExpression>
+							</reportElement>
+							<textElement verticalAlignment="Middle"/>
+							<textFieldExpression><![CDATA[$F{targetName} + " (" + $F{targetType} + ") "]]></textFieldExpression>
+						</textField>
+						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+							<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="460" y="0" width="80" height="13" isPrintWhenDetailOverflows="true"/>
+							<textElement textAlignment="Center" verticalAlignment="Middle"/>
+							<textFieldExpression><![CDATA[$F{outcome}.getSchemaValue()]]></textFieldExpression>
+						</textField>
+						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+							<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="540" y="0" width="160" height="13" isPrintWhenDetailOverflows="true"/>
+							<textElement verticalAlignment="Middle"/>
+							<textFieldExpression><![CDATA[$F{message}]]></textFieldExpression>
+						</textField>
+						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+							<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="700" y="0" width="100" height="13" isPrintWhenDetailOverflows="true"/>
+							<textElement verticalAlignment="Middle"/>
+							<textFieldExpression class="java.lang.String"><![CDATA[ReportUtils.getDeltaAudit($F{delta})]]></textFieldExpression>
+						</textField>
+						<line>
+							<reportElement uuid="47f91801-cf5f-4bed-b19c-ca3931cbf98d" positionType="FixRelativeToBottom" mode="Opaque" x="0" y="13" width="800" height="1" forecolor="#333333"/>
+						</line>
+					</frame>
+				</band>
+			</detail>
+			<columnFooter>
+				<band height="7" splitType="Stretch">
+					<line>
+						<reportElement uuid="a591d4c1-1cad-4da2-9f9d-081f539e9043" positionType="FixRelativeToBottom" x="0" y="3" width="800" height="1"/>
+						<graphicElement>
+							<pen lineWidth="0.5" lineColor="#999999"/>
+						</graphicElement>
+					</line>
+				</band>
+			</columnFooter>
+			<pageFooter>
+				<band height="32" splitType="Stretch">
+					<frame>
+						<reportElement uuid="fbe8aae4-6500-468a-b1e8-700b569139a1" style="Page footer" mode="Transparent" x="0" y="1" width="800" height="24" forecolor="#000000" backcolor="#267994"/>
+						<textField pattern="EEEEE dd MMMMM yyyy">
+							<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Page footer" x="2" y="1" width="197" height="20"/>
+							<textElement verticalAlignment="Middle"/>
+							<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+						</textField>
+						<textField>
+							<reportElement uuid="5c062c66-ba45-4288-9dcd-246e28c5af75" style="Page footer" x="680" y="1" width="80" height="20"/>
+							<textElement textAlignment="Right" verticalAlignment="Middle"/>
+							<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
+						</textField>
+						<textField evaluationTime="Report">
+							<reportElement uuid="934b16e8-c3eb-4017-866a-0b7735bf2917" style="Page footer" x="760" y="1" width="40" height="20"/>
+							<textElement verticalAlignment="Middle"/>
+							<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
+						</textField>
+					</frame>
+				</band>
+			</pageFooter>
+			<summary>
+				<band splitType="Stretch"/>
+			</summary>
+		</jasperReport>
+	</template>
+	<templateStyle>
+		<style fontName="DejaVu Sans" fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="true" 
+				   name="Base" pdfEncoding="Identity-H" pdfFontName="DejaVuSans.ttf" vAlign="Middle">
+		</style>
+		<style backcolor="#267994" fontSize="26" forecolor="#FFFFFF" isDefault="false"
+                   mode="Opaque" name="Title" style="Base"/> 
+		<style fontSize="12" forecolor="#000000" isDefault="false" name="Page header"
+                   style="Base"/>
+		<style backcolor="#333333" fontSize="12" forecolor="#FFFFFF" hAlign="Center"
+                   isDefault="false" mode="Opaque" name="Column header" style="Base"/>
+		<style isBold="false" isDefault="false" name="Detail" style="Base"/>
+		<style fontSize="9" forecolor="#000000" isDefault="false" name="Page footer"
+                   style="Base"/>
+	</templateStyle>
+	<orientation>landscape</orientation>
+	<export>pdf</export>
+	<!-- set to true if report needs hibernate session (e.g. hql query is used) -->
+	<useHibernateSession>true</useHibernateSession>
+	<field>
+		<nameReport>timestamp</nameReport>
+		<nameHeader>Timestamp</nameHeader>
+		<itemPath>c:timestamp</itemPath>
+		<sortOrderNumber>1</sortOrderNumber>
+		<sortOrder>ascending</sortOrder>
+		<width>12</width>
+		<classType>xsd:dateTime</classType>
+	</field>
+	<field>
+		<nameReport>initiatorName</nameReport>
+		<nameHeader>Initiator</nameHeader>
+		<itemPath>c:initiatorName</itemPath>
+		<width>10</width>
+		<classType>xsd:string</classType>
+	</field>
+	<field>
+		<nameReport>eventType</nameReport>
+		<nameHeader>Event Type</nameHeader>
+		<itemPath>c:eventType</itemPath>
+		<width>12</width>
+		<classType>c:AuditEventType</classType>
+	</field>
+	<field>
+		<nameReport>eventStage</nameReport>
+		<nameHeader>Event Stage</nameHeader>
+		<itemPath>c:eventStage</itemPath>
+		<width>12</width>
+		<classType>c:AuditEventStage</classType>
+	</field>
+	<field>
+		<nameReport>targetName</nameReport>
+		<nameHeader>Target</nameHeader>
+		<itemPath>c:targetName</itemPath>
+		<width>10</width>
+		<classType>xsd:string</classType>
+	</field>
+	<field>
+		<nameReport>outcome</nameReport>
+		<nameHeader>Outcome</nameHeader>
+		<itemPath>c:outcome</itemPath>
+		<width>12</width>
+		<classType>c:OperationResultStatusType</classType>
+	</field>
+	<field>
+		<nameReport>message</nameReport>
+		<nameHeader>Message</nameHeader>
+		<itemPath>c:message</itemPath>
+		<width>20</width>
+		<classType>xsd:string</classType>
+	</field>
+	<field>
+		<nameReport>delta</nameReport>
+		<nameHeader>Delta</nameHeader>
+		<itemPath>c:delta</itemPath>
+		<width>12</width>
+		<classType>xsd:string</classType>
+	</field>
+	<!-- configuration properties -->
+	<configuration xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report">
+		<r:hqlQuery>select aer.timestamp as timestamp, 
+					aer.initiatorName as initiator, 
+					aer.eventType as eventType, 
+					aer.eventStage as eventStage, 
+					aer.targetName as targetName, 
+					aer.targetType as targetType, 
+					aer.targetOwnerName as targetOwnerName,
+					aer.outcome as outcome, 
+					aer.message as message, 
+					odo.delta as delta 
+					from RObjectDeltaOperation as odo 
+					join odo.record as aer 
+					where ($P{eventType} = null or aer.eventType = $P{eventType}) and aer.timestamp &gt;= $P{from} and aer.timestamp &lt;= $P{to} 
+					order by aer.timestamp
+		</r:hqlQuery>
+		<r:from>2000-01-01T00:00:00</r:from>
+		<r:to>2020-12-31T00:00:00</r:to>
+	</configuration>
+	<!-- report parameters configuration schema sample with different options -->
+	<configurationSchema>
+		<definition>
+			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+                    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+                    xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report"
+                    elementFormDefault="qualified"
+                    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/report">
+
+				<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"/>
+				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"/>
+				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-2"/>
+
+				<xsd:complexType name="ConfigurationType">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<a:container/>
+						</xsd:appinfo>
+					</xsd:annotation>
+					<xsd:sequence>
+
+						<!-- HQL query for jasper design (queryString element) -->
+						<xsd:element name="hqlQuery" type="xsd:string"/>
+
+						<!-- special audit configuration -->
+						<xsd:element name="from" type="xsd:dateTime">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>From:</a:displayName>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+
+						<xsd:element name="to" type="xsd:dateTime">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>To:</a:displayName>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="eventType" type="r:EventType"/>
+
+						<xsd:element name="eventDescription" type="xsd:string">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Event Type:</a:displayName>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:complexType>
+
+				<xsd:simpleType name="EventType">
+					<xsd:restriction base="xsd:int">
+						<xsd:enumeration value="null">
+							<xsd:annotation>
+								<xsd:appinfo>All</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+						<xsd:enumeration value="0">
+							<xsd:annotation>
+								<xsd:appinfo>Get object</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+						<xsd:enumeration value="1">
+							<xsd:annotation>
+								<xsd:appinfo>Add object</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+						<xsd:enumeration value="2">
+							<xsd:annotation>
+								<xsd:appinfo>Modify object</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+						<xsd:enumeration value="3">
+							<xsd:annotation>
+								<xsd:appinfo>Delete object</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+						<xsd:enumeration value="4">
+							<xsd:annotation>
+								<xsd:appinfo>Execute changes raw</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+						<xsd:enumeration value="5">
+							<xsd:annotation>
+								<xsd:appinfo>Synchronization</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+						<xsd:enumeration value="6">
+							<xsd:annotation>
+								<xsd:appinfo>Create session</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+						<xsd:enumeration value="7">
+							<xsd:annotation>
+								<xsd:appinfo>Terminate session</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+						<xsd:enumeration value="8">
+							<xsd:annotation>
+								<xsd:appinfo>Work item</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+						<xsd:enumeration value="9">
+							<xsd:annotation>
+								<xsd:appinfo>Workflow process instance</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+						<xsd:enumeration value="10">
+							<xsd:annotation>
+								<xsd:appinfo>Reconciliation</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+					</xsd:restriction>
+				</xsd:simpleType>
+
+				<xsd:element name="configuration" type="r:ConfigurationType"/>
+			</xsd:schema>
+		</definition>
+	</configurationSchema>
+</report>

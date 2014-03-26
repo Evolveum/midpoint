@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ResourceItemDto;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.reports.component.*;
@@ -43,6 +45,7 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -83,7 +86,6 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
     private static final String ID_CANCEL_BUTTON = "cancel";
 
     private LoadableModel<ReportDto> model;
-    IModel<List<ResourceItemDto>> resources = new Model();
 
     public PageReport() {
         model = new LoadableModel<ReportDto>(false) {
@@ -120,7 +122,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
             ReportType report = prismReport.asObjectable();
 
             String xml = getPrismContext().serializeObjectToString(prismReport, PrismContext.LANG_XML);
-            dto = new ReportDto(report.getName().getNorm(), report.getDescription(), xml, report.getExport());
+            dto = new ReportDto(report.getName().getNorm(), report.getDescription(), xml, report.getExport(), report.isParent());
             dto.setObject(prismReport);
             result.recordSuccess();
         } catch (Exception e) {
@@ -170,6 +172,18 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
                 onSaveAndRunPerformed(target);
             }
         };
+        saveAndRun.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible() {
+                if(model.getObject().isParent()){
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+
+        });
         mainForm.add(saveAndRun);
 
         AjaxSubmitButton save = new AjaxSubmitButton(ID_SAVE_BUTTON, createStringResource("PageBase.button.save")) {

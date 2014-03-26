@@ -57,10 +57,10 @@ public class TestPrismObjectConstruction {
 		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
 	}
 
-	/**
-	 * Construct object with schema. Starts by instantiating a definition and working downwards.
-	 * All the items in the object should have proper definition. 
-	 */
+    /**
+     * Construct object with schema. Starts by instantiating a definition and working downwards.
+     * All the items in the object should have proper definition.
+     */
 	@Test
 	public void testConstructionWithSchema() throws Exception {
 		final String TEST_NAME = "testConstructionWithSchema";

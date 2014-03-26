@@ -160,7 +160,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		dummyResourceCtlLime.addAccount(ACCOUNT_MURRAY_NAME, "Murray");
 		
 		// And a user that will be correlated to that account
-		repoAddObjectFromFile(USER_RAPP_FILENAME, UserType.class, initResult);
+		repoAddObjectFromFile(USER_RAPP_FILE, UserType.class, initResult);
 		
 		// 
 		PrismObject<ShadowType> accountStan = PrismTestUtil.parseObject(ACCOUNT_STAN_FILE);

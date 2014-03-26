@@ -27,13 +27,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.ProcessListener;
 import com.evolveum.midpoint.wf.api.WorkItemListener;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.wf.dao.ProcessInstanceManager;
-import com.evolveum.midpoint.wf.dao.ProcessInstanceProvider;
-import com.evolveum.midpoint.wf.dao.WorkItemManager;
-import com.evolveum.midpoint.wf.dao.WorkItemProvider;
+import com.evolveum.midpoint.wf.activiti.dao.ProcessInstanceManager;
+import com.evolveum.midpoint.wf.activiti.dao.ProcessInstanceProvider;
+import com.evolveum.midpoint.wf.activiti.dao.WorkItemManager;
+import com.evolveum.midpoint.wf.activiti.dao.WorkItemProvider;
 import com.evolveum.midpoint.wf.jobs.JobController;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
-import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
@@ -171,15 +170,8 @@ public class WorkflowManagerImpl implements WorkflowManager {
         return prismContext;
     }
 
-    @Override
-    public String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance) {
-
-        String processor = ((ProcessInstanceState) processInstance.getState()).getMidPointChangeProcessor();
-        if (processor == null) {
-            LOGGER.error("There's no change processor name among the process instance variables; processInstance = {}", processInstance.asPrismObject().debugDump());
-            throw new IllegalStateException("There's no change processor name among the process instance variables");
-        }
-        return wfConfiguration.findChangeProcessor(processor).getProcessInstanceDetailsPanelName(processInstance);
+    public WfTaskUtil getWfTaskUtil() {
+        return wfTaskUtil;
     }
 
     @Override

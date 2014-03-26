@@ -46,12 +46,25 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import org.testng.annotations.Test;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
+
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.Validator;
+import java.io.IOException;
+
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * @author Radovan Semancik
@@ -63,7 +76,7 @@ public class TestSchemaRegistry {
 	private static final String USER_EXT_NAMESPACE = "http://example.com/xml/ns/user-extension";
 	private static final String EXTENSION_SCHEMA_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/test/extension";
 
-	/**
+    /**
 	 * Test whether the midpoint prism context was constructed OK and if it can validate
 	 * ordinary user object.
 	 */
@@ -86,9 +99,9 @@ public class TestSchemaRegistry {
 //		System.out.println("Validation result:");
 //		System.out.println(DOMUtil.serializeDOMToString(validationResult.getNode()));
 	}
-	
 
-	@Test
+
+    @Test
 	public void testCommonSchema() throws SchemaException, SAXException, IOException {
 
 		MidPointPrismContextFactory factory = getContextFactory();
@@ -150,8 +163,8 @@ public class TestSchemaRegistry {
 		PrismPropertyDefinition givenNameDef = userDefinition.findPropertyDefinition(UserType.F_GIVEN_NAME);
 		assertNotNull("No givenName definition", givenNameDef);
 	}
-	
-	@Test
+
+    @Test
 	public void testCommonSchemaAccountType() throws SchemaException, SAXException, IOException {
 
 		MidPointPrismContextFactory factory = getContextFactory();

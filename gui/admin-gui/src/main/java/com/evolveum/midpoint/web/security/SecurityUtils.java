@@ -16,9 +16,10 @@
 
 package com.evolveum.midpoint.web.security;
 
-import com.evolveum.midpoint.common.security.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 

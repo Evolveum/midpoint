@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.wf.processors.primary;
 
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -24,13 +26,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.GeneralChangeApprovalWorkItemContents;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.QuestionFormType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.WorkItemContents;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.PrimaryApprovalProcessInstanceState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ItemApprovalProcessState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.PrimaryChangeProcessorState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -44,7 +45,7 @@ import java.util.Map;
 public class PcpExternalizationHelper {
 
     @Autowired
-    private MiscDataUtil miscDataUtil;
+    private PcpRepoAccessHelper pcpRepoAccessHelper;
 
     @Autowired
     private PrismContext prismContext;
@@ -52,25 +53,28 @@ public class PcpExternalizationHelper {
     @Autowired
     private PrimaryChangeProcessor primaryChangeProcessor;
 
-    public void externalizeState(PrismObject<? extends PrimaryApprovalProcessInstanceState> statePrism, Map<String, Object> variables) throws JAXBException, SchemaException {
-        PrimaryApprovalProcessInstanceState state = statePrism.asObjectable();
-        state.setMidPointProcessWrapper((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_WRAPPER));
-        state.setMidPointObjectOid((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID));
+    public PrimaryChangeProcessorState externalizeState(Map<String, Object> variables) throws JAXBException, SchemaException {
+        PrismContainerDefinition<PrimaryChangeProcessorState> extDefinition = prismContext.getSchemaRegistry().findContainerDefinitionByType(PrimaryChangeProcessorState.COMPLEX_TYPE);
+        PrismContainer<PrimaryChangeProcessorState> extStateContainer = extDefinition.instantiate();
+        PrimaryChangeProcessorState state = extStateContainer.createNewValue().asContainerable();
 
-        String objectXml = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED);
+        state.setChangeAspect((String) variables.get(PcpProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_ASPECT));
+
+        String objectXml = (String) variables.get(PcpProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED);
         if (objectXml != null) {
             ObjectType objectToBeAdded = (ObjectType) prismContext.parseObject(objectXml, PrismContext.LANG_XML).asObjectable();
-            state.setMidPointObjectToBeAdded(objectToBeAdded);
+            state.setObjectToBeAdded(objectToBeAdded);
         }
-        state.setMidPointDelta(miscDataUtil.getObjectDeltaType(variables, true));
+        state.setDelta(pcpRepoAccessHelper.getObjectDeltaType(variables, true));
+        return state;
     }
 
-    public PrismObject<? extends WorkItemContents> prepareWorkItemContents(org.activiti.engine.task.Task task, Map<String, Object> processInstanceVariables, OperationResult result) throws JAXBException, ObjectNotFoundException, SchemaException {
+    public PrismObject<? extends WorkItemContents> externalizeWorkItemContents(org.activiti.engine.task.Task task, Map<String, Object> processInstanceVariables, OperationResult result) throws JAXBException, ObjectNotFoundException, SchemaException {
 
         PrismObject<? extends GeneralChangeApprovalWorkItemContents> wicPrism = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(GeneralChangeApprovalWorkItemContents.class).instantiate();
         GeneralChangeApprovalWorkItemContents wic = wicPrism.asObjectable();
 
-        PrismObject<? extends ObjectType> objectBefore = miscDataUtil.getObjectBefore(processInstanceVariables, prismContext, result);
+        PrismObject<? extends ObjectType> objectBefore = pcpRepoAccessHelper.getObjectBefore(processInstanceVariables, prismContext, result);
         if (objectBefore != null) {
             wic.setObjectOld(objectBefore.asObjectable());
             if (objectBefore.getOid() != null) {
@@ -78,9 +82,9 @@ public class PcpExternalizationHelper {
             }
         }
 
-        wic.setObjectDelta(miscDataUtil.getObjectDeltaType(processInstanceVariables, true));
+        wic.setObjectDelta(pcpRepoAccessHelper.getObjectDeltaType(processInstanceVariables, true));
 
-        PrismObject<? extends ObjectType> objectAfter = miscDataUtil.getObjectAfter(processInstanceVariables, wic.getObjectDelta(), objectBefore, prismContext, result);
+        PrismObject<? extends ObjectType> objectAfter = pcpRepoAccessHelper.getObjectAfter(processInstanceVariables, wic.getObjectDelta(), objectBefore, prismContext, result);
         if (objectAfter != null) {
             wic.setObjectNew(objectAfter.asObjectable());
             if (objectAfter.getOid() != null) {
@@ -101,11 +105,11 @@ public class PcpExternalizationHelper {
     }
 
     private PrismObject<? extends QuestionFormType> getQuestionForm(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return primaryChangeProcessor.getProcessWrapper(variables).getRequestSpecificData(task, variables, result);
+        return primaryChangeProcessor.getChangeAspect(variables).prepareQuestionForm(task, variables, result);
     }
 
     private PrismObject<? extends ObjectType> getRelatedObject(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return primaryChangeProcessor.getProcessWrapper(variables).getRelatedObject(task, variables, result);
+        return primaryChangeProcessor.getChangeAspect(variables).prepareRelatedObject(task, variables, result);
     }
 
     private <T> T asObjectable(PrismObject<? extends T> prismObject) {

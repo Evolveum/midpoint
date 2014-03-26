@@ -22,18 +22,7 @@
     <div wicket:id="deleteHostsPopup" />
 
     <form wicket:id="searchForm" class="form-inline pull-right search-form">
-        <div class="form-group">
-            <label class="sr-only"><wicket:message key="pageResources.searchText.placeholder" /></label>
-            <input class="form-control input-sm" wicket:id="searchText"
-                   wicket:message="placeholder:pageResources.searchText.placeholder">
-        </div>
-
-        <span class="btn-group">
-            <a class="btn btn-default btn-sm" wicket:id="searchButton"/>
-            <a class="btn btn-danger btn-sm" wicket:message="title:PageBase.button.tooltip.clearSearch" wicket:id="searchClear">
-                <i class="fa fa-trash-o"/>
-            </a>
-        </span>
+        <div wicket:id="basichSearch" />
     </form>
 
     <form wicket:id="mainForm" class="clearfix form-horizontal">

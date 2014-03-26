@@ -74,6 +74,12 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectSelector;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -87,6 +93,27 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ParamsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationDescriptionType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.hibernate.SessionFactory;
+import org.hibernate.metadata.ClassMetadata;
+import org.hibernate.persister.entity.AbstractEntityPersister;
+import org.hibernate.tuple.IdentifierProperty;
+import org.hibernate.tuple.entity.EntityMetamodel;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.namespace.QName;
+
+import java.lang.reflect.Field;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -280,16 +307,37 @@ public final class RUtil {
 	private static PrismContainerDefinition findContainerDefinition(Class clazz, ItemPath path,
 			QName complexType, PrismContext prismContext) throws SchemaException {
 		SchemaRegistry registry = prismContext.getSchemaRegistry();
+        PrismContainerDefinition definition = registry.findContainerDefinitionByCompileTimeClass(clazz);
+        if (definition == null) {
+            if (complexType != null) {
+                // definition = registry.(path);
+            }
+        }
 
-		PrismContainerDefinition definition = registry.findContainerDefinitionByCompileTimeClass(clazz);
-		if (definition == null) {
-			if (complexType != null) {
-				// definition = registry.(path);
+        return definition;
+    }
+
+    public static Item cloneValuesFromJaxb(AuthorizationType jaxb, QName itemName){
+    	if (!jaxb.getItem().isEmpty()){
+    		Item jaxbContainer = jaxb.asPrismContainerValue().findItem(itemName);
+			if (jaxbContainer != null) {
+//				Item newContainer = jaxbContainer.clone();
+				return jaxbContainer.clone();
 			}
+    	}
+    	return null;
+    }
+    
+    public static <T extends PrismValue> Collection<T> cloneValuesToJaxb(AuthorizationType objectSpecification, QName itemName){
+    	PrismContainerValue objSpecCont = objectSpecification.asPrismContainerValue();
+    	Item itemContainer = objSpecCont.findItem(itemName);
+		if (!objectSpecification.getItem().isEmpty() && itemContainer != null){
+			return PrismValue.cloneCollection(itemContainer.getValues());
+//		jaxbContainer.findOrCreateProperty(SchemaConstants.C_ITEM).addAll(cloned);
+//			jaxb.getItem().addAll(objectSpecification.getItem());
 		}
-
-		return definition;
-	}
+		return null;
+    }
 
 	private static Element getFirstSubElement(Element parent) {
 		if (parent == null) {

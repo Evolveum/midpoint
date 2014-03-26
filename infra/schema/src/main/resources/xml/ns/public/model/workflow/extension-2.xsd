@@ -47,6 +47,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 Contains deltaIn(i), i.e. delta(s) that has to be approved.
+                Valid for PrimaryChangeProcessor only.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:indexed>false</a:indexed>
@@ -62,6 +63,8 @@
                 Contains deltaOut(i), i.e. delta(s) that are the result of the approval process. The most
                 common situation is that deltaOut(i) = either deltaIn(i) (if approved),
                 or null/empty delta (if rejected).
+
+                Valid for PrimaryChangeProcessor only.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:indexed>false</a:indexed>
@@ -74,7 +77,7 @@
     <xsd:element name="approvedBy" type="c:ObjectReferenceType">
         <xsd:annotation>
             <xsd:documentation>
-                Contains a set of approvers who approved the delta(s). The wrapper should put here those approvers
+                Contains a set of approvers who approved the delta(s). The wf code should put here those approvers
                 that will be stored into approvers list in metadata when the operation is really executed.
             </xsd:documentation>
             <xsd:appinfo>
@@ -84,7 +87,6 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
-
 
     <xsd:element name="processInstanceId" type="xsd:string">
         <xsd:annotation>
@@ -145,6 +147,8 @@
             <xsd:documentation>
                 The name of a class that provides an interface between midPoint and activiti process.
                 See https://wiki.evolveum.com/display/midPoint/Workflow+Management.
+
+                Valid for PrimaryChangeProcessor and GeneralChangeProcessor only.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:indexed>true</a:indexed>

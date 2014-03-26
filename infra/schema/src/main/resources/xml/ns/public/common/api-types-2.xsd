@@ -21,6 +21,7 @@
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+            xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
@@ -52,6 +53,15 @@
         <xsd:annotation>
             <xsd:documentation>
                 Common midPoint schema.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
+                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2">
+        <xsd:annotation>
+            <xsd:documentation>
+                Scripting language.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:import>
@@ -339,6 +349,61 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+
+    <!-- the following types are related to script execution; these are experimental for now -->
+    <xsd:complexType name="XmlScriptsType">
+        <xsd:sequence>
+            <xsd:any minOccurs="0" maxOccurs="unbounded" />         <!-- objects substituable with s:expression should be put here -->
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ScriptOutputsType">
+        <xsd:sequence>
+            <xsd:element name="output" type="tns:SingleScriptOutputType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SingleScriptOutputType">
+        <xsd:sequence>
+            <xsd:choice>
+                <xsd:element name="xmlData" type="s:ItemListType" />
+                <xsd:element name="mslData" type="xsd:string" />
+            </xsd:choice>
+            <xsd:element name="textOutput" type="xsd:string" minOccurs="0" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ExecuteScriptsOptionsType">
+        <xsd:sequence>
+            <xsd:element name="outputFormat" type="tns:OutputFormatType" minOccurs="0"/>
+            <xsd:element name="objectLimit" type="xsd:int" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="OutputFormatType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="xml">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="XML"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="msl">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MSL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
 
     <xsd:complexType name="GetOperationOptionsType">
         <xsd:annotation>

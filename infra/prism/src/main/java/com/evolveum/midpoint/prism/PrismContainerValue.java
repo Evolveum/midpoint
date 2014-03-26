@@ -333,6 +333,9 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
      * @param item item to add.
      */
     public void addReplaceExisting(Item<?> item) throws SchemaException {
+    	if (item == null){
+    		return;
+    	}
         Item<?> existingItem = findItem(item.getElementName(), Item.class);
         if (existingItem != null && items != null) {
             items.remove(existingItem);

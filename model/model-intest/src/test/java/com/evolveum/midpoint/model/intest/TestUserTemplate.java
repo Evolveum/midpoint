@@ -763,7 +763,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + ".test200AddUserRapp");
         OperationResult result = task.getResult();
     
-        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(USER_RAPP_FILENAME));
+        PrismObject<UserType> user = PrismTestUtil.parseObject(USER_RAPP_FILE);
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
         deltas.add(userDelta);

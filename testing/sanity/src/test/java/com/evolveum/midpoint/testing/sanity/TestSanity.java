@@ -240,6 +240,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     private static final String USER_TEMPLATE_OID = "c0c010c0-d34d-b33f-f00d-777111111111";
 
     private static final String USER_ADMINISTRATOR_FILENAME = REPO_DIR_NAME + "user-administrator.xml";
+    private static final String USER_ADMINISTRATOR_NAME = "administrator";
     private static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
 
     private static final String USER_JACK_FILENAME = REPO_DIR_NAME + "user-jack.xml";
@@ -340,22 +341,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     private int lastSyncToken;
     
-    public TestSanity() throws JAXBException {
-        super();
-    }
-
-    @BeforeMethod
-    public void beforeMethod() throws Exception {
-    	setSecurityContextUser(SystemObjectsType.USER_ADMINISTRATOR.value());
-    }
-
-    @AfterMethod
-    public void afterMethod() {
-        LOGGER.info("AFTER METHOD");
-        SecurityContextHolder.getContext().setAuthentication(null);
-        LOGGER.info("AFTER METHOD END");
-    }
-
     // This will get called from the superclass to init the repository
     // It will be called only once
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -368,6 +353,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
         LOGGER.trace("initSystem: trying modelService.postInit()");
         modelService.postInit(initResult);
         LOGGER.trace("initSystem: modelService.postInit() done");
+        
+        login(USER_ADMINISTRATOR_NAME);
 
         // We need to add config after calling postInit() so it will not be applied.
         // we want original logging configuration from the test logback config file, not

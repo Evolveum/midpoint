@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (c) 2010-2013 Evolveum
   ~
@@ -14,25 +13,29 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
     <form wicket:id="mainForm" class="form-horizontal">
-        <div class="form-group">
-            <label class="col-lg-2 control-label"><wicket:message key="pageRole.options"/></label>
 
-            <div class="col-lg-8">
-                    <label class="col-lg-2 checkbox-inline">
-                        <input type="checkbox" class="form-control" wicket:id="edit" />
-                        <wicket:message key="pageRole.edit"/>
-                    </label>
+        <div class="row">
+            <div class="col-md-6">
+                <h3 style="margin-left: 20px;"><wicket:message key="PageRoleEditor.subtitle.basic"/></h3>
+                <div class="form-group" wicket:id="name" />
+                <div class="form-group" wicket:id="description" />
+                <div class="form-group" wicket:id="roleType" />
+                <div class="form-group" wicket:id="requestable" />
+
+                <h3 style="margin-left: 20px;"><wicket:message key="PageRoleEditor.subtitle.activation"/></h3>
+                <div class="form-group" wicket:id="adminStatus" />
+                <div class="form-group" wicket:id="dateFrom" />
+                <div class="form-group" wicket:id="dateTo" />
             </div>
-        </div>
 
-        <div class="form-group">
-            <div class="col-lg-12">
-                <textarea wicket:id="aceEditor"></textarea>
+            <div class="col-md-6">
+                <div wicket:id="inducementsPanel" />
+                <div wicket:id="assignmentsPanel" style="margin-top: 30px" />
             </div>
         </div>
 
@@ -40,8 +43,9 @@
             <span class="button-group">
                 <a class="btn btn-default" wicket:id="backButton" />
             </span>
-            <a class="btn btn-primary" wicket:id="saveButton"/>
+            <a class="btn btn-primary" wicket:id="saveButton" />
         </div>
+
     </form>
 </wicket:extend>
 </body>

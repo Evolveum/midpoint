@@ -71,7 +71,7 @@ public class TaskQuartzImpl implements Task {
 
     private PrismObject<TaskType> taskPrism;
 
-    private String requesteeOid;                                  // temporary information
+    private PrismObject<UserType> requestee;                                  // temporary information
 
     // private Set<Task> subtasks = new HashSet<Task>();          // relevant only for transient tasks, currently not used
 
@@ -1800,13 +1800,13 @@ public class TaskQuartzImpl implements Task {
      */
 
     @Override
-    public String getRequesteeOid() {
-        return requesteeOid;
+    public PrismObject<UserType> getRequestee() {
+        return requestee;
     }
 
     @Override
-    public void setRequesteeOidTransient(String oid) {
-        requesteeOid = oid;
+    public void setRequesteeTransient(PrismObject<UserType> user) {
+        requestee = user;
     }
 
     //    @Override

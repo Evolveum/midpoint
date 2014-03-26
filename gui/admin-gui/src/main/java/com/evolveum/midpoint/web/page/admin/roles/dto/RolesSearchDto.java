@@ -23,25 +23,13 @@ import java.io.Serializable;
  * */
 public class RolesSearchDto implements Serializable{
 
-    public enum Requestable{
-        ALL("All"), REQUESTABLE("Requestable"), NON_REQUESTABLE("Non-Requestable");
-
-        Requestable(String key){
-            this.key = key;
-        }
-
-        public String getKey(){
-            return key;
-        }
-
-        private String key;
-    }
+    public enum Requestable { ALL, REQUESTABLE, NON_REQUESTABLE;}
 
     public static final String F_SEARCH_TEXT = "text";
     public static final String F_REQUESTABLE = "requestable";
 
     private String text;
-    private Requestable requestable;
+    private Requestable requestable = Requestable.ALL;
 
     public String getText() {
         return text;

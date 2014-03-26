@@ -46,12 +46,21 @@ import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 import javax.xml.namespace.QName;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * @author semancik
@@ -154,7 +163,7 @@ public class PrismContext {
 		return jaxbDomHack;
 	}
 
-	public SchemaDefinitionFactory getDefinitionFactory() {
+    public SchemaDefinitionFactory getDefinitionFactory() {
 		if (definitionFactory == null) {
 			definitionFactory = new SchemaDefinitionFactory();
 		}

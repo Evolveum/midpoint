@@ -16,8 +16,8 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -29,6 +29,7 @@ import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
@@ -73,9 +74,7 @@ public class PageProcessInstance extends PageAdminWorkItems {
             }
         };
 
-        // TODO catch RuntimeException (when process instance variables couldn't be retrieved) and do something meaninful with it
-        String detailsPageClassName = getWorkflowManager().getProcessInstanceDetailsPanelName(model.getObject().getProcessInstance());
-        initLayout(detailsPageClassName);
+        initLayout();
     }
 
     private ProcessInstanceDto loadProcessInstance() {
@@ -108,12 +107,11 @@ public class PageProcessInstance extends PageAdminWorkItems {
         }
     }
 
-    private void initLayout(String detailsPanelClassName) {
+    private void initLayout() {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-        ProcessInstancePanel processInstancePanel = new ProcessInstancePanel(ID_PROCESS_INSTANCE_PANEL, model,
-                detailsPanelClassName);
+        ProcessInstancePanel processInstancePanel = new ProcessInstancePanel(ID_PROCESS_INSTANCE_PANEL, model);
         mainForm.add(processInstancePanel);
 
         initButtons(mainForm);

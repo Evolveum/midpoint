@@ -31,6 +31,9 @@ import java.io.Serializable;
 public class DoubleButtonColumn<T extends Serializable>  extends AbstractColumn<T, String>{
 
     public static final String BUTTON_BASE_CLASS = "btn";
+    public static final String BUTTON_DISABLED = "disabled";
+
+    private DoubleButtonPanel panel;
 
     public enum BUTTON_COLOR_CLASS{
         DEFAULT("btn-default"), PRIMARY("btn-primary"), SUCCESS("btn-success"),
@@ -53,6 +56,7 @@ public class DoubleButtonColumn<T extends Serializable>  extends AbstractColumn<
 
     private String firstCaption;
     private String secondCaption;
+    private IModel<T> rowModel;
 
     private String propertyExpression;
 
@@ -64,8 +68,9 @@ public class DoubleButtonColumn<T extends Serializable>  extends AbstractColumn<
     @Override
     public void populateItem(final Item<ICellPopulator<T>> cellItem, String componentId,
                              final IModel<T> rowModel){
+        this.rowModel = rowModel;
 
-        cellItem.add(new DoubleButtonPanel<T>(componentId, rowModel){
+        panel = new DoubleButtonPanel<T>(componentId, rowModel){
 
             @Override
             public String getFirstCssSizeClass(){
@@ -106,7 +111,18 @@ public class DoubleButtonColumn<T extends Serializable>  extends AbstractColumn<
             public void secondPerformed(AjaxRequestTarget target, IModel<T> model){
                 secondClicked(target, model);
             }
-        });
+
+            @Override
+            public boolean isFirstEnabled(IModel<T> model){
+                return isFirstButtonEnabled(model);
+            }
+
+            @Override
+            public boolean isSecondEnabled(IModel<T> model){
+                return isSecondButtonEnabled(model);
+            }
+        };
+        cellItem.add(panel);
     }
 
     public void firstClicked(AjaxRequestTarget target, IModel<T> model){}
@@ -134,5 +150,21 @@ public class DoubleButtonColumn<T extends Serializable>  extends AbstractColumn<
 
     public String getSecondCap(){
         return secondCaption;
+    }
+
+    public boolean isFirstButtonEnabled(IModel<T> model){
+        return true;
+    }
+
+    public boolean isSecondButtonEnabled(IModel<T> model){
+        return true;
+    }
+
+    public DoubleButtonPanel getButtonPanel(){
+        return panel;
+    }
+
+    protected IModel<T> getRowModel(){
+        return rowModel;
     }
 }

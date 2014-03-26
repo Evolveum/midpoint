@@ -59,25 +59,13 @@
 			<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
 			<property name="net.sf.jasperreports.export.pdf.force.linebreak.policy" value="true"/>
 			<property name="net.sf.jasperreports.export.csv.exclude.origin.band.1" value="title"/>
-			<style fontName="DejaVu Sans" fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="true" 
-				   name="Base" pdfEncoding="Identity-H" pdfFontName="DejaVuSans.ttf" vAlign="Middle">
-			</style>
-			<style backcolor="#267994" fontSize="26" forecolor="#FFFFFF" isDefault="false"
-                   mode="Opaque" name="Title" style="Base"/> 
-			<style fontSize="12" forecolor="#000000" isDefault="false" name="Page header"
-                   style="Base"/>
-			<style backcolor="#333333" fontSize="12" forecolor="#FFFFFF" hAlign="Center"
-                   isDefault="false" mode="Opaque" name="Column header" style="Base"/>
-			<style isBold="false" isDefault="false" name="Detail" style="Base"/>
-			<style fontSize="9" forecolor="#000000" isDefault="false" name="Page footer"
-                   style="Base"/>
-			<parameter name="role_report" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
-			<parameter name="role_hqlQuery" class="java.lang.String"/>
-			<parameter name="org_report" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
-			<parameter name="org_hqlQuery" class="java.lang.String"/>
-			<parameter name="account_report" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
-			<parameter name="account_hqlQuery" class="java.lang.String"/>
-			<parameter name="hqlQuery" class="java.lang.String"/>
+			<parameter name="role" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+			<parameter name="org" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+			<parameter name="account" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
+			<parameter name="hqlQueryRoles" class="java.lang.String" isForPrompting="false"/>
+			<parameter name="hqlQueryAccounts" class="java.lang.String" isForPrompting="false"/>
+			<parameter name="hqlQueryOrgs" class="java.lang.String" isForPrompting="false"/>
+			<parameter name="hqlQuery" class="java.lang.String" isForPrompting="false"/>
 			<queryString language="hql"><![CDATA[$P!{hqlQuery}]]></queryString>
 			<field name="userOid" class="java.lang.String"/>
 			<field name="name" class="java.lang.String"/>
@@ -171,7 +159,7 @@
 				</band>
 			</columnHeader>
 			<detail>
-				<band height="20" splitType="Prevent">
+				<band height="20" splitType="Stretch">
 					<frame>
 						<reportElement style="Detail" x="0" y="1" width="800" height="19" uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a"/>
 						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
@@ -196,47 +184,44 @@
 							<textElement verticalAlignment="Middle"/>
 							<textFieldExpression><![CDATA[$F{activation}.getAdministrativeStatus().getSchemaValue()]]></textFieldExpression>
 						</textField>
-						<subreport>
+						<subreport isUsingCache="true">
 							<reportElement style="Detail" positionType="Float" x="420" y="0" width="100" height="18" isPrintWhenDetailOverflows="true" uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9"/>
-							<subreportParameter name="userOid">
-								<subreportParameterExpression><![CDATA[$F{userOid}]]></subreportParameterExpression>
-							</subreportParameter>
-							<subreportParameter name="hqlQuery">
-								<subreportParameterExpression><![CDATA[$P{role_hqlQuery}]]></subreportParameterExpression>
-							</subreportParameter>
 							<subreportParameter name="HIBERNATE_SESSION">
 								<subreportParameterExpression><![CDATA[$P{HIBERNATE_SESSION}]]></subreportParameterExpression>
 							</subreportParameter>
-							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
-							<subreportExpression><![CDATA[$P{role_report}]]></subreportExpression>
+							<subreportParameter name="userOid">
+								<subreportParameterExpression><![CDATA[$F{userOid}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="hqlQueryRoles">
+								<subreportParameterExpression><![CDATA[$P{hqlQueryRoles}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportExpression><![CDATA[$P{role}]]></subreportExpression>
 						</subreport>
-						<subreport>
+						<subreport isUsingCache="true">
 							<reportElement style="Detail" positionType="Float" x="520" y="0" width="100" height="18" isPrintWhenDetailOverflows="true" uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9"/>
-							<subreportParameter name="userOid">
-								<subreportParameterExpression><![CDATA[$F{userOid}]]></subreportParameterExpression>
-							</subreportParameter>
-							<subreportParameter name="hqlQuery">
-								<subreportParameterExpression><![CDATA[$P{org_hqlQuery}]]></subreportParameterExpression>
-							</subreportParameter>
 							<subreportParameter name="HIBERNATE_SESSION">
 								<subreportParameterExpression><![CDATA[$P{HIBERNATE_SESSION}]]></subreportParameterExpression>
 							</subreportParameter>
-							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
-							<subreportExpression><![CDATA[$P{org_report}]]></subreportExpression>
+							<subreportParameter name="userOid">
+								<subreportParameterExpression><![CDATA[$F{userOid}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="hqlQueryOrgs">
+								<subreportParameterExpression><![CDATA[$P{hqlQueryOrgs}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportExpression><![CDATA[$P{org}]]></subreportExpression>
 						</subreport>
-						<subreport>
+						<subreport isUsingCache="true">
 							<reportElement style="Detail" positionType="Float" x="620" y="0" width="180" height="18" isPrintWhenDetailOverflows="true" uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9"/>
-							<subreportParameter name="userOid">
-								<subreportParameterExpression><![CDATA[$F{userOid}]]></subreportParameterExpression>
-							</subreportParameter>
-							<subreportParameter name="hqlQuery">
-								<subreportParameterExpression><![CDATA[$P{account_hqlQuery}]]></subreportParameterExpression>
-							</subreportParameter>
 							<subreportParameter name="HIBERNATE_SESSION">
 								<subreportParameterExpression><![CDATA[$P{HIBERNATE_SESSION}]]></subreportParameterExpression>
 							</subreportParameter>
-							<connectionExpression><![CDATA[$P{REPORT_CONNECTION}]]></connectionExpression>
-							<subreportExpression><![CDATA[$P{account_report}]]></subreportExpression>
+							<subreportParameter name="userOid">
+								<subreportParameterExpression><![CDATA[$F{userOid}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportParameter name="hqlQueryAccounts">
+								<subreportParameterExpression><![CDATA[$P{hqlQueryAccounts}]]></subreportParameterExpression>
+							</subreportParameter>
+							<subreportExpression><![CDATA[$P{account}]]></subreportExpression>
 						</subreport>
 						<line>
 							<reportElement positionType="FixRelativeToBottom" x="0" y="17" width="800" height="1" uuid="a591d4c1-1cad-4da2-9f9d-081f539e9043"/>
@@ -281,6 +266,28 @@
 			</pageFooter>
 		</jasperReport>
 	</template>
+	<templateStyle>
+		<jasperTemplate xmlns="http://jasperreports.sourceforge.net/dtds/jaspertemplate.dtd">
+			<style fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="false" name="Base"
+				   pdfEncoding="Cp1252"
+				   pdfFontName="Helvetica"
+                   vAlign="Middle"/>
+			<style backcolor="#267994" fontSize="26" forecolor="#FFFFFF" isDefault="false"
+                   mode="Opaque"
+                   name="Title"
+                   style="Base"/>
+			<style fontSize="12" forecolor="#000000" isDefault="false" name="Page header"
+                   style="Base"/>
+			<style backcolor="#333333" fontSize="12" forecolor="#FFFFFF" hAlign="Center"
+                   isDefault="false"
+                   mode="Opaque"
+                   name="Column header"
+                   style="Base"/>
+			<style isBold="false" isDefault="false" name="Detail" style="Base"/>
+			<style fontSize="9" forecolor="#000000" isDefault="false" name="Page footer"
+                   style="Base"/>
+		</jasperTemplate>
+	</templateStyle>
 	<orientation>landscape</orientation>
 	<export>pdf</export>
 	<!-- set to true if report needs hibernate session (e.g. hql query is used) -->

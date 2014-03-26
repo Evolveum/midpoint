@@ -62,6 +62,7 @@ import org.apache.wicket.request.resource.SharedResourceReference;
 import org.apache.wicket.settings.IApplicationSettings;
 import org.apache.wicket.settings.IResourceSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
+import org.apache.wicket.util.lang.Bytes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -73,6 +74,11 @@ import java.io.FilenameFilter;
  */
 @Component("midpointApplication")
 public class MidPointApplication extends AuthenticatedWebApplication {
+
+    /**
+     * Max. photo size for user/jpegPhoto
+     */
+    public static final Bytes USER_PHOTO_MAX_FILE_SIZE = Bytes.kilobytes(192);
 
     private static final String WEB_APP_CONFIGURATION = "midpoint.webApplication";
 
@@ -121,6 +127,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         resourceSettings.setThrowExceptionOnMissingResource(false);
         getMarkupSettings().setStripWicketTags(true);
+        getMarkupSettings().setDefaultBeforeDisabledLink("");
+        getMarkupSettings().setDefaultAfterDisabledLink("");
 
         if (RuntimeConfigurationType.DEVELOPMENT.equals(getConfigurationType())) {
             getDebugSettings().setAjaxDebugModeEnabled(true);
@@ -149,11 +157,12 @@ public class MidPointApplication extends AuthenticatedWebApplication {
             }
         });
 
-        //ajax push (just an experiment)
-        eventBus = new EventBus(this);
-        eventBus.getParameters().setLogLevel(AtmosphereLogLevel.DEBUG);
-
-        //enable simple task notifications here
+// todo wicket atmosphere was disabled because of form file upload and redirection url problems.
+//        //ajax push (just an experiment)
+//        eventBus = new EventBus(this);
+//        eventBus.getParameters().setLogLevel(AtmosphereLogLevel.DEBUG);
+//
+//        //enable simple task notifications here
 //        taskManager.registerTaskListener(new TaskListener() {
 //
 //            @Override

@@ -13,35 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.evolveum.midpoint.web.session;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.web.page.admin.reports.dto.ReportOutputDto;
+import com.evolveum.midpoint.web.page.admin.reports.dto.ReportSearchDto;
 
 import java.io.Serializable;
 
 /**
- * @author shood
- */
+ *  @author shood
+ * */
 public class ReportsStorage implements Serializable{
 
     /**
-     *  DTO used for search purposes in {@link com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports}
+     *  DTO used for search purposes in {@link com.evolveum.midpoint.web.page.admin.reports.PageReports}
      * */
-    private ReportOutputDto reportsSearch;
+    private ReportSearchDto reportSearch;
 
     /**
-     *  Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports}
+     *  Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.admin.reports.PageReports}
      * */
     private ObjectPaging reportsPaging;
 
-    public ReportOutputDto getReportsSearch() {
-        return reportsSearch;
+    public ReportSearchDto getReportSearch() {
+        return reportSearch;
     }
 
-    public void setReportsSearch(ReportOutputDto reportsSearch) {
-        this.reportsSearch = reportsSearch;
+    public void setReportSearch(ReportSearchDto reportSearch) {
+        this.reportSearch = reportSearch;
     }
 
     public ObjectPaging getReportsPaging() {

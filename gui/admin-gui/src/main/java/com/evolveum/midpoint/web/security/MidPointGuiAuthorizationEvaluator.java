@@ -16,9 +16,19 @@
 
 package com.evolveum.midpoint.web.security;
 
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
-import com.evolveum.midpoint.common.security.AuthorizationEvaluator;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.UserProfileService;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.ConfigAttribute;
@@ -33,9 +43,51 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-public class MidPointGuiAuthorizationEvaluator extends AuthorizationEvaluator {
+public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
 
-    @Override
+	private SecurityEnforcer securityEnforcer;
+	
+    public MidPointGuiAuthorizationEvaluator(SecurityEnforcer securityEnforcer) {
+		super();
+		this.securityEnforcer = securityEnforcer;
+	}
+
+	public UserProfileService getUserProfileService() {
+		return securityEnforcer.getUserProfileService();
+	}
+
+	public void setUserProfileService(UserProfileService userProfileService) {
+		securityEnforcer.setUserProfileService(userProfileService);
+	}
+
+	public void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user) {
+		securityEnforcer.setupPreAuthenticatedSecurityContext(user);
+	}
+
+	public MidPointPrincipal getPrincipal() throws SecurityViolationException {
+		return securityEnforcer.getPrincipal();
+	}
+
+	public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl,
+			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target) throws SchemaException {
+		return securityEnforcer.isAuthorized(operationUrl, object, delta, target);
+	}
+
+	public boolean supports(ConfigAttribute attribute) {
+		return securityEnforcer.supports(attribute);
+	}
+
+	public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl,
+			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OperationResult result)
+			throws SecurityViolationException, SchemaException {
+		securityEnforcer.authorize(operationUrl, object, delta, target, result);
+	}
+
+	public boolean supports(Class<?> clazz) {
+		return securityEnforcer.supports(clazz);
+	}
+
+	@Override
     public void decide(Authentication authentication, Object object, Collection<ConfigAttribute> configAttributes)
             throws AccessDeniedException, InsufficientAuthenticationException {
 
@@ -59,7 +111,7 @@ public class MidPointGuiAuthorizationEvaluator extends AuthorizationEvaluator {
             return;
         }
 
-        super.decide(authentication, object, guiConfigAttr.isEmpty() ? configAttributes : guiConfigAttr);
+        securityEnforcer.decide(authentication, object, guiConfigAttr.isEmpty() ? configAttributes : guiConfigAttr);
     }
 
     private void addSecurityConfig(FilterInvocation filterInvocation, Collection<ConfigAttribute> guiConfigAttr,

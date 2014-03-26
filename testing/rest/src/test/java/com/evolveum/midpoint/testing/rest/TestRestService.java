@@ -60,15 +60,10 @@ public class TestRestService {
 	public static final String ACCOUT_CHUCK_OID = REPO_DIR_NAME + "a0c010c0-d34d-b33f-f00d-111111111666";
 	
 	public static final String SYSTEM_CONFIGURATION_FILENAME = REPO_DIR_NAME + "system-configuration.xml";
-//	public static final String SYSTEM_CONFIGURATION_OID = REPO_DIR_NAME + "c0c010c0-d34d-b33f-f00d-777111111111";
 	
 	private static final Trace LOGGER = TraceManager.getTrace(TestRestService.class);
-//	private final static String ENDPOINT_ADDRESS = "local://rest";
-//	private static Server server;
-	
 	
 	private final static String ENDPOINT_ADDRESS = "http://localhost:8080/rest";
-//	private final static String WADL_ADDRESS = ENDPOINT_ADDRESS + "?_wadl";
 	private static Server server;
 	
 	private static RepositoryService repositoryService;
@@ -77,31 +72,28 @@ public class TestRestService {
 	@BeforeClass
 	public static void initialize() throws Exception {
 	     startServer();
-//	     waitForWADL();
 	}
 	 
 	private static void startServer() throws Exception {
 	     ApplicationContext applicationContext = new ClassPathXmlApplicationContext("ctx-rest-test-main.xml");
-	        LOGGER.info("Spring context initialized.");
+	     LOGGER.info("Spring context initialized.");
 
-	        JAXRSServerFactoryBean sf = (JAXRSServerFactoryBean) applicationContext.getBean("restService");
+	     JAXRSServerFactoryBean sf = (JAXRSServerFactoryBean) applicationContext.getBean("restService");
 	        
 	     sf.setAddress(ENDPOINT_ADDRESS);
 	 
 	     server = sf.create();
 	     
 	     repositoryService = (SqlRepositoryServiceImpl) applicationContext.getBean("repositoryService");
-	     
-	     provisioning = (ProvisioningServiceImpl) applicationContext.getBean("provisioningService");
+         provisioning = (ProvisioningServiceImpl) applicationContext.getBean("provisioningService");
+        
+         PrismContext prismContext = (PrismContext) applicationContext.getBean("prismContext");
+         PrismObject<UserType> admin = prismContext.getPrismDomProcessor().parseObject(new File(USER_ADMINISTRATOR_FILENAME));
+         OperationResult parentResult = new OperationResult("add");
+         repositoryService.addObject(admin, RepoAddOptions.createAllowUnencryptedValues(), parentResult);
      
-     
-     PrismContext prismContext = (PrismContext) applicationContext.getBean("prismContext");
-     PrismObject<UserType> admin = prismContext.getPrismDomProcessor().parseObject(new File(USER_ADMINISTRATOR_FILENAME));
-     OperationResult parentResult = new OperationResult("add");
-     repositoryService.addObject(admin, RepoAddOptions.createAllowUnencryptedValues(), parentResult);
-     
-     PrismObject<UserType> sysConfig = prismContext.getPrismDomProcessor().parseObject(new File(SYSTEM_CONFIGURATION_FILENAME));
-     repositoryService.addObject(sysConfig, RepoAddOptions.createAllowUnencryptedValues(), parentResult);
+         PrismObject<UserType> sysConfig = prismContext.getPrismDomProcessor().parseObject(new File(SYSTEM_CONFIGURATION_FILENAME));
+         repositoryService.addObject(sysConfig, RepoAddOptions.createAllowUnencryptedValues(), parentResult);
 	}
 	 
 	 
@@ -112,9 +104,11 @@ public class TestRestService {
 	   server.destroy();
 	}
 
+
 	public TestRestService() {
 		super();
 	}
+
 	
 	@Test
 	public void test001getUserAdministrator(){
@@ -131,6 +125,14 @@ public class TestRestService {
 		  assertNotNull("Returned entity in body must not be null.", userType);
 		  LOGGER.info("Returned entity: {}", userType.asPrismObject().dump());
 	}
+	
+	@Test
+	public void test002getNonExistingUser(){
+		displayTestTile(this, "test002getNonExistingUser");
+		
+		WebClient client = prepareClient(true);
+		
+		client.path("/users/12345");
 	
 	@Test
 	public void test002getNonExistingUser(){
@@ -174,6 +176,7 @@ public class TestRestService {
 		  LOGGER.info("post starting");
 		  Response response = client.post(new File(SYSTEM_CONFIGURATION_FILENAME));
 		  LOGGER.info("post end");
+//		  Response response = client.get();
 		  LOGGER.info("response : {} ", response.getStatus());
 		  LOGGER.info("response : {} ", response.getStatusInfo().getReasonPhrase());
 		  
@@ -268,6 +271,6 @@ public class TestRestService {
 			client.header("Authorization", authorizationHeader);
 		}
 		return client;
-
+	
   }
 }

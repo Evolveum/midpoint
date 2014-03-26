@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.web.page.admin.resources.content;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -30,6 +29,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -37,7 +37,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
@@ -56,9 +56,9 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UserListItemDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.session.ResourceContentStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -70,12 +70,12 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import javax.xml.namespace.QName;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -100,21 +100,19 @@ public class PageContentAccounts extends PageAdminResources {
     private static final String MODAL_ID_CONFIRM_DELETE = "confirmDeletePopup";
 
     private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_BASIC_SEARCH = "basicSearch";
     private static final String ID_SEARCH_FORM = "searchForm";
-    private static final String ID_SEARCH_TEXT = "searchText";
     private static final String ID_NAME_CHECK = "nameCheck";
     private static final String ID_IDENTIFIERS_CHECK = "identifiersCheck";
-    private static final String ID_SEARCH_BUTTON = "searchButton";
     private static final String ID_TABLE = "table";
-    private static final String ID_SEARCH_CLEAR = "searchClear";
 
     private IModel<PrismObject<ResourceType>> resourceModel;
-    private IModel<AccountContentSearchDto> model;
+    private IModel<AccountContentSearchDto> searchModel;
     private LoadableModel<AccountOwnerChangeDto> ownerChangeModel;
     private AccountContentDto singleDelete;
 
     public PageContentAccounts() {
-        model = new LoadableModel<AccountContentSearchDto>() {
+        searchModel = new LoadableModel<AccountContentSearchDto>() {
 
             @Override
             protected AccountContentSearchDto load() {
@@ -192,55 +190,47 @@ public class PageContentAccounts extends PageAdminResources {
         Form searchForm = new Form(ID_SEARCH_FORM);
         add(searchForm);
 
-        CheckBox nameCheck = new CheckBox(ID_NAME_CHECK, new PropertyModel(model, AccountContentSearchDto.F_NAME));
+        CheckBox nameCheck = new CheckBox(ID_NAME_CHECK, new PropertyModel(searchModel, AccountContentSearchDto.F_NAME));
         searchForm.add(nameCheck);
 
         CheckBox identifiersCheck = new CheckBox(ID_IDENTIFIERS_CHECK,
-                new PropertyModel(model, AccountContentSearchDto.F_IDENTIFIERS));
+                new PropertyModel(searchModel, AccountContentSearchDto.F_IDENTIFIERS));
         searchForm.add(identifiersCheck);
 
-        final AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
-                createStringResource("pageContentAccounts.search")) {
+        BasicSearchPanel<AccountContentSearchDto> basicSearch = new BasicSearchPanel<AccountContentSearchDto>(ID_BASIC_SEARCH) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                searchPerformed(target);
+            protected IModel<String> createSearchTextModel() {
+                return new PropertyModel<>(searchModel, AccountContentSearchDto.F_SEARCH_TEXT);
+            }
+
+            @Override
+            protected void searchPerformed(AjaxRequestTarget target) {
+                PageContentAccounts.this.searchPerformed(target);
+            }
+
+            @Override
+            protected void clearSearchPerformed(AjaxRequestTarget target) {
+                PageContentAccounts.this.clearSearchPerformed(target);
             }
         };
-        searchForm.add(searchButton);
-
-        final TextField searchText = new TextField(ID_SEARCH_TEXT,
-                new PropertyModel(model, AccountContentSearchDto.F_SEARCH_TEXT));
-        searchText.add(new SearchFormEnterBehavior(searchButton));
-        searchForm.add(searchText);
-
-
-        AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form){
-                clearSearchPerformed(target);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
-            }
-        };
-        searchForm.add(clearButton);
+        searchForm.add(basicSearch);
 
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        List<IColumn> columns = initColumns();
-        TablePanel table = new TablePanel(ID_TABLE, new AccountContentDataProvider(this,
+        AccountContentDataProvider provider = new AccountContentDataProvider(this,
                 new PropertyModel<String>(resourceModel, "oid"), createObjectClassModel()) {
 
             @Override
             protected void addInlineMenuToDto(AccountContentDto dto) {
                 addRowMenuToTable(dto);
             }
-        }, columns);
+        };
+        provider.setQuery(createQuery());
+
+        List<IColumn> columns = initColumns();
+        TablePanel table = new TablePanel(ID_TABLE, provider, columns);
         table.setOutputMarkupId(true);
         mainForm.add(table);
 
@@ -522,7 +512,7 @@ public class PageContentAccounts extends PageAdminResources {
     }
 
     private ObjectQuery createQuery() {
-        AccountContentSearchDto dto = model.getObject();
+        AccountContentSearchDto dto = searchModel.getObject();
         if (StringUtils.isEmpty(dto.getSearchText())) {
             return null;
         }
@@ -705,7 +695,7 @@ public class PageContentAccounts extends PageAdminResources {
     }
 
     private void clearSearchPerformed(AjaxRequestTarget target){
-        model.setObject(new AccountContentSearchDto());
+        searchModel.setObject(new AccountContentSearchDto());
 
         TablePanel panel = getTable();
         DataTable table = panel.getDataTable();
@@ -713,7 +703,7 @@ public class PageContentAccounts extends PageAdminResources {
         provider.setQuery(null);
 
         ResourceContentStorage storage = getSessionStorage().getResourceContent();
-        storage.setAccountContentSearch(model.getObject());
+        storage.setAccountContentSearch(searchModel.getObject());
         panel.setCurrentPage(storage.getAccountContentPaging());
 
         target.add(get(ID_SEARCH_FORM));

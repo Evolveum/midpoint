@@ -242,7 +242,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:FilterClauseType">
                 <xsd:sequence>
-                    <xsd:element name="property" type="t:XPathType">
+                    <xsd:element name="path" type="t:XPathType">
                         <xsd:annotation>
                             <xsd:documentation>
                                 XPath to the property being queried.

@@ -71,10 +71,10 @@
                 <name>PageAdmin.menu.top.resources.new</name>
                 <page>com.evolveum.midpoint.web.page.admin.resources.PageResourceEdit</page>
             </item>
-            <item>
-                <name>PageAdmin.menu.top.resources.wizard</name>
-                <page>com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard</page>
-            </item>
+            <!--<item>-->
+                <!--<name>PageAdmin.menu.top.resources.wizard</name>-->
+                <!--<page>com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard</page>-->
+            <!--</item>-->
         </root>
         <root>
             <name>PageAdmin.menu.top.workItems</name>

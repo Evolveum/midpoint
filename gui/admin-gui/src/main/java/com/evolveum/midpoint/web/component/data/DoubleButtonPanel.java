@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -48,6 +49,12 @@ public class DoubleButtonPanel<T> extends SimplePanel<T>{
             public void onClick(AjaxRequestTarget target) {
                 firstPerformed(target, DoubleButtonPanel.this.getModel());
             }
+
+            @Override
+            public boolean isEnabled(){
+                return isFirstEnabled(DoubleButtonPanel.this.getModel());
+            }
+
         };
         firstButton.add(new AttributeAppender("class", getFirstCssClass()));
 
@@ -55,6 +62,11 @@ public class DoubleButtonPanel<T> extends SimplePanel<T>{
             @Override
             public void onClick(AjaxRequestTarget target) {
                 secondPerformed(target, DoubleButtonPanel.this.getModel());
+            }
+
+            @Override
+            public boolean isEnabled(){
+                return isSecondEnabled(DoubleButtonPanel.this.getModel());
             }
         };
         secondButton.add(new AttributeAppender("class", getSecondCssClass()));
@@ -111,4 +123,20 @@ public class DoubleButtonPanel<T> extends SimplePanel<T>{
 
     public void firstPerformed(AjaxRequestTarget target, IModel<T> model){}
     public void secondPerformed(AjaxRequestTarget target, IModel<T> model){}
+
+    public boolean isFirstEnabled(IModel<T> model){
+        return true;
+    }
+
+    public boolean isSecondEnabled(IModel<T> model){
+        return true;
+    }
+
+    public AjaxButton getFirstButton(){
+        return (AjaxButton) get(ID_BUTTON_FIRST);
+    }
+
+    public AjaxButton getSecondButton(){
+        return (AjaxButton) get(ID_BUTTON_SECOND);
+    }
 }

@@ -1078,7 +1078,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
-        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(USER_CAPSIZE_FILENAME));
+        PrismObject<UserType> user = PrismTestUtil.parseObject(USER_CAPSIZE_FILE);
         ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
                 

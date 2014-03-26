@@ -17,27 +17,47 @@
 package com.evolveum.midpoint.init;
 
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ReportTypeUtil;
+import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
 
 /**
  * @author lazyman
@@ -50,9 +70,7 @@ public class InitialDataImport {
     private static final String OPERATION_INITIAL_OBJECTS_IMPORT = DOT_CLASS + "initialObjectsImport";
     private static final String OPERATION_IMPORT_OBJECT = DOT_CLASS + "importObject";
 
-    private static final String OBJECTS_FILE = "objects.xml";
-
-    @Autowired(required = true)
+    @Autowired
     private transient PrismContext prismContext;
     private ModelService model;
     private TaskManager taskManager;
@@ -67,7 +85,7 @@ public class InitialDataImport {
         this.taskManager = taskManager;
     }
 
-    public void init() {
+    public void init() throws SchemaException {
         LOGGER.info("Starting initial object import.");
 
         OperationResult mainResult = new OperationResult(OPERATION_INITIAL_OBJECTS_IMPORT);
@@ -76,51 +94,101 @@ public class InitialDataImport {
 
         int count = 0;
         int errors = 0;
-        try {
-            List<PrismObject<? extends Objectable>> objects = prismContext.parseObjects(getResource(OBJECTS_FILE));
-            for (PrismObject object : objects) {
-                OperationResult result = mainResult.createSubresult(OPERATION_IMPORT_OBJECT);
 
-                boolean importObject = true;
-                try {
-                    model.getObject(object.getCompileTimeClass(), object.getOid(), null, task, result);
-                    importObject = false;
-                    result.recordSuccess();
-                } catch (ObjectNotFoundException ex) {
-                    importObject = true;
-                } catch (Exception ex) {
-                    LoggingUtils.logException(LOGGER, "Couldn't get object with oid {} from model", ex,
-                            object.getOid());
-                    result.recordWarning("Couldn't get object with oid '" + object.getOid() + "' from model",
-                            ex);
+        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+        File[] files = getInitialImportObjects();
+        LOGGER.info("Importing files {}.", Arrays.toString(files));
+        
+        // We need to provide a fake Spring security context here.
+        // We have to fake it because we do not have anything in the repository yet. And to get
+        // something to the repository we need a context. Chicken and egg. So we fake the egg.
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        UserType userAdministrator = new UserType();
+        prismContext.adopt(userAdministrator);
+        userAdministrator.setName(new PolyStringType(new PolyString("initAdmin", "initAdmin")));
+		MidPointPrincipal principal = new MidPointPrincipal(userAdministrator);
+		AuthorizationType superAutzType = new AuthorizationType();
+		prismContext.adopt(superAutzType, RoleType.class, new ItemPath(RoleType.F_AUTHORIZATION));
+		superAutzType.getAction().add(AuthorizationConstants.AUTZ_ALL_URL);
+		Authorization superAutz = new Authorization(superAutzType);
+		Collection<Authorization> authorities = principal.getAuthorities();
+		authorities.add(superAutz);
+        Authentication authentication = new PreAuthenticatedAuthenticationToken(principal, null);
+        securityContext.setAuthentication(authentication);
+
+        for (File file : files) {
+            try {
+                LOGGER.info("Initial import of file {}.", file.getName());
+                PrismObject object = domProcessor.parseObject(file);
+                if (ReportType.class.equals(object.getCompileTimeClass())) {
+                    ReportTypeUtil.applyDefinition(object, prismContext);
                 }
 
-                if (!importObject) {
+                Boolean importObject = importObject(object, file, task, mainResult);
+                if (importObject == null) {
                     continue;
                 }
-
-                ObjectDelta delta = ObjectDelta.createAddDelta(object);
-                try {
-                	model.executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
-                	result.recordSuccess();
-                	LOGGER.info("Created {} as part of initial import", object);
-                	count++;
-                } catch (Exception e) {
-                	LoggingUtils.logException(LOGGER, "Couldn't import {} from file {}: ", e, object, OBJECTS_FILE, e.getMessage());
-                	result.recordFatalError(e);
-                	errors++;
+                if (importObject) {
+                    count++;
+                } else {
+                    errors++;
                 }
+            } catch (Exception ex) {
+                LoggingUtils.logException(LOGGER, "Couldn't import file {}", ex, file.getName());
+                mainResult.recordFatalError("Couldn't import file '" + file.getName() + "'", ex);
             }
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't import file {}", ex, OBJECTS_FILE);
-            mainResult.recordFatalError("Couldn't import file '" + OBJECTS_FILE + "'", ex);
         }
 
-        mainResult.recomputeStatus("Couldn't import objects.");
+        securityContext.setAuthentication(null);
         
+        mainResult.recomputeStatus("Couldn't import objects.");
+
         LOGGER.info("Initial object import finished ({} objects imported, {} errors)", count, errors);
         if (LOGGER.isTraceEnabled()) {
-        	LOGGER.trace("Initialization status:\n" + mainResult.debugDump());
+            LOGGER.trace("Initialization status:\n" + mainResult.debugDump());
+        }
+    }
+
+    /**
+     * @param object
+     * @param task
+     * @param mainResult
+     * @return null if nothing was imported, true if it was success, otherwise false
+     */
+    private Boolean importObject(PrismObject object, File file, Task task, OperationResult mainResult) {
+        OperationResult result = mainResult.createSubresult(OPERATION_IMPORT_OBJECT);
+
+        boolean importObject = true;
+        try {
+            model.getObject(object.getCompileTimeClass(), object.getOid(), null, task, result);
+            importObject = false;
+            result.recordSuccess();
+        } catch (ObjectNotFoundException ex) {
+            importObject = true;
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't get object with oid {} from model", ex,
+                    object.getOid());
+            result.recordWarning("Couldn't get object with oid '" + object.getOid() + "' from model",
+                    ex);
+        }
+
+        if (!importObject) {
+            return null;
+        }
+
+        ObjectDelta delta = ObjectDelta.createAddDelta(object);
+        try {
+            model.executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+            result.recordSuccess();
+            LOGGER.info("Created {} as part of initial import", object);
+            return true;
+        } catch (Exception e) {
+            LoggingUtils.logException(LOGGER, "Couldn't import {} from file {}: ", e, object,
+                    file.getName(), e.getMessage());
+            result.recordFatalError(e);
+
+            LOGGER.info("\n" + result.debugDump());
+            return false;
         }
     }
 
@@ -132,5 +200,41 @@ public class InitialDataImport {
             throw new IllegalArgumentException("parameter name = " + name, e);
         }
         return new File(path);
+    }
+
+    private File[] getInitialImportObjects() {
+        File folder = getResource("initial-objects");
+        File[] files = folder.listFiles(new FileFilter() {
+
+            @Override
+            public boolean accept(File pathname) {
+                if (pathname.isDirectory()) {
+                    return false;
+                }
+
+                return true;
+            }
+        });
+        Arrays.sort(files, new Comparator<File>() {
+
+            @Override
+            public int compare(File o1, File o2) {
+                int n1 = getNumberFromName(o1);
+                int n2 = getNumberFromName(o2);
+
+                return n1 - n2;
+            }
+        });
+
+        return files;
+    }
+
+    private int getNumberFromName(File file) {
+        String name = file.getName();
+        String number = StringUtils.left(name, 3);
+        if (number.matches("[\\d]+")) {
+            return Integer.parseInt(number);
+        }
+        return 0;
     }
 }

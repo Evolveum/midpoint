@@ -19,12 +19,17 @@ import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.UnsupportedCallbackException;
 
+
 import java.io.IOException;
 
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.security.api.UserDetailsService;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.common.crypto.EncryptionException;
+import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -36,10 +41,10 @@ import org.apache.ws.security.WSPasswordCallback;
  */
 public class PasswordCallback implements CallbackHandler {
 
-    private UserDetailsService userDetailsService;
+    private UserProfileService userDetailsService;
     private Protector protector;
 
-    public PasswordCallback(UserDetailsService userDetailsService, Protector protector) {
+    public PasswordCallback(UserProfileService userDetailsService, Protector protector) {
         this.userDetailsService = userDetailsService;
         this.protector = protector;
     }
@@ -47,7 +52,7 @@ public class PasswordCallback implements CallbackHandler {
     public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
         WSPasswordCallback pc = (WSPasswordCallback) callbacks[0];
 
-        MidPointPrincipal user = userDetailsService.getUser(pc.getIdentifier());
+        MidPointPrincipal user = userDetailsService.getPrincipal(pc.getIdentifier());
         UserType userType = user.getUser();
         CredentialsType credentials = userType.getCredentials();
         if (user != null && credentials != null && credentials.getPassword() != null 

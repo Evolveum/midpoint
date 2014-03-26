@@ -132,6 +132,12 @@
         targetRef_relationNamespace varchar(255),
         targetRef_targetOid varchar(36),
         targetRef_type int4,
+        tenantRef_description text,
+        tenantRef_filter text,
+        tenantRef_relationLocalPart varchar(100),
+        tenantRef_relationNamespace varchar(255),
+        tenantRef_targetOid varchar(36),
+        tenantRef_type int4,
         id int8 not null,
         oid varchar(36) not null,
         extId int8,
@@ -188,6 +194,7 @@
     create table m_authorization (
         decision int4,
         description text,
+        objectSpecification text,
         owner_id int8 not null,
         owner_oid varchar(36) not null,
         id int8 not null,
@@ -329,6 +336,14 @@
 
     create table m_object (
         description text,
+        name_norm varchar(255),
+        name_orig varchar(255),
+        tenantRef_description text,
+        tenantRef_filter text,
+        tenantRef_relationLocalPart varchar(100),
+        tenantRef_relationNamespace varchar(255),
+        tenantRef_targetOid varchar(36),
+        tenantRef_type int4,
         version int8 not null,
         id int8 not null,
         oid varchar(36) not null,
@@ -376,6 +391,7 @@
         locality_orig varchar(255),
         name_norm varchar(255),
         name_orig varchar(255),
+        tenant boolean,
         id int8 not null,
         oid varchar(36) not null,
         primary key (id, oid),
@@ -438,7 +454,7 @@
         primary key (id, oid),
         unique (name_norm)
     );
-	
+
     create table m_report_output (
         name_norm varchar(255),
         name_orig varchar(255),
@@ -487,6 +503,17 @@
         name_norm varchar(255),
         name_orig varchar(255),
         roleType varchar(255),
+        id int8 not null,
+        oid varchar(36) not null,
+        primary key (id, oid),
+        unique (name_norm)
+    );
+
+    create table m_security_policy (
+        authentication text,
+        credentials text,
+        name_norm varchar(255),
+        name_orig varchar(255),
         id int8 not null,
         oid varchar(36) not null,
         primary key (id, oid),
@@ -838,6 +865,10 @@
         foreign key (id, oid) 
         references m_object;
 
+    create index iObjectNameOrig on m_object (name_orig);
+
+    create index iObjectNameNorm on m_object (name_norm);
+
     alter table m_object 
         add constraint fk_object 
         foreign key (id, oid) 
@@ -915,6 +946,13 @@
         add constraint fk_role 
         foreign key (id, oid) 
         references m_abstract_role;
+
+    create index iSecurityPolicyName on m_security_policy (name_orig);
+
+    alter table m_security_policy 
+        add constraint fk_security_policy 
+        foreign key (id, oid) 
+        references m_object;
 
     create index iShadowNameOrig on m_shadow (name_orig);
 

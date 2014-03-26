@@ -25,11 +25,14 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -38,10 +41,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.*;
 
 import java.util.List;
 
@@ -52,6 +52,7 @@ public class PrismPropertyPanel extends Panel {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismPropertyPanel.class);
     private static final String ID_HAS_PENDING_MODIFICATION = "hasPendingModification";
+    private static final String ID_HELP = "help";
 
     public PrismPropertyPanel(String id, final IModel<PropertyWrapper> model, Form form) {
         super(id);
@@ -77,6 +78,25 @@ public class PrismPropertyPanel extends Panel {
     private void initLayout(final IModel<PropertyWrapper> model, final Form form) {
         final IModel<String> label = createDisplayName(model);
         add(new Label("label", label));
+
+        final IModel<String> helpText = new LoadableModel<String>(false) {
+
+            @Override
+            protected String load() {
+                return loadHelpText(model);
+            }
+        };
+        Label help = new Label(ID_HELP);
+        help.add(AttributeModifier.replace("title", helpText));
+        help.add(new TooltipBehavior());
+        help.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return StringUtils.isNotEmpty(helpText.getObject());
+            }
+        });
+        add(help);
 
         WebMarkupContainer required = new WebMarkupContainer("required");
         required.add(new VisibleEnableBehaviour() {
@@ -134,7 +154,19 @@ public class PrismPropertyPanel extends Panel {
                 });
             }
         };
+        values.setReuseItems(true);
         add(values);
+    }
+
+    private String loadHelpText(IModel<PropertyWrapper> model) {
+        PrismProperty property = model.getObject().getItem();
+        PrismPropertyDefinition def = property.getDefinition();
+        String doc = def.getHelp();
+        if (StringUtils.isEmpty(doc)) {
+            return null;
+        }
+
+        return new StringResourceModel(doc, null, doc).getString();
     }
 
     private IModel<String> createStyleClassModel(final IModel<ValueWrapper> value) {

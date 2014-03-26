@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.wf.processors;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -24,10 +26,11 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.wf.WorkflowManagerImpl;
+import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.wf.jobs.Job;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
+import com.evolveum.midpoint.wf.messages.TaskEvent;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.WorkItemContents;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 
@@ -35,16 +38,24 @@ import javax.xml.bind.JAXBException;
 import java.util.Map;
 
 /**
- * Manages workflow-related aspects of a change, passed from the model subsystem.
+ * A change processor can be viewed as a kind of framework supporting customer-specific
+ * workflow code. Individual change processors are specialized in their areas, allowing
+ * customer code to focus on business logic with minimal effort.
  *
- * (1) recognizes the instance (instances) of given kind of change within model context
- * (2) processes the result of the workflow(s) started
+ * The name "change processor" is derived from the fact that primary purpose of this
+ * framework is to process change requests coming from the model.
+ *
+ * TODO find a better name
+ *
+ * However, a change processor has many more duties, e.g.
+ *
+ * (1) recognizes the instance (instances) of given kind of change within model operation context,
+ * (2) processes the result of the workflow process instances when they are finished,
+ * (3) presents (externalizes) the content of process instances to outside world: to the GUI, auditing, and notifications.
  *
  * Currently, there are the following change processors implemented or planned:
- * - PrimaryUserChangeProcessor: manages approvals of changes of user objects (in model's primary stage)
- * - ResourceModificationProcessor: manages approvals of changes related to individual resources (in model's secondary stage) - planned
- *
- * TODO find a better name (ChangeHandler, ChangeCategory, ...)
+ * - PrimaryChangeProcessor: manages approvals of changes of objects (in model's primary stage)
+ * - GeneralChangeProcessor: manages any change, as configured by the system engineer/administrator
  *
  * @author mederly
  */
@@ -54,14 +65,17 @@ public interface ChangeProcessor {
      * Processes workflow-related aspect of a model operation. Namely, tries to find whether user interaction is necessary,
      * and arranges everything to carry out that interaction.
      *
-     * @param context
-     * @param taskFromModel
-     * @param result
+     * @param context Model context of the operation.
+     * @param taskFromModel Task in context of which the operation is carried out.
+     * @param result Where to put information on operation execution.
      * @return non-null value if it processed the request;
-     *              BACKGROUND = the process continues in background,
-     *              FOREGROUND = nothing was left background, the model operation should continue in foreground,
+     *              BACKGROUND = the process was "caught" by the processor, and continues in background,
+     *              FOREGROUND = nothing was left on background, the model operation should continue in foreground,
      *              ERROR = something wrong has happened, there's no point in continuing with this operation.
      *         null if the request is not relevant to this processor
+     *
+     * Actually, the FOREGROUND return value is quite unusual, because the change processor cannot
+     * know in advance whether other processors would not want to process the invocation from the model.
      */
     HookOperationMode processModelInvocation(ModelContext context, Task taskFromModel, OperationResult result) throws SchemaException;
 
@@ -92,12 +106,12 @@ public interface ChangeProcessor {
      * @param variables internal process state represented by a map
      * @return external representation in the form of PrismObject
      */
-    PrismObject<? extends ProcessInstanceState> externalizeInstanceState(Map<String, Object> variables) throws JAXBException, SchemaException;
+    PrismObject<? extends ProcessInstanceState> externalizeProcessInstanceState(Map<String, Object> variables) throws JAXBException, SchemaException;
 
     /**
      * Prepares a displayable work item contents. For example, in case of primary change processor,
      * it returns a GeneralChangeApprovalWorkItemContents containing original object state
-     * (objectOld), to-be object state (objectNew), delta, additional object, and a wrapper-specific
+     * (objectOld), to-be object state (objectNew), delta, additional object, and a situation-specific
      * question form.
      *
      * @param task activiti task corresponding to the work item for which the contents is to be prepared
@@ -108,10 +122,34 @@ public interface ChangeProcessor {
      * @throws ObjectNotFoundException
      * @throws SchemaException
      */
-    PrismObject<? extends WorkItemContents> prepareWorkItemContents(org.activiti.engine.task.Task task, Map<String, Object> processInstanceVariables, OperationResult result) throws JAXBException, ObjectNotFoundException, SchemaException;
+    PrismObject<? extends WorkItemContents> externalizeWorkItemContents(org.activiti.engine.task.Task task, Map<String, Object> processInstanceVariables, OperationResult result) throws JAXBException, ObjectNotFoundException, SchemaException;
 
-    // TODO explain or remove this
-    String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance);
+    /**
+     * Prepares a process instance-related audit record.
+     *
+     * @param variables
+     * @param job
+     * @param stage
+     * @param result
+     * @return
+     */
+    AuditEventRecord prepareProcessInstanceAuditRecord(Map<String, Object> variables, Job job, AuditEventStage stage, OperationResult result);
 
+    /**
+     * Prepares a work item-related audit record.
+     *
+     * @param taskEvent
+     * @param stage
+     * @param result
+     * @return
+     */
+    AuditEventRecord prepareWorkItemAuditRecord(TaskEvent taskEvent, AuditEventStage stage, OperationResult result) throws WorkflowException;
+
+    /**
+     * Auxiliary method to access autowired Spring beans from within non-spring java objects.
+     *
+     * @return
+     */
+    WorkflowManagerImpl getWorkflowManager();
 }
 

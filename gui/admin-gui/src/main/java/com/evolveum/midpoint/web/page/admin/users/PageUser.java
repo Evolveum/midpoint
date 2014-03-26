@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
@@ -28,6 +27,7 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -63,10 +63,12 @@ import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider
 import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -92,6 +94,7 @@ import org.apache.wicket.util.lang.Bytes;
 import org.apache.wicket.util.string.StringValue;
 
 import javax.xml.namespace.QName;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -242,7 +245,7 @@ public class PageUser extends PageAdminUsers {
 
     private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
-        mainForm.setMaxSize(Bytes.kilobytes(512));
+        mainForm.setMaxSize(MidPointApplication.USER_PHOTO_MAX_FILE_SIZE);
         mainForm.setMultiPart(true);
         add(mainForm);
 
@@ -491,20 +494,11 @@ public class PageUser extends PageAdminUsers {
         return items;
     }
 
-    private void initAccounts(WebMarkupContainer accounts) {
-        //todo implement check all functionality [lazyman]
-        AjaxCheckBox accountCheckAll = new AjaxCheckBox(ID_ACCOUNT_CHECK_ALL, new Model()) {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-            }
-        };
-        accounts.add(accountCheckAll);
-
+    private void initAccounts(final WebMarkupContainer accounts) {
         InlineMenu accountMenu = new InlineMenu(ID_ACCOUNT_MENU, new Model((Serializable) createAccountsMenu()));
         accounts.add(accountMenu);
 
-        ListView<UserAccountDto> accountList = new ListView<UserAccountDto>(ID_ACCOUNT_LIST, accountsModel) {
+        final ListView<UserAccountDto> accountList = new ListView<UserAccountDto>(ID_ACCOUNT_LIST, accountsModel) {
 
             @Override
             protected void populateItem(final ListItem<UserAccountDto> item) {
@@ -523,9 +517,24 @@ public class PageUser extends PageAdminUsers {
                         };
                     }
                 };
+                account.setOutputMarkupId(true);
                 item.add(account);
             }
         };
+
+        AjaxCheckBox accountCheckAll = new AjaxCheckBox(ID_ACCOUNT_CHECK_ALL, new Model()) {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                for(UserAccountDto dto: accountList.getModelObject()){
+                    ObjectWrapper accModel = dto.getObject();
+                    accModel.setSelected(getModelObject());
+                }
+
+                target.add(accounts);
+            }
+        };
+        accounts.add(accountCheckAll);
 
         accounts.add(accountList);
     }
@@ -661,20 +670,11 @@ public class PageUser extends PageAdminUsers {
         return target;
     }
 
-    private void initAssignments(WebMarkupContainer assignments) {
-        //todo implement check all functionality [lazyman]
-        AjaxCheckBox assignmentCheckAll = new AjaxCheckBox(ID_ASSIGNMENT_CHECK_ALL, new Model()) {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-            }
-        };
-        assignments.add(assignmentCheckAll);
-
+    private void initAssignments(final WebMarkupContainer assignments) {
         InlineMenu accountMenu = new InlineMenu(ID_ASSIGNMENT_MENU, new Model((Serializable) createAssignmentsMenu()));
         assignments.add(accountMenu);
 
-        ListView<AssignmentEditorDto> assignmentList = new ListView<AssignmentEditorDto>(ID_ASSIGNMENT_LIST,
+        final ListView<AssignmentEditorDto> assignmentList = new ListView<AssignmentEditorDto>(ID_ASSIGNMENT_LIST,
                 assignmentsModel) {
 
             @Override
@@ -684,7 +684,21 @@ public class PageUser extends PageAdminUsers {
                 item.add(assignmentEditor);
             }
         };
+        assignmentList.setOutputMarkupId(true);
         assignments.add(assignmentList);
+
+        AjaxCheckBox assignmentCheckAll = new AjaxCheckBox(ID_ASSIGNMENT_CHECK_ALL, new Model()) {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                for(AssignmentEditorDto item: assignmentList.getModelObject()){
+                    item.setSelected(this.getModelObject());
+                }
+
+                target.add(assignments);
+            }
+        };
+        assignments.add(assignmentCheckAll);
     }
 
     private void initTasks(WebMarkupContainer tasks) {
@@ -1145,7 +1159,7 @@ public class PageUser extends PageAdminUsers {
             }
         } catch (Exception ex) {
             result.recordFatalError(getString("pageUser.message.cantCreateUser"), ex);
-            LoggingUtils.logException(LOGGER, getString("pageUser.message.cantCreateUser"), ex);
+            LoggingUtils.logException(LOGGER, "Create user failed", ex);
             showResult(result);
             return;
         }
@@ -1168,7 +1182,7 @@ public class PageUser extends PageAdminUsers {
                     }
                 } catch (Exception ex) {
                     result.recordFatalError(getString("pageUser.message.cantCreateUser"), ex);
-                    LoggingUtils.logException(LOGGER, getString("pageUser.message.cantCreateUser"), ex);
+                    LoggingUtils.logException(LOGGER, "Create user failed", ex);
                 }
                 break;
 

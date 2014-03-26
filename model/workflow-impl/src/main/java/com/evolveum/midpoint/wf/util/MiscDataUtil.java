@@ -16,9 +16,6 @@
 
 package com.evolveum.midpoint.wf.util;
 
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
-import com.evolveum.midpoint.common.security.AuthorizationEvaluator;
-import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.prism.Containerable;
@@ -30,23 +27,28 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConfiguration;
-import com.evolveum.midpoint.wf.activiti.TestAuthenticationInfoHolder;
 import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.common.StringHolder;
+import com.evolveum.midpoint.wf.processors.primary.PcpProcessVariableNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
+
 import org.activiti.engine.form.FormProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContext;
@@ -54,6 +56,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBException;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,32 +78,12 @@ public class MiscDataUtil {
 
     @Autowired
     private TaskManager taskManager;
+    
+    @Autowired
+    private SecurityEnforcer securityEnforcer;
 
     @Autowired
     private WfConfiguration wfConfiguration;
-
-
-    // todo fixme: copied from web SecurityUtils, little bit tweaked
-    public static MidPointPrincipal getPrincipalUser() {
-
-        if (TestAuthenticationInfoHolder.getUserType() != null) {
-            return new MidPointPrincipal(TestAuthenticationInfoHolder.getUserType());
-        }
-
-        SecurityContext ctx = SecurityContextHolder.getContext();
-        if (ctx != null && ctx.getAuthentication() != null && ctx.getAuthentication().getPrincipal() != null) {
-            Object principal = ctx.getAuthentication().getPrincipal();
-            if (!(principal instanceof MidPointPrincipal)) {
-                LOGGER.warn("Principal user in security context holder is {} but not type of {}",
-                        new Object[]{principal, MidPointPrincipal.class.getName()});
-                return null;
-            }
-            return (MidPointPrincipal) principal;
-        } else {
-            LOGGER.warn("No spring security context or authentication or principal.");
-            return null;
-        }
-    }
 
     public PrismObject<UserType> getUserByOid(String oid, OperationResult result) {
         if (oid == null) {
@@ -280,15 +263,26 @@ public class MiscDataUtil {
     }
 
     public boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem) {
-        return isAuthorizedToSubmit(MiscDataUtil.getPrincipalUser(), workItem.getAssigneeRef().getOid());
+        return isAuthorizedToSubmit(workItem.getAssigneeRef().getOid());
     }
 
-    public boolean isAuthorizedToSubmit(MidPointPrincipal principal, String assigneeOid) {
+    public boolean isAuthorizedToSubmit(String assigneeOid) {
+        MidPointPrincipal principal;
+		try {
+			principal = securityEnforcer.getPrincipal();
+		} catch (SecurityViolationException e) {
+			return false;
+		}
         LOGGER.trace("isAuthorizedToSubmit: principal = {}, assignee = {}", principal, assigneeOid);
         if (principal.getOid() != null && principal.getOid().equals(assigneeOid)) {
             return true;
         }
-        return wfConfiguration.isAllowApproveOthersItems() && AuthorizationEvaluator.checkAuthorities(principal, AuthorizationConstants.AUTZ_UI_WORK_ITEMS_APPROVE_OTHERS_ITEMS_URL);
+        try {
+			return wfConfiguration.isAllowApproveOthersItems() 
+					&& securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_UI_WORK_ITEMS_APPROVE_OTHERS_ITEMS_URL, null, null, null);
+		} catch (SchemaException e) {
+			throw new SystemException(e.getMessage(), e);
+		}
     }
 
     // todo move to something activiti-related

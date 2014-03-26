@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
@@ -28,6 +27,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -38,7 +38,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -55,10 +55,10 @@ import com.evolveum.midpoint.web.page.admin.resources.dto.*;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
 import com.evolveum.midpoint.web.session.ResourcesStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -69,12 +69,10 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
@@ -97,9 +95,8 @@ public class PageResources extends PageAdminResources {
     private static final String OPERATION_DELETE_HOSTS = DOT_CLASS + "deleteHosts";
     private static final String OPERATION_CONNECTOR_DISCOVERY = DOT_CLASS + "connectorDiscovery";
 
+    private static final String ID_BASIC_SEARCH = "basichSearch";
     private static final String ID_SEARCH_FORM = "searchForm";
-    private static final String ID_SEARCH_BUTTON = "searchButton";
-    private static final String ID_SEARCH_TEXT = "searchText";
     private static final String ID_DELETE_RESOURCES_POPUP = "deleteResourcesPopup";
     private static final String ID_DELETE_HOSTS_POPUP = "deleteHostsPopup";
     private static final String ID_MAIN_FORM = "mainForm";
@@ -175,38 +172,25 @@ public class PageResources extends PageAdminResources {
     }
 
     private void initSearchForm(Form searchForm){
-        final AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
-                new StringResourceModel("pageResources.button.search", this, null)) {
+        BasicSearchPanel<ResourceSearchDto> basicSearch = new BasicSearchPanel<ResourceSearchDto>(ID_BASIC_SEARCH){
 
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form){
-                target.add(getFeedbackPanel());
+            protected IModel<String> createSearchTextModel(){
+                return new PropertyModel<>(searchModel, ResourceSearchDto.F_TEXT);
             }
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form){
-                searchPerformed(target);
-            }
-        };
-        searchForm.add(searchButton);
-
-        final TextField search = new TextField(ID_SEARCH_TEXT, new PropertyModel(searchModel, ResourceSearchDto.F_TEXT));
-        search.add(new SearchFormEnterBehavior(searchButton));
-        searchForm.add(search);
-
-        AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form){
-                clearSearchPerformed(target);
+            protected void searchPerformed(AjaxRequestTarget target){
+                PageResources.this.searchPerformed(target);
             }
 
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
+            protected void clearSearchPerformed(AjaxRequestTarget target){
+                PageResources.this.clearSearchPerformed(target);
             }
         };
-        searchForm.add(clearButton);
+        searchForm.add(basicSearch);
+
     }
 
     private BaseSortableDataProvider initResourceDataProvider() {
@@ -221,6 +205,7 @@ public class PageResources extends PageAdminResources {
         Collection<SelectorOptions<GetOperationOptions>> options =
                 SelectorOptions.createCollection(ResourceType.F_CONNECTOR, GetOperationOptions.createResolve());
         provider.setOptions(options);
+        provider.setQuery(createQuery());
 
         return provider;
     }

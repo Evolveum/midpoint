@@ -16,12 +16,48 @@
 
 package com.evolveum.midpoint.web.page;
 
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.upload.FileUploadField;
+import org.apache.wicket.util.lang.Bytes;
 
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/test", action = {AuthorizationConstants.AUTZ_UI_PERMIT_ALL})
+@PageDescriptor(url = "/admin/test", action = {AuthorizationConstants.AUTZ_DENY_ALL})
 public class PageTest extends PageBase {
+
+    public PageTest() {
+        initLayout();
+    }
+
+    private void initLayout() {
+        Form form = new Form("form");
+        form.setMaxSize(Bytes.kilobytes(192));
+//        form.setMultiPart(true);
+        add(form);
+
+        FileUploadField fileUpload = new FileUploadField("fileInput");
+        form.add(fileUpload);
+
+        AjaxSubmitButton save = new AjaxSubmitButton("save",
+                createStringResource("pageUser.button.save")) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                setResponsePage(PageUsers.class);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        form.add(save);
+    }
 }

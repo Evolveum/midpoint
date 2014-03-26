@@ -38,6 +38,10 @@ import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -85,6 +89,9 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultRunner;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -190,6 +197,12 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	private AuditService auditService;
 	
 	@Autowired(required = true)
+	private SecurityEnforcer securityEnforcer;
+	
+	@Autowired(required = true)
+	private UserProfileService userProfileService;
+	
+	@Autowired(required = true)
 	Projector projector;
 	
 	@Autowired(required = true)
@@ -222,7 +235,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
         result.addParam("class", clazz);
 
 		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-		
+				
 		try {	
 
 			ObjectReferenceType ref = new ObjectReferenceType();
@@ -230,7 +243,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			ref.setType(ObjectTypes.getObjectType(clazz).getTypeQName());
             Utils.clearRequestee(task);
             object = objectResolver.getObject(clazz, oid, options, task, result).asPrismObject();
-
+            
 			resolve(object, options, task, result);
 		} catch (SchemaException e) {
 			ModelUtils.recordFatalError(result, e);
@@ -255,10 +268,12 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		}
 		
 		result.cleanupResult();
-		validateObject(object, rootOptions, result);
+		
+		securityEnforcer.authorize(ModelService.AUTZ_READ_URL, object, null, null, result);
+		
+        validateObject(object, rootOptions, result);
 		return object;
 	}
-	
 
 	protected void resolve(PrismObject<?> object, Collection<SelectorOptions<GetOperationOptions>> options,
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException {
@@ -360,9 +375,12 @@ public class ModelController implements ModelService, ModelInteractionService, T
 						if (ModelExecuteOptions.isOverwrite(options)) {
 							repoOptions.setOverwrite(true);
 						}
+						securityEnforcer.authorize(AUTZ_ADD_URL, delta.getObjectToAdd(), null, null, result);
 						String oid = cacheRepositoryService.addObject(delta.getObjectToAdd(), repoOptions, result);
 						delta.setOid(oid);
 					} else if (delta.isDelete()) {
+						PrismObject<? extends ObjectType> existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result);
+						securityEnforcer.authorize(AUTZ_DELETE_URL, existingObject, null, null, result);
 						if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
                             Utils.clearRequestee(task);
 							provisioning.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
@@ -372,6 +390,8 @@ public class ModelController implements ModelService, ModelInteractionService, T
 									result);
 						}
 					} else if (delta.isModify()) {
+						PrismObject existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result);
+						securityEnforcer.authorize(AUTZ_MODIFY_URL, existingObject, delta, null, result);
 						cacheRepositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(), 
 								delta.getModifications(), result);
 					} else {
@@ -783,12 +803,12 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			try {
                 switch (searchProvider) {
                     case REPOSITORY: cacheRepositoryService.searchObjectsIterative(type, query, internalHandler, options, result); break;
-                    case PROVISIONING: provisioning.searchObjectsIterative(type, query, null, internalHandler, result); break;
+                    case PROVISIONING: provisioning.searchObjectsIterative(type, query, options, internalHandler, result); break;
                     case TASK_MANAGER: throw new UnsupportedOperationException("searchIterative in task manager is currently not supported");
                     case WORKFLOW: throw new UnsupportedOperationException("searchIterative in task manager is currently not supported");
                     default: throw new AssertionError("Unexpected search provider: " + searchProvider);
                 }
-				result.recordSuccess();
+				result.computeStatusIfUnknown();
 				result.cleanupResult();
 			} catch (CommunicationException e) {
 				processSearchException(e, rootOptions, searchProvider, result);
@@ -1264,6 +1284,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		OperationResult result = parentResult.createSubresult(POST_INIT);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ModelController.class);
 
+		securityEnforcer.setUserProfileService(userProfileService);
 		// TODO: initialize repository
 
 		PrismObject<SystemConfigurationType> systemConfiguration;

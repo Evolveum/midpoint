@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -53,6 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.GeneralChangeApprovalWorkItemContents;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -520,11 +521,9 @@ public class PageWorkItem extends PageAdminWorkItems {
         LOGGER.trace("processInstanceDtoModel = {}, loaded = {}", processInstanceDtoModel, processInstanceDtoModel.isLoaded());
         ProcessInstanceDto processInstanceDto = processInstanceDtoModel.getObject();
         WfProcessInstanceType processInstance = processInstanceDto.getProcessInstance();
-        String detailsPageClassName = getWorkflowManager().getProcessInstanceDetailsPanelName(processInstance);
-
         additionalInfoAccordion.getBodyContainer().add(createAccordionItem(ID_PROCESS_INSTANCE_ACCORDION_INFO,
                 "pageWorkItem.accordionLabel.processInstance",
-                new ProcessInstancePanel(ID_PROCESS_INSTANCE_PANEL, processInstanceDtoModel, detailsPageClassName), true));
+                new ProcessInstancePanel(ID_PROCESS_INSTANCE_PANEL, processInstanceDtoModel), true));
         initButtons(mainForm);
     }
 

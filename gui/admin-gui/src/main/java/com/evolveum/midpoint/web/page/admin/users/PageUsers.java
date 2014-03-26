@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -31,12 +30,13 @@ import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.DropDownMultiChoice;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -45,32 +45,24 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
-import com.evolveum.midpoint.web.page.admin.home.PageAdminHome;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserListItemDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AbstractAjaxBehavior;
-import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
-import org.apache.wicket.markup.ComponentTag;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.JavaScriptHeaderItem;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -106,10 +98,8 @@ public class PageUsers extends PageAdminUsers {
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABLE = "table";
     private static final String ID_SEARCH_FORM = "searchForm";
-    private static final String ID_SEARCH_TEXT = "searchText";
+    private static final String ID_BASIC_SEARCH = "basicSearch";
     private static final String ID_SEARCH_TYPE = "searchType";
-    private static final String ID_SEARCH_BUTTON = "searchButton";
-    private static final String ID_SEARCH_CLEAR = "searchClear";
 
     private UserListItemDto singleDelete;
     private LoadableModel<UsersDto> model;
@@ -194,7 +184,7 @@ public class PageUsers extends PageAdminUsers {
             }
         });
 
-        IColumn column = new LinkColumn<UserListItemDto>(createStringResource("pageUsers.name"),
+        IColumn column = new LinkColumn<UserListItemDto>(createStringResource("ObjectType.name"),
                 UserType.F_NAME.getLocalPart(), UserListItemDto.F_NAME) {
 
             @Override
@@ -204,19 +194,19 @@ public class PageUsers extends PageAdminUsers {
         };
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("pageUsers.givenName"),
+        column = new PropertyColumn(createStringResource("UserType.givenName"),
                 UserType.F_GIVEN_NAME.getLocalPart(), UserListItemDto.F_GIVEN_NAME);
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("pageUsers.familyName"),
+        column = new PropertyColumn(createStringResource("UserType.familyName"),
                 UserType.F_FAMILY_NAME.getLocalPart(), UserListItemDto.F_FAMILY_NAME);
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("pageUsers.fullName"),
+        column = new PropertyColumn(createStringResource("UserType.fullName"),
                 UserType.F_FULL_NAME.getLocalPart(), UserListItemDto.F_FULL_NAME);
         columns.add(column);
 
-        column = new PropertyColumn(createStringResource("pageUsers.email"), null, UserListItemDto.F_EMAIL);
+        column = new PropertyColumn(createStringResource("UserType.emailAddress"), null, UserListItemDto.F_EMAIL);
         columns.add(column);
 
         column = new PropertyColumn(createStringResource("pageUsers.accounts"), null, UserListItemDto.F_ACCOUNT_COUNT);
@@ -394,39 +384,24 @@ public class PageUsers extends PageAdminUsers {
                 }, options);
         searchForm.add(searchType);
 
-        final AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
-                createStringResource("pageUsers.button.searchButton")) {
+        BasicSearchPanel<UsersDto> basicSearch = new BasicSearchPanel<UsersDto>(ID_BASIC_SEARCH, model) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                searchPerformed(target);
+            protected IModel<String> createSearchTextModel() {
+                return new PropertyModel<String>(model, UsersDto.F_TEXT);
             }
 
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
-            }
-        };
-        searchForm.add(searchButton);
-
-        final TextField searchText = new TextField(ID_SEARCH_TEXT, new PropertyModel<String>(model,
-                UsersDto.F_TEXT));
-        searchText.add(new SearchFormEnterBehavior(searchButton));
-        searchForm.add(searchText);
-
-        AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form){
-                clearSearchPerformed(target);
+            protected void searchPerformed(AjaxRequestTarget target) {
+                PageUsers.this.searchPerformed(target);
             }
 
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
+            protected void clearSearchPerformed(AjaxRequestTarget target) {
+                PageUsers.this.clearSearchPerformed(target);
             }
         };
-        searchForm.add(clearButton);
+        searchForm.add(basicSearch);
     }
 
     private void userDetailsPerformed(AjaxRequestTarget target, String oid) {
@@ -636,10 +611,8 @@ public class PageUsers extends PageAdminUsers {
             try {
                 Task task = createSimpleTask(operation);
 
-                ItemPath path = new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
-                ActivationStatusType status = enabling ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED;
-                ObjectDelta objectDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, user.getOid(),
-                        path, getPrismContext(), status);
+                ObjectDelta objectDelta = WebModelUtils.createActivationAdminStatusDelta(UserType.class, user.getOid(),
+                        enabling, getPrismContext());
 
                 ExecuteChangeOptionsDto executeOptions = executeOptionsModel.getObject();
                 ModelExecuteOptions options = executeOptions.createOptions();

@@ -32,8 +32,11 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
@@ -97,6 +100,17 @@ public interface ModelService {
 	String POST_INIT = CLASS_NAME_WITH_DOT + "postInit";
 	String DISCOVER_CONNECTORS = CLASS_NAME_WITH_DOT + "discoverConnectors";
 
+	String AUTZ_NAMESPACE = AuthorizationConstants.NS_AUTHORIZATION_MODEL;
+	String AUTZ_READ_URL = QNameUtil.qNameToUri(new QName(AUTZ_NAMESPACE, "read"));
+	String AUTZ_ADD_URL = QNameUtil.qNameToUri(new QName(AUTZ_NAMESPACE, "add"));
+	String AUTZ_MODIFY_URL = QNameUtil.qNameToUri(new QName(AUTZ_NAMESPACE, "modify"));
+	String AUTZ_DELETE_URL = QNameUtil.qNameToUri(new QName(AUTZ_NAMESPACE, "delete"));
+	String AUTZ_RECOMPUTE_URL = QNameUtil.qNameToUri(new QName(AUTZ_NAMESPACE, "recompute"));
+	String AUTZ_TEST_URL = QNameUtil.qNameToUri(new QName(AUTZ_NAMESPACE, "test"));
+	String AUTZ_IMPORT_OBJECTS_URL = QNameUtil.qNameToUri(new QName(AUTZ_NAMESPACE, "importObjects"));
+	String AUTZ_IMPORT_FROM_RESOURCE_URL = QNameUtil.qNameToUri(new QName(AUTZ_NAMESPACE, "importFromResource"));
+	String AUTZ_DISCOVER_CONNECTORS_URL = QNameUtil.qNameToUri(new QName(AUTZ_NAMESPACE, "discoverConnectors"));
+	
 	/**
 	 * <p>
 	 * Returns object for provided OID. It retrieves the object from an appropriate source

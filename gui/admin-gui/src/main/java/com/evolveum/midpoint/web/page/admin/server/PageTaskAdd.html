@@ -37,7 +37,7 @@
                     </tr>
                     <tr>
                         <td><wicket:message key="pageTask.runUntilNodeDown"/></td>
-                        <td><input class="form-control input-sm" type="checkbox" wicket:id="runUntilNodeDown"/></td>
+                        <td><input class="input-sm" type="checkbox" wicket:id="runUntilNodeDown"/></td>
                     </tr>
                 </table>
 
@@ -45,7 +45,7 @@
                 <table class="table table-condensed table-striped">
                     <tr>
                         <td><wicket:message key="pageTask.createSuspended"/></td>
-                        <td><input class="form-control input-sm" type="checkbox" wicket:id="createSuspended"/></td>
+                        <td><input class="input-sm" type="checkbox" wicket:id="createSuspended"/></td>
                     </tr>
                     <tr>
                         <td><wicket:message key="pageTask.threadStop"/></td>
@@ -65,7 +65,7 @@
                     <tbody>
                     <tr>
                         <td><wicket:message key="pageTask.recurring"/></td>
-                        <td><input class="form-control input-sm" type="checkbox" wicket:id="recurring"/></td>
+                        <td><input class="input-sm" type="checkbox" wicket:id="recurring"/></td>
                     </tr>
                     </tbody>
                     <tbody wicket:id="container">
@@ -74,7 +74,7 @@
                             <wicket:message key="pageTask.bound"/>
                             <i wicket:id="boundHelp" wicket:message="title:pageTask.boundHelp"/>
                         </td>
-                        <td><input class="form-control input-sm" type="checkbox" wicket:id="bound"/></td>
+                        <td><input class="input-sm" type="checkbox" wicket:id="bound"/></td>
                     </tr>
                     <tr wicket:id="intervalContainer">
                         <td><wicket:message key="pageTask.scheduleInterval"/></td>
@@ -125,6 +125,7 @@
         <div class="main-button-bar">
             <span class="button-group">
                 <a class="btn btn-default" wicket:id="backButton" />
+
             </span>
             <a class="btn btn-primary" wicket:id="saveButton"/>
         </div>

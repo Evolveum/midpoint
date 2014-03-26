@@ -126,8 +126,12 @@ public class DebugUtil {
 			sb.append(getCollectionClosingSymbol(dumpables));
 		}
 	}
-	
-	public static String debugDump(DebugDumpable dd, int indent) {
+
+    public static Object debugDump(DebugDumpable dd) {
+        return debugDump(dd, 0);
+    }
+
+    public static String debugDump(DebugDumpable dd, int indent) {
 		if (dd == null) {
 			StringBuilder sb = new StringBuilder();
 			indentDebugDump(sb, indent + 1);
@@ -370,5 +374,4 @@ public class DebugUtil {
 		}
 		return input.substring(0, maxChars)+"...";
 	}
-
 }

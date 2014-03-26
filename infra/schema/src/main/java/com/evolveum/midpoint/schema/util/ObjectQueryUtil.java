@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schema.util;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.mutable.MutableBoolean;
 
@@ -47,17 +48,31 @@ public class ObjectQueryUtil {
     	PolyString polyName = new PolyString(name);
     	return createNameQuery(polyName, prismContext);
     }
-    
+
+    public static ObjectQuery createOrigNameQuery(String name, PrismContext prismContext) throws SchemaException {
+        PolyString polyName = new PolyString(name);
+        return createOrigNameQuery(polyName, prismContext);
+    }
+
     public static ObjectQuery createNameQuery(PolyStringType name, PrismContext prismContext) throws SchemaException {
     	return createNameQuery(name.toPolyString(), prismContext);
     }
 
-	public static ObjectQuery createNameQuery(PolyString name, PrismContext prismContext) throws SchemaException {
+    public static ObjectQuery createOrigNameQuery(PolyStringType name, PrismContext prismContext) throws SchemaException {
+        return createOrigNameQuery(name.toPolyString(), prismContext);
+    }
+
+    public static ObjectQuery createNameQuery(PolyString name, PrismContext prismContext) throws SchemaException {
         EqualsFilter filter = EqualsFilter.createEqual(ObjectType.F_NAME, ObjectType.class, prismContext, null, name);
         return ObjectQuery.createObjectQuery(filter);
 	}
-	
-	public static ObjectQuery createNameQuery(ObjectType object) throws SchemaException {
+
+    public static ObjectQuery createOrigNameQuery(PolyString name, PrismContext prismContext) throws SchemaException {
+        EqualsFilter filter = EqualsFilter.createEqual(ObjectType.F_NAME, ObjectType.class, prismContext, PolyStringOrigMatchingRule.NAME, name);
+        return ObjectQuery.createObjectQuery(filter);
+    }
+
+    public static ObjectQuery createNameQuery(ObjectType object) throws SchemaException {
 		return createNameQuery(object.getName(), object.asPrismObject().getPrismContext());
 	}
 	

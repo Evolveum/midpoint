@@ -320,18 +320,28 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         close(session);
     }
 
-    @Test(expectedExceptions = QueryException.class)
+    @Test
     public void queryObjectByName() throws Exception {
         Session session = open();
 
         try {
-            EqualsFilter filter = EqualsFilter.createEqual(ObjectType.F_NAME, ObjectType.class, prismContext, 
+            Criteria main = session.createCriteria(RObject.class, "o");
+            main.add(Restrictions.and(
+                    Restrictions.eq("name.orig", "cpt. Jack Sparrow"),
+                    Restrictions.eq("name.norm", "cpt jack sparrow")));
+            main.addOrder(Order.asc("name.orig"));
+            String expected = HibernateToSqlTranslator.toSql(main);
+
+            EqualsFilter filter = EqualsFilter.createEqual(ObjectType.F_NAME, ObjectType.class, prismContext,
                     null, new PolyString("cpt. Jack Sparrow", "cpt jack sparrow"));
 
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
             query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
 
             String real = getInterpretedQuery(session, ObjectType.class, query);
+
+            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+            AssertJUnit.assertEquals(expected, real);
         } finally {
             close(session);
         }

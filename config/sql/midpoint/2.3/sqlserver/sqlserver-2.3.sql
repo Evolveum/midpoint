@@ -132,6 +132,12 @@
         targetRef_relationNamespace nvarchar(255),
         targetRef_targetOid nvarchar(36),
         targetRef_type int,
+        tenantRef_description nvarchar(MAX),
+        tenantRef_filter nvarchar(MAX),
+        tenantRef_relationLocalPart nvarchar(100),
+        tenantRef_relationNamespace nvarchar(255),
+        tenantRef_targetOid nvarchar(36),
+        tenantRef_type int,
         id bigint not null,
         oid nvarchar(36) not null,
         extId bigint,
@@ -188,6 +194,7 @@
     create table m_authorization (
         decision int,
         description nvarchar(MAX),
+        objectSpecification nvarchar(MAX),
         owner_id bigint not null,
         owner_oid nvarchar(36) not null,
         id bigint not null,
@@ -329,6 +336,14 @@
 
     create table m_object (
         description nvarchar(MAX),
+        name_norm nvarchar(255),
+        name_orig nvarchar(255),
+        tenantRef_description nvarchar(MAX),
+        tenantRef_filter nvarchar(MAX),
+        tenantRef_relationLocalPart nvarchar(100),
+        tenantRef_relationNamespace nvarchar(255),
+        tenantRef_targetOid nvarchar(36),
+        tenantRef_type int,
         version bigint not null,
         id bigint not null,
         oid nvarchar(36) not null,
@@ -376,6 +391,7 @@
         locality_orig nvarchar(255),
         name_norm nvarchar(255),
         name_orig nvarchar(255),
+        tenant bit,
         id bigint not null,
         oid nvarchar(36) not null,
         primary key (id, oid),
@@ -424,11 +440,11 @@
         dataSource_providerClass nvarchar(255),
         dataSource_springBean bit,
         export int,
+        field nvarchar(MAX),
         name_norm nvarchar(255),
         name_orig nvarchar(255),
         orientation int,
         parent bit,
-        field nvarchar(MAX),
         subreport nvarchar(MAX),
         template nvarchar(MAX),
         templateStyle nvarchar(MAX),
@@ -487,6 +503,17 @@
         name_norm nvarchar(255),
         name_orig nvarchar(255),
         roleType nvarchar(255),
+        id bigint not null,
+        oid nvarchar(36) not null,
+        primary key (id, oid),
+        unique (name_norm)
+    );
+
+    create table m_security_policy (
+        authentication nvarchar(MAX),
+        credentials nvarchar(MAX),
+        name_norm nvarchar(255),
+        name_orig nvarchar(255),
         id bigint not null,
         oid nvarchar(36) not null,
         primary key (id, oid),
@@ -838,6 +865,10 @@
         foreign key (id, oid) 
         references m_object;
 
+    create index iObjectNameOrig on m_object (name_orig);
+
+    create index iObjectNameNorm on m_object (name_norm);
+
     alter table m_object 
         add constraint fk_object 
         foreign key (id, oid) 
@@ -915,6 +946,13 @@
         add constraint fk_role 
         foreign key (id, oid) 
         references m_abstract_role;
+
+    create index iSecurityPolicyName on m_security_policy (name_orig);
+
+    alter table m_security_policy 
+        add constraint fk_security_policy 
+        foreign key (id, oid) 
+        references m_object;
 
     create index iShadowNameOrig on m_shadow (name_orig);
 

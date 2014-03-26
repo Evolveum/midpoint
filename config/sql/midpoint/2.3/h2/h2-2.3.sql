@@ -132,6 +132,12 @@
         targetRef_relationNamespace varchar(255),
         targetRef_targetOid varchar(36),
         targetRef_type integer,
+        tenantRef_description clob,
+        tenantRef_filter clob,
+        tenantRef_relationLocalPart varchar(100),
+        tenantRef_relationNamespace varchar(255),
+        tenantRef_targetOid varchar(36),
+        tenantRef_type integer,
         id bigint not null,
         oid varchar(36) not null,
         extId bigint,
@@ -188,6 +194,7 @@
     create table m_authorization (
         decision integer,
         description clob,
+        objectSpecification clob,
         owner_id bigint not null,
         owner_oid varchar(36) not null,
         id bigint not null,
@@ -329,6 +336,14 @@
 
     create table m_object (
         description clob,
+        name_norm varchar(255),
+        name_orig varchar(255),
+        tenantRef_description clob,
+        tenantRef_filter clob,
+        tenantRef_relationLocalPart varchar(100),
+        tenantRef_relationNamespace varchar(255),
+        tenantRef_targetOid varchar(36),
+        tenantRef_type integer,
         version bigint not null,
         id bigint not null,
         oid varchar(36) not null,
@@ -376,6 +391,7 @@
         locality_orig varchar(255),
         name_norm varchar(255),
         name_orig varchar(255),
+        tenant boolean,
         id bigint not null,
         oid varchar(36) not null,
         primary key (id, oid),
@@ -418,7 +434,7 @@
         primary key (owner_id, owner_oid, relLocalPart, relNamespace, targetOid)
     );
 
-   create table m_report (
+    create table m_report (
         configuration clob,
         configurationSchema clob,
         dataSource_providerClass varchar(255),
@@ -487,6 +503,17 @@
         name_norm varchar(255),
         name_orig varchar(255),
         roleType varchar(255),
+        id bigint not null,
+        oid varchar(36) not null,
+        primary key (id, oid),
+        unique (name_norm)
+    );
+
+    create table m_security_policy (
+        authentication clob,
+        credentials clob,
+        name_norm varchar(255),
+        name_orig varchar(255),
         id bigint not null,
         oid varchar(36) not null,
         primary key (id, oid),
@@ -838,6 +865,10 @@
         foreign key (id, oid) 
         references m_object;
 
+    create index iObjectNameOrig on m_object (name_orig);
+
+    create index iObjectNameNorm on m_object (name_norm);
+
     alter table m_object 
         add constraint fk_object 
         foreign key (id, oid) 
@@ -915,6 +946,13 @@
         add constraint fk_role 
         foreign key (id, oid) 
         references m_abstract_role;
+
+    create index iSecurityPolicyName on m_security_policy (name_orig);
+
+    alter table m_security_policy 
+        add constraint fk_security_policy 
+        foreign key (id, oid) 
+        references m_object;
 
     create index iShadowNameOrig on m_shadow (name_orig);
 

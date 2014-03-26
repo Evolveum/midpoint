@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.TreeTablePanel;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -77,7 +78,7 @@ public class PageOrgTree extends PageAdminUsers {
                 LOGGER.debug("Loading org. roots for tabs for tabbed panel.");
                 List<PrismObject<OrgType>> roots = loadOrgRoots();
 
-                List<ITab> tabs = new ArrayList<ITab>();
+                List<ITab> tabs = new ArrayList<>();
                 for (PrismObject<OrgType> root : roots) {
                     final String oid = root.getOid();
                     tabs.add(new AbstractTab(createTabTitle(root)) {

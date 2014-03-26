@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -32,13 +31,13 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.RepositoryObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -54,17 +53,15 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.PageDebugDow
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugConfDialogDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugObjectItem;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugSearchDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.session.ConfigurationStorage;
-import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
-import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -79,7 +76,6 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -109,9 +105,7 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String ID_EXPORT = "export";
     private static final String ID_EXPORT_ALL = "exportAll";
     private static final String ID_SEARCH_FORM = "searchForm";
-    private static final String ID_SEARCH_TEXT = "searchText";
-    private static final String ID_SEARCH_BUTTON = "searchButton";
-    private static final String ID_SEARCH_CLEAR = "searchClear";
+    private static final String ID_BASIC_SEARCH = "basicSearch";
 
     private static final String PRINT_LABEL_USER = "User ";
     private static final String PRINT_LABEL_SHADOW = "Shadow ";
@@ -143,7 +137,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private void initLayout() {
         //confirm delete
-        add(new ConfirmationDialog(ID_CONFIRM_DELETE_POPUP,
+        ConfirmationDialog deleteConfirm = new ConfirmationDialog(ID_CONFIRM_DELETE_POPUP,
                 createStringResource("pageDebugList.dialog.title.confirmDelete"), createDeleteConfirmString()) {
 
             @Override
@@ -163,7 +157,13 @@ public class PageDebugList extends PageAdminConfiguration {
                         break;
                 }
             }
-        });
+
+            @Override
+            public boolean getLabelEscapeModelStrings(){
+                return false;
+            }
+        };
+        add(deleteConfirm);
 
         Form searchForm = new Form(ID_SEARCH_FORM);
         add(searchForm);
@@ -200,6 +200,7 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private void addOrReplaceTable(RepositoryObjectDataProvider provider) {
+        provider.setQuery(createQuery());
         Form mainForm = (Form) get(ID_MAIN_FORM);
 
         TablePanel table = new TablePanel(ID_TABLE, provider, initColumns(provider.getType()));
@@ -370,38 +371,24 @@ public class PageDebugList extends PageAdminConfiguration {
             }
         });
 
-        final AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
-                new StringResourceModel("pageDebugList.button.search", this, null)) {
+        BasicSearchPanel<DebugSearchDto> basicSearch = new BasicSearchPanel<DebugSearchDto>(ID_BASIC_SEARCH) {
 
             @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
+            protected IModel<String> createSearchTextModel() {
+                return new PropertyModel<>(searchModel, DebugSearchDto.F_TEXT);
             }
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+            protected void searchPerformed(AjaxRequestTarget target) {
                 listObjectsPerformed(target);
             }
-        };
-        searchForm.add(searchButton);
-
-        final TextField search = new TextField(ID_SEARCH_TEXT, new PropertyModel(searchModel, DebugSearchDto.F_TEXT));
-        search.add(new SearchFormEnterBehavior(searchButton));
-        searchForm.add(search);
-
-        AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form){
-                clearSearchPerformed(target);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
+            protected void clearSearchPerformed(AjaxRequestTarget target) {
+                PageDebugList.this.clearSearchPerformed(target);
             }
         };
-        searchForm.add(clearButton);
+        searchForm.add(basicSearch);
     }
 
     private IModel<List<ObjectTypes>> createChoiceModel(final IChoiceRenderer<ObjectTypes> renderer) {
@@ -435,28 +422,10 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private void listObjectsPerformed(AjaxRequestTarget target) {
         DebugSearchDto dto = searchModel.getObject();
-        String nameText = dto.getText();
         ObjectTypes selected = dto.getType();
 
         RepositoryObjectDataProvider provider = getTableDataProvider();
-        if (StringUtils.isNotEmpty(nameText)) {
-            try {
-                PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
-                String normalizedString = normalizer.normalize(nameText);
-
-                ObjectFilter substring = SubstringFilter.createSubstring(ObjectType.F_NAME, ObjectType.class, getPrismContext(),
-                        PolyStringNormMatchingRule.NAME, normalizedString);
-                ObjectQuery query = new ObjectQuery();
-                query.setFilter(substring);
-                provider.setQuery(query);
-            } catch (Exception ex) {
-                LoggingUtils.logException(LOGGER, "Couldn't create substring filter", ex);
-                error(getString("pageDebugList.message.queryException", ex.getMessage()));
-                target.add(getFeedbackPanel());
-            }
-        } else {
-            provider.setQuery(null);
-        }
+        provider.setQuery(createQuery());
 
         if (selected != null) {
             provider.setType(selected.getClassDefinition());
@@ -469,6 +438,25 @@ public class PageDebugList extends PageAdminConfiguration {
 
         TablePanel table = getListTable();
         target.add(table);
+    }
+
+    private ObjectQuery createQuery(){
+        DebugSearchDto dto = searchModel.getObject();
+        String nameText = dto.getText();
+        ObjectQuery query = new ObjectQuery();
+
+        if (StringUtils.isNotEmpty(nameText)) {
+                PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
+                String normalizedString = normalizer.normalize(nameText);
+
+                ObjectFilter substring = SubstringFilter.createSubstring(ObjectType.F_NAME, ObjectType.class, getPrismContext(),
+                        PolyStringNormMatchingRule.NAME, normalizedString);
+                query.setFilter(substring);
+
+            return  query;
+        }
+
+        return null;
     }
 
     private void objectEditPerformed(AjaxRequestTarget target, String oid, Class<? extends ObjectType> type) {

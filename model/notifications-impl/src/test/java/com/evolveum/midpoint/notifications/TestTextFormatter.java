@@ -40,6 +40,7 @@ import java.util.List;
         "classpath*:ctx-repository.xml",
         "classpath:ctx-configuration-test.xml",
         "classpath:ctx-common.xml",
+        "classpath:ctx-security.xml",
         "classpath:ctx-audit.xml",
         "classpath:ctx-model.xml",
         "classpath:ctx-notifications-test.xml",

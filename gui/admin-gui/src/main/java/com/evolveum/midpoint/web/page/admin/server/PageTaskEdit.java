@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -28,6 +27,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -66,6 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -819,14 +820,8 @@ public class PageTaskEdit extends PageAdminTasks {
 
     private void suspendPerformed(AjaxRequestTarget target) {
         String oid = model.getObject().getOid();
-        if (StringUtils.isEmpty(oid)) {
-            target.add(getFeedbackPanel());
-            return;
-        }
-
         OperationResult result = new OperationResult(OPERATION_SUSPEND_TASKS);
         try {
-
             boolean suspended = getTaskService().suspendTasks(Collections.singleton(oid),
                     PageTasks.WAIT_FOR_TASK_STOP, result);
 
@@ -841,41 +836,27 @@ public class PageTaskEdit extends PageAdminTasks {
         } catch (RuntimeException e) {
             result.recordFatalError("Couldn't suspend the task due to an unexpected exception", e);
         }
-        showResult(result);
 
         showResultInSession(result);
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-        setResponsePage(new PageTaskEdit(parameters, (PageBase) getPage()));
+        setResponsePage(PageTasks.class);
     }
 
     private void resumePerformed(AjaxRequestTarget target) {
         String oid = model.getObject().getOid();
-        List<String> oidCollection = Arrays.asList(oid);
-
-        if (StringUtils.isEmpty(oid)) {
-            target.add(getFeedbackPanel());
-            return;
-        }
-
         OperationResult result = new OperationResult(OPERATION_RESUME_TASK);
-
-        try{
-            getTaskService().resumeTasks(oidCollection, result);
+        try {
+            getTaskService().resumeTasks(Arrays.asList(oid), result);
             result.computeStatus();
 
-            if(result.isSuccess()){
+            if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, "The task has been successfully resumed.");
             }
-        } catch (RuntimeException e){
-            result.recordFatalError("Couldn't resume the task due to an unexpected exception");
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't resume the task due to an unexpected exception", e);
         }
-        showResult(result);
 
         showResultInSession(result);
-        PageParameters parameters = new PageParameters();
-        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-        setResponsePage(new PageTaskEdit(parameters, (PageBase) getPage()));
+        setResponsePage(PageTasks.class);
     }
 
 	private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {

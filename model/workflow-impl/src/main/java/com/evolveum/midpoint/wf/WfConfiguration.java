@@ -255,7 +255,7 @@ public class WfConfiguration implements BeanFactoryAware {
 
         List<String> changeProcessorNames = new ArrayList<String>();            // list - to preserve order
 
-        Iterator<String> cpIterator = getChangeProcessorsConfig().getKeys();         // returns 'processor-name' but also 'other-processor-name.wrapper-name' etc.
+        Iterator<String> cpIterator = getChangeProcessorsConfig().getKeys();         // returns 'processor-name' but also 'other-processor-name.aspect-name' etc.
         while (cpIterator.hasNext()) {
             String keyName = cpIterator.next();
             String processorName = StringUtils.substringBefore(keyName, ".");

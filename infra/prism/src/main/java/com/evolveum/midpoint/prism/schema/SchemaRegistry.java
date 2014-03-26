@@ -411,6 +411,10 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		}
 		return schemas;
 	}
+
+    public Collection<SchemaDescription> getSchemaDescriptions() {
+        return parsedSchemas.values();
+    }
 		
 	public Collection<Package> getCompileTimePackages() {
 		Collection<Package> compileTimePackages = new ArrayList<Package>(schemaDescriptions.size());

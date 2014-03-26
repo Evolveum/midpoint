@@ -19,30 +19,38 @@ package com.evolveum.midpoint.web.page.admin.users.component;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
+import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.OrgUnitSearchDto;
+import com.evolveum.midpoint.web.session.OrgUnitStorage;
 import com.evolveum.midpoint.web.util.WebModelUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import java.util.ArrayList;
@@ -53,22 +61,23 @@ import java.util.List;
  */
 public class OrgUnitBrowser extends ModalWindow {
 
-    public static enum Operation {MOVE, ADD, REMOVE}
+    public static enum Operation {MOVE, ADD, REMOVE, RECOMPUTE}
 
     private static final Trace LOGGER = TraceManager.getTrace(OrgUnitBrowser.class);
 
     private static final String DOT_CLASS = OrgUnitBrowser.class.getName() + ".";
     private static final String OPERATION_LOAD_PARENT_ORG_REFS = DOT_CLASS + "loadParentOrgRefs";
 
-    private static final String ID_SEARCH_TEXT = "searchText";
-    private static final String ID_SEARCH = "search";
+    private static final String ID_BASIC_SEARCH = "basicSearch";
     private static final String ID_TABLE = "table";
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_CANCEL = "cancel";
     private static final String ID_CREATE_ROOT = "createRoot";
+    private static final String ID_FEEDBACK = "feedback";
 
     private boolean initialized;
     private Operation operation;
+    private IModel<OrgUnitSearchDto> searchModel;
 
     /**
      * Objects which were selected on page, not in this dialog. It's used for example to filter org. units
@@ -76,8 +85,6 @@ public class OrgUnitBrowser extends ModalWindow {
      * units which are parents to selected.
      */
     private List<OrgTableDto> selected;
-
-    private IModel<String> searchModel = new Model<String>();
 
     public OrgUnitBrowser(String id) {
         super(id);
@@ -89,6 +96,22 @@ public class OrgUnitBrowser extends ModalWindow {
         setInitialWidth(900);
         setInitialHeight(530);
         setWidthUnit("px");
+        setOutputMarkupId(true);
+
+        searchModel = new LoadableModel<OrgUnitSearchDto>() {
+
+            @Override
+            protected OrgUnitSearchDto load() {
+                OrgUnitStorage storage = getPageBase().getSessionStorage().getOrgUnits();
+                OrgUnitSearchDto dto = storage.getOrgUnitSearch();
+
+                if(dto == null){
+                    dto = new OrgUnitSearchDto();
+                }
+
+                return dto;
+            }
+        };
 
         WebMarkupContainer content = new WebMarkupContainer(getContentId());
         setContent(content);
@@ -132,21 +155,32 @@ public class OrgUnitBrowser extends ModalWindow {
     }
 
     private void initLayout(WebMarkupContainer container) {
+        FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
+        feedback.setOutputMarkupId(true);
+        add(feedback);
+
         Form form = new Form(ID_MAIN_FORM);
+        form.setOutputMarkupId(true);
         container.add(form);
 
-        TextField searchText = new TextField(ID_SEARCH_TEXT, searchModel);
-        form.add(searchText);
-
-        AjaxSubmitButton search = new AjaxSubmitButton(ID_SEARCH,
-                createStringResource("OrgUnitBrowser.search")) {
+        BasicSearchPanel<OrgUnitSearchDto> basicSearch = new BasicSearchPanel<OrgUnitSearchDto>(ID_BASIC_SEARCH) {
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                searchPerformed(target);
+            protected IModel<String> createSearchTextModel() {
+                return new PropertyModel<>(searchModel, OrgUnitSearchDto.F_SEARCH_TEXT);
+            }
+
+            @Override
+            protected void searchPerformed(AjaxRequestTarget target) {
+                OrgUnitBrowser.this.searchPerformed(target);
+            }
+
+            @Override
+            protected void clearSearchPerformed(AjaxRequestTarget target) {
+                OrgUnitBrowser.this.clearSearchPerformed(target);
             }
         };
-        form.add(search);
+        form.add(basicSearch);
 
         ObjectDataProvider<OrgTableDto, OrgType> provider = new ObjectDataProvider<OrgTableDto, OrgType>(this, OrgType.class) {
 
@@ -160,8 +194,10 @@ public class OrgUnitBrowser extends ModalWindow {
                 return createQueryFromSelected();
             }
         };
+        provider.setQuery(createQuery());
         List<IColumn<OrgTableDto, String>> columns = initColumns();
         TablePanel table = new TablePanel(ID_TABLE, provider, columns);
+        table.setOutputMarkupId(true);
         container.add(table);
 
         AjaxButton cancel = new AjaxButton(ID_CANCEL,
@@ -183,6 +219,11 @@ public class OrgUnitBrowser extends ModalWindow {
             }
         };
         container.add(createRoot);
+    }
+
+    private TablePanel getOrgUnitTablePanel(){
+        String[] path = new String[]{getContentId(), ID_TABLE};
+        return (TablePanel) get(StringUtils.join(path, ":"));
     }
 
     private ObjectQuery createQueryFromSelected() {
@@ -212,6 +253,7 @@ public class OrgUnitBrowser extends ModalWindow {
 
         //todo here we must create query which select object which have oid from oids list [lazyman]
         //todo create IN(oids) filter in schema, objectfilter and repo implementation
+//        InOidFilter
         return null;
     }
 
@@ -241,8 +283,66 @@ public class OrgUnitBrowser extends ModalWindow {
 
     }
 
-    private void searchPerformed(AjaxRequestTarget target) {
+    //TODO - continue here - make sure that this query is not overwritten by query from createQueryFromSelected()
+    private ObjectQuery createQuery(){
+        OrgUnitSearchDto dto = searchModel.getObject();
+        ObjectQuery query = null;
 
+        if(StringUtils.isEmpty(dto.getText())){
+            return null;
+        }
+
+        try{
+            PolyStringNormalizer normalizer = getPageBase().getPrismContext().getDefaultPolyStringNormalizer();
+            String normalized = normalizer.normalize(dto.getText());
+
+            SubstringFilter substring = SubstringFilter.createSubstring(OrgType.F_NAME, OrgType.class,
+                    getPageBase().getPrismContext(), PolyStringNormMatchingRule.NAME, normalized);
+
+            //AndFilter and = AndFilter.createAnd(org, substring);
+
+//            query = ObjectQuery.createObjectQuery(and);
+            query = ObjectQuery.createObjectQuery(substring);
+
+        } catch (Exception e){
+            error(getString("OrgUnitBrowser.message.queryError") + " " + e.getMessage());
+            LoggingUtils.logException(LOGGER, "Couldn't create query filter.", e);
+        }
+
+        return query;
+    }
+
+    private void searchPerformed(AjaxRequestTarget target) {
+        ObjectQuery query = createQuery();
+        target.add(get(ID_FEEDBACK));
+
+        TablePanel panel = getOrgUnitTablePanel();
+        DataTable table = panel.getDataTable();
+        ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
+        provider.setQuery(query);
+
+        OrgUnitStorage storage = getPageBase().getSessionStorage().getOrgUnits();
+        storage.setOrgUnitSearch(searchModel.getObject());
+        panel.setCurrentPage(storage.getOrgUnitPaging());
+
+        target.add(get(getContentId()));
+        target.add(panel);
+    }
+
+    private void clearSearchPerformed(AjaxRequestTarget target){
+        searchModel.setObject(new OrgUnitSearchDto());
+
+        TablePanel panel = getOrgUnitTablePanel();
+        DataTable table = panel.getDataTable();
+        ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
+        provider.setQuery(null);
+
+        OrgUnitStorage storage = getPageBase().getSessionStorage().getOrgUnits();
+        storage.setOrgUnitSearch(searchModel.getObject());
+        panel.setCurrentPage(storage.getOrgUnitPaging());
+
+        target.add(get(getContentId()));
+        target.add(panel);
     }
 
     private void cancelPerformed(AjaxRequestTarget target) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,8 +57,6 @@ public enum ObjectTypes {
 
     SHADOW(SchemaConstants.C_SHADOW_TYPE, SchemaConstants.C_SHADOW, ShadowType.class, ObjectManager.PROVISIONING, "shadows"),
 
-    OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects"),
-
     ROLE(RoleType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ROLE, RoleType.class, ObjectManager.MODEL, "roles"),
 
     PASSWORD_POLICY(ValuePolicyType.COMPLEX_TYPE, SchemaConstantsGenerated.C_VALUE_POLICY, ValuePolicyType.class,
@@ -76,7 +74,17 @@ public enum ObjectTypes {
     REPORT(ReportType.COMPLEX_TYPE, SchemaConstants.C_REPORT, ReportType.class, ObjectManager.MODEL, "reports"),
 
     REPORT_OUTPUT(ReportOutputType.COMPLEX_TYPE, SchemaConstants.C_REPORT_OUTPUT, ReportOutputType.class,
-                  ObjectManager.MODEL, "reportOutputs");
+                  ObjectManager.MODEL, "reportOutputs"),
+                  
+    SECURITY_POLICY(SecurityPolicyType.COMPLEX_TYPE, SchemaConstants.C_SECURITY_POLICY, SecurityPolicyType.class,
+    			ObjectManager.MODEL, "securityPolicies"),
+
+    // as for now, this has to remain disabled (they could be used e.g. in audit logs, when the repo will support them)
+    //WORK_ITEM(WorkItemType.COMPLEX_TYPE, SchemaConstants.C_WORK_ITEM, WorkItemType.class, ObjectManager.WORKFLOW, "workItems"),
+    //WF_PROCESS_INSTANCE(WfProcessInstanceType.COMPLEX_TYPE, SchemaConstants.C_WF_PROCESS_INSTANCE, WfProcessInstanceType.class, ObjectManager.WORKFLOW, "wfProcessInstances"),
+
+    // this should be at end, because otherwise it presents itself as entry for all subtypes of ObjectType
+    OBJECT(SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT, ObjectType.class, ObjectManager.MODEL, "objects");
     
     public static enum ObjectManager {
         PROVISIONING, TASK_MANAGER, WORKFLOW, MODEL, REPOSITORY;
