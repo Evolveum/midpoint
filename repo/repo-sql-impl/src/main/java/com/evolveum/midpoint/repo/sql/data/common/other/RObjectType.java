@@ -25,7 +25,8 @@ public enum RObjectType {
     NODE(RNode.class),
     ORG(ROrg.class),
     ABSTRACT_ROLE(RAbstractRole.class),
-    FOCUS(RFocus.class);
+    FOCUS(RFocus.class),
+    SECURITY_POLICY(RSecurityPolicy.class);
 
     private Class<? extends RObject> clazz;
 

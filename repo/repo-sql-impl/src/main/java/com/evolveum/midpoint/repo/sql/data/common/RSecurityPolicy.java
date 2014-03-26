@@ -33,9 +33,7 @@ import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 public class RSecurityPolicy extends RObject<SecurityPolicyType> {
 
     private RPolyString name;
-    private String authentication;
-    private String credentials;
-  
+
     @Embedded
     public RPolyString getName() {
         return name;
@@ -43,26 +41,6 @@ public class RSecurityPolicy extends RObject<SecurityPolicyType> {
 
     public void setName(RPolyString name) {
         this.name = name;
-    }
-
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getAuthentication() {
-        return authentication;
-    }
-
-    public void setAuthentication(String authentication) {
-        this.authentication = authentication;
-    }
-
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getCredentials() {
-        return credentials;
-    }
-
-    public void setCredentials(String credentials) {
-        this.credentials = credentials;
     }
 
     @Override
@@ -75,10 +53,6 @@ public class RSecurityPolicy extends RObject<SecurityPolicyType> {
 
         if (name != null ? !name.equals(that.name) : that.name != null)
             return false;
-        if (authentication != null ? !authentication.equals(that.authentication) : that.authentication != null)
-            return false;
-        if (credentials != null ? !credentials.equals(that.credentials) : that.credentials != null)
-            return false;
         return true;
     }
 
@@ -86,8 +60,6 @@ public class RSecurityPolicy extends RObject<SecurityPolicyType> {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (authentication != null ? authentication.hashCode() : 0);
-        result = 31 * result + (credentials != null ? credentials.hashCode() : 0);
         return result;
     }
 
@@ -97,13 +69,6 @@ public class RSecurityPolicy extends RObject<SecurityPolicyType> {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
-      
-        try {
-            repo.setAuthentication(RUtil.toRepo(jaxb.getAuthentication(), prismContext));
-            repo.setCredentials(RUtil.toRepo(jaxb.getCredentials(), prismContext));
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
-        }
     }
 
     public static void copyToJAXB(RSecurityPolicy repo, SecurityPolicyType jaxb, PrismContext prismContext,
@@ -113,20 +78,6 @@ public class RSecurityPolicy extends RObject<SecurityPolicyType> {
         RObject.copyToJAXB(repo, jaxb, prismContext, options);
 
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-        
-        try {
-            if (StringUtils.isNotEmpty(repo.getAuthentication())) {
-                jaxb.setAuthentication(RUtil.toJAXB(SecurityPolicyType.class, new ItemPath(SecurityPolicyType.F_AUTHENTICATION),
-                        repo.getAuthentication(), AuthenticationPolicyType.class, prismContext));
-            }
-            if (StringUtils.isNotEmpty(repo.getCredentials())) {
-                jaxb.setCredentials(RUtil.toJAXB(SecurityPolicyType.class, new ItemPath(SecurityPolicyType.F_CREDENTIALS),
-                        repo.getCredentials(), CredentialsPolicyType.class, prismContext));
-            }
-            
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
-        }
     }
 
     @Override
