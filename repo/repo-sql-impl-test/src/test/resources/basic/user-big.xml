@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<user xmlns:my="http://example.com/p"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <name xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+        <t:orig>testuserX123</t:orig>
+        <t:norm>testuserx123</t:norm>
+    </name>
+    <description>Some description for userx123</description>
+    <extension>
+        <my:shipName>ship name extension</my:shipName>
+    </extension>
+    <metadata>
+        <createTimestamp>2013-09-03T14:07:56.385+02:00</createTimestamp>
+        <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+        <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-2#user</createChannel>
+    </metadata>
+    <linkRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" oid="00000000-0000-0000-0000-000a1123" type="c:ShadowType"/>
+    <linkRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" oid="00000000-0000-0000-0000-000a2123" type="c:ShadowType"/>
+    <linkRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" oid="00000000-0000-0000-0000-000a3123" type="c:ShadowType"/>
+    <linkRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" oid="00000000-0000-0000-0000-000a4123" type="c:ShadowType"/>
+    <linkRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" oid="00000000-0000-0000-0000-000a5123" type="c:ShadowType"/>
+    <assignment id="1">
+        <metadata>
+            <createTimestamp>2013-09-03T14:07:56.385+02:00</createTimestamp>
+            <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-2#user</createChannel>
+        </metadata>
+        <extension>
+            <my:shipName>assignment ship name extension</my:shipName>
+        </extension>
+        <construction>
+            <resourceRef oid="00000000-0000-0000-0000-0000000000e1"/>
+        </construction>
+    </assignment>
+    <assignment id="2">
+        <metadata>
+            <createTimestamp>2013-09-03T14:07:56.385+02:00</createTimestamp>
+            <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-2#user</createChannel>
+        </metadata>
+        <construction>
+            <resourceRef oid="00000000-0000-0000-0000-0000000000e2"/>
+        </construction>
+    </assignment>
+    <assignment id="3">
+        <extension>
+            <my:dead xsi:type="xsd:string">123user123</my:dead>
+        </extension>
+        <metadata>
+            <createTimestamp>2013-09-03T14:07:56.385+02:00</createTimestamp>
+            <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-2#user</createChannel>
+        </metadata>
+        <construction>
+            <resourceRef oid="00000000-0000-0000-0000-0000000000e3"/>
+        </construction>
+    </assignment>
+    <assignment id="4">
+        <metadata>
+            <createTimestamp>2013-09-03T14:07:56.385+02:00</createTimestamp>
+            <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-2#user</createChannel>
+        </metadata>
+        <construction>
+            <resourceRef oid="00000000-0000-0000-0000-0000000000e4"/>
+        </construction>
+    </assignment>
+    <assignment id="5">
+        <metadata>
+            <createTimestamp>2013-09-03T14:07:56.385+02:00</createTimestamp>
+            <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-2#user</createChannel>
+        </metadata>
+        <construction>
+            <resourceRef oid="00000000-0000-0000-0000-0000000000e5"/>
+        </construction>
+    </assignment>
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+        <effectiveStatus>enabled</effectiveStatus>
+        <validFrom>2013-05-21T14:57:50.759+02:00</validFrom>
+        <validTo>2015-12-31T22:59:00.000+01:00</validTo>
+    </activation>
+    <fullName xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+        <t:orig>Test UserX123</t:orig>
+        <t:norm>test userx123</t:norm>
+    </fullName>
+    <givenName xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+        <t:orig>TestX</t:orig>
+        <t:norm>testx</t:norm>
+    </givenName>
+    <familyName xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+        <t:orig>UserX123</t:orig>
+        <t:norm>userx123</t:norm>
+    </familyName>
+    <emailAddress>testuserX123@example.com</emailAddress>
+    <employeeType>e1</employeeType>
+    <employeeType>e2</employeeType>
+    <employeeType>e3</employeeType>
+    <organization xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+        <t:orig>org 1</t:orig>
+        <t:norm>org 1</t:norm>
+    </organization>
+    <organization xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+        <t:orig>org 2</t:orig>
+        <t:norm>org 2</t:norm>
+    </organization>
+    <organizationalUnit xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+        <t:orig>org unit 1</t:orig>
+        <t:norm>org unit 1</t:norm>
+    </organizationalUnit>
+    <organizationalUnit xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+        <t:orig>org unit 2</t:orig>
+        <t:norm>org unit 2</t:norm>
+    </organizationalUnit>
+    <credentials>
+        <password>
+            <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+                     xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                     xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
+                     xsi:type="c:ProtectedStringType">
+                <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
+                    <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/>
+                    <ds:KeyInfo>
+                        <ds:KeyName>4HXeUejV93Vd3JuIZz7sbs5bVko=</ds:KeyName>
+                    </ds:KeyInfo>
+                    <enc:CipherData>
+                        <enc:CipherValue>R8JV6Bsf6Hjh1yodavjZ0cPshnGyHdspmANJmCQe2zXo7brYj1I/Bs5LGTZNI4k8
+                        </enc:CipherValue>
+                    </enc:CipherData>
+                </enc:EncryptedData>
+            </c:value>
+            <c:lastSuccessfulLogin xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+                <c:timestamp>2012-10-17T21:14:44.376+02:00</c:timestamp>
+                <c:from>127.0.0.1</c:from>
+            </c:lastSuccessfulLogin>
+        </password>
+        <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
+    </credentials>
+</user>
