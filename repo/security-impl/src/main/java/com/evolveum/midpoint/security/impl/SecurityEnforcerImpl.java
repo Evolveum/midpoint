@@ -36,12 +36,17 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.QueryConvertor;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -153,6 +158,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							} else {
 								LOGGER.trace("  Authorization not applicable for target {}, none of the target specifications match (breaking evaluation)", 
 										object);
+								continue;
+							}
+							
+							// item
+							if (isApplicableItem(autz, object, delta)) {
+								LOGGER.trace("  Authorization applicable for items (continuing evaluation)");
+							} else {
+								LOGGER.trace("  Authorization not applicable for items (breaking evaluation)");
 								continue;
 							}
 							
@@ -282,6 +295,35 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			return applicable;
 		}
 		return false;
+	}
+	
+	private <O extends ObjectType, T extends ObjectType> boolean isApplicableItem(Authorization autz,
+			PrismObject<O> object, ObjectDelta<O> delta) {
+		List<Element> itemPaths = autz.getItem();
+		if (itemPaths == null || itemPaths.isEmpty()) {
+			// No item constraints. Applicable for all items.
+			LOGGER.trace("  items empty");
+			return true;
+		}
+		return true;
+//		TODO: this has to wait for merge of "parser" branch
+//		for (Element itemPathElement: itemPaths) {
+//			XPathHolder xholder = new XPathHolder(itemPathElement);
+//			ItemPath itemPath = xholder.toItemPath();
+//			if (object != null) {
+//				Item<?> item = object.findItem(itemPath);
+//				if (item != null && ! item.isEmpty()) {
+//					return true;
+//				}
+//			}
+//			if (delta != null) {
+//				ItemDelta<PrismValue> itemDelta = delta.findItemDelta(itemPath);
+//				if (itemDelta != null && !itemDelta.isEmpty()) {
+//					return true;
+//				}
+//			}
+//		}
+//		return false;
 	}
 	
 	/**
