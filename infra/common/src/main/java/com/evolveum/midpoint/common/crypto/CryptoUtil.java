@@ -39,8 +39,12 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.TunnelException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MailServerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.NotificationConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SmsConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SmsGatewayConfigurationType;
 
 /**
  * @author semancik
@@ -81,7 +85,7 @@ public class CryptoUtil {
 	    Visitor visitor = new Visitor() {
 			@Override
 			public void visit(Visitable visitable){
-				if (!(visitable instanceof PrismPropertyValue)) {
+ 				if (!(visitable instanceof PrismPropertyValue)) {
 					return;
 				}
 				PrismPropertyValue<?> pval = (PrismPropertyValue<?>)visitable;
@@ -109,26 +113,41 @@ public class CryptoUtil {
     	if (itemDef == null || itemDef.getTypeName() == null) {
     		return;
     	}
-    	if (!itemDef.getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)) {
-    		return;
-    	}
-    	QName propName = item.getElementName();
-    	PrismPropertyValue<ProtectedStringType> psPval = (PrismPropertyValue<ProtectedStringType>)pval;
-    	ProtectedStringType ps = psPval.getValue();
-    	if (ps.getClearValue() != null) {
+
+    	if (itemDef.getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)) {
+            QName propName = item.getElementName();
+            PrismPropertyValue<ProtectedStringType> psPval = (PrismPropertyValue<ProtectedStringType>)pval;
+            ProtectedStringType ps = psPval.getValue();
+            encryptProtectedStringType(protector, ps, propName.getLocalPart());
+            if (pval.getParent() == null){
+                pval.setParent(item);
+            }
+    	} else if (itemDef.getTypeName().equals(NotificationConfigurationType.COMPLEX_TYPE)) {
+            // this is really ugly hack needed because currently it is not possible to break NotificationConfigurationType into prism item [pm]
+            NotificationConfigurationType ncfg = ((PrismPropertyValue<NotificationConfigurationType>) pval).getValue();
+            if (ncfg.getMail() != null) {
+                for (MailServerConfigurationType mscfg : ncfg.getMail().getServer()) {
+                    encryptProtectedStringType(protector, mscfg.getPassword(), "mail server password");
+                }
+            }
+            if (ncfg.getSms() != null) {
+                for (SmsConfigurationType smscfg : ncfg.getSms()) {
+                    for (SmsGatewayConfigurationType gwcfg : smscfg.getGateway()) {
+                        encryptProtectedStringType(protector, gwcfg.getPassword(), "sms gateway password");
+                    }
+                }
+            }
+        }
+    }
+
+    private static void encryptProtectedStringType(Protector protector, ProtectedStringType ps, String propName) throws EncryptionException {
+    	if (ps != null && ps.getClearValue() != null) {
             try {
-//                LOGGER.trace("Encrypting cleartext value for field " + propName + " while importing " + object);
                 protector.encrypt(ps);
             } catch (EncryptionException e) {
-//                LOGGER.error("Faild to encrypt cleartext value for field " + propName + " while importing " + object);
-            	// add some context to the exception message
                 throw new EncryptionException("Failed to encrypt value for field " + propName + ": " + e.getMessage(), e);
             }
         }
-    	
-    	if (pval.getParent() == null){
-			pval.setParent(item);
-		}
     }
 	
 	// Checks that everything is encrypted
@@ -179,14 +198,32 @@ public class CryptoUtil {
     	if (itemDef == null || itemDef.getTypeName() == null) {
     		return;
     	}
-    	if (!itemDef.getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)) {
-    		return;
-    	}
-    	QName propName = item.getElementName();
-    	PrismPropertyValue<ProtectedStringType> psPval = (PrismPropertyValue<ProtectedStringType>)pval;
-    	ProtectedStringType ps = psPval.getValue();
-    	if (ps.getClearValue() != null) {
-    		throw new IllegalStateException("Unencrypted value in field " + propName);
+    	if (itemDef.getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)) {
+            QName propName = item.getElementName();
+            PrismPropertyValue<ProtectedStringType> psPval = (PrismPropertyValue<ProtectedStringType>)pval;
+            ProtectedStringType ps = psPval.getValue();
+            if (ps.getClearValue() != null) {
+                throw new IllegalStateException("Unencrypted value in field " + propName);
+            }
+        } else if (itemDef.getTypeName().equals(NotificationConfigurationType.COMPLEX_TYPE)) {
+            // this is really ugly hack needed because currently it is not possible to break NotificationConfigurationType into prism item [pm]
+            NotificationConfigurationType ncfg = ((PrismPropertyValue<NotificationConfigurationType>) pval).getValue();
+            if (ncfg.getMail() != null) {
+                for (MailServerConfigurationType mscfg : ncfg.getMail().getServer()) {
+                    if (mscfg.getPassword() != null && mscfg.getPassword().getClearValue() != null) {
+                        throw new IllegalStateException("Unencrypted value in mail server config password entry");
+                    }
+                }
+            }
+            if (ncfg.getSms() != null) {
+                for (SmsConfigurationType smscfg : ncfg.getSms()) {
+                    for (SmsGatewayConfigurationType gwcfg : smscfg.getGateway()) {
+                        if (gwcfg.getPassword() != null && gwcfg.getPassword().getClearValue() != null) {
+                            throw new IllegalStateException("Unencrypted value in SMS gateway config password entry");
+                        }
+                    }
+                }
+            }
         }
     }
 
