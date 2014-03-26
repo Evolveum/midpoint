@@ -160,27 +160,6 @@ public class ModelWebService implements ModelPortType, ModelPort {
     @Autowired
     private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
 
-    @Override
-	public void addObject(ObjectType objectType, Holder<String> oidHolder, Holder<OperationResultType> result) throws FaultMessage {
-		notNullArgument(objectType, "Object must not be null.");
-
-		Task task = createTaskInstance(ADD_OBJECT);
-		auditLogin(task);
-		OperationResult operationResult = task.getResult();
-		try {
-			PrismObject object = objectType.asPrismObject();
-			prismContext.adopt(objectType);
-			String oid = model.addObject(object, null, task, operationResult);
-			handleOperationResult(operationResult, result);
-			oidHolder.value = oid;
-			return;
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL addObject() failed", ex);
-			auditLogout(task);
-			throw createSystemFault(ex, operationResult);
-		}
-	}
-
 	@Override
 	public void getObject(String objectTypeUri, String oid, OperationOptionsType options,
 			Holder<ObjectType> objectHolder, Holder<OperationResultType> resultHolder) throws FaultMessage {

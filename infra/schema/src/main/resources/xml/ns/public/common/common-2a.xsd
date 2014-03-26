@@ -2435,7 +2435,6 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="value" type="t:ProtectedStringType" minOccurs="0"/>
             <xsd:element name="failedLogins" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2482,7 +2481,7 @@
         <xsd:complexContent>
         	<xsd:extension base="tns:AbstractCredentialType">
         		<xsd:sequence>
-            		<xsd:element name="value" type="tns:ProtectedStringType" minOccurs="0"/>
+            		<xsd:element name="value" type="t:ProtectedStringType" minOccurs="0"/>
             	</xsd:sequence>	
         	</xsd:extension>
         </xsd:complexContent>

@@ -156,7 +156,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="searchFilter" type="q:FilterType" minOccurs="0">
+                    <xsd:element name="searchFilter" type="q:SearchFilterType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Filter to apply when searching for instances.
@@ -192,7 +192,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ExpressionType">
                 <xsd:sequence>
-                    <xsd:element name="filter" type="q:FilterType" minOccurs="0">
+                    <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Filter to apply to the input stream.

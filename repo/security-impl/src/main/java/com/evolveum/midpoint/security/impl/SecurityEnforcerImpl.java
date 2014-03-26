@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -41,7 +42,6 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -272,7 +272,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			LOGGER.trace("  specials empty: {}", specSpecial);
 		}
 		if (specFilter != null) {
-			ObjectQuery q = QueryConvertor.createObjectQuery(object.getCompileTimeClass(), specFilter, object.getPrismContext());
+			ObjectQuery q = QueryConvertor.parseQuery(object.getCompileTimeClass(), specFilter, object.getPrismContext());
 			boolean applicable = ObjectQuery.match(object, q.getFilter(), matchingRuleRegistry);
 			if (applicable) {
 				LOGGER.trace("  Authorization applicable for {} (filter)", desc);
