@@ -338,19 +338,53 @@ public class PageOrgUnit extends PageAdminUsers {
             }
         }
 
-        if (parentOrgList != null && parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null) {
+        //We are creating new OrgUnit
+        if(parentOrgList == null){
+            if(parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null){
+                for (OrgType parent : parentOrgUnitsModel.getObject()) {
+                    if (parent != null && WebMiscUtil.getName(parent) != null && !WebMiscUtil.getName(parent).isEmpty()) {
+                        ObjectReferenceType ref = new ObjectReferenceType();
+                        ref.setOid(parent.getOid());
+                        ref.setType(OrgType.COMPLEX_TYPE);
+                        org.asObjectable().getParentOrgRef().add(ref);
+                    }
+                }
+            }
+        //We are editing OrgUnit
+        }else if (parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null) {
             for (OrgType parent : parentOrgUnitsModel.getObject()) {
                 if (parent != null && WebMiscUtil.getName(parent) != null && !WebMiscUtil.getName(parent).isEmpty()) {
                     if(!isOrgParent(parent, parentOrgList)){
                         ObjectReferenceType ref = new ObjectReferenceType();
                         ref.setOid(parent.getOid());
+                        ref.setType(OrgType.COMPLEX_TYPE);
                         org.asObjectable().getParentOrgRef().add(ref);
                     }
                 }
             }
         }
 
+        //Delete parentOrgUnits from edited OrgUnit
+        if(isEditing()){
+            if(parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null){
+                for(ObjectReferenceType parent: parentOrgList){
+                    if(!isRefInParentOrgModel(parent)){
+                        org.asObjectable().getParentOrgRef().remove(parent);
+                    }
+                }
+            }
+        }
+
         return org;
+    }
+
+    private boolean isRefInParentOrgModel(ObjectReferenceType reference){
+        for(OrgType parent: parentOrgUnitsModel.getObject()){
+            if(reference.getOid().equals(parent.getOid())){
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean isOrgParent(OrgType unit, List<ObjectReferenceType> parentList){

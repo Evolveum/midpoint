@@ -29,7 +29,7 @@
     <logger name="com.evolveum.midpoint.util.ClassPathUtil" level="INFO"/>
 	<logger name="org.springframework" level="WARN" />
 	<logger name="com.evolveum.midpoint" level="INFO" />
-	<logger name="com.evolveum.midpoint.model" level="TRACE" />
+	<logger name="com.evolveum.midpoint.model" level="WARN" />
 	
 	<logger name="org.identityconnectors.ldap" level="TRACE" />
     
@@ -41,10 +41,16 @@
 	<!--<logger name="com.evolveum.midpoint.common" level="TRACE" />-->
 	<!-- <logger name="com.evolveum.midpoint.repo" level="TRACE" />  -->
 	
-	<logger name="com.evolveum.midpoint.testing.sanity" level="TRACE" />
 	<logger name="com.evolveum.midpoint.test" level="TRACE" />
 	
-	<logger name="PROFILING" level="TRACE" />
+	<logger name="com.evolveum.midpoint.model.lens.Clockwork" level="DEBUG" />
+	
+	<!-- 
+	<logger name="com.evolveum.midpoint.model.lens.ChangeExecutor" level="TRACE" />
+	<logger name="com.evolveum.midpoint.model.lens.projector.ConsolidationProcessor" level="TRACE" />
+	<logger name="com.evolveum.midpoint.model.lens.LensUtil" level="TRACE" />  -->
+	
+	<logger name="PROFILING" level="INFO" />
 	
 	<root level="WARN">
 		<appender-ref ref="X" />

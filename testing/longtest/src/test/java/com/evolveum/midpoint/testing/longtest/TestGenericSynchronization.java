@@ -35,9 +35,13 @@ import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
+import javax.xml.namespace.QName;
+
+import java.io.File;
 import java.io.IOException;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -47,9 +51,9 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
  */
 @ContextConfiguration(locations = {"classpath:ctx-longtest-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class TestGenericSynchronization extends AbstractModelIntegrationTest {
+public class TestRepositoryPerformance extends AbstractModelIntegrationTest {
 
-    private static final Trace LOGGER = TraceManager.getTrace(TestGenericSynchronization.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TestRepositoryPerformance.class);
 
     private static final String SYSTEM_CONFIGURATION_FILENAME = COMMON_DIR_NAME + "/system-configuration.xml";
     private static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
@@ -65,7 +69,9 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
     private static final String RESOURCE_OPENDJ_NAME = "Localhost OpenDJ";
     private static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000030";
     private static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
-
+    
+    public static final File OBJECT_TEMPLATE_ORG_FILE = new File(COMMON_DIR, "object-template-org.xml");
+	public static final String OBJECT_TEMPLATE_ORG_OID = "10000000-0000-0000-0000-000000000231";
 
     //222 org. units, 2160 users
 //    private static final int[] TREE_LEVELS = {2, 5, 7, 2};
@@ -83,10 +89,13 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
     private static final int[] TREE_LEVELS = {2, 8};
     private static final int[] TREE_LEVELS_USER = {3, 5};
 
-    private int USER_COUNT;
-    private int ORG_COUNT;
+    // We already have some users in LDAP instance
+    private int ldapdUserCount = 4;
+    private int ldapOrgCount = 0;
 
     private PrismObject<ResourceType> resourceOpenDj;
+
+	private boolean logCreateEntry = true;
 
     @Override
     protected void startResources() throws Exception {
@@ -111,6 +120,9 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
         PrismObject<UserType> userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
         repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, RoleType.class, initResult);
         login(userAdministrator);
+        
+        importObjectFromFile(OBJECT_TEMPLATE_ORG_FILE, initResult);
+		setDefaultObjectTemplate(OrgType.COMPLEX_TYPE, OBJECT_TEMPLATE_ORG_OID);
 
         // Resources
         resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILENAME, RESOURCE_OPENDJ_OID,
@@ -140,15 +152,21 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
             String newSuffix = "ou=" + ou + ',' + dnSuffix;
 
             Entry org = createOrgEntry(ou, dnSuffix);
+            logCreateEntry(org);
+            ldapOrgCount++;
             openDJController.addEntry(org);
             count++;
 
             for (int u = 0; u < USER_COUNT[0]; u++) {
-                String uid = "L" + TREE_SIZE.length + "o" + i + "u" + u;
+            	// We have to make uid globally unique. Otherwise correlation takes place and it will
+            	// "collapse" several accounts into one user
+                String uid = "L" + TREE_SIZE.length + "o" + i + "u" + u + "c" + ldapdUserCount;
                 String sn = "Doe" + uid;
 
                 Entry user = createUserEntry(uid, newSuffix, sn);
+                logCreateEntry(user);
                 openDJController.addEntry(user);
+                ldapdUserCount++;
                 count++;
             }
 
@@ -158,7 +176,14 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
         return count;
     }
 
-    private Entry createUserEntry(String uid, String suffix, String sn) throws IOException, LDIFException {
+    private void logCreateEntry(Entry entry) {
+		if (logCreateEntry ) {
+			System.out.println("Creating LDAP entry: " + entry.getDN());
+			LOGGER.trace("Creating LDAP entry: {}", entry.getDN());
+		}
+	}
+
+	private Entry createUserEntry(String uid, String suffix, String sn) throws IOException, LDIFException {
         StringBuilder sb = new StringBuilder();
         String dn = "uid=" + uid + "," + suffix;
         sb.append("dn: ").append(dn).append('\n');
@@ -191,27 +216,27 @@ public class TestGenericSynchronization extends AbstractModelIntegrationTest {
         final String TEST_NAME = "test100TreeImport";
         TestUtil.displayTestTile(this, TEST_NAME);
 
-//        Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
-//        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
-//        OperationResult result = task.getResult();
-//
-//        // WHEN
-//        modelService.importFromResource(RESOURCE_OPENDJ_OID,
-//                new QName(RESOURCE_OPENDJ_NAMESPACE, "AccountObjectClass"), task, result);
-//
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//        OperationResult subresult = result.getLastSubresult();
-//        TestUtil.assertInProgress("importAccountsFromResource result", subresult);
-//
-//        waitForTaskFinish(task, true, 20000 + (USER_COUNT + ORG_COUNT) * 2000);
-//
-//        // THEN
-//        TestUtil.displayThen(TEST_NAME);
-//
-//        int userCount = modelService.countObjects(UserType.class, null, null, task, result);
-//        display("Users", userCount);
-//        AssertJUnit.assertEquals("Unexpected number of users", (USER_COUNT + ORG_COUNT), userCount);
+        Task task = taskManager.createTaskInstance(TestLdap.class.getName() + "." + TEST_NAME);
+        task.setOwner(getUser(USER_ADMINISTRATOR_OID));
+        OperationResult result = task.getResult();
+
+        // WHEN
+        modelService.importFromResource(RESOURCE_OPENDJ_OID,
+                new QName(RESOURCE_OPENDJ_NAMESPACE, "AccountObjectClass"), task, result);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        OperationResult subresult = result.getLastSubresult();
+        TestUtil.assertInProgress("importAccountsFromResource result", subresult);
+
+        waitForTaskFinish(task, true, 20000 + (ldapdUserCount + ldapOrgCount) * 2000);
+
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+
+        int userCount = modelService.countObjects(UserType.class, null, null, task, result);
+        display("Users", userCount);
+        AssertJUnit.assertEquals("Unexpected number of users", ldapdUserCount, userCount);
     }
 
     @Test

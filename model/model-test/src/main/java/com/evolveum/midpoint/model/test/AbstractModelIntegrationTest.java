@@ -267,11 +267,24 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		subResult.computeStatus();
 		if (subResult.isError()) {
 			LOGGER.error("Import of file "+file+" failed:\n{}", subResult.debugDump());
-			Throwable cause = subResult.getCause();
+			Throwable cause = findCause(subResult);
 			throw new SystemException("Import of file "+file+" failed: "+subResult.getMessage(), cause);
 		}
 	}
 	
+	protected Throwable findCause(OperationResult result) {
+		if (result.getCause() != null) {
+			return result.getCause();
+		}
+		for (OperationResult sub: result.getSubresults()) {
+			Throwable cause = findCause(sub);
+			if (cause != null) {
+				return cause;
+			}
+		}
+		return null;
+	}
+
 	protected <T extends ObjectType> PrismObject<T> importAndGetObjectFromFile(Class<T> type, String filename, String oid, Task task, OperationResult result) throws FileNotFoundException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		return importAndGetObjectFromFile(type, new File(filename), oid, task, result);
 	}

@@ -241,7 +241,7 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
 
     protected boolean isRemoveButtonVisible(ListItem<T> item) {
         int size = getModelObject().size();
-        if (size > 1) {
+        if (size > 0) {
             return true;
         }
 
@@ -304,6 +304,10 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
                 iterator.remove();
                 break;
             }
+        }
+
+        if(objects.size() == 0){
+            objects.add(createNewEmptyItem());
         }
 
         target.add(this);
