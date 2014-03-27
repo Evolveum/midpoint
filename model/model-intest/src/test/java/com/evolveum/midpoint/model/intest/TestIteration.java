@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
 import java.io.File;
@@ -28,6 +30,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
+import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -38,6 +41,11 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -67,10 +75,21 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	protected static final String RESOURCE_DUMMY_VIOLET_NAME = "violet";
 	protected static final String RESOURCE_DUMMY_VIOLET_NAMESPACE = MidPointConstants.NS_RI;
 	
+	protected static final File RESOURCE_DUMMY_DARK_VIOLET_FILE = new File(TEST_DIR, "resource-dummy-dark-violet.xml");
+	protected static final String RESOURCE_DUMMY_DARK_VIOLET_OID = "10000000-0000-0000-0000-0000000da204";
+	protected static final String RESOURCE_DUMMY_DARK_VIOLET_NAME = "darkViolet";
+	protected static final String RESOURCE_DUMMY_DARK_VIOLET_NAMESPACE = MidPointConstants.NS_RI;
+	
 	protected static final File RESOURCE_DUMMY_MAGENTA_FILE = new File(TEST_DIR, "resource-dummy-magenta.xml");
 	protected static final String RESOURCE_DUMMY_MAGENTA_OID = "10000000-0000-0000-0000-00000000a304";
 	protected static final String RESOURCE_DUMMY_MAGENTA_NAME = "magenta";
 	protected static final String RESOURCE_DUMMY_MAGENTA_NAMESPACE = MidPointConstants.NS_RI;
+	
+	protected static final File TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_FILE = new File(TEST_DIR, "task-dumy-dark-violet-livesync.xml");
+	protected static final String TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID = "10000000-0000-0000-5555-555500da0204";
+	
+	protected static final File USER_TEMPLATE_ITERATION_FILE = new File(TEST_DIR, "user-template-iteration.xml");
+	protected static final String USER_TEMPLATE_ITERATION_OID = "10000000-0000-0000-0000-0000000d0002";
 
 	private static final String USER_LECHUCK_NAME = "lechuck";
 	private static final String ACCOUNT_CHARLES_NAME = "charles";
@@ -81,6 +100,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	private static final String DESCRIPTION_RUM = "Where's the rum?";
 
 	private static final String USER_JACK_RENAMED_NAME = "cptjack";
+
+	private static final String ACCOUNT_LECHUCK_USERNAME = "lechuck";
+	private static final String ACCOUNT_LECHUCK_FULLNAME = "LeChuck";
+	private static final String ACCOUNT_CHARLES_USERNAME = "charles";
+	private static final String ACCOUNT_SHINETOP_USERNAME = "charles";
 	
 	protected static DummyResource dummyResourcePink;
 	protected static DummyResourceContoller dummyResourceCtlPink;
@@ -91,6 +115,11 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	protected static DummyResourceContoller dummyResourceCtlViolet;
 	protected ResourceType resourceDummyVioletType;
 	protected PrismObject<ResourceType> resourceDummyViolet;
+	
+	protected static DummyResource dummyResourceDarkViolet;
+	protected static DummyResourceContoller dummyResourceCtlDarkViolet;
+	protected ResourceType resourceDummyDarkVioletType;
+	protected PrismObject<ResourceType> resourceDummyDarkViolet;
 	
 	protected static DummyResource dummyResourceMagenta;
 	protected static DummyResourceContoller dummyResourceCtlMagenta;
@@ -115,12 +144,22 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		resourceDummyVioletType = resourceDummyViolet.asObjectable();
 		dummyResourceCtlViolet.setResource(resourceDummyViolet);
 		
+		dummyResourceCtlDarkViolet = DummyResourceContoller.create(RESOURCE_DUMMY_DARK_VIOLET_NAME, resourceDummyViolet);
+		dummyResourceCtlDarkViolet.extendSchemaPirate();
+		dummyResourceDarkViolet = dummyResourceCtlDarkViolet.getDummyResource();
+		resourceDummyDarkViolet = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_DARK_VIOLET_FILE, RESOURCE_DUMMY_DARK_VIOLET_OID, initTask, initResult); 
+		resourceDummyDarkVioletType = resourceDummyDarkViolet.asObjectable();
+		dummyResourceCtlDarkViolet.setResource(resourceDummyDarkViolet);
+		dummyResourceDarkViolet.setSyncStyle(DummySyncStyle.SMART);
+		
 		dummyResourceCtlMagenta = DummyResourceContoller.create(RESOURCE_DUMMY_MAGENTA_NAME, resourceDummyMagenta);
 		dummyResourceCtlMagenta.extendSchemaPirate();
 		dummyResourceMagenta = dummyResourceCtlMagenta.getDummyResource();
 		resourceDummyMagenta = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_MAGENTA_FILE, RESOURCE_DUMMY_MAGENTA_OID, initTask, initResult); 
 		resourceDummyMagentaType = resourceDummyMagenta.asObjectable();
 		dummyResourceCtlMagenta.setResource(resourceDummyMagenta);
+		
+		addObject(USER_TEMPLATE_ITERATION_FILE);
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 	}
@@ -1004,4 +1043,86 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
+	
+	@Test
+    public void test700DarkVioletSyncTask() throws Exception {
+		final String TEST_NAME = "test700DarkVioletSyncTask";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // WHEN
+        importObjectFromFile(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_FILE);
+        
+        // THEN
+        waitForTaskStart(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, false);
+	}
+
+	/*
+	 * Create account with fullname LeChuck. User with name LeChuck should be created (no conflict yet).
+	 */
+	@Test
+    public void test710DarkVioletAddLeChuck() throws Exception {
+		final String TEST_NAME = "test710DarkVioletAddLeChuck";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        DummyAccount account = new DummyAccount(ACCOUNT_LECHUCK_USERNAME);
+		account.setEnabled(true);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_LECHUCK_FULLNAME);
+        
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		
+        display("Adding dummy account", account.debugDump());
+		dummyResourceDarkViolet.addAccount(account);
+		
+		waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
+        
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		assertUserNick(ACCOUNT_LECHUCK_FULLNAME, ACCOUNT_LECHUCK_FULLNAME);
+	}
+	
+	/*
+	 * Create account with fullname LeChuck. User with name LeChuck.1 should be created (conflict).
+	 */
+	@Test(enabled=false) // Waiting for repo support
+    public void test712DarkVioletAddCharles() throws Exception {
+		final String TEST_NAME = "test712DarkVioletAddCharles";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        DummyAccount account = new DummyAccount(ACCOUNT_CHARLES_USERNAME);
+		account.setEnabled(true);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_LECHUCK_FULLNAME);
+        
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		
+        display("Adding dummy account", account.debugDump());
+		dummyResourceDarkViolet.addAccount(account);
+		
+		waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
+        
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		assertUserNick(ACCOUNT_LECHUCK_FULLNAME, ACCOUNT_LECHUCK_FULLNAME);
+		assertUserNick(ACCOUNT_LECHUCK_FULLNAME, ACCOUNT_LECHUCK_FULLNAME+".1");
+	}
+	
+	private void assertUserNick(String accountFullName, String expectedUserName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		PrismObject<UserType> user = findUserByUsername(expectedUserName);
+		assertNotNull("No user for "+accountFullName, user);
+		display("Created user for "+accountFullName, user);
+		assertEquals("Wrong nickname in user created for "+accountFullName, accountFullName, user.asObjectable().getNickName().getOrig());
+	}
+	
+	// TODO: add jack, is should conflict
 }

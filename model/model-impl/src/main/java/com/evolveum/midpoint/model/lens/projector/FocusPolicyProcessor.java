@@ -289,7 +289,7 @@ public class FocusPolicyProcessor {
 		ObjectDelta<F> userSecondaryDelta = focusContext.getProjectionWaveSecondaryDelta();
 		ObjectDelta<F> userPrimaryDelta = focusContext.getProjectionWavePrimaryDelta();
 		ObjectDeltaObject<F> userOdo = focusContext.getObjectDeltaObject();
-		PrismObjectDefinition<F> userDefinition = getFocusDefinition(focusContext.getObjectTypeClass());
+		PrismObjectDefinition<F> focusDefinition = getFocusDefinition(focusContext.getObjectTypeClass());
 		Collection<ItemDelta<? extends PrismValue>> itemDeltas = null;
 		XMLGregorianCalendar nextRecomputeTime = null;
 		
@@ -318,11 +318,11 @@ public class FocusPolicyProcessor {
 				ItemDelta<? extends PrismValue> apropriItemDelta = null;
 				
 				ItemDelta<? extends PrismValue> itemDelta = LensUtil.consolidateTripleToDelta(itemPath, (DeltaSetTriple)outputTriple,
-						userDefinition.findItemDefinition(itemPath), apropriItemDelta, userOdo.getNewObject(), null, 
-						true, true, false, "user template "+userTemplate, true);
+						focusDefinition.findItemDefinition(itemPath), apropriItemDelta, userOdo.getNewObject(), null, 
+						true, true, false, "object template "+userTemplate, true);
 				
 				itemDelta.simplify();
-				itemDelta.validate("user template "+userTemplate);
+				itemDelta.validate("object template "+userTemplate);
 				itemDeltas.add(itemDelta);
 			}
 			
@@ -342,8 +342,13 @@ public class FocusPolicyProcessor {
 		        for (ItemDelta<? extends PrismValue> itemDelta: itemDeltas) {
 		        	previewDelta.addModification(itemDelta.clone());
 		        }
+		        if (previewBase == null) {
+		        	previewBase = focusDefinition.instantiate();
+		        }
+		        LOGGER.trace("previewDelta={}, previewBase={}", previewDelta, previewBase);
 	        	previewObjectNew = previewDelta.computeChangedObject(previewBase);
 	        }
+			LOGGER.trace("previewObjectNew={}, itemDeltas={}", previewObjectNew, itemDeltas);
 
 			if (previewObjectNew == null) {
 				// this must be delete
@@ -367,7 +372,8 @@ public class FocusPolicyProcessor {
 	        	LOGGER.trace("Current focus satisfies uniqueness constraints. Iteration {}, token '{}'", iteration, iterationToken);
 	        	break;
 	        } 
-	        LOGGER.trace("Current focus does not satisfy constraints. Conflicting object: {}", checker.getConflictingObject());
+	        LOGGER.trace("Current focus does not satisfy constraints. Conflicting object: {}; iteration={}, maxIterations={}",
+	        		new Object[]{checker.getConflictingObject(), iteration, maxIterations});
 	        
 	        // Next iteration
 			iteration++;
