@@ -32,14 +32,20 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.ws.Holder;
 import javax.xml.ws.BindingProvider;
 
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectDeltaListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.SelectorQualifiedGetOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.SelectorQualifiedGetOptionsType;
 import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_2.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
+import com.ibm.wsdl.extensions.schema.SchemaConstants;
 import org.apache.commons.io.IOUtils;
 import org.apache.cxf.frontend.ClientProxy;
 
 import com.evolveum.midpoint.model.client.ModelClientUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
@@ -149,21 +155,20 @@ public class Main {
 
 		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-		OperationOptionsType options = new OperationOptionsType();
+		SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
 		
-		modelPort.getObject(ModelClientUtil.getTypeUri(SystemConfigurationType.class), SystemObjectsType.SYSTEM_CONFIGURATION.value(), options, 
+		modelPort.getObject(ModelClientUtil.getTypeQName(SystemConfigurationType.class), SystemObjectsType.SYSTEM_CONFIGURATION.value(), options,
 				objectHolder, resultHolder);
 		
 		return (SystemConfigurationType) objectHolder.value;
 	}
 	
 	private static Collection<ResourceType> listResources(ModelPortType modelPort) throws SAXException, IOException, FaultMessage {
-		OperationOptionsType options = new OperationOptionsType();
-		Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
+        SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
+        Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-		PagingType paging = new PagingType();
-		
-		modelPort.listObjects(ModelClientUtil.getTypeUri(ResourceType.class), paging, options, objectListHolder, resultHolder);
+
+		modelPort.searchObjects(ModelClientUtil.getTypeQName(ResourceType.class), null, options, objectListHolder, resultHolder);
 		
 		ObjectListType objectList = objectListHolder.value;
 		return (Collection) objectList.getObject();
@@ -241,28 +246,38 @@ public class Main {
 	}
 
 	private static String createUser(ModelPortType modelPort, UserType userType) throws FaultMessage {
-		Holder<String> oidHolder = new Holder<String>();
-		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-		modelPort.addObject(userType, oidHolder, resultHolder);
+        ObjectDeltaType.ObjectToAdd objectToAdd = new ObjectDeltaType.ObjectToAdd();
+        objectToAdd.setAny(userType);
+
+        ObjectDeltaType deltaType = new ObjectDeltaType();
+        deltaType.setObjectType(ModelClientUtil.getTypeQName(UserType.class));
+        deltaType.setChangeType(ChangeTypeType.ADD);
+        deltaType.setObjectToAdd(objectToAdd);
+
+        ObjectDeltaListType deltaListType = new ObjectDeltaListType();
+        deltaListType.getDelta().add(deltaType);
+		modelPort.executeChanges(deltaListType, null);
 		
-		return oidHolder.value;
+		throw new UnsupportedOperationException("Here we should return OID but first we have to change executeChanges method interface");
 	}
 	
 	private static void changeUserPassword(ModelPortType modelPort, String oid, String newPassword) throws FaultMessage {
-		Document doc = ModelClientUtil.getDocumnent();
-		
-		ObjectModificationType userDelta = new ObjectModificationType();
-		userDelta.setOid(oid);
-		
 		ItemDeltaType passwordDelta = new ItemDeltaType();
 		passwordDelta.setModificationType(ModificationTypeType.REPLACE);
 		passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password"));
-		ItemDeltaType.Value passwordValue = new ItemDeltaType.Value();
-		passwordValue.getAny().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_VALUE, ModelClientUtil.createProtectedString(newPassword)));
-		passwordDelta.setValue(passwordValue);
-		userDelta.getModification().add(passwordDelta);
-		
-		modelPort.modifyObject(ModelClientUtil.getTypeUri(UserType.class), userDelta);
+        RawType newValue = new RawType();
+        newValue.getContent().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_VALUE, ModelClientUtil.createProtectedString(newPassword)));
+        passwordDelta.setValue(newValue);
+
+        ObjectDeltaType deltaType = new ObjectDeltaType();
+        deltaType.setObjectType(ModelClientUtil.getTypeQName(UserType.class));
+        deltaType.setChangeType(ChangeTypeType.MODIFY);
+        deltaType.setOid(oid);
+        deltaType.getItemDelta().add(passwordDelta);
+
+        ObjectDeltaListType deltaListType = new ObjectDeltaListType();
+        deltaListType.getDelta().add(deltaType);
+        modelPort.executeChanges(deltaListType, null);
 	}
 	
 	private static void assignRoles(ModelPortType modelPort, String userOid, String... roleOids) throws FaultMessage {
@@ -274,25 +289,27 @@ public class Main {
 	}
 	
 	private static void modifyRoleAssignment(ModelPortType modelPort, String userOid, boolean isAdd, String... roleOids) throws FaultMessage {
-		Document doc = ModelClientUtil.getDocumnent();
-		
-		ObjectModificationType userDelta = new ObjectModificationType();
-		userDelta.setOid(userOid);
-		
 		ItemDeltaType assignmentDelta = new ItemDeltaType();
 		if (isAdd) {
 			assignmentDelta.setModificationType(ModificationTypeType.ADD);
 		} else {
 			assignmentDelta.setModificationType(ModificationTypeType.DELETE);
 		}
-		ItemDeltaType.Value assignmentValue = new ItemDeltaType.Value();
+		RawType assignmentValue = new RawType();
 		for (String roleOid: roleOids) {
-			assignmentValue.getAny().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_ASSIGNMENT, createRoleAssignment(roleOid)));
+			assignmentValue.getContent().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_ASSIGNMENT, createRoleAssignment(roleOid)));
 		}
 		assignmentDelta.setValue(assignmentValue);
-		userDelta.getModification().add(assignmentDelta);
-		
-		modelPort.modifyObject(ModelClientUtil.getTypeUri(UserType.class), userDelta);
+
+        ObjectDeltaType deltaType = new ObjectDeltaType();
+        deltaType.setObjectType(ModelClientUtil.getTypeQName(UserType.class));
+        deltaType.setChangeType(ChangeTypeType.MODIFY);
+        deltaType.setOid(userOid);
+        deltaType.getItemDelta().add(assignmentDelta);
+
+        ObjectDeltaListType deltaListType = new ObjectDeltaListType();
+        deltaListType.getDelta().add(deltaType);
+        modelPort.executeChanges(deltaListType, null);
 	}
 
 
@@ -315,11 +332,11 @@ public class Main {
 		);
 		QueryType query = new QueryType();
 		query.setFilter(filter);
-		OperationOptionsType options = new OperationOptionsType();
+        SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
 		Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
 		
-		modelPort.searchObjects(ModelClientUtil.getTypeUri(UserType.class), query, options, objectListHolder, resultHolder);
+		modelPort.searchObjects(ModelClientUtil.getTypeQName(UserType.class), query, options, objectListHolder, resultHolder);
 		
 		ObjectListType objectList = objectListHolder.value;
 		List<ObjectType> objects = objectList.getObject();
@@ -342,11 +359,11 @@ public class Main {
 		);
 		QueryType query = new QueryType();
 		query.setFilter(filter);
-		OperationOptionsType options = new OperationOptionsType();
+        SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
 		Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
 		
-		modelPort.searchObjects(ModelClientUtil.getTypeUri(RoleType.class), query, options, objectListHolder, resultHolder);
+		modelPort.searchObjects(ModelClientUtil.getTypeQName(RoleType.class), query, options, objectListHolder, resultHolder);
 		
 		ObjectListType objectList = objectListHolder.value;
 		List<ObjectType> objects = objectList.getObject();
@@ -368,18 +385,25 @@ public class Main {
 		);
 		QueryType query = new QueryType();
 		query.setFilter(filter);
-		OperationOptionsType options = new OperationOptionsType();
+        SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
 		Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
 		
-		modelPort.searchObjects(ModelClientUtil.getTypeUri(RoleType.class), query, options, objectListHolder, resultHolder);
+		modelPort.searchObjects(ModelClientUtil.getTypeQName(RoleType.class), query, options, objectListHolder, resultHolder);
 		
 		ObjectListType objectList = objectListHolder.value;
 		return (Collection) objectList.getObject();
 	}
 	
 	private static void deleteUser(ModelPortType modelPort, String userGuybrushoid) throws FaultMessage {
-		modelPort.deleteObject(ModelClientUtil.getTypeUri(UserType.class), userGuybrushoid);
+        ObjectDeltaType deltaType = new ObjectDeltaType();
+        deltaType.setObjectType(ModelClientUtil.getTypeQName(UserType.class));
+        deltaType.setChangeType(ChangeTypeType.DELETE);
+        deltaType.setOid(userGuybrushoid);
+
+        ObjectDeltaListType deltaListType = new ObjectDeltaListType();
+        deltaListType.getDelta().add(deltaType);
+        modelPort.executeChanges(deltaListType, null);
 	}
 	
 	public static ModelPortType createModelPort(String[] args) {

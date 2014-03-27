@@ -256,33 +256,33 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
         });
     }
 
-    @Test(enabled = false)
-    public void test028CurrentRepo() throws Exception {
-        TestUtil.displayTestTile(this, "test029NewRepo");
+//    @Test(enabled = false)
+//    public void test028CurrentRepo() throws Exception {
+//        TestUtil.displayTestTile(this, "test029NewRepo");
+//
+//        //old repo
+//        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+//        //"extension" value
+//        String xml = IOUtils.toString(new FileInputStream("./src/test/resources/model-context.xml"), "utf-8");
+//        Element root = DOMUtil.parseDocument(xml).getDocumentElement();
+//
+//        QName name = new QName("http://midpoint.evolveum.com/xml/ns/public/model/model-context-2", "modelContext");
+//
+//        PrismObjectDefinition oDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class);
+//        PrismContainerDefinition def = oDef.findContainerDefinition(new ItemPath(ObjectType.F_EXTENSION, name));
+//        Item parsedItem = domProcessor.parseItem(DOMUtil.listChildElements(root), name, def);
+//        LOGGER.debug("Parser:\n{}", parsedItem.debugDump());
+//    }
 
-        //old repo
-        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
-        //"extension" value
-        String xml = IOUtils.toString(new FileInputStream("./src/test/resources/model-context.xml"), "utf-8");
-        Element root = DOMUtil.parseDocument(xml).getDocumentElement();
-
-        QName name = new QName("http://midpoint.evolveum.com/xml/ns/public/model/model-context-2", "modelContext");
-
-        PrismObjectDefinition oDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class);
-        PrismContainerDefinition def = oDef.findContainerDefinition(new ItemPath(ObjectType.F_EXTENSION, name));
-        Item parsedItem = domProcessor.parseItem(DOMUtil.listChildElements(root), name, def);
-        LOGGER.debug("Parser:\n{}", parsedItem.debugDump());
-    }
-
-    @Test(enabled = false)
-    public void test029NewRepo() throws Exception {
-        TestUtil.displayTestTile(this, "test029NewRepo");
-
-        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
-        String xml = IOUtils.toString(new FileInputStream("./src/test/resources/task.xml"), "utf-8");
-        PrismObject o = domProcessor.parseObject(xml);
-        LOGGER.info("Parsed:\n{}", o.debugDump());
-    }
+//    @Test(enabled = false)
+//    public void test029NewRepo() throws Exception {
+//        TestUtil.displayTestTile(this, "test029NewRepo");
+//
+//        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+//        String xml = IOUtils.toString(new FileInputStream("./src/test/resources/task.xml"), "utf-8");
+//        PrismObject o = domProcessor.parseObject(xml);
+//        LOGGER.info("Parsed:\n{}", o.debugDump());
+//    }
 
     @Test(enabled = true)
     public void test030AddAccountApproved() throws Exception {

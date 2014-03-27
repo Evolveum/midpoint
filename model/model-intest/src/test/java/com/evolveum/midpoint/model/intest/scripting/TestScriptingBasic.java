@@ -33,7 +33,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionPipelineType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionSequenceType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ObjectFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -41,6 +40,7 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import javax.xml.bind.JAXBElement;
 import java.io.File;
 import java.util.List;
 
@@ -130,7 +130,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + "test120Log");
-        ExpressionType action = prismContext.getPrismJaxbProcessor().unmarshalElement(LOG_FILE, ExpressionType.class).getValue();
+        JAXBElement<?> action = prismContext.getJaxbDomHack().unmarshalJaxbElement(LOG_FILE);
 
         LogfileTestTailer tailer = new LogfileTestTailer();
         tailer.tail();
@@ -153,7 +153,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + "test200SearchUser");
-        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(SEARCH_FOR_USERS_FILE, ExpressionType.class).getValue();
+        JAXBElement<?> expression = prismContext.getJaxbDomHack().unmarshalJaxbElement(SEARCH_FOR_USERS_FILE);
 
         // WHEN
         Data output = scriptingExpressionEvaluator.evaluateExpression(expression, result).getFinalOutput();
@@ -172,7 +172,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + "test205SearchForResources");
-        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(SEARCH_FOR_RESOURCES_FILE, ExpressionType.class).getValue();
+        JAXBElement<?> expression = prismContext.getJaxbDomHack().unmarshalJaxbElement(SEARCH_FOR_RESOURCES_FILE);
 
         // WHEN
         Data output = scriptingExpressionEvaluator.evaluateExpression(expression, result).getFinalOutput();
@@ -190,7 +190,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + "test206SearchForRoles");
-        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(SEARCH_FOR_ROLES_FILE, ExpressionType.class).getValue();
+        JAXBElement<?> expression = prismContext.getJaxbDomHack().unmarshalJaxbElement(SEARCH_FOR_ROLES_FILE);
 
         // WHEN
         Data output = scriptingExpressionEvaluator.evaluateExpression(expression, result).getFinalOutput();
@@ -208,7 +208,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + "test210SearchForShadows");
-        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(SEARCH_FOR_SHADOWS_FILE, ExpressionType.class).getValue();
+        JAXBElement<?> expression = prismContext.getJaxbDomHack().unmarshalJaxbElement(SEARCH_FOR_SHADOWS_FILE);
 
         // WHEN
         Data output = scriptingExpressionEvaluator.evaluateExpression(expression, result).getFinalOutput();
@@ -227,7 +227,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + "test215SearchForShadowsNoFetch");
-        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(SEARCH_FOR_SHADOWS_NOFETCH_FILE, ExpressionType.class).getValue();
+        JAXBElement<?> expression = prismContext.getJaxbDomHack().unmarshalJaxbElement(SEARCH_FOR_SHADOWS_NOFETCH_FILE);
 
         // WHEN
         Data output = scriptingExpressionEvaluator.evaluateExpression(expression, result).getFinalOutput();
@@ -246,7 +246,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + "test220SearchForUsersAccounts");
-        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(SEARCH_FOR_USERS_ACCOUNTS_FILE, ExpressionType.class).getValue();
+        JAXBElement<?> expression = prismContext.getJaxbDomHack().unmarshalJaxbElement(SEARCH_FOR_USERS_ACCOUNTS_FILE);
 
         // WHEN
         Data output = scriptingExpressionEvaluator.evaluateExpression(expression, result).getFinalOutput();
@@ -265,7 +265,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + "test225SearchForUsersAccountsNoFetch");
-        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(SEARCH_FOR_USERS_ACCOUNTS_NOFETCH_FILE, ExpressionType.class).getValue();
+        JAXBElement<?> expression = prismContext.getJaxbDomHack().unmarshalJaxbElement(SEARCH_FOR_USERS_ACCOUNTS_NOFETCH_FILE);
 
         // WHEN
         Data output = scriptingExpressionEvaluator.evaluateExpression(expression, result).getFinalOutput();
@@ -284,7 +284,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + "test300DisableJack");
-        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(DISABLE_JACK_FILE, ExpressionType.class).getValue();
+        JAXBElement<?> expression = prismContext.getJaxbDomHack().unmarshalJaxbElement(DISABLE_JACK_FILE);
 
         // WHEN
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, result);
@@ -304,7 +304,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + "test310EnableJack");
-        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(ENABLE_JACK_FILE, ExpressionType.class).getValue();
+        JAXBElement<?> expression = prismContext.getJaxbDomHack().unmarshalJaxbElement(ENABLE_JACK_FILE);
 
         // WHEN
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, result);
@@ -324,7 +324,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + "test320DeleteAndAddJack");
-        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(DELETE_AND_ADD_JACK_FILE, ExpressionType.class).getValue();
+        JAXBElement<?> expression = prismContext.getJaxbDomHack().unmarshalJaxbElement(DELETE_AND_ADD_JACK_FILE);
 
         // WHEN
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, result);
@@ -344,7 +344,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + "test330ModifyJack");
-        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(MODIFY_JACK_FILE, ExpressionType.class).getValue();
+        JAXBElement<?> expression = prismContext.getJaxbDomHack().unmarshalJaxbElement(MODIFY_JACK_FILE);
 
         // WHEN
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, result);
@@ -365,7 +365,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + "test340ModifyJackBack");
-        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(MODIFY_JACK_BACK_FILE, ExpressionType.class).getValue();
+        JAXBElement<?> expression = prismContext.getJaxbDomHack().unmarshalJaxbElement(MODIFY_JACK_BACK_FILE);
 
         // WHEN
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, result);
@@ -386,7 +386,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + "test350RecomputeJack");
-        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(RECOMPUTE_JACK_FILE, ExpressionType.class).getValue();
+        JAXBElement<?> expression = prismContext.getJaxbDomHack().unmarshalJaxbElement(RECOMPUTE_JACK_FILE);
 
         // WHEN
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, result);
@@ -406,7 +406,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + "test360AssignToJack");
-        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(ASSIGN_TO_JACK_FILE, ExpressionType.class).getValue();
+        JAXBElement<?> expression = prismContext.getJaxbDomHack().unmarshalJaxbElement(ASSIGN_TO_JACK_FILE);
 
         // WHEN
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, result);
@@ -430,7 +430,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + "test370AssignToJackInBackground");
-        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(ASSIGN_TO_JACK_2_FILE, ExpressionType.class).getValue();
+        JAXBElement<?> expression = prismContext.getJaxbDomHack().unmarshalJaxbElement(ASSIGN_TO_JACK_2_FILE);
 
         // WHEN
         Task task = taskManager.createTaskInstance();
@@ -479,7 +479,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + "test400PurgeSchema");
         Task task = taskManager.createTaskInstance();
-        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(PURGE_DUMMY_BLACK_SCHEMA_FILE, ExpressionType.class).getValue();
+        JAXBElement<?> expression = prismContext.getJaxbDomHack().unmarshalJaxbElement(PURGE_DUMMY_BLACK_SCHEMA_FILE);
 
 //        ResourceType dummy = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_BLACK_OID, null, task, result).asObjectable();
 //        IntegrationTestTools.display("dummy resource before purge schema", dummy.asPrismObject());
@@ -514,7 +514,7 @@ public class TestScriptingBasic extends AbstractInitializedModelIntegrationTest 
 
         // GIVEN
         OperationResult result = new OperationResult(DOT_CLASS + "test410TestResource");
-        ExpressionType expression = prismContext.getPrismJaxbProcessor().unmarshalElement(TEST_DUMMY_RESOURCE_FILE, ExpressionType.class).getValue();
+        JAXBElement<?> expression = prismContext.getJaxbDomHack().unmarshalJaxbElement(TEST_DUMMY_RESOURCE_FILE);
 
         // WHEN
         ExecutionContext output = scriptingExpressionEvaluator.evaluateExpression(expression, result);

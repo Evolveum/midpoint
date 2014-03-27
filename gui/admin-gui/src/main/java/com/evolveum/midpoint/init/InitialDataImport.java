@@ -95,7 +95,6 @@ public class InitialDataImport {
         int count = 0;
         int errors = 0;
 
-        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
         File[] files = getInitialImportObjects();
         LOGGER.info("Importing files {}.", Arrays.toString(files));
         
@@ -119,7 +118,7 @@ public class InitialDataImport {
         for (File file : files) {
             try {
                 LOGGER.info("Initial import of file {}.", file.getName());
-                PrismObject object = domProcessor.parseObject(file);
+                PrismObject object = prismContext.parseObject(file);
                 if (ReportType.class.equals(object.getCompileTimeClass())) {
                     ReportTypeUtil.applyDefinition(object, prismContext);
                 }

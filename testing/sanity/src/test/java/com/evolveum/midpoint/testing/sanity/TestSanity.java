@@ -49,6 +49,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.SelectorQualifiedGetOptionsType;
 import com.evolveum.prism.xml.ns._public.types_2.EncryptedDataType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
@@ -142,7 +143,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
@@ -659,7 +659,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         display("Adding Derby Resource", resource);
 
         // WHEN
-        modelWeb.addObject(resource.asObjectable(), oidHolder, resultHolder);
+        addObjectViaModelWS(resource.asObjectable(), oidHolder, resultHolder);
         
         // THEN
         // Check if Derby resource was imported correctly
@@ -682,8 +682,12 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         
 	}
-	
-	private void checkRepoDerbyResource() throws ObjectNotFoundException, SchemaException {
+
+    private void addObjectViaModelWS(ObjectType objectType, Holder<String> oidHolder, Holder<OperationResultType> resultHolder) throws FaultMessage {
+        throw new UnsupportedOperationException("Implement later");
+    }
+
+    private void checkRepoDerbyResource() throws ObjectNotFoundException, SchemaException {
     	OperationResult result = new OperationResult(TestSanity.class.getName()+".checkRepoDerbyResource");
     	PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result);
     	checkDerbyResource(resource, "repository");
@@ -762,10 +766,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
-        OperationOptionsType options = new OperationOptionsType();
+        SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
         
 		// WHEN
-        modelWeb.getObject(ObjectTypes.RESOURCE.getObjectTypeUri(), RESOURCE_OPENDJ_OID,
+        modelWeb.getObject(ObjectTypes.RESOURCE.getTypeQName(), RESOURCE_OPENDJ_OID,
                 options , objectHolder, resultHolder);
 
         ResourceType resource = (ResourceType) objectHolder.value;
@@ -816,7 +820,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     	
     	PrismObject<ResourceType> resource = PrismTestUtil.parseObject(new File(RESOURCE_DUMMY_FILENAME));
 
-    	modelWeb.addObject(resource.asObjectable(), new Holder<String>(), new Holder<OperationResultType>());
+    	addObjectViaModelWS(resource.asObjectable(), new Holder<String>(), new Holder<OperationResultType>());
     	
     	 OperationResult repoResult = new OperationResult("getObject");
 
@@ -840,7 +844,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
          PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, repoResult);
          assertNotNull(resource);
          
-     	modelWeb.addObject(resource.asObjectable(), new Holder<String>(), new Holder<OperationResultType>());
+     	addObjectViaModelWS(resource.asObjectable(), new Holder<String>(), new Holder<OperationResultType>());
 
      	//TODO: add some asserts
      	
@@ -849,8 +853,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
      	resource = PrismTestUtil.parseObject(new File(RESOURCE_DUMMY_FILENAME));
      
 		try {
-			modelWeb.addObject(resource.asObjectable(), new Holder<String>(),
-					new Holder<OperationResultType>());
+			addObjectViaModelWS(resource.asObjectable(), new Holder<String>(),
+                    new Holder<OperationResultType>());
 			fail("Expected object already exists exception, but haven't got one.");
 		} catch (FaultMessage ex) {
 			if (ex.getFaultInfo() instanceof ObjectAlreadyExistsFaultType){ 
@@ -897,7 +901,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         display("Adding user object", userType);
 
         // WHEN
-        modelWeb.addObject(userType, oidHolder, resultHolder);
+        addObjectViaModelWS(userType, oidHolder, resultHolder);
 
         // THEN
 
@@ -943,7 +947,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME, ObjectModificationType.class);
 
         // WHEN
-        OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+        OperationResultType result = modifyObjectViaModelWS(ObjectTypes.USER.getTypeQName(), objectChange);
 
         // THEN
         assertNoRepoCache();
@@ -1014,10 +1018,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
-        OperationOptionsType options = new OperationOptionsType();
+        SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
 
         // WHEN
-        modelWeb.getObject(ObjectTypes.SHADOW.getObjectTypeUri(), accountShadowOidOpendj,
+        modelWeb.getObject(ObjectTypes.SHADOW.getTypeQName(), accountShadowOidOpendj,
                 options, objectHolder, resultHolder);
 
         // THEN
@@ -1046,7 +1050,11 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     }
 
-	/**
+    private OperationResultType modifyObjectViaModelWS(QName typeQName, ObjectModificationType objectChange) throws FaultMessage {
+        throw new UnsupportedOperationException("Implement later");
+    }
+
+    /**
      * Add Derby account to user. This should result in account provisioning. Check if
      * that happens in repo and in Derby.
      */
@@ -1064,7 +1072,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 REQUEST_USER_MODIFY_ADD_ACCOUNT_DERBY_FILENAME, ObjectModificationType.class);
 
         // WHEN
-        OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+        OperationResultType result = modifyObjectViaModelWS(ObjectTypes.USER.getTypeQName(), objectChange);
 
         // THEN
         assertNoRepoCache();
@@ -1138,10 +1146,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
-        OperationOptionsType options = new OperationOptionsType();
+        SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType ();
 
         // WHEN
-        modelWeb.getObject(ObjectTypes.SHADOW.getObjectTypeUri(), accountShadowOidDerby,
+        modelWeb.getObject(ObjectTypes.SHADOW.getTypeQName(), accountShadowOidDerby,
                 options, objectHolder, resultHolder);
 
         // THEN
@@ -1174,7 +1182,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // WHEN
 
-        modelWeb.listAccountShadowOwner(accountShadowOidOpendj, userHolder, resultHolder);
+        modelWeb.findShadowOwner(accountShadowOidOpendj, userHolder, resultHolder);
 
         // THEN
 
@@ -1258,7 +1266,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 REQUEST_USER_MODIFY_FULLNAME_LOCALITY_FILENAME, ObjectModificationType.class);
 
         // WHEN
-        OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+        OperationResultType result = modifyObjectViaModelWS(ObjectTypes.USER.getTypeQName(), objectChange);
 
         // THEN
         assertNoRepoCache();
@@ -1354,7 +1362,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertNoRepoCache();
 
         // WHEN
-        OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+        OperationResultType result = modifyObjectViaModelWS(ObjectTypes.USER.getTypeQName(), objectChange);
 
         // THEN
         assertUserPasswordChange("butUnd3dM4yT4lkAL0t", result);
@@ -1385,7 +1393,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         userDelta.getModification().add(passwordDelta);
         
         // WHEN
-        OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), userDelta);
+        OperationResultType result = modifyObjectViaModelWS(ObjectTypes.USER.getTypeQName(), userDelta);
 
         // THEN
         assertUserPasswordChange(NEW_PASSWORD, result);
@@ -1464,7 +1472,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertNoRepoCache();
 
         // WHEN
-        OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+        OperationResultType result = modifyObjectViaModelWS(ObjectTypes.USER.getTypeQName(), objectChange);
 
         // THEN
         assertNoRepoCache();
@@ -1510,11 +1518,11 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
-        OperationOptionsType options = new OperationOptionsType();
+        SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
         assertNoRepoCache();
 
         // WHEN
-        modelWeb.getObject(ObjectTypes.SHADOW.getObjectTypeUri(), accountShadowOidOpendj,
+        modelWeb.getObject(ObjectTypes.SHADOW.getTypeQName(), accountShadowOidOpendj,
                 options, objectHolder, resultHolder);
 
         // THEN
@@ -1564,7 +1572,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertNoRepoCache();
 
         // WHEN
-        OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+        OperationResultType result = modifyObjectViaModelWS(ObjectTypes.USER.getTypeQName(), objectChange);
 
         // THEN
         assertNoRepoCache();
@@ -1611,11 +1619,11 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
-        OperationOptionsType options = new OperationOptionsType();
+        SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
         assertNoRepoCache();
 
         // WHEN
-        modelWeb.getObject(ObjectTypes.SHADOW.getObjectTypeUri(), accountShadowOidOpendj,
+        modelWeb.getObject(ObjectTypes.SHADOW.getTypeQName(), accountShadowOidOpendj,
                 options, objectHolder, resultHolder);
 
         // THEN
@@ -1678,7 +1686,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertNoRepoCache();
 
         // WHEN
-        OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+        OperationResultType result = modifyObjectViaModelWS(ObjectTypes.USER.getTypeQName(), objectChange);
 
         // THEN
         assertNoRepoCache();
@@ -1716,7 +1724,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertNoRepoCache();
 
         // WHEN
-        OperationResultType result = modelWeb.deleteObject(ObjectTypes.SHADOW.getObjectTypeUri(), accountShadowOidDerby);
+        OperationResultType result = deleteObjectViaModelWS(ObjectTypes.SHADOW.getTypeQName(), accountShadowOidDerby);
 
         // THEN
         assertNoRepoCache();
@@ -1744,7 +1752,11 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertFalse("Account was not deleted in database", rs.next());
 
     }
-    
+
+    private OperationResultType deleteObjectViaModelWS(QName typeQName, String accountShadowOidDerby) {
+        throw new UnsupportedOperationException("Implement later");
+    }
+
     @Test
     public void test047RenameUser() throws Exception {
     	final String TEST_NAME = "test047RenameUser";
@@ -1757,7 +1769,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         		REQUEST_USER_MODIFY_NAME_FILENAME, ObjectModificationType.class);
 
         // WHEN
-        OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+        OperationResultType result = modifyObjectViaModelWS(ObjectTypes.USER.getTypeQName(), objectChange);
 
         // THEN
         assertNoRepoCache();
@@ -1821,7 +1833,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 REQUEST_USER_MODIFY_GIVENNAME_FILENAME, ObjectModificationType.class);
 
         // WHEN
-        OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+        OperationResultType result = modifyObjectViaModelWS(ObjectTypes.USER.getTypeQName(), objectChange);
 
         // THEN
         assertNoRepoCache();
@@ -1879,7 +1891,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertNoRepoCache();
 
         // WHEN
-        OperationResultType result = modelWeb.deleteObject(ObjectTypes.USER.getObjectTypeUri(), USER_JACK_OID);
+        OperationResultType result = deleteObjectViaModelWS(ObjectTypes.USER.getTypeQName(), USER_JACK_OID);
 
         // THEN
         assertNoRepoCache();
@@ -1939,7 +1951,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         Holder<String> oidHolder = new Holder<String>();
         assertNoRepoCache();
 
-        modelWeb.addObject(userType, oidHolder, resultHolder);
+        addObjectViaModelWS(userType, oidHolder, resultHolder);
 
         assertNoRepoCache();
         TestUtil.assertSuccess("addObject has failed", resultHolder.value);
@@ -1948,7 +1960,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 REQUEST_USER_MODIFY_ADD_ROLE_PIRATE_FILENAME, ObjectModificationType.class);
 
         // WHEN
-        result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+        result = modifyObjectViaModelWS(ObjectTypes.USER.getTypeQName(), objectChange);
 
         // THEN
         assertNoRepoCache();
@@ -2025,7 +2037,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // WHEN
 
-        modelWeb.listAccountShadowOwner(accountShadowOidGuybrushOpendj, userHolder, resultHolder);
+        modelWeb.findShadowOwner(accountShadowOidGuybrushOpendj, userHolder, resultHolder);
 
         // THEN
 
@@ -2049,7 +2061,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 REQUEST_USER_MODIFY_ADD_ROLE_CAPTAIN_1_FILENAME, ObjectModificationType.class);
 
         // WHEN
-        OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+        OperationResultType result = modifyObjectViaModelWS(ObjectTypes.USER.getTypeQName(), objectChange);
 
         // THEN
         assertNoRepoCache();
@@ -2131,7 +2143,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 REQUEST_USER_MODIFY_ADD_ROLE_CAPTAIN_2_FILENAME, ObjectModificationType.class);
 
         // WHEN
-        OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+        OperationResultType result = modifyObjectViaModelWS(ObjectTypes.USER.getTypeQName(), objectChange);
 
         // THEN
         assertNoRepoCache();
@@ -2210,7 +2222,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         objectChange.setOid(accountShadowOidGuybrushOpendj);
 
         // WHEN
-        OperationResultType result = modelWeb.modifyObject(ObjectTypes.SHADOW.getObjectTypeUri(), objectChange);
+        OperationResultType result = modifyObjectViaModelWS(ObjectTypes.SHADOW.getTypeQName(), objectChange);
         
         Task task = taskManager.createTaskInstance();
         OperationResult parentResult = new OperationResult("test55ModifyAccount-get after first modify");
@@ -2300,7 +2312,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         try {
         	
             // WHEN
-        	result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+        	result = modifyObjectViaModelWS(ObjectTypes.USER.getTypeQName(), objectChange);
 
             // THEN
         	AssertJUnit.fail("Expected a failure after assigning conflicting roles but nothing happened and life goes on");
@@ -2342,7 +2354,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 REQUEST_USER_MODIFY_DELETE_ROLE_PIRATE_FILENAME, ObjectModificationType.class);
 
         // WHEN
-        result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+        result = modifyObjectViaModelWS(ObjectTypes.USER.getTypeQName(), objectChange);
 
         // THEN
         assertNoRepoCache();
@@ -2425,7 +2437,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 REQUEST_USER_MODIFY_DELETE_ROLE_CAPTAIN_1_FILENAME, ObjectModificationType.class);
 
         // WHEN
-        result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+        result = modifyObjectViaModelWS(ObjectTypes.USER.getTypeQName(), objectChange);
 
         // THEN
         assertNoRepoCache();
@@ -2513,7 +2525,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 REQUEST_USER_MODIFY_DELETE_ROLE_CAPTAIN_2_FILENAME, ObjectModificationType.class);
 
         // WHEN
-        result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+        result = modifyObjectViaModelWS(ObjectTypes.USER.getTypeQName(), objectChange);
 
         // THEN
         assertNoRepoCache();
@@ -2755,7 +2767,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
         Holder<String> oidHolder = new Holder<String>();
         display("Adding user object", userType);
-        modelWeb.addObject(userType, oidHolder, resultHolder);
+        addObjectViaModelWS(userType, oidHolder, resultHolder);
         //check results
         assertNoRepoCache();
         displayJaxb("addObject result:", resultHolder.value, SchemaConstants.C_RESULT);
@@ -2937,8 +2949,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
                 Holder<ObjectType> objectHolder = new Holder<ObjectType>();
                 OperationResult opResult = new OperationResult("import check");
                 assertNoRepoCache();
-                OperationOptionsType options = new OperationOptionsType();
-                modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), taskOid,
+                SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
+                modelWeb.getObject(ObjectTypes.TASK.getTypeQName(), taskOid,
                         options, objectHolder, resultHolder);
                 assertNoRepoCache();
                 //				display("getObject result (wait loop)",resultHolder.value);
@@ -2966,10 +2978,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
         
         Holder<ObjectType> objectHolder = new Holder<ObjectType>();
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-        OperationOptionsType options = new OperationOptionsType();
+        SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
         assertNoRepoCache();
 
-        modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), task.getOid(),
+        modelWeb.getObject(ObjectTypes.TASK.getTypeQName(), task.getOid(),
                 options, objectHolder, resultHolder);
 
         assertNoRepoCache();
@@ -2994,7 +3006,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 //                Holder<ObjectType> objectHolder = new Holder<ObjectType>();
 //                OperationResult opResult = new OperationResult("import check");
 //                assertCache();
-//                modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), taskOid,
+//                modelWeb.getObject(ObjectTypes.TASK.getTypeQName(), taskOid,
 //                        new PropertyReferenceListType(), objectHolder, resultHolder);
 //                assertCache();
 //                //				display("getObject result (wait loop)",resultHolder.value);
@@ -3043,7 +3055,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         Holder<ObjectListType> listHolder = new Holder<ObjectListType>();
         assertNoRepoCache();
 
-        modelWeb.listObjects(ObjectTypes.USER.getObjectTypeUri(), null, null,
+        modelWeb.searchObjects(ObjectTypes.USER.getTypeQName(), null, null,
                 listHolder, resultHolder);
 
         assertNoRepoCache();
@@ -3488,11 +3500,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(result);
         
         Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
-		OperationOptionsType options = new OperationOptionsType();
-		PagingType paging = new PagingType();
-		
+        SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
+
 		// WHEN
-        modelWeb.listObjects(ObjectTypes.RESOURCE.getObjectTypeUri(), paging, options, objectListHolder , resultHolder);
+        modelWeb.searchObjects(ObjectTypes.RESOURCE.getTypeQName(), null, options, objectListHolder, resultHolder);
         
         // THEN
         
@@ -3864,8 +3875,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
         OperationResultType resultType = new OperationResultType();
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
         Holder<ObjectType> accountHolder = new Holder<ObjectType>();
-        OperationOptionsType options = new OperationOptionsType();
-        modelWeb.getObject(ObjectTypes.SHADOW.getObjectTypeUri(), accountOid, options, accountHolder, resultHolder);
+        SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
+        modelWeb.getObject(ObjectTypes.SHADOW.getTypeQName(), accountOid, options, accountHolder, resultHolder);
         ObjectType object = accountHolder.value;
         TestUtil.assertSuccess("searchObjects has failed", resultHolder.value);
         assertNotNull("Account is null", object);
@@ -3895,7 +3906,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         Holder<ObjectListType> listHolder = new Holder<ObjectListType>();
         assertNoRepoCache();
 
-        modelWeb.searchObjects(ObjectTypes.USER.getObjectTypeUri(), query, null, listHolder, resultHolder);
+        modelWeb.searchObjects(ObjectTypes.USER.getTypeQName(), query, null, listHolder, resultHolder);
 
         assertNoRepoCache();
         ObjectListType objects = listHolder.value;

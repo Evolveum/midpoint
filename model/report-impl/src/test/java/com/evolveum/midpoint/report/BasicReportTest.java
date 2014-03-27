@@ -36,6 +36,7 @@ import java.util.Map;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -77,7 +78,6 @@ import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -398,14 +398,14 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		// file templates
 		String template = FileUtils.readFileToString(REPORT_DATASOURCE_TEST, "UTF-8");
 		
-		ReportTemplateType reportTemplate = new ReportTemplateType();
-		reportTemplate.setAny(DOMUtil.parseDocument(template).getDocumentElement());
-		reportType.setTemplate(reportTemplate);
+//		ReportTemplateType reportTemplate = new ReportTemplateType();
+//		reportTemplate.setAny(DOMUtil.parseDocument(template).getDocumentElement());
+		reportType.setTemplate(template);
 
 		String templateStyle = FileUtils.readFileToString(STYLE_TEMPLATE_DEFAULT, "UTF-8"); //readFile(STYLE_TEMPLATE_DEFAULT, StandardCharsets.UTF_8);
-		ReportTemplateStyleType reportTemplateStyle = new ReportTemplateStyleType();
-		reportTemplateStyle.setAny(DOMUtil.parseDocument(templateStyle).getDocumentElement());
-		reportType.setTemplateStyle(reportTemplateStyle);
+//		ReportTemplateStyleType reportTemplateStyle = new ReportTemplateStyleType();
+//		reportTemplateStyle.setAny(DOMUtil.parseDocument(templateStyle).getDocumentElement());
+		reportType.setTemplateStyle(templateStyle);
 /*
 		String config_schema = FileUtils.readFileToString(REPORT_DATASOURCE_TEST, "UTF-8");
 		
@@ -476,7 +476,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 
 		ReportFieldConfigurationType field = new ReportFieldConfigurationType();
 		ItemPath itemPath;
-		XPathHolder xpath;
+		ItemPathType xpath;
 		Element element;
 		ItemDefinition itemDef;
 		SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
@@ -487,10 +487,8 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		field.setNameHeader("Name");
 		field.setNameReport("Name");
 		itemPath = new ItemPath(UserType.F_NAME);
-		xpath = new XPathHolder(itemPath);
-		element = xpath.toElement(SchemaConstants.C_ITEM_PATH_FIELD,
-				DOMUtil.getDocument());
-		field.setItemPath(element);
+		xpath = new ItemPathType(itemPath);
+		field.setItemPath(xpath);
 		field.setSortOrderNumber(1);
 		field.setSortOrder(OrderDirectionType.ASCENDING);
 		itemDef = userDefinition.findItemDefinition(itemPath);
@@ -502,10 +500,8 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		field.setNameHeader("First Name");
 		field.setNameReport("FirstName");
 		itemPath = new ItemPath(UserType.F_GIVEN_NAME);
-		xpath = new XPathHolder(itemPath);
-		element = xpath.toElement(SchemaConstants.C_ITEM_PATH_FIELD,
-				DOMUtil.getDocument());
-		field.setItemPath(element);
+		xpath = new ItemPathType(itemPath);
+		field.setItemPath(xpath);
 		field.setSortOrderNumber(null);
 		field.setSortOrder(null);
 		itemDef = userDefinition.findItemDefinition(itemPath);
@@ -517,10 +513,8 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		field.setNameHeader("Last Name");
 		field.setNameReport("LastName");
 		itemPath = new ItemPath(UserType.F_FAMILY_NAME);
-		xpath = new XPathHolder(itemPath);
-		element = xpath.toElement(SchemaConstants.C_ITEM_PATH_FIELD,
-				DOMUtil.getDocument());
-		field.setItemPath(element);
+		xpath = new ItemPathType(itemPath);
+		field.setItemPath(xpath);
 		field.setSortOrderNumber(null);
 		field.setSortOrder(null);
 		itemDef = userDefinition.findItemDefinition(itemPath);
@@ -533,10 +527,8 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		field.setNameReport("Activation");
 		itemPath = new ItemPath(UserType.F_ACTIVATION,
 				ActivationType.F_ADMINISTRATIVE_STATUS);
-		xpath = new XPathHolder(itemPath);
-		element = xpath.toElement(SchemaConstants.C_ITEM_PATH_FIELD,
-				DOMUtil.getDocument());
-		field.setItemPath(element);
+		xpath = new ItemPathType(itemPath);
+		field.setItemPath(xpath);
 		field.setSortOrderNumber(null);
 		field.setSortOrder(null);
 		itemDef = userDefinition.findItemDefinition(itemPath);
@@ -620,10 +612,8 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 					fieldRepo.getNameHeader());
 			AssertJUnit.assertEquals(field.getNameReport(),
 					fieldRepo.getNameReport());
-			ItemPath fieldPath = new XPathHolder(field.getItemPath())
-					.toItemPath();
-			ItemPath fieldRepoPath = new XPathHolder(
-					fieldRepo.getItemPath()).toItemPath();
+			ItemPath fieldPath = field.getItemPath().getItemPath();
+			ItemPath fieldRepoPath = fieldRepo.getItemPath().getItemPath();
 			AssertJUnit.assertEquals(fieldPath, fieldRepoPath);
 			AssertJUnit.assertEquals(field.getSortOrder(),
 					fieldRepo.getSortOrder());
@@ -1035,7 +1025,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	        TestUtil.displayTestTile(this, TEST_NAME);
 			
 	        // GIVEN
-	        List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(REPORTS_FOR_CLEANUP_FILE);
+	        List<PrismObject<? extends Objectable>> elements = prismContext.parseObjects(REPORTS_FOR_CLEANUP_FILE);
 
 	        Task task = taskManager.createTaskInstance(CLEANUP_REPORTS);
 			OperationResult result = task.getResult();

@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.prism.parser;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -426,6 +428,10 @@ public class JaxbDomHack {
 
     private Unmarshaller createUnmarshaller() throws JAXBException {
         return jaxbContext.createUnmarshaller();
+    }
+
+    public JAXBElement unmarshalJaxbElement(File input) throws JAXBException, IOException {
+        return (JAXBElement) createUnmarshaller().unmarshal(input);
     }
 
     public <T> T unmarshalObject(InputStream input) throws JAXBException, SchemaException {

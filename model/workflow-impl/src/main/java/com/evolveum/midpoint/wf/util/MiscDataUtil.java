@@ -125,7 +125,7 @@ public class MiscDataUtil {
     }
 
     public PrismObject<? extends ObjectType> getObjectBefore(Map<String, Object> variables, PrismContext prismContext, OperationResult result) throws SchemaException, ObjectNotFoundException, JAXBException {
-        String objectXml = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED);
+        String objectXml = (String) variables.get(PcpProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED);
         PrismObject<? extends ObjectType> object;
         if (objectXml != null) {
             object = prismContext.parseObject(objectXml, PrismContext.LANG_XML);
@@ -154,7 +154,7 @@ public class MiscDataUtil {
     }
 
     public ObjectDeltaType getObjectDeltaType(Map<String, Object> variables, boolean mayBeNull) throws JAXBException, SchemaException {
-        StringHolder deltaXml = (StringHolder) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_DELTA);
+        StringHolder deltaXml = (StringHolder) variables.get(PcpProcessVariableNames.VARIABLE_MIDPOINT_DELTA);
         if (deltaXml == null) {
             if (mayBeNull) {
                 return null;
