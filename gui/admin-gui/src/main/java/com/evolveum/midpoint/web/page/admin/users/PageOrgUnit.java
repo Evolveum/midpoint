@@ -345,6 +345,7 @@ public class PageOrgUnit extends PageAdminUsers {
                     if (parent != null && WebMiscUtil.getName(parent) != null && !WebMiscUtil.getName(parent).isEmpty()) {
                         ObjectReferenceType ref = new ObjectReferenceType();
                         ref.setOid(parent.getOid());
+                        ref.setType(OrgType.COMPLEX_TYPE);
                         org.asObjectable().getParentOrgRef().add(ref);
                     }
                 }
@@ -356,6 +357,7 @@ public class PageOrgUnit extends PageAdminUsers {
                     if(!isOrgParent(parent, parentOrgList)){
                         ObjectReferenceType ref = new ObjectReferenceType();
                         ref.setOid(parent.getOid());
+                        ref.setType(OrgType.COMPLEX_TYPE);
                         org.asObjectable().getParentOrgRef().add(ref);
                     }
                 }
