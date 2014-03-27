@@ -584,5 +584,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	protected String getDebugDumpTitle(String suffix) {
 		return getDebugDumpTitle()+" "+suffix;
 	}
+	
+	public abstract String getHumanReadableName();
 
 }
