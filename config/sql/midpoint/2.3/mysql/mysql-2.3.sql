@@ -365,6 +365,7 @@
 
     create table m_object_template (
         accountConstruction longtext,
+        iteration longtext,
         mapping longtext,
         name_norm varchar(255),
         name_orig varchar(255),

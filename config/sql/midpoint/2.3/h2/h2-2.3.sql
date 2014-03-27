@@ -355,6 +355,7 @@
 
     create table m_object_template (
         accountConstruction clob,
+        iteration clob,
         mapping clob,
         name_norm varchar(255),
         name_orig varchar(255),
