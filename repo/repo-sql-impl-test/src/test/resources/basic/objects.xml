@@ -691,6 +691,9 @@
         </description>
         <includeRef oid="1234" type="c:UserType"/>
         <includeRef oid="12345" type="c:ResourceType"/>
+        <iteration>
+            <maxIterations>123</maxIterations>
+        </iteration>
         <mapping>
             <description>
                 Property construction.

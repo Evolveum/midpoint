@@ -50,6 +50,7 @@ import java.util.Set;
 public class RObjectTemplate extends RObject<ObjectTemplateType> {
 
     private RPolyString name;
+    private String iteration;
     private String mapping;
     private String accountConstruction;
     private RObjectTemplateType type;
@@ -83,6 +84,17 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
     @Column(nullable = true)
     public String getMapping() {
         return mapping;
+    }
+
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
+    @Column(nullable = true)
+    public String getIteration() {
+        return iteration;
+    }
+
+    public void setIteration(String iteration) {
+        this.iteration = iteration;
     }
 
     public void setType(RObjectTemplateType type) {
@@ -127,7 +139,8 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
             return false;
         if (includeRef != null ? !includeRef.equals(that.includeRef) : that.includeRef != null)
             return false;
-
+        if (iteration != null ? !iteration.equals(that.iteration) : that.iteration != null)
+            return false;
 
         return true;
     }
@@ -139,6 +152,7 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
         result = 31 * result + (mapping != null ? mapping.hashCode() : 0);
         result = 31 * result + (accountConstruction != null ? accountConstruction.hashCode() : 0);
         result = 31 * result + (type != null ? type.hashCode() : 0);
+        result = 31 * result + (iteration != null ? iteration.hashCode() : 0);
         return result;
     }
 
@@ -166,6 +180,11 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
             if (StringUtils.isNotEmpty(repo.getMapping())) {
                 ObjectTemplateType holder = RUtil.toJAXB(repo.getMapping(), ObjectTemplateType.class, prismContext);
                 jaxb.getMapping().addAll(holder.getMapping());
+            }
+
+            if (StringUtils.isNotEmpty(repo.getIteration())) {
+                ObjectTemplateType holder = RUtil.toJAXB(repo.getIteration(), ObjectTemplateType.class, prismContext);
+                jaxb.setIteration(holder.getIteration());
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
@@ -200,6 +219,16 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
 
                 template.getMapping().addAll(jaxb.getMapping());
                 repo.setMapping(RUtil.toRepo(template, prismContext));
+            }
+
+            if (jaxb.getIteration() != null) {
+                ObjectTemplateType template = new ObjectTemplateType();
+                // template needs name for serialization, in here it doesn't matter if it's objectTemplate
+                // or userTemplate, it's only wrapper for data
+                template.asPrismObject().setElementName(SchemaConstantsGenerated.C_OBJECT_TEMPLATE);
+
+                template.setIteration(jaxb.getIteration());
+                repo.setIteration(RUtil.toRepo(template, prismContext));
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
