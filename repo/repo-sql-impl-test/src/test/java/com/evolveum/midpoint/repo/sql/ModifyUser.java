@@ -59,7 +59,7 @@ public class ModifyUser extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test001Add() throws Exception {
+    public void test010Add() throws Exception {
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(FOLDER_BASIC, "user.xml"));
         userOid = repositoryService.addObject(user, null, new OperationResult("asdf"));
 
@@ -71,7 +71,7 @@ public class ModifyUser extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test002ModifyUser() throws Exception {
+    public void test020ModifyUser() throws Exception {
         ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
                 new File(FOLDER_BASIC, "t002.xml"), ObjectModificationType.class);
 
@@ -82,7 +82,7 @@ public class ModifyUser extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test003ModifyShadow() throws Exception {
+    public void test030ModifyShadow() throws Exception {
         ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
                 new File(FOLDER_BASIC, "t003.xml"), ObjectModificationType.class);
 
@@ -93,12 +93,12 @@ public class ModifyUser extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test004GetShadow() throws Exception {
+    public void test040GetShadow() throws Exception {
         repositoryService.getObject(ShadowType.class, shadowOid, null, new OperationResult("asdf"));
     }
 
     @Test
-    public void test005ModifyBigUser() throws Exception {
+    public void test050ModifyBigUser() throws Exception {
         PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(ObjectType.F_DESCRIPTION, def,
                 "new description");
@@ -107,7 +107,23 @@ public class ModifyUser extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test006GetBigUser() throws Exception {
+    public void test060GetBigUser() throws Exception {
         repositoryService.getObject(UserType.class, userBigOid, null, new OperationResult("asdf"));
+    }
+
+    /**
+     * This test fails with java.lang.IllegalStateException: An entity copy was already assigned to a different entity.
+     * It's ok to fail, but it should fail somehow differently.
+     *
+     * todo improve later [lazyman]
+     */
+    @Test(enabled = false)
+    public void test070ModifyBigUser() throws Exception {
+        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
+                new File(FOLDER_BASIC, "t004.xml"), ObjectModificationType.class);
+
+        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
+
+        repositoryService.modifyObject(UserType.class, userBigOid, delta.getModifications(), new OperationResult("asdf"));
     }
 }

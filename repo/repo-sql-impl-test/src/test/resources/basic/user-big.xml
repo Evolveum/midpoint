@@ -17,6 +17,7 @@
   -->
 <user xmlns:my="http://example.com/p"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns:xsd="http://www.w3.org/2001/XMLSchema">
     <name xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
@@ -27,6 +28,7 @@
     <extension>
         <my:shipName>ship name extension</my:shipName>
     </extension>
+    <parentOrgRef oid="123456" type="c:OrgType"/>
     <metadata>
         <createTimestamp>2013-09-03T14:07:56.385+02:00</createTimestamp>
         <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
