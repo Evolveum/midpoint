@@ -362,7 +362,27 @@ public class PageOrgUnit extends PageAdminUsers {
             }
         }
 
+        //Delete parentOrgUnits from edited OrgUnit
+        if(isEditing()){
+            if(parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null){
+                for(ObjectReferenceType parent: parentOrgList){
+                    if(!isRefInParentOrgModel(parent)){
+                        org.asObjectable().getParentOrgRef().remove(parent);
+                    }
+                }
+            }
+        }
+
         return org;
+    }
+
+    private boolean isRefInParentOrgModel(ObjectReferenceType reference){
+        for(OrgType parent: parentOrgUnitsModel.getObject()){
+            if(reference.getOid().equals(parent.getOid())){
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean isOrgParent(OrgType unit, List<ObjectReferenceType> parentList){
