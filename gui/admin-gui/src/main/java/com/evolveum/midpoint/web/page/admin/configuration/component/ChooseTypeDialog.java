@@ -41,6 +41,8 @@ import java.util.List;
  * */
 public class ChooseTypeDialog<T extends Serializable> extends ModalWindow{
 
+    private static final String DEFAULT_SORTABLE_PROPERTY = null;
+
     private static final Trace LOGGER = TraceManager.getTrace(ChooseTypeDialog.class);
     Class<T> objectType;
     private boolean initialized;
@@ -95,7 +97,7 @@ public class ChooseTypeDialog<T extends Serializable> extends ModalWindow{
     private List<IColumn<SelectableBean<ObjectType>, String>> initColumns(){
         List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<IColumn<SelectableBean<ObjectType>, String>>();
 
-        IColumn column = new LinkColumn<SelectableBean<ObjectType>>(createStringResource("chooseTypeDialog.column.name"), "name", "value.name"){
+        IColumn column = new LinkColumn<SelectableBean<ObjectType>>(createStringResource("chooseTypeDialog.column.name"), getSortableProperty(), "value.name"){
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ObjectType>> rowModel){
@@ -107,6 +109,10 @@ public class ChooseTypeDialog<T extends Serializable> extends ModalWindow{
         columns.add(column);
 
         return columns;
+    }
+
+    public String getSortableProperty(){
+        return DEFAULT_SORTABLE_PROPERTY;
     }
 
     private void cancelPerformed(AjaxRequestTarget target) {
