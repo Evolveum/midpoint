@@ -104,7 +104,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	private static final String ACCOUNT_LECHUCK_USERNAME = "lechuck";
 	private static final String ACCOUNT_LECHUCK_FULLNAME = "LeChuck";
 	private static final String ACCOUNT_CHARLES_USERNAME = "charles";
-	private static final String ACCOUNT_SHINETOP_USERNAME = "charles";
+	private static final String ACCOUNT_SHINETOP_USERNAME = "shinetop";
 	
 	protected static DummyResource dummyResourcePink;
 	protected static DummyResourceContoller dummyResourceCtlPink;
@@ -1083,13 +1083,13 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
-		assertUserNick(ACCOUNT_LECHUCK_FULLNAME, ACCOUNT_LECHUCK_FULLNAME);
+		assertUserNick(ACCOUNT_LECHUCK_USERNAME, ACCOUNT_LECHUCK_FULLNAME, ACCOUNT_LECHUCK_FULLNAME);
 	}
 	
 	/*
 	 * Create account with fullname LeChuck. User with name LeChuck.1 should be created (conflict).
 	 */
-	@Test(enabled=false) // Waiting for repo support
+	@Test
     public void test712DarkVioletAddCharles() throws Exception {
 		final String TEST_NAME = "test712DarkVioletAddCharles";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -1113,16 +1113,78 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
-		assertUserNick(ACCOUNT_LECHUCK_FULLNAME, ACCOUNT_LECHUCK_FULLNAME);
-		assertUserNick(ACCOUNT_LECHUCK_FULLNAME, ACCOUNT_LECHUCK_FULLNAME+".1");
+		assertUserNick(ACCOUNT_LECHUCK_USERNAME, ACCOUNT_LECHUCK_FULLNAME, ACCOUNT_LECHUCK_FULLNAME);
+		assertUserNick(ACCOUNT_CHARLES_USERNAME, ACCOUNT_LECHUCK_FULLNAME, ACCOUNT_LECHUCK_FULLNAME+".1");
 	}
 	
-	private void assertUserNick(String accountFullName, String expectedUserName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+	/*
+	 * Create account with fullname LeChuck. User with name LeChuck.2 should be created (second conflict).
+	 */
+	@Test
+    public void test714DarkVioletAddShinetop() throws Exception {
+		final String TEST_NAME = "test714DarkVioletAddShinetop";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        DummyAccount account = new DummyAccount(ACCOUNT_SHINETOP_USERNAME);
+		account.setEnabled(true);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_LECHUCK_FULLNAME);
+        
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		
+        display("Adding dummy account", account.debugDump());
+		dummyResourceDarkViolet.addAccount(account);
+		
+		waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
+        
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		assertUserNick(ACCOUNT_LECHUCK_USERNAME, ACCOUNT_LECHUCK_FULLNAME, ACCOUNT_LECHUCK_FULLNAME);
+		assertUserNick(ACCOUNT_CHARLES_USERNAME, ACCOUNT_LECHUCK_FULLNAME, ACCOUNT_LECHUCK_FULLNAME+".1");
+		assertUserNick(ACCOUNT_SHINETOP_USERNAME, ACCOUNT_LECHUCK_FULLNAME, ACCOUNT_LECHUCK_FULLNAME+".2");
+	}
+	
+	/*
+	 * Create account with fullname barbossa. But user barbossa already exists.
+	 *  User with name barbossa.1 should be created (conflict).
+	 */
+	@Test
+    public void test720DarkVioletAddBarbossa() throws Exception {
+		final String TEST_NAME = "test720DarkVioletAddJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        DummyAccount account = new DummyAccount(USER_BARBOSSA_USERNAME);
+		account.setEnabled(true);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, USER_BARBOSSA_USERNAME);
+        
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		
+        display("Adding dummy account", account.debugDump());
+		dummyResourceDarkViolet.addAccount(account);
+		
+		waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
+        
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		assertUserNick(USER_BARBOSSA_USERNAME, USER_BARBOSSA_USERNAME, USER_BARBOSSA_USERNAME+".1");
+	}
+	
+	private void assertUserNick(String accountName, String accountFullName, String expectedUserName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		PrismObject<UserType> user = findUserByUsername(expectedUserName);
-		assertNotNull("No user for "+accountFullName, user);
-		display("Created user for "+accountFullName, user);
-		assertEquals("Wrong nickname in user created for "+accountFullName, accountFullName, user.asObjectable().getNickName().getOrig());
+		assertNotNull("No user for "+accountName+" ("+expectedUserName+")", user);
+		display("Created user for "+accountName, user);
+		assertEquals("Wrong nickname in user created for "+accountName, accountFullName, user.asObjectable().getNickName().getOrig());
+		assertEquals("Wrong additionalName in user created for "+accountName, accountName, user.asObjectable().getAdditionalName().getOrig());
 	}
-	
-	// TODO: add jack, is should conflict
 }

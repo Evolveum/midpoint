@@ -796,7 +796,7 @@ public class LensUtil {
     }
     
     public static <F extends ObjectType> String formatIterationToken(LensContext<F> context, 
-			LensElementContext<?> accountContext,IterationSpecificationType iterationType, 
+			LensElementContext<?> accountContext, IterationSpecificationType iterationType, 
 			int iteration, ExpressionFactory expressionFactory, ExpressionVariables variables, 
 			Task task, OperationResult result) 
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
@@ -843,5 +843,49 @@ public class LensUtil {
 			return "";
 		}
 		return Integer.toString(iteration);
+	}
+    
+    public static <F extends ObjectType> boolean evaluateIterationCondition(LensContext<F> context, 
+    		LensElementContext<?> accountContext, IterationSpecificationType iterationType, 
+    		int iteration, String iterationToken, boolean beforeIteration, 
+			ExpressionFactory expressionFactory, ExpressionVariables variables, Task task, OperationResult result) 
+					throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
+		if (iterationType == null) {
+			return true;
+		}
+		ExpressionType expressionType;
+		String desc;
+		if (beforeIteration) {
+			expressionType = iterationType.getPreIterationCondition();
+			desc = "pre-iteration expression in "+accountContext.getHumanReadableName();
+		} else {
+			expressionType = iterationType.getPostIterationCondition();
+			desc = "post-iteration expression in "+accountContext.getHumanReadableName();
+		}
+		if (expressionType == null) {
+			return true;
+		}
+		PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinition<Boolean>(ExpressionConstants.OUTPUT_ELMENT_NAME,
+				DOMUtil.XSD_BOOLEAN, context.getPrismContext());
+		Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition , desc, result);
+		
+		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION, iteration);
+		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
+		
+		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, task, result);
+		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = expression.evaluate(expressionContext);
+		Collection<PrismPropertyValue<Boolean>> outputValues = outputTriple.getNonNegativeValues();
+		if (outputValues.isEmpty()) {
+			return false;
+		}
+		if (outputValues.size() > 1) {
+			throw new ExpressionEvaluationException(desc+" returned more than one value ("+outputValues.size()+" values)");
+		}
+		Boolean realValue = outputValues.iterator().next().getValue();
+		if (realValue == null) {
+			return false;
+		}
+		return realValue;
+
 	}
 }

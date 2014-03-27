@@ -61,6 +61,16 @@
 			<default>true</default>
 			<objectClass>ri:AccountObjectClass</objectClass>
 			<attribute>
+				<ref>icfs:name</ref>
+				<displayName>Username</displayName>
+				<inbound>
+					<description>Just for diag purposes. not used in logic.</description>
+					<target>
+						<path>additionalName</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
 				<ref>ri:fullname</ref>
 				<displayName>Full Name</displayName>
 				<inbound>

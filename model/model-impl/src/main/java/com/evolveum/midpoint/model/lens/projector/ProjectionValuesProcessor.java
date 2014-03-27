@@ -546,44 +546,9 @@ public class ProjectionValuesProcessor {
 			return true;
 		}
 		IterationSpecificationType iterationType = accDef.getIteration();
-		if (iterationType == null) {
-			return true;
-		}
-		ExpressionType expressionType;
-		String desc;
-		if (beforeIteration) {
-			expressionType = iterationType.getPreIterationCondition();
-			desc = "pre-iteration expression in "+accountContext.getHumanReadableName();
-		} else {
-			expressionType = iterationType.getPostIterationCondition();
-			desc = "post-iteration expression in "+accountContext.getHumanReadableName();
-		}
-		if (expressionType == null) {
-			return true;
-		}
-		PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinition<Boolean>(ExpressionConstants.OUTPUT_ELMENT_NAME,
-				DOMUtil.XSD_BOOLEAN, prismContext);
-		Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition , desc, result);
-		
 		ExpressionVariables variables = createExpressionVariables(context, accountContext);
-		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION, iteration);
-		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
-		
-		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, task, result);
-		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = expression.evaluate(expressionContext);
-		Collection<PrismPropertyValue<Boolean>> outputValues = outputTriple.getNonNegativeValues();
-		if (outputValues.isEmpty()) {
-			return false;
-		}
-		if (outputValues.size() > 1) {
-			throw new ExpressionEvaluationException(desc+" returned more than one value ("+outputValues.size()+" values)");
-		}
-		Boolean realValue = outputValues.iterator().next().getValue();
-		if (realValue == null) {
-			return false;
-		}
-		return realValue;
-
+		return LensUtil.evaluateIterationCondition(context, accountContext, iterationType, 
+				iteration, iterationToken, beforeIteration, expressionFactory, variables, task, result);
 	}
 
 	/**

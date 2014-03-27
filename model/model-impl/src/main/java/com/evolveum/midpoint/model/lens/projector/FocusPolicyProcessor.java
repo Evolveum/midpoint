@@ -292,8 +292,7 @@ public class FocusPolicyProcessor {
 		PrismObjectDefinition<F> focusDefinition = getFocusDefinition(focusContext.getObjectTypeClass());
 		Collection<ItemDelta<? extends PrismValue>> itemDeltas = null;
 		XMLGregorianCalendar nextRecomputeTime = null;
-		
-		// TODO: iteration conditions!
+	
 		while (true) {
 		
 			ExpressionVariables variables = Utils.getDefaultExpressionVariables(focusContext.getObjectNew(), null, null, null);
@@ -303,77 +302,98 @@ public class FocusPolicyProcessor {
 			LOGGER.trace("Applying {} to {}, iteration {} ({})", 
 					new Object[]{userTemplate, focusContext.getObjectNew(), iteration, iterationToken});
 			
-			Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap 
-				= new HashMap<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>>();
-			
-			nextRecomputeTime = collectTripleFromTemplate(context, userTemplate, userOdo, outputTripleMap,
-					iteration, iterationToken,
-					now, userTemplate.toString(), task, result);
-			
-			itemDeltas = new ArrayList<>();
-			for (Entry<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> entry: outputTripleMap.entrySet()) {
-				ItemPath itemPath = entry.getKey();
-				DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>> outputTriple = entry.getValue();
+			String conflictMessage;
+			if (!LensUtil.evaluateIterationCondition(context, focusContext, 
+					userTemplate.getIteration(), iteration, iterationToken, true, expressionFactory, variables, task, result)) {
 				
-				ItemDelta<? extends PrismValue> apropriItemDelta = null;
-				
-				ItemDelta<? extends PrismValue> itemDelta = LensUtil.consolidateTripleToDelta(itemPath, (DeltaSetTriple)outputTriple,
-						focusDefinition.findItemDefinition(itemPath), apropriItemDelta, userOdo.getNewObject(), null, 
-						true, true, false, "object template "+userTemplate, true);
-				
-				itemDelta.simplify();
-				itemDelta.validate("object template "+userTemplate);
-				itemDeltas.add(itemDelta);
-			}
-			
-			// construct objectNew as the preview how the change will look like
-			// We do NOT want to this in the context because there is a change that this won't be
-			// unique and we will need to drop all the deltas and start again
-			PrismObject<F> previewObjectNew;
-			PrismObject<F> previewBase = focusContext.getObjectCurrent();
-			if (previewBase == null) {
-				previewBase = focusContext.getObjectOld();
-			}
-			if (itemDeltas.isEmpty()) {
-				// No change
-	        	previewObjectNew = previewBase;
+				conflictMessage = "pre-iteration condition was false";
+				LOGGER.debug("Skipping iteration {}, token '{}' for {} because the pre-iteration condition was false",
+						new Object[]{iteration, iterationToken, focusContext.getHumanReadableName()});
 			} else {
-		    	ObjectDelta<F> previewDelta = ObjectDelta.createEmptyModifyDelta(focusContext.getObjectTypeClass(), focusContext.getOid(), prismContext);
-		        for (ItemDelta<? extends PrismValue> itemDelta: itemDeltas) {
-		        	previewDelta.addModification(itemDelta.clone());
-		        }
-		        if (previewBase == null) {
-		        	previewBase = focusDefinition.instantiate();
-		        }
-		        LOGGER.trace("previewDelta={}, previewBase={}", previewDelta, previewBase);
-	        	previewObjectNew = previewDelta.computeChangedObject(previewBase);
-	        }
-			LOGGER.trace("previewObjectNew={}, itemDeltas={}", previewObjectNew, itemDeltas);
-
-			if (previewObjectNew == null) {
-				// this must be delete
-			} else {
-		        // Explicitly check for name. The checker would check for this also. But checking it here
-				// will produce better error message
-				PolyStringType objectName = previewObjectNew.asObjectable().getName();
-				if (objectName == null || objectName.getOrig().isEmpty()) {
-					throw new SchemaException("No name in new object "+objectName+" as produced by template "+userTemplate+
-							" in iteration "+iteration+", we cannot process an object without a name");
+			
+				Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap 
+					= new HashMap<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>>();
+				
+				nextRecomputeTime = collectTripleFromTemplate(context, userTemplate, userOdo, outputTripleMap,
+						iteration, iterationToken,
+						now, userTemplate.toString(), task, result);
+				
+				itemDeltas = new ArrayList<>();
+				for (Entry<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> entry: outputTripleMap.entrySet()) {
+					ItemPath itemPath = entry.getKey();
+					DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>> outputTriple = entry.getValue();
+					
+					ItemDelta<? extends PrismValue> apropriItemDelta = null;
+					
+					ItemDelta<? extends PrismValue> itemDelta = LensUtil.consolidateTripleToDelta(itemPath, (DeltaSetTriple)outputTriple,
+							focusDefinition.findItemDefinition(itemPath), apropriItemDelta, userOdo.getNewObject(), null, 
+							true, true, false, "object template "+userTemplate, true);
+					
+					itemDelta.simplify();
+					itemDelta.validate("object template "+userTemplate);
+					itemDeltas.add(itemDelta);
 				}
+				
+				// construct objectNew as the preview how the change will look like
+				// We do NOT want to this in the context because there is a change that this won't be
+				// unique and we will need to drop all the deltas and start again
+				PrismObject<F> previewObjectNew;
+				PrismObject<F> previewBase = focusContext.getObjectCurrent();
+				if (previewBase == null) {
+					previewBase = focusContext.getObjectOld();
+				}
+				if (itemDeltas.isEmpty()) {
+					// No change
+		        	previewObjectNew = previewBase;
+				} else {
+			    	ObjectDelta<F> previewDelta = ObjectDelta.createEmptyModifyDelta(focusContext.getObjectTypeClass(), focusContext.getOid(), prismContext);
+			        for (ItemDelta<? extends PrismValue> itemDelta: itemDeltas) {
+			        	previewDelta.addModification(itemDelta.clone());
+			        }
+			        if (previewBase == null) {
+			        	previewBase = focusDefinition.instantiate();
+			        }
+			        LOGGER.trace("previewDelta={}, previewBase={}", previewDelta, previewBase);
+		        	previewObjectNew = previewDelta.computeChangedObject(previewBase);
+		        }
+				LOGGER.trace("previewObjectNew={}, itemDeltas={}", previewObjectNew, itemDeltas);
+	
+				if (previewObjectNew == null) {
+					// this must be delete
+				} else {
+			        // Explicitly check for name. The checker would check for this also. But checking it here
+					// will produce better error message
+					PolyStringType objectName = previewObjectNew.asObjectable().getName();
+					if (objectName == null || objectName.getOrig().isEmpty()) {
+						throw new SchemaException("No name in new object "+objectName+" as produced by template "+userTemplate+
+								" in iteration "+iteration+", we cannot process an object without a name");
+					}
+				}
+				
+				// Check if iteration constraints are OK
+				FocusConstraintsChecker<F> checker = new FocusConstraintsChecker<>();
+				checker.setPrismContext(prismContext);
+		        checker.setContext(context);
+		        checker.setRepositoryService(cacheRepositoryService);
+		        checker.check(previewObjectNew, result);
+		        if (checker.isSatisfiesConstraints()) {
+		        	LOGGER.trace("Current focus satisfies uniqueness constraints. Iteration {}, token '{}'", iteration, iterationToken);
+		        	
+		        	if (LensUtil.evaluateIterationCondition(context, focusContext, 
+		        			userTemplate.getIteration(), iteration, iterationToken, false, expressionFactory, variables, 
+		        			task, result)) {
+	    				// stop the iterations
+	    				break;
+	    			} else {
+	    				conflictMessage = "post-iteration condition was false";
+	    				LOGGER.debug("Skipping iteration {}, token '{}' for {} because the post-iteration condition was false",
+	    						new Object[]{iteration, iterationToken, focusContext.getHumanReadableName()});
+	    			}
+		        } 
+		        LOGGER.trace("Current focus does not satisfy constraints. Conflicting object: {}; iteration={}, maxIterations={}",
+		        		new Object[]{checker.getConflictingObject(), iteration, maxIterations});
+		        conflictMessage = checker.getMessages();
 			}
-			
-			// Check if iteration constraints are OK
-			FocusConstraintsChecker<F> checker = new FocusConstraintsChecker<>();
-			checker.setPrismContext(prismContext);
-	        checker.setContext(context);
-	        checker.setRepositoryService(cacheRepositoryService);
-	        checker.check(previewObjectNew, result);
-	        if (checker.isSatisfiesConstraints()) {
-	        	LOGGER.trace("Current focus satisfies uniqueness constraints. Iteration {}, token '{}'", iteration, iterationToken);
-	        	break;
-	        } 
-	        LOGGER.trace("Current focus does not satisfy constraints. Conflicting object: {}; iteration={}, maxIterations={}",
-	        		new Object[]{checker.getConflictingObject(), iteration, maxIterations});
 	        
 	        // Next iteration
 			iteration++;
@@ -391,8 +411,8 @@ public class FocusPolicyProcessor {
 	        	} else {
 	        		sb.append(": cannot determine values that satisfy constraints: ");
 	        	}
-	        	if (checker.getMessages() != null) {
-	        		sb.append(checker.getMessages());
+	        	if (conflictMessage != null) {
+	        		sb.append(conflictMessage);
 	        	}
 	        	throw new ObjectAlreadyExistsException(sb.toString());
 	        }
