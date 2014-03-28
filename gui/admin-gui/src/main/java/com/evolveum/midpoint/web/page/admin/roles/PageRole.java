@@ -110,7 +110,7 @@ public class PageRole extends PageAdminRoles{
                 }
 
                 String roleName = model.getObject().asObjectable().getName().getOrig();
-                return new StringResourceModel("PageRoleEditor.title.editingRole", PageRole.this, null, null, roleName).getString();
+                return createStringResource("PageRoleEditor.title.editingRole").getObject();
             }
         };
     }

@@ -82,10 +82,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.*;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
 import org.apache.wicket.request.resource.ContextRelativeResource;
@@ -193,6 +190,39 @@ public class PageUser extends PageAdminUsers {
 
         initLayout();
     }
+
+    @Override
+    protected IModel<String> createPageTitleModel(){
+        return new LoadableModel<String>() {
+
+            @Override
+            protected String load() {
+                if(!isEditingUser()){
+                    return createStringResource("pageUser.title.newUser").getObject();
+                }
+
+                return createStringResource("pageUser.title.editUser").getObject();
+            }
+        };
+    }
+
+    @Override
+    protected IModel<String> createPageSubTitleModel(){
+        return new LoadableModel<String>() {
+
+            @Override
+            protected String load() {
+                if(!isEditingUser()){
+                    return createStringResource("pageUser.subTitle.newUser").getObject();
+                }
+
+                String name = userModel.getObject().getObject().asObjectable().getName().getOrig();
+                return createStringResource("pageUser.subTitle.edituser", name).getObject();
+            }
+        };
+    }
+
+
 
     private ObjectWrapper loadUserWrapper(PrismObject<UserType> userToEdit) {
         OperationResult result = new OperationResult(OPERATION_LOAD_USER);
