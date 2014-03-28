@@ -115,7 +115,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
@@ -772,8 +771,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		// WHEN
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 //		List<ObjectOperationOptions> options = new ArrayList<ObjectOperationOptions>();
-		OperationOptionsType oot = new OperationOptionsType();
-		modelWeb.getObject(ObjectTypes.SHADOW.getObjectTypeUri(), accountShadowOidOpendj, oot,
+		modelWeb.getObject(ObjectTypes.SHADOW.getTypeQName(), accountShadowOidOpendj, null,
 				objectHolder, resultHolder);
 
 		// THEN
@@ -922,8 +920,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 			assertNotNull("null definition for sync delta", syncDef);
 
 			ObjectModificationType omt = unmarshallJaxbFromFile(REQUEST_RESOURCE_MODIFY_SYNCHRONIZATION, ObjectModificationType.class);
-			assertEquals(1, omt.getModification().size());
-			ItemDeltaType syncItemType = omt.getModification().get(0);
+			assertEquals(1, omt.getItemDelta().size());
+			ItemDeltaType syncItemType = omt.getItemDelta().get(0);
 			ItemDelta sd = DeltaConvertor.createItemDelta(syncItemType, resourceTypeOpenDjrepo.asPrismObject().getDefinition());
 			Collection resSyncDelta = new ArrayList();
 			resSyncDelta.add(sd);
