@@ -28,6 +28,7 @@ import java.util.Set;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -332,9 +333,9 @@ public class SchemaDebugUtil {
 			return "null";
 		}
 		StringBuilder sb = new StringBuilder("[");
-		Iterator<Element> iterator = reflist.getProperty().iterator();
+		Iterator<ItemPathType> iterator = reflist.getProperty().iterator();
 		while (iterator.hasNext()) {
-			XPathHolder xpath = new XPathHolder(iterator.next());
+			ItemPathType xpath = iterator.next();
 			sb.append(xpath.toString());
 			if (iterator.hasNext()) {
 				sb.append(",");

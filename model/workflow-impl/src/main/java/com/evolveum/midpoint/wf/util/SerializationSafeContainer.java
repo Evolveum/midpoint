@@ -142,7 +142,7 @@ public class SerializationSafeContainer<T> implements Serializable {
             } else if (encodingScheme == EncodingScheme.JAXB) {
                 try {
                     LOGGER.trace("Trying to decode JAXB value {}", valueForStorageWhenEncoded);
-                    actualValue = (T) prismContext.parsePrismPropertyRealValue(valueForStorageWhenEncoded, typeName, PrismContext.LANG_XML);
+                    actualValue = (T) prismContext.parseAtomicValue(valueForStorageWhenEncoded, typeName, PrismContext.LANG_XML);
                 } catch (SchemaException e) {
                     LOGGER.trace("Problem with JAXB value {}", valueForStorageWhenEncoded);
                     throw new SystemException("Couldn't deserialize value from JAXB: " + StringUtils.abbreviate(valueForStorageWhenEncoded, MAX_WIDTH), e);

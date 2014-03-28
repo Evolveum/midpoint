@@ -51,8 +51,6 @@ import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 import org.activiti.engine.form.FormProperty;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBException;
@@ -162,7 +160,7 @@ public class MiscDataUtil {
                 throw new IllegalStateException("There's no delta in process variables");
             }
         }
-        return prismContext.parsePrismPropertyRealValue(deltaXml.getValue(), ObjectDeltaType.COMPLEX_TYPE, PrismContext.LANG_XML);
+        return prismContext.parseAtomicValue(deltaXml.getValue(), ObjectDeltaType.COMPLEX_TYPE, PrismContext.LANG_XML);
     }
 
     public PrismObject<? extends ObjectType> getObjectAfter(Map<String, Object> variables, ObjectDeltaType deltaType, PrismObject<? extends ObjectType> objectBefore, PrismContext prismContext, OperationResult result) throws JAXBException, SchemaException {

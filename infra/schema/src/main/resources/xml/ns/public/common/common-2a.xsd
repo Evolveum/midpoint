@@ -6222,7 +6222,7 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-        	<xsd:element name="item" type="t:XPathType"  minOccurs="0" maxOccurs="unbounded">
+        	<xsd:element name="item" type="t:ItemPathType"  minOccurs="0" maxOccurs="unbounded">
         		<xsd:annotation>
         			<xsd:documentation>
         				Specification of items that form a scope of this authorization. This autorization will

@@ -354,7 +354,14 @@ public class ItemPathType implements Serializable, Equals{
         
 	}
 
-//	@Override
+    @Override
+    public String toString() {
+        return "ItemPathType{" +
+                "itemPath=" + getItemPath() +
+                '}';
+    }
+
+    //	@Override
 //	public int hashCode(ObjectLocator locator, HashCodeStrategy hashCodeStrategy) {
 //		final EqualsStrategy strategy = DomAwareEqualsStrategy.INSTANCE;
 ////		hashCodeStrategy.

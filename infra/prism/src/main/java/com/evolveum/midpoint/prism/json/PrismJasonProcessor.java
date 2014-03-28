@@ -576,12 +576,12 @@ generator.close();
 //						if (val.getValue().isObject()){
 //						QName itemQName = new QName(propertyDefinition.getNamespace(), val.getKey());
 //						ItemDefinition def = locateItemDefinition(containerDefinition, new ItemPath(prop.getElementName(), itemQName));
-//						T realValue = parsePrismPropertyRealValue(val.getValue(), (PrismPropertyDefinition<T>) def);
+//						T realValue = parseAtomicValue(val.getValue(), (PrismPropertyDefinition<T>) def);
 //						if (realValue != null) {
 //							prop.add(new PrismPropertyValue<T>(realValue));
 //						}
 //						}else{
-//							T realValue = parsePrismPropertyRealValue(values, propertyDefinition);
+//							T realValue = parseAtomicValue(values, propertyDefinition);
 //							if (realValue != null) {
 //								prop.add(new PrismPropertyValue<T>(realValue));
 //							}

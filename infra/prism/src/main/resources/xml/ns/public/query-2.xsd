@@ -96,7 +96,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="orderBy" type="t:XPathType" minOccurs="0">
+            <xsd:element name="orderBy" type="t:ItemPathType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Property by which the results should be sorted.
@@ -207,7 +207,7 @@
 
     <xsd:element name="type" substitutionGroup="tns:filterClause" type="tns:UriFilterClauseType"/>
 
-    <xsd:element name="path" type="t:XPathType">
+    <xsd:element name="path" type="t:ItemPathType">
         <xsd:annotation>
             <xsd:documentation>
                 XPath to the XML element for the queried property.
@@ -242,7 +242,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:FilterClauseType">
                 <xsd:sequence>
-                    <xsd:element name="path" type="t:XPathType">
+                    <xsd:element name="path" type="t:ItemPathType">
                         <xsd:annotation>
                             <xsd:documentation>
                                 XPath to the property being queried.
@@ -279,7 +279,7 @@
         <xsd:complexContent>
             <xsd:extension base="tns:FilterClauseType">
                 <xsd:sequence>
-                    <xsd:element name="property" type="t:XPathType"/>
+                    <xsd:element name="property" type="t:ItemPathType"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
