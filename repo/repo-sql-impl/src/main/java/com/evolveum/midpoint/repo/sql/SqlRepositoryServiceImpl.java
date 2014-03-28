@@ -67,6 +67,8 @@ import java.util.*;
 import java.util.Date;
 
 /**
+ * Named queries are in {@link com.evolveum.midpoint.repo.sql.data.common.RObject}
+ *
  * @author lazyman
  */
 @Repository
@@ -137,7 +139,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Object fullObject;
         if (!lockForUpdate) {
             //we're not doing update after, so this is faster way to load full object
-            Query query = session.createQuery("select o.fullObject from RObject as o where o.oid=:oid");
+            Query query = session.getNamedQuery("get.object");
             query.setString("oid", oid);
 
             query.setLockOptions(lockOptions);
@@ -278,14 +280,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Session session = null;
         try {
             session = beginReadOnlyTransaction();
-            Query query = session.createQuery("select s.oid from RShadow as s where s.oid = :oid");
+            Query query = session.getNamedQuery("searchShadowOwner.getShadow");
             query.setString("oid", shadowOid);
             if (query.uniqueResult() == null) {
                 throw new ObjectNotFoundException("Shadow with oid '" + shadowOid + "' doesn't exist.");
             }
 
             LOGGER.trace("Selecting account shadow owner for account {}.", new Object[]{shadowOid});
-            query = session.createQuery("select owner.fullObject from RFocus as owner left join owner.linkRef as ref where ref.targetOid = :oid");
+            query = session.getNamedQuery("searchShadowOwner.getOwner");
             query.setString("oid", shadowOid);
 
             List<String> focuses = query.list();
@@ -347,8 +349,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         try {
             session = beginReadOnlyTransaction();
             LOGGER.trace("Selecting account shadow owner for account {}.", new Object[]{accountOid});
-            Query query = session.createQuery("select user.fullObject from " + ClassMapper.getHQLType(UserType.class)
-                    + " as user left join user.linkRef as ref where ref.targetOid = :oid");
+            Query query = session.getNamedQuery("listAccountShadowOwner.getUser");
             query.setString("oid", accountOid);
 
             List<String> users = query.list();
@@ -552,7 +553,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         String fullObject = domProcessor.serializeObjectToString(savedObject);
         LOGGER.trace("Storing full object\n{}", fullObject);
 
-        SQLQuery query = session.createSQLQuery("update m_object set fullObject = :fullObject where oid=:oid");
+        Query query = session.getNamedQuery("updateFullObject");
         query.setString("fullObject", fullObject);
         query.setString("oid", savedObject.getOid());
 
@@ -913,7 +914,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     @Override
     public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
-                                                                     Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
+                                                                     Collection<SelectorOptions<GetOperationOptions>> options,
+                                                                     OperationResult result) throws SchemaException {
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
 
@@ -1027,8 +1029,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             LOGGER.debug("Loading definitions for shadow attributes.");
 
             //todo improve query -> can be already fetched during get/search through projection
-            Query query = session.createQuery("select stringsCount, longsCount, datesCount, referencesCount, clobsCount,"
-                    + " polysCount from RObject where oid = :oid");
+            Query query = session.getNamedQuery("getExtCount");
             query.setParameter("oid", prismObject.getOid());
 
             Object[] counts = (Object[]) query.uniqueResult();
@@ -1643,8 +1644,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Session session = null;
         try {
             session = beginReadOnlyTransaction();
-            SQLQuery query = session.createSQLQuery("select o.version from " + RUtil.getTableName(RObject.class)
-                    + " as o where o.oid = :oid");
+            Query query = session.getNamedQuery("getVersion");
             query.setString("oid", oid);
 
             Number versionLong = (Number) query.uniqueResult();

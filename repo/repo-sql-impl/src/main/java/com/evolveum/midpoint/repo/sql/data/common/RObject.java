@@ -40,10 +40,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.*;
+import org.hibernate.annotations.NamedNativeQuery;
+import org.hibernate.annotations.NamedQueries;
+import org.hibernate.annotations.NamedQuery;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import org.hibernate.annotations.NamedNativeQueries;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import java.io.Serializable;
@@ -55,6 +59,17 @@ import java.util.Set;
 /**
  * @author lazyman
  */
+@NamedQueries({
+        @NamedQuery(name = "get.object", query = "select o.fullObject from RObject as o where o.oid=:oid"),
+        @NamedQuery(name = "searchShadowOwner.getShadow", query = "select s.oid from RShadow as s where s.oid = :oid"),
+        @NamedQuery(name = "searchShadowOwner.getOwner", query = "select owner.fullObject from RFocus as owner left join owner.linkRef as ref where ref.targetOid = :oid"),
+        @NamedQuery(name = "listAccountShadowOwner.getUser", query = "select user.fullObject from RUser as user left join user.linkRef as ref where ref.targetOid = :oid"),
+        @NamedQuery(name = "getExtCount", query = "select stringsCount, longsCount, datesCount, referencesCount, clobsCount, polysCount from RObject where oid = :oid"),
+        @NamedQuery(name = "getVersion", query = "select o.version from RObject as o where o.oid = :oid");
+})
+@NamedNativeQueries({
+        @NamedNativeQuery(name = "updateFullObject", query = "update m_object set fullObject = :fullObject where oid=:oid")
+})
 @Entity
 @Table(name = "m_object")
 @org.hibernate.annotations.Table(appliesTo = "m_object",
