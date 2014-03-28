@@ -41,6 +41,7 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -61,6 +62,8 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -72,6 +75,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -94,8 +98,8 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 	}
 
 	@Test
-    public void test100Recompute() throws Exception {
-		final String TEST_NAME = "test100Recompute";
+    public void test100RecomputeAll() throws Exception {
+		final String TEST_NAME = "test100RecomputeAll";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -111,27 +115,20 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         
         assignRole(USER_GUYBRUSH_OID, ROLE_PIRATE_OID, task, result);
         assignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
+        assignRole(USER_ELAINE_OID, ROLE_JUDGE_OID, task, result);
         
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
         // Now do something evil
         
-        // TODO: change definition of role "pirate". midPoint will no recompute automatically
+        // change definition of role "pirate". midPoint will not recompute automatically
         // the recompute task should do it
         
-        ConstructionType redConstruction = new ConstructionType();
-        ObjectReferenceType resourceRedRef = new ObjectReferenceType();
-        resourceRedRef.setOid(RESOURCE_DUMMY_RED_OID);
-		redConstruction.setResourceRef(resourceRedRef);
-        ObjectDelta<RoleType> roleJudgeDelta = ObjectDelta.createModificationAddContainer(RoleType.class, ROLE_JUDGE_OID, 
-        		new ItemPath(
-        				new NameItemPathSegment(RoleType.F_INDUCEMENT),
-        				new IdItemPathSegment(1111L),
-        				new NameItemPathSegment(AssignmentType.F_CONSTRUCTION)),
-        		prismContext, redConstruction);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(roleJudgeDelta), null, task, result);
+        // One simple change
+        modifyRoleAddConstruction(ROLE_JUDGE_OID, 1111L, RESOURCE_DUMMY_RED_OID);
         
+        // More complicated change
         PrismObject<RoleType> rolePirate = modelService.getObject(RoleType.class, ROLE_PIRATE_OID, null, task, result);
         ItemPath attrItemPath = new ItemPath(
 				new NameItemPathSegment(RoleType.F_INDUCEMENT),
@@ -209,7 +206,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
         // TODO: asserts
         
-        assertEquals("Unexpected number of users", 5, users.size());
+        assertUsers(5);
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -244,7 +241,98 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
         }
         assertEquals("Unexpected number of audit modifications", 5, modifications);
-
+        
+        deleteObject(TaskType.class, TASK_USER_RECOMPUTE_OID, task, result);
 	}
+	
+	@Test(enabled=false) // work in progress
+    public void test110RecomputeSome() throws Exception {
+		final String TEST_NAME = "test110RecomputeSome";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
+        // GIVEN
+        Task task = createTask(TestRecomputeTask.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // Preconditions
+        assertUsers(5);
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_ELAINE_USERNAME, "Elaine Marley", true);
+                
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        // Now do something evil, remove "red" construction from judge role
+        modifyRoleDeleteConstruction(ROLE_JUDGE_OID, 1111L, RESOURCE_DUMMY_RED_OID);
+        
+        PrismObject<RoleType> roleJudge = getRole(ROLE_JUDGE_OID);
+        display("Role judge after modification", roleJudge);
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        addObject(TASK_USER_RECOMPUTE_FILE);
+        
+        dummyAuditService.clear();
+        
+        waitForTaskStart(TASK_USER_RECOMPUTE_OID, false);
+		
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        waitForTaskFinish(TASK_USER_RECOMPUTE_OID, true, 40000);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users after recompute", users);
+        
+        assertDummyAccount(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
+        assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "cutlass", "dagger");
+        assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        
+        assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_ELAINE_USERNAME);
+        
+        assertUsers(5);
+        
+	}
+	
+	private void modifyRoleAddConstruction(String roleOid, long inducementId, String resourceOid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		Task task = createTask(TestRecomputeTask.class.getName() + ".modifyRoleDefinition");
+        OperationResult result = task.getResult();
+		ConstructionType construction = new ConstructionType();
+        ObjectReferenceType resourceRedRef = new ObjectReferenceType();
+        resourceRedRef.setOid(resourceOid);
+		construction.setResourceRef(resourceRedRef);
+        ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid, 
+        		new ItemPath(
+        				new NameItemPathSegment(RoleType.F_INDUCEMENT),
+        				new IdItemPathSegment(inducementId),
+        				new NameItemPathSegment(AssignmentType.F_CONSTRUCTION)),
+        		prismContext, construction);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+	}
+	
+	private void modifyRoleDeleteConstruction(String roleOid, long inducementId, String resourceOid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		Task task = createTask(TestRecomputeTask.class.getName() + ".modifyRoleDefinition");
+        OperationResult result = task.getResult();
+        
+		ConstructionType construction = new ConstructionType();
+        ObjectReferenceType resourceRedRef = new ObjectReferenceType();
+        resourceRedRef.setOid(resourceOid);
+		construction.setResourceRef(resourceRedRef);
+        ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid, 
+        		new ItemPath(
+        				new NameItemPathSegment(RoleType.F_INDUCEMENT),
+        				new IdItemPathSegment(inducementId),
+        				new NameItemPathSegment(AssignmentType.F_CONSTRUCTION)),
+        		prismContext, construction);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+	}
 }
