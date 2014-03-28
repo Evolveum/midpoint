@@ -338,10 +338,7 @@ public class FocusPolicyProcessor {
 				// We do NOT want to this in the context because there is a change that this won't be
 				// unique and we will need to drop all the deltas and start again
 				PrismObject<F> previewObjectNew;
-				PrismObject<F> previewBase = focusContext.getObjectCurrent();
-				if (previewBase == null) {
-					previewBase = focusContext.getObjectOld();
-				}
+				PrismObject<F> previewBase = focusContext.getObjectNew();
 				if (itemDeltas.isEmpty()) {
 					// No change
 		        	previewObjectNew = previewBase;
