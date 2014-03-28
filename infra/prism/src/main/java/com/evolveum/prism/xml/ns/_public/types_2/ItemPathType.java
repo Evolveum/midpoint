@@ -72,7 +72,7 @@ import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
 @XmlType(name = "ItemPathType", propOrder = {
     "content"
 })
-public class ItemPathType implements Serializable, Equals{
+public class ItemPathType implements Serializable, Equals, Cloneable {
 	
 	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "ItemPathType");
 	
@@ -144,7 +144,9 @@ public class ItemPathType implements Serializable, Equals{
 
     public ItemPathType clone() {
     	ItemPathType clone = new ItemPathType();
-    	clone.setItemPath(itemPath);
+        if (itemPath != null) {
+    	    clone.setItemPath(itemPath.clone());
+        }
     	for (Object o : getContent()){
     		clone.getContent().add(o);
     	}
@@ -190,7 +192,7 @@ public class ItemPathType implements Serializable, Equals{
 		return result;
 	}
 	
-	class ContentList implements List<Object>{
+	class ContentList implements List<Object>, Serializable {
 
 			@Override
 			public int size() {
