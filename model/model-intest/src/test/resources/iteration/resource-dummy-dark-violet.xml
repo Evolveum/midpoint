@@ -78,7 +78,15 @@
 						<path>nickName</path>
 					</target>
 				</inbound>
-			</attribute>            
+			</attribute>
+			<attribute>
+				<ref>ri:location</ref>
+				<inbound>
+					<target>
+						<path>locality</path>
+					</target>
+				</inbound>
+			</attribute>
 		</objectType>
 	</schemaHandling>
 	

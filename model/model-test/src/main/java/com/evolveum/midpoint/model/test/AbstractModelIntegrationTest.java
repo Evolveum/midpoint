@@ -64,6 +64,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -2259,6 +2260,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		} else {
 			AssertJUnit.fail("Expected logged in user '"+username+"' but there was unknown principal in the spring security context: "+principal);
 		}
+	}
+	
+	protected void displayAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName()+".displayAllUsers");
+		OperationResult result = task.getResult();
+		ResultHandler<UserType> handler = new ResultHandler<UserType>() {
+			@Override
+			public boolean handle(PrismObject<UserType> object, OperationResult parentResult) {
+				display("User", object);
+				return true;
+			}
+		};
+		modelService.searchObjectsIterative(UserType.class, null, handler, null, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
 	}
 
 }

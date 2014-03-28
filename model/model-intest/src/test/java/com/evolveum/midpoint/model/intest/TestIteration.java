@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.intest;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
 import java.io.File;
@@ -51,6 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
  * @author semancik
@@ -91,8 +93,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	protected static final File USER_TEMPLATE_ITERATION_FILE = new File(TEST_DIR, "user-template-iteration.xml");
 	protected static final String USER_TEMPLATE_ITERATION_OID = "10000000-0000-0000-0000-0000000d0002";
 
-	private static final String USER_LECHUCK_NAME = "lechuck";
-	private static final String ACCOUNT_CHARLES_NAME = "charles";
+	private static final String USER_ANGELICA_NAME = "angelica";
+	private static final String ACCOUNT_SPARROW_NAME = "sparrow";
 	
 	private static final String USER_DEWATT_NAME = "dewatt";
 	private static final String ACCOUNT_DEWATT_NAME = "DeWatt";
@@ -105,6 +107,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	private static final String ACCOUNT_LECHUCK_FULLNAME = "LeChuck";
 	private static final String ACCOUNT_CHARLES_USERNAME = "charles";
 	private static final String ACCOUNT_SHINETOP_USERNAME = "shinetop";
+	private static final String ACCOUNT_CHUCKIE_FULLNAME = "Chuckie";
 	
 	protected static DummyResource dummyResourcePink;
 	protected static DummyResourceContoller dummyResourceCtlPink;
@@ -604,34 +607,34 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test400RenameLeChuckConflicting() throws Exception {
-		final String TEST_NAME = "test400RenameLeChuckConflicting";
+    public void test400RenameAngelicaConflicting() throws Exception {
+		final String TEST_NAME = "test400RenameAngelicaConflicting";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        PrismObject<UserType> userLechuck = createUser(USER_LECHUCK_NAME, "LeChuck", true);
+        PrismObject<UserType> userLechuck = createUser(USER_ANGELICA_NAME, "Angelica", true);
         userLechuck.asObjectable().getAssignment().add(createAccountAssignment(RESOURCE_DUMMY_PINK_OID, null));
         addObject(userLechuck);
         String userLechuckOid = userLechuck.getOid();
         
-        PrismObject<ShadowType> accountCharles = createAccount(resourceDummyPink, ACCOUNT_CHARLES_NAME, true);
+        PrismObject<ShadowType> accountCharles = createAccount(resourceDummyPink, ACCOUNT_SPARROW_NAME, true);
         addObject(accountCharles);
         
         // preconditions
-        assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, USER_LECHUCK_NAME, "LeChuck", true);
-        assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, ACCOUNT_CHARLES_NAME, null, true);
+        assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, USER_ANGELICA_NAME, "Angelica", true);
+        assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, ACCOUNT_SPARROW_NAME, null, true);
         
         // WHEN
         modifyUserReplace(userLechuckOid, UserType.F_NAME, task, result,
-        		PrismTestUtil.createPolyString(ACCOUNT_CHARLES_NAME));
+        		PrismTestUtil.createPolyString(ACCOUNT_SPARROW_NAME));
         
         // THEN
-        assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, ACCOUNT_CHARLES_NAME, null, true);
-        assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, ACCOUNT_CHARLES_NAME+"1", "LeChuck", true);
-        assertNoDummyAccount(RESOURCE_DUMMY_PINK_NAME, USER_LECHUCK_NAME);
+        assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, ACCOUNT_SPARROW_NAME, null, true);
+        assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, ACCOUNT_SPARROW_NAME+"1", "Angelica", true);
+        assertNoDummyAccount(RESOURCE_DUMMY_PINK_NAME, USER_ANGELICA_NAME);
 	}
 	
 	/**
@@ -1133,6 +1136,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         DummyAccount account = new DummyAccount(ACCOUNT_SHINETOP_USERNAME);
 		account.setEnabled(true);
 		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_LECHUCK_FULLNAME);
+		account.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Melee Island");
         
 		// WHEN
 		TestUtil.displayWhen(TEST_NAME);
@@ -1146,7 +1150,89 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		TestUtil.displayThen(TEST_NAME);
 		assertUserNick(ACCOUNT_LECHUCK_USERNAME, ACCOUNT_LECHUCK_FULLNAME, ACCOUNT_LECHUCK_FULLNAME);
 		assertUserNick(ACCOUNT_CHARLES_USERNAME, ACCOUNT_LECHUCK_FULLNAME, ACCOUNT_LECHUCK_FULLNAME+".1");
-		assertUserNick(ACCOUNT_SHINETOP_USERNAME, ACCOUNT_LECHUCK_FULLNAME, ACCOUNT_LECHUCK_FULLNAME+".2");
+		assertUserNick(ACCOUNT_SHINETOP_USERNAME, ACCOUNT_LECHUCK_FULLNAME, ACCOUNT_LECHUCK_FULLNAME+".2", "Melee Island");
+	}
+	
+	/*
+	 * Create account with fullname LeChuck. User with name LeChuck.2 should be created (second conflict).
+	 */
+	@Test
+    public void test716DarkVioletDeleteCharles() throws Exception {
+		final String TEST_NAME = "test716DarkVioletDeleteCharles";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		
+		dummyResourceDarkViolet.deleteAccountByName(ACCOUNT_CHARLES_USERNAME);
+		
+		waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
+        
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		assertUserNick(ACCOUNT_LECHUCK_USERNAME, ACCOUNT_LECHUCK_FULLNAME, ACCOUNT_LECHUCK_FULLNAME);
+		assertNoUserNick(ACCOUNT_CHARLES_USERNAME, ACCOUNT_LECHUCK_FULLNAME, ACCOUNT_LECHUCK_FULLNAME+".1");
+		assertUserNick(ACCOUNT_SHINETOP_USERNAME, ACCOUNT_LECHUCK_FULLNAME, ACCOUNT_LECHUCK_FULLNAME+".2", "Melee Island");
+	}
+	
+	@Test
+    public void test720DarkVioletModifyShinetopLocation() throws Exception {
+		final String TEST_NAME = "test720DarkVioletModifyShinetopLocation";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        DummyAccount account = dummyResourceDarkViolet.getAccountByUsername(ACCOUNT_SHINETOP_USERNAME);
+        
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		
+		account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Monkey Island");
+		
+		waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
+        
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		displayAllUsers();
+		assertUserNick(ACCOUNT_LECHUCK_USERNAME, ACCOUNT_LECHUCK_FULLNAME, ACCOUNT_LECHUCK_FULLNAME);
+		assertNoUserNick(ACCOUNT_CHARLES_USERNAME, ACCOUNT_LECHUCK_FULLNAME, ACCOUNT_LECHUCK_FULLNAME+".1");
+		assertUserNick(ACCOUNT_SHINETOP_USERNAME, ACCOUNT_LECHUCK_FULLNAME, ACCOUNT_LECHUCK_FULLNAME+".2", "Monkey Island");
+	}
+	
+	@Test
+    public void test722DarkVioletModifyShinetopFullName() throws Exception {
+		final String TEST_NAME = "test722DarkVioletModifyShinetopFullName";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+        DummyAccount account = dummyResourceDarkViolet.getAccountByUsername(ACCOUNT_SHINETOP_USERNAME);
+        
+		// WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		
+		account.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, ACCOUNT_CHUCKIE_FULLNAME);
+		
+		waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_DARK_VIOLET_OID, true);
+        
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		displayAllUsers();
+		assertUserNick(ACCOUNT_LECHUCK_USERNAME, ACCOUNT_LECHUCK_FULLNAME, ACCOUNT_LECHUCK_FULLNAME);
+		assertNoUserNick(ACCOUNT_CHARLES_USERNAME, ACCOUNT_LECHUCK_FULLNAME, ACCOUNT_LECHUCK_FULLNAME+".1");
+		assertUserNick(ACCOUNT_SHINETOP_USERNAME, ACCOUNT_CHUCKIE_FULLNAME, ACCOUNT_CHUCKIE_FULLNAME, "Monkey Island");
+		assertNoUserNick(ACCOUNT_SHINETOP_USERNAME, ACCOUNT_LECHUCK_FULLNAME, ACCOUNT_LECHUCK_FULLNAME+".2");
 	}
 	
 	/*
@@ -1154,8 +1240,8 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	 *  User with name barbossa.1 should be created (conflict).
 	 */
 	@Test
-    public void test720DarkVioletAddBarbossa() throws Exception {
-		final String TEST_NAME = "test720DarkVioletAddJack";
+    public void test730DarkVioletAddBarbossa() throws Exception {
+		final String TEST_NAME = "test730DarkVioletAddBarbossa";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -1181,10 +1267,26 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	private void assertUserNick(String accountName, String accountFullName, String expectedUserName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		assertUserNick(accountName, accountFullName, expectedUserName, null);
+	}
+	
+	private void assertUserNick(String accountName, String accountFullName, String expectedUserName, String expectedLocality) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		PrismObject<UserType> user = findUserByUsername(expectedUserName);
 		assertNotNull("No user for "+accountName+" ("+expectedUserName+")", user);
 		display("Created user for "+accountName, user);
 		assertEquals("Wrong nickname in user created for "+accountName, accountFullName, user.asObjectable().getNickName().getOrig());
 		assertEquals("Wrong additionalName in user created for "+accountName, accountName, user.asObjectable().getAdditionalName().getOrig());
+		PolyStringType locality = user.asObjectable().getLocality();
+		if (locality == null) {
+			assertEquals("Wrong locality in user created for "+accountName, expectedLocality, null);
+		} else {
+			assertEquals("Wrong locality in user created for "+accountName, expectedLocality, locality.getOrig());
+		}
+	}
+	
+	private void assertNoUserNick(String accountName, String accountFullName, String expectedUserName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		PrismObject<UserType> user = findUserByUsername(expectedUserName);
+		display("User for "+accountName, user);
+		assertNull("User for "+accountName+" ("+expectedUserName+") exists but it should be gone", user);
 	}
 }

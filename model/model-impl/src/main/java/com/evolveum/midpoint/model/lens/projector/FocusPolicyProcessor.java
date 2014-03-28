@@ -27,6 +27,7 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.apache.xpath.FoundIndex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -322,16 +323,21 @@ public class FocusPolicyProcessor {
 				for (Entry<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> entry: outputTripleMap.entrySet()) {
 					ItemPath itemPath = entry.getKey();
 					DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>> outputTriple = entry.getValue();
-					
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Computed triple for {}:\n{}", itemPath, outputTriple.debugDump());
+					}
 					ItemDelta<? extends PrismValue> apropriItemDelta = null;
-					
+					boolean addUnchangedValues = focusContext.isAdd();
 					ItemDelta<? extends PrismValue> itemDelta = LensUtil.consolidateTripleToDelta(itemPath, (DeltaSetTriple)outputTriple,
 							focusDefinition.findItemDefinition(itemPath), apropriItemDelta, userOdo.getNewObject(), null, 
-							true, true, false, "object template "+userTemplate, true);
+							addUnchangedValues, true, false, "object template "+userTemplate, true);
 					
 					itemDelta.simplify();
 					itemDelta.validate("object template "+userTemplate);
 					itemDeltas.add(itemDelta);
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Computed delta:\n{}", itemDelta.debugDump());
+					}
 				}
 				
 				// construct objectNew as the preview how the change will look like
