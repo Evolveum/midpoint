@@ -438,7 +438,7 @@ public class RawType implements Serializable, Equals{
         	return realValue;
         }
         
-	public <V extends PrismValue> V getParsedValue(ItemDefinition itemDefinition) throws SchemaException {
+	public <V extends PrismValue> V getParsedValue(ItemDefinition itemDefinition, QName itemName) throws SchemaException {
 		V value = null;
 		
 		if (parsed != null){
@@ -453,8 +453,13 @@ public class RawType implements Serializable, Equals{
 						itemDefinition);
 				value = subItem.getValue(0);
 				xnode = null;
-			} else 
-				throw new SchemaException("no definition..cannot parse xnode " + xnode);
+			} else { 
+				PrismProperty<V> subItem = XNodeProcessor.parsePrismPropertyRaw(xnode, itemName);
+				value = (V) subItem.getValue();
+				xnode = null;
+//				throw new SchemaException("no definition..cannot parse xnode " + xnode);
+			}
+//				
 //			} else {
 //				if (xnode instanceof PrimitiveXNode){
 //					if (((PrimitiveXNode) xnode).isParsed()){

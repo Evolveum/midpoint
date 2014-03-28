@@ -437,8 +437,8 @@ public class ResourceManager {
 		CachingMetadataType cachingMetadata = MiscSchemaUtil.generateCachingMetadata();
 		capType.setCachingMetadata(cachingMetadata);
 		
-		ObjectDelta<ResourceType> capabilitiesReplaceDelta = ObjectDelta.createModificationReplaceProperty(ResourceType.class, resource.getOid(), 
-				ResourceType.F_CAPABILITIES, prismContext, capType);
+		ObjectDelta<ResourceType> capabilitiesReplaceDelta = ObjectDelta.createModificationReplaceContainer(ResourceType.class, resource.getOid(), 
+				ResourceType.F_CAPABILITIES, prismContext, capType.asPrismContainerValue().clone());
 		
 		modifications.addAll((Collection<? extends ItemDelta<?>>) capabilitiesReplaceDelta.getModifications());
 		

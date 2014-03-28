@@ -628,7 +628,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
 				new File("src/test/resources/impl/account-change-description.xml"), ObjectModificationType.class);
-		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class, PrismTestUtil.getPrismContext());
+		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, object.asPrismObject().getDefinition());
 		
 		ItemPath icfNamePath = new ItemPath(
 				ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME);
@@ -723,7 +723,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
 				new File("src/test/resources/impl/account-change-password.xml"), ObjectModificationType.class);
-		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class, PrismTestUtil.getPrismContext());
+		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, accountType.asPrismObject().getDefinition());
 		display("Object change",delta);
 
 		// WHEN
@@ -870,7 +870,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
 				new File(REQUEST_DISABLE_ACCOUNT_SIMULATED_FILENAME), ObjectModificationType.class);
-		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class, PrismTestUtil.getPrismContext());
+		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, object.asPrismObject().getDefinition());
 		display("Object change",delta);
 
 		// WHEN

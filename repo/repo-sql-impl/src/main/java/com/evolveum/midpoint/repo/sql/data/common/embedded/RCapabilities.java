@@ -135,8 +135,8 @@ public class RCapabilities {
                     repo.getNative(), CapabilityCollectionType.class, prismContext));
             jaxb.setConfigured(RUtil.toJAXB(CapabilitiesType.class, new ItemPath(CapabilitiesType.F_CONFIGURED),
                     repo.getConfigured(), CapabilityCollectionType.class, CapabilityCollectionType.COMPLEX_TYPE, prismContext));
-            jaxb.setCachingMetadata(RUtil.toJAXB(CachingMetadataType.class,
-                    new ItemPath(CapabilitiesType.F_CACHING_METADATA), repo.getCachingMetadata(),
+            jaxb.setCachingMetadata(RUtil.toJAXB(CapabilitiesType.class,
+                    CapabilitiesType.F_CACHING_METADATA, repo.getCachingMetadata(),
                     CachingMetadataType.class, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);

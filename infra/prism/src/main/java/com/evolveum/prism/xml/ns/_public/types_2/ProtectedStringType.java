@@ -49,7 +49,11 @@ public class ProtectedStringType extends ProtectedDataType<String> {
 	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "ProtectedStringType");
 	
 	private static final String CHARSET = "UTF-8";
-
+	
+	public ProtectedStringType() {
+		content = new ContentList();
+	}
+	
 	@Override
 	public byte[] getClearBytes() {
 		String clearValue = getClearValue();

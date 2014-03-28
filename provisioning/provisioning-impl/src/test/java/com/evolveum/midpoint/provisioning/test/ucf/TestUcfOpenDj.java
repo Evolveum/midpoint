@@ -53,8 +53,9 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsC
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
-
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
+
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -66,6 +67,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
@@ -719,14 +721,15 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		Document doc = DOMUtil.getDocument();
 		ItemPathType path = new ItemPathType();
 //		PropertyPath propPath = new PropertyPath(new PropertyPath(ResourceObjectShadowType.F_CREDENTIALS), CredentialsType.F_PASSWORD);
-		path.getContent().add("c:credentials/c:password");          // TODO will this work?
+		path.getContent().add("c:credentials/c:password/t:value");          // TODO will this work?
 		propMod.setPath(path);
 		
 		//set the replace value
-		ItemDeltaType.Value value = new ItemDeltaType.Value();
-		Element valueElement = PrismTestUtil.marshalObjectToDom(passPs, PasswordType.F_VALUE, doc);
-		value.getAny().add(valueElement);
-		propMod.setValue(value);
+		RawType value = new RawType();
+//		Element valueElement = PrismTestUtil.marshalObjectToDom(passPs, PasswordType.F_VALUE, doc);
+		JAXBElement<ProtectedStringType> jaxb = new JAXBElement<ProtectedStringType>(ProtectedStringType.COMPLEX_TYPE, ProtectedStringType.class, passPs);
+		value.getContent().add(jaxb);
+		propMod.getValue().add(value);
 		
 		//set the modificaion type
 		propMod.setModificationType(ModificationTypeType.REPLACE);

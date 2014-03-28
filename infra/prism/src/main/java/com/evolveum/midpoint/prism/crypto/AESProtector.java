@@ -187,7 +187,9 @@ public class AESProtector implements Protector {
 	@Override
 	public <T> void decrypt(ProtectedData<T> protectedData) throws EncryptionException, SchemaException {
 		if (!protectedData.isEncrypted()) {
-			throw new IllegalArgumentException("Attempt to decrypt protected data that are not encrypted");
+			return;
+			//TODO: is this exception really needed?? isn't it better just return the same protected data??
+			//throw new IllegalArgumentException("Attempt to decrypt protected data that are not encrypted");
 		}
 		
 		EncryptedDataType encryptedDataType = protectedData.getEncryptedDataType();
@@ -271,17 +273,30 @@ public class AESProtector implements Protector {
 
     @Override
     public String decryptString(ProtectedStringType protectedString) throws EncryptionException {
-        throw new UnsupportedOperationException();      // TODO implement this
+        try {
+        	decrypt(protectedString);
+        	return protectedString.getClearValue();
+        } catch (SchemaException ex){
+        	throw new EncryptionException(ex);
+        }
+        
     }
 
     @Override
     public ProtectedStringType encryptString(String text) throws EncryptionException {
-        throw new UnsupportedOperationException();      // TODO implement this
+    	ProtectedStringType protectedString = new ProtectedStringType();
+    	protectedString.setClearValue(text);
+    	encrypt(protectedString);
+    	return protectedString;
+    	
+//        throw new UnsupportedOperationException();      // TODO implement this
     }
 
     @Override
     public boolean isEncrypted(ProtectedStringType ps) {
-        throw new UnsupportedOperationException();      // TODO implement this
+    	Validate.notNull(ps, "Protected string must not be null.");
+    	return ps.isEncrypted();
+//        throw new UnsupportedOperationException();      // TODO implement this
     }
 
     private byte[] encryptBytes(byte[] clearData, String algorithmUri, Key key) throws NoSuchAlgorithmException, NoSuchPaddingException, NoSuchProviderException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {

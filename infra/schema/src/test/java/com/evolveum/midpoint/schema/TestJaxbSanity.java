@@ -202,7 +202,8 @@ public class TestJaxbSanity {
 		ConstructionType ac1 = user1Type.getAssignment().get(0).getConstruction();
 		ConstructionType ac2 = user2Type.getAssignment().get(0).getConstruction();
 		assertTrue("ConstructionType not equals", ac1.equals(ac2));
-		
+		System.out.println(user1.debugDump());
+		System.out.println(user2.debugDump());
 		// WHEN, THEN
 		assertTrue("User not equals (PrismObject)", user1.equals(user2));
 		assertTrue("User not equivalent (PrismObject)", user1.equivalent(user2));

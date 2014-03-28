@@ -546,7 +546,12 @@ public class XNodeProcessor {
         if (protectedType.isEmpty()){
             XNode xClearValue = xmap.get(ProtectedDataType.F_CLEAR_VALUE);
             if (xClearValue == null){
-                return;
+            	//TODO: try to use common namespace (only to be compatible with previous versions)
+            	//FIXME maybe add some warning, info...
+            	xClearValue = xmap.get(new QName(ProtectedDataType.F_CLEAR_VALUE.getLocalPart()));
+            }
+            if (xClearValue == null){
+            	return;
             }
             if (!(xClearValue instanceof PrimitiveXNode)){
                 //this is maybe not good..

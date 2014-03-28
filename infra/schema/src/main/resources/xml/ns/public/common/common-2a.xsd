@@ -6992,6 +6992,7 @@
             <xsd:element name="entry" type="tns:EntryType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="params" type="tns:ParamsType"/>
 
     <xsd:complexType name="EntryType">
         <xsd:sequence>

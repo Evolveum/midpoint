@@ -35,7 +35,7 @@
 		<foo:multi xsi:type="xsd:string">dva</foo:multi>
 		<foo:multi xsi:type="xsd:string">tri</foo:multi>
 		<foo:password xsi:type="t:ProtectedStringType">
-			<clearValue>openS3zam3</clearValue>
+			<t:clearValue>openS3zam3</t:clearValue>
 		</foo:password>
 	</extension>
     
@@ -68,7 +68,7 @@
     <credentials>
         <password>
         	<value>
-	            <clearValue>deadjacktellnotales</clearValue>
+	            <t:clearValue>deadjacktellnotales</t:clearValue>
             </value>
         </password>
     </credentials>

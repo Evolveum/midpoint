@@ -90,6 +90,7 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
 	public static final QName F_XML_DSIG_KEY_INFO = new QName(NS_XML_DSIG, "KeyInfo");
 	public static final QName F_XML_DSIG_KEY_NAME = new QName(NS_XML_DSIG, "KeyName");
 	
+	
 	@XmlTransient
 	private EncryptedDataType encryptedDataType;
 	
@@ -178,6 +179,9 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
     }
     
     private boolean addContent(Object newObject) {
+    	if (newObject instanceof String){
+    		return true;
+    	} else
     	if (newObject instanceof JAXBElement<?>) {
     		JAXBElement<?> jaxbElement = (JAXBElement<?>)newObject;
     		if (QNameUtil.match(F_ENCRYPTED_DATA, jaxbElement.getName())) {
@@ -191,6 +195,9 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
     		QName elementName = DOMUtil.getQName(element);
     		if (QNameUtil.match(F_XML_ENC_ENCRYPTED_DATA, elementName)) {
     			encryptedDataType = convertXmlEncToEncryptedDate(element);
+    			return true;
+    		} else if (QNameUtil.match(F_CLEAR_VALUE, elementName)){
+    			clearValue = (T) element.getTextContent();
     			return true;
     		} else {
     			throw new IllegalArgumentException("Attempt to add unknown DOM element "+elementName);
@@ -309,7 +316,7 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
         }
     }
 
-    class ContentList implements List<Object> {
+    class ContentList implements List<Object>, Serializable {
 
 		@Override
 		public int size() {
@@ -343,6 +350,7 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
 				@Override
 				public Object next() {
 					if (index == 0) {
+						index++;
 						return toJaxbElement(encryptedDataType);
 					} else {
 						return null;

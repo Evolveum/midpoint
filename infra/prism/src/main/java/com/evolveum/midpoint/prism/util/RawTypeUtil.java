@@ -47,11 +47,18 @@ public class RawTypeUtil {
 			if (itemDefinition == null && containerDef != null){
 				itemDefinition = containerDef.getPrismContext().getXnodeProcessor().locateItemDefinition(containerDef, elementQName, rawValue.getXnode());
 			}
-			V parsed = rawValue.getParsedValue(itemDefinition);
+			V parsed = rawValue.getParsedValue(itemDefinition, elementQName);
 			if (parsed != null){
 				parsedValues.add(parsed);
 			}
 		}
+		
+		if (itemDefinition == null){
+			PrismProperty property = new PrismProperty(elementQName);
+            property.addAll(PrismValue.cloneCollection(parsedValues));
+            return property;
+		}
+		
 		
 			if (itemDefinition instanceof PrismPropertyDefinition<?>) {
 				// property
@@ -59,44 +66,22 @@ public class RawTypeUtil {
 				for (V val : parsedValues){
 					property.add((PrismPropertyValue) val.clone());
 				}
-//				if (parsed != null){
-//					property.setValue((PrismPropertyValue)parsed.clone());
-//				}
 				subItem = (Item<V>) property;
 				
 			} else if (itemDefinition instanceof PrismContainerDefinition<?>) {
-//				if (realValue instanceof Containerable) {
 					PrismContainer<?> container = ((PrismContainerDefinition<?>) itemDefinition)
 							.instantiate();
-//					PrismContainerValue subValue = ((Containerable) realValue).asPrismContainerValue();
 					for (V val : parsedValues){
 						container.add((PrismContainerValue) val.clone());
 					}
-//					container.add((PrismContainerValue) parsed.clone());
 					subItem = (Item<V>) container;
-//				} else {
-//					throw new IllegalArgumentException("Unsupported JAXB bean " + realValue.getClass());
-//				}
 			} else if (itemDefinition instanceof PrismReferenceDefinition) {
 				// TODO
-//				if (realValue instanceof Referencable) {
 					PrismReference reference = ((PrismReferenceDefinition) itemDefinition).instantiate();
-//					PrismReferenceValue refValue = ((Referencable) realValue).asReferenceValue();
 					for (V val : parsedValues){
 						reference.merge((PrismReferenceValue) val.clone());
 					}
-//					reference.merge((PrismReferenceValue) parsed.clone());
 					subItem = (Item<V>) reference;
-//				} else if (realValue instanceof Objectable){
-//					// TODO: adding reference with object??
-//					PrismReference reference = ((PrismReferenceDefinition) itemDefinition).instantiate();
-//					PrismReferenceValue refVal = new PrismReferenceValue();
-//					refVal.setObject(((Objectable) realValue).asPrismObject());
-//					reference.merge(refVal);
-//					subItem = (Item<V>) reference;
-//				} else{
-//					throw new IllegalArgumentException("Unsupported JAXB bean" + realValue);
-//				}
 
 			} else {
 				throw new IllegalArgumentException("Unsupported definition type " + itemDefinition.getClass());

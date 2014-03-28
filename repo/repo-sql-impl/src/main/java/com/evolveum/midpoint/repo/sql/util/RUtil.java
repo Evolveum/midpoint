@@ -247,10 +247,11 @@ public final class RUtil {
 			definition = prismContext.getSchemaRegistry().findItemDefinitionByElementName(path);
 			
 		}
-		
 		if (definition == null && elementName != null){
 			definition = registry.findItemDefinitionByElementName(elementName);
 		}
+		
+		
 //		System.out.println("definition: " + definition);
 //		System.out.println("value: " + value);
 
@@ -263,6 +264,9 @@ public final class RUtil {
 //		}
 		
 		System.out.println("jaxbValue " + jaxbValue);
+		if (jaxbValue instanceof List && !List.class.isAssignableFrom(clazz)){
+			return (T) ((List) jaxbValue).get(0);
+		}
 
 		return jaxbValue;
 	}
@@ -668,15 +672,16 @@ public final class RUtil {
 			jaxb.setLocalizedMessage(RUtil.toJAXB(OperationResultType.class,
 					OperationResultType.F_LOCALIZED_MESSAGE, repo.getLocalizedMessage(),
 					LocalizedMessageType.class, prismContext));
+//			System.out.println("@@@@@@@@@PARAMS " + repo.getParams());
 			jaxb.setParams(RUtil.toJAXB(OperationResultType.class,
-					OperationResultType.F_PARAMS, repo.getParams(), ParamsType.class,
+					OperationResultType.F_PARAMS, SchemaConstantsGenerated.C_PARAMS, repo.getParams(), ParamsType.class,
 					prismContext));
 
 			jaxb.setContext(RUtil.toJAXB(OperationResultType.class, 
-					OperationResultType.F_CONTEXT, repo.getContext(), ParamsType.class, prismContext));
+					OperationResultType.F_CONTEXT, SchemaConstantsGenerated.C_PARAMS, repo.getContext(), ParamsType.class, prismContext));
 
 			jaxb.setReturns(RUtil.toJAXB(OperationResultType.class, 
-					OperationResultType.F_RETURNS, repo.getReturns(), ParamsType.class, prismContext));
+					OperationResultType.F_RETURNS, SchemaConstantsGenerated.C_PARAMS, repo.getReturns(), ParamsType.class, prismContext));
 
 			if (StringUtils.isNotEmpty(repo.getPartialResults())) {
 				System.out.println("PARTIAL RESULTS DESERIALIZATION");
