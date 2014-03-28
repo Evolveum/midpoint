@@ -110,6 +110,8 @@
             <effectiveStatus>disabled</effectiveStatus>
             <disableReason>asdfreason</disableReason>
         </activation>
+        <iteration>123</iteration>
+        <iterationToken>stringtoken</iterationToken>
     </object>
 
     <object xsi:type="UserType" version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
