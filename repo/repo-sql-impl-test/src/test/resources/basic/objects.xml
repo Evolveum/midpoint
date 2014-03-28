@@ -152,7 +152,10 @@
         <activation>
             <administrativeStatus>archived</administrativeStatus>
             <effectiveStatus>disabled</effectiveStatus>
+            <disableReason>asdfreason</disableReason>
         </activation>
+        <iteration>123</iteration>
+        <iterationToken>stringtoken</iterationToken>
     </object>
 
     <resource>
