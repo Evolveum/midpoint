@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.GetOperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.SelectorQualifiedGetOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.SelectorQualifiedGetOptionsType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -135,9 +136,8 @@ public class MiscSchemaUtil {
 
 	public static Collection<ItemPath> itemReferenceListTypeToItemPathList(PropertyReferenceListType resolve) {
 		Collection<ItemPath> itemPathList = new ArrayList<ItemPath>(resolve.getProperty().size());
-		for (Element itemXPathElement: resolve.getProperty()) {
-			XPathHolder itemXPath = new XPathHolder(itemXPathElement);
-			itemPathList.add(itemXPath.toItemPath());
+		for (ItemPathType itemXPathElement: resolve.getProperty()) {
+			itemPathList.add(itemXPathElement.getItemPath());
 		}
 		return itemPathList;
 	}

@@ -5,7 +5,6 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlElementDecl;
 import javax.xml.bind.annotation.XmlRegistry;
 import javax.xml.namespace.QName;
-import com.evolveum.prism.xml.ns._public.types_2.XPathType;
 
 
 /**
@@ -309,13 +308,13 @@ public class ObjectFactory {
         return new JAXBElement<PropertySimpleValueFilterType>(_OrgRef_QNAME, PropertySimpleValueFilterType.class, null, value);
     }
 
-    /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link XPathType }{@code >}}
-     * 
-     */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "path")
-    public JAXBElement<XPathType> createPath(XPathType value) {
-        return new JAXBElement<XPathType>(_Path_QNAME, XPathType.class, null, value);
-    }
+//    /**
+//     * Create an instance of {@link JAXBElement }{@code <}{@link XPathType }{@code >}}
+//     *
+//     */
+//    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/query-2", name = "path")
+//    public JAXBElement<XPathType> createPath(XPathType value) {
+//        return new JAXBElement<XPathType>(_Path_QNAME, XPathType.class, null, value);
+//    }
 
 }

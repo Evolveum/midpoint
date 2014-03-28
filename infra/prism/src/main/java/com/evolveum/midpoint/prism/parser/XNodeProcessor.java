@@ -388,7 +388,7 @@ public class XNodeProcessor {
      * Does not require existence of a property that corresponds to a given type name.
      * (The method name is a bit misleading.)
      */
-    public <T> T parsePrismPropertyRealValue(XNode xnode, QName typeName) throws SchemaException {
+    public <T> T parseAtomicValue(XNode xnode, QName typeName) throws SchemaException {
         if (xnode instanceof PrimitiveXNode<?>) {
             return parsePrismPropertyRealValueFromPrimitive((PrimitiveXNode<T>)xnode, typeName);
         } else if (xnode instanceof MapXNode) {

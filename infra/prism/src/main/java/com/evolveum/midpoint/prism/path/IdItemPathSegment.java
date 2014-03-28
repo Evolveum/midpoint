@@ -78,5 +78,11 @@ public class IdItemPathSegment extends ItemPathSegment {
 			return false;
 		return true;
 	}
+
+    public IdItemPathSegment clone() {
+        IdItemPathSegment clone = new IdItemPathSegment();
+        clone.id = this.id;
+        return clone;
+    }
 	
 }

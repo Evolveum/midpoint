@@ -161,13 +161,13 @@ public class ObjectFactory implements Serializable {
         return new PolyStringType();
     }
 
-    /**
-     * Create an instance of {@link XPathType }
-     * 
-     */
-    public XPathType createXPathType() {
-        return new XPathType();
-    }
+//    /**
+//     * Create an instance of {@link XPathType }
+//     *
+//     */
+//    public XPathType createXPathType() {
+//        return new XPathType();
+//    }
     
 
     /**

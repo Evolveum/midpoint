@@ -236,6 +236,19 @@ public class PrismContext {
         RootXNode xroot = parserDom.parseElementAsRoot(objectElement);
         return xnodeProcessor.parseObject(xroot);
     }
+
+    public List<PrismObject<? extends Objectable>> parseObjects(File file) throws SchemaException, IOException {
+        Parser parser = findParser(file);
+        Collection<XNode> nodes = parser.parseCollection(file);
+        Iterator<XNode> nodesIterator = nodes.iterator();
+        List<PrismObject<? extends Objectable>> objects = new ArrayList<PrismObject<? extends Objectable>>();
+        while (nodesIterator.hasNext()){
+            XNode node = nodesIterator.next();
+            PrismObject object = xnodeProcessor.parseObject(node);
+            objects.add(object);
+        }
+        return objects;
+    }
     //endregion
 
     //region Parsing prism containers
@@ -274,17 +287,18 @@ public class PrismContext {
     }
     //endregion
 
-    //region Parsing properties
+    //region Parsing atomic values (properties values)
     /**
-     * Does not require existence of a property that corresponds to a given type name.
-     * (The method name is a bit misleading.)
+     * Parses an atomic value - i.e. something that could present a property value, if such a property would exist.
      */
-    public <T> T parsePrismPropertyRealValue(String dataString, QName typeName, String language) throws SchemaException {
+    public <T> T parseAtomicValue(String dataString, QName typeName, String language) throws SchemaException {
         XNode xnode = parseToXNode(dataString, language);
-        return xnodeProcessor.parsePrismPropertyRealValue(xnode, typeName);
+        return xnodeProcessor.parseAtomicValue(xnode, typeName);
     }
 
     //endregion
+
+    //region Parsing to XNode
     private XNode parseToXNode(String dataString, String language) throws SchemaException {
         Parser parser = getParserNotNull(language);
         return parser.parse(dataString);
@@ -329,7 +343,9 @@ public class PrismContext {
         }
         return parser;
     }
+    //endregion
 
+    //region adopt(...) methods
     /**
 	 * Set up the specified object with prism context instance and schema definition.
 	 */
@@ -365,20 +381,9 @@ public class PrismContext {
 		prismContainerValue.revive(this);
 		getSchemaRegistry().applyDefinition(prismContainerValue, typeName, path, false);
 	}
+    //endregion
 
-	public List<PrismObject<? extends Objectable>> parseObjects(File file) throws SchemaException, IOException {
-		Parser parser = findParser(file);
-		Collection<XNode> nodes = parser.parseCollection(file);
-		Iterator<XNode> nodesIterator = nodes.iterator();
-		List<PrismObject<? extends Objectable>> objects = new ArrayList<PrismObject<? extends Objectable>>();
-		while (nodesIterator.hasNext()){
-			XNode node = nodesIterator.next();
-			PrismObject object = xnodeProcessor.parseObject(node);
-			objects.add(object);
-		}
-		return objects;
-	}
-
+    //region Serializing objects, containers, atomic values (properties)
 	public <O extends Objectable> String serializeObjectToString(PrismObject<O> object, String language) throws SchemaException {
 		Parser parser = getParserNotNull(language);
 		RootXNode xroot = xnodeProcessor.serializeObject(object);
@@ -392,25 +397,26 @@ public class PrismContext {
 		return parser.serializeToString(xroot);
 	}
 
-    public <T> String serializePrismPropertyRealValues(QName elementName, String language, T... values) throws SchemaException {
-        Parser parser = getParserNotNull(language);
-        PrismPropertyDefinition<T> definition = schemaRegistry.findPropertyDefinitionByElementName(elementName);
-        if (definition == null) {
-            throw new SchemaException("Prism property with name " + elementName + " couldn't be found");
-        }
-        PrismProperty property = definition.instantiate();
-        for (T value : values) {
-            property.addRealValue(value);
-        }
-        RootXNode xroot = xnodeProcessor.serializeItemAsRoot(property);
-        return parser.serializeToString(xroot);
-    }
+//    public <T> String serializeAtomicValues(QName elementName, String language, T... values) throws SchemaException {
+//        Parser parser = getParserNotNull(language);
+//        PrismPropertyDefinition<T> definition = schemaRegistry.findPropertyDefinitionByElementName(elementName);
+//        if (definition == null) {
+//            throw new SchemaException("Prism property with name " + elementName + " couldn't be found");
+//        }
+//        PrismProperty property = definition.instantiate();
+//        for (T value : values) {
+//            property.addRealValue(value);
+//        }
+//        RootXNode xroot = xnodeProcessor.serializeItemAsRoot(property);
+//        return parser.serializeToString(xroot);
+//    }
 
     @Deprecated
 	public <O extends Objectable> Element serializeToDom(PrismObject<O> object) throws SchemaException {
 		RootXNode xroot = xnodeProcessor.serializeObject(object);
 		return parserDom.serializeXRootToElement(xroot);
 	}
+    //endregion
 
     /**
      * A bit of hack: serializes any Item into a RawType.

@@ -95,5 +95,11 @@ public class NameItemPathSegment extends ItemPathSegment {
 			return false;
 		return true;
 	}
+
+    public NameItemPathSegment clone() {
+        NameItemPathSegment clone = new NameItemPathSegment(this.name, this.isVariable);
+        clone.setWildcard(this.isWildcard());
+        return clone;
+    }
 	
 }

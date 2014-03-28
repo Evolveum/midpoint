@@ -17,6 +17,7 @@ package com.evolveum.midpoint.security.api;
 
 import java.util.List;
 
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import org.springframework.security.core.GrantedAuthority;
 import org.w3c.dom.Element;
 
@@ -68,7 +69,7 @@ public class Authorization implements GrantedAuthority, DebugDumpable {
 		return authorizationType.getObject();
 	}
 
-	public List<Element> getItem() {
+	public List<ItemPathType> getItem() {
 		return authorizationType.getItem();
 	}
 

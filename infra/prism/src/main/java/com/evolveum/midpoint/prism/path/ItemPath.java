@@ -17,6 +17,7 @@ package com.evolveum.midpoint.prism.path;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +31,7 @@ import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
  * @author semancik
  *
  */
-public class ItemPath implements Serializable {
+public class ItemPath implements Serializable, Cloneable {
 	
 	public static final QName XSD_TYPE = ItemPathType.COMPLEX_TYPE;
 	public static final ItemPath EMPTY_PATH = new ItemPath();
@@ -239,7 +240,7 @@ public class ItemPath implements Serializable {
 		return CompareResult.EQUIVALENT;
 	}
 
-	public enum CompareResult {
+    public enum CompareResult {
 		EQUIVALENT,
 		SUPERPATH,
 		SUBPATH,
@@ -374,5 +375,16 @@ public class ItemPath implements Serializable {
 			return false;
 		return true;
 	}
+
+    public ItemPath clone() {
+        ItemPath clone = new ItemPath();
+        for (ItemPathSegment segment : segments) {
+            clone.segments.add(segment.clone());
+        }
+        if (namespaceMap != null) {
+            clone.namespaceMap = new HashMap<>(namespaceMap);
+        }
+        return clone;
+    }
 
 }

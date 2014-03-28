@@ -123,7 +123,7 @@ public class JaxbDomHack {
 		}
 	}
 	
-	public <T extends Containerable> ItemDefinition locateItemDefinition(
+	private <T extends Containerable> ItemDefinition locateItemDefinition(
 			PrismContainerDefinition<T> containerDefinition, QName elementQName, Object valueElements)
 			throws SchemaException {
 		ItemDefinition def = containerDefinition.findItemDefinition(elementQName);

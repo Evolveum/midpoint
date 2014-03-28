@@ -447,7 +447,7 @@ public class ExpressionUtil {
 		try {
 			valueExpression = prismContext.getJaxbDomHack().toJavaValue(
 					valueExpressionElement, ExpressionType.class);
-			
+
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Filter transformed to expression\n{}", valueExpression);
 			}
@@ -455,7 +455,7 @@ public class ExpressionUtil {
 			LoggingUtils.logException(LOGGER, "Expression element couldn't be transformed.", ex);
 			throw new SchemaException("Expression element couldn't be transformed: " + ex.getMessage(), ex);
 		}
-		
+
 		return valueExpression;
 
 	}

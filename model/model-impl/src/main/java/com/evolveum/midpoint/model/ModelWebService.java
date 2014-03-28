@@ -259,7 +259,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
             if (scriptsAsString.startsWith("<?xml")) {
                 // FIXME parse expressions
                 throw new UnsupportedOperationException("scripts couldn't be parsed yet");
-                //JAXBElement<?> expressionType = prismContext.parsePrismPropertyRealValue(scriptsAsString, ExpressionType.COMPLEX_TYPE, PrismContext.LANG_XML);
+                //JAXBElement<?> expressionType = prismContext.parseAtomicValue(scriptsAsString, ExpressionType.COMPLEX_TYPE, PrismContext.LANG_XML);
                 //scriptsToExecute.add(expressionType);
             }
         }
@@ -283,9 +283,10 @@ public class ModelWebService implements ModelPortType, ModelPort {
                 if (options == null || options.getOutputFormat() == null || options.getOutputFormat() == OutputFormatType.XML) {
                     output.setXmlData(prepareXmlData(outputContext.getFinalOutput()));
                 } else {
+                    throw new UnsupportedOperationException();
                     // temporarily we send serialized XML in the case of MSL output
-                    ItemListType jaxbOutput = prepareXmlData(outputContext.getFinalOutput());
-                    output.setMslData(prismContext.serializePrismPropertyRealValues(SchemaConstants.APIT_ITEM_LIST, PrismContext.LANG_XML, jaxbOutput));
+//                    ItemListType jaxbOutput = prepareXmlData(outputContext.getFinalOutput());
+//                    output.setMslData(prismContext.serializeAtomicValues(SchemaConstants.APIT_ITEM_LIST, PrismContext.LANG_XML, jaxbOutput));
                 }
             }
             result.computeStatusIfUnknown();

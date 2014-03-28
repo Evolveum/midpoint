@@ -1358,7 +1358,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         ObjectModificationType objectChange = unmarshallJaxbFromFile(
                 REQUEST_USER_MODIFY_PASSWORD_FILENAME, ObjectModificationType.class);
 
-        System.out.println("In modification: " + objectChange.getModification().get(0).getValue().getAny().get(0));
+        System.out.println("In modification: " + objectChange.getItemDelta().get(0).getValue().get(0));
         assertNoRepoCache();
 
         // WHEN

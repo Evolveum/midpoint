@@ -278,7 +278,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="property" type="t:XPathType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="property" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
     
