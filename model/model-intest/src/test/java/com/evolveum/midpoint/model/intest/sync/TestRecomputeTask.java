@@ -263,7 +263,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         // Now do something evil, remove "red" construction from judge role
-        modifyRoleDeleteConstruction(ROLE_JUDGE_OID, 1111L, RESOURCE_DUMMY_RED_OID);
+        modifyRoleDeleteInducement(ROLE_JUDGE_OID, 1111L, RESOURCE_DUMMY_RED_OID);
         
         PrismObject<RoleType> roleJudge = getRole(ROLE_JUDGE_OID);
         display("Role judge after modification", roleJudge);
@@ -317,7 +317,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
 	}
 	
-	private void modifyRoleDeleteConstruction(String roleOid, long inducementId, String resourceOid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+	private void modifyRoleDeleteInducement(String roleOid, long inducementId, String resourceOid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Task task = createTask(TestRecomputeTask.class.getName() + ".modifyRoleDefinition");
         OperationResult result = task.getResult();
         
@@ -325,12 +325,13 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         ObjectReferenceType resourceRedRef = new ObjectReferenceType();
         resourceRedRef.setOid(resourceOid);
 		construction.setResourceRef(resourceRedRef);
+		AssignmentType inducement = new AssignmentType();
+		inducement.setConstruction(construction);
         ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid, 
         		new ItemPath(
         				new NameItemPathSegment(RoleType.F_INDUCEMENT),
-        				new IdItemPathSegment(inducementId),
-        				new NameItemPathSegment(AssignmentType.F_CONSTRUCTION)),
-        		prismContext, construction);
+        				new IdItemPathSegment(inducementId)),
+        		prismContext, inducement);
         modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
