@@ -281,6 +281,8 @@
         validTo datetime2,
         validityChangeTimestamp datetime2,
         validityStatus int,
+        interationToken nvarchar(255),
+        iteration int,
         id bigint not null,
         oid nvarchar(36) not null,
         primary key (id, oid)
@@ -355,6 +357,7 @@
 
     create table m_object_template (
         accountConstruction nvarchar(MAX),
+        iteration nvarchar(MAX),
         mapping nvarchar(MAX),
         name_norm nvarchar(255),
         name_orig nvarchar(255),

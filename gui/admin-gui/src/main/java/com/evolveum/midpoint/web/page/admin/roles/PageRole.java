@@ -43,6 +43,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
@@ -109,7 +110,23 @@ public class PageRole extends PageAdminRoles{
                 }
 
                 String roleName = model.getObject().asObjectable().getName().getOrig();
-                return new StringResourceModel("PageRoleEditor.title.editingRole", PageRole.this, null, null, roleName).getString();
+                return createStringResource("PageRoleEditor.title.editingRole").getObject();
+            }
+        };
+    }
+
+    @Override
+    protected IModel<String> createPageSubTitleModel(){
+        return new LoadableModel<String>() {
+
+            @Override
+            protected String load() {
+                if(!isEditing()){
+                    return createStringResource("PageRoleEditor.subtitle.newRole").getObject();
+                }
+
+                String roleName = model.getObject().asObjectable().getName().getOrig();
+                return createStringResource("PageRoleEditor.subtitle.editingRole", roleName).getString();
             }
         };
     }

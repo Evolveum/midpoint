@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -25,8 +26,10 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
@@ -40,6 +43,8 @@ import java.util.List;
  *  @author shood
  * */
 public class ChooseTypeDialog<T extends Serializable> extends ModalWindow{
+
+    private static final String DEFAULT_SORTABLE_PROPERTY = null;
 
     private static final Trace LOGGER = TraceManager.getTrace(ChooseTypeDialog.class);
     Class<T> objectType;
@@ -76,8 +81,9 @@ public class ChooseTypeDialog<T extends Serializable> extends ModalWindow{
 
     public void initLayout(WebMarkupContainer content){
         List<IColumn<SelectableBean<ObjectType>, String>> columns = initColumns();
-        TablePanel table = new TablePanel<SelectableBean<ObjectType>>("table",
-                new ObjectDataProvider(getPageBase(), this.objectType), columns);
+        ObjectDataProvider provider = new ObjectDataProvider(getPageBase(), this.objectType);
+        provider.setQuery(getDataProviderQuery());
+        TablePanel table = new TablePanel<SelectableBean<ObjectType>>("table", provider, columns);
         table.setOutputMarkupId(true);
         content.add(table);
 
@@ -95,7 +101,7 @@ public class ChooseTypeDialog<T extends Serializable> extends ModalWindow{
     private List<IColumn<SelectableBean<ObjectType>, String>> initColumns(){
         List<IColumn<SelectableBean<ObjectType>, String>> columns = new ArrayList<IColumn<SelectableBean<ObjectType>, String>>();
 
-        IColumn column = new LinkColumn<SelectableBean<ObjectType>>(createStringResource("chooseTypeDialog.column.name"), "name", "value.name"){
+        IColumn column = new LinkColumn<SelectableBean<ObjectType>>(createStringResource("chooseTypeDialog.column.name"), getSortableProperty(), "value.name"){
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ObjectType>> rowModel){
@@ -107,6 +113,24 @@ public class ChooseTypeDialog<T extends Serializable> extends ModalWindow{
         columns.add(column);
 
         return columns;
+    }
+
+    public void updateTablePerformed(AjaxRequestTarget target, ObjectQuery query){
+        TablePanel table = (TablePanel) get(StringUtils.join(new String[]{CONTENT_ID, "table"}, ":"));
+        DataTable dataTable = table.getDataTable();
+        ObjectDataProvider provider = (ObjectDataProvider)dataTable.getDataProvider();
+        provider.setQuery(query);
+
+        target.add(get(CONTENT_ID));
+        target.add(table);
+    }
+
+    protected ObjectQuery getDataProviderQuery(){
+        return null;
+    }
+
+    public String getSortableProperty(){
+        return DEFAULT_SORTABLE_PROPERTY;
     }
 
     private void cancelPerformed(AjaxRequestTarget target) {

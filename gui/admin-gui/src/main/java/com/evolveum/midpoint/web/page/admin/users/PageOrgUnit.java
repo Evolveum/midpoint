@@ -20,6 +20,10 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.NotFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -241,6 +245,26 @@ public class PageOrgUnit extends PageAdminUsers {
             @Override
             protected Serializable createNewEmptyItem() {
                 return new OrgType();
+            }
+
+            @Override
+            protected ObjectQuery createChooseQuery(){
+                ArrayList<String> oids = new ArrayList<String>();
+                ObjectQuery query = new ObjectQuery();
+
+                for(OrgType org: parentOrgUnitsModel.getObject()){
+                    oids.add(org.getOid());
+                }
+
+                if(isEditing()){
+                    oids.add(orgModel.getObject().asObjectable().getOid());
+                }
+
+                ObjectFilter oidFilter = InOidFilter.createInOid(oids);
+                query.setFilter(NotFilter.createNot(oidFilter));
+                //query.setFilter(oidFilter);
+
+                return query;
             }
 
             @Override

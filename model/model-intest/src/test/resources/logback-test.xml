@@ -59,7 +59,9 @@
 	<logger name="com.evolveum.midpoint.common.monitor" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.controller.SystemConfigurationHandler" level="DEBUG" />
     <logger name="com.evolveum.midpoint.notifications" level="DEBUG" />
-    <logger name="com.evolveum.midpoint.security" level="TRACE" />
+    <logger name="com.evolveum.midpoint.security" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.model.lens.projector.FocusConstraintsChecker" level="TRACE" />
+    <logger name="com.evolveum.midpoint.model.lens.projector.FocusPolicyProcessor" level="TRACE" />
 	
 	<logger name="com.evolveum.midpoint.repo" level="INFO" />
 

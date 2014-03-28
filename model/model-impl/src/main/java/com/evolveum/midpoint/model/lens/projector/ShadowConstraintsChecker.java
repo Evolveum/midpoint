@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model.lens;
+package com.evolveum.midpoint.model.lens.projector;
 
 import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -184,8 +186,10 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 		
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 		List<PrismObject<ShadowType>> foundObjects = provisioningService.searchObjects(ShadowType.class, query, options, result);
-		LOGGER.trace("Uniqueness check of {} resulted in {} results, using query:\n{}",
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Uniqueness check of {} resulted in {} results, using query:\n{}",
 				new Object[]{identifier, foundObjects.size(), query.debugDump()});
+		}
 		if (foundObjects.isEmpty()) {
 			return true;
 		}

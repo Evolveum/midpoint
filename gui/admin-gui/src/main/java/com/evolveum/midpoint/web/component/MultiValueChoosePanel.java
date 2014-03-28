@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component;
 
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
@@ -158,8 +159,17 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
             protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object){
                 choosePerformed(target, (T)object);
             }
+
+            @Override
+            protected ObjectQuery getDataProviderQuery(){
+                return createChooseQuery();
+            }
         };
         add(dialog);
+    }
+
+    protected ObjectQuery createChooseQuery(){
+        return null;
     }
 
     /**
@@ -236,6 +246,8 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
 
     protected void editValuePerformed(AjaxRequestTarget target, ListItem<T> item){
         ModalWindow window = (ModalWindow) get(MODAL_ID_CHOOSE_PANEL);
+        ChooseTypeDialog dialog = (ChooseTypeDialog)window;
+        dialog.updateTablePerformed(target, createChooseQuery());
         window.show(target);
     }
 

@@ -44,7 +44,6 @@ import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
-import com.evolveum.midpoint.model.lens.ShadowConstraintsChecker;
 import com.evolveum.midpoint.model.sync.CorrelationConfirmationEvaluator;
 import com.evolveum.midpoint.model.sync.SynchronizationService;
 import com.evolveum.midpoint.model.util.Utils;
@@ -513,11 +512,10 @@ public class ProjectionValuesProcessor {
 		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
 		if (accDef != null) {
 			IterationSpecificationType iteration = accDef.getIteration();
-			if (iteration != null) {
-				return iteration.getMaxIterations();
-			}
+			return LensUtil.determineMaxIterations(iteration);
+		} else {
+			return LensUtil.determineMaxIterations(null);
 		}
-		return 0;
 	}
 
 	private <F extends ObjectType> String formatIterationToken(LensContext<F> context, 
@@ -525,59 +523,18 @@ public class ProjectionValuesProcessor {
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
 		if (accDef == null) {
-			return formatIterationTokenDefault(iteration);
+			return LensUtil.formatIterationTokenDefault(iteration);
 		}
 		IterationSpecificationType iterationType = accDef.getIteration();
-		if (iterationType == null) {
-			return formatIterationTokenDefault(iteration);
-		}
-		ExpressionType tokenExpressionType = iterationType.getTokenExpression();
-		if (tokenExpressionType == null) {
-			return formatIterationTokenDefault(iteration);
-		}
-		PrismPropertyDefinition<String> outputDefinition = new PrismPropertyDefinition<String>(ExpressionConstants.VAR_ITERATION_TOKEN,
-				DOMUtil.XSD_STRING, prismContext);
-		Expression<PrismPropertyValue<String>> expression = expressionFactory.makeExpression(tokenExpressionType, outputDefinition , "iteration token expression in "+accountContext.getHumanReadableName(), result);
-		
-		Collection<Source<?>> sources = new ArrayList<Source<?>>();
-		PrismPropertyDefinition<Integer> inputDefinition = new PrismPropertyDefinition<Integer>(ExpressionConstants.VAR_ITERATION,
-				DOMUtil.XSD_INT, prismContext);
-		inputDefinition.setMaxOccurs(1);
-		PrismProperty<Integer> input = inputDefinition.instantiate();
-		input.add(new PrismPropertyValue<Integer>(iteration));
-		ItemDeltaItem<PrismPropertyValue<Integer>> idi = new ItemDeltaItem<PrismPropertyValue<Integer>>(input);
-		Source<PrismPropertyValue<Integer>> iterationSource = new Source<PrismPropertyValue<Integer>>(idi, ExpressionConstants.VAR_ITERATION);
-		sources.add(iterationSource);
-		
 		ExpressionVariables variables = createExpressionVariables(context, accountContext);
-		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, 
-				"iteration token expression in "+accountContext.getHumanReadableName(), task, result);
-		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(expressionContext);
-		Collection<PrismPropertyValue<String>> outputValues = outputTriple.getNonNegativeValues();
-		if (outputValues.isEmpty()) {
-			return "";
-		}
-		if (outputValues.size() > 1) {
-			throw new ExpressionEvaluationException("Iteration token expression in "+accountContext.getHumanReadableName()+" returned more than one value ("+outputValues.size()+" values)");
-		}
-		String realValue = outputValues.iterator().next().getValue();
-		if (realValue == null) {
-			return "";
-		}
-		return realValue;
+		return LensUtil.formatIterationToken(context, accountContext, iterationType, iteration, 
+				expressionFactory, variables, task, result);
 	}
 		
 	private <F extends ObjectType> ExpressionVariables createExpressionVariables(LensContext<F> context, 
 			LensProjectionContext accountContext) {
 		return Utils.getDefaultExpressionVariables(context.getFocusContext().getObjectNew(), accountContext.getObjectNew(),
 				accountContext.getResourceShadowDiscriminator(), accountContext.getResource().asPrismObject());
-	}
-
-	private String formatIterationTokenDefault(int iteration) {
-		if (iteration == 0) {
-			return "";
-		}
-		return Integer.toString(iteration);
 	}
 
 	private <F extends ObjectType> boolean evaluateIterationCondition(LensContext<F> context, 
@@ -589,44 +546,9 @@ public class ProjectionValuesProcessor {
 			return true;
 		}
 		IterationSpecificationType iterationType = accDef.getIteration();
-		if (iterationType == null) {
-			return true;
-		}
-		ExpressionType expressionType;
-		String desc;
-		if (beforeIteration) {
-			expressionType = iterationType.getPreIterationCondition();
-			desc = "pre-iteration expression in "+accountContext.getHumanReadableName();
-		} else {
-			expressionType = iterationType.getPostIterationCondition();
-			desc = "post-iteration expression in "+accountContext.getHumanReadableName();
-		}
-		if (expressionType == null) {
-			return true;
-		}
-		PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinition<Boolean>(ExpressionConstants.OUTPUT_ELMENT_NAME,
-				DOMUtil.XSD_BOOLEAN, prismContext);
-		Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition , desc, result);
-		
 		ExpressionVariables variables = createExpressionVariables(context, accountContext);
-		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION, iteration);
-		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
-		
-		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, task, result);
-		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = expression.evaluate(expressionContext);
-		Collection<PrismPropertyValue<Boolean>> outputValues = outputTriple.getNonNegativeValues();
-		if (outputValues.isEmpty()) {
-			return false;
-		}
-		if (outputValues.size() > 1) {
-			throw new ExpressionEvaluationException(desc+" returned more than one value ("+outputValues.size()+" values)");
-		}
-		Boolean realValue = outputValues.iterator().next().getValue();
-		if (realValue == null) {
-			return false;
-		}
-		return realValue;
-
+		return LensUtil.evaluateIterationCondition(context, accountContext, iterationType, 
+				iteration, iterationToken, beforeIteration, expressionFactory, variables, task, result);
 	}
 
 	/**
