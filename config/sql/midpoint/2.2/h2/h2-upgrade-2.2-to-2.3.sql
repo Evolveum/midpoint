@@ -145,3 +145,6 @@ ALTER TABLE m_security_policy
     REFERENCES m_object;
 	
 ALTER TABLE m_object_template ADD iteration CLOB;
+
+ALTER TABLE m_focua ADD iteration INTEGER;
+ALTER TABLE m_focua ADD iterationToken VARCHAR(255);
