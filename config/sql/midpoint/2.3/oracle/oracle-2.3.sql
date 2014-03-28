@@ -1,5 +1,6 @@
 -- INITRANS added because we use serializable transactions http://docs.oracle.com/cd/B14117_01/appdev.101/b10795/adfns_sq.htm#1025374
 -- replace ");" with ") INITRANS 30;"
+
     create table m_abstract_role (
         approvalExpression clob,
         approvalProcess varchar2(255 char),
@@ -356,6 +357,7 @@
 
     create table m_object_template (
         accountConstruction clob,
+        iteration clob,
         mapping clob,
         name_norm varchar2(255 char),
         name_orig varchar2(255 char),

@@ -128,3 +128,4 @@ ALTER TABLE m_security_policy
     FOREIGN KEY (id, oid) 
     REFERENCES m_object (id, oid);
 
+ALTER TABLE m_object_template ADD iteration TEXT;

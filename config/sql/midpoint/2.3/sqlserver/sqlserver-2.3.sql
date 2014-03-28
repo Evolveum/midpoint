@@ -355,6 +355,7 @@
 
     create table m_object_template (
         accountConstruction nvarchar(MAX),
+        iteration nvarchar(MAX),
         mapping nvarchar(MAX),
         name_norm nvarchar(255),
         name_orig nvarchar(255),
