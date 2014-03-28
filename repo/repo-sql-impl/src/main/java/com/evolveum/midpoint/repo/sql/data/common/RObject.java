@@ -65,10 +65,7 @@ import java.util.Set;
         @NamedQuery(name = "searchShadowOwner.getOwner", query = "select owner.fullObject from RFocus as owner left join owner.linkRef as ref where ref.targetOid = :oid"),
         @NamedQuery(name = "listAccountShadowOwner.getUser", query = "select user.fullObject from RUser as user left join user.linkRef as ref where ref.targetOid = :oid"),
         @NamedQuery(name = "getExtCount", query = "select stringsCount, longsCount, datesCount, referencesCount, clobsCount, polysCount from RObject where oid = :oid"),
-        @NamedQuery(name = "getVersion", query = "select o.version from RObject as o where o.oid = :oid");
-})
-@NamedNativeQueries({
-        @NamedNativeQuery(name = "updateFullObject", query = "update m_object set fullObject = :fullObject where oid=:oid")
+        @NamedQuery(name = "getVersion", query = "select o.version from RObject as o where o.oid = :oid")
 })
 @Entity
 @Table(name = "m_object")

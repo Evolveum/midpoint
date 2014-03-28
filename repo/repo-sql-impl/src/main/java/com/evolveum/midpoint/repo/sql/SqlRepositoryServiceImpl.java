@@ -431,7 +431,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     private <T extends ObjectType> String addObjectAttempt(PrismObject<T> object, RepoAddOptions options,
                                                            OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException {
-        LOGGER.trace("Adding object type '{}'", new Object[]{object.getCompileTimeClass().getSimpleName()});
+        LOGGER.debug("Adding object type '{}'", new Object[]{object.getCompileTimeClass().getSimpleName()});
 
         String oid = null;
         Session session = null;
@@ -553,7 +553,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         String fullObject = domProcessor.serializeObjectToString(savedObject);
         LOGGER.trace("Storing full object\n{}", fullObject);
 
-        Query query = session.getNamedQuery("updateFullObject");
+        Query query = session.createSQLQuery("update m_object set fullObject = :fullObject where oid=:oid");
         query.setString("fullObject", fullObject);
         query.setString("oid", savedObject.getOid());
 
@@ -772,7 +772,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private <T extends ObjectType> void deleteObjectAttempt(Class<T> type, String oid, OperationResult result)
             throws ObjectNotFoundException {
-        LOGGER.trace("Deleting object type '{}' with oid '{}'", new Object[]{type.getSimpleName(), oid});
+        LOGGER.debug("Deleting object type '{}' with oid '{}'", new Object[]{type.getSimpleName(), oid});
 
         Session session = null;
         try {
@@ -1165,7 +1165,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                                                             Collection<? extends ItemDelta> modifications,
                                                             OperationResult result) throws ObjectNotFoundException,
             SchemaException, ObjectAlreadyExistsException {
-        LOGGER.trace("Modifying object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
+        LOGGER.debug("Modifying object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Modifications: {}", new Object[]{PrettyPrinter.prettyPrint(modifications)});
         }
