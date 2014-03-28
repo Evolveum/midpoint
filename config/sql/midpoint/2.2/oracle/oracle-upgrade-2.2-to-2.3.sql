@@ -146,3 +146,5 @@ ALTER TABLE m_security_policy
     FOREIGN KEY (id, oid) 
     REFERENCES m_object;
 
+ALTER TABLE m_object_template ADD iteration CLOB;
+
