@@ -68,19 +68,12 @@ import static org.testng.AssertJUnit.assertNotNull;
 /**
  * @author Radovan Semancik
  */
-public class TestDeltaConverter {
+public class TestDeltaConverter extends AbstractSchemaTest {
 	
 	private static final File TEST_DIR = new File("src/test/resources/deltaconverter");
-	private static final File COMMON_TEST_DIR = new File("src/test/resources/common");
 	
 	private static final ItemPath CREDENTIALS_PASSWORD_VALUE_PATH = 
 		new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
-
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
 
     @Test
     public void testRefWithObject() throws SchemaException, FileNotFoundException, JAXBException {
@@ -127,7 +120,7 @@ public class TestDeltaConverter {
     	PrismPropertyValue<ProtectedStringType> protectedStringVal = valuesToReplace.iterator().next();
     	assertNotNull("Null value in protectedStringDelta", protectedStringVal);
     	
-    	PrismObject<UserType> user = PrismTestUtil.parseObject(new File(COMMON_TEST_DIR, "user-jack.xml"));
+    	PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
     	// apply to user
     	objectDelta.applyTo(user);
     	
@@ -158,7 +151,7 @@ public class TestDeltaConverter {
     	Collection<PrismPropertyValue<String>> valuesToReplace = givenNameDelta.getValuesToReplace();
     	assertEquals("Wrong number of values to add", 0, valuesToReplace.size());
     	
-    	PrismObject<UserType> user = PrismTestUtil.parseObject(new File(COMMON_TEST_DIR, "user-jack.xml"));
+    	PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
     	// apply to user
     	objectDelta.applyTo(user);
     	
@@ -201,7 +194,7 @@ public class TestDeltaConverter {
     	assertEquals("Wrong OID in targetRef value", "12345678-d34d-b33f-f00d-987987987988", targetRefVal.getOid());
     	assertEquals("Wrong type in targetRef value", RoleType.COMPLEX_TYPE, targetRefVal.getTargetType());
     	
-    	PrismObject<UserType> user = PrismTestUtil.parseObject(new File(COMMON_TEST_DIR, "user-jack.xml"));
+    	PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
     	
     	objectDelta.assertDefinitions("delta before test");
     	user.assertDefinitions("user before test");
@@ -438,7 +431,4 @@ public class TestDeltaConverter {
     	assertEquals("Deltas do not match", deltaBefore, deltaAfter);
     }
 
-	private PrismObjectDefinition<UserType> getUserDefinition() {
-		return PrismTestUtil.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-	}
 }
