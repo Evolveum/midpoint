@@ -291,6 +291,8 @@
         validTo DATETIME(6),
         validityChangeTimestamp DATETIME(6),
         validityStatus integer,
+        interationToken varchar(255),
+        iteration integer,
         id bigint not null,
         oid varchar(36) not null,
         primary key (id, oid)
