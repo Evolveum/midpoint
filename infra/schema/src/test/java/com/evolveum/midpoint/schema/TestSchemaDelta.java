@@ -26,9 +26,9 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.foo.AssignmentType;
-import com.evolveum.midpoint.prism.foo.UserType;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
@@ -76,8 +76,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 public class TestSchemaDelta extends AbstractSchemaTest {
     
     @Test
-    public void testDeleteInducementConstructionSameNullIdApplyToObject() throws Exception {
-    	final String TEST_NAME = "testDeleteInducementConstructionSameNullIdApplyToObject";
+    public void testAssignmentSameNullIdApplyToObject() throws Exception {
+    	final String TEST_NAME = "testAssignmentSameNullIdApplyToObject";
     	displayTestTile(TEST_NAME);
     	
 		// GIVEN
@@ -97,11 +97,73 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         // THEN
         System.out.println("User after delta application:");
         System.out.println(user.debugDump());
-        assertEquals("Wrong OID", USER_FOO_OID, user.getOid());
-        PrismAsserts.assertPropertyValue(user, UserType.F_ADDITIONAL_NAMES, PrismTestUtil.createPolyString("foobar"));
+        assertEquals("Wrong OID", USER_JACK_OID, user.getOid());
+        PrismAsserts.assertPropertyValue(user, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Jack Sparrow"));
         PrismContainer<AssignmentType> assignment = user.findContainer(UserType.F_ASSIGNMENT);
         assertNotNull("No assignment", assignment);
-        assertEquals("Unexpected number of assignment values", 1, assignment.size());
+        assertEquals("Unexpected number of assignment values", 2, assignment.size());
+    }
+
+    @Test
+    public void testAddInducementConstructionSameNullIdApplyToObject() throws Exception {
+    	final String TEST_NAME = "testDeleteInducementConstructionSameNullIdApplyToObject";
+    	displayTestTile(TEST_NAME);
+    	
+		// GIVEN
+		PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_CONSTRUCTION_FILE);
+
+		//Delta
+    	PrismContainerValue<AssignmentType> inducementValue = new PrismContainerValue<AssignmentType>();
+    	// The value id is null
+    	inducementValue.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala");
+    	
+		ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, ROLE_CONSTRUCTION_OID, 
+				RoleType.F_INDUCEMENT, PrismTestUtil.getPrismContext(), inducementValue);
+				
+		// WHEN
+        roleDelta.applyTo(role);
+        
+        // THEN
+        System.out.println("Role after delta application:");
+        System.out.println(role.debugDump());
+        assertEquals("Wrong OID", ROLE_CONSTRUCTION_OID, role.getOid());
+        PrismAsserts.assertPropertyValue(role, UserType.F_NAME, PrismTestUtil.createPolyString("Construction"));
+        PrismContainer<AssignmentType> assignment = role.findContainer(RoleType.F_INDUCEMENT);
+        assertNotNull("No inducement", assignment);
+        assertEquals("Unexpected number of inducement values", 2, assignment.size());
+    }
+    
+    @Test
+    public void testDeleteInducementConstructionSameNullIdApplyToObject() throws Exception {
+    	final String TEST_NAME = "testDeleteInducementConstructionSameNullIdApplyToObject";
+    	displayTestTile(TEST_NAME);
+    	
+    	// GIVEN
+		PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_CONSTRUCTION_FILE);
+
+		//Delta
+		ConstructionType construction = new ConstructionType();
+        ObjectReferenceType resourceRef = new ObjectReferenceType();
+        resourceRef.setOid(ROLE_CONSTRUCTION_RESOURCE_OID);
+		construction.setResourceRef(resourceRef);
+        ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, ROLE_CONSTRUCTION_OID, 
+        		new ItemPath(
+        				new NameItemPathSegment(RoleType.F_INDUCEMENT),
+        				new IdItemPathSegment(ROLE_CONSTRUCTION_INDUCEMENT_ID),
+        				new NameItemPathSegment(AssignmentType.F_CONSTRUCTION)),
+        		PrismTestUtil.getPrismContext(), construction);
+				
+		// WHEN
+		roleDelta.applyTo(role);
+        
+        // THEN
+        System.out.println("Role after delta application:");
+        System.out.println(role.debugDump());
+        assertEquals("Wrong OID", ROLE_CONSTRUCTION_OID, role.getOid());
+        PrismAsserts.assertPropertyValue(role, UserType.F_NAME, PrismTestUtil.createPolyString("Construction"));
+        PrismContainer<AssignmentType> assignment = role.findContainer(RoleType.F_INDUCEMENT);
+        assertNotNull("No inducement", assignment);
+        assertEquals("Unexpected number of inducement values", 1, assignment.size());
     }
 
 }

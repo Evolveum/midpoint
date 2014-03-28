@@ -22,11 +22,11 @@ import org.testng.annotations.BeforeSuite;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * @author semancik
@@ -41,6 +41,8 @@ public abstract class AbstractSchemaTest {
 
 	public static final File ROLE_CONSTRUCTION_FILE = new File(COMMON_DIR, "role-construction.xml");
 	public static final String ROLE_CONSTRUCTION_OID = "cc7dd820-b653-11e3-936d-001e8c717e5b";
+	public static final long ROLE_CONSTRUCTION_INDUCEMENT_ID = 1001L;
+	public static final String ROLE_CONSTRUCTION_RESOURCE_OID = "10000000-0000-0000-0000-000000000004";
 
 	@BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
