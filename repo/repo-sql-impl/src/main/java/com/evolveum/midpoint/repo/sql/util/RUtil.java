@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.util;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,10 +26,6 @@ import java.util.Set;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -42,48 +39,52 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.ValueSerializationUtil;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
 import com.evolveum.midpoint.repo.sql.data.common.OperationResult;
-import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
-import com.evolveum.midpoint.repo.sql.data.common.RAssignment;
-import com.evolveum.midpoint.repo.sql.data.common.RAuthorization;
-import com.evolveum.midpoint.repo.sql.data.common.RContainer;
-import com.evolveum.midpoint.repo.sql.data.common.RExclusion;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.RShadow;
 import com.evolveum.midpoint.repo.sql.data.common.RSynchronizationSituationDescription;
-import com.evolveum.midpoint.repo.sql.data.common.RTrigger;
-import com.evolveum.midpoint.repo.sql.data.common.any.RAnyClob;
-import com.evolveum.midpoint.repo.sql.data.common.any.RAnyDate;
-import com.evolveum.midpoint.repo.sql.data.common.any.RAnyLong;
-import com.evolveum.midpoint.repo.sql.data.common.any.RAnyPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.any.RAnyReference;
-import com.evolveum.midpoint.repo.sql.data.common.any.RAnyString;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAExtClob;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAExtDate;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAExtLong;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAExtPolyString;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAExtReference;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAExtString;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtClob;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtDate;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtLong;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtPolyString;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtReference;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtString;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAssignmentReference;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAuthorization;
+import com.evolveum.midpoint.repo.sql.data.common.container.RExclusion;
+import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
-import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
-import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectSelector;
-import com.evolveum.midpoint.schema.RetrieveOption;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -91,33 +92,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LocalizedMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ParamsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationDescriptionType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-
-import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.hibernate.SessionFactory;
-import org.hibernate.metadata.ClassMetadata;
-import org.hibernate.persister.entity.AbstractEntityPersister;
-import org.hibernate.tuple.IdentifierProperty;
-import org.hibernate.tuple.entity.EntityMetamodel;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.namespace.QName;
-
-import java.lang.reflect.Field;
-import java.util.*;
 
 /**
  * @author lazyman
@@ -548,9 +529,9 @@ public final class RUtil {
 		}
 		return list;
 	}
-
+	
 	public static Set<RObjectReference> safeListReferenceToSet(List<ObjectReferenceType> list,
-			PrismContext prismContext, RContainer owner, RReferenceOwner refOwner) {
+			PrismContext prismContext, RObject owner, RReferenceOwner refOwner) {
 		Set<RObjectReference> set = new HashSet<RObjectReference>();
 		if (list == null || list.isEmpty()) {
 			return set;
@@ -564,9 +545,9 @@ public final class RUtil {
 		}
 		return set;
 	}
-
+	
 	public static RObjectReference jaxbRefToRepo(ObjectReferenceType reference, PrismContext prismContext,
-			RContainer owner, RReferenceOwner refOwner) {
+			RObject owner, RReferenceOwner refOwner) {
 		if (reference == null) {
 			return null;
 		}
@@ -580,6 +561,38 @@ public final class RUtil {
 
 		return repoRef;
 	}
+
+//	public static Set<RObjectReference> safeListReferenceToSet(List<ObjectReferenceType> list,
+//			PrismContext prismContext, RContainer owner, RReferenceOwner refOwner) {
+//		Set<RObjectReference> set = new HashSet<RObjectReference>();
+//		if (list == null || list.isEmpty()) {
+//			return set;
+//		}
+//
+//		for (ObjectReferenceType ref : list) {
+//			RObjectReference rRef = RUtil.jaxbRefToRepo(ref, prismContext, owner, refOwner);
+//			if (rRef != null) {
+//				set.add(rRef);
+//			}
+//		}
+//		return set;
+//	}
+
+//	public static RObjectReference jaxbRefToRepo(ObjectReferenceType reference, PrismContext prismContext,
+//			RContainer owner, RReferenceOwner refOwner) {
+//		if (reference == null) {
+//			return null;
+//		}
+//		Validate.notNull(owner, "Owner of reference must not be null.");
+//		Validate.notNull(refOwner, "Reference owner of reference must not be null.");
+//		Validate.notEmpty(reference.getOid(), "Target oid reference must not be null.");
+//
+//		RObjectReference repoRef = RReferenceOwner.createObjectReference(refOwner);
+//		repoRef.setOwner(owner);
+//		RObjectReference.copyFromJAXB(reference, repoRef, prismContext);
+//
+//		return repoRef;
+//	}
 
 	public static REmbeddedReference jaxbRefToEmbeddedRepoRef(ObjectReferenceType jaxb,
 			PrismContext prismContext) {
@@ -612,27 +625,59 @@ public final class RUtil {
 		fixCompositeIdentifierInMetaModel(sessionFactory, RObjectDeltaOperation.class);
 		fixCompositeIdentifierInMetaModel(sessionFactory, RSynchronizationSituationDescription.class);
 
-		fixCompositeIdentifierInMetaModel(sessionFactory, RAnyContainer.class);
-		fixCompositeIdentifierInMetaModel(sessionFactory, RAnyClob.class);
-		fixCompositeIdentifierInMetaModel(sessionFactory, RAnyDate.class);
-		fixCompositeIdentifierInMetaModel(sessionFactory, RAnyString.class);
-		fixCompositeIdentifierInMetaModel(sessionFactory, RAnyPolyString.class);
-		fixCompositeIdentifierInMetaModel(sessionFactory, RAnyReference.class);
-		fixCompositeIdentifierInMetaModel(sessionFactory, RAnyLong.class);
+		fixCompositeIdentifierInMetaModel(sessionFactory, ROExtClob.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtDate.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtString.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtPolyString.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtReference.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtLong.class);
+        
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAssignmentExtension.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtClob.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtDate.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtString.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtPolyString.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtReference.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtLong.class);
+        
+        fixCompositeIdentifierInMetaModel(sessionFactory, RObjectReference.class);
+        for (RReferenceOwner owner : RReferenceOwner.values()) {
+            fixCompositeIdentifierInMetaModel(sessionFactory, owner.getClazz());
+        }
 
-		fixCompositeIdentifierInMetaModel(sessionFactory, RObjectReference.class);
-		for (RReferenceOwner owner : RReferenceOwner.values()) {
-			fixCompositeIdentifierInMetaModel(sessionFactory, owner.getClazz());
-		}
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAssignmentReference.class);
+        for (RCReferenceOwner owner : RCReferenceOwner.values()) {
+            fixCompositeIdentifierInMetaModel(sessionFactory, owner.getClazz());
+        }
 
-		fixCompositeIdentifierInMetaModel(sessionFactory, RContainer.class);
-		fixCompositeIdentifierInMetaModel(sessionFactory, RAssignment.class);
-		fixCompositeIdentifierInMetaModel(sessionFactory, RAuthorization.class);
-		fixCompositeIdentifierInMetaModel(sessionFactory, RExclusion.class);
-		fixCompositeIdentifierInMetaModel(sessionFactory, RTrigger.class);
-		for (RContainerType type : ClassMapper.getKnownTypes()) {
-			fixCompositeIdentifierInMetaModel(sessionFactory, type.getClazz());
-		}
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAssignment.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAuthorization.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RExclusion.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RTrigger.class);
+        for (RObjectType type : ClassMapper.getKnownTypes()) {
+            fixCompositeIdentifierInMetaModel(sessionFactory, type.getClazz());
+        }
+//		fixCompositeIdentifierInMetaModel(sessionFactory, RAnyContainer.class);
+//		fixCompositeIdentifierInMetaModel(sessionFactory, RAnyClob.class);
+//		fixCompositeIdentifierInMetaModel(sessionFactory, RAnyDate.class);
+//		fixCompositeIdentifierInMetaModel(sessionFactory, RAnyString.class);
+//		fixCompositeIdentifierInMetaModel(sessionFactory, RAnyPolyString.class);
+//		fixCompositeIdentifierInMetaModel(sessionFactory, RAnyReference.class);
+//		fixCompositeIdentifierInMetaModel(sessionFactory, RAnyLong.class);
+//
+//		fixCompositeIdentifierInMetaModel(sessionFactory, RObjectReference.class);
+//		for (RReferenceOwner owner : RReferenceOwner.values()) {
+//			fixCompositeIdentifierInMetaModel(sessionFactory, owner.getClazz());
+//		}
+//
+//		fixCompositeIdentifierInMetaModel(sessionFactory, RContainer.class);
+//		fixCompositeIdentifierInMetaModel(sessionFactory, RAssignment.class);
+//		fixCompositeIdentifierInMetaModel(sessionFactory, RAuthorization.class);
+//		fixCompositeIdentifierInMetaModel(sessionFactory, RExclusion.class);
+//		fixCompositeIdentifierInMetaModel(sessionFactory, RTrigger.class);
+//		for (RContainerType type : ClassMapper.getKnownTypes()) {
+//			fixCompositeIdentifierInMetaModel(sessionFactory, type.getClazz());
+//		}
 	}
 
 	private static void fixCompositeIdentifierInMetaModel(SessionFactory sessionFactory, Class clazz) {
