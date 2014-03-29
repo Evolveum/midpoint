@@ -84,7 +84,6 @@ public class OrgRestriction extends Restriction<OrgFilter> {
             return Restrictions.eq(ANCESTOR_OID, orgRefOid);
         } else {
             Conjunction conjunction = Restrictions.conjunction();
-            conjunction.add(Restrictions.eq(ANCESTOR_ID, 0L));
             conjunction.add(Restrictions.eq(ANCESTOR_OID, orgRefOid));
             conjunction.add(Restrictions.le(DEPTH, maxDepth));
             conjunction.add(Restrictions.gt(DEPTH, 0));
@@ -102,6 +101,8 @@ public class OrgRestriction extends Restriction<OrgFilter> {
         list.add(Projections.groupProperty(CLOSURE_ALIAS + ".descendant"));
         String alias = getContext().getAlias(null);
         list.add(Projections.groupProperty(alias + ".name.orig"));     //just used for sorting by name
+        list.add(Projections.groupProperty(alias + ".fullObject"));
+        list.add(Projections.property(alias + ".fullObject"));
 
         pCriteria.createCriteria(QUERY_PATH, CLOSURE_ALIAS).setFetchMode(ANCESTOR, FetchMode.DEFAULT)
                 .createAlias(ANCESTOR, ANCESTOR_ALIAS).setProjection(list);

@@ -20,19 +20,14 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
-
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
-import org.hibernate.annotations.Type;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
-import javax.persistence.Lob;
 
 /**
  * @author lazyman
@@ -41,7 +36,6 @@ import javax.persistence.Lob;
 @JaxbType(type = CredentialsType.class)
 public class RCredentials {
 
-    private String password;
     private Boolean allowedIdmAdminGuiAccess;
 
     @Column(nullable = true)
@@ -53,17 +47,6 @@ public class RCredentials {
         this.allowedIdmAdminGuiAccess = allowedIdmAdminGuiAccess;
     }
 
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    @Column(name = "passwordXml", nullable = true)
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -73,15 +56,13 @@ public class RCredentials {
 
         if (allowedIdmAdminGuiAccess != null ? !allowedIdmAdminGuiAccess.equals(that.allowedIdmAdminGuiAccess) :
                 that.allowedIdmAdminGuiAccess != null) return false;
-        if (password != null ? !password.equals(that.password) : that.password != null) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = password != null ? password.hashCode() : 0;
-        result = 31 * result + (allowedIdmAdminGuiAccess != null ? allowedIdmAdminGuiAccess.hashCode() : 0);
+        int result = allowedIdmAdminGuiAccess != null ? allowedIdmAdminGuiAccess.hashCode() : 0;
         return result;
     }
 
@@ -91,17 +72,11 @@ public class RCredentials {
     }
 
     public static void copyToJAXB(RCredentials repo, CredentialsType jaxb, ObjectType parent, ItemPath path,
-            PrismContext prismContext) throws DtoTranslationException {
+                                  PrismContext prismContext) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        try {
-            jaxb.setAllowedIdmAdminGuiAccess(repo.isAllowedIdmAdminGuiAccess());
-            ItemPath passwordPath = new ItemPath(path, CredentialsType.F_PASSWORD);
-            jaxb.setPassword(RUtil.toJAXB(parent.getClass(), passwordPath, repo.getPassword(), PasswordType.class, prismContext));
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
-        }
+        jaxb.setAllowedIdmAdminGuiAccess(repo.isAllowedIdmAdminGuiAccess());
     }
 
     public static void copyFromJAXB(CredentialsType jaxb, RCredentials repo, PrismContext prismContext) throws
@@ -109,12 +84,7 @@ public class RCredentials {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        try {
-            repo.setAllowedIdmAdminGuiAccess(jaxb.isAllowedIdmAdminGuiAccess());
-            repo.setPassword(RUtil.toRepo(jaxb.getPassword(), prismContext));
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
-        }
+        repo.setAllowedIdmAdminGuiAccess(jaxb.isAllowedIdmAdminGuiAccess());
     }
 
     public CredentialsType toJAXB(ObjectType parent, ItemPath path, PrismContext prismContext) throws

@@ -56,6 +56,7 @@ public class ModelClientUtil {
 	public static final String NS_COMMON = "http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 	public static final QName COMMON_PATH = new QName(NS_COMMON, "path");
 	public static final QName COMMON_VALUE = new QName(NS_COMMON, "value");
+    public static final QName COMMON_GIVEN_NAME = new QName(NS_COMMON, "givenName");
 	public static final QName COMMON_ASSIGNMENT = new QName(NS_COMMON, "assignment");
 	
 	public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-2";

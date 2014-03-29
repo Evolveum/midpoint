@@ -20,6 +20,10 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.NotFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -103,6 +107,7 @@ public class PageOrgUnit extends PageAdminUsers {
         this(null);
     }
 
+    //todo improve [erik]
     public PageOrgUnit(final PrismObject<OrgType> unitToEdit) {
         orgModel = new LoadableModel<PrismObject<OrgType>>(false) {
 
@@ -243,6 +248,26 @@ public class PageOrgUnit extends PageAdminUsers {
             }
 
             @Override
+            protected ObjectQuery createChooseQuery(){
+                ArrayList<String> oids = new ArrayList<String>();
+                ObjectQuery query = new ObjectQuery();
+
+                for(OrgType org: parentOrgUnitsModel.getObject()){
+                    oids.add(org.getOid());
+                }
+
+                if(isEditing()){
+                    oids.add(orgModel.getObject().asObjectable().getOid());
+                }
+
+                ObjectFilter oidFilter = InOidFilter.createInOid(oids);
+                query.setFilter(NotFilter.createNot(oidFilter));
+                //query.setFilter(oidFilter);
+
+                return query;
+            }
+
+            @Override
             protected void replaceIfEmpty(Object object) {
 
                 boolean added = false;
@@ -322,6 +347,7 @@ public class PageOrgUnit extends PageAdminUsers {
         setResponsePage(PageOrgTree.class);
     }
 
+    //todo improve later [erik]
     private PrismObject<OrgType> buildUnitFromModel(List<ObjectReferenceType> parentOrgList) throws SchemaException {
         PrismObject<OrgType> org = orgModel.getObject();
 
@@ -336,19 +362,53 @@ public class PageOrgUnit extends PageAdminUsers {
             }
         }
 
-        if (parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null) {
+        //We are creating new OrgUnit
+        if(parentOrgList == null){
+            if(parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null){
+                for (OrgType parent : parentOrgUnitsModel.getObject()) {
+                    if (parent != null && WebMiscUtil.getName(parent) != null && !WebMiscUtil.getName(parent).isEmpty()) {
+                        ObjectReferenceType ref = new ObjectReferenceType();
+                        ref.setOid(parent.getOid());
+                        ref.setType(OrgType.COMPLEX_TYPE);
+                        org.asObjectable().getParentOrgRef().add(ref);
+                    }
+                }
+            }
+        //We are editing OrgUnit
+        }else if (parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null) {
             for (OrgType parent : parentOrgUnitsModel.getObject()) {
                 if (parent != null && WebMiscUtil.getName(parent) != null && !WebMiscUtil.getName(parent).isEmpty()) {
                     if(!isOrgParent(parent, parentOrgList)){
                         ObjectReferenceType ref = new ObjectReferenceType();
                         ref.setOid(parent.getOid());
+                        ref.setType(OrgType.COMPLEX_TYPE);
                         org.asObjectable().getParentOrgRef().add(ref);
                     }
                 }
             }
         }
 
+        //Delete parentOrgUnits from edited OrgUnit
+        if(isEditing()){
+            if(parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null){
+                for(ObjectReferenceType parent: parentOrgList){
+                    if(!isRefInParentOrgModel(parent)){
+                        org.asObjectable().getParentOrgRef().remove(parent);
+                    }
+                }
+            }
+        }
+
         return org;
+    }
+
+    private boolean isRefInParentOrgModel(ObjectReferenceType reference){
+        for(OrgType parent: parentOrgUnitsModel.getObject()){
+            if(reference.getOid().equals(parent.getOid())){
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean isOrgParent(OrgType unit, List<ObjectReferenceType> parentList){
@@ -361,17 +421,13 @@ public class PageOrgUnit extends PageAdminUsers {
         return false;
     }
 
+    //todo improve later [erik]
     private void savePerformed(AjaxRequestTarget target) {
         OperationResult result = new OperationResult(SAVE_UNIT);
         try {
-            ModelService model = getModelService();
-
-            PrismObject<OrgType> oldOrgUnit = WebModelUtils.loadObject(OrgType.class, orgModel.getObject().asObjectable().getOid(), result, this);
-            PrismObject<OrgType> newOrgUnit = buildUnitFromModel(oldOrgUnit.asObjectable().getParentOrgRef());
-
             ObjectDelta delta = null;
             if (!isEditing()) {
-                delta = ObjectDelta.createAddDelta(newOrgUnit);
+                PrismObject<OrgType> newOrgUnit = buildUnitFromModel(null);
 
                 //handle assignments
                 PrismObjectDefinition orgDef = newOrgUnit.getDefinition();
@@ -384,28 +440,31 @@ public class PageOrgUnit extends PageAdminUsers {
                 AssignmentTablePanel inducementPanel = (AssignmentTablePanel)get(createComponentPath(ID_FORM, ID_INDUCEMENTS_TABLE));
                 inducementPanel.handleAssignmentsWhenAdd(newOrgUnit, inducementDef, newOrgUnit.asObjectable().getInducement());
 
+                delta = ObjectDelta.createAddDelta(newOrgUnit);
             } else {
-                if (oldOrgUnit != null) {
-                    delta = oldOrgUnit.diff(newOrgUnit);
+                PrismObject<OrgType> oldOrgUnit = WebModelUtils.loadObject(OrgType.class, orgModel.getObject().asObjectable().getOid(), result, this);
+                PrismObject<OrgType> newOrgUnit = buildUnitFromModel(oldOrgUnit.asObjectable().getParentOrgRef());
 
-                    //handle assignments
-                    SchemaRegistry registry = getPrismContext().getSchemaRegistry();
-                    PrismObjectDefinition objectDefinition = registry.findObjectDefinitionByCompileTimeClass(OrgType.class);
-                    PrismContainerDefinition assignmentDef = objectDefinition.findContainerDefinition(OrgType.F_ASSIGNMENT);
-                    AssignmentTablePanel assignmentPanel = (AssignmentTablePanel)get(createComponentPath(ID_FORM, ID_ASSIGNMENTS_TABLE));
-                    assignmentPanel.handleAssignmentDeltas(delta, assignmentDef, OrgType.F_ASSIGNMENT);
+                delta = oldOrgUnit.diff(newOrgUnit);
 
-                    //handle inducements
-                    PrismContainerDefinition inducementDef = objectDefinition.findContainerDefinition(OrgType.F_INDUCEMENT);
-                    AssignmentTablePanel inducementPanel = (AssignmentTablePanel)get(createComponentPath(ID_FORM, ID_INDUCEMENTS_TABLE));
-                    inducementPanel.handleAssignmentDeltas(delta, inducementDef, OrgType.F_INDUCEMENT);
-                }
+                //handle assignments
+                SchemaRegistry registry = getPrismContext().getSchemaRegistry();
+                PrismObjectDefinition objectDefinition = registry.findObjectDefinitionByCompileTimeClass(OrgType.class);
+                PrismContainerDefinition assignmentDef = objectDefinition.findContainerDefinition(OrgType.F_ASSIGNMENT);
+                AssignmentTablePanel assignmentPanel = (AssignmentTablePanel)get(createComponentPath(ID_FORM, ID_ASSIGNMENTS_TABLE));
+                assignmentPanel.handleAssignmentDeltas(delta, assignmentDef, OrgType.F_ASSIGNMENT);
+
+                //handle inducements
+                PrismContainerDefinition inducementDef = objectDefinition.findContainerDefinition(OrgType.F_INDUCEMENT);
+                AssignmentTablePanel inducementPanel = (AssignmentTablePanel)get(createComponentPath(ID_FORM, ID_INDUCEMENTS_TABLE));
+                inducementPanel.handleAssignmentDeltas(delta, inducementDef, OrgType.F_INDUCEMENT);
             }
 
-            if (delta != null) {
-                Collection<ObjectDelta<? extends ObjectType>> deltas = WebMiscUtil.createDeltaCollection(delta);
-                model.executeChanges(deltas, null, createSimpleTask(SAVE_UNIT), result);
+            Collection<ObjectDelta<? extends ObjectType>> deltas = WebMiscUtil.createDeltaCollection(delta);
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Saving changes for org. unit: {}", delta.debugDump());
             }
+            getModelService().executeChanges(deltas, null, createSimpleTask(SAVE_UNIT), result);
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't save org. unit", ex);
             result.recordFatalError("Couldn't save org. unit.", ex);
@@ -430,21 +489,20 @@ public class PageOrgUnit extends PageAdminUsers {
             if (!isEditing()) {
                 if (unitToEdit == null) {
                     OrgType o = new OrgType();
-                    getMidpointApplication().getPrismContext().adopt(o);
+                    getPrismContext().adopt(o);
                     org = o.asPrismObject();
                 } else {
                     org = unitToEdit;
                 }
             } else {
                 StringValue oid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-                org = getModelService().getObject(OrgType.class, oid.toString(), null,
-                        createSimpleTask(LOAD_UNIT), result);
+                org = WebModelUtils.loadObject(OrgType.class, oid.toString(), result, this);
             }
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't load org. unit", ex);
             result.recordFatalError("Couldn't load org. unit.", ex);
         } finally {
-            result.computeStatus();
+            result.computeStatusIfUnknown();
         }
 
         if (WebMiscUtil.showResultInPage(result)) {
@@ -452,15 +510,16 @@ public class PageOrgUnit extends PageAdminUsers {
         }
 
         if (org == null) {
-            throw new RestartResponseException(PageOrgUnit.class);
+            showResultInSession(result);
+            throw new RestartResponseException(PageOrgTree.class);
         }
 
         return org;
     }
 
     private List<OrgType> loadParentOrgUnits() {
-        List<OrgType> parentList = new ArrayList<OrgType>();
-        List<ObjectReferenceType> refList = new ArrayList<ObjectReferenceType>();
+        List<OrgType> parentList = new ArrayList<>();
+        List<ObjectReferenceType> refList = new ArrayList<>();
         OrgType orgHelper;
         Task loadTask = createSimpleTask(LOAD_PARENT_UNITS);
         OperationResult result = new OperationResult(LOAD_PARENT_UNITS);
@@ -473,6 +532,7 @@ public class PageOrgUnit extends PageAdminUsers {
 
         try {
             if (!refList.isEmpty()) {
+                //todo improve, use IN OID search, use WebModelUtils
                 for (ObjectReferenceType ref : refList) {
                     String oid = ref.getOid();
                     orgHelper = getModelService().getObject(OrgType.class, oid, null, loadTask, result).asObjectable();

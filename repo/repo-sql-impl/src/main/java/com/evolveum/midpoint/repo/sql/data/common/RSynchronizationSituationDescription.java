@@ -36,10 +36,9 @@ public class RSynchronizationSituationDescription implements Serializable {
 
     private RShadow shadow;
     private String shadowOid;
-    private Long shadowId;
     private String checksum;
     //fields
-    private RSynchronizationSituation    situation;
+    private RSynchronizationSituation situation;
     private XMLGregorianCalendar timestampValue;
     private String chanel;
     private Boolean full;
@@ -47,10 +46,6 @@ public class RSynchronizationSituationDescription implements Serializable {
     @ForeignKey(name = "none")
     @MapsId("shadow")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumns({
-            @JoinColumn(name = "shadow_oid", referencedColumnName = "oid"),
-            @JoinColumn(name = "shadow_id", referencedColumnName = "id")
-    })
     public RShadow getShadow() {
         return shadow;
     }
@@ -62,15 +57,6 @@ public class RSynchronizationSituationDescription implements Serializable {
             shadowOid = shadow.getOid();
         }
         return shadowOid;
-    }
-
-    @Id
-    @Column(name = "shadow_id")
-    public Long getShadowId() {
-        if (shadowId == null && shadow != null) {
-            shadowId = shadow.getId();
-        }
-        return shadowId;
     }
 
     /**
@@ -137,10 +123,6 @@ public class RSynchronizationSituationDescription implements Serializable {
 
     public void setShadowOid(String shadowOid) {
         this.shadowOid = shadowOid;
-    }
-
-    public void setShadowId(Long shadowId) {
-        this.shadowId = shadowId;
     }
 
     public void setChecksum(String checksum) {

@@ -1939,6 +1939,11 @@
 
                     <xsd:element name="activation" type="tns:ActivationType" minOccurs="0" maxOccurs="1">
                     </xsd:element>
+                    
+                    <xsd:element name="iteration" type="xsd:int" minOccurs="0">
+                    </xsd:element>
+                    <xsd:element name="iterationToken" type="xsd:string" minOccurs="0">
+                    </xsd:element>
 
                 </xsd:sequence>
             </xsd:extension>
@@ -6671,6 +6676,7 @@
                 			</xsd:appinfo>
                 		</xsd:annotation>
                 	</xsd:element>
+                	<xsd:element name="iteration" type="tns:IterationSpecificationType" minOccurs="0"/>
                     <xsd:element name="mapping" type="tns:MappingType" minOccurs="0"
                                  maxOccurs="unbounded">
                         <xsd:annotation>
@@ -8064,6 +8070,9 @@
             <xsd:documentation>
                 Where and how to send mail notifications (or any other mail messages).
             </xsd:documentation>
+            <!--<xsd:appinfo>-->
+                <!--<a:container/>-->
+            <!--</xsd:appinfo>-->
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="server" type="tns:MailServerConfigurationType" minOccurs="0" maxOccurs="unbounded">
@@ -8103,6 +8112,9 @@
             <xsd:documentation>
                 Configuration of a particular mail server host.
             </xsd:documentation>
+            <!--<xsd:appinfo>-->
+                <!--<a:container/>-->
+            <!--</xsd:appinfo>-->
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="host" type="xsd:string">
@@ -8126,7 +8138,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="password" type="xsd:string" minOccurs="0">
+            <xsd:element name="password" type="t:ProtectedStringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         How to authenticate to the mail server.
@@ -8204,6 +8216,9 @@
             <xsd:documentation>
                 Where and how to send SMS notifications (or any other SMS).
             </xsd:documentation>
+            <!--<xsd:appinfo>-->
+                <!--<a:container/>-->
+            <!--</xsd:appinfo>-->
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="gateway" type="tns:SmsGatewayConfigurationType" minOccurs="0" maxOccurs="unbounded">
@@ -8239,6 +8254,9 @@
 
                 Currently, we only support sending via HTTP GET method.
             </xsd:documentation>
+            <!--<xsd:appinfo>-->
+                <!--<a:container/>-->
+            <!--</xsd:appinfo>-->
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="url" type="c:ExpressionType" minOccurs="0">
@@ -8255,7 +8273,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="password" type="xsd:string" minOccurs="0">
+            <xsd:element name="password" type="t:ProtectedStringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         How to authenticate to the SMS gateway.
@@ -8587,6 +8605,9 @@
                 A configuration for user notifications. It defines how should be notifications created in various
                 situations, e.g. when an account is created or removed.
             </xsd:documentation>
+            <!--<xsd:appinfo>-->
+                <!--<a:container/>-->
+            <!--</xsd:appinfo>-->
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:handler" minOccurs="0" maxOccurs="unbounded"/>       <!-- implicit fork -->

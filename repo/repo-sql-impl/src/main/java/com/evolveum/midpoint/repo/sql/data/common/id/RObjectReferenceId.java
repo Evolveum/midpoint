@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.id;
 
-import com.evolveum.midpoint.repo.sql.type.QNameType;
-
 import java.io.Serializable;
 
 /**
@@ -26,20 +24,10 @@ import java.io.Serializable;
 public class RObjectReferenceId implements Serializable {
 
     private String ownerOid;
-    private Long ownerId;
     private String targetOid;
-    private String relationNamespace;
-    private String relationLocalPart;
+    private String relation;
 
     public RObjectReferenceId() {
-    }
-
-    public Long getOwnerId() {
-        return ownerId;
-    }
-
-    public void setOwnerId(Long ownerId) {
-        this.ownerId = ownerId;
     }
 
     public String getOwnerOid() {
@@ -58,26 +46,12 @@ public class RObjectReferenceId implements Serializable {
         this.targetOid = targetOid;
     }
 
-    public String getRelationLocalPart() {
-        if (relationLocalPart == null) {
-            relationLocalPart = QNameType.EMPTY_QNAME_COLUMN_VALUE;
-        }
-        return relationLocalPart;
+    public String getRelation() {
+        return relation;
     }
 
-    public void setRelationLocalPart(String relationLocalPart) {
-        this.relationLocalPart = relationLocalPart;
-    }
-
-    public String getRelationNamespace() {
-        if (relationNamespace == null) {
-            relationNamespace = QNameType.EMPTY_QNAME_COLUMN_VALUE;
-        }
-        return relationNamespace;
-    }
-
-    public void setRelationNamespace(String relationNamespace) {
-        this.relationNamespace = relationNamespace;
+    public void setRelation(String relation) {
+        this.relation = relation;
     }
 
     @Override
@@ -87,13 +61,9 @@ public class RObjectReferenceId implements Serializable {
 
         RObjectReferenceId that = (RObjectReferenceId) o;
 
-        if (ownerId != null ? !ownerId.equals(that.ownerId) : that.ownerId != null) return false;
         if (ownerOid != null ? !ownerOid.equals(that.ownerOid) : that.ownerOid != null) return false;
         if (targetOid != null ? !targetOid.equals(that.targetOid) : that.targetOid != null) return false;
-        if (getRelationNamespace() != null ? !getRelationNamespace().equals(that.getRelationNamespace()) :
-                that.getRelationNamespace() != null) return false;
-        if (getRelationLocalPart() != null ? !getRelationLocalPart().equals(that.getRelationLocalPart()) :
-                that.getRelationLocalPart() != null) return false;
+        if (relation != null ? !relation.equals(that.relation) : that.relation != null) return false;
 
         return true;
     }
@@ -102,17 +72,14 @@ public class RObjectReferenceId implements Serializable {
     @Override
     public int hashCode() {
         int result = ownerOid != null ? ownerOid.hashCode() : 0;
-        result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
         result = 31 * result + (targetOid != null ? targetOid.hashCode() : 0);
-        result = 31 * result + (getRelationNamespace() != null ? getRelationNamespace().hashCode() : 0);
-        result = 31 * result + (getRelationLocalPart() != null ? getRelationLocalPart().hashCode() : 0);
+        result = 31 * result + (relation != null ? relation.hashCode() : 0);
 
         return result;
     }
 
     @Override
     public String toString() {
-        return "RObjectReferenceId[" + ownerOid + "," + ownerId + "," + targetOid + ","
-                + relationNamespace + "," + relationLocalPart + ']';
+        return "RObjectReferenceId[" + ownerOid + "," + targetOid + "," + relation + ']';
     }
 }

@@ -291,6 +291,8 @@
         validTo DATETIME(6),
         validityChangeTimestamp DATETIME(6),
         validityStatus integer,
+        interationToken varchar(255),
+        iteration integer,
         id bigint not null,
         oid varchar(36) not null,
         primary key (id, oid)
@@ -365,6 +367,7 @@
 
     create table m_object_template (
         accountConstruction longtext,
+        iteration longtext,
         mapping longtext,
         name_norm varchar(255),
         name_orig varchar(255),

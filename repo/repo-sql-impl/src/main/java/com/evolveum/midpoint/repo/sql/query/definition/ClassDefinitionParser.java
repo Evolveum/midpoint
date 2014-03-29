@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.query.definition;
 
 import com.evolveum.midpoint.repo.sql.data.common.*;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -136,7 +137,7 @@ public class ClassDefinitionParser {
         if (ObjectReference.class.isAssignableFrom(jpaType)) {
             ReferenceDefinition refDef = new ReferenceDefinition(jaxbName, jaxbType, jpaName, jpaType);
             definition = updateReferenceDefinition(refDef, object);
-        } else if (RAnyContainer.class.isAssignableFrom(jpaType)) {
+        } else if (RAssignmentExtension.class.isAssignableFrom(jpaType)) {
             definition = new AnyDefinition(jaxbName, jaxbType, jpaName, jpaType);
         } else if (Set.class.isAssignableFrom(jpaType)) {
             CollectionDefinition collDef = new CollectionDefinition(jaxbName, jaxbType, jpaName, jpaType);
@@ -146,7 +147,7 @@ public class ClassDefinitionParser {
             EntityDefinition entityDef = new EntityDefinition(jaxbName, jaxbType, jpaName, jpaType);
             if ("com.evolveum.midpoint.repo.sql.data.common.embedded".equals(jpaType.getPackage().getName())
                     //todo not good, check some interface or annotation, DO NOT ENUMERATE [lazyman]
-                    || RMetadata.class.equals(jpaType)
+//                    || RMetadata.class.equals(jpaType) todo fix metadata shit
                     || ROperationResult.class.equals(jpaType)) {
                 updateEntityDefinition(entityDef);
             }

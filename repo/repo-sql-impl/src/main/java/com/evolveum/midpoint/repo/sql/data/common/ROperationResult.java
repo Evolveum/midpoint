@@ -35,39 +35,19 @@ public class ROperationResult implements OperationResult {
     //owner
     private RObject owner;
     private String ownerOid;
-    private Long ownerId;
     //other fields
-    private String operation;
     private ROperationResultStatus status;
     private Long token;
     private String messageCode;
-    private String message;
-    private String details;
-
-    private String localizedMessage;
-    private String params;
-    private String context;
-    private String returns;
-    private String partialResults;
 
     @ForeignKey(name = "fk_result_owner")
     @MapsId("owner")
     @ManyToOne(fetch = FetchType.LAZY)
     @PrimaryKeyJoinColumns({
-            @PrimaryKeyJoinColumn(name = "owner_oid", referencedColumnName = "oid"),
-            @PrimaryKeyJoinColumn(name = "owner_id", referencedColumnName = "id")
+            @PrimaryKeyJoinColumn(name = "owner_oid", referencedColumnName = "oid")
     })
     public RObject getOwner() {
         return owner;
-    }
-
-    @Id
-    @Column(name = "owner_id")
-    public Long getOwnerId() {
-        if (ownerId == null && owner != null) {
-            ownerId = owner.getId();
-        }
-        return ownerId;
     }
 
     @Id
@@ -77,30 +57,6 @@ public class ROperationResult implements OperationResult {
             ownerOid = owner.getOid();
         }
         return ownerOid;
-    }
-
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getParams() {
-        return params;
-    }
-
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getContext() {
-        return context;
-    }
-
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getReturns() {
-        return returns;
-    }
-
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getPartialResults() {
-        return partialResults;
     }
 
     @Enumerated(EnumType.ORDINAL)
@@ -117,76 +73,16 @@ public class ROperationResult implements OperationResult {
         this.owner = owner;
     }
 
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getDetails() {
-        return details;
-    }
-
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getLocalizedMessage() {
-        return localizedMessage;
-    }
-
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getMessage() {
-        return message;
-    }
-
     public String getMessageCode() {
         return messageCode;
-    }
-
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getOperation() {
-        return operation;
-    }
-
-    public void setOwnerId(Long ownerId) {
-        this.ownerId = ownerId;
     }
 
     public void setOwnerOid(String ownerOid) {
         this.ownerOid = ownerOid;
     }
 
-    public void setDetails(String details) {
-        this.details = details;
-    }
-
-    public void setLocalizedMessage(String localizedMessage) {
-        this.localizedMessage = localizedMessage;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
     public void setMessageCode(String messageCode) {
         this.messageCode = messageCode;
-    }
-
-    public void setOperation(String operation) {
-        this.operation = operation;
-    }
-
-    public void setParams(String params) {
-        this.params = params;
-    }
-    
-    public void setContext(String context) {
-		this.context = context;
-	}
-    
-    public void setReturns(String returns) {
-		this.returns = returns;
-	}
-
-    public void setPartialResults(String partialResults) {
-        this.partialResults = partialResults;
     }
 
     public void setStatus(ROperationResultStatus status) {
@@ -197,6 +93,94 @@ public class ROperationResult implements OperationResult {
         this.token = token;
     }
 
+    @Transient
+    @Override
+    public String getParams() {
+        return null;
+    }
+
+    @Transient
+    @Override
+    public String getContext() {
+        return null;
+    }
+
+    @Transient
+    @Override
+    public String getReturns() {
+        return null;
+    }
+
+    @Transient
+    @Override
+    public String getPartialResults() {
+        return null;
+    }
+
+    @Transient
+    @Override
+    public String getDetails() {
+        return null;
+    }
+
+    @Transient
+    @Override
+    public String getLocalizedMessage() {
+        return null;
+    }
+
+    @Transient
+    @Override
+    public String getMessage() {
+        return null;
+    }
+
+    @Transient
+    @Override
+    public String getOperation() {
+        return null;
+    }
+
+    @Override
+    public void setParams(String params) {
+
+    }
+
+    @Override
+    public void setContext(String context) {
+
+    }
+
+    @Override
+    public void setReturns(String returns) {
+
+    }
+
+    @Override
+    public void setPartialResults(String partialResults) {
+
+    }
+
+    @Override
+    public void setDetails(String details) {
+
+    }
+
+    @Override
+    public void setLocalizedMessage(String message) {
+
+    }
+
+    @Override
+    public void setMessage(String message) {
+
+    }
+
+    @Override
+    public void setOperation(String operation) {
+
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -204,17 +188,7 @@ public class ROperationResult implements OperationResult {
 
         ROperationResult that = (ROperationResult) o;
 
-        if (details != null ? !details.equals(that.details) : that.details != null) return false;
-        if (localizedMessage != null ? !localizedMessage.equals(that.localizedMessage) : that.localizedMessage != null)
-            return false;
-        if (message != null ? !message.equals(that.message) : that.message != null) return false;
         if (messageCode != null ? !messageCode.equals(that.messageCode) : that.messageCode != null) return false;
-        if (operation != null ? !operation.equals(that.operation) : that.operation != null) return false;
-        if (params != null ? !params.equals(that.params) : that.params != null) return false;
-        if (context != null ? !context.equals(that.context) : that.context != null) return false;
-        if (returns != null ? !returns.equals(that.returns) : that.returns != null) return false;
-        if (partialResults != null ? !partialResults.equals(that.partialResults) : that.partialResults != null)
-            return false;
         if (status != that.status) return false;
         if (token != null ? !token.equals(that.token) : that.token != null) return false;
 
@@ -223,17 +197,9 @@ public class ROperationResult implements OperationResult {
 
     @Override
     public int hashCode() {
-        int result = operation != null ? operation.hashCode() : 0;
-        result = 31 * result + (status != null ? status.hashCode() : 0);
+        int result = status != null ? status.hashCode() : 0;
         result = 31 * result + (token != null ? token.hashCode() : 0);
         result = 31 * result + (messageCode != null ? messageCode.hashCode() : 0);
-        result = 31 * result + (message != null ? message.hashCode() : 0);
-        result = 31 * result + (details != null ? details.hashCode() : 0);
-        result = 31 * result + (localizedMessage != null ? localizedMessage.hashCode() : 0);
-        result = 31 * result + (params != null ? params.hashCode() : 0);
-        result = 31 * result + (context != null ? context.hashCode() : 0);
-        result = 31 * result + (returns != null ? returns.hashCode() : 0);
-        result = 31 * result + (partialResults != null ? partialResults.hashCode() : 0);
         return result;
     }
 

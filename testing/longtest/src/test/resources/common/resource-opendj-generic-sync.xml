@@ -25,7 +25,8 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
-	xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-2">
+	xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-2"
+	xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
 	<name>Localhost OpenDJ</name>
 	<connectorRef type="ConnectorType">
 	    <filter>
@@ -61,13 +62,15 @@
         <generationConstraints>
             <generateObjectClass>ri:AccountObjectClass</generateObjectClass>
             <generateObjectClass>ri:GroupObjectClass</generateObjectClass>
+            <generateObjectClass>ri:CustomorganizationalUnitObjectClass</generateObjectClass>
         </generationConstraints>
     </schema>
 	
 	<schemaHandling>
-		<accountType>
-			<name>default</name>
-			<displayName>Default Account</displayName>
+		<objectType>
+			<kind>account</kind>
+            <intent>default</intent>
+            <displayName>Default Account</displayName>
 			<default>true</default>
 			<objectClass>ri:AccountObjectClass</objectClass>
 			<attribute>
@@ -75,6 +78,7 @@
 				<displayName>Distinguished Name</displayName>
 				<matchingRule>mr:stringIgnoreCase</matchingRule>
 				<outbound>
+					<strength>weak</strength>
 				    <source>
 				    	<path>$user/name</path>
 				    </source>
@@ -182,7 +186,46 @@
 					<inbound/>
 				</administrativeStatus>
 			</activation>
-		</accountType>
+		</objectType>
+		
+		<objectType>
+        	<kind>generic</kind>
+            <intent>ou</intent>
+            <displayName>Organizational Unit</displayName>
+            <objectClass>ri:CustomorganizationalUnitObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <inbound>
+                    <expression>
+                    	<script>
+	                        <code>
+	                        	import javax.naming.ldap.Rdn
+	                        	import javax.naming.ldap.LdapName
+	                        	
+	                        	rdns = new LdapName(input).getRdns();
+	                        	ourdns = rdns[0..-2]
+	                        	ous = ourdns.collect{ it.getValue() }
+	                        	return ous.reverse().join('/');
+	                        </code>
+                        </script>
+                    </expression>
+                    <target>
+						<path>$focus/extension/ext:orgpath</path>
+					</target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:ou</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <inbound>
+                	<strength>weak</strength>
+                	<target>
+                		<path>$focus/name</path>
+                	</target>
+                </inbound>
+            </attribute>
+        </objectType>
 	</schemaHandling>
 	
 	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
@@ -213,22 +256,16 @@
 	
 	<synchronization>
 		<objectSynchronization>
+			<name>User sync policy</name>
+			<objectClass>ri:AccountObjectClass</objectClass>
 			<enabled>true</enabled>
 			<correlation>
-				<q:and>
-					<q:equal>
-						<q:path>c:employeeNumber</q:path>
-						<valueExpression>
-							<path>$account/attributes/ri:employeeNumber</path>
-						</valueExpression>
-					</q:equal>
-					<q:not>
-						<q:equal>
-							<q:path>c:employeeNumber</q:path>
-							<value/>
-						</q:equal>
-					</q:not>
-				</q:and>
+				<q:equal>
+					<q:path>c:name</q:path>
+					<expression>
+						<path>$account/attributes/ri:uid</path>
+					</expression>
+				</q:equal>
 			</correlation>
 			
 			<reaction>
@@ -249,5 +286,47 @@
 	        </reaction>
 
 		</objectSynchronization>
+		
+		<objectSynchronization>
+			<name>Org sync policy</name>
+			<objectClass>ri:CustomorganizationalUnitObjectClass</objectClass>
+			<kind>generic</kind>
+			<intent>ou</intent>
+			<focusType>c:OrgType</focusType>
+			<enabled>true</enabled>
+			<correlation>
+				<q:equal>
+					<q:path>c:name</q:path>
+					<valueExpression>
+						<path>$shadow/attributes/ri:ou</path>
+					</valueExpression>
+				</q:equal>
+			</correlation>
+			<reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#deleteFocus</handlerUri>
+	            </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#link</handlerUri>
+	            </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#addFocus</handlerUri>
+	            </action>
+	        </reaction>
+        </objectSynchronization>
 	</synchronization>
 </object>

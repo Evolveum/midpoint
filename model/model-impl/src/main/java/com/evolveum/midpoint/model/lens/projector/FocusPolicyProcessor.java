@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.lens.projector;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +35,8 @@ import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.ModelObjectResolver;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
@@ -44,6 +47,7 @@ import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.model.trigger.RecomputeTriggerHandler;
+import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.OriginType;
@@ -68,6 +72,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -89,6 +94,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.TimeIntervalStatusT
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
  * Processor to handle user template and possible also other user "policy"
@@ -118,6 +124,9 @@ public class FocusPolicyProcessor {
 	
 	@Autowired(required = true)
 	private ActivationComputer activationComputer;
+	
+	@Autowired(required = true)
+	private ExpressionFactory expressionFactory;
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
@@ -128,7 +137,7 @@ public class FocusPolicyProcessor {
 
 	<O extends ObjectType, F extends FocusType> void processUserPolicy(LensContext<O> context, XMLGregorianCalendar now,
             Task task, OperationResult result) throws ObjectNotFoundException,
-            SchemaException, ExpressionEvaluationException, PolicyViolationException {
+            SchemaException, ExpressionEvaluationException, PolicyViolationException, ObjectAlreadyExistsException {
 
 		LensFocusContext<O> focusContext = context.getFocusContext();
     	if (focusContext == null) {
@@ -263,7 +272,7 @@ public class FocusPolicyProcessor {
 	}
 	
 	private <F extends FocusType> void applyUserTemplate(LensContext<F> context, XMLGregorianCalendar now, Task task, OperationResult result)
-					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, ObjectAlreadyExistsException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 
 		ObjectTemplateType userTemplate = context.getFocusTemplate();
@@ -274,31 +283,140 @@ public class FocusPolicyProcessor {
 			return;
 		}
 		
-		LOGGER.trace("Applying " + userTemplate + " to " + focusContext.getObjectNew());
+		int maxIterations = LensUtil.determineMaxIterations(userTemplate.getIteration());
+		int iteration = 0;
 
 		ObjectDelta<F> userSecondaryDelta = focusContext.getProjectionWaveSecondaryDelta();
 		ObjectDelta<F> userPrimaryDelta = focusContext.getProjectionWavePrimaryDelta();
 		ObjectDeltaObject<F> userOdo = focusContext.getObjectDeltaObject();
-		PrismObjectDefinition<F> userDefinition = getFocusDefinition(focusContext.getObjectTypeClass());
+		PrismObjectDefinition<F> focusDefinition = getFocusDefinition(focusContext.getObjectTypeClass());
+		Collection<ItemDelta<? extends PrismValue>> itemDeltas = null;
+		XMLGregorianCalendar nextRecomputeTime = null;
+	
+		while (true) {
 		
-		Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap 
-			= new HashMap<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>>();
-		
-		XMLGregorianCalendar nextRecomputeTime = collectTripleFromTemplate(context, userTemplate, userOdo, outputTripleMap, 
-				now, userTemplate.toString(), task, result);
-		
-		for (Entry<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> entry: outputTripleMap.entrySet()) {
-			ItemPath itemPath = entry.getKey();
-			DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>> outputTriple = entry.getValue();
+			ExpressionVariables variables = Utils.getDefaultExpressionVariables(focusContext.getObjectNew(), null, null, null);
+			String iterationToken = LensUtil.formatIterationToken(context, focusContext, 
+					userTemplate.getIteration(), iteration, expressionFactory, variables, task, result);
 			
-			ItemDelta<? extends PrismValue> apropriItemDelta = null;
+			LOGGER.trace("Applying {} to {}, iteration {} ({})", 
+					new Object[]{userTemplate, focusContext.getObjectNew(), iteration, iterationToken});
 			
-			ItemDelta<? extends PrismValue> itemDelta = LensUtil.consolidateTripleToDelta(itemPath, (DeltaSetTriple)outputTriple,
-					userDefinition.findItemDefinition(itemPath), apropriItemDelta, userOdo.getNewObject(), null, 
-					true, true, false, "user template "+userTemplate, true);
+			String conflictMessage;
+			if (!LensUtil.evaluateIterationCondition(context, focusContext, 
+					userTemplate.getIteration(), iteration, iterationToken, true, expressionFactory, variables, task, result)) {
+				
+				conflictMessage = "pre-iteration condition was false";
+				LOGGER.debug("Skipping iteration {}, token '{}' for {} because the pre-iteration condition was false",
+						new Object[]{iteration, iterationToken, focusContext.getHumanReadableName()});
+			} else {
 			
-			itemDelta.simplify();
-			itemDelta.validate("user template "+userTemplate);
+				Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap 
+					= new HashMap<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>>();
+				
+				nextRecomputeTime = collectTripleFromTemplate(context, userTemplate, userOdo, outputTripleMap,
+						iteration, iterationToken,
+						now, userTemplate.toString(), task, result);
+				
+				itemDeltas = new ArrayList<>();
+				for (Entry<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> entry: outputTripleMap.entrySet()) {
+					ItemPath itemPath = entry.getKey();
+					DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>> outputTriple = entry.getValue();
+					
+					ItemDelta<? extends PrismValue> apropriItemDelta = null;
+					
+					ItemDelta<? extends PrismValue> itemDelta = LensUtil.consolidateTripleToDelta(itemPath, (DeltaSetTriple)outputTriple,
+							focusDefinition.findItemDefinition(itemPath), apropriItemDelta, userOdo.getNewObject(), null, 
+							true, true, false, "object template "+userTemplate, true);
+					
+					itemDelta.simplify();
+					itemDelta.validate("object template "+userTemplate);
+					itemDeltas.add(itemDelta);
+				}
+				
+				// construct objectNew as the preview how the change will look like
+				// We do NOT want to this in the context because there is a change that this won't be
+				// unique and we will need to drop all the deltas and start again
+				PrismObject<F> previewObjectNew;
+				PrismObject<F> previewBase = focusContext.getObjectNew();
+				if (itemDeltas.isEmpty()) {
+					// No change
+		        	previewObjectNew = previewBase;
+				} else {
+			    	ObjectDelta<F> previewDelta = ObjectDelta.createEmptyModifyDelta(focusContext.getObjectTypeClass(), focusContext.getOid(), prismContext);
+			        for (ItemDelta<? extends PrismValue> itemDelta: itemDeltas) {
+			        	previewDelta.addModification(itemDelta.clone());
+			        }
+			        if (previewBase == null) {
+			        	previewBase = focusDefinition.instantiate();
+			        }
+			        LOGGER.trace("previewDelta={}, previewBase={}", previewDelta, previewBase);
+		        	previewObjectNew = previewDelta.computeChangedObject(previewBase);
+		        }
+				LOGGER.trace("previewObjectNew={}, itemDeltas={}", previewObjectNew, itemDeltas);
+	
+				if (previewObjectNew == null) {
+					// this must be delete
+				} else {
+			        // Explicitly check for name. The checker would check for this also. But checking it here
+					// will produce better error message
+					PolyStringType objectName = previewObjectNew.asObjectable().getName();
+					if (objectName == null || objectName.getOrig().isEmpty()) {
+						throw new SchemaException("No name in new object "+objectName+" as produced by template "+userTemplate+
+								" in iteration "+iteration+", we cannot process an object without a name");
+					}
+				}
+				
+				// Check if iteration constraints are OK
+				FocusConstraintsChecker<F> checker = new FocusConstraintsChecker<>();
+				checker.setPrismContext(prismContext);
+		        checker.setContext(context);
+		        checker.setRepositoryService(cacheRepositoryService);
+		        checker.check(previewObjectNew, result);
+		        if (checker.isSatisfiesConstraints()) {
+		        	LOGGER.trace("Current focus satisfies uniqueness constraints. Iteration {}, token '{}'", iteration, iterationToken);
+		        	
+		        	if (LensUtil.evaluateIterationCondition(context, focusContext, 
+		        			userTemplate.getIteration(), iteration, iterationToken, false, expressionFactory, variables, 
+		        			task, result)) {
+	    				// stop the iterations
+	    				break;
+	    			} else {
+	    				conflictMessage = "post-iteration condition was false";
+	    				LOGGER.debug("Skipping iteration {}, token '{}' for {} because the post-iteration condition was false",
+	    						new Object[]{iteration, iterationToken, focusContext.getHumanReadableName()});
+	    			}
+		        } 
+		        LOGGER.trace("Current focus does not satisfy constraints. Conflicting object: {}; iteration={}, maxIterations={}",
+		        		new Object[]{checker.getConflictingObject(), iteration, maxIterations});
+		        conflictMessage = checker.getMessages();
+			}
+	        
+	        // Next iteration
+			iteration++;
+	        iterationToken = null;
+	        if (iteration > maxIterations) {
+	        	StringBuilder sb = new StringBuilder();
+	        	if (iteration == 1) {
+	        		sb.append("Error processing ");
+	        	} else {
+	        		sb.append("Too many iterations ("+iteration+") for ");
+	        	}
+	        	sb.append(focusContext.getHumanReadableName());
+	        	if (iteration == 1) {
+	        		sb.append(": constraint violation: ");
+	        	} else {
+	        		sb.append(": cannot determine values that satisfy constraints: ");
+	        	}
+	        	if (conflictMessage != null) {
+	        		sb.append(conflictMessage);
+	        	}
+	        	throw new ObjectAlreadyExistsException(sb.toString());
+	        }
+		}
+			
+		// Apply iteration deltas
+		for (ItemDelta<? extends PrismValue> itemDelta: itemDeltas) {
 			
 			if (itemDelta != null && !itemDelta.isEmpty()) {
 				if (userPrimaryDelta == null || !userPrimaryDelta.containsModification(itemDelta)) {
@@ -347,6 +465,7 @@ public class FocusPolicyProcessor {
 	private <F extends FocusType> XMLGregorianCalendar collectTripleFromTemplate(LensContext<F> context,
 			ObjectTemplateType objectTemplateType, ObjectDeltaObject<F> userOdo,
 			Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap,
+			int iteration, String iterationToken,
 			XMLGregorianCalendar now, String contextDesc, Task task, OperationResult result)
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		
@@ -365,7 +484,8 @@ public class FocusPolicyProcessor {
 			LOGGER.trace("Including template {}", includeObject);
 			ObjectTemplateType includeObjectType = includeObject.asObjectable();
 			XMLGregorianCalendar includeNextRecomputeTime = collectTripleFromTemplate(context, includeObjectType, userOdo, 
-					outputTripleMap, now, "include "+includeObject+" in "+objectTemplateType + " in " + contextDesc, task, result);
+					outputTripleMap, iteration, iterationToken, 
+					now, "include "+includeObject+" in "+objectTemplateType + " in " + contextDesc, task, result);
 			if (includeNextRecomputeTime != null) {
 				if (nextRecomputeTime == null || nextRecomputeTime.compare(includeNextRecomputeTime) == DatatypeConstants.GREATER) {
 					nextRecomputeTime = includeNextRecomputeTime;
@@ -376,7 +496,7 @@ public class FocusPolicyProcessor {
 		// Process own mappings
 		Collection<MappingType> mappings = objectTemplateType.getMapping();
 		XMLGregorianCalendar templateNextRecomputeTime = collectTripleFromMappings(mappings, context, objectTemplateType, userOdo, 
-				outputTripleMap, now, contextDesc, task, result);
+				outputTripleMap, iteration, iterationToken, now, contextDesc, task, result);
 		if (templateNextRecomputeTime != null) {
 			if (nextRecomputeTime == null || nextRecomputeTime.compare(templateNextRecomputeTime) == DatatypeConstants.GREATER) {
 				nextRecomputeTime = templateNextRecomputeTime;
@@ -390,12 +510,14 @@ public class FocusPolicyProcessor {
 	private <V extends PrismValue, F extends FocusType> XMLGregorianCalendar collectTripleFromMappings(Collection<MappingType> mappings, LensContext<F> context,
 			ObjectTemplateType objectTemplateType, ObjectDeltaObject<F> userOdo,
 			Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap,
+			int iteration, String iterationToken,
 			XMLGregorianCalendar now, String contextDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		
 		XMLGregorianCalendar nextRecomputeTime = null;
 		
 		for (MappingType mappingType : mappings) {
-			Mapping<V> mapping = createMapping(context, mappingType, objectTemplateType, userOdo, now, contextDesc, result);
+			Mapping<V> mapping = createMapping(context, mappingType, objectTemplateType, userOdo, 
+					iteration, iterationToken, now, contextDesc, result);
 			if (mapping == null) {
 				continue;
 			}
@@ -433,7 +555,7 @@ public class FocusPolicyProcessor {
 	}
 	
 	private <V extends PrismValue, F extends FocusType> Mapping<V> createMapping(final LensContext<F> context, final MappingType mappingType, ObjectTemplateType userTemplate, 
-			ObjectDeltaObject<F> userOdo, XMLGregorianCalendar now, String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			ObjectDeltaObject<F> userOdo, int iteration, String iterationToken, XMLGregorianCalendar now, String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		Mapping<V> mapping = mappingFactory.createMapping(mappingType,
 				"object template mapping in " + contextDesc
 				+ " while processing user " + userOdo.getAnyObject());
@@ -447,6 +569,8 @@ public class FocusPolicyProcessor {
 		mapping.setRootNode(userOdo);
 		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
 		mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, userOdo);
+		mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION, iteration);
+		mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
 		mapping.setOriginType(OriginType.USER_POLICY);
 		mapping.setOriginObject(userTemplate);
 		mapping.setNow(now);

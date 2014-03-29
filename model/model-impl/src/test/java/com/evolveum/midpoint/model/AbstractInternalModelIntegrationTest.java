@@ -174,10 +174,6 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 	
 	protected MockClockworkHook mockClockworkHook;
 			
-	public AbstractInternalModelIntegrationTest() {
-		super();
-	}
-
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");
@@ -186,6 +182,8 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 		mockClockworkHook = new MockClockworkHook();
 		hookRegistry.registerChangeHook(MOCK_CLOCKWORK_HOOK_URL, mockClockworkHook);
 		
+		modelService.postInit(initResult);
+		
 		// System Configuration
 		try {
 			repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, SystemConfigurationType.class, initResult);
@@ -193,8 +191,6 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
 					"looks like the previous test haven't cleaned it up", e);
 		}
-		
-		modelService.postInit(initResult);
 				
 		// Administrator
 		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);

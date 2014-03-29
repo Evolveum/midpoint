@@ -128,7 +128,10 @@ public class Main {
 			System.out.println("Created user lechuck, OID: "+userLeChuckOid);
 			
 			changeUserPassword(modelPort, userGuybrushoid, "MIGHTYpirate");
-			System.out.println("Created user password");
+			System.out.println("Changed user password");
+
+            changeUserGivenName(modelPort, userLeChuckOid, "CHUCK");
+            System.out.println("Changed user given name");
 			
 			assignRoles(modelPort, userGuybrushoid, ROLE_PIRATE_OID, ROLE_CAPTAIN_OID);
 			System.out.println("Assigned roles");
@@ -140,9 +143,10 @@ public class Main {
 			System.out.println("Found requestable roles");
 			System.out.println(roles);
 			
-			// Uncomment the following line if you want to see what midPoint really did
+			// Uncomment the following lines if you want to see what midPoint really did
 			// ... because deleting the user will delete also all the traces (except logs and audit of course).
 			deleteUser(modelPort, userGuybrushoid);
+            deleteUser(modelPort, userLeChuckOid);
 			System.out.println("Deleted user");
 			
 		} catch (Exception e) {
@@ -279,7 +283,23 @@ public class Main {
         deltaListType.getDelta().add(deltaType);
         modelPort.executeChanges(deltaListType, null);
 	}
-	
+
+    private static void changeUserGivenName(ModelPortType modelPort, String oid, String newValue) throws FaultMessage {
+        Document doc = ModelClientUtil.getDocumnent();
+
+        ObjectModificationType userDelta = new ObjectModificationType();
+        userDelta.setOid(oid);
+
+        ItemDeltaType itemDelta = new ItemDeltaType();
+        itemDelta.setModificationType(ModificationTypeType.REPLACE);
+        ItemDeltaType.Value itemValue = new ItemDeltaType.Value();
+        itemValue.getAny().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_GIVEN_NAME, ModelClientUtil.createPolyStringType(newValue, doc)));
+        itemDelta.setValue(itemValue);
+        userDelta.getModification().add(itemDelta);
+
+        modelPort.modifyObject(ModelClientUtil.getTypeUri(UserType.class), userDelta);
+    }
+
 	private static void assignRoles(ModelPortType modelPort, String userOid, String... roleOids) throws FaultMessage {
 		modifyRoleAssignment(modelPort, userOid, true, roleOids);
 	}

@@ -53,13 +53,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.sql.data.common.RConnector;
-import com.evolveum.midpoint.repo.sql.data.common.RGenericObject;
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.RRole;
-import com.evolveum.midpoint.repo.sql.data.common.RShadow;
-import com.evolveum.midpoint.repo.sql.data.common.RTask;
-import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RTaskExecutionStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
@@ -113,6 +106,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
         Criteria main = session.createCriteria(RUser.class, "u");
+        main.setProjection(Projections.property("u.fullObject"));
         Criteria o = main.createCriteria("organization", "o");
 
         o.add(Restrictions.eq("o.norm", "asdf"));
@@ -135,6 +129,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
         Criteria main = session.createCriteria(RUser.class, "u");
+        main.setProjection(Projections.property("u.fullObject"));
         Criteria o = main.createCriteria("organization", "o");
 
         o.add(Restrictions.eq("o.orig", "asdf"));
@@ -157,6 +152,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
         Criteria main = session.createCriteria(RUser.class, "u");
+        main.setProjection(Projections.property("u.fullObject"));
         Criteria o = main.createCriteria("organization", "o");
 
         o.add(Restrictions.conjunction()
@@ -179,6 +175,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Criteria main = session.createCriteria(RTask.class, "t");
         Criteria d = main.createCriteria("dependent", "d");
         d.add(Restrictions.eq("d.elements", "123456"));
+        main.setProjection(Projections.property("t.fullObject"));
 
         String expected = HibernateToSqlTranslator.toSql(main);
 
@@ -213,6 +210,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
         Criteria main = session.createCriteria(RTask.class, "t");
         main.add(Restrictions.eq("executionStatus", RTaskExecutionStatus.WAITING));
+        main.setProjection(Projections.property("t.fullObject"));
 
         String expected = HibernateToSqlTranslator.toSql(main);
 
@@ -232,6 +230,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
         Criteria main = session.createCriteria(RUser.class, "u");
         main.add(Restrictions.eq("activation.administrativeStatus", RActivationStatus.ENABLED));
+        main.setProjection(Projections.property("u.fullObject"));
 
         String expected = HibernateToSqlTranslator.toSql(main);
         String real = getInterpretedQuery(session, UserType.class,
@@ -249,21 +248,22 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
         Criteria main = session.createCriteria(RGenericObject.class, "g");
 
-        Criteria extension = main.createCriteria("extension", "e");
-        Criteria stringExt = extension.createCriteria("longs", "l");
+        Criteria stringExt = main.createCriteria("longs", "l");
 
         //and
         Criterion c1 = Restrictions.eq("name.norm", "generic object");
         //and
         Conjunction c2 = Restrictions.conjunction();
-        c2.add(Restrictions.eq("l.value", 123L));
+        c2.add(Restrictions.eq("l.ownerType", RObjectType.OBJECT));
         c2.add(Restrictions.eq("l.name", new QName("http://example.com/p", "intType")));
         c2.add(Restrictions.eq("l.type", DOMUtil.XSD_INTEGER));
+        c2.add(Restrictions.eq("l.value", 123L));
 
         Conjunction conjunction = Restrictions.conjunction();
         conjunction.add(c1);
         conjunction.add(c2);
         main.add(conjunction);
+        main.setProjection(Projections.property("g.fullObject"));
 
         String expected = HibernateToSqlTranslator.toSql(main);
         String real = getInterpretedQuery(session, GenericObjectType.class,
@@ -279,25 +279,24 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void queryOrComposite() throws Exception {
         Session session = open();
         Criteria main = session.createCriteria(RShadow.class, "r");
+        main.setProjection(Projections.property("r.fullObject"));
 
-        Criteria attributes = main.createCriteria("attributes", "a");
-        Criteria stringAttr = attributes.createCriteria("strings", "s1x");
-
-        Criteria extension = main.createCriteria("extension", "e");
-        Criteria stringExt = extension.createCriteria("strings", "s2x");
+        Criteria stringExt = main.createCriteria("strings", "s1");
 
         //or
         Criterion c1 = Restrictions.eq("intent", "some account type");
         //or
         Conjunction c2 = Restrictions.conjunction();
-        c2.add(Restrictions.eq("s1x.value", "foo value"));
-        c2.add(Restrictions.eq("s1x.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
-        c2.add(Restrictions.eq("s1x.type", DOMUtil.XSD_STRING));
+        c2.add(Restrictions.eq("s1.ownerType", RObjectType.SHADOW));
+        c2.add(Restrictions.eq("s1.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
+        c2.add(Restrictions.eq("s1.type", DOMUtil.XSD_STRING));
+        c2.add(Restrictions.eq("s1.value", "foo value"));
         //or
         Conjunction c3 = Restrictions.conjunction();
-        c3.add(Restrictions.eq("s2x.value", "uid=test,dc=example,dc=com"));
-        c3.add(Restrictions.eq("s2x.name", new QName("http://example.com/p", "stringType")));
-        c3.add(Restrictions.eq("s2x.type", DOMUtil.XSD_STRING));
+        c3.add(Restrictions.eq("s1.ownerType", RObjectType.OBJECT));
+        c3.add(Restrictions.eq("s1.name", new QName("http://example.com/p", "stringType")));
+        c3.add(Restrictions.eq("s1.type", DOMUtil.XSD_STRING));
+        c3.add(Restrictions.eq("s1.value", "uid=test,dc=example,dc=com"));
         //or
         Conjunction c4 = Restrictions.conjunction();
         c4.add(Restrictions.eq("r.resourceRef.targetOid", "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e"));
@@ -330,6 +329,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     Restrictions.eq("name.orig", "cpt. Jack Sparrow"),
                     Restrictions.eq("name.norm", "cpt jack sparrow")));
             main.addOrder(Order.asc("name.orig"));
+            main.setProjection(Projections.property("o.fullObject"));
             String expected = HibernateToSqlTranslator.toSql(main);
 
             EqualsFilter filter = EqualsFilter.createEqual(ObjectType.F_NAME, ObjectType.class, prismContext,
@@ -352,6 +352,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
 
         Criteria main = session.createCriteria(RUser.class, "u");
+        main.setProjection(Projections.property("u.fullObject"));
         main.add(Restrictions.eq("fullName.norm", "cpt jack sparrow"));
         String expected = HibernateToSqlTranslator.toSql(main);
 
@@ -370,6 +371,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
 
         Criteria main = session.createCriteria(RUser.class, "u");
+        main.setProjection(Projections.property("u.fullObject"));
         main.add(Restrictions.like("fullName.norm", "%cpt jack sparrow%").ignoreCase());
         String expected = HibernateToSqlTranslator.toSql(main);
 
@@ -388,6 +390,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
 
         Criteria main = session.createCriteria(RUser.class, "u");
+        main.setProjection(Projections.property("u.fullObject"));
         main.add(Restrictions.eq("name.norm", "some name identificator"));
         String expected = HibernateToSqlTranslator.toSql(main);
 
@@ -409,6 +412,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Criterion connectorType = Restrictions.conjunction().add(
                 Restrictions.eq("connectorType", "org.identityconnectors.ldap.LdapConnector"));
         main.add(connectorType);
+        main.setProjection(Projections.property("c.fullObject"));
         String expected = HibernateToSqlTranslator.toSql(main);
 
         String real = getInterpretedQuery(session, ConnectorType.class,
@@ -426,8 +430,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
         Criteria main = session.createCriteria(RShadow.class, "r");
 
-        Criteria attributes = main.createCriteria("attributes", "a");
-        Criteria stringAttr = attributes.createCriteria("strings", "s1x");
+        Criteria stringAttr = main.createCriteria("strings", "s1x");
 
         //and
         Conjunction c1 = Restrictions.conjunction();
@@ -437,14 +440,16 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 //                Restrictions.eq("r.resourceRef.targetOid", "aae7be60-df56-11df-8608-0002a5d5c51b"));
         //and
         Conjunction c2 = Restrictions.conjunction();
-        c2.add(Restrictions.eq("s1x.value", "uid=jbond,ou=People,dc=example,dc=com"));
+        c2.add(Restrictions.eq("s1x.ownerType", RObjectType.SHADOW));
         c2.add(Restrictions.eq("s1x.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
         c2.add(Restrictions.eq("s1x.type", DOMUtil.XSD_STRING));
+        c2.add(Restrictions.eq("s1x.value", "uid=jbond,ou=People,dc=example,dc=com"));
 
         Conjunction conjunction = Restrictions.conjunction();
         conjunction.add(c1);
         conjunction.add(c2);
         main.add(conjunction);
+        main.setProjection(Projections.property("r.fullObject"));
 
         String expected = HibernateToSqlTranslator.toSql(main);
         String real = getInterpretedQuery(session, ShadowType.class,
@@ -461,6 +466,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         LOGGER.info("===[{}]===", new Object[]{"queryUserAccountRef"});
         Session session = open();
         Criteria main = session.createCriteria(RUser.class, "u");
+        main.setProjection(Projections.property("u.fullObject"));
         Criteria refs = main.createCriteria("linkRef", "l");
         refs.add(Restrictions.conjunction().add(Restrictions.eq("l.targetOid", "123")));
 
@@ -481,6 +487,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         Session session = open();
         Criteria main = session.createCriteria(RObject.class, "o");
+        main.setProjection(Projections.property("o.fullObject"));
         Criteria d = main.createCriteria("trigger", "t");
         d.add(Restrictions.le("t.timestamp", new Timestamp(NOW.getTime())));
 
@@ -511,6 +518,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                 Restrictions.eq("a.assignmentOwner", RAssignmentOwner.FOCUS),
                 Restrictions.eq("a.activation.administrativeStatus", RActivationStatus.ENABLED)
         ));
+        main.setProjection(Projections.property("u.fullObject"));
 
         String expected = HibernateToSqlTranslator.toSql(main);
 
@@ -539,6 +547,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                 Restrictions.eq("a.assignmentOwner", RAssignmentOwner.ABSTRACT_ROLE),
                 Restrictions.eq("a.activation.administrativeStatus", RActivationStatus.ENABLED)
         ));
+        main.setProjection(Projections.property("r.fullObject"));
 
         String expected = HibernateToSqlTranslator.toSql(main);
 
@@ -563,6 +572,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
         Criteria main = session.createCriteria(RRole.class, "r");
         Criteria a = main.createCriteria("assignments", "a");
+        main.setProjection(Projections.property("r.fullObject"));
 
         Criterion and1 = Restrictions.and(
                 Restrictions.eq("a.assignmentOwner", RAssignmentOwner.FOCUS),
@@ -606,6 +616,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         Session session = open();
         Criteria main = session.createCriteria(RUser.class, "u");
+        main.setProjection(Projections.property("u.fullObject"));
         main.add(Restrictions.and(
                 Restrictions.eq("u.activation.administrativeStatus", RActivationStatus.ENABLED),
                 Restrictions.eq("u.activation.validFrom", XmlTypeConverter.createXMLGregorianCalendar(NOW.getTime()))));
@@ -639,6 +650,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         Session session = open();
         Criteria main = session.createCriteria(RObject.class, "o");
+        main.setProjection(Projections.property("o.fullObject"));
         Criteria d = main.createCriteria("trigger", "t");
         d.add(Restrictions.and(
                 Restrictions.gt("t.timestamp", new Timestamp(NOW.getTime())),
@@ -674,6 +686,8 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         ProjectionList list = Projections.projectionList();
         list.add(Projections.groupProperty("closure.descendant"));
         list.add(Projections.groupProperty("o.name.orig"));
+        list.add(Projections.groupProperty("o.fullObject"));
+        list.add(Projections.property("o.fullObject"));
 
         Criteria main = session.createCriteria(RObject.class, "o");
         main.createCriteria("descendants", "closure").setFetchMode("closure.ancestor", FetchMode.DEFAULT)
@@ -681,7 +695,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         main.addOrder(Order.asc("o.name.orig"));
 
         Conjunction conjunction = Restrictions.conjunction();
-        conjunction.add(Restrictions.eq("anc.id", 0L));
         conjunction.add(Restrictions.eq("anc.oid", "some oid"));
         conjunction.add(Restrictions.le("closure.depth", 1));
         conjunction.add(Restrictions.gt("closure.depth", 0));
@@ -783,6 +796,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         Criteria main = session.createCriteria(RObject.class, "o");
         main.add(Restrictions.in("oid", Arrays.asList("1", "2")));
+        main.setProjection(Projections.property("o.fullObject"));
 
         String expected = HibernateToSqlTranslator.toSql(main);
 
@@ -795,5 +809,75 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(expected, real);
 
         close(session);
+    }
+
+    @Test
+    public void queryOrgTreeFindOrgs() throws Exception {
+        Session session = open();
+
+        ProjectionList list = Projections.projectionList();
+        list.add(Projections.groupProperty("closure.descendant"));
+        list.add(Projections.groupProperty("o.name.orig"));
+        list.add(Projections.groupProperty("o.fullObject"));
+        list.add(Projections.property("o.fullObject"));
+
+        Criteria main = session.createCriteria(ROrg.class, "o");
+        main.createCriteria("descendants", "closure").setFetchMode("closure.ancestor", FetchMode.DEFAULT)
+                .createAlias("closure.ancestor", "anc").setProjection(list);
+        main.addOrder(Order.asc("o.name.orig"));
+
+        Conjunction conjunction = Restrictions.conjunction();
+        conjunction.add(Restrictions.eq("anc.oid", "some oid"));
+        conjunction.add(Restrictions.le("closure.depth", 1));
+        conjunction.add(Restrictions.gt("closure.depth", 0));
+        main.add(conjunction);
+
+        String expected = HibernateToSqlTranslator.toSql(main);
+
+        OrgFilter orgFilter = OrgFilter.createOrg("some oid", null, 1);
+        ObjectQuery query = ObjectQuery.createObjectQuery(orgFilter);
+        query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
+
+        String real = getInterpretedQuery(session, OrgType.class, query);
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+
+        OperationResult result = new OperationResult("query org structure");
+        repositoryService.searchObjects(OrgType.class, query, null, result);
+
+        AssertJUnit.assertEquals(expected, real);
+
+        close(session);
+    }
+
+    @Test
+    public void asdf() throws Exception {
+        Session session = open();
+
+        Criteria main = session.createCriteria(RUser.class, "u");
+        Criteria a = main.createCriteria("assignments", "a");
+        a.add(Restrictions.eq("a.assignmentOwner", RAssignmentOwner.FOCUS));
+        Criteria e = a.createCriteria("a.extension");
+
+        Criteria s = e.createCriteria("strings", "s");
+
+        Conjunction c2 = Restrictions.conjunction();
+        c2.add(Restrictions.eq("s.extensionType", RAssignmentExtensionType.EXTENSION));
+        c2.add(Restrictions.eq("s.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
+        c2.add(Restrictions.eq("s.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
+        c2.add(Restrictions.eq("s.value", "uid=jbond,ou=People,dc=example,dc=com"));
+
+        Conjunction c1 = Restrictions.conjunction();
+        c1.add(Restrictions.eq("a.targetRef.targetOid", "1234"));
+        c1.add(Restrictions.eq("a.targetRef.type", RObjectType.ORG));
+
+        main.add(Restrictions.and(c1, c2));
+
+        main.setProjection(Projections.property("u.fullObject"));
+
+        String expected = HibernateToSqlTranslator.toSql(main);
+        LOGGER.info(">>> >>> {}",expected);
+
+        session.close();
     }
 }

@@ -18,10 +18,9 @@ package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
-import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 
@@ -29,11 +28,11 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang.builder.ToStringStyle;
-import org.hibernate.annotations.Type;
-import org.w3c.dom.Element;
 
-import javax.persistence.*;
-import javax.xml.namespace.QName;
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 
 /**
  * @author lazyman
@@ -44,22 +43,14 @@ public class REmbeddedReference implements ObjectReference {
     //target
     private String targetOid;
     //other fields
-    private String description = "";
-    private String filter = "";
-    private RContainerType type;
+    private RObjectType type;
     //relation qname
-    private String relationNamespace = "";
-    private String relationLocalPart = "";
+    private String relation;
 
-    @Column(length = RUtil.COLUMN_LENGTH_LOCALPART)
+    @Column(length = RUtil.COLUMN_LENGTH_QNAME)
     @Override
-    public String getRelationLocalPart() {
-        return relationLocalPart;
-    }
-
-    @Override
-    public String getRelationNamespace() {
-        return relationNamespace;
+    public String getRelation() {
+        return relation;
     }
 
     @Column(length = RUtil.COLUMN_LENGTH_OID, insertable = true, updatable = true, nullable = true)
@@ -68,47 +59,21 @@ public class REmbeddedReference implements ObjectReference {
         return targetOid;
     }
 
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    @Override
-    public String getDescription() {
-        return description;
-    }
-
     @Enumerated(EnumType.ORDINAL)
     @Override
-    public RContainerType getType() {
+    public RObjectType getType() {
         return type;
     }
 
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    @Override
-    public String getFilter() {
-        return filter;
-    }
-
-    public void setRelationLocalPart(String relationLocalPart) {
-        this.relationLocalPart = relationLocalPart;
-    }
-
-    public void setRelationNamespace(String relationNamespace) {
-        this.relationNamespace = relationNamespace;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setFilter(String filter) {
-        this.filter = filter;
+    public void setRelation(String relation) {
+        this.relation = relation;
     }
 
     public void setTargetOid(String targetOid) {
         this.targetOid = targetOid;
     }
 
-    public void setType(RContainerType type) {
+    public void setType(RObjectType type) {
         this.type = type;
     }
 
@@ -119,26 +84,18 @@ public class REmbeddedReference implements ObjectReference {
 
         REmbeddedReference that = (REmbeddedReference) o;
 
-        if (description != null ? !description.equals(that.description) : that.description != null) return false;
-        if (filter != null ? !filter.equals(that.filter) : that.filter != null) return false;
         if (targetOid != null ? !targetOid.equals(that.targetOid) : that.targetOid != null)
             return false;
         if (type != that.type) return false;
-        if (relationLocalPart != null ? !relationLocalPart.equals(that.relationLocalPart) : that.relationLocalPart != null)
-            return false;
-        if (relationNamespace != null ? !relationNamespace.equals(that.relationNamespace) : that.relationNamespace != null)
-            return false;
+        if (relation != null ? !relation.equals(that.relation) : that.relation != null) return false;
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = description != null ? description.hashCode() : 0;
-        result = 31 * result + (filter != null ? filter.hashCode() : 0);
-        result = 31 * result + (type != null ? type.hashCode() : 0);
-        result = 31 * result + (relationLocalPart != null ? relationLocalPart.hashCode() : 0);
-        result = 31 * result + (relationNamespace != null ? relationNamespace.hashCode() : 0);
+        int result = type != null ? type.hashCode() : 0;
+        result = 31 * result + (relation != null ? relation.hashCode() : 0);
 
         return result;
     }
@@ -151,24 +108,10 @@ public class REmbeddedReference implements ObjectReference {
     public static void copyToJAXB(REmbeddedReference repo, ObjectReferenceType jaxb, PrismContext prismContext) {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
-
-        if (StringUtils.isNotEmpty(repo.getDescription())) {
-            jaxb.setDescription(repo.getDescription());
-        }
         jaxb.setType(ClassMapper.getQNameForHQLType(repo.getType()));
-        if (StringUtils.isNotEmpty(repo.getRelationLocalPart()) && StringUtils.isNotEmpty(repo.getRelationNamespace())) {
-            jaxb.setRelation(new QName(repo.getRelationNamespace(), repo.getRelationLocalPart()));
-        }
+        jaxb.setRelation(RUtil.stringToQName(repo.getRelation()));
         if (StringUtils.isNotEmpty(repo.getTargetOid())) {
             jaxb.setOid(repo.getTargetOid());
-        }
-
-        String filter = repo.getFilter();
-        if (StringUtils.isNotEmpty(filter)) {
-            Element element = DOMUtil.parseDocument(filter).getDocumentElement();
-            SearchFilterType jaxbFilter = new SearchFilterType();
-            jaxbFilter.setFilterClause(element);
-            jaxb.setFilter(jaxbFilter);
         }
     }
 
@@ -177,21 +120,10 @@ public class REmbeddedReference implements ObjectReference {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notEmpty(jaxb.getOid(), "Target oid must not be null.");
 
-        if (jaxb.getDescription() != null) {
-            repo.setDescription(jaxb.getDescription());
-        }
         repo.setType(ClassMapper.getHQLTypeForQName(jaxb.getType()));
-        if (jaxb.getRelation() != null) {
-            repo.setRelationNamespace(jaxb.getRelation().getNamespaceURI());
-            repo.setRelationLocalPart(jaxb.getRelation().getLocalPart());
-        }
-
+        repo.setRelation(RUtil.qnameToString(jaxb.getRelation()));
         repo.setTargetOid(jaxb.getOid());
 
-        if (jaxb.getFilter() != null && jaxb.getFilter().getFilterClause() != null) {
-            SearchFilterType filter = jaxb.getFilter();
-            repo.setFilter(DOMUtil.printDom(filter.getFilterClause()).toString());
-        }
     }
 
     public ObjectReferenceType toJAXB(PrismContext prismContext) {

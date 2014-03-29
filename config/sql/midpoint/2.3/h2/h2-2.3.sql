@@ -281,6 +281,8 @@
         validTo timestamp,
         validityChangeTimestamp timestamp,
         validityStatus integer,
+        interationToken varchar(255),
+        iteration integer,
         id bigint not null,
         oid varchar(36) not null,
         primary key (id, oid)
@@ -355,6 +357,7 @@
 
     create table m_object_template (
         accountConstruction clob,
+        iteration clob,
         mapping clob,
         name_norm varchar(255),
         name_orig varchar(255),

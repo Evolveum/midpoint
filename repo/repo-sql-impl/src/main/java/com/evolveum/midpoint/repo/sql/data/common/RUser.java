@@ -45,12 +45,9 @@ import java.util.Set;
                 @Index(name = "iFullName", columnNames = "fullName_orig"),
                 @Index(name = "iFamilyName", columnNames = "familyName_orig"),
                 @Index(name = "iGivenName", columnNames = "givenName_orig"),
-                @Index(name = "iLocality", columnNames = "locality_orig"),
-                @Index(name = "iAdditionalName", columnNames = "additionalName_orig"),
-                @Index(name = "iHonorificPrefix", columnNames = "honorificPrefix_orig"),
-                @Index(name = "iHonorificSuffix", columnNames = "honorificSuffix_orig")})
+                @Index(name = "iLocality", columnNames = "locality_orig")})
 @ForeignKey(name = "fk_user")
-public class RUser extends RFocus<UserType> {// implements FieldHandled {
+public class RUser extends RFocus<UserType> {
 
     private RPolyString name;
     private RPolyString fullName;
@@ -76,20 +73,6 @@ public class RUser extends RFocus<UserType> {// implements FieldHandled {
     private ROperationResult result;
     private byte[] jpegPhoto;
 
-//    /**
-//     * Used for lazy loading properties (entities)
-//     */
-//    private FieldHandler fieldHandler;
-//
-//    public FieldHandler getFieldHandler() {
-//        return fieldHandler;
-//    }
-//
-//    public void setFieldHandler(FieldHandler fieldHandler) {
-//        this.fieldHandler = fieldHandler;
-//    }
-
-//    @LazyToOne(LazyToOneOption.NO_PROXY)
     @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)//, fetch = FetchType.LAZY)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public ROperationResult getResult() {
@@ -110,8 +93,7 @@ public class RUser extends RFocus<UserType> {// implements FieldHandled {
     @ElementCollection
     @ForeignKey(name = "fk_user_organization")
     @CollectionTable(name = "m_user_organization", joinColumns = {
-            @JoinColumn(name = "user_oid", referencedColumnName = "oid"),
-            @JoinColumn(name = "user_id", referencedColumnName = "id")
+            @JoinColumn(name = "user_oid", referencedColumnName = "oid")
     })
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RPolyString> getOrganization() {
@@ -135,8 +117,7 @@ public class RUser extends RFocus<UserType> {// implements FieldHandled {
     @ElementCollection
     @ForeignKey(name = "fk_user_org_unit")
     @CollectionTable(name = "m_user_organizational_unit", joinColumns = {
-            @JoinColumn(name = "user_oid", referencedColumnName = "oid"),
-            @JoinColumn(name = "user_id", referencedColumnName = "id")
+            @JoinColumn(name = "user_oid", referencedColumnName = "oid")
     })
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RPolyString> getOrganizationalUnit() {
@@ -150,8 +131,7 @@ public class RUser extends RFocus<UserType> {// implements FieldHandled {
     @ElementCollection
     @ForeignKey(name = "fk_user_employee_type")
     @CollectionTable(name = "m_user_employee_type", joinColumns = {
-            @JoinColumn(name = "user_oid", referencedColumnName = "oid"),
-            @JoinColumn(name = "user_id", referencedColumnName = "id")
+            @JoinColumn(name = "user_oid", referencedColumnName = "oid")
     })
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<String> getEmployeeType() {

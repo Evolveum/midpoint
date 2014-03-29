@@ -17,8 +17,6 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.*;
@@ -26,14 +24,11 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UriStack;
 
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
-import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -58,7 +53,6 @@ public class RTask extends RObject<TaskType> {
     private String node;
     private String category;
     private String handlerUri;
-    private String otherHandlersUriStack;
     private ROperationResult result;
     private XMLGregorianCalendar lastRunStartTimestamp;
     private XMLGregorianCalendar lastRunFinishTimestamp;
@@ -66,7 +60,6 @@ public class RTask extends RObject<TaskType> {
     private Long progress;
     private RTaskRecurrence recurrence;
     private RTaskBinding binding;
-    private String schedule;
 
     private REmbeddedReference objectRef;
     private REmbeddedReference ownerRef;
@@ -82,8 +75,7 @@ public class RTask extends RObject<TaskType> {
     @ElementCollection
     @ForeignKey(name = "fk_task_dependent")
     @CollectionTable(name = "m_task_dependent", joinColumns = {
-            @JoinColumn(name = "task_oid", referencedColumnName = "oid"),
-            @JoinColumn(name = "task_id", referencedColumnName = "id")
+            @JoinColumn(name = "task_oid", referencedColumnName = "oid")
     })
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<String> getDependent() {
@@ -125,23 +117,11 @@ public class RTask extends RObject<TaskType> {
     public REmbeddedReference getOwnerRef() {
         return ownerRef;
     }
+
     @Index(name = "iParent")
     @Column(name = "parent")
     public String getParent() {
         return parent;
-    }
-
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getOtherHandlersUriStack() {
-        return otherHandlersUriStack;
-    }
-
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    @Column(nullable = true)
-    public String getSchedule() {
-        return schedule;
     }
 
     @Enumerated(EnumType.ORDINAL)
@@ -289,14 +269,6 @@ public class RTask extends RObject<TaskType> {
         this.taskIdentifier = taskIdentifier;
     }
 
-    public void setOtherHandlersUriStack(String otherHandlersUriStack) {
-        this.otherHandlersUriStack = otherHandlersUriStack;
-    }
-
-    public void setSchedule(String schedule) {
-        this.schedule = schedule;
-    }
-
     public void setDependent(Set<String> dependent) {
         this.dependent = dependent;
     }
@@ -325,13 +297,10 @@ public class RTask extends RObject<TaskType> {
             return false;
         if (node != null ? !node.equals(rTask.node) : rTask.node != null) return false;
         if (objectRef != null ? !objectRef.equals(rTask.objectRef) : rTask.objectRef != null) return false;
-        if (otherHandlersUriStack != null ? !otherHandlersUriStack.equals(rTask.otherHandlersUriStack) : rTask.otherHandlersUriStack != null)
-            return false;
         if (ownerRef != null ? !ownerRef.equals(rTask.ownerRef) : rTask.ownerRef != null) return false;
         if (progress != null ? !progress.equals(rTask.progress) : rTask.progress != null) return false;
         if (recurrence != rTask.recurrence) return false;
         if (result != null ? !result.equals(rTask.result) : rTask.result != null) return false;
-        if (schedule != null ? !schedule.equals(rTask.schedule) : rTask.schedule != null) return false;
         if (taskIdentifier != null ? !taskIdentifier.equals(rTask.taskIdentifier) : rTask.taskIdentifier != null)
             return false;
         if (resultStatus != null ? !resultStatus.equals(rTask.resultStatus) : rTask.resultStatus != null) return false;
@@ -357,14 +326,12 @@ public class RTask extends RObject<TaskType> {
         result1 = 31 * result1 + (executionStatus != null ? executionStatus.hashCode() : 0);
         result1 = 31 * result1 + (node != null ? node.hashCode() : 0);
         result1 = 31 * result1 + (handlerUri != null ? handlerUri.hashCode() : 0);
-        result1 = 31 * result1 + (otherHandlersUriStack != null ? otherHandlersUriStack.hashCode() : 0);
         result1 = 31 * result1 + (lastRunStartTimestamp != null ? lastRunStartTimestamp.hashCode() : 0);
         result1 = 31 * result1 + (completionTimestamp != null ? completionTimestamp.hashCode() : 0);
         result1 = 31 * result1 + (lastRunFinishTimestamp != null ? lastRunFinishTimestamp.hashCode() : 0);
         result1 = 31 * result1 + (progress != null ? progress.hashCode() : 0);
         result1 = 31 * result1 + (recurrence != null ? recurrence.hashCode() : 0);
         result1 = 31 * result1 + (binding != null ? binding.hashCode() : 0);
-        result1 = 31 * result1 + (schedule != null ? schedule.hashCode() : 0);
         result1 = 31 * result1 + (resultStatus != null ? resultStatus.hashCode() : 0);
         result1 = 31 * result1 + (canRunOnNode != null ? canRunOnNode.hashCode() : 0);
         result1 = 31 * result1 + (threadStopAction != null ? threadStopAction.hashCode() : 0);
@@ -427,15 +394,6 @@ public class RTask extends RObject<TaskType> {
         if (!types.isEmpty()) {
             jaxb.getDependent().addAll(types);
         }
-
-        try {
-            jaxb.setOtherHandlersUriStack(RUtil.toJAXB(TaskType.class, TaskType.F_OTHER_HANDLERS_URI_STACK,
-                    repo.getOtherHandlersUriStack(), UriStack.class, prismContext));
-            jaxb.setSchedule(RUtil.toJAXB(TaskType.class, TaskType.F_SCHEDULE, repo.getSchedule(),
-                    ScheduleType.class, prismContext));
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
-        }
     }
 
     public static void copyFromJAXB(TaskType jaxb, RTask repo, PrismContext prismContext) throws
@@ -472,13 +430,6 @@ public class RTask extends RObject<TaskType> {
             result.setOwner(repo);
             ROperationResult.copyFromJAXB(jaxb.getResult(), result, prismContext);
             repo.setResult(result);
-        }
-
-        try {
-            repo.setOtherHandlersUriStack(RUtil.toRepo(taskDefinition, TaskType.F_OTHER_HANDLERS_URI_STACK, jaxb.getOtherHandlersUriStack(), prismContext));
-            repo.setSchedule(RUtil.toRepo(taskDefinition, TaskType.F_SCHEDULE, jaxb.getSchedule(), prismContext));
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
         }
     }
 

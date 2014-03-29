@@ -42,6 +42,7 @@
             <class name="com.evolveum.midpoint.schema.TestQueryConvertor"/>
             <class name="com.evolveum.midpoint.schema.TestDynamicSchema"/>
             <class name="com.evolveum.midpoint.schema.TestJsonParsing"/>
+            <class name="com.evolveum.midpoint.schema.TestSchemaDelta"/>
         </classes>
     </test>
 </suite>

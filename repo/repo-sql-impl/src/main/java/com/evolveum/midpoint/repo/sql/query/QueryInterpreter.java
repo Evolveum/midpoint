@@ -46,6 +46,7 @@ import org.hibernate.FetchMode;
 import org.hibernate.Session;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 
 import java.lang.reflect.Modifier;
@@ -119,10 +120,9 @@ public class QueryInterpreter {
         }
 
         Criteria main = session.createCriteria(ClassMapper.getHQLTypeClass(type));
-        main.add(Restrictions.eq("id", 0L));
         main.add(Restrictions.eq("oid", oid));
 
-        updateFetchingMode(main, type, options);
+//        updateFetchingMode(main, type, options);
 
         return main;
     }
@@ -154,9 +154,42 @@ public class QueryInterpreter {
             criteria = updatePagingAndSorting(criteria, type, query.getPaging());
         }
 
-        updateFetchingMode(criteria, type, options);
+//        updateFetchingMode(criteria, type, options);
+
+        if (!usesOrgFilter(query)) {
+            criteria.setProjection(Projections.property("fullObject"));
+        }
+
 
         return criteria;
+    }
+
+    private boolean usesOrgFilter(ObjectQuery query) {
+        return query != null && usesOrgFilter(query.getFilter());
+    }
+
+    private boolean usesOrgFilter(ObjectFilter query) {
+        if (query == null) {
+            return false;
+        }
+
+        if (query instanceof OrgFilter) {
+            OrgFilter f = (OrgFilter)query;
+            if (!f.isRoot()) {
+                return true;
+            }
+        }
+
+        if (query instanceof LogicalFilter) {
+            LogicalFilter l = (LogicalFilter) query;
+            for (ObjectFilter f : l.getCondition()) {
+                if (usesOrgFilter(f)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 
 import java.io.Serializable;
 
@@ -27,21 +27,13 @@ public interface ObjectReference extends Serializable {
 
     String F_TARGET_OID = "targetOid";
 
-    String F_RELATION_NAMESPACE = "relationNamespace";
-
-    String F_RELATION_LOCAL_PART = "relationLocalPart";
+    String F_RELATION = "relation";
 
     String F_TYPE = "type";
 
     String getTargetOid();
 
-    String getRelationNamespace();
+    String getRelation();
 
-    String getRelationLocalPart();
-
-    String getDescription();
-
-    String getFilter();
-
-    RContainerType getType();
+    RObjectType getType();
 }

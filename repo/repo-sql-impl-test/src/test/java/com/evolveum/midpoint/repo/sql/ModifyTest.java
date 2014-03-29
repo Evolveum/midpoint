@@ -19,7 +19,6 @@ package com.evolveum.midpoint.repo.sql;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -27,25 +26,26 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+<<<<<<< HEAD
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+=======
+>>>>>>> repository
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
 import com.evolveum.midpoint.repo.sql.data.common.RShadow;
 import com.evolveum.midpoint.repo.sql.data.common.RSynchronizationSituationDescription;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation;
-import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
-import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SynchronizationSituationUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -482,7 +482,7 @@ public class ModifyTest extends BaseSQLRepoTest {
             LOGGER.info(">>>SAVE");
             session = getFactory().openSession();
             session.beginTransaction();
-            RContainerId id = (RContainerId) session.save(user);
+            String id = (String) session.save(user);
             session.getTransaction().commit();
             session.close();
 
@@ -491,8 +491,7 @@ public class ModifyTest extends BaseSQLRepoTest {
             session.beginTransaction();
             user = createUser(456L, DATE);
 
-            user.setId(0L);
-            user.setOid(id.getOid());
+            user.setOid(id);
             session.merge(user);
             session.getTransaction().commit();
             session.close();
@@ -500,14 +499,13 @@ public class ModifyTest extends BaseSQLRepoTest {
             LOGGER.info(">>>GET");
             session = getFactory().openSession();
             session.beginTransaction();
-            user = (RUser) session.createQuery("from RUser as u where u.oid = :oid").setParameter("oid", id.getOid()).uniqueResult();
+            user = (RUser) session.createQuery("from RUser as u where u.oid = :oid").setParameter("oid", id).uniqueResult();
 
-            RAnyContainer extension = user.getExtension();
-            AssertJUnit.assertEquals(1, extension.getClobs().size());
-            AssertJUnit.assertEquals(1, extension.getDates().size());
-            AssertJUnit.assertEquals(2, extension.getStrings().size());
-            AssertJUnit.assertEquals(1, extension.getLongs().size());
-            hasLong(extension.getLongs(), 456L);
+            AssertJUnit.assertEquals(1, user.getClobs().size());
+            AssertJUnit.assertEquals(1, user.getDates().size());
+            AssertJUnit.assertEquals(2, user.getStrings().size());
+            AssertJUnit.assertEquals(1, user.getLongs().size());
+            hasLong(user.getLongs(), 456L);
 
             session.getTransaction().commit();
             session.close();
@@ -518,8 +516,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         }
     }
 
-    private void hasLong(Set<RAnyLong> longs, Long value) {
-        for (RAnyLong any : longs) {
+    private void hasLong(Set<ROExtLong> longs, Long value) {
+        for (ROExtLong any : longs) {
             Long other = any.getValue();
 
             if (other == null) {
@@ -537,72 +535,74 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     private RUser createUser(Long lootValue, Timestamp dateValue) {
         RUser user = new RUser();
+        user.setOid(UUID.randomUUID().toString());
+
         user.setName(new RPolyString("u1", "u1"));
         user.setFullName(new RPolyString("fu1", "fu1"));
         user.setFamilyName(new RPolyString("fa1", "fa1"));
         user.setGivenName(new RPolyString("gi1", "gi1"));
 
-        RAnyContainer any = new RAnyContainer();
-        any.setOwnerType(RContainerType.USER);
-        any.setOwner(user);
-        user.setExtension(any);
-
-        Set<RAnyDate> dates = new HashSet<RAnyDate>();
-        any.setDates(dates);
+        Set<ROExtDate> dates = new HashSet<ROExtDate>();
+        user.setDates(dates);
 
         final String namespace = "http://example.com/p";
 
-        RAnyDate date = new RAnyDate();
-        date.setAnyContainer(any);
+        ROExtDate date = new ROExtDate();
+        date.setOwner(user);
+        date.setOwnerType(RObjectType.OBJECT);
         date.setDynamic(false);
-        date.setName(new QName(namespace, "funeralDate"));
-        date.setType(new QName("http://www.w3.org/2001/XMLSchema", "dateTime"));
+        date.setName(RUtil.qnameToString(new QName(namespace, "funeralDate")));
+        date.setType(RUtil.qnameToString(new QName("http://www.w3.org/2001/XMLSchema", "dateTime")));
         date.setValue(dateValue);
         dates.add(date);
         date.setValueType(RValueType.PROPERTY);
 
-        Set<RAnyLong> longs = new HashSet<RAnyLong>();
-        any.setLongs(longs);
+        Set<ROExtLong> longs = new HashSet<ROExtLong>();
+        user.setLongs(longs);
 
-        RAnyLong l = new RAnyLong();
-        l.setAnyContainer(any);
+        ROExtLong l = new ROExtLong();
+        l.setOwner(user);
+        l.setOwnerType(RObjectType.OBJECT);
         longs.add(l);
         l.setDynamic(false);
-        l.setName(new QName(namespace, "loot"));
-        l.setType(new QName("http://www.w3.org/2001/XMLSchema", "int"));
+        l.setName(RUtil.qnameToString(new QName(namespace, "loot")));
+        l.setType(RUtil.qnameToString(new QName("http://www.w3.org/2001/XMLSchema", "int")));
         l.setValue(lootValue);
         l.setValueType(RValueType.PROPERTY);
 
-        Set<RAnyString> strings = new HashSet<RAnyString>();
-        any.setStrings(strings);
+        Set<ROExtString> strings = new HashSet<ROExtString>();
+        user.setStrings(strings);
 
-        RAnyString s1 = new RAnyString();
-        s1.setAnyContainer(any);
+        ROExtString s1 = new ROExtString();
+        s1.setOwner(user);
+        s1.setOwnerType(RObjectType.OBJECT);
         strings.add(s1);
         s1.setDynamic(false);
-        s1.setName(new QName(namespace, "weapon"));
-        s1.setType(new QName("http://www.w3.org/2001/XMLSchema", "string"));
+        s1.setName(RUtil.qnameToString(new QName(namespace, "weapon")));
+        s1.setType(RUtil.qnameToString(new QName("http://www.w3.org/2001/XMLSchema", "string")));
         s1.setValue("gun");
         s1.setValueType(RValueType.PROPERTY);
 
-        RAnyString s2 = new RAnyString();
-        s2.setAnyContainer(any);
+        ROExtString s2 = new ROExtString();
+        s2.setOwner(user);
+        s2.setOwnerType(RObjectType.OBJECT);
         strings.add(s2);
         s2.setDynamic(false);
-        s2.setName(new QName(namespace, "shipName"));
-        s2.setType(new QName("http://www.w3.org/2001/XMLSchema", "string"));
+        s2.setName(RUtil.qnameToString(new QName(namespace, "shipName")));
+        s2.setType(RUtil.qnameToString(new QName("http://www.w3.org/2001/XMLSchema", "string")));
         s2.setValue("pltka");
         s2.setValueType(RValueType.PROPERTY);
 
-        Set<RAnyClob> clobs = new HashSet<RAnyClob>();
-        any.setClobs(clobs);
+        Set<ROExtClob> clobs = new HashSet<ROExtClob>();
+        user.setClobs(clobs);
 
-        RAnyClob c1 = new RAnyClob();
+        ROExtClob c1 = new ROExtClob();
         clobs.add(c1);
-        c1.setAnyContainer(any);
+        c1.setOwner(user);
+        c1.setOwnerType(RObjectType.OBJECT);
         c1.setDynamic(false);
-        c1.setName(new QName(namespace, "someContainer"));
-        c1.setType(new QName("http://www.w3.org/2001/XMLSchema", "string"));
+        c1.setName(RUtil.qnameToString(new QName(namespace, "someContainer")));
+        c1.setType(RUtil.qnameToString(new QName("http://www.w3.org/2001/XMLSchema", "string")));
         c1.setValue("some container xml as clob or what...");
         c1.setValueType(RValueType.CONTAINER);
 
@@ -673,14 +673,15 @@ public class ModifyTest extends BaseSQLRepoTest {
     public void testModifyAccountSynchronizationSituationSimplyfied() {
         //add
         RShadow s1 = new RShadow();
+        s1.setOid(UUID.randomUUID().toString());
         s1.setName(new RPolyString("acc", "acc"));
 
         LOGGER.info("add:\n{}", new Object[]{ReflectionToStringBuilder.reflectionToString(s1, ToStringStyle.MULTI_LINE_STYLE)});
         Session session = getFactory().openSession();
-        final RContainerId ID;
+        final String ID;
         try {
             session.beginTransaction();
-            ID = (RContainerId) session.save(s1);
+            ID = (String) session.save(s1);
             session.getTransaction().commit();
         } finally {
             session.close();
@@ -688,8 +689,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         //modify1
         s1 = new RShadow();
-        s1.setId(0L);
-        s1.setOid(ID.getOid());
+        s1.setOid(ID);
         s1.setName(new RPolyString("acc", "acc"));
         RSynchronizationSituationDescription desc = new RSynchronizationSituationDescription();
         desc.setShadow(s1);
@@ -730,8 +730,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         //modify2
         s1 = new RShadow();
-        s1.setId(0L);
-        s1.setOid(ID.getOid());
+        s1.setOid(ID);
         s1.setName(new RPolyString("acc", "acc"));
         desc = new RSynchronizationSituationDescription();
         desc.setShadow(s1);

@@ -70,8 +70,7 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
         if (refValue.getRelation() != null) {
             QName relation = refValue.getRelation();
 
-            conjunction.add(handleEqOrNull(prefix + ObjectReference.F_RELATION_NAMESPACE, relation.getNamespaceURI()));
-            conjunction.add(handleEqOrNull(prefix + ObjectReference.F_RELATION_LOCAL_PART, relation.getLocalPart()));
+            conjunction.add(handleEqOrNull(prefix + ObjectReference.F_RELATION, RUtil.qnameToString(relation)));
         }
 
         if (refValue.getTargetType() != null) {

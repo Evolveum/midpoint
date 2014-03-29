@@ -43,6 +43,8 @@
 
     <xsd:element name="shipName" type="xsd:string"/>
 
+    <xsd:element name="dead" type="xsd:string"/>
+
     <!-- account shadow extension -->
 
     <xsd:complexType name="AccountShadowExtensionType">

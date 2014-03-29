@@ -18,21 +18,20 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordLifeTimeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
-import org.hibernate.annotations.Type;
 
-import javax.persistence.*;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 import java.util.Collection;
 
@@ -47,24 +46,6 @@ import java.util.Collection;
 public class RValuePolicy extends RObject<ValuePolicyType> {
 
     private RPolyString name;
-    private String lifetime;
-    private String stringPolicy;
-
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getLifetime() {
-        return lifetime;
-    }
-
-    public void setLifetime(String lifetime) {
-        this.lifetime = lifetime;
-    }
-
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getStringPolicy() {
-        return stringPolicy;
-    }
 
     @Embedded
     public RPolyString getName() {
@@ -73,10 +54,6 @@ public class RValuePolicy extends RObject<ValuePolicyType> {
 
     public void setName(RPolyString name) {
         this.name = name;
-    }
-
-    public void setStringPolicy(String stringPolicy) {
-        this.stringPolicy = stringPolicy;
     }
 
     @Override
@@ -88,8 +65,6 @@ public class RValuePolicy extends RObject<ValuePolicyType> {
         RValuePolicy that = (RValuePolicy) o;
 
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (lifetime != null ? !lifetime.equals(that.lifetime) : that.lifetime != null) return false;
-        if (stringPolicy != null ? !stringPolicy.equals(that.stringPolicy) : that.stringPolicy != null) return false;
 
         return true;
     }
@@ -98,8 +73,6 @@ public class RValuePolicy extends RObject<ValuePolicyType> {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (lifetime != null ? lifetime.hashCode() : 0);
-        result = 31 * result + (stringPolicy != null ? stringPolicy.hashCode() : 0);
         return result;
     }
 
@@ -109,13 +82,6 @@ public class RValuePolicy extends RObject<ValuePolicyType> {
         RObject.copyToJAXB(repo, jaxb, prismContext, options);
 
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-        try {
-            jaxb.setLifetime(RUtil.toJAXB(ValuePolicyType.class, ValuePolicyType.F_LIFETIME, repo.getLifetime(), PasswordLifeTimeType.class, prismContext));
-            jaxb.setStringPolicy(RUtil.toJAXB(ValuePolicyType.class, ValuePolicyType.F_STRING_POLICY, repo.getStringPolicy(),
-                    StringPolicyType.class, prismContext));
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
-        }
     }
 
     public static void copyFromJAXB(ValuePolicyType jaxb, RValuePolicy repo, PrismContext prismContext) throws
@@ -126,12 +92,6 @@ public class RValuePolicy extends RObject<ValuePolicyType> {
 				.findContainerDefinitionByCompileTimeClass(ValuePolicyType.class);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
-        try {
-            repo.setLifetime(RUtil.toRepo(valuePolicyDefinition, ValuePolicyType.F_LIFETIME, jaxb.getLifetime(), prismContext));
-            repo.setStringPolicy(RUtil.toRepo(valuePolicyDefinition, ValuePolicyType.F_STRING_POLICY, jaxb.getStringPolicy(), prismContext));
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
-        }
     }
 
     @Override
