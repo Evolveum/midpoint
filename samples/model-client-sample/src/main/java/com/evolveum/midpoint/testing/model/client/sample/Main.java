@@ -287,17 +287,19 @@ public class Main {
     private static void changeUserGivenName(ModelPortType modelPort, String oid, String newValue) throws FaultMessage {
         Document doc = ModelClientUtil.getDocumnent();
 
-        ObjectModificationType userDelta = new ObjectModificationType();
+        ObjectDeltaType userDelta = new ObjectDeltaType();
         userDelta.setOid(oid);
 
         ItemDeltaType itemDelta = new ItemDeltaType();
         itemDelta.setModificationType(ModificationTypeType.REPLACE);
-        ItemDeltaType.Value itemValue = new ItemDeltaType.Value();
-        itemValue.getAny().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_GIVEN_NAME, ModelClientUtil.createPolyStringType(newValue, doc)));
+        RawType itemValue = new RawType();
+        itemValue.getContent().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_GIVEN_NAME, ModelClientUtil.createPolyStringType(newValue, doc)));
         itemDelta.setValue(itemValue);
-        userDelta.getModification().add(itemDelta);
-
-        modelPort.modifyObject(ModelClientUtil.getTypeUri(UserType.class), userDelta);
+        userDelta.getItemDelta().add(itemDelta);
+        ObjectDeltaListType deltaList = new ObjectDeltaListType();
+        deltaList.getDelta().add(userDelta);
+        modelPort.executeChanges(deltaList, null);
+//        modelPort.modifyObject(ModelClientUtil.getTypeUri(UserType.class), userDelta);
     }
 
 	private static void assignRoles(ModelPortType modelPort, String userOid, String... roleOids) throws FaultMessage {
