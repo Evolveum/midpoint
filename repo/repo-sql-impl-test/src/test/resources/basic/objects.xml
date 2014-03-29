@@ -1071,10 +1071,7 @@
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             oid="AUDITLOG-3333-3333-TEST-10000000000"
             version="0">
-        <name>
-            <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Audit logs report</orig>
-            <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Audit logs report</norm>
-        </name>
+        <name>Audit logs report</name>
         <description>Report made from audit records.</description>
         <template>
             <![CDATA[<jasperReport
@@ -1219,8 +1216,8 @@
     <securityPolicy xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
         <name>Security policy</name>
         <description>Security policy example</description>
-        <authentication>
-        </authentication>
+<!--         <authentication> -->
+<!--         </authentication> -->
         <credentials>
         	<password>
         		<passwordPolicyRef oid="SECURITY-0000-0000-0000-000000000003" type="c:ValuePolicyType"/>

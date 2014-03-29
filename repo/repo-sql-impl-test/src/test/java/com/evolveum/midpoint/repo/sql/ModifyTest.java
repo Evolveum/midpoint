@@ -16,9 +16,40 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getJaxbUtil;
 
-import com.evolveum.midpoint.prism.*;
+import java.io.File;
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang.builder.ToStringStyle;
+import org.hibernate.Session;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
+
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -26,16 +57,16 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-<<<<<<< HEAD
-import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-=======
->>>>>>> repository
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.data.common.RShadow;
 import com.evolveum.midpoint.repo.sql.data.common.RSynchronizationSituationDescription;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
-import com.evolveum.midpoint.repo.sql.data.common.any.*;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtClob;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtDate;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtLong;
+import com.evolveum.midpoint.repo.sql.data.common.any.ROExtString;
+import com.evolveum.midpoint.repo.sql.data.common.any.RValueType;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
@@ -54,26 +85,17 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationDescriptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
-import org.hibernate.Session;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
-import java.io.File;
-import java.io.IOException;
-import java.sql.Timestamp;
-import java.util.*;
 
 /**
  * @author lazyman
@@ -229,7 +251,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         System.out.println("MODIFY");
         ObjectReferenceType objectRef = null;
         ReferenceDelta delta = new ReferenceDelta(def);
-        delta.addValueToAdd(new PrismReferenceValue("1", null, null));
+        delta.addValueToAdd(new PrismReferenceValue("1", ResourceType.COMPLEX_TYPE));
         modifications.add(delta);
         repositoryService.modifyObject(TaskType.class, taskOid, modifications, result);
         System.out.println("GET");
@@ -245,8 +267,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         System.out.println("MODIFY");
         modifications.clear();
         delta = new ReferenceDelta(def);
-        delta.addValueToDelete(new PrismReferenceValue("1", null, null));
-        delta.addValueToAdd(new PrismReferenceValue("2", null, null));
+        delta.addValueToDelete(new PrismReferenceValue("1", ResourceType.COMPLEX_TYPE));
+        delta.addValueToAdd(new PrismReferenceValue("2", ResourceType.COMPLEX_TYPE));
         modifications.add(delta);
         repositoryService.modifyObject(TaskType.class, taskOid, modifications, result);
 
@@ -263,8 +285,8 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         modifications.clear();
         delta = new ReferenceDelta(def);
-        delta.addValueToDelete(new PrismReferenceValue("2", null, null));
-        delta.addValueToAdd(new PrismReferenceValue("1", null, null));
+        delta.addValueToDelete(new PrismReferenceValue("2", ResourceType.COMPLEX_TYPE));
+        delta.addValueToAdd(new PrismReferenceValue("1", ResourceType.COMPLEX_TYPE));
         modifications.add(delta);
         repositoryService.modifyObject(TaskType.class, taskOid, modifications, result);
 

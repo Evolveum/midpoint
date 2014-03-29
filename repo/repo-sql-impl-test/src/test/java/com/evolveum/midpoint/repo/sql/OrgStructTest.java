@@ -16,14 +16,38 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getJaxbUtil;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import javax.xml.namespace.QName;
+
+import org.hibernate.Criteria;
+import org.hibernate.FetchMode;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.criterion.Restrictions;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgIncorrect;
@@ -42,24 +66,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-<<<<<<< HEAD
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-
-=======
->>>>>>> repository
-import org.hibernate.Criteria;
-import org.hibernate.FetchMode;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.criterion.Restrictions;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.util.*;
 
 @ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -117,15 +123,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         LOGGER.info("===[ addOrgStruct ]===");
         OperationResult opResult = new OperationResult("===[ addOrgStruct ]===");
-<<<<<<< HEAD
-        
         List<PrismObject<? extends Objectable>> orgStruct = prismContext.parseObjects(
                 new File(ORG_STRUCT_OBJECTS));  
-=======
-
-        List<PrismObject<? extends Objectable>> orgStruct = prismContext.getPrismDomProcessor().parseObjects(
-                new File(ORG_STRUCT_OBJECTS));
->>>>>>> repository
 
         for (PrismObject<? extends Objectable> o : orgStruct) {
             repositoryService.addObject((PrismObject<ObjectType>) o, null, opResult);
@@ -255,8 +254,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
     @SuppressWarnings({"unchecked"})
     @Test
     public void test001addOrgStructObjectsIncorrect() throws Exception {
-<<<<<<< HEAD
-    	 
+
     	LOGGER.info("===[ addIncorrectOrgStruct ]===");
     	
          OperationResult opResult = new OperationResult("===[ addIncorrectOrgStruct ]===");       
@@ -266,18 +264,6 @@ public class OrgStructTest extends BaseSQLRepoTest {
             
         for (PrismObject<? extends Objectable> o : orgStructIncorrect) {  	 
          repositoryService.addObject((PrismObject<ObjectType>) o, null, opResult);
-=======
-
-        LOGGER.info("===[ addIncorrectOrgStruct ]===");
-
-        OperationResult opResult = new OperationResult("===[ addIncorrectOrgStruct ]===");
-
-        List<PrismObject<? extends Objectable>> orgStructIncorrect = prismContext.getPrismDomProcessor().parseObjects(
-                new File(ORG_STRUCT_OBJECTS_INCORRECT));
-
-        for (PrismObject<? extends Objectable> o : orgStructIncorrect) {
-            repositoryService.addObject((PrismObject<ObjectType>) o, null, opResult);
->>>>>>> repository
         }
 
         OrgType orgF008 = repositoryService.getObject(OrgType.class, ORG_F008_OID, null, opResult).asObjectable();
@@ -527,13 +513,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
         // test modification of org ref - delete org ref
         LOGGER.info("===[ modify delete org ref ]===");
         OperationResult opResult = new OperationResult("===[ modify delete org ref ]===");
-<<<<<<< HEAD
         
         ObjectModificationType modification = getJaxbUtil().unmarshalObject(new File(MODIFY_ORG_DELETE_REF_FILENAME),
-=======
-
-        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(MODIFY_ORG_DELETE_REF_FILENAME),
->>>>>>> repository
                 ObjectModificationType.class);
 
         ObjectDelta<OrgType> delta = DeltaConvertor.createObjectDelta(modification, OrgType.class, prismContext);
@@ -583,13 +564,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         // test modification of org ref - delete org ref
         LOGGER.info("===[ modify delete org ref ]===");
         OperationResult opResult = new OperationResult("===[ modify delete org ref ]===");
-<<<<<<< HEAD
-        
         ObjectModificationType modification = getJaxbUtil().unmarshalObject(new File(MODIFY_ORG_INCORRECT_DELETE_REF_FILENAME),
-=======
-
-        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(new File(MODIFY_ORG_INCORRECT_DELETE_REF_FILENAME),
->>>>>>> repository
                 ObjectModificationType.class);
 
         ObjectDelta<OrgType> delta = DeltaConvertor.createObjectDelta(modification, OrgType.class, prismContext);

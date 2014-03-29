@@ -158,6 +158,8 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                 PrismObject<? extends ObjectType> newObject = repositoryService.getObject(clazz, oids.get(i), null, result);
                 LOGGER.info("Old\n{}\nnew\n{}", new Object[]{object.debugDump(3), newObject.debugDump(3)});
                 checkContainersSize(newObject, object);
+                System.out.println("OLD: " + object.findProperty(ObjectType.F_NAME).getValue());
+                System.out.println("NEW: " + newObject.findProperty(ObjectType.F_NAME).getValue());
 
                 ObjectDelta delta = object.diff(newObject);
                 if (delta == null) {
@@ -176,6 +178,10 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                     }
                     LOGGER.error(">>> {} Found {} changes for {}\n{}", new Object[]{(i + 1),
                             delta.getModifications().size(), newObject.toString(), delta.debugDump(3)});
+                    ItemDelta id = (ItemDelta) delta.getModifications().iterator().next();
+                    if (id.isReplace()){
+                    System.out.println(id.getValuesToReplace().iterator().next());
+                    }
                     LOGGER.error("{}", prismContext.serializeObjectToString(newObject, PrismContext.LANG_XML));
                 }
             } catch (Exception ex) {

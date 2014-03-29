@@ -29,7 +29,7 @@
         <noop:steps xsi:type="xsd:int">3</noop:steps>
     </extension>
     <taskIdentifier>10000000-0000-0000-0000-123450000001</taskIdentifier>
-    <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+    <ownerRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"/>
     <executionStatus>runnable</executionStatus>
 
     <category>Demo</category>

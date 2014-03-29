@@ -55,6 +55,11 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
     public PrismReferenceValue(String oid) {
         this(oid, null, null);
     }
+    
+    public PrismReferenceValue(String oid, QName targetType) {
+        this(oid, null, null);
+        this.targetType = targetType;
+    }
 
     public PrismReferenceValue(String oid, OriginType type, Objectable source) {
     	super(type,source);
