@@ -51,6 +51,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionVariableDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
 
 /**
  * @author semancik
@@ -240,6 +241,8 @@ public class Expression<V extends PrismValue> {
 					newVariables.addVariableDefinition(varName, valueObject);
 				} else if (valueObject instanceof Element) {
 					newVariables.addVariableDefinition(varName, ((Element)valueObject).getTextContent());
+//				} else if (valueObject instanceof RawType) {
+//					newVariables.addVariableDefinition(varName, ((RawType) valueObject).getParsedValue(outputDefinition, varName));
 				} else {
 					throw new SchemaException("Unexpected type "+valueObject.getClass()+" in variable definition "+varName+" in "+contextDescription);
 				}

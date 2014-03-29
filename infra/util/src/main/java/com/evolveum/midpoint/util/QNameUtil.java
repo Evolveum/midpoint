@@ -98,16 +98,32 @@ public class QNameUtil {
 		}
 	}
 	
-	public static boolean matchAny(QName a, Collection<QName> col) {
+	public static QName resolveNs(QName a, Collection<QName> col){
 		if (col == null) {
-			return false;
+			return null;
 		}
 		for (QName b: col) {
 			if (match(a, b)) {
-				return true;
+				return b;
 			}
 		}
-		return false;
+		return null;
+	}
+	
+	public static boolean matchAny(QName a, Collection<QName> col) {
+		if (resolveNs(a, col) == null){
+			return false;
+		}
+		return true;
+//		if (col == null) {
+//			return false;
+//		}
+//		for (QName b: col) {
+//			if (match(a, b)) {
+//				return true;
+//			}
+//		}
+//		return false;
 	}
 	
 	public static Collection<QName> createCollection(QName... qnames) {

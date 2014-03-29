@@ -22,10 +22,12 @@ import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
@@ -128,6 +130,12 @@ public class ExpressionVariables implements DebugDumpable {
     }
     
     public Object get(QName name) {
+    	if (name != null && StringUtils.isBlank(name.getNamespaceURI())){
+    		QName fullQName = QNameUtil.resolveNs(name, variables.keySet());
+    		if (fullQName != null){
+    			return variables.get(fullQName);
+    		}
+    	}
     	return variables.get(name);
     }
     
@@ -144,9 +152,14 @@ public class ExpressionVariables implements DebugDumpable {
 	}
 
 	public boolean containsKey(Object key) {
+		if (key instanceof QName){
+			if (StringUtils.isBlank(((QName) key).getNamespaceURI())){
+				return QNameUtil.matchAny((QName) key, variables.keySet());
+			}
+		}
 		return variables.containsKey(key);
 	}
-
+	
 	public boolean containsValue(Object value) {
 		return variables.containsValue(value);
 	}
