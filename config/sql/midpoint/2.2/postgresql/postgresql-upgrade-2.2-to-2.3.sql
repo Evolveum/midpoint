@@ -129,3 +129,6 @@ ALTER TABLE m_security_policy
     REFERENCES m_object (id, oid);
 
 ALTER TABLE m_object_template ADD iteration TEXT;
+
+ALTER TABLE m_focus ADD iteration INT4;
+ALTER TABLE m_focus ADD iterationToken VARCHAR(255);
