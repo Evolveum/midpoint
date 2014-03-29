@@ -130,5 +130,5 @@ ALTER TABLE m_security_policy
 
 ALTER TABLE m_object_template ADD iteration TEXT;
 
-ALTER TABLE m_focua ADD iteration INT4;
-ALTER TABLE m_focua ADD iterationToken VARCHAR(255);
+ALTER TABLE m_focus ADD iteration INT4;
+ALTER TABLE m_focus ADD iterationToken VARCHAR(255);

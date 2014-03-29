@@ -136,6 +136,6 @@ ALTER TABLE m_security_policy
 	
 ALTER TABLE m_object_template ADD iteration LONGTEXT;
 
-ALTER TABLE m_focua ADD iteration INTEGER;
-ALTER TABLE m_focua ADD iterationToken VARCHAR(255);
+ALTER TABLE m_focus ADD iteration INTEGER;
+ALTER TABLE m_focus ADD iterationToken VARCHAR(255);
 
