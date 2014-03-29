@@ -21,9 +21,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.parser.QueryConvertor;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -37,20 +34,15 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
-import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -61,7 +53,6 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisionType;
@@ -69,7 +60,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSpecification
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SpecialObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 
 /**
  * @author Radovan Semancik
@@ -301,7 +293,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	
 	private <O extends ObjectType, T extends ObjectType> boolean isApplicableItem(Authorization autz,
 			PrismObject<O> object, ObjectDelta<O> delta) {
-		List<Element> itemPaths = autz.getItem();
+		List<ItemPathType> itemPaths = autz.getItem();
 		if (itemPaths == null || itemPaths.isEmpty()) {
 			// No item constraints. Applicable for all items.
 			LOGGER.trace("  items empty");

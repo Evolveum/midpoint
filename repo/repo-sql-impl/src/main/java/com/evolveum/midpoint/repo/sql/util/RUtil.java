@@ -113,12 +113,10 @@ public final class RUtil {
 	 */
 	public static final String LOB_STRING_TYPE = "org.hibernate.type.StringClobType";
 
-	/**
-	 * This constant is used for {@link QName#localPart} column size in
-	 * database.
-	 */
-	public static final int COLUMN_LENGTH_LOCALPART = 100;
+	public static final int COLUMN_LENGTH_QNAME = 200;
 
+	public static final String QNAME_DELIMITER = "#";
+	
 	/**
 	 * This constant is used for oid column size in database.
 	 */
@@ -604,14 +602,22 @@ public final class RUtil {
 
 		return ref;
 	}
+	
+	public static Integer getIntegerFromString(String val) {
+        if (val == null || !val.matches("[0-9]+")) {
+            return null;
+        }
 
-	public static Long getLongFromString(String val) {
-		if (val == null || !val.matches("[0-9]+")) {
-			return null;
-		}
+        return Integer.parseInt(val);
+    }
 
-		return Long.parseLong(val);
-	}
+//	public static Long getLongFromString(String val) {
+//		if (val == null || !val.matches("[0-9]+")) {
+//			return null;
+//		}
+//
+//		return Long.parseLong(val);
+//	}
 
 	/**
 	 * This method is used to override "hasIdentifierMapper" in EntityMetaModels
@@ -842,4 +848,70 @@ public final class RUtil {
 
 		return new ItemPath(segments);
 	}
+	
+	public static String qnameToString(QName qname) {
+        StringBuilder sb = new StringBuilder();
+        if (qname != null) {
+            sb.append(qname.getNamespaceURI());
+        }
+        sb.append(QNAME_DELIMITER);
+        if (qname != null) {
+            sb.append(qname.getLocalPart());
+        }
+
+        return sb.toString();
+    }
+
+    public static QName stringToQName(String text) {
+        if (StringUtils.isEmpty(text)) {
+            return null;
+        }
+
+        int index = text.lastIndexOf(QNAME_DELIMITER);
+        String namespace = StringUtils.left(text, index);
+        String localPart = StringUtils.right(text, text.length() - index - 1);
+
+        if (StringUtils.isEmpty(localPart)) {
+            return null;
+        }
+
+        return new QName(namespace, localPart);
+    }
+
+    public static Long toLong(Short s) {
+        if (s == null) {
+            return null;
+        }
+
+        return s.longValue();
+    }
+
+    public static Short toShort(Long l) {
+        if (l == null) {
+            return null;
+        }
+
+        if (l > Short.MAX_VALUE || l < Short.MIN_VALUE) {
+            throw new IllegalArgumentException("Couldn't cast value to short " + l);
+        }
+
+        return l.shortValue();
+    }
+
+    public static String getDebugString(RObject object) {
+        StringBuilder sb = new StringBuilder();
+        if (object.getName() != null) {
+            sb.append(object.getName().getOrig());
+        } else {
+            sb.append("null");
+        }
+        sb.append('(').append(object.getOid()).append(')');
+
+        return sb.toString();
+    }
+
+    public static String getTableName(Class hqlType) {
+        MidPointNamingStrategy namingStrategy = new MidPointNamingStrategy();
+        return namingStrategy.classToTableName(hqlType.getSimpleName());
+    }
 }

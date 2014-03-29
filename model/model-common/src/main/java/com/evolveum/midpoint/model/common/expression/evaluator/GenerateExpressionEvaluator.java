@@ -55,6 +55,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenerateExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 
 /**
  * @author semancik
@@ -127,7 +128,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue> implements Expres
         QName outputType = outputDefinition.getTypeName();
         if (outputType.equals(DOMUtil.XSD_STRING)) {
         	value  = stringValue;
-        } else if (outputType.equals(SchemaConstants.T_PROTECTED_STRING_TYPE)) {
+        } else if (outputType.equals(ProtectedStringType.COMPLEX_TYPE)) {
         	try {
 				value = protector.encryptString(stringValue);
 			} catch (EncryptionException e) {

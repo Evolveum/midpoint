@@ -550,8 +550,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         savedObject.setVersion(Integer.toString(object.getVersion()));
 
-        PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
-        String fullObject = domProcessor.serializeObjectToString(savedObject);
+//        PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
+        String fullObject = getPrismContext().serializeObjectToString(savedObject, PrismContext.LANG_XML);
         LOGGER.trace("Storing full object\n{}", fullObject);
 
         Query query = session.createSQLQuery("update m_object set fullObject = :fullObject where oid=:oid");
@@ -1020,8 +1020,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             fullObject = (String) array[2];
         }
 
-        PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
-        PrismObject<T> prismObject = domProcessor.parseObject(fullObject);
+//        PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
+        PrismObject<T> prismObject = getPrismContext().parseObject(fullObject);
 
         if (ShadowType.class.equals(prismObject.getCompileTimeClass())) {
             //we store it because provisioning now sends it to repo, but it should be transient

@@ -89,7 +89,7 @@ public class RAnyConverter {
             List<PrismValue> values = item.getValues();
             for (PrismValue value : values) {
                 if (value instanceof PrismContainerValue) {
-                    rValue = createClobValue(value, assignment);
+                    rValue = createClobValue(value, definition, assignment);
                 } else if (value instanceof PrismPropertyValue) {
                     PrismPropertyValue propertyValue = (PrismPropertyValue) value;
                     switch (getValueType(definition.getTypeName())) {
@@ -135,7 +135,7 @@ public class RAnyConverter {
                                     rValue = strValue;
                                 }
                             } else {
-                                rValue = createClobValue(propertyValue, assignment);
+                                rValue = createClobValue(propertyValue, definition, assignment);
                             }
                     }
                 } else if (value instanceof PrismReferenceValue) {
@@ -201,11 +201,11 @@ public class RAnyConverter {
         return RValueType.getTypeFromItemClass(((Item) itemable).getClass());
     }
 
-    private RAnyValue createClobValue(PrismValue prismValue, boolean assignment) throws SchemaException {
-        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
-        Element root = createElement(RUtil.CUSTOM_OBJECT);
-        domProcessor.serializeValueToDom(prismValue, root);
-        String value = DOMUtil.serializeDOMToString(root);
+    private RAnyValue createClobValue(PrismValue prismValue, ItemDefinition def, boolean assignment) throws SchemaException {
+//        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+//        Element root = createElement(RUtil.CUSTOM_OBJECT);
+//        domProcessor.serializeValueToDom(prismValue, root);
+//        String value = DOMUtil.serializeDOMToString(root);
     	String value = ValueSerializationUtil.serializeItemValue(def.getName(), def, prismValue, prismContext, PrismContext.LANG_XML);
         return !assignment ?  new ROExtClob(value) : new RAExtClob(value);
     }
