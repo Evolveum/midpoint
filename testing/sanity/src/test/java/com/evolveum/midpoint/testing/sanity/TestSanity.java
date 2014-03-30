@@ -53,6 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.SelectorQualified
 import com.evolveum.prism.xml.ns._public.types_2.EncryptedDataType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
+
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -177,6 +178,7 @@ import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType.ObjectToAdd;
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
 
 /**
  * Sanity test suite.
@@ -1386,11 +1388,11 @@ public class TestSanity extends AbstractModelIntegrationTest {
         ItemDeltaType passwordDelta = new ItemDeltaType();
         passwordDelta.setModificationType(ModificationTypeType.REPLACE);
         passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password"));
-        ItemDeltaType.Value passwordValue = new ItemDeltaType.Value();
-        passwordValue.getAny().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_VALUE, 
+        RawType passwordValue = new RawType();
+        passwordValue.getContent().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_VALUE, 
         		ModelClientUtil.createProtectedString(NEW_PASSWORD)));
-        passwordDelta.setValue(passwordValue);
-        userDelta.getModification().add(passwordDelta);
+        passwordDelta.getValue().add(passwordValue);
+        userDelta.getItemDelta().add(passwordDelta);
         
         // WHEN
         OperationResultType result = modifyObjectViaModelWS(ObjectTypes.USER.getTypeQName(), userDelta);
@@ -1675,13 +1677,13 @@ public class TestSanity extends AbstractModelIntegrationTest {
         objectChange.setOid(USER_JACK_OID);
         ItemDeltaType modificationDeleteAccountRef = new ItemDeltaType();
         modificationDeleteAccountRef.setModificationType(ModificationTypeType.DELETE);
-        ItemDeltaType.Value modificationValue = new ItemDeltaType.Value();
+        RawType modificationValue = new RawType();
         ObjectReferenceType accountRefToDelete = new ObjectReferenceType();
         accountRefToDelete.setOid(accountShadowOidDerby);
         JAXBElement<ObjectReferenceType> accountRefToDeleteElement = new JAXBElement<ObjectReferenceType>(UserType.F_LINK_REF, ObjectReferenceType.class, accountRefToDelete);
-        modificationValue.getAny().add(accountRefToDeleteElement);
-        modificationDeleteAccountRef.setValue(modificationValue);
-        objectChange.getModification().add(modificationDeleteAccountRef);
+        modificationValue.getContent().add(accountRefToDeleteElement);
+        modificationDeleteAccountRef.getValue().add(modificationValue);
+        objectChange.getItemDelta().add(modificationDeleteAccountRef);
         displayJaxb("modifyObject input", objectChange, new QName(SchemaConstants.NS_C, "change"));
         assertNoRepoCache();
 
@@ -3660,11 +3662,12 @@ public class TestSanity extends AbstractModelIntegrationTest {
     	ItemPathType path = new ItemPathType(new ItemPath(ShadowType.F_ATTRIBUTES));
     	mod1.setPath(path);
     	
-    	ItemDeltaType.Value value = new ItemDeltaType.Value();
-    	Element el = DOMUtil.createElement(DOMUtil.getDocument(), new QName(resourceTypeOpenDjrepo.getNamespace(), "givenName"));
-    	el.setTextContent("newAngelika");
-        value.getAny().add(el);
-        mod1.setValue(value);
+    	RawType value = new RawType();
+    	//TODO: shouldn't it be JaxbElement<PolyString>? 
+//    	Element el = DOMUtil.createElement(DOMUtil.getDocument(), new QName(resourceTypeOpenDjrepo.getNamespace(), "givenName"));
+//    	el.setTextContent("newAngelika");
+        value.getContent().add("newAngelika");
+        mod1.getValue().add(value);
     	
     	delta.getItemDelta().add(mod1);
     	delta.setOid(oid);
@@ -3724,9 +3727,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
         ItemDeltaType passwordDelta = new ItemDeltaType();
         passwordDelta.setModificationType(ModificationTypeType.REPLACE);
         passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password"));
-        ItemDeltaType.Value passwordValue = new ItemDeltaType.Value();
-        passwordValue.getAny().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_VALUE, ModelClientUtil.createProtectedString(newPassword)));
-        passwordDelta.setValue(passwordValue);
+        RawType passwordValue = new RawType();
+        passwordValue.getContent().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_VALUE, ModelClientUtil.createProtectedString(newPassword)));
+        passwordDelta.getValue().add(passwordValue);
     	
 //    	ItemDeltaType mod1 = new ItemDeltaType();
 //    	mod1.setModificationType(ModificationTypeType.REPLACE);
