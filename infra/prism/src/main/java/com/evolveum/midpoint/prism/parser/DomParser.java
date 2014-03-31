@@ -80,8 +80,7 @@ public class DomParser implements Parser {
 
 	@Override
 	public Collection<XNode> parseCollection(String dataString) throws SchemaException {
-		// TODO Auto-generated method stub
-		return null;
+		throw new UnsupportedOperationException();
 	}
 	
 	@Override
