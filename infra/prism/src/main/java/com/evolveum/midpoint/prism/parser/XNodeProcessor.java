@@ -15,16 +15,11 @@
  */
 package com.evolveum.midpoint.prism.parser;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 
 import org.apache.commons.lang.StringUtils;
@@ -35,7 +30,6 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -51,11 +45,8 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
@@ -63,7 +54,6 @@ import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.SchemaXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.Transformer;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -148,8 +138,8 @@ public class XNodeProcessor {
 	}
 
 	private <O extends Objectable> PrismObject<O> parseObject(MapXNode xnode, QName elementName, PrismObjectDefinition<O> objectDefinition) throws SchemaException {
-		PrismObject<O> object = (PrismObject<O>) parsePrismContainerFromMap(xnode, elementName, objectDefinition,
-				QNameUtil.createCollection(XNode.KEY_OID, XNode.KEY_VERSION));
+		PrismObject<O> object = (PrismObject<O>) parseContainerFromMapInternal(xnode, elementName, objectDefinition,
+                QNameUtil.createCollection(XNode.KEY_OID, XNode.KEY_VERSION));
 		object.setOid(getOid(xnode));
 		object.setVersion(getVersion(xnode));
 		return object;
@@ -166,6 +156,8 @@ public class XNodeProcessor {
 
     //region Parsing prism containers
     public <C extends Containerable> PrismContainer<C> parseContainer(XNode xnode) throws SchemaException {
+        Validate.notNull(xnode);
+
         if (xnode instanceof RootXNode) {
             return parseContainer((RootXNode) xnode);
         } else if (xnode.getTypeQName() != null) {
@@ -180,8 +172,10 @@ public class XNodeProcessor {
     }
 
     public <C extends Containerable> PrismContainer<C> parseContainer(RootXNode rootXnode) throws SchemaException {
+        Validate.notNull(rootXnode);
+
         QName rootElementName = rootXnode.getRootElementName();
-        PrismContainerDefinition<C> definition = null;
+        PrismContainerDefinition<C> definition;
         if (rootXnode.getTypeQName() != null) {
             definition = getSchemaRegistry().findContainerDefinitionByType(rootXnode.getTypeQName());
             if (definition == null) {
@@ -193,17 +187,16 @@ public class XNodeProcessor {
                 throw new SchemaException("No container definition for element name "+rootElementName);
             }
         }
-        if (definition == null) {
-            throw new SchemaException("Cannot locate container definition (unspecified reason)");
-        }
         XNode subnode = rootXnode.getSubnode();
         if (!(subnode instanceof MapXNode)) {
             throw new IllegalArgumentException("Cannot parse object from "+subnode.getClass().getSimpleName()+", we need a map");
         }
-        return parsePrismContainer(subnode, rootElementName, definition);
+        return parseContainerInternal(subnode, rootElementName, definition);
     }
 
     public <C extends Containerable> PrismContainer<C> parseContainer(XNode xnode, Class<C> type) throws SchemaException {
+        Validate.notNull(xnode);
+        Validate.notNull(type);
 		PrismContainerDefinition<C> definition = getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
         if (definition == null) {
             throw new SchemaException("No container definition for class " + type);
@@ -212,20 +205,22 @@ public class XNodeProcessor {
 	}
 	
 	public <C extends Containerable> PrismContainer<C> parseContainer(XNode xnode, PrismContainerDefinition<C> definition) throws SchemaException {
-		if (xnode instanceof RootXNode) {
+        Validate.notNull(xnode);
+        Validate.notNull(definition);
+        if (xnode instanceof RootXNode) {
 			RootXNode xroot = (RootXNode)xnode;
-			return parsePrismContainer(xroot.getSubnode(), xroot.getRootElementName(), definition);
+			return parseContainerInternal(xroot.getSubnode(), xroot.getRootElementName(), definition);
 		} else if (xnode instanceof MapXNode) {
-			return parsePrismContainer((MapXNode)xnode, definition.getName(), definition);
+			return parseContainerInternal(xnode, definition.getName(), definition);
 		} else {
 			throw new SchemaException("Cannot parse container from "+xnode);
 		}
 	}
 	
-	private <C extends Containerable> PrismContainer<C> parsePrismContainer(XNode xnode, QName elementName,
-			PrismContainerDefinition<C> containerDef) throws SchemaException {
+	private <C extends Containerable> PrismContainer<C> parseContainerInternal(XNode xnode, QName elementName,
+            PrismContainerDefinition<C> containerDef) throws SchemaException {
 		if (xnode instanceof MapXNode) {
-			return parsePrismContainerFromMap((MapXNode)xnode, elementName, containerDef, null);
+			return parseContainerFromMapInternal((MapXNode) xnode, elementName, containerDef, null);
 		} else if (xnode instanceof ListXNode) {
 			PrismContainer<C> container = containerDef.instantiate(elementName);
 			for (XNode xsubnode: (ListXNode)xnode) {
@@ -246,8 +241,8 @@ public class XNodeProcessor {
 		}
 	}
 	
-	private <C extends Containerable> PrismContainer<C> parsePrismContainerFromMap(MapXNode xmap, QName elementName, 
-			PrismContainerDefinition<C> containerDef, Collection<QName> ignoredItems) throws SchemaException {
+	private <C extends Containerable> PrismContainer<C> parseContainerFromMapInternal(MapXNode xmap, QName elementName,
+            PrismContainerDefinition<C> containerDef, Collection<QName> ignoredItems) throws SchemaException {
 		PrismContainer<C> container = containerDef.instantiate(elementName);
 		PrismContainerValue<C> cval = parsePrismContainerValueFromMap(xmap, containerDef, ignoredItems);
 		container.add(cval);
@@ -300,6 +295,7 @@ public class XNodeProcessor {
     //region Parsing prism properties
     public <T> PrismProperty<T> parsePrismProperty(XNode xnode, QName propName,
                                                    PrismPropertyDefinition<T> propertyDefinition) throws SchemaException {
+        Validate.notNull(propertyDefinition);
         if (xnode == null){
             return propertyDefinition.instantiate();
         } else if (xnode instanceof ListXNode) {
@@ -367,6 +363,8 @@ public class XNodeProcessor {
     }
 
     public <T> PrismPropertyValue<T> parsePrismPropertyValue(XNode xnode, PrismProperty<T> property) throws SchemaException {
+        Validate.notNull(xnode);
+        Validate.notNull(xnode);
         T realValue = parsePrismPropertyRealValue(xnode, property.getDefinition());
         if (realValue == null) {
             return null;
@@ -883,7 +881,7 @@ public class XNodeProcessor {
 			return (Item<V>) parsePrismPropertyRaw(xnode, itemName);
 		}
 		if (itemDef instanceof PrismContainerDefinition) {
-			return (Item<V>) parsePrismContainer(xnode, itemName, (PrismContainerDefinition<?>) itemDef);
+			return (Item<V>) parseContainerInternal(xnode, itemName, (PrismContainerDefinition<?>) itemDef);
 		} else if (itemDef instanceof PrismPropertyDefinition) {
 			return (Item<V>) parsePrismProperty(xnode, itemName, (PrismPropertyDefinition) itemDef);
 		}
