@@ -20,10 +20,11 @@
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">
 	<apit:oid>c0c010c0-d34d-b33f-f00d-111111111112</apit:oid>
-	<apit:modification>
+	<apit:itemDelta>
 		<t:modificationType>delete</t:modificationType>
+		<t:path>assignment</t:path>
 		<t:value>
 			<assignment>
 				<construction>
@@ -41,5 +42,5 @@
 				</construction>
 			</assignment>
 		</t:value>
-	</apit:modification>
+	</apit:itemDelta>
 </apit:objectModification>

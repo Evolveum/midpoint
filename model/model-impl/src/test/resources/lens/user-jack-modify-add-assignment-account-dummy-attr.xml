@@ -21,10 +21,11 @@
 		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
 		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">
 	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
-	<modification>
+	<itemDelta>
 		<t:modificationType>add</t:modificationType>
+		<t:path>assignment</t:path>
 		<t:value>
 			<c:assignment>
 				<c:construction>
@@ -48,5 +49,5 @@
 				</c:construction>
 			</c:assignment>
 		</t:value>
-	</modification>
+	</itemDelta>
 </objectModification>

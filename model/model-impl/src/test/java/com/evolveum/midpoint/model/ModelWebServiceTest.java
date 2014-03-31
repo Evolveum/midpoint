@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.model;
 
 import com.evolveum.midpoint.model.util.ModelTUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -43,8 +44,10 @@ import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
+
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -63,6 +66,7 @@ import org.xml.sax.SAXException;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -306,8 +310,9 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
 
         ItemDeltaType mod1 = new ItemDeltaType();
         mod1.setModificationType(ModificationTypeType.ADD);
-        ItemDeltaType.Value value = new ItemDeltaType.Value();
-        value.getAny().add(DOMUtil.createElement(DOMUtil.getDocument(), new QName(SchemaConstants.NS_C, "fullName")));
+//        ItemDeltaType.Value value = new ItemDeltaType.Value();
+//        value.getAny().add(DOMUtil.createElement(DOMUtil.getDocument(), new QName(SchemaConstants.NS_C, "fullName")));
+        mod1.setPath(new ItemPathType(new ItemPath(UserType.F_FULL_NAME)));
         objectDeltaType.getItemDelta().add(mod1);
 
         when(

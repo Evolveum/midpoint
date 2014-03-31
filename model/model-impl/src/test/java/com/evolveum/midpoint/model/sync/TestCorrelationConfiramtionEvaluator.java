@@ -79,7 +79,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		
+//		super.initSystem(initTask, initResult);
 	}
 	
 	@Test

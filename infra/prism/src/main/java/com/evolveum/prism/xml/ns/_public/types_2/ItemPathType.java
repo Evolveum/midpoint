@@ -228,6 +228,7 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
 							i++;
 							//TODO it should be itemPathType not string..
 							XPathHolder holder = new XPathHolder(itemPath);	
+//							return holder.getXPathWithDeclarations();
 							return new JAXBElement<String>(F_PATH, String.class, holder.getXPath());
 //							return itemPath;
 						} 

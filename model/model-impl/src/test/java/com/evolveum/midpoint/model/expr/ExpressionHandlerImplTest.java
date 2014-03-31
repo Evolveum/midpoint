@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.IOException;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConditionalSearchFilterType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -32,6 +33,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -74,8 +76,10 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 	public void testConfirmUser() throws Exception {
 		PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(
 				TEST_FOLDER, "account-xpath-evaluation.xml"));
+		
 		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_FOLDER, "user-new.xml"));
 
+		//TODO:  "$c:user/c:givenName/t:orig replaced with "$c:user/c:givenName
 		ExpressionType expression = PrismTestUtil.unmarshalObject(
 						"<object xsi:type=\"ExpressionType\" xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/common-2a\" "
 								+ "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
@@ -84,7 +88,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 								+ "<code>declare namespace c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-2a\";\n"
 								+ "declare namespace t=\"http://prism.evolveum.com/xml/ns/public/types-2\";\n"
 								+ "declare namespace dj=\"http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ\";\n"
-								+ "$c:user/c:givenName/t:orig = $c:account/c:attributes/dj:givenName</code>"
+								+ "$c:user/c:givenName = $c:account/c:attributes/dj:givenName</code>"
 								+ "</script>"
 								+ "</object>", ExpressionType.class);
 

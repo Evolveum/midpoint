@@ -4818,7 +4818,7 @@
 
     <xsd:element name="script" type="tns:ScriptExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
-	<xsd:element name="path" type="xsd:anyType" substitutionGroup="tns:expressionEvaluator"/>
+	<xsd:element name="path" type="t:ItemPathType" substitutionGroup="tns:expressionEvaluator"/>
 
     <xsd:complexType name="TransformExpressionEvaluatorType" abstract="true">
         <xsd:annotation>
@@ -5238,7 +5238,7 @@
         <xsd:complexContent>
             <xsd:extension base="q:SearchFilterType">
                 <xsd:sequence>
-                    <xsd:element name="condition" type="tns:ExpressionType">
+                    <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 A condition that must be true in order to evaluate the filter.

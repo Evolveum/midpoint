@@ -16,16 +16,18 @@
   ~ limitations under the License.
   -->
 
-<q:query xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2">
-	<q:condition>
+<q:filter xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ConditionalSearchFilterType">
+	<condition>
 		<script>
 			<language>http://www.w3.org/TR/xpath/</language>
 			<code>
 				substring($c:account/c:attributes/icfs:name, 0, 1) = 'X'
 			</code>
 		</script>
-	</q:condition>
+	</condition>
   <q:equal>
     <q:path>c:name</q:path>
       <expression>
@@ -38,4 +40,4 @@
         </script>
       </expression>
      </q:equal>
-</q:query>
+</q:filter>

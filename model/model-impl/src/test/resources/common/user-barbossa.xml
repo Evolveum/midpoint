@@ -20,7 +20,7 @@
 		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'
-		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
 		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>barbossa</name>
 
@@ -80,7 +80,7 @@
 		</construction>
 	</assignment>
     
-    <linkRef oid="c0c010c0-d34d-b33f-f00d-222211111112" type="AccountShadowType"/>
+    <linkRef oid="c0c010c0-d34d-b33f-f00d-222211111112" type="ShadowType"/>
 
     <fullName>Hector Barbossa</fullName>
     <givenName>Hector</givenName>

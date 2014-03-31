@@ -169,116 +169,165 @@
 		</schema>
 
 		<schemaHandling>
-			<accountType default="true">
+			<accountType>
 				<name>Default Account</name>
-				<objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:Account</objectClass>
-				<attribute ref="ids:name" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-					xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
-					xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
-					<name>Distinguished Name</name>
-					<access>create</access>
-					<access>read</access>
-					<outbound default="true" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
-						<valueExpression><code>concat('uid=', $c:user/c:name, ',ou=people,dc=example,dc=com')</code></valueExpression>
+				<objectClass>ri:AccountObjectClass</objectClass>
+				<attribute>
+					<ref>icfs:name</ref>
+					<displayName>Distinguished Name</displayName>
+					<limitations>
+						<access>
+							<create>true</create>
+							<read>true</read>
+						</access>
+					</limitations>
+<!-- 					<access>create</access> -->
+<!-- 					<access>read</access> -->
+					<outbound xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+					<expression>
+                    	<script>
+	                        <code>
+	                            declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+	                            concat('uid=', $c:user/c:name, ',ou=people,dc=example,dc=com')
+	                        </code>
+                        </script>
+                    </expression>
+<!-- 						<valueExpression><code>concat('uid=', $c:user/c:name, ',ou=people,dc=example,dc=com')</code></valueExpression> -->
 					</outbound>
 				</attribute>
-				<attribute ref="ids:uid" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-					xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
-					xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
-					<name>Entry UUID</name>
-					<access>read</access>
+				<attribute>
+					<ref>icfs:uid</ref>
+					<displayName>Entry UUID</displayName>
+					<limitations>
+						<access>
+							<read>true</read>
+						</access>
+					</limitations>	
 				</attribute>
 				<attribute ref="ri:cn"
 					xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
-					<name>Common Name</name>
-					<access>create</access>
-					<access>read</access>
-					<access>update</access>
+					<ref>ri:cn</ref>
+					<displayName>Common Name</displayName>
+					<limitations>
+						<access>
+							<create>true</create>
+							<read>true</read>
+							<update>true</update>
+						</access>
+					</limitations>
 					<outbound>
-						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"><code>$i:user/i:fullName</code></valueExpression>
+						<source>
+							<path>$user/fullName</path>
+						</source>
 					</outbound>
 					<inbound>
-						<valueFilter type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#emptyFilter" />
+<!-- 						<valueFilter type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#emptyFilter" /> -->
 						<target>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
-							declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
-							$c:user/i:fullName
-                        </target>
+							<path>$user/fullName</path>
+						</target>
 					</inbound>
 				</attribute>
 				<attribute ref="ri:sn"
 					xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
-					<name>Surname</name>
-					<access>create</access>
-					<access>read</access>
-					<access>update</access>
+					<ref>ri:sn</ref>
+					<displayName>Surname</displayName>
+					<limitations>
+						<access>
+							<create>true</create>
+							<read>true</read>
+							<update>true</update>
+						</access>
+					</limitations>
 					<outbound>
-						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"><code>$i:user/i:familyName</code></valueExpression>
+						<source>
+							<!-- The path can be shorteden like this. $user is a default source "context" in outbound -->
+							<path>familyName</path>
+						</source>
 					</outbound>
 					<inbound>
-						<valueFilter type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter"
-							xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd">
-							<f:replace>
-                                      <!-- Replaces all unicode control characters with emtpty string -->
-								<f:pattern>\p{C}</f:pattern>
-								<f:replacement></f:replacement>
-							</f:replace>
-						</valueFilter>
+<!-- 						<valueFilter type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter" -->
+<!-- 							xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd"> -->
+<!-- 							<f:replace> -->
+<!--                                       Replaces all unicode control characters with emtpty string -->
+<!-- 								<f:pattern>\p{C}</f:pattern> -->
+<!-- 								<f:replacement></f:replacement> -->
+<!-- 							</f:replace> -->
+<!-- 						</valueFilter> -->
 						<target>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
-							$i:user/i:familyName
-                        </target>
+							<!-- The path can be shorteden like this. $user is a default target "context" in inbound -->
+							<path>familyName</path>
+						</target>
 					</inbound>
 				</attribute>
 				<attribute ref="ri:givenName"
 					xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
-					<name>Given Name</name>
-					<access>create</access>
-					<access>read</access>
-					<access>update</access>
-					<outbound default="true">
-						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"><code>$i:user/i:givenName</code></valueExpression>
+					<ref>ri:givenName</ref>
+					<displayName>Given Name</displayName>
+					<limitations>
+						<access>
+							<create>true</create>
+							<read>true</read>
+							<update>true</update>
+						</access>
+					</limitations>
+					<outbound>
+						<source>
+							<!-- Full namespace prefixes can be used in the path -->
+							<path>$c:user/c:givenName</path>
+						</source>
 					</outbound>
 				</attribute>
 				<attribute ref="ri:description"
 					xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
-					<outbound default="true">
-						<value xmlns:ns4="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-							xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:ns6="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-							xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">Created by IDM</value>
+					<ref>ri:description</ref>
+					<outbound>
+						<expression>
+							<description>Expression that assigns a fixed value</description>
+							<value>Created by IDM</value>
+						</expression>
 					</outbound>
 				</attribute>
 				<attribute ref="ri:title"
 					xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
-					<name>Title before name</name>
-					<access>create</access>
-					<access>read</access>
-					<access>update</access>
+					<ref>ri:title</ref>
+					<displayName>Title before name</displayName>
+					<limitations>
+						<access>
+							<create>true</create>
+							<read>true</read>
+							<update>true</update>
+						</access>
+					</limitations>
 					<inbound>
 						<target>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+							<path>declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 							declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
-							$c:user/i:honorificPrefix
+							$c:user/i:honorificPrefix</path>
                         </target>
 					</inbound>
 				</attribute>
 				<attribute ref="ri:notDefinedAttributeInTheResourceSchema"
 					xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
-					<name>Not defined attribute in the resource schema</name>
-					<access>create</access>
-					<access>read</access>
-					<access>update</access>
+					<ref>ri:notDefinedAttributeInTheResourceSchema</ref>
+					<displayName>Not defined attribute in the resource schema</displayName>
+					<limitations>
+						<access>
+							<create>true</create>
+							<read>true</read>
+							<update>true</update>
+						</access>
+					</limitations>
 					<inbound>
 						<target>
-							declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
-							$c:user/c:familyName
+							<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+							$c:user/c:familyName</path>
                         </target>
 					</inbound>
 				</attribute>
 			</accountType>
 		</schemaHandling>
 	</resource>
-	<objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:Account</objectClass>
+	<objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:AccountObjectClass</objectClass>
 	<kind>account</kind>
 	<attributes>
 		<ri:cn>jan prvy</ri:cn>
