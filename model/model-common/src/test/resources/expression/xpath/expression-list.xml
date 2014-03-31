@@ -15,14 +15,13 @@
   ~ limitations under the License.
   -->
 
-<script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2" 
-		xmlns:x="http://example.com/xxx"
-		xmlns:y="http://example.com/yyy">
+<script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
     <language>http://www.w3.org/TR/xpath/</language>
     <returnType>list</returnType>
 	<code>
-		$y:jack/c:organizationalUnit/t:orig
+        declare namespace y="http://example.com/yyy";
+        declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+        declare namespace t="http://prism.evolveum.com/xml/ns/public/types-2";
+		$y:jack/c:organizationalUnit
 	</code>
 </script>

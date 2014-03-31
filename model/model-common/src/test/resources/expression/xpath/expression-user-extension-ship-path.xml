@@ -21,6 +21,8 @@
 		xmlns:ext='http://midpoint.evolveum.com/xml/ns/test/extension'>
 	<language>http://www.w3.org/TR/xpath/</language>
 	<code>
-		$c:user/c:extension/ext:ship
+        declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+        declare namespace ext="http://midpoint.evolveum.com/xml/ns/test/extension";
+        $c:user/c:extension/ext:ship
 	</code>
 </script>
