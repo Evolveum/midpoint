@@ -148,3 +148,6 @@ ALTER TABLE m_security_policy
 
 ALTER TABLE m_object_template ADD iteration CLOB;
 
+ALTER TABLE m_focus ADD iteration NUMBER(10,0);
+ALTER TABLE m_focus ADD iterationToken VARCHAR(255 CHAR);
+

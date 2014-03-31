@@ -253,11 +253,19 @@ public class PageOrgUnit extends PageAdminUsers {
                 ObjectQuery query = new ObjectQuery();
 
                 for(OrgType org: parentOrgUnitsModel.getObject()){
-                    oids.add(org.getOid());
+                    if(org != null){
+                        if(org.getOid() != null && !org.getOid().isEmpty()){
+                            oids.add(org.getOid());
+                        }
+                    }
                 }
 
                 if(isEditing()){
                     oids.add(orgModel.getObject().asObjectable().getOid());
+                }
+
+                if(oids.isEmpty()){
+                    return null;
                 }
 
                 ObjectFilter oidFilter = InOidFilter.createInOid(oids);

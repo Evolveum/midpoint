@@ -18,7 +18,7 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
-		oid="RECONCIL-3333-3333-TEST-10000000001"
+		oid="RECONCIL-3333-3333-TEST-10000000000"
         version="0">
 	<name>Reconciliation report - my</name>
 	<description>Reconciliation report for selected resource.</description>
@@ -294,12 +294,12 @@
 			s.synchronizationSituation as situation, 
 			s.synchronizationTimestamp as situationTimestamp 
 			from RShadow as s join s.resourceRef as resRef 
-			where s.objectClass = $P{objectClass} and resRef.type = 8 and resRef.targetOid = $P{resourceOid} and s.kind = 0 
+			where resRef.targetOid = $P{resourceOid} and resRef.type = 8 and s.kind = 0 
 			order by s.synchronizationSituation, s.name.orig
 		</r:hqlQuery>
 		<r:objectClass>ri:AccountObjectClass</r:objectClass>
-		<r:resourceOid>ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe</r:resourceOid>
-		<r:resourceName>Localhost CSVfile</r:resourceName>
+		<r:resourceOid>ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</r:resourceOid>
+		<r:resourceName>OpenDJ resource</r:resourceName>
 		<r:intent>default</r:intent>
 	</configuration>
 	<!-- report parameters configuration schema sample with different options -->
@@ -328,7 +328,7 @@
 						<!-- HQL query for jasper design (queryString element) -->
 						<xsd:element name="hqlQuery" type="xsd:string"/>
 
-						<!-- special audit configuration -->
+						<!-- special reconciliation configuration -->
 						<xsd:element name="objectClass" type="xsd:QName">
 							<xsd:annotation>
 								<xsd:appinfo>
