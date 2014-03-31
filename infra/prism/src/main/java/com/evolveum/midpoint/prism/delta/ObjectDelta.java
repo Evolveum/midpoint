@@ -884,23 +884,17 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     	return createModificationDeleteContainer(type, oid, new ItemPath(containerName), prismContext, containerValues);
     }
     
-    /**
-     * Supposed to work with containers that are completely identified by path (container ID present in path).
-     */    
-    public static <O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationDeleteContainer(Class<O> type, String oid, ItemPath containerPath,
-    		PrismContext prismContext) {
-    	ObjectDelta<O> objectDelta = new ObjectDelta<O>(type, ChangeType.MODIFY, prismContext);
-    	objectDelta.setOid(oid);
-    	fillInModificationDeleteContainer(objectDelta, containerPath);
-    	return objectDelta;
-    }
-    
     public static <O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationDeleteContainer(Class<O> type, String oid, ItemPath containerPath,
     		PrismContext prismContext, PrismContainerValue<C>... containerValues) {
     	ObjectDelta<O> objectDelta = new ObjectDelta<O>(type, ChangeType.MODIFY, prismContext);
     	objectDelta.setOid(oid);
     	fillInModificationDeleteContainer(objectDelta, containerPath, containerValues);
     	return objectDelta;
+    }
+    
+    public static <O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationDeleteContainer(Class<O> type, String oid, 
+    		QName containerName, PrismContext prismContext, C... containerValues) throws SchemaException {
+    	return createModificationDeleteContainer(type, oid, new ItemPath(containerName), prismContext, containerValues);
     }
     
     public static <O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationDeleteContainer(Class<O> type, String oid, 

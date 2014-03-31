@@ -1777,7 +1777,39 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         				new MidPointPrincipal(object.asObjectable()), null));
 	}
 	
-	protected <F extends FocusType> void assertEffectiveActivationDeltaOnly(ObjectDelta<F> focusDelta, String desc, ActivationStatusType expectedEfficientActivation) {
+	protected <F extends FocusType> void assertSideEffectiveDeltasOnly(String desc, ObjectDelta<F> focusDelta) {
+		if (focusDelta == null) {
+			return;
+		}
+		int expectedModifications = 0;
+		// There may be metadata modification, we tolerate that
+		Collection<? extends ItemDelta<?>> metadataDelta = focusDelta.findItemDeltasSubPath(new ItemPath(UserType.F_METADATA));
+		if (metadataDelta != null && !metadataDelta.isEmpty()) {
+			expectedModifications++;
+		}
+		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP)) != null) {
+			expectedModifications++;
+		}
+		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP)) != null) {
+			expectedModifications++;
+		}
+		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ARCHIVE_TIMESTAMP)) != null) {
+			expectedModifications++;
+		}
+		PropertyDelta<ActivationStatusType> effectiveStatusDelta = focusDelta.findPropertyDelta(new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
+		if (effectiveStatusDelta != null) {
+			expectedModifications++;
+		}
+		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ITERATION)) != null) {
+			expectedModifications++;
+		}
+		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ITERATION_TOKEN)) != null) {
+			expectedModifications++;
+		}
+		assertEquals("Unexpected modifications in "+desc+": "+focusDelta, expectedModifications, focusDelta.getModifications().size());		
+	}
+	
+	protected <F extends FocusType> void assertSideEffectiveDeltasOnly(ObjectDelta<F> focusDelta, String desc, ActivationStatusType expectedEfficientActivation) {
 		if (focusDelta == null) {
 			return;
 		}
@@ -1800,6 +1832,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		if (effectiveStatusDelta != null) {
 			expectedModifications++;
 			PrismAsserts.assertReplace(effectiveStatusDelta, expectedEfficientActivation);
+		}
+		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ITERATION)) != null) {
+			expectedModifications++;
+		}
+		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ITERATION_TOKEN)) != null) {
+			expectedModifications++;
 		}
 		assertEquals("Unexpected modifications in "+desc+": "+focusDelta, expectedModifications, focusDelta.getModifications().size());		
 	}

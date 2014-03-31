@@ -245,7 +245,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         deleteObject(TaskType.class, TASK_USER_RECOMPUTE_OID, task, result);
 	}
 	
-	@Test(enabled=false) // work in progress
+	@Test
     public void test110RecomputeSome() throws Exception {
 		final String TEST_NAME = "test110RecomputeSome";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -321,17 +321,10 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 		Task task = createTask(TestRecomputeTask.class.getName() + ".modifyRoleDefinition");
         OperationResult result = task.getResult();
         
-		ConstructionType construction = new ConstructionType();
-        ObjectReferenceType resourceRedRef = new ObjectReferenceType();
-        resourceRedRef.setOid(resourceOid);
-		construction.setResourceRef(resourceRedRef);
 		AssignmentType inducement = new AssignmentType();
-		inducement.setConstruction(construction);
+		inducement.setId(inducementId);
         ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid, 
-        		new ItemPath(
-        				new NameItemPathSegment(RoleType.F_INDUCEMENT),
-        				new IdItemPathSegment(inducementId)),
-        		prismContext, inducement);
+        		RoleType.F_INDUCEMENT, prismContext, inducement);
         modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
