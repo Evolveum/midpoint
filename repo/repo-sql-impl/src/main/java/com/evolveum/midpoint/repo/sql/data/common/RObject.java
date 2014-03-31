@@ -29,6 +29,7 @@ import com.evolveum.midpoint.repo.sql.data.common.type.RCreateApproverRef;
 import com.evolveum.midpoint.repo.sql.data.common.type.RModifyApproverRef;
 import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
+import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -63,7 +64,13 @@ import java.util.Set;
         @NamedQuery(name = "searchShadowOwner.getOwner", query = "select owner.fullObject from RFocus as owner left join owner.linkRef as ref where ref.targetOid = :oid"),
         @NamedQuery(name = "listAccountShadowOwner.getUser", query = "select user.fullObject from RUser as user left join user.linkRef as ref where ref.targetOid = :oid"),
         @NamedQuery(name = "getExtCount", query = "select stringsCount, longsCount, datesCount, referencesCount, clobsCount, polysCount from RObject where oid = :oid"),
-        @NamedQuery(name = "getVersion", query = "select o.version from RObject as o where o.oid = :oid")
+        @NamedQuery(name = "getVersion", query = "select o.version from RObject as o where o.oid = :oid"),
+        @NamedQuery(name = "existIncorrect", query = "select count(*) from ROrgIncorrect as o where o.ancestorOid = :ancestorOid and o.descendantOid = :descendantOid"),
+        @NamedQuery(name = "existOrgClosure", query = "select count(*) from ROrgClosure as o where o.ancestorOid = :ancestorOid and o.descendantOid = :descendantOid and o.depth = :depth"),
+        @NamedQuery(name = "fillHierarchy", query ="from ROrgIncorrect as o where o.ancestorOid = :oid"),
+        @NamedQuery(name = "sqlDeleteOrgClosure", query="delete from ROrgClosure as o where o.descendantOid = :oid or o.ancestorOid = :oid"),
+        @NamedQuery(name = "sqlDeleteOrgIncorrect", query="delete from ROrgIncorrect as o where o.descendantOid = :oid or o.ancestorOid = :oid"),
+        @NamedQuery(name = "listResourceObjectShadows", query="select s.fullObject from RShadow as s left join s.resourceRef as ref where ref.targetOid = :oid")
 })
 @Entity
 @Table(name = "m_object")

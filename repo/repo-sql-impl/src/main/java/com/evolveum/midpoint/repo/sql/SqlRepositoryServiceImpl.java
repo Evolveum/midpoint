@@ -573,8 +573,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (StringUtils.isNotEmpty(originalOid)) {
             LOGGER.trace("Checking oid uniqueness.");
             //todo improve this table name bullshit
+            Class hqlType = ClassMapper.getHQLTypeClass(object.getCompileTimeClass());
             SQLQuery query = session.createSQLQuery("select count(*) from "
-                    + RUtil.getTableName(ClassMapper.getHQLTypeClass(object.getCompileTimeClass())) + " where oid=:oid");
+                    + RUtil.getTableName(hqlType) + " where oid=:oid");
             query.setString("oid", object.getOid());
 
             Number count = (Number) query.uniqueResult();
@@ -607,11 +608,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     private boolean existOrgCLosure(Session session, String ancestorOid, String descendantOid, int depth) {
-        // if not exist pair with same depth, then create else nothing
-        // do
-        Query qExistClosure = session
-                .createQuery("select count(*) from ROrgClosure as o where "
-                        + "o.ancestorOid = :ancestorOid and o.descendantOid = :descendantOid and o.depth = :depth");
+        // if not exist pair with same depth, then create else nothing do
+        Query qExistClosure = session.getNamedQuery("existOrgClosure");
         qExistClosure.setParameter("ancestorOid", ancestorOid);
         qExistClosure.setParameter("descendantOid", descendantOid);
         qExistClosure.setParameter("depth", depth);
@@ -621,16 +619,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     private boolean existIncorrect(Session session, String ancestorOid, String descendantOid) {
-        // if not exist pair with same depth, then create else nothing
-        // do
-        Query qExistIncorrect = session
-                .createQuery("select count(*) from ROrgIncorrect as o where "
-                        + "o.ancestorOid = :ancestorOid and o.descendantOid = :descendantOid");
+        // if not exist pair with same depth, then create else nothing do
+        Query qExistIncorrect = session.getNamedQuery("existIncorrect");
         qExistIncorrect.setParameter("ancestorOid", ancestorOid);
         qExistIncorrect.setParameter("descendantOid", descendantOid);
 
         return (Long) qExistIncorrect.uniqueResult() != 0;
-
     }
 
     private <T extends ObjectType> void fillHierarchy(RObject<T> rOrg, Session session, boolean withIncorrect)
@@ -646,11 +640,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         if (withIncorrect) {
-            Query qIncorrect = session.createQuery("from ROrgIncorrect as o where o.ancestorOid = :oid");
+            Query qIncorrect = session.getNamedQuery("fillHierarchy");
             qIncorrect.setString("oid", rOrg.getOid());
 
             List<ROrgIncorrect> orgIncorrect = qIncorrect.list();
-
             for (ROrgIncorrect orgInc : orgIncorrect) {
                 Query qObject = session.createQuery("from RObject where oid = :oid");
                 qObject.setString("oid", orgInc.getDescendantOid());
@@ -1059,6 +1052,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         PrismContainer attributes = object.findContainer(ShadowType.F_ATTRIBUTES);
 
+        //todo fix indexes
         Query query = session.createQuery("select c.name, c.type, c.valueType from "
                 + anyValueType.getSimpleName() + " as c where c.ownerOid = :oid and c.ownerType = :ownerType");
         query.setParameter("oid", object.getOid());
@@ -1224,75 +1218,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     }
 
-    /**
-     * Manually merges "any" collections for RObject entities
-     *
-     * @param object
-     * @param session
-     */
-    private void mergeCollections(RObject object, Session session) {
-        Query query = session.createQuery("select " + ExtCountsResult.EXT_COUNT_PROJECTION + " from RObject where oid = :oid");
-        query.setParameter("oid", object.getOid());
-        query.setResultTransformer(ExtCountsResult.RESULT_TRANSFORMER);
-
-        ExtCountsResult result = (ExtCountsResult) query.uniqueResult();
-        if (result == null) {
-            return;
-        }
-
-        LOGGER.info("Starting collections merge.");
-        mergeCollection(result.getStringsCount(), object.getStrings(), ROExtString.class, object.getOid(), session);
-        mergeCollection(result.getClobsCount(), object.getClobs(), ROExtClob.class, object.getOid(), session);
-        mergeCollection(result.getDatesCount(), object.getDates(), ROExtDate.class, object.getOid(), session);
-        mergeCollection(result.getLongsCount(), object.getLongs(), ROExtLong.class, object.getOid(), session);
-        mergeCollection(result.getPolysCount(), object.getPolys(), ROExtPolyString.class, object.getOid(), session);
-        mergeCollection(result.getReferencesCount(), object.getReferences(), ROExtReference.class, object.getOid(), session);
-        LOGGER.info("Collections merge finished.");
-    }
-
-    private void mergeCollection(short count, Set set, Class type, String ownerOid, Session session) {
-        if (count == 0 && (set == null || set.isEmpty())) {
-            return;
-        }
-
-        LOGGER.info("Merging collection {}, count {}", type.getSimpleName(), count);
-
-        if (count > 0 && set.isEmpty()) {
-            Query query = session.createQuery("delete from " + type.getSimpleName() + " where ownerOid=:oid");
-            query.setParameter("oid", ownerOid);
-            int c = query.executeUpdate();
-            if (c != count) {
-                throw new IllegalStateException("Couldn't delete ext. values for " + type.getSimpleName()
-                        + ", oid=" + ownerOid);
-            }
-        }
-
-        if (count == 0 && !set.isEmpty()) {
-            for (Object obj : set) {
-                session.save(obj);
-            }
-        }
-
-        Map map = new HashMap();
-        for (Object obj : set) {
-            map.put(obj, obj);
-        }
-
-        Query query = session.createQuery("from " + type.getSimpleName() + " where ownerOid=:oid");
-        query.setParameter("oid", ownerOid);
-        List objects = query.list();
-        for (Object obj : objects) {
-            if (map.containsKey(obj)) {
-                map.remove(obj);
-            } else {
-                session.delete(obj);
-            }
-        }
-        for (Object obj : map.values()) {
-            session.save(obj);
-        }
-    }
-
     private <T extends ObjectType> void recomputeHierarchy(
             RObject<T> rObjectToModify, Session session,
             Collection<? extends ItemDelta> modifications)
@@ -1378,16 +1303,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         List<ROrgClosure> orgClosure = cOrgClosure.list();
 
         for (ROrgClosure o : orgClosure) {
-            LOGGER.trace("deleting from hierarchy: A: {} D:{} depth:{}",
-                    new Object[]{o.getAncestor().toJAXB(getPrismContext(), null),
-                            o.getDescendant().toJAXB(getPrismContext(), null),
-                            o.getDepth()});
-//            if (LOGGER.isTraceEnabled()) {
-//                RObject ancestor = o.getAncestor();
-//                RObject descendant = o.getDescendant();
-//                LOGGER.trace("deleting from hierarchy: A:{} D:{} depth:{}",
-//                        new Object[]{RUtil.getDebugString(ancestor), RUtil.getDebugString(descendant), o.getDepth()});
-//            }
+//            LOGGER.trace("deleting from hierarchy: A: {} D:{} depth:{}",
+//                    new Object[]{o.getAncestor().toJAXB(getPrismContext(), null),
+//                            o.getDescendant().toJAXB(getPrismContext(), null),
+//                            o.getDepth()});
+            if (LOGGER.isTraceEnabled()) {
+                RObject ancestor = o.getAncestor();
+                RObject descendant = o.getDescendant();
+                LOGGER.trace("deleting from hierarchy: A:{} D:{} depth:{}",
+                        new Object[]{RUtil.getDebugString(ancestor), RUtil.getDebugString(descendant), o.getDepth()});
+            }
             session.delete(o);
         }
         deleteHierarchy(rObjectToModify, session);
@@ -1409,22 +1334,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     }
 
-    private void deleteHierarchy(RObject objectToDelete, Session session)
-            throws DtoTranslationException {
-
-        String sqlDeleteOrgClosure = "delete from ROrgClosure as o where " +
-                "o.descendantOid = :modifyOid or o.ancestorOid = :modifyOid";
-
-        session.createQuery(sqlDeleteOrgClosure)
-                .setParameter("modifyOid", objectToDelete.getOid())
-                .executeUpdate();
-
-        String sqlDeleteOrgIncorrect = "delete from ROrgIncorrect as o where "
-                + "o.descendantOid = :modifyOid or o.ancestorOid = :modifyOid";
-        session.createQuery(sqlDeleteOrgIncorrect)
-                .setParameter("modifyOid", objectToDelete.getOid())
-                .executeUpdate();
-
+    private void deleteHierarchy(RObject objectToDelete, Session session) {
+        session.getNamedQuery("sqlDeleteOrgClosure").setParameter("oid", objectToDelete.getOid()).executeUpdate();
+        session.getNamedQuery("sqlDeleteOrgIncorrect").setParameter("oid", objectToDelete.getOid()).executeUpdate();
     }
 
     @Override
@@ -1470,8 +1382,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Session session = null;
         try {
             session = beginReadOnlyTransaction();
-            Query query = session.createQuery("select shadow.fullObject from " + ClassMapper.getHQLType(resourceObjectShadowType)
-                    + " as shadow left join shadow.resourceRef as ref where ref.oid = :oid");
+            Query query = session.getNamedQuery("listResourceObjectShadows");
             query.setString("oid", resourceOid);
 
             List<String> shadows = query.list();
