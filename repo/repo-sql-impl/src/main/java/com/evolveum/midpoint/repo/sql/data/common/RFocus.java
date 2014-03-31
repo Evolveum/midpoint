@@ -60,7 +60,7 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
     private Set<RObjectReference> linkRef;
     private Set<RAssignment> assignments;
     private RActivation activation;
-    private String interationToken;
+    private String iterationToken;
     private Integer iteration;
 
     @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RAccountRef.DISCRIMINATOR)
@@ -113,8 +113,8 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
         return activation;
     }
 
-    public String getInterationToken() {
-        return interationToken;
+    public String getIterationToken() {
+        return iterationToken;
     }
 
     public Integer getIteration() {
@@ -133,8 +133,8 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
         this.activation = activation;
     }
 
-    public void setInterationToken(String interationToken) {
-        this.interationToken = interationToken;
+    public void setIterationToken(String iterationToken) {
+        this.iterationToken = iterationToken;
     }
 
     public void setIteration(Integer iteration) {
@@ -152,7 +152,7 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
         if (assignments != null ? !assignments.equals(other.assignments) : other.assignments != null) return false;
         if (linkRef != null ? !linkRef.equals(other.linkRef) : other.linkRef != null) return false;
         if (activation != null ? !activation.equals(other.activation) : other.activation != null) return false;
-        if (interationToken != null ? !interationToken.equals(other.interationToken) : other.interationToken != null) return false;
+        if (iterationToken != null ? !iterationToken.equals(other.iterationToken) : other.iterationToken != null) return false;
         if (iteration != null ? !iteration.equals(other.iteration) : other.iteration != null) return false;
 
         return true;
@@ -162,7 +162,7 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (activation != null ? activation.hashCode() : 0);
-        result = 31 * result + (interationToken != null ? interationToken.hashCode() : 0);
+        result = 31 * result + (iterationToken != null ? iterationToken.hashCode() : 0);
         result = 31 * result + (iteration != null ? iteration.hashCode() : 0);
 
         return result;
@@ -172,7 +172,7 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
-        repo.setInterationToken(jaxb.getIterationToken());
+        repo.setIterationToken(jaxb.getIterationToken());
         repo.setIteration(jaxb.getIteration());
 
         repo.getLinkRef().addAll(
@@ -199,7 +199,7 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
         RObject.copyToJAXB(repo, jaxb, prismContext, options);
 
         jaxb.setIteration(repo.getIteration());
-        jaxb.setIterationToken(repo.getInterationToken());
+        jaxb.setIterationToken(repo.getIterationToken());
 
         if (SelectorOptions.hasToLoadPath(FocusType.F_LINK_REF, options)) {
             List linkRefs = RUtil.safeSetReferencesToList(repo.getLinkRef(), prismContext);

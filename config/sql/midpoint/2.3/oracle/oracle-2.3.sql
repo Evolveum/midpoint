@@ -283,8 +283,8 @@
         validTo timestamp,
         validityChangeTimestamp timestamp,
         validityStatus number(10,0),
-        interationToken varchar2(255 char),
         iteration number(10,0),
+        iterationToken varchar2(255 char),
         id number(19,0) not null,
         oid varchar2(36 char) not null,
         primary key (id, oid)
