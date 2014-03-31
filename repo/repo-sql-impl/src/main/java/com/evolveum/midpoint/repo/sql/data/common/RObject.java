@@ -40,14 +40,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.*;
-import org.hibernate.annotations.NamedNativeQuery;
 import org.hibernate.annotations.NamedQueries;
 import org.hibernate.annotations.NamedQuery;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import org.hibernate.annotations.NamedNativeQueries;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import java.io.Serializable;
@@ -220,76 +218,9 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return modifyTimestamp;
     }
 
-    public void setCreateApproverRef(Set<RObjectReference> createApproverRef) {
-        this.createApproverRef = createApproverRef;
-    }
-
-    public void setCreateChannel(String createChannel) {
-        this.createChannel = createChannel;
-    }
-
-    public void setCreateTimestamp(XMLGregorianCalendar createTimestamp) {
-        this.createTimestamp = createTimestamp;
-    }
-
-    public void setCreatorRef(REmbeddedReference creatorRef) {
-        this.creatorRef = creatorRef;
-    }
-
-    public void setModifierRef(REmbeddedReference modifierRef) {
-        this.modifierRef = modifierRef;
-    }
-
-    public void setModifyApproverRef(Set<RObjectReference> modifyApproverRef) {
-        this.modifyApproverRef = modifyApproverRef;
-    }
-
-    public void setModifyChannel(String modifyChannel) {
-        this.modifyChannel = modifyChannel;
-    }
-
-    public void setModifyTimestamp(XMLGregorianCalendar modifyTimestamp) {
-        this.modifyTimestamp = modifyTimestamp;
-    }
-
-    public void setFullObject(String fullObject) {
-        this.fullObject = fullObject;
-    }
-
-    public void setVersion(int version) {
-        this.version = version;
-    }
-
-    public void setTenantRef(REmbeddedReference tenantRef) {
-        this.tenantRef = tenantRef;
-    }
-
-    public void setName(RPolyString name) {
-        this.name = name;
-    }
-
-    public void setOid(String oid) {
-        this.oid = oid;
-    }
-
-    public void setTrigger(Set<RTrigger> trigger) {
-        this.trigger = trigger;
-    }
-
-    public void setDescendants(Set<ROrgClosure> descendants) {
-        this.descendants = descendants;
-    }
-
-    public void setAncestors(Set<ROrgClosure> ancestors) {
-        this.ancestors = ancestors;
-    }
-
-    public void setParentOrgRef(Set<RObjectReference> parentOrgRef) {
-        this.parentOrgRef = parentOrgRef;
-    }
-
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
+//    @Cascade({PERSIST, REMOVE, REFRESH, DELETE, SAVE_UPDATE, REPLICATE, LOCK, DETACH})
     public Set<ROExtClob> getClobs() {
         if (clobs == null) {
             clobs = new HashSet<>();
@@ -382,6 +313,74 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
             polysCount = 0;
         }
         return polysCount;
+    }
+
+    public void setCreateApproverRef(Set<RObjectReference> createApproverRef) {
+        this.createApproverRef = createApproverRef;
+    }
+
+    public void setCreateChannel(String createChannel) {
+        this.createChannel = createChannel;
+    }
+
+    public void setCreateTimestamp(XMLGregorianCalendar createTimestamp) {
+        this.createTimestamp = createTimestamp;
+    }
+
+    public void setCreatorRef(REmbeddedReference creatorRef) {
+        this.creatorRef = creatorRef;
+    }
+
+    public void setModifierRef(REmbeddedReference modifierRef) {
+        this.modifierRef = modifierRef;
+    }
+
+    public void setModifyApproverRef(Set<RObjectReference> modifyApproverRef) {
+        this.modifyApproverRef = modifyApproverRef;
+    }
+
+    public void setModifyChannel(String modifyChannel) {
+        this.modifyChannel = modifyChannel;
+    }
+
+    public void setModifyTimestamp(XMLGregorianCalendar modifyTimestamp) {
+        this.modifyTimestamp = modifyTimestamp;
+    }
+
+    public void setFullObject(String fullObject) {
+        this.fullObject = fullObject;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
+    }
+
+    public void setTenantRef(REmbeddedReference tenantRef) {
+        this.tenantRef = tenantRef;
+    }
+
+    public void setName(RPolyString name) {
+        this.name = name;
+    }
+
+    public void setOid(String oid) {
+        this.oid = oid;
+    }
+
+    public void setTrigger(Set<RTrigger> trigger) {
+        this.trigger = trigger;
+    }
+
+    public void setDescendants(Set<ROrgClosure> descendants) {
+        this.descendants = descendants;
+    }
+
+    public void setAncestors(Set<ROrgClosure> ancestors) {
+        this.ancestors = ancestors;
+    }
+
+    public void setParentOrgRef(Set<RObjectReference> parentOrgRef) {
+        this.parentOrgRef = parentOrgRef;
     }
 
     public void setStringsCount(Short stringsCount) {

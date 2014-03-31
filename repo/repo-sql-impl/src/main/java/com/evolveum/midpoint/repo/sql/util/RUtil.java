@@ -311,7 +311,7 @@ public final class RUtil {
         return list;
     }
 
-    public static List<ObjectReferenceType> safeSetReferencesToList(Set<RObjectReference> set, PrismContext prismContext) {
+    public static List<ObjectReferenceType> safeSetReferencesToList(Set<? extends RObjectReference> set, PrismContext prismContext) {
         List<ObjectReferenceType> list = new ArrayList<ObjectReferenceType>();
 
         if (set == null || set.isEmpty()) {
@@ -326,7 +326,7 @@ public final class RUtil {
         return list;
     }
 
-    public static Set<RObjectReference> safeListReferenceToSet(List<ObjectReferenceType> list, PrismContext prismContext,
+    public static Set safeListReferenceToSet(List<ObjectReferenceType> list, PrismContext prismContext,
                                                                RObject owner, RReferenceOwner refOwner) {
         Set<RObjectReference> set = new HashSet<RObjectReference>();
         if (list == null || list.isEmpty()) {

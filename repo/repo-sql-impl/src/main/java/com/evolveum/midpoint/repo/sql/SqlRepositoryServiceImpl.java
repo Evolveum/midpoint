@@ -67,8 +67,6 @@ import java.util.*;
 import java.util.Date;
 
 /**
- * Named queries are in {@link com.evolveum.midpoint.repo.sql.data.common.RObject}
- *
  * @author lazyman
  */
 @Repository
@@ -177,14 +175,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         return prismObject;
     }
 
-    private <T extends ObjectType> PrismObject<T> throwObjectNotFoundException(Class<T> type, String oid) throws ObjectNotFoundException {
+    private <T extends ObjectType> PrismObject<T> throwObjectNotFoundException(Class<T> type, String oid)
+            throws ObjectNotFoundException {
         throw new ObjectNotFoundException("Object of type '" + type.getSimpleName() + "' with oid '" + oid
                 + "' was not found.", null, oid);
     }
 
     @Override
     public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
-                                                           Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+                                                           Collection<SelectorOptions<GetOperationOptions>> options,
+                                                           OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         Validate.notNull(type, "Object type must not be null.");
         Validate.notEmpty(oid, "Oid must not be null or empty.");
@@ -218,7 +218,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                                                                    Collection<SelectorOptions<GetOperationOptions>> options,
                                                                    OperationResult result)
             throws ObjectNotFoundException, SchemaException {
-        LOGGER.trace("Getting object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
+        LOGGER.debug("Getting object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
 
         PrismObject<T> objectType = null;
 
@@ -747,7 +747,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private <T extends ObjectType> List<ReferenceDelta> createDeleteParentRefDelta(Class<T> type, String oid,
                                                                                    Session session) {
-        Query query = session.createQuery("from RParentOrgRef as r where r.ownerId = 0 and r.ownerOid = :oid");
+        Query query = session.createQuery("from RParentOrgRef as r where r.ownerOid = :oid");
         query.setString("oid", oid);
 
         List<RObjectReference> references = query.list();
@@ -1224,6 +1224,74 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     }
 
+    /**
+     * Manually merges "any" collections for RObject entities
+     *
+     * @param object
+     * @param session
+     */
+    private void mergeCollections(RObject object, Session session) {
+        Query query = session.createQuery("select " + ExtCountsResult.EXT_COUNT_PROJECTION + " from RObject where oid = :oid");
+        query.setParameter("oid", object.getOid());
+        query.setResultTransformer(ExtCountsResult.RESULT_TRANSFORMER);
+
+        ExtCountsResult result = (ExtCountsResult) query.uniqueResult();
+        if (result == null) {
+            return;
+        }
+
+        LOGGER.info("Starting collections merge.");
+        mergeCollection(result.getStringsCount(), object.getStrings(), ROExtString.class, object.getOid(), session);
+        mergeCollection(result.getClobsCount(), object.getClobs(), ROExtClob.class, object.getOid(), session);
+        mergeCollection(result.getDatesCount(), object.getDates(), ROExtDate.class, object.getOid(), session);
+        mergeCollection(result.getLongsCount(), object.getLongs(), ROExtLong.class, object.getOid(), session);
+        mergeCollection(result.getPolysCount(), object.getPolys(), ROExtPolyString.class, object.getOid(), session);
+        mergeCollection(result.getReferencesCount(), object.getReferences(), ROExtReference.class, object.getOid(), session);
+        LOGGER.info("Collections merge finished.");
+    }
+
+    private void mergeCollection(short count, Set set, Class type, String ownerOid, Session session) {
+        if (count == 0 && (set == null || set.isEmpty())) {
+            return;
+        }
+
+        LOGGER.info("Merging collection {}, count {}", type.getSimpleName(), count);
+
+        if (count > 0 && set.isEmpty()) {
+            Query query = session.createQuery("delete from " + type.getSimpleName() + " where ownerOid=:oid");
+            query.setParameter("oid", ownerOid);
+            int c = query.executeUpdate();
+            if (c != count) {
+                throw new IllegalStateException("Couldn't delete ext. values for " + type.getSimpleName()
+                        + ", oid=" + ownerOid);
+            }
+        }
+
+        if (count == 0 && !set.isEmpty()) {
+            for (Object obj : set) {
+                session.save(obj);
+            }
+        }
+
+        Map map = new HashMap();
+        for (Object obj : set) {
+            map.put(obj, obj);
+        }
+
+        Query query = session.createQuery("from " + type.getSimpleName() + " where ownerOid=:oid");
+        query.setParameter("oid", ownerOid);
+        List objects = query.list();
+        for (Object obj : objects) {
+            if (map.containsKey(obj)) {
+                map.remove(obj);
+            } else {
+                session.delete(obj);
+            }
+        }
+        for (Object obj : map.values()) {
+            session.save(obj);
+        }
+    }
 
     private <T extends ObjectType> void recomputeHierarchy(
             RObject<T> rObjectToModify, Session session,
@@ -1239,10 +1307,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             if (delta.isReplace() || delta.isDelete()) {
                 for (Object orgRefDValue : delta.getValuesToDelete()) {
                     if (!(orgRefDValue instanceof PrismReferenceValue))
-                        throw new SchemaException(
-                                "Couldn't modify organization structure hierarchy (adding new records). Expected instance of prism reference value but got "
-                                        + orgRefDValue);
-
+                        throw new SchemaException("Couldn't modify organization structure hierarchy (adding new " +
+                                "records). Expected instance of prism reference value but got " + orgRefDValue);
 
                     if (rObjectToModify.getClass().isAssignableFrom(ROrg.class)) {
                         List<RObject> objectsToRecompute = deleteTransitiveHierarchy(rObjectToModify, session);
@@ -1262,16 +1328,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 for (Object orgRefDValue : delta.getValuesToAdd()) {
                     if (!(orgRefDValue instanceof PrismReferenceValue)) {
                         throw new SchemaException(
-                                "Couldn't modify organization structure hierarchy (adding new records). Expected instance of prism reference value but got "
-                                        + orgRefDValue);
+                                "Couldn't modify organization structure hierarchy (adding new records). Expected " +
+                                        "instance of prism reference value but got " + orgRefDValue);
                     }
 
                     PrismReferenceValue value = (PrismReferenceValue) orgRefDValue;
 
-                    LOGGER.trace(
-                            "filling transitive hierarchy for descendant {}, ref {}",
-                            new Object[]{rObjectToModify.getOid(),
-                                    value.getOid()});
+                    LOGGER.trace("filling transitive hierarchy for descendant {}, ref {}",
+                            new Object[]{rObjectToModify.getOid(), value.getOid()});
                     // todo remove
                     fillTransitiveHierarchy(rObjectToModify, value.getOid(), session, true);
                 }
@@ -1604,7 +1668,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     /* (non-Javadoc)
-     * @see com.evolveum.midpoint.repo.api.RepositoryService#getVersion(java.lang.Class, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
+     * @see com.evolveum.midpoint.repo.api.RepositoryService#getVersion(java.lang.Class, java.lang.String,
+     * com.evolveum.midpoint.schema.result.OperationResult)
      */
     @Override
     public <T extends ObjectType> String getVersion(Class<T> type, String oid, OperationResult parentResult)
