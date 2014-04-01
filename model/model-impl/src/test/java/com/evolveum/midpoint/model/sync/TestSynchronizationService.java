@@ -116,7 +116,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertNotNull("No resulting context (as seen by debug listener)", context);
         
         assertNull("Unexpected user primary delta", context.getFocusContext().getPrimaryDelta());
-        assertEffectiveActivationDeltaOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
+        assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
         		ActivationStatusType.ENABLED);
         
         ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceDummy.getOid(), ShadowKindType.ACCOUNT, null);

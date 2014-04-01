@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -95,7 +96,11 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
 		if (path.isEmpty()) {
 			this.elementName = null;
 		} else {
-			this.elementName = ((NameItemPathSegment)path.last()).getName();
+			ItemPathSegment last = path.last();
+			if (!(last instanceof NameItemPathSegment)) {
+				throw new IllegalArgumentException("Invalid delta path "+path+". Delta path must always point to item, not to value");
+			}
+			this.elementName = ((NameItemPathSegment)last).getName();
 			this.parentPath = path.allExceptLast();
 		}
 		this.definition = itemDefinition;

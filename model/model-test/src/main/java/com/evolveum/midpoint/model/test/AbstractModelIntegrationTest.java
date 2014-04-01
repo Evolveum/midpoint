@@ -64,6 +64,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -1776,7 +1777,39 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         				new MidPointPrincipal(object.asObjectable()), null));
 	}
 	
-	protected <F extends FocusType> void assertEffectiveActivationDeltaOnly(ObjectDelta<F> focusDelta, String desc, ActivationStatusType expectedEfficientActivation) {
+	protected <F extends FocusType> void assertSideEffectiveDeltasOnly(String desc, ObjectDelta<F> focusDelta) {
+		if (focusDelta == null) {
+			return;
+		}
+		int expectedModifications = 0;
+		// There may be metadata modification, we tolerate that
+		Collection<? extends ItemDelta<?>> metadataDelta = focusDelta.findItemDeltasSubPath(new ItemPath(UserType.F_METADATA));
+		if (metadataDelta != null && !metadataDelta.isEmpty()) {
+			expectedModifications++;
+		}
+		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP)) != null) {
+			expectedModifications++;
+		}
+		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP)) != null) {
+			expectedModifications++;
+		}
+		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ARCHIVE_TIMESTAMP)) != null) {
+			expectedModifications++;
+		}
+		PropertyDelta<ActivationStatusType> effectiveStatusDelta = focusDelta.findPropertyDelta(new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
+		if (effectiveStatusDelta != null) {
+			expectedModifications++;
+		}
+		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ITERATION)) != null) {
+			expectedModifications++;
+		}
+		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ITERATION_TOKEN)) != null) {
+			expectedModifications++;
+		}
+		assertEquals("Unexpected modifications in "+desc+": "+focusDelta, expectedModifications, focusDelta.getModifications().size());		
+	}
+	
+	protected <F extends FocusType> void assertSideEffectiveDeltasOnly(ObjectDelta<F> focusDelta, String desc, ActivationStatusType expectedEfficientActivation) {
 		if (focusDelta == null) {
 			return;
 		}
@@ -1799,6 +1832,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		if (effectiveStatusDelta != null) {
 			expectedModifications++;
 			PrismAsserts.assertReplace(effectiveStatusDelta, expectedEfficientActivation);
+		}
+		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ITERATION)) != null) {
+			expectedModifications++;
+		}
+		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ITERATION_TOKEN)) != null) {
+			expectedModifications++;
 		}
 		assertEquals("Unexpected modifications in "+desc+": "+focusDelta, expectedModifications, focusDelta.getModifications().size());		
 	}
@@ -2259,6 +2298,21 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		} else {
 			AssertJUnit.fail("Expected logged in user '"+username+"' but there was unknown principal in the spring security context: "+principal);
 		}
+	}
+	
+	protected void displayAllUsers() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName()+".displayAllUsers");
+		OperationResult result = task.getResult();
+		ResultHandler<UserType> handler = new ResultHandler<UserType>() {
+			@Override
+			public boolean handle(PrismObject<UserType> object, OperationResult parentResult) {
+				display("User", object);
+				return true;
+			}
+		};
+		modelService.searchObjectsIterative(UserType.class, null, handler, null, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
 	}
 
 }

@@ -25,6 +25,7 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectReferenceType;
+
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -56,6 +57,57 @@ public class TestDelta {
 	public void setupDebug() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
 		PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
+	}
+	
+	@Test
+    public void testDeltaPaths() throws Exception {
+		System.out.println("\n\n===[ testDeltaPaths ]===\n");
+		
+		PrismPropertyDefinition<String> descDefinition = new PrismPropertyDefinition<>(UserType.F_DESCRIPTION, 
+				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+		PropertyDelta<String> delta1 = new PropertyDelta<String>(descDefinition);
+		delta1.addValueToAdd(new PrismPropertyValue<String>("add1"));
+		assertPath(delta1, new ItemPath(UserType.F_DESCRIPTION));
+		
+		PrismReferenceDefinition referenceDefinition = new PrismReferenceDefinition(UserType.F_PARENT_ORG_REF,
+                OBJECT_REFERENCE_TYPE_QNAME, PrismTestUtil.getPrismContext());
+        ReferenceDelta delta2 = new ReferenceDelta(referenceDefinition);
+        delta2.addValueToAdd(new PrismReferenceValue("oid1"));
+        assertPath(delta2, new ItemPath(UserType.F_PARENT_ORG_REF));
+
+    	PrismContainerValue<AssignmentType> assignmentValue1 = new PrismContainerValue<AssignmentType>();
+    	// The value id is null
+    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala");    	
+		ObjectDelta<UserType> assObjDelta1 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID, 
+				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue1);
+		ItemDelta<?> assDelta1 = assObjDelta1.getModifications().iterator().next();
+		assertPath(assDelta1, new ItemPath(UserType.F_ASSIGNMENT));
+		
+		PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
+    	assignmentValue1.setId(USER_ASSIGNMENT_1_ID);
+    	assignmentValue1.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala");
+		ObjectDelta<UserType> assObjDelta2 = ObjectDelta.createModificationAddContainer(UserType.class, USER_FOO_OID, 
+				UserType.F_ASSIGNMENT, PrismTestUtil.getPrismContext(), assignmentValue2);
+		ItemDelta<?> assDelta2 = assObjDelta2.getModifications().iterator().next();
+		assertPath(assDelta2, new ItemPath(UserType.F_ASSIGNMENT));
+		
+		PrismPropertyDefinition<String> assDescDefinition = new PrismPropertyDefinition<>(AssignmentType.F_DESCRIPTION, 
+				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+		ItemPath itemPathAssDescNoId = new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_DESCRIPTION);
+		PropertyDelta<String> propDelta2 = new PropertyDelta<String>(itemPathAssDescNoId, descDefinition);
+		assertPath(propDelta2, itemPathAssDescNoId);
+		
+		ItemPath itemPathAssDesc1Id = new ItemPath(
+				new NameItemPathSegment(UserType.F_ASSIGNMENT),
+				new IdItemPathSegment(USER_ASSIGNMENT_1_ID),
+				new NameItemPathSegment(AssignmentType.F_DESCRIPTION));
+		PropertyDelta<String> propDelta3 = new PropertyDelta<String>(itemPathAssDesc1Id, descDefinition);
+		assertPath(propDelta3, itemPathAssDesc1Id);
+		
+	}
+	
+	private void assertPath(ItemDelta<?> delta, ItemPath expectedPath) {
+		assertEquals("Wrong path in "+delta, expectedPath, delta.getPath());
 	}
 	
 	@Test
