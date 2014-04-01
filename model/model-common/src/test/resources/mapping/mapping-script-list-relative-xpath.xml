@@ -26,7 +26,7 @@
 			<relativityMode>relative</relativityMode>
 			<language>http://www.w3.org/TR/xpath/</language>
 			<code>
-				concat('The Guild of ',$c:organizationalUnit/t:orig)
+				concat('The Guild of ',$organizationalUnit)
 			</code>
 		</script>
 	</expression>

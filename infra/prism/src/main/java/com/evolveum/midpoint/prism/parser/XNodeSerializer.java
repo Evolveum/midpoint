@@ -147,16 +147,18 @@ public class XNodeSerializer {
     public RootXNode serializeItemValueAsRoot(PrismValue value, QName elementName) throws SchemaException {
         Validate.notNull(value, "Item value to be serialized cannot be null");
         Validate.notNull(value.getParent(), "Item value to be serialized must have a parent");
-        // maybe this condition could be relaxed in the future
-        Validate.notNull(value.getParent().getDefinition(), "Item value to be serialized must have a parent with a definition");
+        Validate.notNull(elementName, "Element name cannot be null");
         return serializeItemValueAsRootInternal(value, elementName);
     }
 
-    // element name may be null (it is then derived from the definition)
+    // element name may be null (it is then derived from the definition, if the definition exists)
     private RootXNode serializeItemValueAsRootInternal(PrismValue value, QName elementName) throws SchemaException {
-        ItemDefinition definition = value.getParent().getDefinition();
+        ItemDefinition definition = value.getParent().getDefinition();      // the definition may be null here
         XNode valueNode = serializeItemValue(value, definition);
         if (elementName == null) {
+            if (definition == null) {
+                throw new IllegalStateException("The name of element to be serialized couldn't be determined, as there's no definition");
+            }
             elementName = definition.getName();
         }
         return new RootXNode(elementName, valueNode);
@@ -167,6 +169,7 @@ public class XNodeSerializer {
         return new RootXNode(item.getDefinition().getName(), valueNode);
     }
 
+    // definition may be null
     public <V extends PrismValue> XNode serializeItemValue(V itemValue, ItemDefinition definition) throws SchemaException {
         XNode xnode;
         if (definition == null){

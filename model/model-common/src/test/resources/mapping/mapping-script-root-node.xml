@@ -26,7 +26,8 @@
 			<language>http://www.w3.org/TR/xpath/</language>
 			<relativityMode>absolute</relativityMode>
 			<code>
-				c:locality/t:orig
+                declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+				c:locality
 			</code>
 		</script>
 	</expression>
