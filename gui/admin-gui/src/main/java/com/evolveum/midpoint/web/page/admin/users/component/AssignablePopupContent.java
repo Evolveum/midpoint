@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.users.component;
 
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -68,10 +69,16 @@ public class AssignablePopupContent extends BasePanel {
 
     private TablePanel createTable() {
         List<IColumn> columns = createMultiSelectColumns();
-        TablePanel table = new TablePanel(ID_TABLE, new ObjectDataProvider(getPageBase(), type), columns);
+        ObjectDataProvider provider = new ObjectDataProvider(getPageBase(), type);
+        provider.setQuery(getProviderQuery());
+        TablePanel table = new TablePanel(ID_TABLE, provider, columns);
         table.setOutputMarkupId(true);
 
         return table;
+    }
+
+    public ObjectQuery getProviderQuery(){
+        return null;
     }
 
     private List<IColumn> createMultiSelectColumns() {

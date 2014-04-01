@@ -253,11 +253,19 @@ public class PageOrgUnit extends PageAdminUsers {
                 ObjectQuery query = new ObjectQuery();
 
                 for(OrgType org: parentOrgUnitsModel.getObject()){
-                    oids.add(org.getOid());
+                    if(org != null){
+                        if(org.getOid() != null && !org.getOid().isEmpty()){
+                            oids.add(org.getOid());
+                        }
+                    }
                 }
 
                 if(isEditing()){
                     oids.add(orgModel.getObject().asObjectable().getOid());
+                }
+
+                if(oids.isEmpty()){
+                    return null;
                 }
 
                 ObjectFilter oidFilter = InOidFilter.createInOid(oids);
@@ -296,6 +304,11 @@ public class PageOrgUnit extends PageAdminUsers {
             public List<AssignmentType> getAssignmentTypeList(){
                 return orgModel.getObject().asObjectable().getAssignment();
             }
+
+            @Override
+            public String getExcludeOid(){
+                return orgModel.getObject().asObjectable().getOid();
+            }
         };
         form.add(assignments);
 
@@ -305,6 +318,11 @@ public class PageOrgUnit extends PageAdminUsers {
             @Override
             public List<AssignmentType> getAssignmentTypeList(){
                 return orgModel.getObject().asObjectable().getInducement();
+            }
+
+            @Override
+            public String getExcludeOid(){
+                return orgModel.getObject().asObjectable().getOid();
             }
         };
         form.add(inducements);
