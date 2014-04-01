@@ -140,8 +140,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      */
     private boolean doReconciliation;
     
-    private int iteration;
-    private String iterationToken;
+    
 
     /**
      * Synchronization situation as it was originally detected by the synchronization code (SynchronizationService).
@@ -377,22 +376,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     public void setSynchronizationPolicyDecision(SynchronizationPolicyDecision policyDecision) {
         this.synchronizationPolicyDecision = policyDecision;
     }
-    
-    public int getIteration() {
-		return iteration;
-	}
-
-	public void setIteration(int iteration) {
-		this.iteration = iteration;
-	}
-
-	public String getIterationToken() {
-		return iterationToken;
-	}
-
-	public void setIterationToken(String iterationToken) {
-		this.iterationToken = iterationToken;
-	}
 
 	public SynchronizationSituationType getSynchronizationSituationDetected() {
 		return synchronizationSituationDetected;
@@ -827,8 +810,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		clone.doReconciliation = this.doReconciliation;
 		clone.fullShadow = this.fullShadow;
 		clone.isAssigned = this.isAssigned;
-		clone.iteration = this.iteration;
-		clone.iterationToken = this.iterationToken;
 		clone.outboundConstruction = this.outboundConstruction;
 		clone.synchronizationPolicyDecision = this.synchronizationPolicyDecision;
 		clone.resource = this.resource;
@@ -1007,8 +988,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (syncAbsoluteTrigger) {
         	sb.append(", SYNC TRIGGER");
         }
-        if (iteration != 0) {
-        	sb.append(", iteration=").append(iteration);
+        if (getIteration() != 0) {
+        	sb.append(", iteration=").append(getIteration()).append(" (").append(getIterationToken()).append(")");
         }
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("old"), getObjectOld(), indent + 1);
@@ -1120,8 +1101,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         lensProjectionContextType.setSynchronizationIntent(synchronizationIntent != null ? synchronizationIntent.toSynchronizationIntentType() : null);
         lensProjectionContextType.setSynchronizationPolicyDecision(synchronizationPolicyDecision != null ? synchronizationPolicyDecision.toSynchronizationPolicyDecisionType() : null);
         lensProjectionContextType.setDoReconciliation(doReconciliation);
-        lensProjectionContextType.setIteration(iteration);
-        lensProjectionContextType.setIterationToken(iterationToken);
         lensProjectionContextType.setSynchronizationSituationDetected(synchronizationSituationDetected);
         lensProjectionContextType.setSynchronizationSituationResolved(synchronizationSituationResolved);
         lensProjectionContextType.setAccountPasswordPolicy(accountPasswordPolicy);
@@ -1153,8 +1132,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         projectionContext.synchronizationIntent = SynchronizationIntent.fromSynchronizationIntentType(projectionContextType.getSynchronizationIntent());
         projectionContext.synchronizationPolicyDecision = SynchronizationPolicyDecision.fromSynchronizationPolicyDecisionType(projectionContextType.getSynchronizationPolicyDecision());
         projectionContext.doReconciliation = projectionContextType.isDoReconciliation() != null ? projectionContextType.isDoReconciliation() : false;
-        projectionContext.iteration = projectionContextType.getIteration() != null ? projectionContextType.getIteration() : 0;
-        projectionContext.iterationToken = projectionContextType.getIterationToken();
         projectionContext.synchronizationSituationDetected = projectionContextType.getSynchronizationSituationDetected();
         projectionContext.synchronizationSituationResolved = projectionContextType.getSynchronizationSituationResolved();
         projectionContext.accountPasswordPolicy = projectionContextType.getAccountPasswordPolicy();

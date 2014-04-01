@@ -62,6 +62,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	private List<LensObjectDeltaOperation<O>> executedDeltas = new ArrayList<LensObjectDeltaOperation<O>>();
 	private Class<O> objectTypeClass;
 	private String oid = null;
+	private int iteration;
+    private String iterationToken;
 	private transient boolean isFresh = false;
 	
 	private LensContext<? extends ObjectType> lensContext;
@@ -74,6 +76,22 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		Validate.notNull(lensContext, "Lens context is null");
 		this.lensContext = lensContext;
 		this.objectTypeClass = objectTypeClass;
+	}
+	
+	public int getIteration() {
+		return iteration;
+	}
+
+	public void setIteration(int iteration) {
+		this.iteration = iteration;
+	}
+
+	public String getIterationToken() {
+		return iterationToken;
+	}
+
+	public void setIterationToken(String iterationToken) {
+		this.iterationToken = iterationToken;
 	}
 
 	public LensContext<? extends ObjectType> getLensContext() {
@@ -470,6 +488,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		clone.primaryDelta = cloneDelta(this.primaryDelta);
 		clone.secondaryDelta = cloneDelta(this.secondaryDelta);
 		clone.isFresh = this.isFresh;
+		clone.iteration = this.iteration;
+		clone.iterationToken = this.iterationToken;
 	}
 	
 	private ObjectDelta<O> cloneDelta(ObjectDelta<O> thisDelta) {
@@ -496,6 +516,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         }
         lensElementContextType.setObjectTypeClass(objectTypeClass != null ? objectTypeClass.getName() : null);
         lensElementContextType.setOid(oid);
+        lensElementContextType.setIteration(iteration);
+        lensElementContextType.setIterationToken(iterationToken);
     }
 
     public void retrieveFromLensElementContextType(LensElementContextType lensElementContextType, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
@@ -527,6 +549,9 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         }
 
         this.oid = lensElementContextType.getOid();
+        
+        this.iteration = lensElementContextType.getIteration() != null ? lensElementContextType.getIteration() : 0;
+        this.iterationToken = lensElementContextType.getIterationToken();
 
         // note: objectTypeClass is already converted (used in the constructor)
     }
