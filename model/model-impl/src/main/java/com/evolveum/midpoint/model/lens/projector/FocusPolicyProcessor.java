@@ -293,6 +293,9 @@ public class FocusPolicyProcessor {
 		int iteration = 0;
 		String iterationToken = null;
 		boolean wasResetIterationCounter = false;
+		
+		// This is fixed now. TODO: make it configurable
+		boolean resetOnRename = true;
 
 		ObjectDelta<F> userSecondaryDelta = focusContext.getProjectionWaveSecondaryDelta();
 		ObjectDelta<F> userPrimaryDelta = focusContext.getProjectionWavePrimaryDelta();
@@ -334,6 +337,15 @@ public class FocusPolicyProcessor {
 				nextRecomputeTime = collectTripleFromTemplate(context, userTemplate, userOdo, outputTripleMap,
 						iteration, iterationToken,
 						now, userTemplate.toString(), task, result);
+				
+				DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>> nameTriple = outputTripleMap.get(new ItemPath(FocusType.F_NAME));
+				if (resetOnRename && iteration != 0 && !wasResetIterationCounter && nameTriple != null && (nameTriple.hasPlusSet() || nameTriple.hasMinusSet())) {
+		        	wasResetIterationCounter = true;
+		        	iteration = 0;
+		    		iterationToken = null;
+		    		LOGGER.trace("Resetting iteration counter and token because rename was detected");
+		    		continue;
+		        }
 				
 				itemDeltas = new ArrayList<>();
 				for (Entry<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> entry: outputTripleMap.entrySet()) {
@@ -419,7 +431,7 @@ public class FocusPolicyProcessor {
 		        	wasResetIterationCounter = true;
 		        	iteration = 0;
 		    		iterationToken = null;
-		    		LOGGER.trace("Resetting iteration counter and token");
+		    		LOGGER.trace("Resetting iteration counter and token after conflict");
 		    		continue;
 		        }
 			}

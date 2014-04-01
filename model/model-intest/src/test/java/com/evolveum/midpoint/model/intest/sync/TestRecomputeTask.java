@@ -245,7 +245,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         deleteObject(TaskType.class, TASK_USER_RECOMPUTE_OID, task, result);
 	}
 	
-	@Test
+	@Test(enabled=false) // work in progress
     public void test110RecomputeSome() throws Exception {
 		final String TEST_NAME = "test110RecomputeSome";
         TestUtil.displayTestTile(this, TEST_NAME);
