@@ -328,13 +328,13 @@ public class JaxbDomHack {
         	}
 		} else if (value instanceof PrismReferenceValue) {
 			PrismReferenceValue rval = (PrismReferenceValue)value;
-			xmlValue =  domParser.serializeValueToDom(rval, elementName, document);
+			xmlValue = prismContext.serializeValueToDom(rval, elementName, document);
 		} else if (value instanceof PrismContainerValue<?>) {
 			PrismContainerValue<?> pval = (PrismContainerValue<?>)value;
 			if (pval.getParent().getCompileTimeClass() == null) {
 				// This has to be runtime schema without a compile-time representation.
 				// We need to convert it to DOM
-				xmlValue =  domParser.serializeValueToDom(pval, elementName, document);
+				xmlValue = prismContext.serializeValueToDom(pval, elementName, document);
 			} else {
 				xmlValue = pval.asContainerable();
 			}

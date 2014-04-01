@@ -36,6 +36,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_2.RawType;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
@@ -393,7 +394,7 @@ public class PrismContext {
 	public <C extends Containerable> String serializeContainerValueToString(PrismContainerValue<C> cval, QName elementName, String language) throws SchemaException {
 		Parser parser = getParserNotNull(language);
 		
-		RootXNode xroot = xnodeProcessor.serializeContainerValueRoot(cval);
+		RootXNode xroot = xnodeProcessor.serializeItemValueAsRoot(cval, elementName);
 		return parser.serializeToString(xroot);
 	}
 
@@ -416,6 +417,20 @@ public class PrismContext {
 		RootXNode xroot = xnodeProcessor.serializeObject(object);
 		return parserDom.serializeXRootToElement(xroot);
 	}
+
+    @Deprecated
+    public Element serializeValueToDom(PrismValue pval, QName elementName) throws SchemaException {
+        RootXNode xroot = xnodeProcessor.serializeItemValueAsRoot(pval, elementName);
+        return parserDom.serializeXRootToElement(xroot);
+    }
+
+    @Deprecated
+    public Element serializeValueToDom(PrismValue pval, QName elementName, Document document) throws SchemaException {
+        RootXNode xroot = xnodeProcessor.serializeItemValueAsRoot(pval, elementName);
+        return parserDom.serializeXRootToElement(xroot, document);
+    }
+
+
     //endregion
 
     /**

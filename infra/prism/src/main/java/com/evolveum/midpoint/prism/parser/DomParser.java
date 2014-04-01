@@ -375,26 +375,6 @@ public class DomParser implements Parser {
 		return DOMUtil.serializeDOMToString(element);
 	}
 
-	public Element serializeValueToDom(PrismReferenceValue rval, QName elementName, Document document) {
-        throw new UnsupportedOperationException();      // TODO implement
-	}
-
-	public Element serializeValueToDom(PrismContainerValue<?> pval, QName elementName, Document document) {
-        throw new UnsupportedOperationException();      // TODO implement
-	}
-
-    public Element serializeValueToDom(PrismPropertyValue<?> pval, QName elementName, Document document) {
-        throw new UnsupportedOperationException();      // TODO implement
-    }
-
-    public Element serializeValueToDom(PrismPropertyValue<?> pval, QName elementName) {
-        throw new UnsupportedOperationException();      // TODO implement
-    }
-
-    public Element serializeValueToDom(PrismValue pval, QName variableName) {
-        throw new UnsupportedOperationException();      // TODO implement
-    }
-
     public Element serializeXMapToElement(MapXNode xmap, QName elementName) throws SchemaException {
 		DomSerializer serializer = new DomSerializer(this, schemaRegistry);
 		return serializer.serializeToElement(xmap, elementName);
@@ -410,7 +390,12 @@ public class DomParser implements Parser {
 		return serializer.serialize(xroot);
 	}
 
-	public Element serializeToElement(XNode xnode, QName elementName) throws SchemaException {
+    public Element serializeXRootToElement(RootXNode xroot, Document document) throws SchemaException {
+        DomSerializer serializer = new DomSerializer(this, schemaRegistry);
+        return serializer.serialize(xroot, document);
+    }
+
+    public Element serializeToElement(XNode xnode, QName elementName) throws SchemaException {
 		if (xnode instanceof MapXNode) {
 			return serializeXMapToElement((MapXNode) xnode, elementName);
 		} else if (xnode instanceof PrimitiveXNode<?>) {

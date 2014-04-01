@@ -146,7 +146,7 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
 	        	DomParser domProcessor = prismProperty.getPrismContext().getParserDom();
 	        	final List<Element> elementList = new ArrayList<Element>();
 	        	for (PrismPropertyValue<?> value: prismProperty.getValues()) {
-	        		Element valueElement = domProcessor.serializeValueToDom(value, prismProperty.getElementName());
+	        		Element valueElement = prismContext.serializeValueToDom(value, prismProperty.getElementName());
 	        		elementList.add(valueElement);
 	        	}
 	        	NodeList nodeList = new NodeList() {
@@ -188,7 +188,7 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
 						}
 					});
 	        	}
-	        	variableValue = domProcessor.serializeValueToDom(pval, variableName);
+	        	variableValue = prismContext.serializeValueToDom(pval, variableName);
 	        }
 	        
 	        if (!((variableValue instanceof Node)||variableValue instanceof NodeList) 

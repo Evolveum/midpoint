@@ -76,7 +76,7 @@ public class DomSerializer {
 		super();
 		this.schemaRegistry = schemaRegistry;
 	}
-	
+
 	public boolean isSerializeCompositeObjects() {
 		return serializeCompositeObjects;
 	}
@@ -97,8 +97,22 @@ public class DomSerializer {
 		topElement = null;
 	}
 
+    private void initializeWithExistingDocument(Document document) {
+        doc = document;
+        topElement = document.getDocumentElement();         // TODO is this ok?
+    }
+
 	public Element serialize(RootXNode rootxnode) throws SchemaException {
 		initialize();
+        return serializeInternal(rootxnode);
+    }
+
+    public Element serialize(RootXNode rootxnode, Document document) throws SchemaException {
+        initializeWithExistingDocument(document);
+        return serializeInternal(rootxnode);
+    }
+
+    private Element serializeInternal(RootXNode rootxnode) throws SchemaException {
 		QName rootElementName = rootxnode.getRootElementName();
 		Element topElement = createElement(rootElementName);
 		QName typeQName = rootxnode.getTypeQName();
@@ -207,7 +221,7 @@ public class DomSerializer {
 	private void serializePrimitiveElement(PrimitiveXNode<?> xprim, Element parentElement, QName elementName) throws SchemaException {
 		QName typeQName = xprim.getTypeQName();
 		if (typeQName == null) {
-			if (PrismContext.isAllowSchemalessSerialization()) {
+			if (com.evolveum.midpoint.prism.PrismContext.isAllowSchemalessSerialization()) {
 				// We cannot correctly serialize without a type. But this is needed
 				// sometimes. So just default to string
 				String stringValue = xprim.getStringValue();

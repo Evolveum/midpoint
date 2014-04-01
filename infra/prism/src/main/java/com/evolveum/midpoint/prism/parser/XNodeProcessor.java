@@ -908,15 +908,30 @@ public class XNodeProcessor {
 		return serializer.serializeObject(object);
 	}
 	
-	public <C extends Containerable> RootXNode serializeContainerValueRoot(PrismContainerValue<C> cval) throws SchemaException {
-		XNodeSerializer serializer = createSerializer();
-		return serializer.serializeContainerValueRoot(cval);
-	}
-	
-	public <V extends PrismValue> XNode serializeItem(Item<V> item) throws SchemaException {
+//	public <C extends Containerable> RootXNode serializeContainerValueRoot(PrismContainerValue<C> cval) throws SchemaException {
+//		XNodeSerializer serializer = createSerializer();
+//		return serializer.serializeContainerValueAsRoot(cval);
+//	}
+//
+//    public <C extends Containerable> RootXNode serializeContainerValueRoot(PrismContainerValue<C> cval, QName elementName) throws SchemaException {
+//        XNodeSerializer serializer = createSerializer();
+//        return serializer.serializeContainerValueAsRoot(cval, elementName);
+//    }
+
+    public <V extends PrismValue> XNode serializeItem(Item<V> item) throws SchemaException {
 		XNodeSerializer serializer = createSerializer();
 		return serializer.serializeItem(item);
 	}
+
+//    public <T> RootXNode serializePropertyValueAsRoot(PrismPropertyValue<T> propval, QName elementName) throws SchemaException {
+//        XNodeSerializer serializer = createSerializer();
+//        return serializer.serializePropertyValueAsRoot(propval, elementName);
+//    }
+
+    public RootXNode serializeItemValueAsRoot(PrismValue pval, QName elementName) throws SchemaException {
+        XNodeSerializer serializer = createSerializer();
+        return serializer.serializeItemValueAsRoot(pval, elementName);
+    }
 
     public <V extends PrismValue> RootXNode serializeItemAsRoot(Item<V> item) throws SchemaException {
         XNodeSerializer serializer = createSerializer();
