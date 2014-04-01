@@ -8,6 +8,8 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
  */
 public interface ROExtValue extends RAnyValue {
 
+    String OWNER = "owner";
+
     RObject getOwner();
 
     void setOwner(RObject object);

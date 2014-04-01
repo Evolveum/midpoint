@@ -599,17 +599,17 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
             ex.setOwnerType(ownerType);
 
             if (value instanceof ROExtClob) {
-                repo.getClobs().add((ROExtClob) value);
+                repo.getClobs().add(value);
             } else if (value instanceof ROExtDate) {
-                repo.getDates().add((ROExtDate) value);
+                repo.getDates().add(value);
             } else if (value instanceof ROExtLong) {
-                repo.getLongs().add((ROExtLong) value);
+                repo.getLongs().add(value);
             } else if (value instanceof ROExtReference) {
-                repo.getReferences().add((ROExtReference) value);
+                repo.getReferences().add(value);
             } else if (value instanceof ROExtString) {
-                repo.getStrings().add((ROExtString) value);
+                repo.getStrings().add(value);
             } else if (value instanceof ROExtPolyString) {
-                repo.getPolys().add((ROExtPolyString) value);
+                repo.getPolys().add(value);
             }
         }
 

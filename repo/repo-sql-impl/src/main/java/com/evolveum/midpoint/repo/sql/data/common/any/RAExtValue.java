@@ -7,6 +7,8 @@ import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
  */
 public interface RAExtValue extends RAnyValue {
 
+    String ANY_CONTAINER = "anyContainer";
+
     RAssignmentExtension getAnyContainer();
 
     void setAnyContainer(RAssignmentExtension extension);

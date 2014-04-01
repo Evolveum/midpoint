@@ -26,12 +26,11 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.*;
-import com.evolveum.midpoint.repo.sql.data.common.any.*;
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
@@ -48,23 +47,22 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.*;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
-import org.hibernate.dialect.Dialect;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.jdbc.Work;
 import org.springframework.stereotype.Repository;
 
-import javax.xml.namespace.QName;
 import java.lang.reflect.Method;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.*;
-import java.util.Date;
 
 /**
  * @author lazyman
@@ -162,14 +160,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
 
             // this just loads object to hibernate session, probably will be removed later. Merge after this get
-            // will be faster. Read and use object only from fullObject column anyway.
+            // will be faster. Read and use object only from fullObject column.
             object.toJAXB(getPrismContext(), options).asPrismObject();
 
             fullObject = object.getFullObject();
         }
 
         LOGGER.trace("Transforming data to JAXB type.");
-        PrismObject<T> prismObject = updateLoadedObject(fullObject, session, type);
+        PrismObject<T> prismObject = updateLoadedObject(fullObject, type);
         validateObjectType(prismObject, type);
 
         return prismObject;
@@ -305,7 +303,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
 
             String focus = focuses.get(0);
-            owner = updateLoadedObject(focus, session, (Class<F>) FocusType.class);
+            owner = updateLoadedObject(focus, (Class<F>) FocusType.class);
 
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
@@ -367,7 +365,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
 
             String user = users.get(0);
-            userType = updateLoadedObject(user, session, UserType.class);
+            userType = updateLoadedObject(user, UserType.class);
 
             session.getTransaction().commit();
         } catch (SchemaException | RuntimeException ex) {
@@ -396,15 +394,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (InternalsConfig.encryptionChecks && !RepoAddOptions.isAllowUnencryptedValues(options)) {
             CryptoUtil.checkEncrypted(object);
         }
-        
+
         if (InternalsConfig.consistencyChecks) {
-        	object.checkConsistence();
+            object.checkConsistence();
         }
-        
+
         if (LOGGER.isTraceEnabled()) {
-        	// Explicitly log name
-        	PolyStringType namePolyType = object.asObjectable().getName();
-        	LOGGER.trace("NAME: {} - {}", namePolyType.getOrig(), namePolyType.getNorm());
+            // Explicitly log name
+            PolyStringType namePolyType = object.asObjectable().getName();
+            LOGGER.trace("NAME: {} - {}", namePolyType.getOrig(), namePolyType.getNorm());
         }
 
         if (options == null) {
@@ -543,15 +541,17 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private <T extends ObjectType> void updateFullObject(Session session, RObject object, PrismObject<T> savedObject)
             throws DtoTranslationException, SchemaException {
-        LOGGER.debug("Updating full object xml column start. Flushing session.");
-        session.flush();
-        LOGGER.debug("Session flushed.");
-
+        LOGGER.debug("Updating full object xml column start.");
         savedObject.setVersion(Integer.toString(object.getVersion()));
 
         PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
         String fullObject = domProcessor.serializeObjectToString(savedObject);
-        LOGGER.trace("Storing full object\n{}", fullObject);
+
+        if (LOGGER.isTraceEnabled()) LOGGER.trace("Storing full object\n{}", fullObject);
+
+        LOGGER.debug("Flushing session.");
+        session.flush();
+        LOGGER.debug("Session flushed.");
 
         Query query = session.createSQLQuery("update m_object set fullObject = :fullObject where oid=:oid");
         query.setString("fullObject", fullObject);
@@ -559,7 +559,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         int result = query.executeUpdate();
         if (result != 1) {
-            throw new SystemException("Update of fullObject xml column failed.");
+            throw new SystemException("Update of fullObject xml column failed for object " + object.toString() + ".");
         }
         LOGGER.debug("Updating full object xml column finish.");
     }
@@ -574,8 +574,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             LOGGER.trace("Checking oid uniqueness.");
             //todo improve this table name bullshit
             Class hqlType = ClassMapper.getHQLTypeClass(object.getCompileTimeClass());
-            SQLQuery query = session.createSQLQuery("select count(*) from "
-                    + RUtil.getTableName(hqlType) + " where oid=:oid");
+            SQLQuery query = session.createSQLQuery("select count(*) from " + RUtil.getTableName(hqlType)
+                    + " where oid=:oid");
             query.setString("oid", object.getOid());
 
             Number count = (Number) query.uniqueResult();
@@ -976,7 +976,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
 
             for (Object object : objects) {
-                PrismObject<T> prismObject = updateLoadedObject(object, session, type);
+                PrismObject<T> prismObject = updateLoadedObject(object, type);
                 list.add(prismObject);
             }
 
@@ -992,16 +992,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     /**
      * This method provides object parsing from String and validation.
-     * Also provides definition loading for shadow attributes which is needed for modify operation.
-     *
-     * @param object
-     * @param session
-     * @param type
-     * @param <T>
-     * @return
-     * @throws SchemaException
      */
-    private <T extends ObjectType> PrismObject<T> updateLoadedObject(Object object, Session session, Class<T> type)
+    private <T extends ObjectType> PrismObject<T> updateLoadedObject(Object object, Class<T> type)
             throws SchemaException {
 
         String fullObject;
@@ -1018,72 +1010,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (ShadowType.class.equals(prismObject.getCompileTimeClass())) {
             //we store it because provisioning now sends it to repo, but it should be transient
             prismObject.removeContainer(ShadowType.F_ASSOCIATION);
-
-            LOGGER.debug("Loading definitions for shadow attributes.");
-
-            //todo improve query -> can be already fetched during get/search through projection
-            Query query = session.getNamedQuery("getExtCount");
-            query.setParameter("oid", prismObject.getOid());
-
-            Object[] counts = (Object[]) query.uniqueResult();
-            Class[] classes = new Class[]{ROExtString.class, ROExtLong.class, ROExtDate.class, ROExtReference.class,
-                    ROExtClob.class, ROExtPolyString.class};
-
-            if (counts != null) {
-                for (int i = 0; i < classes.length; i++) {
-                    if (counts[i] == null || ((short) counts[i]) == 0) {
-                        continue;
-                    }
-
-                    applyShadowAttributeDefinitions(classes[i], prismObject, session);
-                }
-            }
-
-            LOGGER.debug("Definitions for attributes loaded. Counts: {}", Arrays.toString(counts));
         }
 
         validateObjectType(prismObject, type);
 
         return prismObject;
-    }
-
-    private void applyShadowAttributeDefinitions(Class<? extends RAnyValue> anyValueType,
-                                                 PrismObject object, Session session) throws SchemaException {
-
-        PrismContainer attributes = object.findContainer(ShadowType.F_ATTRIBUTES);
-
-        //todo fix indexes
-        Query query = session.createQuery("select c.name, c.type, c.valueType from "
-                + anyValueType.getSimpleName() + " as c where c.ownerOid = :oid and c.ownerType = :ownerType");
-        query.setParameter("oid", object.getOid());
-        query.setParameter("ownerType", RObjectType.SHADOW);
-
-        List<Object[]> values = query.list();
-        if (values == null || values.isEmpty()) {
-            return;
-        }
-
-        for (Object[] value : values) {
-            ItemDefinition def;
-            QName name = RUtil.stringToQName((String) value[0]);
-            QName type = RUtil.stringToQName((String) value[1]);
-
-            switch ((RValueType) value[2]) {
-                case PROPERTY:
-                    def = new PrismPropertyDefinition(name, type, object.getPrismContext());
-                    break;
-                case REFERENCE:
-                    def = new PrismReferenceDefinition(name, type, object.getPrismContext());
-                    break;
-                default:
-                    throw new UnsupportedOperationException("Unsupported value type " + value[2]);
-            }
-
-            Item item = attributes.findItem(def.getName());
-            if (item.getDefinition() == null) {
-                item.applyDefinition(def, true);
-            }
-        }
     }
 
     @Override
@@ -1111,26 +1042,26 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (InternalsConfig.encryptionChecks) {
             CryptoUtil.checkEncrypted(modifications);
         }
-        
+
         if (InternalsConfig.consistencyChecks) {
-        	for (ItemDelta modification: modifications) {
-        		modification.checkConsistence();
-        	}
+            for (ItemDelta modification : modifications) {
+                modification.checkConsistence();
+            }
         }
-        
+
         if (LOGGER.isTraceEnabled()) {
-        	for (ItemDelta modification: modifications) {
-        		if (modification instanceof PropertyDelta<?>) {
-        			PropertyDelta<?> propDelta = (PropertyDelta<?>)modification;
-        			if (propDelta.getPath().equals(new ItemPath(ObjectType.F_NAME))) {
-        				Collection<PrismPropertyValue<PolyString>> values = propDelta.getValues(PolyString.class);
-        				for (PrismPropertyValue<PolyString> pval: values) {
-        					PolyString value = pval.getValue();
-        					LOGGER.trace("NAME delta: {} - {}", value.getOrig(), value.getNorm());
-        				}
-        			}
-        		}
-        	}        	
+            for (ItemDelta modification : modifications) {
+                if (modification instanceof PropertyDelta<?>) {
+                    PropertyDelta<?> propDelta = (PropertyDelta<?>) modification;
+                    if (propDelta.getPath().equals(new ItemPath(ObjectType.F_NAME))) {
+                        Collection<PrismPropertyValue<PolyString>> values = propDelta.getValues(PolyString.class);
+                        for (PrismPropertyValue<PolyString> pval : values) {
+                            PolyString value = pval.getValue();
+                            LOGGER.trace("NAME delta: {} - {}", value.getOrig(), value.getNorm());
+                        }
+                    }
+                }
+            }
         }
 
         final String operation = "modifying";
@@ -1391,7 +1322,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
             if (shadows != null) {
                 for (String shadow : shadows) {
-                    PrismObject<T> prismObject = updateLoadedObject(shadow, session, resourceObjectShadowType);
+                    PrismObject<T> prismObject = updateLoadedObject(shadow, resourceObjectShadowType);
                     list.add(prismObject);
                 }
             }
@@ -1437,8 +1368,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             method.invoke(clazz, object, rObject, getPrismContext());
 
 //            if (!add) {
-                ContainerIdGenerator gen = new ContainerIdGenerator();
-                gen.generateIdForObject(rObject);
+            ContainerIdGenerator gen = new ContainerIdGenerator();
+            gen.generateIdForObject(rObject);
 //            }
         } catch (Exception ex) {
             String message = ex.getMessage();
@@ -1704,7 +1635,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 while (iterator.hasNext()) {
                     Object object = iterator.next();
 
-                    PrismObject<T> prismObject = updateLoadedObject(object, session, type);
+                    PrismObject<T> prismObject = updateLoadedObject(object, type);
                     if (!handler.handle(prismObject, result)) {
                         break;
                     }
@@ -1806,97 +1737,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             return 0;
         }
 
-        //do simple cleanup when not using H2 or SQL Server database (with usage two columns withing in clause)
-        if (!getConfiguration().isUsingH2() && !getConfiguration().isUsingSQLServer()) {
-            LOGGER.debug("Doing simple cleanup with hibernate.");
-            Query query = session.createQuery("delete from " + entity.getSimpleName()
-                    + " as t where t.completionTimestamp < :timestamp");
-            query.setParameter("timestamp", XMLGregorianCalendarType.asXMLGregorianCalendar(minValue));
-            return query.executeUpdate();
-        }
-
-        LOGGER.debug("Doing tricky manual cleanup.");
-
-        MidPointNamingStrategy namingStrategy = new MidPointNamingStrategy();
-        final String taskTableName = namingStrategy.classToTableName(RTask.class.getSimpleName());
-        final String objectTableName = namingStrategy.classToTableName(RObject.class.getSimpleName());
-
-        final String completionTimestampColumn = "completionTimestamp";
-
-        final Dialect dialect = Dialect.getDialect(getSessionFactoryBean().getHibernateProperties());
-        if (!dialect.supportsTemporaryTables()) {
-            LOGGER.error("Dialect {} doesn't support temporary tables, couldn't cleanup tasks.",
-                    new Object[]{dialect});
-            throw new SystemException("Dialect " + dialect
-                    + " doesn't support temporary tables, couldn't cleanup tasks.");
-        }
-
-        //create temporary table
-        final String tempTable = dialect.generateTemporaryTableName(taskTableName);
-        createTemporaryTable(session, dialect, tempTable);
-        LOGGER.trace("Created temporary table '{}'.", new Object[]{tempTable});
-
-        //fill temporary table, we don't need to join task on object on container, oid and id is already in task table
-        StringBuilder sb = new StringBuilder();
-        sb.append("insert into ").append(tempTable).append(' ');
-        sb.append("select t.oid as oid from ").append(taskTableName).append(" t");
-        sb.append(" where t.").append(completionTimestampColumn).append(" < ?");
-
-        SQLQuery query = session.createSQLQuery(sb.toString());
-        query.setParameter(0, new Timestamp(minValue.getTime()));
-        int insertCount = query.executeUpdate();
-        LOGGER.trace("Inserted {} task ready for deleting.", new Object[]{insertCount});
-
-        //drop records from m_task, m_object, m_container
-        session.createSQLQuery(createDeleteQuery(taskTableName, tempTable)).executeUpdate();
-        int count = session.createSQLQuery(createDeleteQuery(objectTableName, tempTable)).executeUpdate();
-
-        //drop temporary table
-        if (dialect.dropTemporaryTableAfterUse()) {
-            LOGGER.debug("Dropping temporary table.");
-            sb = new StringBuilder();
-            sb.append(dialect.getDropTemporaryTableString());
-            sb.append(' ').append(tempTable);
-
-            session.createSQLQuery(sb.toString()).executeUpdate();
-        }
-
-        return count;
-    }
-
-    /**
-     * This method creates temporary table for cleanup task method.
-     *
-     * @param session
-     * @param dialect
-     * @param tempTable
-     */
-    private void createTemporaryTable(Session session, final Dialect dialect, final String tempTable) {
-        session.doWork(new Work() {
-
-            @Override
-            public void execute(Connection connection) throws SQLException {
-                StringBuilder sb = new StringBuilder();
-                sb.append(dialect.getCreateTemporaryTableString());
-                sb.append(' ').append(tempTable).append(" (oid ");
-                sb.append(dialect.getTypeName(Types.VARCHAR, RUtil.COLUMN_LENGTH_OID, 0, 0));
-                if (getConfiguration().isUsingSQLServer()) {
-                    sb.append(" collate database_default");
-                }
-                sb.append(" not null)");
-                sb.append(dialect.getCreateTemporaryTablePostfix());
-
-                Statement s = connection.createStatement();
-                s.execute(sb.toString());
-            }
-        });
-    }
-
-    private String createDeleteQuery(String objectTable, String tempTable) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("delete from ").append(objectTable);
-        sb.append(" where oid in (select oid from ").append(tempTable).append(")");
-
-        return sb.toString();
+        LOGGER.debug("Doing task cleanup");
+        Query query = session.createQuery("delete from RTask as t where t.completionTimestamp < :timestamp");
+        query.setParameter("timestamp", XMLGregorianCalendarType.asXMLGregorianCalendar(minValue));
+        return query.executeUpdate();
     }
 }

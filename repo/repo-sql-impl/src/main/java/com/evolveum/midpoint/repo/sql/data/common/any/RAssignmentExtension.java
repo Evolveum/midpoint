@@ -86,7 +86,7 @@ public class RAssignmentExtension implements Serializable {
         return ownerId;
     }
 
-    @OneToMany(mappedBy = ROExtClob.ANY_CONTAINER, orphanRemoval = true)
+    @OneToMany(mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAExtClob> getClobs() {
         if (clobs == null) {
@@ -95,7 +95,7 @@ public class RAssignmentExtension implements Serializable {
         return clobs;
     }
 
-    @OneToMany(mappedBy = ROExtLong.ANY_CONTAINER, orphanRemoval = true)
+    @OneToMany(mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAExtLong> getLongs() {
         if (longs == null) {
@@ -104,7 +104,7 @@ public class RAssignmentExtension implements Serializable {
         return longs;
     }
 
-    @OneToMany(mappedBy = ROExtString.ANY_CONTAINER, orphanRemoval = true)
+    @OneToMany(mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAExtString> getStrings() {
         if (strings == null) {
@@ -113,7 +113,7 @@ public class RAssignmentExtension implements Serializable {
         return strings;
     }
 
-    @OneToMany(mappedBy = ROExtDate.ANY_CONTAINER, orphanRemoval = true)
+    @OneToMany(mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAExtDate> getDates() {
         if (dates == null) {
@@ -122,7 +122,7 @@ public class RAssignmentExtension implements Serializable {
         return dates;
     }
 
-    @OneToMany(mappedBy = ROExtReference.ANY_CONTAINER, orphanRemoval = true)
+    @OneToMany(mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAExtReference> getReferences() {
         if (references == null) {
@@ -131,7 +131,7 @@ public class RAssignmentExtension implements Serializable {
         return references;
     }
 
-    @OneToMany(mappedBy = ROExtPolyString.ANY_CONTAINER, orphanRemoval = true)
+    @OneToMany(mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAExtPolyString> getPolys() {
         if (polys == null) {

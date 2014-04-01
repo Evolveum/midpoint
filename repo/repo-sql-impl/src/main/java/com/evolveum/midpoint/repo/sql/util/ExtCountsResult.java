@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.repo.sql.util;
 
+import com.evolveum.midpoint.repo.sql.data.common.any.*;
+import org.apache.commons.lang.Validate;
 import org.hibernate.transform.BasicTransformerAdapter;
 import org.hibernate.transform.ResultTransformer;
 
@@ -10,7 +12,11 @@ import java.io.Serializable;
  */
 public class ExtCountsResult implements Serializable {
 
-    public static final String EXT_COUNT_PROJECTION = "stringsCount, longsCount, datesCount, referencesCount, clobsCount, polysCount";
+    public static final String EXT_COUNT_PROJECTION = "stringsCount, longsCount, datesCount, referencesCount, " +
+            "clobsCount, polysCount";
+
+    public static final Class[] classes = new Class[]{ROExtString.class, ROExtLong.class, ROExtDate.class,
+            ROExtReference.class, ROExtClob.class, ROExtPolyString.class};
 
     public static final ResultTransformer RESULT_TRANSFORMER = new BasicTransformerAdapter() {
 
@@ -20,6 +26,8 @@ public class ExtCountsResult implements Serializable {
         }
     };
 
+    private String fullObject;
+
     private Short stringsCount;
     private Short longsCount;
     private Short datesCount;
@@ -28,12 +36,16 @@ public class ExtCountsResult implements Serializable {
     private Short polysCount;
 
     public ExtCountsResult(Object[] values) {
-        this((Short) values[0], (Short) values[1], (Short) values[2], (Short) values[3],
-                (Short) values[4], (Short) values[5]);
+        this((String) values[0], (Short) values[1], (Short) values[2], (Short) values[3],
+                (Short) values[4], (Short) values[5], (Short) values[6]);
     }
 
-    public ExtCountsResult(Short stringsCount, Short longsCount, Short datesCount, Short referencesCount,
-                           Short clobsCount, Short polysCount) {
+    public ExtCountsResult(String fullObject, Short stringsCount, Short longsCount, Short datesCount,
+                           Short referencesCount, Short clobsCount, Short polysCount) {
+
+        Validate.notNull(fullObject, "Full object xml must not be null.");
+
+        this.fullObject = fullObject;
 
         this.stringsCount = stringsCount;
         this.longsCount = longsCount;
@@ -41,6 +53,10 @@ public class ExtCountsResult implements Serializable {
         this.referencesCount = referencesCount;
         this.clobsCount = clobsCount;
         this.polysCount = polysCount;
+    }
+
+    public String getFullObject() {
+        return fullObject;
     }
 
     public Short getStringsCount() {
