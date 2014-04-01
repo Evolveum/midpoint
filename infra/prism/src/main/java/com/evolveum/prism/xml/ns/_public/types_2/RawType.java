@@ -25,6 +25,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.xnode.ListXNode;
 import org.apache.commons.lang.StringUtils;
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
@@ -298,14 +299,32 @@ public class RawType implements Serializable, Equals{
 					return true;
 				} else if (e instanceof JAXBElement){
 					JAXBElement jaxb = (JAXBElement) e;
+                    if (realValue != null) {
+                        throw new IllegalStateException("Multiple real values in a RawType! Current value = " + realValue + ", value to be added = " + jaxb.getValue());
+                    }
+                    if (xnode != null) {
+                        throw new IllegalStateException("Both realValue and XNode present in RawType. Current XNode = " + xnode + ", value to be added = " + jaxb.getValue());
+                    }
 					realValue = jaxb.getValue();
-//					XNodeProcessor.jaxb.getValue();
 					return true;
 				} else if (e instanceof Element){
 					DomParser domParser = new DomParser(null);
 					try{
-						xnode = domParser.parseElementContent((Element) e);
-//						xnode = domParser.parseElementAsMap((Element) e);
+						XNode newXnode = domParser.parseElementContent((Element) e);
+                        // this is a bit of hacking for now [pm]
+                        if (realValue != null) {
+                            throw new IllegalStateException("Both realValue and XNode present in RawType. Current real value = " + realValue + ", xnode to be added = " + newXnode);
+                        }
+                        if (xnode == null) {
+                            xnode = newXnode;
+                        } else if (xnode instanceof ListXNode) {            // is this OK???
+                            ((ListXNode) xnode).add(newXnode);
+                        } else {
+                            ListXNode newListXNode = new ListXNode();
+                            newListXNode.add(xnode);
+                            newListXNode.add(newXnode);
+                            xnode = newListXNode;
+                        }
 						return true;
 					} catch (SchemaException ex){
 						throw new IllegalArgumentException("Cannot parse element: "+e+" Reason: "+ex.getMessage(), ex);
@@ -437,7 +456,8 @@ public class RawType implements Serializable, Equals{
         public Object getRealValue(){
         	return realValue;
         }
-        
+
+    // itemDefinition may be null; in that case we do the best what we can
 	public <V extends PrismValue> V getParsedValue(ItemDefinition itemDefinition, QName itemName) throws SchemaException {
 		V value = null;
 		

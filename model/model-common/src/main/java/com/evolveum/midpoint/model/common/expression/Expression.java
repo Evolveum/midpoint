@@ -241,8 +241,8 @@ public class Expression<V extends PrismValue> {
 					newVariables.addVariableDefinition(varName, valueObject);
 				} else if (valueObject instanceof Element) {
 					newVariables.addVariableDefinition(varName, ((Element)valueObject).getTextContent());
-//				} else if (valueObject instanceof RawType) {
-//					newVariables.addVariableDefinition(varName, ((RawType) valueObject).getParsedValue(outputDefinition, varName));
+				} else if (valueObject instanceof RawType) {
+					newVariables.addVariableDefinition(varName, ((RawType) valueObject).getParsedValue(null, varName));
 				} else {
 					throw new SchemaException("Unexpected type "+valueObject.getClass()+" in variable definition "+varName+" in "+contextDescription);
 				}
