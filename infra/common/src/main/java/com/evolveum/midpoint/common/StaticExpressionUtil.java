@@ -119,8 +119,9 @@ public class StaticExpressionUtil {
 			
 			RawType rawType = (RawType)jaxbElement.getValue();
 			
-			Item<V> elementItem = xnodeProcessor.parseItem(rawType.getXnode(), outputDefinition.getName(), outputDefinition);
-			if (output == null) {
+			//Item<V> elementItem = xnodeProcessor.parseItem(rawType.getXnode(), outputDefinition.getName(), outputDefinition);
+            Item<V> elementItem = rawType.getParsedItem(outputDefinition);
+            if (output == null) {
 				output = elementItem;
 			} else {
 				output.addAll(elementItem.getClonedValues());

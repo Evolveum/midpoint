@@ -237,7 +237,7 @@
             	<associationAttribute>ri:members</associationAttribute>
             	<valueAttribute>icfs:name</valueAttribute>
             </association>
-            
+
             <association>
             	<ref>ri:priv</ref>
             	<kind>entitlement</kind>
@@ -364,7 +364,7 @@
             	<associationAttribute>ri:members</associationAttribute>
             	<valueAttribute>icfs:name</valueAttribute>
             </association>
-            
+
             <association>
             	<ref>ri:priv</ref>
             	<kind>entitlement</kind>

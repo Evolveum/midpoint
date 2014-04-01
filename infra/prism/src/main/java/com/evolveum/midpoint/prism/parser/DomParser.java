@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.parser;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -247,32 +248,41 @@ public class DomParser implements Parser {
 		return xlist;
 	}
 
+    // changed from anonymous to be able to make it static (serializable independently of DomParser)
+    private static class PrimitiveValueParser<T> implements ValueParser<T> {
+
+        private Element element;
+
+        private PrimitiveValueParser(Element element) {
+            this.element = element;
+        }
+
+        @Override
+        public T parse(QName typeName) throws SchemaException {
+            return parsePrimitiveElementValue(element, typeName);
+        }
+        @Override
+        public boolean isEmpty() {
+            return DOMUtil.isEmpty(element);
+        }
+        @Override
+        public String getStringValue() {
+            return element.getTextContent();
+        }
+        @Override
+        public String toString() {
+            return "ValueParser(DOMe, "+PrettyPrinter.prettyPrint(DOMUtil.getQName(element))+": "+element.getTextContent()+")";
+        }
+    };
+
 	private <T> PrimitiveXNode<T> parsePrimitiveElement(final Element element) throws SchemaException {
 		PrimitiveXNode<T> xnode = new PrimitiveXNode<T>();
 		extractCommonMetadata(element, xnode);
-		ValueParser<T> valueParser = new ValueParser<T>() {
-			@Override
-			public T parse(QName typeName) throws SchemaException {
-				return parsePrimitiveElementValue(element, typeName);
-			}
-			@Override
-			public boolean isEmpty() {
-				return DOMUtil.isEmpty(element);
-			}
-			@Override
-			public String getStringValue() {
-				return element.getTextContent();
-			}
-			@Override
-			public String toString() {
-				return "ValueParser(DOMe, "+PrettyPrinter.prettyPrint(DOMUtil.getQName(element))+": "+element.getTextContent()+")";
-			}
-		};
-		xnode.setValueParser(valueParser);
+		xnode.setValueParser(new PrimitiveValueParser<T>(element));
 		return xnode;
 	}
 		
-	private <T> T parsePrimitiveElementValue(Element element, QName typeName) throws SchemaException {
+	private static <T> T parsePrimitiveElementValue(Element element, QName typeName) throws SchemaException {
 		if (ItemPath.XSD_TYPE.equals(typeName)) {
 			return (T) parsePath(element);
 		} else if (XmlTypeConverter.canConvert(typeName)) {
@@ -319,7 +329,7 @@ public class DomParser implements Parser {
 		}
 	}
 
-	private ItemPath parsePath(Element element) {
+	private static ItemPath parsePath(Element element) {
 		XPathHolder holder = new XPathHolder(element);
 		return holder.toItemPath();
 	}

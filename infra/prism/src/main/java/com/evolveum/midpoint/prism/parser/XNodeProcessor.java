@@ -933,6 +933,11 @@ public class XNodeProcessor {
         return serializer.serializeItemValueAsRoot(pval, elementName);
     }
 
+    public XNode serializeItemValue(PrismValue pval) throws SchemaException {
+        XNodeSerializer serializer = createSerializer();
+        return serializer.serializeItemValue(pval, null);
+    }
+
     public <V extends PrismValue> RootXNode serializeItemAsRoot(Item<V> item) throws SchemaException {
         XNodeSerializer serializer = createSerializer();
         return serializer.serializeItemAsRoot(item);

@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.prism.xnode;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -332,7 +333,7 @@ public class MapXNode extends XNode implements Map<QName,XNode> {
 		return sb.toString();
 	}
 	
-	private class Entry implements Map.Entry<QName, XNode> {
+	private class Entry implements Map.Entry<QName, XNode>, Serializable {
 
 		private QName key;
 		private XNode value;

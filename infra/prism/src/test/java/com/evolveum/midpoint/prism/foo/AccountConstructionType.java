@@ -24,7 +24,11 @@
 
 package com.evolveum.midpoint.prism.foo;
 
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
+
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -52,6 +56,7 @@ import javax.xml.namespace.QName;
  *       &lt;sequence>
  *         &lt;element name="howto" type="{http://www.w3.org/2001/XMLSchema}string"/>
  *         &lt;element name="when" type="{http://www.w3.org/2001/XMLSchema}dateTime" minOccurs="0"/>
+ *         &lt;element name="value" type="{http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd}value" minOccurs="0" maxOccurs="unbounded"/>
  *       &lt;/sequence>
  *     &lt;/restriction>
  *   &lt;/complexContent>
@@ -63,7 +68,8 @@ import javax.xml.namespace.QName;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "AccountConstructionType", propOrder = {
     "howto",
-    "when"
+    "when",
+    "value"
 })
 public class AccountConstructionType
     implements Serializable
@@ -73,6 +79,15 @@ public class AccountConstructionType
     protected String howto;
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar when;
+    @XmlElement(name = "value")
+    private List<RawType> value;
+
+    public List<RawType> getValue() {
+        if (value == null) {
+            value = new ArrayList<RawType>();
+        }
+        return value;
+    }
 
     /**
      * Gets the value of the howto property.
@@ -103,7 +118,7 @@ public class AccountConstructionType
      * 
      * @return
      *     possible object is
-     *     {@link XMLGregorianCalendar }
+     *     {@link javax.xml.datatype.XMLGregorianCalendar }
      *     
      */
     public XMLGregorianCalendar getWhen() {
@@ -115,7 +130,7 @@ public class AccountConstructionType
      * 
      * @param value
      *     allowed object is
-     *     {@link XMLGregorianCalendar }
+     *     {@link javax.xml.datatype.XMLGregorianCalendar }
      *     
      */
     public void setWhen(XMLGregorianCalendar value) {
@@ -128,7 +143,8 @@ public class AccountConstructionType
 		int result = 1;
 		result = prime * result + ((howto == null) ? 0 : howto.hashCode());
 		result = prime * result + ((when == null) ? 0 : when.hashCode());
-		return result;
+        result = prime * result + ((value == null) ? 0 : value.hashCode());
+        return result;
 	}
 
 	@Override
@@ -150,6 +166,11 @@ public class AccountConstructionType
 				return false;
 		} else if (!when.equals(other.when))
 			return false;
+        if (value == null) {
+            if (other.value != null)
+                return false;
+        } else if (!value.equals(other.value))
+            return false;
 		return true;
 	}
 

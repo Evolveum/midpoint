@@ -378,7 +378,7 @@ public abstract class TestPrismParsing {
 		
 	}
 	
-	protected void assertUserAdhoc(PrismObject<UserType> user) {
+	protected void assertUserAdhoc(PrismObject<UserType> user) throws SchemaException {
 		user.checkConsistence();
 		assertUserJackContent(user);
 		assertUserExtensionAdhoc(user);

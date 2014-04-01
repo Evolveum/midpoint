@@ -52,6 +52,8 @@ import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.foo.AccountConstructionType;
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
 import org.testng.AssertJUnit;
 import org.xml.sax.SAXException;
 
@@ -326,7 +328,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 				NameItemPathSegment.WILDCARD), false, 5);
 	}
 	
-	public static void assertUserJackContent(PrismObject<UserType> user) {
+	public static void assertUserJackContent(PrismObject<UserType> user) throws SchemaException {
 		
 		assertEquals("Wrong oid", USER_JACK_OID, user.getOid());
 		assertEquals("Wrong version", "42", user.getVersion());
@@ -377,6 +379,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		
 		QName assName = new QName(NS_FOO,"assignment");
 		QName descriptionName = new QName(NS_FOO,"description");
+        QName accountConstructionName = new QName(NS_FOO,"accountConstruction");
 		PrismContainer<AssignmentType> assContainer = user.findContainer(assName);
 		assertEquals("Wrong assignement values", 2, assContainer.getValues().size());
 		PrismProperty<String> a2DescProperty = assContainer.getValue(USER_ASSIGNMENT_2_ID).findProperty(descriptionName);
@@ -389,8 +392,30 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		PrismProperty a1Property = user.findProperty(a1Path);
 		assertNotNull("Property "+a1Path+" not found", a1Property);
 		PrismAsserts.assertPropertyValue(a1Property, "Assignment 1");
-		
-		PrismReference accountRef = user.findReference(USER_ACCOUNTREF_QNAME);
+
+        ItemPath a2Path = new ItemPath(
+                new NameItemPathSegment(assName),
+                new IdItemPathSegment(USER_ASSIGNMENT_2_ID),
+                new NameItemPathSegment(accountConstructionName));
+        PrismProperty a2Property = user.findProperty(a2Path);
+        assertNotNull("Property "+a2Path+" not found", a2Property);
+        AccountConstructionType accountConstructionType = (AccountConstructionType) a2Property.getRealValue();
+        assertEquals("Wrong number of values in accountConstruction", 2, accountConstructionType.getValue().size());
+        RawType value1 = accountConstructionType.getValue().get(0);
+        assertNotNull("Value #1 has no XNode present", value1.getXnode());
+        RawType value2 = accountConstructionType.getValue().get(1);
+        assertNotNull("Value #2 has no XNode present", value2.getXnode());
+        PrismPropertyDefinition value1def = new PrismPropertyDefinition(
+                new QName(NS_FOO, "dummy"),           // element name
+                DOMUtil.XSD_STRING,                 // type name
+                user.getPrismContext());
+        PrismPropertyValue<String> prismValue1 = value1.getParsedValue(value1def, value1def.getName());
+        assertEquals("Wrong value #1", "ABC", prismValue1.getValue());
+        PrismValue prismValue2 = value2.getParsedValue(user.getDefinition(), user.getDefinition().getName());
+        PrismContainerValue<UserType> prismUserValue2 = (PrismContainerValue<UserType>) prismValue2;
+        assertEquals("Wrong value #2", "Nobody", prismUserValue2.findProperty(new QName(NS_FOO, "fullName")).getRealValue());
+
+        PrismReference accountRef = user.findReference(USER_ACCOUNTREF_QNAME);
 		assertNotNull("Reference "+USER_ACCOUNTREF_QNAME+" not found", accountRef);
 		assertEquals("Wrong number of accountRef values", 3, accountRef.getValues().size());
 		PrismAsserts.assertReferenceValue(accountRef, "c0c010c0-d34d-b33f-f00d-aaaaaaaa1111");

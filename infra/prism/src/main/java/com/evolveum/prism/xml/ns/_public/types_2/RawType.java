@@ -26,7 +26,10 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.xnode.ListXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
 import org.jvnet.jaxb2_commons.locator.ObjectLocator;
@@ -156,8 +159,29 @@ public class RawType implements Serializable, Equals{
         return this.content;
         
     }
-        
-        class ContentList extends ArrayList<Object>{
+
+    public XNode serializeToXNode() throws SchemaException {
+        if (xnode != null){
+            return xnode;
+        } else if (realValue != null) {
+            if (XmlTypeConverter.canConvert(realValue.getClass())){
+                QName type = XsdTypeMapper.toXsdType(realValue.getClass());
+                PrimitiveXNode xprim = new PrimitiveXNode();
+                xprim.setValue(realValue);
+                xprim.setExplicitTypeDeclaration(true);
+                xprim.setTypeQName(type);
+                return xprim;
+            } else {
+                throw new SystemException("Couldn't marshall RawType realValue to XNode; value class: " + realValue.getClass());
+            }
+        } else if (parsed != null) {
+            return parsed.getPrismContext().getXnodeProcessor().serializeItemValue(parsed);
+        } else {
+            return null;
+        }
+    }
+
+    class ContentList extends ArrayList<Object>{
 
 			@Override
 			public int size() {
@@ -165,7 +189,6 @@ public class RawType implements Serializable, Equals{
 					return 1;
 				}
 				return super.size();
-//				throw new UnsupportedOperationException("nto supported yet");
 			}
 
 			@Override
@@ -174,14 +197,7 @@ public class RawType implements Serializable, Equals{
 					return false;
 				}
 				return super.isEmpty();
-//				return itemPath == null;
-//				throw new UnsupportedOperationException("nto supported yet");
 			}
-//
-//			@Override
-//			public boolean contains(Object o) {
-//				throw new UnsupportedOperationException("nto supported yet");
-//			}
 
 			@Override
 			public Iterator<Object> iterator() {
@@ -253,18 +269,7 @@ public class RawType implements Serializable, Equals{
 					}
 					
 				};
-////				throw new UnsupportedOperationException("nto supported yet");
 			}
-
-//			@Override
-//			public Object[] toArray() {
-//				throw new UnsupportedOperationException("nto supported yet");
-//			}
-//
-//			@Override
-//			public <T> T[] toArray(T[] a) {
-//				throw new UnsupportedOperationException("nto supported yet");
-//			}
 
 			@Override
 			public boolean add(Object e) {
@@ -281,7 +286,6 @@ public class RawType implements Serializable, Equals{
 						public Object parse(QName typeName)
 								throws SchemaException {
 							return XmlTypeConverter.toJavaValue(val, typeName);
-//							return null;
 						}
 
 						@Override
@@ -311,19 +315,22 @@ public class RawType implements Serializable, Equals{
 					DomParser domParser = new DomParser(null);
 					try{
 						XNode newXnode = domParser.parseElementContent((Element) e);
-                        // this is a bit of hacking for now [pm]
                         if (realValue != null) {
                             throw new IllegalStateException("Both realValue and XNode present in RawType. Current real value = " + realValue + ", xnode to be added = " + newXnode);
                         }
                         if (xnode == null) {
                             xnode = newXnode;
-                        } else if (xnode instanceof ListXNode) {            // is this OK???
-                            ((ListXNode) xnode).add(newXnode);
                         } else {
-                            ListXNode newListXNode = new ListXNode();
-                            newListXNode.add(xnode);
-                            newListXNode.add(newXnode);
-                            xnode = newListXNode;
+                            throw new IllegalStateException("A RawType can contain only one value.");
+//                            // remove this code when we definitely decide to have RawType single-valued
+//                            if (xnode instanceof ListXNode) {
+//                                ((ListXNode) xnode).add(newXnode);
+//                            } else {
+//                                ListXNode newListXNode = new ListXNode();
+//                                newListXNode.add(xnode);
+//                                newListXNode.add(newXnode);
+//                                xnode = newListXNode;
+//                            }
                         }
 						return true;
 					} catch (SchemaException ex){
@@ -477,17 +484,7 @@ public class RawType implements Serializable, Equals{
 				PrismProperty<V> subItem = XNodeProcessor.parsePrismPropertyRaw(xnode, itemName);
 				value = (V) subItem.getValue();
 				xnode = null;
-//				throw new SchemaException("no definition..cannot parse xnode " + xnode);
 			}
-//				
-//			} else {
-//				if (xnode instanceof PrimitiveXNode){
-//					if (((PrimitiveXNode) xnode).isParsed()){
-//						value = (V) new PrismPropertyValue(((PrimitiveXNode) xnode).getValue());
-//					}
-//					((PrimitiveXNode) xnode).getParsedValue(typeName);
-//				}
-//			}
 		} else {
 			if (itemDefinition == null) {
 				throw new SchemaException("No definition for item " + realValue
@@ -529,7 +526,38 @@ public class RawType implements Serializable, Equals{
 		parsed = value;
 		return value;
 	}
-        
+
+//    /**
+//     * Expects that there is a root Xnode-like situation: that the XNode is a map with one entry with a name
+//     * that can be used to find a definition of the item. (TODO provide more universal interface to retrieve
+//     * both atomic content and this kind of content.)
+//     */
+//    public <V extends PrismValue> Item<V> getParsedItem(PrismContext prismContext) throws SchemaException {
+//        if (parsed != null) {
+//            if (parsed.getParent() == null) {
+//                throw new IllegalStateException("RawType with a parsed value having no parent");
+//            }
+//            return (Item<V>) parsed.getParent();
+//        }
+//        XNode xnode = serializeToXNode();           // it is possible that there is no XNode, only realValue, TODO optimize by skipping this transformation
+//        if (xnode instanceof MapXNode)
+//        Item<V> item = prismContext.
+//    }
+
+    public <V extends PrismValue> Item<V> getParsedItem(ItemDefinition itemDefinition) throws SchemaException {
+        Validate.notNull(itemDefinition);
+        return getParsedItem(itemDefinition, itemDefinition.getName());
+    }
+
+    public <V extends PrismValue> Item<V> getParsedItem(ItemDefinition itemDefinition, QName itemName) throws SchemaException {
+        Validate.notNull(itemDefinition);
+        Validate.notNull(itemName);
+        Item<V> item = itemDefinition.instantiate();
+        V newValue = getParsedValue(itemDefinition, itemName);
+        item.add(newValue);
+        return item;
+    }
+
     // Shallow clone. Do we need deep clone?
     public RawType clone() {
     	RawType clone = new RawType();
@@ -546,6 +574,7 @@ public class RawType implements Serializable, Equals{
 		int result = 1;
 		result = prime * result + ((xnode == null) ? 0 : xnode.hashCode());
 		result = prime * result + ((realValue == null) ? 0 : realValue.hashCode());
+        result = prime * result + ((parsed == null) ? 0 : parsed.hashCode());
 		return result;
 	}
 

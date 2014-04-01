@@ -172,6 +172,11 @@ public class XNodeSerializer {
     // definition may be null
     public <V extends PrismValue> XNode serializeItemValue(V itemValue, ItemDefinition definition) throws SchemaException {
         XNode xnode;
+        if (definition == null) {
+            if (itemValue.getParent() != null) {
+                definition = itemValue.getParent().getDefinition();
+            }
+        }
         if (definition == null){
             return serializePropertyRawValue((PrismPropertyValue<?>) itemValue);
         }

@@ -314,7 +314,7 @@
 					<expression>
 						<variable xmlns:my="http://myself.me/schemas/whatever">
 							<name>my:defaultLocation</name>
-							<value xsi:type="xsd:string">middle of nowhere</value>
+							<value>middle of nowhere</value>
 						</variable>
 						<script>
 							<language>http://www.w3.org/TR/xpath/</language>

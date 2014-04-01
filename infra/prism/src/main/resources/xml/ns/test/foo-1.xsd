@@ -287,12 +287,13 @@
     		<xsd:documentation>
     			Account construction type is NOT a container. It is a complex-type property.
     			This tests the ability to deal with complex type properties and also with
-    			dateTime fields in them.
+    			dateTime and RawType fields in them.
     		</xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="howto" type="xsd:string"/>
         	<xsd:element name="when" type="xsd:dateTime" minOccurs="0"/>
+            <xsd:element name="value" type="t:RawType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 

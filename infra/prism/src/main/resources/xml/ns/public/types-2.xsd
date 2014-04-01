@@ -394,7 +394,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-        	<xsd:any minOccurs="0" maxOccurs="unbounded"/>
+        	<xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
         </xsd:sequence>
     </xsd:complexType>
     
