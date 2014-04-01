@@ -304,6 +304,11 @@ public class PageOrgUnit extends PageAdminUsers {
             public List<AssignmentType> getAssignmentTypeList(){
                 return orgModel.getObject().asObjectable().getAssignment();
             }
+
+            @Override
+            public String getExcludeOid(){
+                return orgModel.getObject().asObjectable().getOid();
+            }
         };
         form.add(assignments);
 
@@ -313,6 +318,11 @@ public class PageOrgUnit extends PageAdminUsers {
             @Override
             public List<AssignmentType> getAssignmentTypeList(){
                 return orgModel.getObject().asObjectable().getInducement();
+            }
+
+            @Override
+            public String getExcludeOid(){
+                return orgModel.getObject().asObjectable().getOid();
             }
         };
         form.add(inducements);

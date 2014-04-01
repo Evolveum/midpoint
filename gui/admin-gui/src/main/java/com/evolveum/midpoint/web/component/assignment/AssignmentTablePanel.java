@@ -21,6 +21,10 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.NotFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -135,6 +139,10 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
         return list;
     }
 
+    public String getExcludeOid(){
+        return null;
+    }
+
     private PrismObject getReference(ObjectReferenceType ref, OperationResult result) {
         OperationResult subResult = result.createSubresult(OPERATION_LOAD_ASSIGNMENT);
         subResult.addParam("targetRef", ref.getOid());
@@ -203,6 +211,21 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
             @Override
             protected void addPerformed(AjaxRequestTarget target, List<ObjectType> selected){
                 addSelectedAssignablePerformed(target, selected);
+            }
+
+            @Override
+            public ObjectQuery getProviderQuery(){
+                if(getExcludeOid() == null){
+                    return null;
+                } else {
+                    ObjectQuery query = new ObjectQuery();
+                    List<String> oids = new ArrayList<String>();
+                    oids.add(getExcludeOid());
+
+                    ObjectFilter oidFilter = InOidFilter.createInOid(oids);
+                    query.setFilter(NotFilter.createNot(oidFilter));
+                    return query;
+                }
             }
         });
         add(assignWindow);
