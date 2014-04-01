@@ -188,6 +188,7 @@ public class EqualsFilter<T extends Object> extends PropertyValueFilter<PrismPro
     @Override
 	public EqualsFilter clone() {
 		EqualsFilter clone = new EqualsFilter(getFullPath(), getDefinition(), getMatchingRule(), (List<PrismPropertyValue<T>>) getValues());
+		clone.setExpression(getExpression());
 		cloneValues(clone);
 		return clone;
 	}

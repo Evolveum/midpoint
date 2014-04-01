@@ -244,7 +244,7 @@ public class RawType implements Serializable, Equals{
 ////							
 //						}
 						
-						throw new UnsupportedOperationException("nto supported yet for xnode: " + xnode + ", realValue " + realValue);
+						throw new UnsupportedOperationException("nto supported yet for xnode: " + xnode.debugDump() + ", realValue " + realValue);
 					}
 
 					@Override
@@ -472,11 +472,11 @@ public class RawType implements Serializable, Equals{
 				Item<V> subItem = prismContext.getXnodeProcessor().parseItem(xnode, itemDefinition.getName(),
 						itemDefinition);
 				value = subItem.getValue(0);
-				xnode = null;
+//				xnode = null;
 			} else { 
 				PrismProperty<V> subItem = XNodeProcessor.parsePrismPropertyRaw(xnode, itemName);
 				value = (V) subItem.getValue();
-				xnode = null;
+//				xnode = null;
 //				throw new SchemaException("no definition..cannot parse xnode " + xnode);
 			}
 //				

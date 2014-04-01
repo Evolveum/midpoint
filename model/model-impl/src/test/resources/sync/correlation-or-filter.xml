@@ -30,6 +30,8 @@
           <language>http://www.w3.org/TR/xpath/</language>
 <!--           <code></code> -->
           <code>
+          declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"; 
+          declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 if (substring($c:account/c:attributes/icfs:name, 0, 1) != 'X') then $c:account/c:attributes/icfs:name
 else
   ThisIsSomeHowHackedToNeverHappen2330587969ThisIsSomeHowHackerToNeverHappen
@@ -43,6 +45,8 @@ else
          <script>
            <language>http://www.w3.org/TR/xpath/</language>
            <code>
+           declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
+           declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 if (substring($c:account/c:attributes/icfs:name, 0, 1) != 'X') then $c:account/c:attributes/icfs:name
 else
   ThisIsSomeHowHackedToNeverHappen2330587969ThisIsSomeHowHackerToNeverHappen

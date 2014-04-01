@@ -284,8 +284,8 @@ public class XPathHolder {
 	public String getXPath() {
 		StringBuilder sb = new StringBuilder();
 
-		addPureXpath(sb);
-
+//		addPureXpath(sb);
+		sb.append(getXPathWithDeclarations());
 		return sb.toString();
 	}
 
@@ -341,7 +341,7 @@ public class XPathHolder {
                     sb.append("$");
                 }
                 QName qname = seg.getQName();
-                if (qname.getPrefix() != null && !qname.getPrefix().isEmpty()) {
+                if (!StringUtils.isEmpty(qname.getPrefix())) {
                     sb.append(qname.getPrefix() + ":" + qname.getLocalPart());
                 } else {
                     // Default namespace

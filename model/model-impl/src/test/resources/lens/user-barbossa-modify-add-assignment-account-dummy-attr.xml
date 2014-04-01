@@ -43,10 +43,10 @@
 						<c:ref>ri:weapon</c:ref>
 						<c:outbound>
 							<c:expression>
-								<c:value>
-									<ri:weapon>Dagger</ri:weapon>
-									<ri:weapon>Pistol</ri:weapon>
-								</c:value>
+								<c:value>Dagger</c:value>
+<!-- 									<ri:weapon>Dagger</ri:weapon> -->
+<!-- 									<ri:weapon>Pistol</ri:weapon> -->
+								<c:value>Pistol</c:value>
 							</c:expression>
 						</c:outbound>
 					</c:attribute>

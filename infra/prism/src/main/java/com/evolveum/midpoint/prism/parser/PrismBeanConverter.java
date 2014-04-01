@@ -992,7 +992,8 @@ public class PrismBeanConverter {
 			return xnode;
 		} else {
 			Object realValue = value.getRealValue();
-			if (XmlTypeConverter.canConvert(realValue.getClass())){
+			
+			if (realValue != null && XmlTypeConverter.canConvert(realValue.getClass())){
 //			if (realValue.getClass().isPrimitive()){
 				QName type = XsdTypeMapper.toXsdType(realValue.getClass());
 				PrimitiveXNode xprim = new PrimitiveXNode();

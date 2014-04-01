@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
@@ -69,6 +70,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -996,16 +998,19 @@ public class ChangeExecutor {
 		argument.getExpressionEvaluator().clear();
 		if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
 			// We need to create at least one evaluator. Otherwise the expression code will complain
-			Element value = DOMUtil.createElement(SchemaConstants.C_VALUE);
-			DOMUtil.setNill(value);
-			JAXBElement<Element> el = new JAXBElement(SchemaConstants.C_VALUE, Element.class, value);
+//			Element value = DOMUtil.createElement(SchemaConstants.C_VALUE);
+//			DOMUtil.setNill(value);
+			JAXBElement<RawType> el = new JAXBElement(SchemaConstants.C_VALUE, RawType.class, new RawType());
 			argument.getExpressionEvaluator().add(el);
 			
 		} else {
 			for (PrismPropertyValue<String> val : nonNegativeValues){
-				Element value = DOMUtil.createElement(SchemaConstants.C_VALUE);
-				value.setTextContent(val.getValue());
-				JAXBElement<Element> el = new JAXBElement(SchemaConstants.C_VALUE, Element.class, value);
+//				Element value = DOMUtil.createElement(SchemaConstants.C_VALUE);
+//				value.setTextContent(val.getValue());
+				PrimitiveXNode<String> prim = new PrimitiveXNode<>();
+				prim.setValue(val.getValue());
+				prim.setTypeQName(DOMUtil.XSD_STRING);
+				JAXBElement<RawType> el = new JAXBElement(SchemaConstants.C_VALUE, RawType.class, new RawType(prim));
 				argument.getExpressionEvaluator().add(el);
 			}
 		}

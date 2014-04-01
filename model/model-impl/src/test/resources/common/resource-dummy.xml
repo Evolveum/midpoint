@@ -119,9 +119,8 @@
 					<name>location outbound mapping</name>
 					<strength>strong</strength>
 					<source>
-						<path>
-							$c:user/c:locality
-						</path>
+						<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+							$c:user/c:locality</path>
 					</source>
 				</outbound>
 				<inbound>
@@ -402,7 +401,8 @@ return tmpSuffix
 				<q:equal>
 					<q:path>c:name</q:path>
 					<expression>
-						<path>$account/attributes/icfs:name</path>
+						<path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
+						$account/attributes/icfs:name</path>
 					</expression>
 				</q:equal>
 			</correlation>
@@ -442,7 +442,7 @@ return tmpSuffix
 				<q:equal>
 					<q:path>c:name</q:path>
 					<expression>
-						<path>$shadow/attributes/icfs:name</path>
+						<path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";$shadow/attributes/icfs:name</path>
 					</expression>
 				</q:equal>
 			</correlation>

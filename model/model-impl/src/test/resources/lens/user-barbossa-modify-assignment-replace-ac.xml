@@ -20,11 +20,11 @@
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">
 	<apit:oid>c0c010c0-d34d-b33f-f00d-111111111112</apit:oid>
-	<apit:modification>
+	<apit:itemDelta>
 		<t:modificationType>replace</t:modificationType>
-		<t:path>assignment[1001]</t:path>
+		<t:path>assignment[1001]/construction</t:path>
 		<t:value>
 			<construction>
 				<description>Brethren account construction</description>
@@ -72,5 +72,5 @@
 				</attribute>
 			</construction>
 		</t:value>
-	</apit:modification>
+	</apit:itemDelta>
 </apit:objectModification>

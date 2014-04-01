@@ -26,6 +26,8 @@
         <script>
           <language>http://www.w3.org/TR/xpath/</language>
           <code>
+          declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+          declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
        $c:account/c:attributes/icfs:name
           </code>
         </script>
