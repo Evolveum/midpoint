@@ -260,7 +260,7 @@ public class RawType implements Serializable, Equals{
 ////							
 //						}
 						
-						throw new UnsupportedOperationException("nto supported yet for xnode: " + xnode + ", realValue " + realValue);
+						throw new UnsupportedOperationException("nto supported yet for xnode: " + xnode.debugDump() + ", realValue " + realValue);
 					}
 
 					@Override

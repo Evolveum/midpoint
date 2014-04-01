@@ -48,7 +48,7 @@
 			<icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
 			<icfcldap:principal>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:principal>
 			<icfcldap:credentials>
-				<c:clearValue>secret</c:clearValue>
+				<t:clearValue>secret</t:clearValue>
 			</icfcldap:credentials>
 			<icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
 			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>

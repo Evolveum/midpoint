@@ -269,8 +269,12 @@ public class MapXNode extends XNode implements Map<QName,XNode> {
 		return MiscUtil.unorderedCollectionEquals(this.values(), other.values());
 	}
 
+	//TODO: really ugly.. TODO implement in proper way :)
 	public int hashCode() {
-		return subnodes.hashCode();
+		int result = 1;
+		System.out.println("map hask code");
+		return result;
+//		return subnodes.hashCode();
 	}
 
 	@Override

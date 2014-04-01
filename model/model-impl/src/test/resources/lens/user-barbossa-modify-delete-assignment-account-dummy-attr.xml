@@ -26,10 +26,10 @@
 		<t:modificationType>delete</t:modificationType>
 		<t:path>assignment</t:path>
 		<t:value>
-			<assignment>
+			<assignment id="1">
 				<construction>
 					<description>Undead monkey account construction</description>
-					<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+					<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
 					<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
 					<attribute>
 						<ref>ri:weapon</ref>
