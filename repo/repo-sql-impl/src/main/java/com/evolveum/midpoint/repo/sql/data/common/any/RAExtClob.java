@@ -105,7 +105,6 @@ public class RAExtClob implements RAExtValue {
         return name;
     }
 
-    @Id
     @Column(name = "eType", length = RUtil.COLUMN_LENGTH_QNAME)
     public String getType() {
         return type;

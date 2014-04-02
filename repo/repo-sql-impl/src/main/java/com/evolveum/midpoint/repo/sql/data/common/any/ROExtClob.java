@@ -93,7 +93,6 @@ public class ROExtClob implements ROExtValue {
         return name;
     }
 
-    @Id
     @Column(name = "eType", length = RUtil.COLUMN_LENGTH_QNAME)
     public String getType() {
         return type;

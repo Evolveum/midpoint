@@ -33,7 +33,7 @@ import javax.persistence.*;
 @IdClass(ROExtPolyStringId.class)
 @Table(name = "m_object_ext_poly")
 @org.hibernate.annotations.Table(appliesTo = "m_object_ext_poly",
-        indexes = {@Index(name = "iExtensionPolyString", columnNames = {"ownerType", "eName", "eType", "orig"})})
+        indexes = {@Index(name = "iExtensionPolyString", columnNames = {"ownerType", "eName", "orig"})})
 public class ROExtPolyString implements ROExtValue {
 
     //owner entity
@@ -91,7 +91,6 @@ public class ROExtPolyString implements ROExtValue {
         return name;
     }
 
-    @Id
     @Column(name = "eType", length = RUtil.COLUMN_LENGTH_QNAME)
     public String getType() {
         return type;

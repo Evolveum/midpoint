@@ -27,7 +27,6 @@ public class RAExtClobId implements Serializable {
     private Short ownerId;
     private String checksum;
     private String name;
-    private String type;
 
     public String getOwnerOid() {
         return ownerOid;
@@ -61,14 +60,6 @@ public class RAExtClobId implements Serializable {
         this.name = name;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -80,7 +71,6 @@ public class RAExtClobId implements Serializable {
         if (name != null ? !name.equals(raClobId.name) : raClobId.name != null) return false;
         if (ownerId != null ? !ownerId.equals(raClobId.ownerId) : raClobId.ownerId != null) return false;
         if (ownerOid != null ? !ownerOid.equals(raClobId.ownerOid) : raClobId.ownerOid != null) return false;
-        if (type != null ? !type.equals(raClobId.type) : raClobId.type != null) return false;
 
         return true;
     }
@@ -91,7 +81,6 @@ public class RAExtClobId implements Serializable {
         result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
         result = 31 * result + (checksum != null ? checksum.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (type != null ? type.hashCode() : 0);
         return result;
     }
 
@@ -102,7 +91,6 @@ public class RAExtClobId implements Serializable {
                 ", ownerId=" + ownerId +
                 ", checksum='" + checksum + '\'' +
                 ", name='" + name + '\'' +
-                ", type='" + type + '\'' +
                 '}';
     }
 }

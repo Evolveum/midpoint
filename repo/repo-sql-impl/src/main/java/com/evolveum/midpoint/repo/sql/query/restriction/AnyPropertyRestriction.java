@@ -104,7 +104,6 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
         conjunction.add(Restrictions.eq(propertyNamePrefix + "ownerType", ownerType));
 
         conjunction.add(Restrictions.eq(propertyNamePrefix + RAnyValue.F_NAME, RUtil.qnameToString(name)));
-        conjunction.add(Restrictions.eq(propertyNamePrefix + RAnyValue.F_TYPE, RUtil.qnameToString(type)));
 
         Object testedValue = getValue(((PropertyValueFilter) filter).getValues());
         Object value = RAnyConverter.getAggregatedRepoObject(testedValue);

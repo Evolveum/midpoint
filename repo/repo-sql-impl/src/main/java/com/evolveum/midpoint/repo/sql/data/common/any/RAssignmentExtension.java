@@ -259,15 +259,6 @@ public class RAssignmentExtension implements Serializable {
         return result;
     }
 
-    public static void copyToJAXB(RAssignmentExtension repo, ShadowAttributesType jaxb,
-                                  PrismContext prismContext) throws
-            DtoTranslationException {
-        Validate.notNull(repo, "Repo object must not be null.");
-        Validate.notNull(jaxb, "JAXB object must not be null.");
-
-        copyToJAXB(repo, jaxb.asPrismContainerValue(), prismContext);
-    }
-
     public static void copyToJAXB(RAssignmentExtension repo, ExtensionType jaxb, PrismContext prismContext) throws
             DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
