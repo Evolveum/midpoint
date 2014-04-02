@@ -148,8 +148,8 @@
                 <page>com.evolveum.midpoint.web.page.admin.configuration.PageAccounts</page>
             </item>
             <item>
-                <name>PageAdmin.menu.top.configuration.timeTest</name>
-                <page>com.evolveum.midpoint.web.page.admin.configuration.PageTimeTest</page>
+                <name>PageAdmin.menu.top.configuration.internals</name>
+                <page>com.evolveum.midpoint.web.page.admin.configuration.PageInternals</page>
             </item>
             <divider/>
             <item>
