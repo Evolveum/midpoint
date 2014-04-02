@@ -29,13 +29,8 @@ public class UnicodeSQLServer2008Dialect extends SQLServer2008Dialect {
 
     public UnicodeSQLServer2008Dialect() {
         registerColumnType(Types.CLOB, "nvarchar(MAX)");
-        registerColumnType(Types.LONGVARCHAR, "nvarchar(MAX)");
-        registerColumnType(Types.VARCHAR, "nvarchar(MAX)");
-        registerColumnType(Types.VARCHAR, MAX_LENGTH, "nvarchar($l)");
-    }
-
-    @Override
-    public String getCreateTemporaryTablePostfix() {
-        return " collate database_default";
+        registerColumnType(Types.LONGVARCHAR, "nvarchar(MAX) collate database_default");
+        registerColumnType(Types.VARCHAR, "nvarchar(MAX) collate database_default");
+        registerColumnType(Types.VARCHAR, MAX_LENGTH, "nvarchar($l) collate database_default");
     }
 }
