@@ -230,7 +230,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Conjunction c2 = Restrictions.conjunction();
         c2.add(Restrictions.eq("l.ownerType", RObjectType.OBJECT));
         c2.add(Restrictions.eq("l.name", new QName("http://example.com/p", "intType")));
-        c2.add(Restrictions.eq("l.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "integer")));
         c2.add(Restrictions.eq("l.value", 123L));
 
         Conjunction conjunction = Restrictions.conjunction();
@@ -263,13 +262,11 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Conjunction c2 = Restrictions.conjunction();
         c2.add(Restrictions.eq("s1.ownerType", RObjectType.SHADOW));
         c2.add(Restrictions.eq("s1.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
-        c2.add(Restrictions.eq("s1.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
         c2.add(Restrictions.eq("s1.value", "foo value"));
         //or
         Conjunction c3 = Restrictions.conjunction();
         c3.add(Restrictions.eq("s1.ownerType", RObjectType.OBJECT));
         c3.add(Restrictions.eq("s1.name", new QName("http://example.com/p", "stringType")));
-        c3.add(Restrictions.eq("s1.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
         c3.add(Restrictions.eq("s1.value", "uid=test,dc=example,dc=com"));
         //or
         Criterion c4 = Restrictions.conjunction().add(
@@ -412,7 +409,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Conjunction c2 = Restrictions.conjunction();
         c2.add(Restrictions.eq("s1x.ownerType", RObjectType.SHADOW));
         c2.add(Restrictions.eq("s1x.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
-        c2.add(Restrictions.eq("s1x.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
         c2.add(Restrictions.eq("s1x.value", "uid=jbond,ou=People,dc=example,dc=com"));
 
         Conjunction conjunction = Restrictions.conjunction();
@@ -834,7 +830,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Conjunction c2 = Restrictions.conjunction();
         c2.add(Restrictions.eq("s.extensionType", RAssignmentExtensionType.EXTENSION));
         c2.add(Restrictions.eq("s.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
-        c2.add(Restrictions.eq("s.type", new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "string")));
         c2.add(Restrictions.eq("s.value", "uid=jbond,ou=People,dc=example,dc=com"));
 
         Conjunction c1 = Restrictions.conjunction();
