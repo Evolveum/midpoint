@@ -296,6 +296,9 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         }
         sb.append(", oid=");
         sb.append(getOid());
+        if (getIteration() != 0) {
+        	sb.append(", iteration=").append(getIteration()).append(" (").append(getIterationToken()).append(")");
+        }
         
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("old"), getObjectOld(), indent+1);

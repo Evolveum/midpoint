@@ -290,8 +290,8 @@ public class FocusPolicyProcessor {
 		}
 		
 		int maxIterations = LensUtil.determineMaxIterations(userTemplate.getIteration());
-		int iteration = 0;
-		String iterationToken = null;
+		int iteration = focusContext.getIteration();
+		String iterationToken = focusContext.getIterationToken();
 		boolean wasResetIterationCounter = false;
 		
 		// This is fixed now. TODO: make it configurable
@@ -305,7 +305,7 @@ public class FocusPolicyProcessor {
 		XMLGregorianCalendar nextRecomputeTime = null;
 		
 		PrismObject<F> focusCurrent = focusContext.getObjectCurrent();
-		if (focusCurrent != null) {
+		if (focusCurrent != null && iterationToken == null) {
 			Integer focusIteration = focusCurrent.asObjectable().getIteration();
 			if (focusIteration != null) {
 				iteration = focusIteration;
@@ -316,8 +316,10 @@ public class FocusPolicyProcessor {
 		while (true) {
 		
 			ExpressionVariables variables = Utils.getDefaultExpressionVariables(focusContext.getObjectNew(), null, null, null);
-			iterationToken = LensUtil.formatIterationToken(context, focusContext, 
+			if (iterationToken == null) {
+				iterationToken = LensUtil.formatIterationToken(context, focusContext, 
 					userTemplate.getIteration(), iteration, expressionFactory, variables, task, result);
+			}
 			
 			LOGGER.trace("Applying {} to {}, iteration {} ({})", 
 					new Object[]{userTemplate, focusContext.getObjectNew(), iteration, iterationToken});
@@ -339,7 +341,11 @@ public class FocusPolicyProcessor {
 						now, userTemplate.toString(), task, result);
 				
 				DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>> nameTriple = outputTripleMap.get(new ItemPath(FocusType.F_NAME));
-				if (resetOnRename && iteration != 0 && !wasResetIterationCounter && nameTriple != null && (nameTriple.hasPlusSet() || nameTriple.hasMinusSet())) {
+				if (resetOnRename && !wasResetIterationCounter && nameTriple != null && 
+						focusContext.getIterationToken() == null && (nameTriple.hasPlusSet() || nameTriple.hasMinusSet())) {
+					// Make sure this happens only the very first time during the first recompute.
+					// Otherwise it will always change the token (especially if the token expression has a random part)
+					// hence the focusContext.getIterationToken() == null
 		        	wasResetIterationCounter = true;
 		        	iteration = 0;
 		    		iterationToken = null;
@@ -427,12 +433,14 @@ public class FocusPolicyProcessor {
 		        		new Object[]{checker.getConflictingObject(), iteration, maxIterations});
 		        conflictMessage = checker.getMessages();
 		        
-				if (iteration != 0 && !wasResetIterationCounter) {
+				if (!wasResetIterationCounter) {
 		        	wasResetIterationCounter = true;
-		        	iteration = 0;
-		    		iterationToken = null;
-		    		LOGGER.trace("Resetting iteration counter and token after conflict");
-		    		continue;
+			        if (iteration != 0) {
+			        	iterationToken = null;
+			        	iteration = 0;
+			    		LOGGER.trace("Resetting iteration counter and token after conflict");
+			    		continue;
+			        }
 		        }
 			}
 				        
@@ -476,6 +484,15 @@ public class FocusPolicyProcessor {
 			}
 		}
 		
+		// We have to remember the token and iteration in the context.
+		// The context can be recomputed several times. But we always want
+		// to use the same iterationToken if possible. If there is a random
+		// part in the iterationToken expression that we need to avoid recomputing
+		// the token otherwise the value can change all the time (even for the same inputs).
+		// Storing the token in the secondary delta is not enough because secondary deltas can be dropped
+		// if the context is re-projected.
+		focusContext.setIteration(iteration);
+		focusContext.setIterationToken(iterationToken);
 		addIterationTokenDeltas(focusContext, iteration, iterationToken);
 		
 		if (nextRecomputeTime != null) {

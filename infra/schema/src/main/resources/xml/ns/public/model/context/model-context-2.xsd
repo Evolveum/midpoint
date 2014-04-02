@@ -261,6 +261,20 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="iteration" type="xsd:int" minOccurs="0">
+               <xsd:annotation>
+                   <xsd:documentation>
+                       TODO
+                   </xsd:documentation>
+               </xsd:annotation>
+           </xsd:element>
+           <xsd:element name="iterationToken" type="xsd:string" minOccurs="0">
+               <xsd:annotation>
+                   <xsd:documentation>
+                       TODO
+                   </xsd:documentation>
+               </xsd:annotation>
+           </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -394,20 +408,6 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 True if we want to reconcile account in this context.
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="iteration" type="xsd:int" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="iterationToken" type="xsd:string" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                TODO
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
