@@ -31,6 +31,9 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.*;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
+import com.evolveum.midpoint.repo.sql.data.common.any.RValueType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
@@ -57,6 +60,7 @@ import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.jdbc.Work;
 import org.springframework.stereotype.Repository;
 
+import javax.xml.namespace.QName;
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.Driver;
@@ -132,42 +136,20 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
         }
 
-        Object fullObject;
-        if (!lockForUpdate) {
-            //we're not doing update after, so this is faster way to load full object
-            Query query = session.getNamedQuery("get.object");
-            query.setString("oid", oid);
+        Query query = session.getNamedQuery("get.object");
+        query.setString("oid", oid);
+        query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
+        query.setLockOptions(lockOptions);
 
-            query.setLockOptions(lockOptions);
-            fullObject = query.uniqueResult();
+        GetObjectResult fullObject = (GetObjectResult) query.uniqueResult();
 
-            LOGGER.trace("Got it.");
-            if (fullObject == null) {
-                throwObjectNotFoundException(type, oid);
-            }
-        } else {
-            // we're doing update after this get, therefore we load full object right now
-            // (it would be loaded during merge anyway)
-            Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
-            criteria.add(Restrictions.eq("oid", oid));
-
-            criteria.setLockMode(lockOptions.getLockMode());
-            RObject object = (RObject) criteria.uniqueResult();
-
-            LOGGER.trace("Got it.");
-            if (object == null) {
-                throwObjectNotFoundException(type, oid);
-            }
-
-            // this just loads object to hibernate session, probably will be removed later. Merge after this get
-            // will be faster. Read and use object only from fullObject column.
-            object.toJAXB(getPrismContext(), options).asPrismObject();
-
-            fullObject = object.getFullObject();
+        LOGGER.trace("Got it.");
+        if (fullObject == null) {
+            throwObjectNotFoundException(type, oid);
         }
 
         LOGGER.trace("Transforming data to JAXB type.");
-        PrismObject<T> prismObject = updateLoadedObject(fullObject, type);
+        PrismObject<T> prismObject = updateLoadedObject(fullObject, type, session);
         validateObjectType(prismObject, type);
 
         return prismObject;
@@ -287,8 +269,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             LOGGER.trace("Selecting account shadow owner for account {}.", new Object[]{shadowOid});
             query = session.getNamedQuery("searchShadowOwner.getOwner");
             query.setString("oid", shadowOid);
+            query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
 
-            List<String> focuses = query.list();
+            List<GetObjectResult> focuses = query.list();
             LOGGER.trace("Found {} focuses, transforming data to JAXB types.",
                     new Object[]{(focuses != null ? focuses.size() : 0)});
 
@@ -302,8 +285,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                         new Object[]{focuses.size(), shadowOid});
             }
 
-            String focus = focuses.get(0);
-            owner = updateLoadedObject(focus, (Class<F>) FocusType.class);
+            GetObjectResult focus = focuses.get(0);
+            owner = updateLoadedObject(focus, (Class<F>) FocusType.class, session);
 
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
@@ -349,8 +332,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             LOGGER.trace("Selecting account shadow owner for account {}.", new Object[]{accountOid});
             Query query = session.getNamedQuery("listAccountShadowOwner.getUser");
             query.setString("oid", accountOid);
+            query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
 
-            List<String> users = query.list();
+            List<GetObjectResult> users = query.list();
             LOGGER.trace("Found {} users, transforming data to JAXB types.",
                     new Object[]{(users != null ? users.size() : 0)});
 
@@ -364,8 +348,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                         new Object[]{users.size(), accountOid});
             }
 
-            String user = users.get(0);
-            userType = updateLoadedObject(user, UserType.class);
+            GetObjectResult user = users.get(0);
+            userType = updateLoadedObject(user, UserType.class, session);
 
             session.getTransaction().commit();
         } catch (SchemaException | RuntimeException ex) {
@@ -656,7 +640,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-
     private <T extends ObjectType> void fillTransitiveHierarchy(
             RObject descendant, String ancestorOid, Session session,
             boolean withIncorrect) throws SchemaException {
@@ -811,7 +794,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             Criteria query = session.createCriteria(ClassMapper
                     .getHQLTypeClass(object.toJAXB(getPrismContext(), null)
                             .getClass()));
-//            Criteria query = session.createCriteria(object.getClass());
+
+            // RObject.toJAXB will be deprecated and this query can't be replaced by:
+            // Criteria query = session.createCriteria(object.getClass());
+            // Because this will cause deadlock. It's the same query without unnecessary object loading, fuck. [lazyman]
+
             query.add(Restrictions.eq("oid", object.getOid()));
             RObject obj = (RObject) query.uniqueResult();
             if (obj == null) {
@@ -969,14 +956,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             session = beginReadOnlyTransaction();
             QueryInterpreter interpreter = new QueryInterpreter();
             Criteria criteria = interpreter.interpret(query, type, options, getPrismContext(), false, session);
+            criteria.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
 
-            List objects = criteria.list();
+            List<GetObjectResult> objects = criteria.list();
             LOGGER.trace("Found {} objects, translating to JAXB.",
                     new Object[]{(objects != null ? objects.size() : 0)});
 
 
-            for (Object object : objects) {
-                PrismObject<T> prismObject = updateLoadedObject(object, type);
+            for (GetObjectResult object : objects) {
+                PrismObject<T> prismObject = updateLoadedObject(object, type, session);
                 list.add(prismObject);
             }
 
@@ -993,28 +981,74 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     /**
      * This method provides object parsing from String and validation.
      */
-    private <T extends ObjectType> PrismObject<T> updateLoadedObject(Object object, Class<T> type)
-            throws SchemaException {
-
-        String fullObject;
-        if (object instanceof String) {
-            fullObject = (String) object;
-        } else {
-            Object[] array = (Object[]) object;
-            fullObject = (String) array[2];
-        }
+    private <T extends ObjectType> PrismObject<T> updateLoadedObject(GetObjectResult result, Class<T> type,
+                                                                     Session session) throws SchemaException {
 
         PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
-        PrismObject<T> prismObject = domProcessor.parseObject(fullObject);
+        PrismObject<T> prismObject = domProcessor.parseObject(result.getFullObject());
 
         if (ShadowType.class.equals(prismObject.getCompileTimeClass())) {
             //we store it because provisioning now sends it to repo, but it should be transient
             prismObject.removeContainer(ShadowType.F_ASSOCIATION);
+
+            LOGGER.debug("Loading definitions for shadow attributes.");
+
+            Short[] counts = result.getCountProjection();
+            Class[] classes = GetObjectResult.EXT_COUNT_CLASSES;
+
+            if (counts != null) {
+                for (int i = 0; i < classes.length; i++) {
+                    if (counts[i] == null || counts[i] == 0) {
+                        continue;
+                    }
+
+                    applyShadowAttributeDefinitions(classes[i], prismObject, session);
+                }
+            }
+            LOGGER.debug("Definitions for attributes loaded. Counts: {}", Arrays.toString(counts));
         }
 
         validateObjectType(prismObject, type);
 
         return prismObject;
+    }
+
+    private void applyShadowAttributeDefinitions(Class<? extends RAnyValue> anyValueType,
+                                                 PrismObject object, Session session) throws SchemaException {
+
+        PrismContainer attributes = object.findContainer(ShadowType.F_ATTRIBUTES);
+
+        Query query = session.createQuery("select c.name, c.type, c.valueType from "
+                + anyValueType.getSimpleName() + " as c where c.ownerOid = :oid and c.ownerType = :ownerType");
+        query.setParameter("oid", object.getOid());
+        query.setParameter("ownerType", RObjectType.SHADOW);
+
+        List<Object[]> values = query.list();
+        if (values == null || values.isEmpty()) {
+            return;
+        }
+
+        for (Object[] value : values) {
+            ItemDefinition def;
+            QName name = RUtil.stringToQName((String) value[0]);
+            QName type = RUtil.stringToQName((String) value[1]);
+
+            switch ((RValueType) value[2]) {
+                case PROPERTY:
+                    def = new PrismPropertyDefinition(name, type, object.getPrismContext());
+                    break;
+                case REFERENCE:
+                    def = new PrismReferenceDefinition(name, type, object.getPrismContext());
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Unsupported value type " + value[2]);
+            }
+
+            Item item = attributes.findItem(def.getName());
+            if (item.getDefinition() == null) {
+                item.applyDefinition(def, true);
+            }
+        }
     }
 
     @Override
@@ -1105,7 +1139,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT before:\n{}", new Object[]{prismObject.debugDump()});
             }
-            PropertyDelta.applyTo(modifications, prismObject);
+            ItemDelta.applyTo(modifications, prismObject);
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT after:\n{}", prismObject.debugDump());
             }
@@ -1315,14 +1349,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             session = beginReadOnlyTransaction();
             Query query = session.getNamedQuery("listResourceObjectShadows");
             query.setString("oid", resourceOid);
+            query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
 
-            List<String> shadows = query.list();
+            List<GetObjectResult> shadows = query.list();
             LOGGER.trace("Query returned {} shadows, transforming to JAXB types.",
                     new Object[]{(shadows != null ? shadows.size() : 0)});
 
             if (shadows != null) {
-                for (String shadow : shadows) {
-                    PrismObject<T> prismObject = updateLoadedObject(shadow, resourceObjectShadowType);
+                for (GetObjectResult shadow : shadows) {
+                    PrismObject<T> prismObject = updateLoadedObject(shadow, resourceObjectShadowType, session);
                     list.add(prismObject);
                 }
             }
@@ -1628,14 +1663,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             session = beginReadOnlyTransaction();
             QueryInterpreter interpreter = new QueryInterpreter();
             Criteria criteria = interpreter.interpret(query, type, options, getPrismContext(), false, session);
+            criteria.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
 
             ScrollableResults results = criteria.scroll(ScrollMode.FORWARD_ONLY);
             try {
-                Iterator<Object> iterator = new ScrollableResultsIterator(results);
+                Iterator<GetObjectResult> iterator = new ScrollableResultsIterator(results);
                 while (iterator.hasNext()) {
-                    Object object = iterator.next();
+                    GetObjectResult object = iterator.next();
 
-                    PrismObject<T> prismObject = updateLoadedObject(object, type);
+                    PrismObject<T> prismObject = updateLoadedObject(object, type, session);
                     if (!handler.handle(prismObject, result)) {
                         break;
                     }

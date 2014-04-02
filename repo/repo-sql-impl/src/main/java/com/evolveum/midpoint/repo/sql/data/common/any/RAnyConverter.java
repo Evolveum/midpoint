@@ -242,30 +242,7 @@ public class RAnyConverter {
         Validate.notNull(any, "Parent prism container value must not be null.");
 
         try {
-            Item<?> item;
-            if (value.isDynamic()) {
-                //value has dynamic definition, we'll create definition based on value type
-                ItemDefinition def = createDefinitionForItem(value);
-                def.setDynamic(true);
-                item = def.instantiate();
-
-                any.add(item);
-            } else {
-                try {
-                    item = any.findOrCreateItem(RUtil.stringToQName(value.getName()), value.getValueType().getItemClass());
-                } catch (SchemaException ex) {
-                    //item was not found, and can't be created (e.g. definition is not available)
-                    //for example attributes, therefore we create item without definition and add there raw value
-                    // item = createDefinitionlessItem(value);
-
-                    //if we can't get item by default, we have to create item definition from qname name and type
-                    //and then instantiate item from it.
-                    ItemDefinition def = createDefinitionForItem(value);
-                    item = def.instantiate();
-
-                    any.add(item);
-                }
-            }
+            Item<?> item = any.findOrCreateItem(RUtil.stringToQName(value.getName()), value.getValueType().getItemClass());
             if (item == null) {
                 throw new DtoTranslationException("Couldn't create item for value '" + value.getName() + "'.");
             }
@@ -279,31 +256,6 @@ public class RAnyConverter {
         }
     }
 
-    private ItemDefinition createDefinitionForItem(RAnyValue value) {
-        ItemDefinition def;
-        QName name = RUtil.stringToQName(value.getName());
-        QName type = RUtil.stringToQName(value.getType());
-
-        switch (value.getValueType()) {
-            case PROPERTY:
-                def = new PrismPropertyDefinition(name, type, prismContext);
-                break;
-            case CONTAINER:
-                //todo implement
-                throw new UnsupportedOperationException("Not implemented yet.");
-            case OBJECT:
-                //todo implement
-                throw new UnsupportedOperationException("Not implemented yet.");
-            case REFERENCE:
-                def = new PrismReferenceDefinition(name, type, prismContext);
-                break;
-            default:
-                throw new UnsupportedOperationException("Unknown value type " + value.getValueType());
-        }
-
-        return def;
-    }
-
     private Element createElement(QName name) {
         if (document == null) {
             document = DOMUtil.getDocument();
@@ -312,23 +264,12 @@ public class RAnyConverter {
         return DOMUtil.createElement(document, name);
     }
 
-    private void addClobValueToItem(ROExtClob value, Item item) throws SchemaException {
-//        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
-//        Element root = DOMUtil.parseDocument(value.getValue()).getDocumentElement();
-//
-//        Item parsedItem = domProcessor.parseItem(DOMUtil.listChildElements(root),
-//                RUtil.stringToQName(value.getName()), item.getDefinition());
-//
-//        item.addAll(PrismValue.resetParentCollection(parsedItem.getValues()));
-    }
-
     private void addValueToItem(RAnyValue value, Item item) throws SchemaException {
         if (value instanceof ROExtClob) {
-            addClobValueToItem((ROExtClob) value, item);
             return;
         }
 
-        Object realValue = createRealValue(value);
+        Object realValue = createRealValue(value, item.getDefinition().getTypeName());
         if (!(value instanceof ROExtReference) && realValue == null) {
             throw new SchemaException("Real value must not be null. Some error occurred when adding value "
                     + value + " to item " + item);
@@ -345,8 +286,6 @@ public class RAnyConverter {
             case OBJECT:
             case CONTAINER:
                 //todo implement
-                // PrismContainerValue containerValue = new PrismContainerValue();
-                // item.add(containerValue);
                 throw new UnsupportedOperationException("Not implemented yet.");
         }
     }
@@ -360,14 +299,13 @@ public class RAnyConverter {
      * @return
      * @throws SchemaException
      */
-    private Object createRealValue(RAnyValue rValue) throws SchemaException {
+    private Object createRealValue(RAnyValue rValue, QName type) throws SchemaException {
         if (rValue instanceof ROExtReference || rValue instanceof RAExtReference) {
             //this is special case, reference doesn't have value, it only has a few properties (oid, filter, etc.)
             return null;
         }
 
         Object value = rValue.getValue();
-        QName type = RUtil.stringToQName(rValue.getType());
 
         if (rValue instanceof ROExtDate || rValue instanceof RAExtDate) {
             if (value instanceof Date) {

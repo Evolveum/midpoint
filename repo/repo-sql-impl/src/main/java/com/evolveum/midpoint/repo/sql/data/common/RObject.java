@@ -31,6 +31,7 @@ import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -59,10 +60,10 @@ import java.util.Set;
  * @author lazyman
  */
 @NamedQueries({
-        @NamedQuery(name = "get.object", query = "select o.fullObject from RObject as o where o.oid=:oid"),
+        @NamedQuery(name = "get.object", query = "select o.fullObject, o.stringsCount, o.longsCount, o.datesCount, o.referencesCount, o.clobsCount, o.polysCount from RObject as o where o.oid=:oid"),
         @NamedQuery(name = "searchShadowOwner.getShadow", query = "select s.oid from RShadow as s where s.oid = :oid"),
-        @NamedQuery(name = "searchShadowOwner.getOwner", query = "select owner.fullObject from RFocus as owner left join owner.linkRef as ref where ref.targetOid = :oid"),
-        @NamedQuery(name = "listAccountShadowOwner.getUser", query = "select user.fullObject from RUser as user left join user.linkRef as ref where ref.targetOid = :oid"),
+        @NamedQuery(name = "searchShadowOwner.getOwner", query = "select o.fullObject, o.stringsCount, o.longsCount, o.datesCount, o.referencesCount, o.clobsCount, o.polysCount from RFocus as o left join o.linkRef as ref where ref.targetOid = :oid"),
+        @NamedQuery(name = "listAccountShadowOwner.getUser", query = "select u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.clobsCount, u.polysCount from RUser as u left join u.linkRef as ref where ref.targetOid = :oid"),
         @NamedQuery(name = "getExtCount", query = "select stringsCount, longsCount, datesCount, referencesCount, clobsCount, polysCount from RObject where oid = :oid"),
         @NamedQuery(name = "getVersion", query = "select o.version from RObject as o where o.oid = :oid"),
         @NamedQuery(name = "existIncorrect", query = "select count(*) from ROrgIncorrect as o where o.ancestorOid = :ancestorOid and o.descendantOid = :descendantOid"),
@@ -70,7 +71,7 @@ import java.util.Set;
         @NamedQuery(name = "fillHierarchy", query ="from ROrgIncorrect as o where o.ancestorOid = :oid"),
         @NamedQuery(name = "sqlDeleteOrgClosure", query="delete from ROrgClosure as o where o.descendantOid = :oid or o.ancestorOid = :oid"),
         @NamedQuery(name = "sqlDeleteOrgIncorrect", query="delete from ROrgIncorrect as o where o.descendantOid = :oid or o.ancestorOid = :oid"),
-        @NamedQuery(name = "listResourceObjectShadows", query="select s.fullObject from RShadow as s left join s.resourceRef as ref where ref.targetOid = :oid")
+        @NamedQuery(name = "listResourceObjectShadows", query="select s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.clobsCount, s.polysCount from RShadow as s left join s.resourceRef as ref where ref.targetOid = :oid")
 })
 @Entity
 @Table(name = "m_object")

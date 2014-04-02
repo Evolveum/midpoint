@@ -98,11 +98,27 @@ public class OrgRestriction extends Restriction<OrgFilter> {
         // create subcriteria on the ROgrClosure table to search through org struct
 
         ProjectionList list = Projections.projectionList();
-        list.add(Projections.groupProperty(CLOSURE_ALIAS + ".descendant"));
         String alias = getContext().getAlias(null);
-        list.add(Projections.groupProperty(alias + ".name.orig"));     //just used for sorting by name
+
         list.add(Projections.groupProperty(alias + ".fullObject"));
+        list.add(Projections.groupProperty(alias + ".stringsCount"));
+        list.add(Projections.groupProperty(alias + ".longsCount"));
+        list.add(Projections.groupProperty(alias + ".datesCount"));
+        list.add(Projections.groupProperty(alias + ".referencesCount"));
+        list.add(Projections.groupProperty(alias + ".clobsCount"));
+        list.add(Projections.groupProperty(alias + ".polysCount"));
+
+        list.add(Projections.groupProperty(alias + ".name.orig"));     //just used for sorting by name
+        list.add(Projections.groupProperty(CLOSURE_ALIAS + ".descendant"));
+
         list.add(Projections.property(alias + ".fullObject"));
+        list.add(Projections.property(alias + ".stringsCount"));
+        list.add(Projections.property(alias + ".longsCount"));
+        list.add(Projections.property(alias + ".datesCount"));
+        list.add(Projections.property(alias + ".referencesCount"));
+        list.add(Projections.property(alias + ".clobsCount"));
+        list.add(Projections.property(alias + ".polysCount"));
+
 
         pCriteria.createCriteria(QUERY_PATH, CLOSURE_ALIAS).setFetchMode(ANCESTOR, FetchMode.DEFAULT)
                 .createAlias(ANCESTOR, ANCESTOR_ALIAS).setProjection(list);

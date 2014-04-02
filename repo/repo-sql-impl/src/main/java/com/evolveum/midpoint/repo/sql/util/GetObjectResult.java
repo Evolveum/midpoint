@@ -10,19 +10,19 @@ import java.io.Serializable;
 /**
  * @author lazyman
  */
-public class ExtCountsResult implements Serializable {
+public class GetObjectResult implements Serializable {
 
     public static final String EXT_COUNT_PROJECTION = "stringsCount, longsCount, datesCount, referencesCount, " +
             "clobsCount, polysCount";
 
-    public static final Class[] classes = new Class[]{ROExtString.class, ROExtLong.class, ROExtDate.class,
+    public static final Class[] EXT_COUNT_CLASSES = new Class[]{ROExtString.class, ROExtLong.class, ROExtDate.class,
             ROExtReference.class, ROExtClob.class, ROExtPolyString.class};
 
     public static final ResultTransformer RESULT_TRANSFORMER = new BasicTransformerAdapter() {
 
         @Override
         public Object transformTuple(Object[] tuple, String[] aliases) {
-            return new ExtCountsResult(tuple);
+            return new GetObjectResult(tuple);
         }
     };
 
@@ -35,12 +35,12 @@ public class ExtCountsResult implements Serializable {
     private Short clobsCount;
     private Short polysCount;
 
-    public ExtCountsResult(Object[] values) {
+    public GetObjectResult(Object[] values) {
         this((String) values[0], (Short) values[1], (Short) values[2], (Short) values[3],
                 (Short) values[4], (Short) values[5], (Short) values[6]);
     }
 
-    public ExtCountsResult(String fullObject, Short stringsCount, Short longsCount, Short datesCount,
+    public GetObjectResult(String fullObject, Short stringsCount, Short longsCount, Short datesCount,
                            Short referencesCount, Short clobsCount, Short polysCount) {
 
         Validate.notNull(fullObject, "Full object xml must not be null.");
@@ -53,6 +53,11 @@ public class ExtCountsResult implements Serializable {
         this.referencesCount = referencesCount;
         this.clobsCount = clobsCount;
         this.polysCount = polysCount;
+    }
+
+    public Short[] getCountProjection() {
+        return new Short[]{getStringsCount(), getLongsCount(), getDatesCount(),
+                getReferencesCount(), getClobsCount(), getPolysCount()};
     }
 
     public String getFullObject() {

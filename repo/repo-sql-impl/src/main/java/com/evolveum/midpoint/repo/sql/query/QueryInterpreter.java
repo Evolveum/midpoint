@@ -44,10 +44,7 @@ import org.apache.commons.lang.reflect.ConstructorUtils;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.Session;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.criterion.*;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -107,26 +104,6 @@ public class QueryInterpreter {
         AVAILABLE_MATCHERS = Collections.unmodifiableMap(matchers);
     }
 
-    public Criteria interpretGet(String oid, Class<? extends ObjectType> type,
-                                 Collection<SelectorOptions<GetOperationOptions>> options, PrismContext prismContext,
-                                 Session session) throws QueryException {
-        Validate.notNull(oid, "Oid must not be null.");
-        Validate.notNull(type, "Type must not be null.");
-        Validate.notNull(session, "Session must not be null.");
-        Validate.notNull(prismContext, "Prism context must not be null.");
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Interpreting get for type '{}', oid:\n{}", new Object[]{type.getSimpleName(), oid});
-        }
-
-        Criteria main = session.createCriteria(ClassMapper.getHQLTypeClass(type));
-        main.add(Restrictions.eq("oid", oid));
-
-//        updateFetchingMode(main, type, options);
-
-        return main;
-    }
-
     public Criteria interpret(ObjectQuery query, Class<? extends ObjectType> type,
                               Collection<SelectorOptions<GetOperationOptions>> options, PrismContext prismContext,
                               boolean countingObjects, Session session) throws QueryException {
@@ -136,11 +113,6 @@ public class QueryInterpreter {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Interpreting query for type '{}', query:\n{}", new Object[]{type, query});
-        }
-
-        if (countingObjects) {
-            //compute minimal options which should be used in JOINs
-            options = createOptions(query);
         }
 
         Criteria criteria;
@@ -154,10 +126,18 @@ public class QueryInterpreter {
             criteria = updatePagingAndSorting(criteria, type, query.getPaging());
         }
 
-//        updateFetchingMode(criteria, type, options);
-
         if (!usesOrgFilter(query)) {
-            criteria.setProjection(Projections.property("fullObject"));
+            ProjectionList projections = Projections.projectionList();
+            projections.add(Projections.property("fullObject"));
+
+            projections.add(Projections.property("stringsCount"));
+            projections.add(Projections.property("longsCount"));
+            projections.add(Projections.property("datesCount"));
+            projections.add(Projections.property("referencesCount"));
+            projections.add(Projections.property("clobsCount"));
+            projections.add(Projections.property("polysCount"));
+
+            criteria.setProjection(projections);
         }
 
 
@@ -187,132 +167,6 @@ public class QueryInterpreter {
                     return true;
                 }
             }
-        }
-
-        return false;
-    }
-
-    /**
-     * This method creates selector options for count operation. Options are created to help query interpreter
-     * setup proper fetching strategies when building criteria.
-     *
-     * @param query
-     * @return
-     */
-    private Collection<SelectorOptions<GetOperationOptions>> createOptions(ObjectQuery query){
-        Collection<SelectorOptions<GetOperationOptions>> options =
-                new ArrayList<SelectorOptions<GetOperationOptions>>();
-        if (query == null || query.getFilter() == null) {
-            return options;
-        }
-
-        ObjectFilter filter = query.getFilter();
-        return createOptionsFromFilter(filter, options);
-    }
-
-    private Collection<SelectorOptions<GetOperationOptions>> createOptionsFromFilter(ObjectFilter filter,
-                                                                                     Collection<SelectorOptions<GetOperationOptions>> options) {
-        if (filter instanceof ValueFilter) {
-            ValueFilter vFilter = (ValueFilter) filter;
-//            ItemPath path = RUtil.createFullPath(vFilter);
-            ItemPath path = vFilter.getFullPath();
-            options.add(SelectorOptions.create(path, GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
-        } else if (filter instanceof LogicalFilter) {
-            LogicalFilter lFilter = (LogicalFilter) filter;
-            for (ObjectFilter cFilter : lFilter.getCondition()) {
-                createOptionsFromFilter(cFilter, options);
-            }
-        }
-
-        return options;
-    }
-
-    /**
-     * This method updates fetch mode for hibernate entity associations.
-     * <p/>
-     * For example, we check and update:
-     * {@link ObjectType#F_METADATA}
-     * {@link com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType#F_RESULT}
-     * <p/>
-     * Collection associations always have LAZY initialization (SELECTs not JOINs) and they are loaded if
-     * necessary when translating hibernate entity to {@link com.evolveum.midpoint.prism.PrismObject} in
-     * {@link com.evolveum.midpoint.repo.sql.data.common.RObject#copyToJAXB}.
-     *
-     * @param criteria Generated criteria based on oid (when interpreting get operation) or query (when
-     *                 interpreting search or count).
-     * @param type     Returned object type.
-     * @param options  If options are null, or there are not retrieve options defined, OneToOne entities
-     *                 are loaded eagerly. Fetching mode update is skipped.
-     */
-    private void updateFetchingMode(Criteria criteria, Class<? extends ObjectType> type,
-                                    Collection<SelectorOptions<GetOperationOptions>> options) {
-        LOGGER.debug("Updating fetch mode for created criteria.");
-        LOGGER.trace("Options for fetch mode {}.", new Object[]{options});
-
-        List<SelectorOptions<GetOperationOptions>> retrieveOptions = SelectorOptions.filterRetrieveOptions(options);
-        if (retrieveOptions.isEmpty()) {
-            // we don't need to touch fetch strategies if there are not custom retrieve options
-            return;
-        }
-
-        QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
-        EntityDefinition definition = registry.findDefinition(type, null, EntityDefinition.class);
-        if (!hasToIncludeAll(retrieveOptions)) {
-            //fetch mode cleanup
-            for (Definition def : definition.getDefinitions()) {
-                if (def instanceof EntityDefinition) {
-                    EntityDefinition child = (EntityDefinition) def;
-                    if (child.isEmbedded()) {
-                        continue;
-                    }
-
-                    LOGGER.trace("Setting fetch mode for {} to {}.", new Object[]{child.getJpaName(), FetchMode.SELECT});
-                    criteria.setFetchMode(child.getJpaName(), FetchMode.SELECT);
-                }
-
-                // there is not need to set fetch mode for properties, collections (already have fetch mode
-                // SELECT by default). For AnyDefinition it will be implemented later, if necessary. For
-                // reference it's not needed (they are in collections or they are embedded)
-            }
-        }
-
-        //add fetch mode JOIN based on retrieve options
-        for (SelectorOptions<GetOperationOptions> option : retrieveOptions) {
-            ObjectSelector selector = option.getSelector();
-            if (selector.getPath() == null || selector.getPath().size() != 1) {
-                //fetching mode update for subcriteria will be supported later
-                continue;
-            }
-
-            Definition def = definition.findDefinition(selector.getPath(), Definition.class);
-            if (def == null) {
-                continue;
-            }
-
-            if (!(def instanceof EntityDefinition)) {
-                continue;
-            }
-
-            if (Set.class.equals(def.getJpaType())) {
-                //we don't need to update fetch mode for collections
-                continue;
-            }
-
-            GetOperationOptions opts = option.getOptions();
-            FetchMode mode = RetrieveOption.INCLUDE == opts.getRetrieve() ? FetchMode.JOIN : FetchMode.SELECT;
-            LOGGER.trace("Setting fetch mode for {} to {}.", new Object[]{def.getJpaName(), mode});
-            criteria.setFetchMode(def.getJpaName(), mode);
-        }
-    }
-
-    private boolean hasToIncludeAll(List<SelectorOptions<GetOperationOptions>> options) {
-        for (SelectorOptions<GetOperationOptions> option : options) {
-            if (!ItemPath.EMPTY_PATH.equals(option.getSelector().getPath())) {
-                continue;
-            }
-
-            GetOperationOptions opt = option.getOptions();
-            return opt.getRetrieve() == RetrieveOption.INCLUDE;
         }
 
         return false;
