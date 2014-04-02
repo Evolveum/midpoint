@@ -29,6 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificatio
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
+import org.hibernate.Query;
+import org.hibernate.Session;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -254,10 +256,15 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         //given
 
         //when
-        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
-                new File(TEST_DIR, "modify-delete-assignment.xml"), ObjectModificationType.class);
+//        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
+//                new File(TEST_DIR, "modify-delete-assignment.xml"), ObjectModificationType.class);
+//
+//        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, RoleType.class, prismContext);
 
-        ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, RoleType.class, prismContext);
+        AssignmentType a = new AssignmentType();
+        a.setId(4L);
+        ObjectDelta<RoleType> delta = ObjectDelta.createModificationDeleteContainer(RoleType.class,
+                "00000000-8888-6666-0000-100000000005", RoleType.F_ASSIGNMENT, prismContext, a);
 
         OperationResult result = new OperationResult("delete assignment");
         repositoryService.modifyObject(RoleType.class, delta.getOid(), delta.getModifications(), result);
@@ -282,6 +289,17 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(1, assignment.getValues().size());
 
         AssertJUnit.assertNotNull(assignment.getValue(1L));
+
+        Session session = open();
+        try {
+            Query query = session.createSQLQuery("select count(*) from m_assignment where owner_oid=:oid and id=:id");
+            query.setParameter("oid", delta.getOid());
+            query.setParameter("id", (short) 4);
+            Number number = (Number) query.uniqueResult();
+            AssertJUnit.assertEquals(0, number.intValue());
+        } finally {
+            close(session);
+        }
     }
 
     @Test
