@@ -91,12 +91,15 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 	
 	private static final File TASK_USER_RECOMPUTE_FILE = new File(TEST_DIR, "task-user-recompute.xml");
 	private static final String TASK_USER_RECOMPUTE_OID = "91919191-76e0-59e2-86d6-3d4f02d3aaaa";
+	
+	private static final File TASK_USER_RECOMPUTE_CAPTAIN_FILE = new File(TEST_DIR, "task-user-recompute-captain.xml");
+	private static final String TASK_USER_RECOMPUTE_CAPTAIN_OID = "91919191-76e0-59e2-86d6-3d4f02d3aaac";
 		
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-		DebugUtil.setDetailedDebugDump(true);
+//		DebugUtil.setDetailedDebugDump(true);
 	}
 
 	@Test
@@ -117,7 +120,8 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         
         assignRole(USER_GUYBRUSH_OID, ROLE_PIRATE_OID, task, result);
         assignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
-        assignRole(USER_ELAINE_OID, ROLE_JUDGE_OID, task, result);
+        addObject(USER_HERMAN_FILE);
+        assignRole(USER_HERMAN_OID, ROLE_JUDGE_OID, task, result);
         
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -210,7 +214,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         assertNoDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
 
-        assertUsers(5);
+        assertUsers(6);
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -244,7 +248,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         	}
 
         }
-        assertEquals("Unexpected number of audit modifications", 5, modifications);
+        assertEquals("Unexpected number of audit modifications", 6, modifications);
         
         deleteObject(TaskType.class, TASK_USER_RECOMPUTE_OID, task, result);
 	}
@@ -259,7 +263,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
 
 	}
 
-	@Test(enabled=false) // work in progress
+	@Test
     public void test110RecomputeSome() throws Exception {
 		final String TEST_NAME = "test110RecomputeSome";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -269,9 +273,9 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
         // Preconditions
-        assertUsers(5);
+        assertUsers(6);
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
-        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_ELAINE_USERNAME, "Elaine Marley", true);
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_HERMAN_USERNAME, "Herman Toothrot", true);
                 
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -283,16 +287,16 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        addObject(TASK_USER_RECOMPUTE_FILE);
+        addObject(TASK_USER_RECOMPUTE_CAPTAIN_FILE);
         
         dummyAuditService.clear();
         
-        waitForTaskStart(TASK_USER_RECOMPUTE_OID, false);
+        waitForTaskStart(TASK_USER_RECOMPUTE_CAPTAIN_OID, false);
 		
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         
-        waitForTaskFinish(TASK_USER_RECOMPUTE_OID, true, 40000);
+        waitForTaskFinish(TASK_USER_RECOMPUTE_CAPTAIN_OID, true, 40000);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -305,10 +309,13 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "cutlass", "dagger");
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         
-        assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
-        assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_ELAINE_USERNAME);
+        // Red resource does not delete accounts on deprovision, it disables them
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
         
-        assertUsers(5);
+        // Only captains are recomputed. Therefore herman stays unrecomputed
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, USER_HERMAN_USERNAME, "Herman Toothrot", true);
+        
+        assertUsers(6);
         
 	}
 	
