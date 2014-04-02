@@ -9,12 +9,14 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlMixed;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.parser.PrismBeanConverter;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -42,29 +44,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
-
 /**
- * 
- *                 TODO
- *             
- * 
- * <p>Java class for RawType complex type.
- * 
- * <p>The following schema fragment specifies the expected content contained within this class.
- * 
- * <pre>
- * &lt;complexType name="RawType">
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;any/>
- *       &lt;/sequence>
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
- * </pre>
- * 
- * 
+ * A class used to hold raw XNodes until the definition for such an object is known.
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "RawType", propOrder = {
@@ -74,32 +55,58 @@ public class RawType implements Serializable, Cloneable, Equals {
 	private static final long serialVersionUID = 4430291958902286779L;
 	
 	public RawType() {
+        getContent();       // initialize the ContentList (otherwise JAXB provides its own implementation of it!)
 	}
 
     public RawType(XNode xnode) {
         this.xnode = xnode;
+        getContent();       // initialization has to come after setting xnode
     }
 
     /*
      *  At most one of these two values (xnode, parsed) should be set.
-     *  Content is present when parsing via JAXB, and hold there.
-     *  It is *NOT* updated on xnode/parsed changes, which are forbidden anyway.
      */
 
+    /**
+     * Unparsed value. It is set either on RawType instance construction
+     * or gradually constructed when parsing via JAXB (see ContentList class).
+     *
+     * Note that its type QName is coupled with the "type" attribute.
+     */
     @XmlTransient
 	private XNode xnode;
-	
+
+    /**
+     * Parsed value. It is computed when calling getParsedValue/getParsedItem methods.
+     *
+     * Beware: At most one of these fields (xnode, parsed) may be non-null at any instant.
+     */
 	@XmlTransient
 	private PrismValue parsed;
-	
+
+    /**
+     * Raw content (mix of strings, DOM elements and probably JAXB elements).
+     * It is set either when parsing via JAXB or when receiving an XNode value.
+     *
+     * It is *NOT* updated on xnode/parsed changes, which are forbidden anyway.
+     */
     @XmlMixed
     @XmlAnyElement
     protected List<Object> content;
-    
-	public XNode getXnode() {
-        parseContentListIfNeeded();
-		return xnode;
-	}
+
+    /**
+     * Explicit designation of the value type.
+     * It is set either when parsing via JAXB or when receiving XNode value.
+     *
+     * It is *NOT* updated on xnode/parsed changes, which are forbidden anyway.
+     */
+    @XmlAttribute(name = "type")
+    private QName type;
+
+    //region General getters/setters
+    public XNode getXnode() {
+        return xnode;
+    }
 
     public List<Object> getContent() {
         if (content == null) {
@@ -114,26 +121,23 @@ public class RawType implements Serializable, Cloneable, Equals {
         return content;
     }
 
-    public XNode serializeToXNode() throws SchemaException {
-        parseContentListIfNeeded();
+    public QName getType() {
         if (xnode != null) {
-            return xnode;
-        } else if (parsed != null) {
-            return parsed.getPrismContext().getXnodeProcessor().serializeItemValue(parsed);
+            return xnode.getTypeQName();
         } else {
-            return null;            // or an exception here?
+            return type;
         }
     }
 
-    // BRUTAL HACK until I figure out why my getContentList() and add() are not being called
-    private void parseContentListIfNeeded() {
-        if (xnode == null && parsed == null && content != null) {
-            for (Object o : content) {
-                addObject(o);
-            }
+    public void setType(QName type) {
+        this.type = type;
+        if (xnode != null) {
+            xnode.setTypeQName(type);
         }
     }
+    //endregion
 
+    //region ContentList management
     /**
      * We do not maintain ContentList after any changes in xnode or parsed are made.
      */
@@ -235,6 +239,7 @@ public class RawType implements Serializable, Cloneable, Equals {
         } else {
             throw new IllegalArgumentException("RAW TYPE ADD: "+e+" "+e.getClass());
         }
+        updateXNodeType();
     }
 
     private void addJaxbElement(JAXBElement jaxb) {
@@ -294,16 +299,17 @@ public class RawType implements Serializable, Cloneable, Equals {
         }
         xnode = new PrimitiveXNode();
         ((PrimitiveXNode)xnode).setValueParser(valueParser);
+        updateXNodeType();
     }
+    //endregion
 
-
+    //region Parsing and serialization
     // itemDefinition may be null; in that case we do the best what we can
 	public <V extends PrismValue> V getParsedValue(ItemDefinition itemDefinition, QName itemName) throws SchemaException {
-        parseContentListIfNeeded();
         if (parsed != null) {
 			return (V) parsed;
 		} else if (xnode != null) {
-            V value = null;
+            V value;
 			if (itemDefinition != null) {
 				PrismContext prismContext = itemDefinition.getPrismContext();
 				Item<V> subItem = prismContext.getXnodeProcessor().parseItem(xnode, itemDefinition.getName(), itemDefinition);
@@ -334,11 +340,30 @@ public class RawType implements Serializable, Cloneable, Equals {
         return item;
     }
 
+    private void updateXNodeType() {
+        if (type != null && xnode != null) {
+            xnode.setTypeQName(type);
+        }
+    }
+
+    public XNode serializeToXNode() throws SchemaException {
+        if (xnode != null) {
+            return xnode;
+        } else if (parsed != null) {
+            return parsed.getPrismContext().getXnodeProcessor().serializeItemValue(parsed);
+        } else {
+            return null;            // or an exception here?
+        }
+    }
+    //endregion
+
+    //region Cloning, comparing, dumping (TODO)
     public RawType clone() {
     	RawType clone = new RawType();
-        parseContentListIfNeeded();
+        clone.type = CloneUtil.clone(type);
         if (xnode != null) {
     	    clone.xnode = xnode.clone();
+            clone.updateXNodeType();
         } else if (parsed != null) {
             clone.parsed = parsed.clone();
         }
@@ -348,7 +373,6 @@ public class RawType implements Serializable, Cloneable, Equals {
     
 	@Override
 	public int hashCode() {
-        parseContentListIfNeeded();
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((xnode == null) ? 0 : xnode.hashCode());
@@ -358,7 +382,6 @@ public class RawType implements Serializable, Cloneable, Equals {
 
 	@Override
 	public boolean equals(Object obj) {
-        parseContentListIfNeeded();
 		if (this == obj)
 			return true;
 		if (obj == null)
@@ -389,5 +412,5 @@ public class RawType implements Serializable, Cloneable, Equals {
 			EqualsStrategy equalsStrategy) {
 		return equals(that);
 	}
-
+    //endregion
 }

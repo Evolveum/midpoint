@@ -27,8 +27,10 @@ import java.lang.reflect.Method;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -290,8 +292,11 @@ public class TestJaxbSanity {
 		assertNotNull(mod);
 		
 		//FIXME : modification value -> rawType...
-		JAXBElement<AssignmentType> assignmentTypeEl = (JAXBElement<AssignmentType>) mod.getItemDelta().get(0).getValue().get(0).getContent().get(0);
-		AssignmentType assignmentType = assignmentTypeEl.getValue();
+        RawType rawType = mod.getItemDelta().get(0).getValue().get(0);
+        ItemDefinition assignmentDefinition = PrismTestUtil.getPrismContext().getSchemaRegistry().findPropertyDefinitionByCompileTimeClass(AssignmentType.class);
+        assertNotNull(assignmentDefinition);
+		AssignmentType assignmentType = ((PrismPropertyValue<AssignmentType>) rawType.getParsedValue(assignmentDefinition, null)).getValue();
+//                was: (JAXBElement<AssignmentType>) mod.getItemDelta().get(0).getValue().get(0).getContent().get(0);
 		assertNotNull(assignmentType);
 		
 		System.out.println("\n*** assignment");

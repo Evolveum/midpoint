@@ -26,21 +26,18 @@
 	<itemDelta>
 		<t:modificationType>add</t:modificationType>
 		<t:path>c:linkRef</t:path>
-		<t:value>
-			<c:shadow xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"> 
-				<!-- No OID for account. The OID will be generated once the account shadow is added to the repository. -->
-				<!-- No name here. We expect that it will be generated -->
-				<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
-				<c:objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">ri:AccountObjectClass</c:objectClass>
-				<c:attributes xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
-					<icfs:name xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2">uid=jack,ou=People,dc=example,dc=com</icfs:name>
-					<ri:uid>jack</ri:uid>
-					<ri:cn>Jack Sparrow</ri:cn>
-					<ri:givenName>Jack</ri:givenName>
-					<ri:sn>Sparrow</ri:sn>
-				</c:attributes>
-			</c:shadow>
+		<t:value type="c:ShadowType">
+            <!-- No OID for account. The OID will be generated once the account shadow is added to the repository. -->
+            <!-- No name here. We expect that it will be generated -->
+            <c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
+            <c:objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">ri:AccountObjectClass</c:objectClass>
+            <c:attributes xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
+                <icfs:name xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2">uid=jack,ou=People,dc=example,dc=com</icfs:name>
+                <ri:uid>jack</ri:uid>
+                <ri:cn>Jack Sparrow</ri:cn>
+                <ri:givenName>Jack</ri:givenName>
+                <ri:sn>Sparrow</ri:sn>
+            </c:attributes>
 		</t:value>
 	</itemDelta>
 </objectModification>

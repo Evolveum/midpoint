@@ -30,6 +30,8 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.RawType;
 
+import javax.xml.namespace.QName;
+
 /**
  * @author semancik
  *
@@ -52,6 +54,10 @@ public class CloneUtil {
             // ...and so is String
             return orig;
         }
+//        if (orig.getClass().equals(QName.class)) {
+//            QName origQN = (QName) orig;
+//            return (T) new QName(origQN.getNamespaceURI(), origQN.getLocalPart(), origQN.getPrefix());
+//        }
         if (orig instanceof RawType){
 			return (T) ((RawType) orig).clone();
 		}

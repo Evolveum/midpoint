@@ -29,7 +29,7 @@
 	<itemDelta>
 		<t:modificationType>add</t:modificationType>
 		<t:path>c:assignment</t:path>
-		<t:value>
+		<t:value type="c:AssignmentType">
             <c:extension>
                 <my:shipName xsi:type="xsd:string">The Sea Monkey</my:shipName>
                 <ext:stringType>We can surely avoid scurvy if we all eat an orange</ext:stringType>

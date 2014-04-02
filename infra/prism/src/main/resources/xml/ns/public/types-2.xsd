@@ -396,6 +396,7 @@
         <xsd:sequence>
         	<xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
         </xsd:sequence>
+        <xsd:attribute name="type" type="xsd:QName" use="optional" />
     </xsd:complexType>
     
     <!-- ########################################### -->

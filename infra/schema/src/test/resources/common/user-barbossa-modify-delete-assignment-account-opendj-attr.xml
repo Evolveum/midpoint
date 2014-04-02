@@ -24,7 +24,7 @@
 		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">
 	<oid>c0c010c0-d34d-b33f-f00d-111111111112</oid>
 	<itemDelta modificationType="delete">
-		<t:value>
+		<t:value type="c:AssignmentType">
             <c:construction>
                 <c:resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
                 <c:attribute>
