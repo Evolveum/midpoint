@@ -19,6 +19,8 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.dom.ElementPrismPropertyImpl;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
@@ -241,6 +243,20 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
     				((Recomputable)value).checkConsistence();
     			} catch (IllegalStateException e) {
     				throw new IllegalStateException(e.getMessage()+" in property value "+this+" ("+myPath+" in "+rootItem+")", e);
+    			}
+    		}
+    		if (value instanceof PolyStringType) {
+    			throw new IllegalStateException("PolyStringType found in property value "+this+" ("+myPath+" in "+rootItem+")");
+    		}
+    		PrismContext prismContext = getPrismContext();
+    		if (value instanceof PolyString && prismContext != null) {
+    			PolyString poly = (PolyString)value;
+    			String orig = poly.getOrig();
+    			String norm = poly.getNorm();
+    			PolyStringNormalizer polyStringNormalizer = prismContext.getDefaultPolyStringNormalizer();
+    			String expectedNorm = polyStringNormalizer.normalize(orig);
+    			if (!norm.equals(expectedNorm)) {
+    				throw new IllegalStateException("PolyString has inconsistent orig ("+orig+") and norm ("+norm+") in property value "+this+" ("+myPath+" in "+rootItem+")");
     			}
     		}
     	}
@@ -478,7 +494,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
         }
         if (value != null) {
             if (DebugUtil.isDetailedDebugDump()) {
-            	sb.append(value.getClass().getSimpleName()).append(":");
+            	sb.append(" ").append(value.getClass().getSimpleName()).append(":");
             }
         	if (value instanceof DebugDumpable) {
         		if (wasIdent) {

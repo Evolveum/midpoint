@@ -16,56 +16,27 @@
 
 package com.evolveum.midpoint.schema;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertTrue;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
+import org.testng.annotations.Test;
+
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-import com.evolveum.prism.xml.ns._public.types_2.ChangeTypeType;
-import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
-import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
-
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Test;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.namespace.QName;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * Test delta operation on real midpoint schema. Similar to TestDelta in prism, but this is using the
@@ -180,6 +151,34 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 				
 		// WHEN
 		roleDelta.applyTo(role);
+        
+        // THEN
+        System.out.println("Role after delta application:");
+        System.out.println(role.debugDump());
+        assertEquals("Wrong OID", ROLE_CONSTRUCTION_OID, role.getOid());
+        PrismAsserts.assertPropertyValue(role, UserType.F_NAME, PrismTestUtil.createPolyString("Construction"));
+        PrismContainer<AssignmentType> assignment = role.findContainer(RoleType.F_INDUCEMENT);
+        assertNull("Unexpected inducement", assignment);
+    }
+    
+    @Test
+    public void testDeleteInducementValidIdEmptyValueApplyToObjectStatic() throws Exception {
+    	final String TEST_NAME = "testDeleteInducementValidIdEmptyValueApplyToObjectStatic";
+    	displayTestTile(TEST_NAME);
+    	
+    	// GIVEN
+		PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_CONSTRUCTION_FILE);
+		System.out.println("Role before delta application:");
+        System.out.println(role.debugDump());
+
+		//Delta
+		AssignmentType inducement = new AssignmentType();
+		inducement.setId(ROLE_CONSTRUCTION_INDUCEMENT_ID);
+        ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, ROLE_CONSTRUCTION_OID, 
+        		RoleType.F_INDUCEMENT, PrismTestUtil.getPrismContext(), inducement);
+				
+		// WHEN
+        PropertyDelta.applyTo(roleDelta.getModifications(), role);
         
         // THEN
         System.out.println("Role after delta application:");

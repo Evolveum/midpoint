@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -39,10 +40,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
+
 import java.io.Serializable;
 import java.util.*;
 
@@ -602,6 +605,10 @@ public class ObjectWrapper implements Serializable {
 
         //returning container to previous order
         Collections.sort(containers, new ItemWrapperComparator());
+        
+        if (InternalsConfig.consistencyChecks) {
+        	delta.checkConsistence(true, true, true);
+        }
 
 		return delta;
 	}

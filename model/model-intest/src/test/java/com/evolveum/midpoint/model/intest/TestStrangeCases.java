@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,6 +52,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -66,6 +67,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -117,6 +119,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		accountGuybrushDummyRedOid = accountGuybrushDummyRed.getOid();
 		
 		treasureIsland = IOUtils.toString(new FileInputStream(TREASURE_ISLAND_FILE)).replace("\r\n", "\n");     // for Windows compatibility
+		
+		DebugUtil.setDetailedDebugDump(true);
 	}
 
 	@Test
@@ -294,8 +298,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test200ModifyUserJackBrokenAccountRef() throws Exception {
-		final String TEST_NAME = "test200ModifyUserJackBrokenAccountRef";
+    public void test200ModifyUserJackBrokenAccountRefAndPolyString() throws Exception {
+		final String TEST_NAME = "test200ModifyUserJackBrokenAccountRefAndPolyString";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -305,11 +309,13 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         
         addBrokenAccountRef(USER_JACK_OID);
+        // Make sure that the polystring does not have correct norm value
+        PolyString fullNamePolyString = new PolyString("Magnificent Captain Jack Sparrow", null);
                         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
         modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, 
-        		PrismTestUtil.createPolyString("Magnificent Captain Jack Sparrow"));
+        		fullNamePolyString);
 		
 		// THEN
 		result.computeStatus();
