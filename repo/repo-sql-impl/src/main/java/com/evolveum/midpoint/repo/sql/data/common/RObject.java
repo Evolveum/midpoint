@@ -72,7 +72,13 @@ import java.util.Set;
         @NamedQuery(name = "fillHierarchy", query ="from ROrgIncorrect as o where o.ancestorOid = :oid"),
         @NamedQuery(name = "sqlDeleteOrgClosure", query="delete from ROrgClosure as o where o.descendantOid = :oid or o.ancestorOid = :oid"),
         @NamedQuery(name = "sqlDeleteOrgIncorrect", query="delete from ROrgIncorrect as o where o.descendantOid = :oid or o.ancestorOid = :oid"),
-        @NamedQuery(name = "listResourceObjectShadows", query="select s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.clobsCount, s.polysCount from RShadow as s left join s.resourceRef as ref where ref.targetOid = :oid")
+        @NamedQuery(name = "listResourceObjectShadows", query="select s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.clobsCount, s.polysCount from RShadow as s left join s.resourceRef as ref where ref.targetOid = :oid"),
+        @NamedQuery(name = "getDefinition.ROExtClob", query="select c.name, c.type, c.valueType from ROExtClob as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "getDefinition.ROExtDate", query="select c.name, c.type, c.valueType from ROExtDate as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "getDefinition.ROExtString", query="select c.name, c.type, c.valueType from ROExtString as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "getDefinition.ROExtPolyString", query="select c.name, c.type, c.valueType from ROExtPolyString as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "getDefinition.ROExtLong", query="select c.name, c.type, c.valueType from ROExtLong as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "getDefinition.ROExtReference", query="select c.name, c.type, c.valueType from ROExtReference as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
 })
 @Entity
 @Table(name = "m_object")

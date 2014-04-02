@@ -34,6 +34,7 @@ import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.data.common.any.RValueType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
@@ -997,14 +998,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             Short[] counts = result.getCountProjection();
             Class[] classes = GetObjectResult.EXT_COUNT_CLASSES;
 
-            if (counts != null) {
-                for (int i = 0; i < classes.length; i++) {
-                    if (counts[i] == null || counts[i] == 0) {
-                        continue;
-                    }
-
-                    applyShadowAttributeDefinitions(classes[i], prismObject, session);
+            for (int i = 0; i < classes.length; i++) {
+                if (counts[i] == null || counts[i] == 0) {
+                    continue;
                 }
+
+                applyShadowAttributeDefinitions(classes[i], prismObject, session);
             }
             LOGGER.debug("Definitions for attributes loaded. Counts: {}", Arrays.toString(counts));
         }
@@ -1019,10 +1018,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         PrismContainer attributes = object.findContainer(ShadowType.F_ATTRIBUTES);
 
-        Query query = session.createQuery("select c.name, c.type, c.valueType from "
-                + anyValueType.getSimpleName() + " as c where c.ownerOid = :oid and c.ownerType = :ownerType");
+        Query query = session.getNamedQuery("getDefinition." + anyValueType.getSimpleName());
         query.setParameter("oid", object.getOid());
-        query.setParameter("ownerType", RObjectType.SHADOW);
+        query.setParameter("ownerType", RObjectExtensionType.ATTRIBUTES);
 
         List<Object[]> values = query.list();
         if (values == null || values.isEmpty()) {

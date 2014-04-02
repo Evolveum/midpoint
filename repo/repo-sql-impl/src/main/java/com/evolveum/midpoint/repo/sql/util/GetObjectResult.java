@@ -12,9 +12,6 @@ import java.io.Serializable;
  */
 public class GetObjectResult implements Serializable {
 
-    public static final String EXT_COUNT_PROJECTION = "stringsCount, longsCount, datesCount, referencesCount, " +
-            "clobsCount, polysCount";
-
     public static final Class[] EXT_COUNT_CLASSES = new Class[]{ROExtString.class, ROExtLong.class, ROExtDate.class,
             ROExtReference.class, ROExtClob.class, ROExtPolyString.class};
 
