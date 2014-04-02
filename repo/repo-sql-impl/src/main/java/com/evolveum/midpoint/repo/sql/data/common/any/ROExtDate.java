@@ -33,7 +33,8 @@ import java.sql.Timestamp;
 @IdClass(ROExtDateId.class)
 @Table(name = "m_object_ext_date")
 @org.hibernate.annotations.Table(appliesTo = "m_object_ext_date",
-        indexes = {@Index(name = "iExtensionDate", columnNames = {"ownerType", "eName", "dateValue"})})
+        indexes = {@Index(name = "iExtensionDate", columnNames = {"ownerType", "eName", "dateValue"}),
+                @Index(name = "iExtensionDateDef", columnNames = {"owner_oid", "ownerType"})})
 public class ROExtDate implements ROExtValue {
 
     //owner entity

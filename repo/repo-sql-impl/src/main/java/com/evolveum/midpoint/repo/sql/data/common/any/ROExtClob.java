@@ -23,6 +23,7 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 
@@ -32,6 +33,8 @@ import javax.persistence.*;
 @Entity
 @IdClass(ROExtClobId.class)
 @Table(name = "m_object_ext_clob")
+@org.hibernate.annotations.Table(appliesTo = "m_object_ext_string",
+        indexes = {@Index(name = "iExtensionClobDef", columnNames = {"owner_oid", "ownerType"})})
 public class ROExtClob implements ROExtValue {
 
     //owner entity
