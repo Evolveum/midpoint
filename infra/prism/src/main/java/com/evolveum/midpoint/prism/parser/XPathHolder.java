@@ -289,7 +289,14 @@ public class XPathHolder {
 		return sb.toString();
 	}
 
-	public String getXPathWithDeclarations() {
+    public String getXPathWithoutDeclarations() {
+        StringBuilder sb = new StringBuilder();
+		addPureXpath(sb);
+        return sb.toString();
+    }
+
+
+    public String getXPathWithDeclarations() {
 //		StringBuilder sb = new StringBuilder();
 //
 //		addExplicitNsDeclarations(sb);

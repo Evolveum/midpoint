@@ -118,7 +118,7 @@ public class XPathTest {
             ItemPath path = pathType.getItemPath();
             XPathHolder xpath = new XPathHolder(path);
 
-            AssertJUnit.assertEquals("c:extension/piracy:ship[2]/c:name", xpath.getXPath());
+            AssertJUnit.assertEquals("c:extension/piracy:ship[2]/c:name", xpath.getXPathWithoutDeclarations());
 
             System.out.println("XPATH: " + xpath);
 
@@ -157,7 +157,7 @@ public class XPathTest {
 
             System.out.println("XPath from segments: " + xpathFromSegments);
 
-            AssertJUnit.assertEquals("c:extension/piracy:ship[2]/c:name", xpathFromSegments.getXPath());
+            AssertJUnit.assertEquals("c:extension/piracy:ship[2]/c:name", xpathFromSegments.getXPathWithoutDeclarations());
 
         }
 
@@ -246,7 +246,7 @@ public class XPathTest {
 
         XPathHolder xpath = new XPathHolder(xpathStr);
 
-        AssertJUnit.assertEquals("$v:var/x:xyz[10]", xpath.getXPath());
+        AssertJUnit.assertEquals("$v:var/x:xyz[10]", xpath.getXPathWithoutDeclarations());
         AssertJUnit.assertEquals("http://vvv.com", xpath.getNamespaceMap().get("v"));
         AssertJUnit.assertEquals("http://www.xxx.com", xpath.getNamespaceMap().get("x"));
     }
@@ -257,7 +257,7 @@ public class XPathTest {
         XPathHolder dotPath = new XPathHolder(".");
 
         AssertJUnit.assertTrue(dotPath.toSegments().isEmpty());
-        AssertJUnit.assertEquals(".", dotPath.getXPath());
+        AssertJUnit.assertEquals(".", dotPath.getXPathWithoutDeclarations());
     }
 
     @Test
@@ -293,8 +293,8 @@ public class XPathTest {
 
         XPathHolder xpath = new XPathHolder(xpathStr);
 
-        System.out.println("Pure XPath: "+xpath.getXPath());
-        AssertJUnit.assertEquals("foo:foofoo/x:bar", xpath.getXPath());
+        System.out.println("Pure XPath: "+xpath.getXPathWithoutDeclarations());
+        AssertJUnit.assertEquals("foo:foofoo/x:bar", xpath.getXPathWithoutDeclarations());
 
         System.out.println("ROUND TRIP: "+xpath.getXPathWithDeclarations());
         AssertJUnit.assertEquals("declare default namespace 'http://default.com/'; declare namespace foo='http://ff.com/'; declare namespace bar='http://www.b.com'; declare namespace x='http://xxx.com/'; foo:foofoo/x:bar",
@@ -313,8 +313,8 @@ public class XPathTest {
 
         XPathHolder xpath = new XPathHolder(xpathStr, namespaceMap);
 
-        System.out.println("Pure XPath: "+xpath.getXPath());
-        AssertJUnit.assertEquals("foo:foo/bar:bar", xpath.getXPath());
+        System.out.println("Pure XPath: "+xpath.getXPathWithoutDeclarations());
+        AssertJUnit.assertEquals("foo:foo/bar:bar", xpath.getXPathWithoutDeclarations());
 
         System.out.println("ROUND TRIP: "+xpath.getXPathWithDeclarations());
         AssertJUnit.assertEquals("foo:foo/bar:bar", xpath.getXPathWithDeclarations());
@@ -343,8 +343,8 @@ public class XPathTest {
 
         XPathHolder xpath = new XPathHolder(xpathStr);
 
-        System.out.println("Stragechars Pure XPath: "+xpath.getXPath());
-        AssertJUnit.assertEquals("$i:user/i:extension/ri:foobar", xpath.getXPath());
+        System.out.println("Stragechars Pure XPath: "+xpath.getXPathWithoutDeclarations());
+        AssertJUnit.assertEquals("$i:user/i:extension/ri:foobar", xpath.getXPathWithoutDeclarations());
 
         System.out.println("Stragechars ROUND TRIP: "+xpath.getXPathWithDeclarations());
 
