@@ -27,6 +27,7 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RCreateApproverRef;
 import com.evolveum.midpoint.repo.sql.data.common.type.RModifyApproverRef;
+import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
@@ -568,7 +569,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         repo.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTenantRef(), prismContext));
 
         if (jaxb.getExtension() != null) {
-            copyFromJAXB(jaxb.getExtension().asPrismContainerValue(), repo, prismContext, RObjectType.OBJECT);
+            copyFromJAXB(jaxb.getExtension().asPrismContainerValue(), repo, prismContext, RObjectExtensionType.EXTENSION);
         }
     }
 
@@ -581,7 +582,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     }
 
     public static void copyFromJAXB(PrismContainerValue containerValue, RObject repo, PrismContext prismContext,
-                                    RObjectType ownerType) throws DtoTranslationException {
+                                    RObjectExtensionType ownerType) throws DtoTranslationException {
         RAnyConverter converter = new RAnyConverter(prismContext);
 
         Set<RAnyValue> values = new HashSet<RAnyValue>();

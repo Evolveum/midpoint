@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.ROExtLongId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -38,7 +39,7 @@ public class ROExtLong implements ROExtValue {
     //owner entity
     private RObject owner;
     private String ownerOid;
-    private RObjectType ownerType;
+    private RObjectExtensionType ownerType;
 
     private boolean dynamic;
     private String name;
@@ -74,7 +75,7 @@ public class ROExtLong implements ROExtValue {
     @Id
     @Column(name = "ownerType")
     @Enumerated(EnumType.ORDINAL)
-    public RObjectType getOwnerType() {
+    public RObjectExtensionType getOwnerType() {
         return ownerType;
     }
 
@@ -135,7 +136,7 @@ public class ROExtLong implements ROExtValue {
         this.ownerOid = ownerOid;
     }
 
-    public void setOwnerType(RObjectType ownerType) {
+    public void setOwnerType(RObjectExtensionType ownerType) {
         this.ownerType = ownerType;
     }
 

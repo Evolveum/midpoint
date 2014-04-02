@@ -18,7 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.ROExtClobId;
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
@@ -37,7 +37,7 @@ public class ROExtClob implements ROExtValue {
     //owner entity
     private RObject owner;
     private String ownerOid;
-    private RObjectType ownerType;
+    private RObjectExtensionType ownerType;
 
     private boolean dynamic;
     private String name;
@@ -72,7 +72,7 @@ public class ROExtClob implements ROExtValue {
     @Id
     @Column(name = "ownerType")
     @Enumerated(EnumType.ORDINAL)
-    public RObjectType getOwnerType() {
+    public RObjectExtensionType getOwnerType() {
         return ownerType;
     }
 
@@ -149,7 +149,7 @@ public class ROExtClob implements ROExtValue {
         this.ownerOid = ownerOid;
     }
 
-    public void setOwnerType(RObjectType ownerType) {
+    public void setOwnerType(RObjectExtensionType ownerType) {
         this.ownerType = ownerType;
     }
 

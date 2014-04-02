@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
+import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
@@ -291,7 +292,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             Criterion c1 = Restrictions.eq("name.norm", "generic object");
             //and
             Conjunction c2 = Restrictions.conjunction();
-            c2.add(Restrictions.eq("l.ownerType", RObjectType.OBJECT));
+            c2.add(Restrictions.eq("l.ownerType", RObjectExtensionType.EXTENSION));
             c2.add(Restrictions.eq("l.name", new QName("http://example.com/p", "intType")));
             c2.add(Restrictions.eq("l.value", 123L));
 
@@ -341,12 +342,12 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             Criterion c1 = Restrictions.eq("intent", "some account type");
             //or
             Conjunction c2 = Restrictions.conjunction();
-            c2.add(Restrictions.eq("s1.ownerType", RObjectType.SHADOW));
+            c2.add(Restrictions.eq("s1.ownerType", RObjectExtensionType.ATTRIBUTES));
             c2.add(Restrictions.eq("s1.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
             c2.add(Restrictions.eq("s1.value", "foo value"));
             //or
             Conjunction c3 = Restrictions.conjunction();
-            c3.add(Restrictions.eq("s1.ownerType", RObjectType.OBJECT));
+            c3.add(Restrictions.eq("s1.ownerType", RObjectExtensionType.EXTENSION));
             c3.add(Restrictions.eq("s1.name", new QName("http://example.com/p", "stringType")));
             c3.add(Restrictions.eq("s1.value", "uid=test,dc=example,dc=com"));
             //or
@@ -542,7 +543,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     Restrictions.eq("r.resourceRef.targetOid", "aae7be60-df56-11df-8608-0002a5d5c51b"));
             //and
             Conjunction c2 = Restrictions.conjunction();
-            c2.add(Restrictions.eq("s1x.ownerType", RObjectType.SHADOW));
+            c2.add(Restrictions.eq("s1x.ownerType", RObjectExtensionType.ATTRIBUTES));
             c2.add(Restrictions.eq("s1x.name", new QName("http://midpoint.evolveum.com/blabla", "foo")));
             c2.add(Restrictions.eq("s1x.value", "uid=jbond,ou=People,dc=example,dc=com"));
 

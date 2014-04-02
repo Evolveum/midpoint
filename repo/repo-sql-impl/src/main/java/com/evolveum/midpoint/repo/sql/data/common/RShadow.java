@@ -24,6 +24,7 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.RFailedOperationType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RShadowKind;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.type.PrefixedStringType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -403,7 +404,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         }
 
         if (jaxb.getAttributes() != null) {
-            copyFromJAXB(jaxb.getAttributes().asPrismContainerValue(), repo, prismContext, RObjectType.SHADOW);
+            copyFromJAXB(jaxb.getAttributes().asPrismContainerValue(), repo, prismContext, RObjectExtensionType.ATTRIBUTES);
         }
     }
 

@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.id;
 
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 
 import java.io.Serializable;
 
@@ -26,7 +26,7 @@ import java.io.Serializable;
 public class ROExtLongId implements Serializable {
 
     private String ownerOid;
-    private RObjectType ownerType;
+    private RObjectExtensionType ownerType;
     private Long value;
     private String name;
 
@@ -38,11 +38,11 @@ public class ROExtLongId implements Serializable {
         this.ownerOid = ownerOid;
     }
 
-    public RObjectType getOwnerType() {
+    public RObjectExtensionType getOwnerType() {
         return ownerType;
     }
 
-    public void setOwnerType(RObjectType ownerType) {
+    public void setOwnerType(RObjectExtensionType ownerType) {
         this.ownerType = ownerType;
     }
 

@@ -27,6 +27,7 @@ import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyConverter;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryContext;
 import com.evolveum.midpoint.repo.sql.query.definition.AnyDefinition;
@@ -99,8 +100,8 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
 
         Conjunction conjunction = Restrictions.conjunction();
 
-        RObjectType ownerType = filter.getFullPath().first().equals(new NameItemPathSegment(ObjectType.F_EXTENSION)) ?
-                RObjectType.OBJECT : RObjectType.SHADOW;
+        RObjectExtensionType ownerType = filter.getFullPath().first().equals(new NameItemPathSegment(ObjectType.F_EXTENSION)) ?
+                RObjectExtensionType.EXTENSION : RObjectExtensionType.ATTRIBUTES;
         conjunction.add(Restrictions.eq(propertyNamePrefix + "ownerType", ownerType));
 
         conjunction.add(Restrictions.eq(propertyNamePrefix + RAnyValue.F_NAME, RUtil.qnameToString(name)));

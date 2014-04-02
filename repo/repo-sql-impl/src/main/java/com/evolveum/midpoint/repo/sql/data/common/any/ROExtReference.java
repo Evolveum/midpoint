@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.ROExtReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
@@ -40,7 +41,7 @@ public class ROExtReference implements ROExtValue {
     //owner entity
     private RObject owner;
     private String ownerOid;
-    private RObjectType ownerType;
+    private RObjectExtensionType ownerType;
 
     private boolean dynamic;
     private String name;
@@ -76,7 +77,7 @@ public class ROExtReference implements ROExtValue {
     @Id
     @Column(name = "ownerType")
     @Enumerated(EnumType.ORDINAL)
-    public RObjectType getOwnerType() {
+    public RObjectExtensionType getOwnerType() {
         return ownerType;
     }
 
@@ -147,7 +148,7 @@ public class ROExtReference implements ROExtValue {
         this.ownerOid = ownerOid;
     }
 
-    public void setOwnerType(RObjectType ownerType) {
+    public void setOwnerType(RObjectExtensionType ownerType) {
         this.ownerType = ownerType;
     }
 
