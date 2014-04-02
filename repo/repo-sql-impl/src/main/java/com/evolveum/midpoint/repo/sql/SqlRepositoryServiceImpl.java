@@ -40,6 +40,7 @@ import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -1051,7 +1052,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             SchemaException, ObjectAlreadyExistsException {
         LOGGER.trace("Modifying object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Modifications: {}", new Object[]{PrettyPrinter.prettyPrint(modifications)});
+            LOGGER.trace("Modifications:\n{}", new Object[]{DebugUtil.debugDump(modifications)});
         }
 
         Session session = null;
