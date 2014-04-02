@@ -378,7 +378,7 @@ public class DeltaConvertor {
 //        	DOMUtil.setNill(nilValueElement);
         	//FIXME : DOM?? vs Xnode??
         	
-			modValue.setXnode(null);
+			//modValue.setXnode(null);
         } else {
 	        for (PrismValue value : values) {
 	        	//FIXME: serilaize to XNode instead of dom??

@@ -612,8 +612,7 @@ public class PrismBeanConverter {
 		}
 		
 		if (RawType.class.isAssignableFrom(classType)) {
-			RawType rawType = new RawType();
-			rawType.setXnode(xprim);
+			RawType rawType = new RawType(xprim);
 			return (T) rawType;
 		}
 		

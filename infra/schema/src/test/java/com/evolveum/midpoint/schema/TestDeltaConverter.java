@@ -121,7 +121,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	PropertyDelta<ProtectedStringType> protectedStringDelta = objectDelta.findPropertyDelta(CREDENTIALS_PASSWORD_VALUE_PATH);
     	assertNotNull("No protectedString delta", protectedStringDelta);
     	Collection<PrismPropertyValue<ProtectedStringType>> valuesToReplace = protectedStringDelta.getValuesToReplace();
-    	assertEquals("Wrong number of values to add", 1, valuesToReplace.size());
+    	assertEquals("Wrong number of values to replace", 1, valuesToReplace.size());
     	PrismPropertyValue<ProtectedStringType> protectedStringVal = valuesToReplace.iterator().next();
     	assertNotNull("Null value in protectedStringDelta", protectedStringVal);
     	

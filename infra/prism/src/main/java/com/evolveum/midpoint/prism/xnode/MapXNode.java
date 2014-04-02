@@ -269,12 +269,12 @@ public class MapXNode extends XNode implements Map<QName,XNode> {
 		return MiscUtil.unorderedCollectionEquals(this.values(), other.values());
 	}
 
-	//TODO: really ugly.. TODO implement in proper way :)
 	public int hashCode() {
-		int result = 1;
-		System.out.println("map hask code");
+		int result = 0xCAFEBABE;
+        for (XNode node : this.values()) {
+            result = result ^ node.hashCode();          // using XOR instead of multiplying and adding in order to achieve commutativity
+        }
 		return result;
-//		return subnodes.hashCode();
 	}
 
 	@Override

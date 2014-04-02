@@ -56,6 +56,10 @@
 		<accountConstruction>
 			<howto>Whatever</howto>
 			<when>2012-02-24T10:48:52.000Z</when>
+            <value>ABC</value>              <!-- simple RawType content -->
+            <value>
+                <fullName>Nobody</fullName> <!-- complex RawType content (interpreted as UserType in tests) -->
+            </value>
 		</accountConstruction>
 	</assignment>
 	

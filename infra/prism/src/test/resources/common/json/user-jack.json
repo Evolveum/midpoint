@@ -43,7 +43,7 @@
       "accountConstruction" : {
         "howto" : "Just do it",
         "when" : 1330080532000,
-        "value" : [ { }, { } ]
+        "value" : [ "ABC", { "fullName" : "Nobody" } ]
       }
     } ],
     "activation" : {

@@ -15,14 +15,10 @@
  */
 package com.evolveum.midpoint.prism.xnode;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.util.DebugUtil;
+
+import javax.xml.namespace.QName;
 
 public class RootXNode extends XNode {
 
@@ -101,4 +97,25 @@ public class RootXNode extends XNode {
 	public String toString() {
 		return "XNode(root:"+subnode+")";
 	}
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        RootXNode rootXNode = (RootXNode) o;
+
+        if (rootElementName != null ? !rootElementName.equals(rootXNode.rootElementName) : rootXNode.rootElementName != null)
+            return false;
+        if (subnode != null ? !subnode.equals(rootXNode.subnode) : rootXNode.subnode != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = rootElementName != null ? rootElementName.hashCode() : 0;
+        result = 31 * result + (subnode != null ? subnode.hashCode() : 0);
+        return result;
+    }
 }

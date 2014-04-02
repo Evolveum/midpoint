@@ -46,9 +46,13 @@ public class CloneUtil {
 		}
 		if (orig instanceof PolyString) {
 			// PolyString is immutable
-			return (T)orig;
+			return orig;
 		}
-		if (orig instanceof RawType){
+        if (orig instanceof String) {
+            // ...and so is String
+            return orig;
+        }
+        if (orig instanceof RawType){
 			return (T) ((RawType) orig).clone();
 		}
 		if (orig instanceof Item<?>) {

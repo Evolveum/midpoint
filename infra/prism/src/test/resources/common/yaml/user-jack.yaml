@@ -34,6 +34,9 @@ user:
     accountConstruction:
       howto: "Just do it"
       when: 1330080532000
+      value:
+      - ABC
+      - fullName : Nobody
   activation:
     enabled: true
     validFrom: 170717400000

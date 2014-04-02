@@ -31,6 +31,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -406,6 +407,8 @@ public class DomParser implements Parser {
     }
 
     public Element serializeToElement(XNode xnode, QName elementName) throws SchemaException {
+        Validate.notNull(xnode);
+        Validate.notNull(elementName);
 		if (xnode instanceof MapXNode) {
 			return serializeXMapToElement((MapXNode) xnode, elementName);
 		} else if (xnode instanceof PrimitiveXNode<?>) {

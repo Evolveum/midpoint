@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.prism.xnode;
 
+import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Visitor;
@@ -67,11 +68,25 @@ public class SchemaXNode extends XNode {
 	public String getDesc() {
 		return "schema";
 	}
-	
-	@Override
-	public int hashCode() {
-		// TODO Auto-generated method stub
-		return super.hashCode();
-	}
-	
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        SchemaXNode that = (SchemaXNode) o;
+
+        if (schemaElement == null) {
+            return that.schemaElement == null;
+        }
+        if (that.schemaElement == null) {
+            return false;
+        }
+        return DOMUtil.compareElement(schemaElement, that.schemaElement, false);
+    }
+
+    @Override
+    public int hashCode() {
+        return 1;               // the same as in DomAwareHashCodeStrategy
+    }
 }

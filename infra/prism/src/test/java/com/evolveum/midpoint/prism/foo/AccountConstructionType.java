@@ -72,7 +72,7 @@ import javax.xml.namespace.QName;
     "value"
 })
 public class AccountConstructionType
-    implements Serializable
+    implements Serializable, Cloneable
 {
     private final static long serialVersionUID = 201202081233L;
     @XmlElement(required = true)
@@ -166,12 +166,26 @@ public class AccountConstructionType
 				return false;
 		} else if (!when.equals(other.when))
 			return false;
-        if (value == null) {
-            if (other.value != null)
-                return false;
-        } else if (!value.equals(other.value))
+        if (value == null || value.isEmpty()) {
+            return other.value == null || other.value.isEmpty();
+        } else if (other.value == null || other.value.isEmpty()) {
+            return value == null || value.isEmpty();
+        } else if (!value.equals(other.value)) {
             return false;
-		return true;
+        }
+        return true;
 	}
+
+    public AccountConstructionType clone() {
+        AccountConstructionType clone = new AccountConstructionType();
+        clone.howto = howto;
+        if (when != null) {
+            clone.when = (XMLGregorianCalendar) when.clone();
+        }
+        for (RawType value : getValue()) {
+            clone.getValue().add(value.clone());
+        }
+        return clone;
+    }
 
 }
