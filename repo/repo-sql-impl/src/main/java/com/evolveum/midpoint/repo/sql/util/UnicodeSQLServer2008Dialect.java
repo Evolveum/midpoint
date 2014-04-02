@@ -33,4 +33,9 @@ public class UnicodeSQLServer2008Dialect extends SQLServer2008Dialect {
         registerColumnType(Types.VARCHAR, "nvarchar(MAX)");
         registerColumnType(Types.VARCHAR, MAX_LENGTH, "nvarchar($l)");
     }
+
+    @Override
+    public String getCreateTemporaryTablePostfix() {
+        return " collate database_default";
+    }
 }
