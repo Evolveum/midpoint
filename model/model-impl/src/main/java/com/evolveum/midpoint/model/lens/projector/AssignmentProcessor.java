@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.lens.projector;
 
 import ch.qos.logback.classic.Logger;
 
+import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -27,7 +28,7 @@ import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.controller.ModelUtils;
 import com.evolveum.midpoint.model.lens.Construction;
 import com.evolveum.midpoint.model.lens.AccountConstructionPack;
-import com.evolveum.midpoint.model.lens.Assignment;
+import com.evolveum.midpoint.model.lens.EvaluatedAssignment;
 import com.evolveum.midpoint.model.lens.AssignmentEvaluator;
 import com.evolveum.midpoint.model.lens.AssignmentPath;
 import com.evolveum.midpoint.model.lens.AssignmentPathSegment;
@@ -82,6 +83,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import java.util.*;
@@ -120,6 +122,9 @@ public class AssignmentProcessor {
     
     @Autowired(required = true)
     private ProvisioningService provisioningService;
+    
+    @Autowired(required = true)
+	private ActivationComputer activationComputer;
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
 
@@ -127,7 +132,7 @@ public class AssignmentProcessor {
      * Processing all the assignments to determine which projections should be added, deleted or kept as they are.
      * Generic method for all projection types (theoretically). 
      */
-    public <O extends ObjectType> void processAssignmentsProjections(LensContext<O> context,
+    public <O extends ObjectType> void processAssignmentsProjections(LensContext<O> context, XMLGregorianCalendar now,
             Task task, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	LensFocusContext<O> focusContext = context.getFocusContext();
@@ -138,13 +143,14 @@ public class AssignmentProcessor {
     		// We can do this only for FocusType.
     		return;
     	}
-    	processAssignmentsAccounts((LensContext<? extends FocusType>)context, task, result);
+    	processAssignmentsAccounts((LensContext<? extends FocusType>)context, now, task, result);
     }
     
     /**
      * Processing user-account assignments (including roles). Specific user-account method.
      */
-    public <F extends FocusType> void processAssignmentsAccounts(LensContext<F> context, Task task, OperationResult result) throws SchemaException,
+    public <F extends FocusType> void processAssignmentsAccounts(LensContext<F> context, XMLGregorianCalendar now, 
+    		Task task, OperationResult result) throws SchemaException,
     		ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
     	LensFocusContext<F> focusContext = context.getFocusContext();
@@ -168,6 +174,7 @@ public class AssignmentProcessor {
         }
 
         ContainerDelta<AssignmentType> assignmentDelta = focusContext.getExecutionWaveAssignmentDelta();
+        assignmentDelta.expand(focusContext.getObjectCurrent());
 
         LOGGER.trace("Assignment delta {}", assignmentDelta.debugDump());
 
@@ -183,6 +190,8 @@ public class AssignmentProcessor {
         assignmentEvaluator.setObjectResolver(objectResolver);
         assignmentEvaluator.setPrismContext(prismContext);
         assignmentEvaluator.setMappingFactory(mappingFactory);
+        assignmentEvaluator.setActivationComputer(activationComputer);
+        assignmentEvaluator.setNow(now);
 
         // We will be collecting the evaluated account constructions into these three sets. 
         // It forms a kind of delta set triple for the account constructions.
@@ -200,7 +209,7 @@ public class AssignmentProcessor {
             source = focusContext.getObjectNew().asObjectable();
         }
         
-        DeltaSetTriple<Assignment> evaluatedAssignmentTriple = new DeltaSetTriple<Assignment>();
+        DeltaSetTriple<EvaluatedAssignment> evaluatedAssignmentTriple = new DeltaSetTriple<EvaluatedAssignment>();
         context.setEvaluatedAssignmentTriple(evaluatedAssignmentTriple);
         
         // Iterate over all the assignments. I mean really all. This is a union of the existing and changed assignments
@@ -240,7 +249,7 @@ public class AssignmentProcessor {
 
             LOGGER.trace("Processing assignment {}", SchemaDebugUtil.prettyPrint(assignmentType));
             
-            Assignment evaluatedAssignment = null;
+            EvaluatedAssignment evaluatedAssignment = null;
             try{
             	evaluatedAssignment = assignmentEvaluator.evaluate(assignmentType, source, assignmentPlacementDesc, task, result);
             } catch (ObjectNotFoundException ex){
@@ -655,7 +664,7 @@ public class AssignmentProcessor {
 	public <F extends ObjectType> void processOrgAssignments(LensContext<F> context, 
 			OperationResult result) throws SchemaException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
-		DeltaSetTriple<Assignment> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+		DeltaSetTriple<EvaluatedAssignment> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
 		if (focusContext == null || evaluatedAssignmentTriple == null) {
 			return;
 		}
@@ -666,7 +675,7 @@ public class AssignmentProcessor {
 		ItemPath orgRefPath = new ItemPath(FocusType.F_PARENT_ORG_REF);
 		
 		// Plus
-		for (Assignment assignment: evaluatedAssignmentTriple.getPlusSet()) {
+		for (EvaluatedAssignment assignment: evaluatedAssignmentTriple.getPlusSet()) {
 			Collection<PrismReferenceValue> orgs = assignment.getOrgRefVals();
 			for (PrismReferenceValue org: orgs) {
 				ItemDelta orgRefDelta = orgRefDef.createEmptyDelta(orgRefPath);
@@ -676,7 +685,7 @@ public class AssignmentProcessor {
 		}
 		
 		// Minus
-		for (Assignment assignment: evaluatedAssignmentTriple.getMinusSet()) {
+		for (EvaluatedAssignment assignment: evaluatedAssignmentTriple.getMinusSet()) {
 			Collection<PrismReferenceValue> orgs = assignment.getOrgRefVals();
 			for (PrismReferenceValue org: orgs) {
 				ItemDelta orgRefDelta = orgRefDef.createEmptyDelta(orgRefPath);
@@ -717,7 +726,7 @@ public class AssignmentProcessor {
     }
 
     private <F extends ObjectType> void collectToAccountMap(LensContext<F> context,
-            Map<ResourceShadowDiscriminator, AccountConstructionPack> accountMap, Assignment evaluatedAssignment, 
+            Map<ResourceShadowDiscriminator, AccountConstructionPack> accountMap, EvaluatedAssignment evaluatedAssignment, 
             boolean forceRecon, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         for (Construction accountConstruction : evaluatedAssignment.getConstructions()) {
             String resourceOid = accountConstruction.getResource(result).getOid();
@@ -772,21 +781,21 @@ public class AssignmentProcessor {
         }
     }
 
-	private <F extends ObjectType> void checkExclusions(LensContext<F> context, Collection<Assignment> assignmentsA,
-			Collection<Assignment> assignmentsB) throws PolicyViolationException {
-		for (Assignment assignmentA: assignmentsA) {
+	private <F extends ObjectType> void checkExclusions(LensContext<F> context, Collection<EvaluatedAssignment> assignmentsA,
+			Collection<EvaluatedAssignment> assignmentsB) throws PolicyViolationException {
+		for (EvaluatedAssignment assignmentA: assignmentsA) {
 			checkExclusion(context, assignmentA, assignmentsB);
 		}
 	}
 
-	private <F extends ObjectType> void checkExclusion(LensContext<F> context, Assignment assignmentA,
-			Collection<Assignment> assignmentsB) throws PolicyViolationException {
-		for (Assignment assignmentB: assignmentsB) {
+	private <F extends ObjectType> void checkExclusion(LensContext<F> context, EvaluatedAssignment assignmentA,
+			Collection<EvaluatedAssignment> assignmentsB) throws PolicyViolationException {
+		for (EvaluatedAssignment assignmentB: assignmentsB) {
 			checkExclusion(context, assignmentA, assignmentB);
 		}
 	}
 
-	private <F extends ObjectType> void checkExclusion(LensContext<F> context, Assignment assignmentA, Assignment assignmentB) throws PolicyViolationException {
+	private <F extends ObjectType> void checkExclusion(LensContext<F> context, EvaluatedAssignment assignmentA, EvaluatedAssignment assignmentB) throws PolicyViolationException {
 		if (assignmentA == assignmentB) {
 			// Same thing, this cannot exclude itself
 			return;
@@ -798,8 +807,8 @@ public class AssignmentProcessor {
 		}
 	}
 
-	private void checkExclusion(Construction constructionA, Assignment assignmentA,
-			Construction constructionB, Assignment assignmentB) throws PolicyViolationException {
+	private void checkExclusion(Construction constructionA, EvaluatedAssignment assignmentA,
+			Construction constructionB, EvaluatedAssignment assignmentB) throws PolicyViolationException {
 		AssignmentPath pathA = constructionA.getAssignmentPath();
 		AssignmentPath pathB = constructionB.getAssignmentPath();
 		for (AssignmentPathSegment segmentA: pathA.getSegments()) {

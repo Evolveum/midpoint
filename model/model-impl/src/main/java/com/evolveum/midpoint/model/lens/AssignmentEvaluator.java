@@ -18,8 +18,10 @@ package com.evolveum.midpoint.model.lens;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.prism.Containerable;
@@ -45,6 +47,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
@@ -53,6 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TimeIntervalStatusType;
 
 /**
  * @author semancik
@@ -69,6 +74,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 	private ObjectResolver objectResolver;
 	private PrismContext prismContext;
 	private MappingFactory mappingFactory;
+	private ActivationComputer activationComputer;
+	XMLGregorianCalendar now;
 	private boolean evaluateConstructions = true;
 	
 	public RepositoryService getRepository() {
@@ -127,6 +134,22 @@ public class AssignmentEvaluator<F extends FocusType> {
 		this.mappingFactory = mappingFactory;
 	}
 
+	public ActivationComputer getActivationComputer() {
+		return activationComputer;
+	}
+
+	public void setActivationComputer(ActivationComputer activationComputer) {
+		this.activationComputer = activationComputer;
+	}
+
+	public XMLGregorianCalendar getNow() {
+		return now;
+	}
+
+	public void setNow(XMLGregorianCalendar now) {
+		this.now = now;
+	}
+
 	public boolean isEvaluateConstructions() {
 		return evaluateConstructions;
 	}
@@ -135,41 +158,41 @@ public class AssignmentEvaluator<F extends FocusType> {
 		this.evaluateConstructions = evaluateConstructions;
 	}
 
-	public SimpleDelta<Assignment> evaluate(SimpleDelta<AssignmentType> assignmentTypeDelta, ObjectType source, String sourceDescription,
+	public SimpleDelta<EvaluatedAssignment> evaluate(SimpleDelta<AssignmentType> assignmentTypeDelta, ObjectType source, String sourceDescription,
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-		SimpleDelta<Assignment> delta = new SimpleDelta<Assignment>();
+		SimpleDelta<EvaluatedAssignment> delta = new SimpleDelta<EvaluatedAssignment>();
 		delta.setType(assignmentTypeDelta.getType());
 		for (AssignmentType assignmentType : assignmentTypeDelta.getChange()) {
 			assertSource(source, assignmentType);
-			Assignment assignment = evaluate(assignmentType, source, sourceDescription, task, result);
+			EvaluatedAssignment assignment = evaluate(assignmentType, source, sourceDescription, task, result);
 			delta.getChange().add(assignment);
 		}
 		return delta;
 	}
 	
-	public Assignment evaluate(AssignmentType assignmentType, ObjectType source, String sourceDescription, 
+	public EvaluatedAssignment evaluate(AssignmentType assignmentType, ObjectType source, String sourceDescription, 
 			Task task, OperationResult result)
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		assertSource(source, assignmentType);
-		Assignment assignment = new Assignment();
+		EvaluatedAssignment evalAssignment = new EvaluatedAssignment();
 		AssignmentPath assignmentPath = new AssignmentPath();
 		AssignmentPathSegment assignmentPathSegment = new AssignmentPathSegment(assignmentType, null);
 		assignmentPathSegment.setSource(source);
 		assignmentPathSegment.setEvaluationOrder(1);
 		assignmentPathSegment.setEvaluateConstructions(true);
 		
-		evaluateAssignment(assignment, assignmentPathSegment, source, sourceDescription, assignmentPath, task, result);
+		evaluateAssignment(evalAssignment, assignmentPathSegment, source, sourceDescription, assignmentPath, task, result);
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Assignment evaluation finished:\n{}", assignment.debugDump());
+			LOGGER.trace("Assignment evaluation finished:\n{}", evalAssignment.debugDump());
 		}
 		
-		return assignment;
+		return evalAssignment;
 	}
 	
-	private void evaluateAssignment(Assignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectType source, String sourceDescription,
+	private void evaluateAssignment(EvaluatedAssignment evalAssignment, AssignmentPathSegment assignmentPathSegment, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-		assertSource(source, assignment);
+		assertSource(source, evalAssignment);
 		
 		assignmentPath.add(assignmentPathSegment);
 		LOGGER.trace("Evaluate assignment {} (eval costr: {})", assignmentPath, assignmentPathSegment.isEvaluateConstructions());
@@ -178,31 +201,36 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		checkSchema(assignmentType, sourceDescription);
 		
-		if (assignmentType.getAccountConstruction() != null || assignmentType.getConstruction() != null) {
-			
-			if (evaluateConstructions && assignmentPathSegment.isEvaluateConstructions()) {
-				evaluateConstruction(assignment, assignmentPathSegment, source, sourceDescription, 
-						assignmentPath, assignmentPathSegment.getOrderOneObject(), task, result);
+		if (isValid(assignmentType, now)) {
+		
+			if (assignmentType.getAccountConstruction() != null || assignmentType.getConstruction() != null) {
+				
+				if (evaluateConstructions && assignmentPathSegment.isEvaluateConstructions()) {
+					evaluateConstruction(evalAssignment, assignmentPathSegment, source, sourceDescription, 
+							assignmentPath, assignmentPathSegment.getOrderOneObject(), task, result);
+				}
+				
+			} else if (assignmentType.getTarget() != null) {
+				
+				evaluateTarget(evalAssignment, assignmentPathSegment, assignmentType.getTarget(), source, null, sourceDescription,
+						assignmentPath, task, result);
+				
+			} else if (assignmentType.getTargetRef() != null) {
+				
+				evaluateTargetRef(evalAssignment, assignmentPathSegment, assignmentType.getTargetRef(), source, sourceDescription, 
+						assignmentPath, task, result);
+	
+			} else {
+				throw new SchemaException("No target or construcion in assignment in " + source);
 			}
-			
-		} else if (assignmentType.getTarget() != null) {
-			
-			evaluateTarget(assignment, assignmentPathSegment, assignmentType.getTarget(), source, null, sourceDescription,
-					assignmentPath, task, result);
-			
-		} else if (assignmentType.getTargetRef() != null) {
-			
-			evaluateTargetRef(assignment, assignmentPathSegment, assignmentType.getTargetRef(), source, sourceDescription, 
-					assignmentPath, task, result);
-
 		} else {
-			throw new SchemaException("No target or construcion in assignment in " + source);
+			LOGGER.trace("Skipping evaluation of assignment {} because it is not valid", assignmentType);
 		}
 		
 		assignmentPath.remove(assignmentPathSegment);
 	}
 
-	private void evaluateConstruction(Assignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectType source, String sourceDescription,
+	private void evaluateConstruction(EvaluatedAssignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, ObjectType orderOneObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		assertSource(source, assignment);
 		
@@ -236,7 +264,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		assignmentPathSegment.setEvaluatedAssignment(assignment);
 	}
 
-	private void evaluateTargetRef(Assignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectReferenceType targetRef, ObjectType source,
+	private void evaluateTargetRef(EvaluatedAssignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectReferenceType targetRef, ObjectType source,
 			String sourceDescription, AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		assertSource(source, assignment);
 		
@@ -275,7 +303,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 
 
-	private void evaluateTarget(Assignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectType target, 
+	private void evaluateTarget(EvaluatedAssignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectType target, 
 			ObjectType source, QName relation, String sourceDescription,
 			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		assertSource(source, assignment);
@@ -294,7 +322,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 
-	private void evaluateAbstractRole(Assignment assignment, AssignmentPathSegment assignmentPathSegment, 
+	private void evaluateAbstractRole(EvaluatedAssignment assignment, AssignmentPathSegment assignmentPathSegment, 
 			AbstractRoleType role, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		assertSource(source, assignment);
@@ -376,7 +404,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		return authorization;
 	}
 
-	private void assertSource(ObjectType source, Assignment assignment) {
+	private void assertSource(ObjectType source, EvaluatedAssignment assignment) {
 		if (source == null) {
 			throw new IllegalArgumentException("Source cannot be null (while evaluating assignment "+assignment+")");
 		}
@@ -411,6 +439,16 @@ public class AssignmentEvaluator<F extends FocusType> {
 				}
 			}
 		}
+	}
+	
+	private boolean isValid(AssignmentType assignmentType, XMLGregorianCalendar now) {
+		ActivationType activationType = assignmentType.getActivation();
+		if (activationType == null) {
+			return true;
+		}
+		TimeIntervalStatusType validityStatus = activationComputer.getValidityStatus(activationType, now);
+		ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType, validityStatus);
+		return effectiveStatus == ActivationStatusType.ENABLED;
 	}
 
 }

@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism.delta;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -177,6 +179,43 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 			}
 		}
 		return subValues;
+	}
+	
+	/**
+	 * Post processing of delta to expand missing values from the object. E.g. a delete deltas may
+	 * be "id-only" so they contain only id of the value to delete. In such case locate the full value
+	 * in the object and fill it into the delta.
+	 * This method may even delete in-only values that are no longer present in the object.
+	 */
+	public <O extends Objectable> void expand(PrismObject<O> object) throws SchemaException {
+		if (valuesToDelete != null) {
+			ItemPath path = this.getPath();
+			PrismContainer<Containerable> container = null;
+			if (object != null) {
+				container = object.findContainer(path);
+			}
+			Iterator<PrismContainerValue<V>> iterator = valuesToDelete.iterator();
+			while (iterator.hasNext()) {
+				PrismContainerValue<V> deltaCVal = iterator.next();
+				if ((deltaCVal.getItems() == null || deltaCVal.getItems().isEmpty())) {
+					Long id = deltaCVal.getId();
+					if (id == null) {
+						throw new IllegalArgumentException("No id and no items in value "+deltaCVal+" in delete set in "+this);
+					}
+					if (container != null) {
+						PrismContainerValue<Containerable> containerCVal = container.findValue(id);
+						if (containerCVal != null) {
+							for (Item<?> containerItem: containerCVal.getItems()) {
+								deltaCVal.add(containerItem.clone());
+							}
+							continue;
+						}
+					}
+					// id-only value with ID that is not in the object any more: delete the value from delta
+					iterator.remove();
+				}
+			}
+		}
 	}
 
 	@Override

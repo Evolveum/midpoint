@@ -633,9 +633,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void assignRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
+		SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+		PolicyViolationException, SecurityViolationException {
+		assignRole(userOid, roleOid, (ActivationType)null, task, result);
+	}
+	
+	protected void assignRole(String userOid, String roleOid, ActivationType activationType, Task task, OperationResult result) throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
-		modifyUserAssignment(userOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, true, result);
+		modifyUserAssignment(userOid, roleOid, RoleType.COMPLEX_TYPE, null, task, null, activationType, true, result);
 	}
 	
 	protected void unassignRole(String userOid, String roleOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
@@ -675,8 +681,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			ObjectReferenceType targetRef = assignment.getTargetRef();
 			if (targetRef != null) {
 				if (targetRef.getType().equals(RoleType.COMPLEX_TYPE)) {
-					modifications.add((createAssignmentModification(targetRef.getOid(), targetRef.getType(), 
-							targetRef.getRelation(), null, false)));
+					ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
+					PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>();
+					cval.setId(assignment.getId());
+					assignmentDelta.addValueToDelete(cval);
+					modifications.add(assignmentDelta);
 				}
 			}
 		}
@@ -718,11 +727,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modifyUserAssignment(userOid, orgOid, OrgType.COMPLEX_TYPE, relation, task, null, false, result);
 	}
 	
-	protected void modifyUserAssignment(String userOid, String roleOid, QName refType, QName relation, Task task, PrismContainer<?> extension, boolean add, OperationResult result) 
+	protected void modifyUserAssignment(String userOid, String roleOid, QName refType, QName relation, Task task, 
+			PrismContainer<?> extension, boolean add, OperationResult result) throws ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
+			PolicyViolationException, SecurityViolationException {
+		modifyUserAssignment(userOid, roleOid, refType, relation, task, extension, null, add, result);
+	}
+	
+	protected void modifyUserAssignment(String userOid, String roleOid, QName refType, QName relation, Task task, 
+			PrismContainer<?> extension, ActivationType activationType, boolean add, OperationResult result) 
 			throws ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
-		ObjectDelta<UserType> userDelta = createAssignmentUserDelta(userOid, roleOid, refType, relation, extension, add);
+		ObjectDelta<UserType> userDelta = createAssignmentUserDelta(userOid, roleOid, refType, relation, extension, activationType, add);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 		modelService.executeChanges(deltas, null, task, result);		
 	}
@@ -740,7 +757,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.executeChanges(deltas, null, task, result);		
 	}
 	
-	protected ContainerDelta<AssignmentType> createAssignmentModification(String roleOid, QName refType, QName relation, PrismContainer<?> extension, boolean add) throws SchemaException {
+	protected ContainerDelta<AssignmentType> createAssignmentModification(String roleOid, QName refType, QName relation, 
+			PrismContainer<?> extension, ActivationType activationType, boolean add) throws SchemaException {
 		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
 		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>();
 		if (add) {
@@ -755,12 +773,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		if (extension != null) {
 			cval.add(extension.clone());
 		}
+		cval.asContainerable().setActivation(activationType);
 		return assignmentDelta;
 	}
 	
 	protected ObjectDelta<UserType> createAssignmentUserDelta(String userOid, String roleOid, QName refType, QName relation, PrismContainer<?> extension, boolean add) throws SchemaException {
+		return createAssignmentUserDelta(userOid, roleOid, refType, relation, extension, null, add);
+	}
+	
+	protected ObjectDelta<UserType> createAssignmentUserDelta(String userOid, String roleOid, QName refType, QName relation, 
+			PrismContainer<?> extension, ActivationType activationType, boolean add) throws SchemaException {
 		Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
-		modifications.add((createAssignmentModification(roleOid, refType, relation, extension, add)));
+		modifications.add((createAssignmentModification(roleOid, refType, relation, extension, activationType, add)));
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, modifications, UserType.class, prismContext);
 		return userDelta;
 	}

@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.lens;
 
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -57,6 +58,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import java.io.FileNotFoundException;
@@ -81,6 +83,9 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
     @Autowired(required = true)
     private AssignmentProcessor assignmentProcessor;
+    
+    @Autowired(required = true)
+    private Clock clock;
 
     public TestAssignmentProcessor() throws JAXBException {
         super();
@@ -104,7 +109,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         context.recompute();
 
         // WHEN
-        assignmentProcessor.processAssignmentsAccounts(context, task, result);
+        assignmentProcessor.processAssignmentsAccounts(context, getNow(), task, result);
 
         // THEN
         display("outbound processor result", result);
@@ -135,7 +140,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignmentsAccounts(context, task, result);
+        assignmentProcessor.processAssignmentsAccounts(context, getNow(), task, result);
 
         // THEN
         display("Output context", context);
@@ -196,7 +201,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignmentsAccounts(context, task, result);
+        assignmentProcessor.processAssignmentsAccounts(context, getNow(), task, result);
 
         // THEN
         display("Output context", context);
@@ -238,7 +243,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignmentsAccounts(context, task, result);
+        assignmentProcessor.processAssignmentsAccounts(context, getNow(), task, result);
 
         // THEN
         display("Output context", context);
@@ -307,7 +312,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignmentsAccounts(context, task, result);
+        assignmentProcessor.processAssignmentsAccounts(context, getNow(), task, result);
 
         // THEN
         display("Output context", context);
@@ -407,7 +412,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignmentsAccounts(context, task, result);
+        assignmentProcessor.processAssignmentsAccounts(context, getNow(), task, result);
 
         // THEN
         display("Output context", context.dump(true));
@@ -496,7 +501,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 	        assertFocusModificationSanity(context);
 
 	        // WHEN
-	        assignmentProcessor.processAssignmentsAccounts(context, task, result);
+	        assignmentProcessor.processAssignmentsAccounts(context, getNow(), task, result);
 	        
 	        context.recompute();
 	        // THEN
@@ -638,4 +643,8 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 		assertNull("Projection "+accContext+" has decision "+accContext.getSynchronizationPolicyDecision()+" while not expecting any", accContext.getSynchronizationPolicyDecision());
 	}
     
+	private XMLGregorianCalendar getNow() {
+		return clock.currentTimeXMLGregorianCalendar();
+	}
+	
 }

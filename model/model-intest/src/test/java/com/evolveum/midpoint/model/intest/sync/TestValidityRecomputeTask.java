@@ -104,8 +104,45 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 	}
 	
 	@Test
-    public void test110HermanGoesInvalid() throws Exception {
-		final String TEST_NAME = "test110HermanGoesInvalid";
+    public void test110HermanAssignJudgeDisabled() throws Exception {
+		final String TEST_NAME = "test110HermanAssignJudgeDisabled";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ActivationType activationType = new ActivationType();
+        activationType.setAdministrativeStatus(ActivationStatusType.DISABLED);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_HERMAN_OID, ROLE_JUDGE_OID, activationType, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        assertNoDummyAccountById(null, USER_HERMAN_USERNAME);
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        assertNoDummyAccountById(null, USER_HERMAN_USERNAME);
+
+        PrismObject<UserType> user = getUser(USER_HERMAN_OID);
+        display("User after", user);
+        assertNoLinkedAccount(user);
+        
+        // CLEANUP
+        unassignAllRoles(USER_HERMAN_OID);
+        assertNoDummyAccountById(null, USER_HERMAN_USERNAME);
+	}
+	
+	@Test
+    public void test190HermanGoesInvalid() throws Exception {
+		final String TEST_NAME = "test190HermanGoesInvalid";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN

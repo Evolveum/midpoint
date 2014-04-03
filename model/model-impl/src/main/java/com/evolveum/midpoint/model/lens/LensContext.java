@@ -76,7 +76,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	transient private ProjectionPolicyType accountSynchronizationSettings;
 	transient private ValuePolicyType globalPasswordPolicy;
 
-	transient private DeltaSetTriple<Assignment> evaluatedAssignmentTriple;
+	transient private DeltaSetTriple<EvaluatedAssignment> evaluatedAssignmentTriple;
 	
 	/**
 	 * Just a cached copy. Keep it in context so we do not need to reload it all the time.
@@ -365,11 +365,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		this.doReconciliationForAllProjections = doReconciliationForAllProjections;
 	}
 	
-	public DeltaSetTriple<Assignment> getEvaluatedAssignmentTriple() {
+	public DeltaSetTriple<EvaluatedAssignment> getEvaluatedAssignmentTriple() {
 		return evaluatedAssignmentTriple;
 	}
 
-	public void setEvaluatedAssignmentTriple(DeltaSetTriple<Assignment> evaluatedAssignmentTriple) {
+	public void setEvaluatedAssignmentTriple(DeltaSetTriple<EvaluatedAssignment> evaluatedAssignmentTriple) {
 		this.evaluatedAssignmentTriple = evaluatedAssignmentTriple;
 	}
 	

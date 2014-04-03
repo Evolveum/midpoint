@@ -25,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 public class AssignmentPathSegment {
 	
 	private AssignmentType assignmentType;
-	private Assignment evaluatedAssignment;
+	private EvaluatedAssignment evaluatedAssignment;
 	private ObjectType target;
 	private ObjectType source;
 	private boolean evaluateConstructions = true;
@@ -46,11 +46,11 @@ public class AssignmentPathSegment {
 		this.assignmentType = assignmentType;
 	}
 
-	public Assignment getEvaluatedAssignment() {
+	public EvaluatedAssignment getEvaluatedAssignment() {
 		return evaluatedAssignment;
 	}
 
-	public void setEvaluatedAssignment(Assignment evaluatedAssignment) {
+	public void setEvaluatedAssignment(EvaluatedAssignment evaluatedAssignment) {
 		this.evaluatedAssignment = evaluatedAssignment;
 	}
 

@@ -16,10 +16,12 @@
 
 package com.evolveum.midpoint.model.security;
 
+import com.evolveum.midpoint.common.ActivationComputer;
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.UserComputer;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
-import com.evolveum.midpoint.model.lens.Assignment;
+import com.evolveum.midpoint.model.lens.EvaluatedAssignment;
 import com.evolveum.midpoint.model.lens.AssignmentEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -67,6 +69,12 @@ public class UserProfileServiceImpl implements UserProfileService {
     
     @Autowired(required = true)
     private UserComputer userComputer;
+    
+    @Autowired(required = true)
+	private ActivationComputer activationComputer;
+    
+    @Autowired(required = true)
+    private Clock clock;
     
     @Autowired(required = true)
     private PrismContext prismContext;
@@ -147,6 +155,8 @@ public class UserProfileServiceImpl implements UserProfileService {
         assignmentEvaluator.setObjectResolver(objectResolver);
         assignmentEvaluator.setPrismContext(prismContext);
         assignmentEvaluator.setMappingFactory(valueConstructionFactory);
+        assignmentEvaluator.setActivationComputer(activationComputer);
+        assignmentEvaluator.setNow(clock.currentTimeXMLGregorianCalendar());
         // We do need only authorizations. Therefore we not need to evaluate constructions,
         // so switching it off is faster. It also avoids nasty problems with resources being down,
         // resource schema not available, etc.
@@ -155,7 +165,7 @@ public class UserProfileServiceImpl implements UserProfileService {
         OperationResult result = new OperationResult(UserProfileServiceImpl.class.getName() + ".addAuthorizations");
         for(AssignmentType assignmentType: userType.getAssignment()) {
         	try {
-				Assignment assignment = assignmentEvaluator.evaluate(assignmentType, userType, userType.toString(), null, result);
+				EvaluatedAssignment assignment = assignmentEvaluator.evaluate(assignmentType, userType, userType.toString(), null, result);
 				authorizations.addAll(assignment.getAuthorizations());
 			} catch (SchemaException e) {
 				LOGGER.error("Schema violation while processing assignment of {}: {}; assignment: {}", 
