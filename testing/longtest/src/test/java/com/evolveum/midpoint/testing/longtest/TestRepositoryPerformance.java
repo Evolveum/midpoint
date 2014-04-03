@@ -81,13 +81,13 @@ public class TestRepositoryPerformance extends AbstractModelIntegrationTest {
 //    private static final int[] TREE_LEVELS = {2, 8, 5, 16};
 //    private static final int[] TREE_LEVELS_USER = {3, 5, 5, 10};
 
-    //98 org. units, 886 users
-//    private static final int[] TREE_LEVELS = {2, 8, 5};
-//    private static final int[] TREE_LEVELS_USER = {3, 5, 10};
+    //86 org. units, 636 users
+    private static final int[] TREE_LEVELS = {2, 7, 5};
+    private static final int[] TREE_LEVELS_USER = {3, 5, 8};
 
     //18 org. units, 86 users
-    private static final int[] TREE_LEVELS = {2, 8};
-    private static final int[] TREE_LEVELS_USER = {3, 5};
+//    private static final int[] TREE_LEVELS = {2, 8};
+//    private static final int[] TREE_LEVELS_USER = {3, 5};
 
     // We already have some users in LDAP instance
     private int ldapdUserCount = 4;
