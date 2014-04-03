@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,66 +15,33 @@
  */
 package com.evolveum.midpoint.model.sync;
 
-import java.util.Collection;
-import java.util.List;
-
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.ModelConstants;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.importer.ImportConstants;
-import com.evolveum.midpoint.model.lens.ChangeExecutor;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.ContextFactory;
 import com.evolveum.midpoint.model.lens.LensContext;
-import com.evolveum.midpoint.model.lens.LensFocusContext;
-import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.model.util.AbstractScannerResultHandler;
 import com.evolveum.midpoint.model.util.AbstractScannerTaskHandler;
-import com.evolveum.midpoint.model.util.AbstractSearchIterativeResultHandler;
-import com.evolveum.midpoint.model.util.AbstractSearchIterativeTaskHandler;
-import com.evolveum.midpoint.model.util.Utils;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.GreaterFilter;
 import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskCategory;
-import com.evolveum.midpoint.task.api.TaskHandler;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
-import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -87,10 +54,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -133,7 +96,6 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 		ObjectQuery query = new ObjectQuery();
 		ObjectFilter filter;
 		PrismObjectDefinition<UserType> focusObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-		PrismContainerDefinition<ActivationType> activationContainerDef = focusObjectDef.findContainerDefinition(FocusType.F_ACTIVATION);
 		
 		XMLGregorianCalendar lastScanTimestamp = handler.getLastScanTimestamp();
 		XMLGregorianCalendar thisScanTimestamp = handler.getThisScanTimestamp();
@@ -142,19 +104,41 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 						LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef, 
 								thisScanTimestamp, true),
 						LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef, 
-								thisScanTimestamp, true));
+								thisScanTimestamp, true)
+		// BUG BUG BUG
+//						LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), 
+//								focusObjectDef, thisScanTimestamp, true),
+//						LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), 
+//								focusObjectDef, thisScanTimestamp, true)
+				);
 		} else {
 			filter = OrFilter.createOr(
 						AndFilter.createAnd(
 							GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef, 
 									lastScanTimestamp, false),
 							LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef, 
-									thisScanTimestamp, true)),
+									thisScanTimestamp, true)
+						),
 						AndFilter.createAnd(
 							GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef, 
 									lastScanTimestamp, false),
 							LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef, 
-									thisScanTimestamp, true)));			
+									thisScanTimestamp, true)
+						)
+	// BUG BUG BUG
+//						AndFilter.createAnd(
+//								GreaterFilter.createGreater(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), 
+//										focusObjectDef, lastScanTimestamp, false),
+//								LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), 
+//										focusObjectDef, thisScanTimestamp, true)
+//							),
+//						AndFilter.createAnd(
+//								GreaterFilter.createGreater(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), 
+//										focusObjectDef, lastScanTimestamp, false),
+//								LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), 
+//										focusObjectDef, thisScanTimestamp, true)
+//							)
+			);			
 		}
 		
 		query.setFilter(filter);
