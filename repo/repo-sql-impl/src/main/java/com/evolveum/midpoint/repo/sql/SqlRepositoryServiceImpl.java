@@ -138,12 +138,32 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
         }
 
-        Query query = session.getNamedQuery("get.object");
-        query.setString("oid", oid);
-        query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
-        query.setLockOptions(lockOptions);
+        GetObjectResult fullObject = null;
+        if (!lockForUpdate) {
+            Query query = session.getNamedQuery("get.object");
+            query.setString("oid", oid);
+            query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
+            query.setLockOptions(lockOptions);
 
-        GetObjectResult fullObject = (GetObjectResult) query.uniqueResult();
+            fullObject = (GetObjectResult) query.uniqueResult();
+        } else {
+            // we're doing update after this get, therefore we load full object right now
+            // (it would be loaded during merge anyway)
+            // this just loads object to hibernate session, probably will be removed later. Merge after this get
+            // will be faster. Read and use object only from fullObject column.
+            // todo remove this later [lazyman]
+            Criteria criteria = session.createCriteria(ClassMapper.getHQLTypeClass(type));
+            criteria.add(Restrictions.eq("oid", oid));
+
+            criteria.setLockMode(lockOptions.getLockMode());
+            RObject obj = (RObject) criteria.uniqueResult();
+
+            if (obj != null) {
+                obj.toJAXB(getPrismContext(), options).asPrismObject();
+                fullObject = new GetObjectResult(obj.getFullObject(), obj.getStringsCount(), obj.getLongsCount(),
+                        obj.getDatesCount(), obj.getReferencesCount(), obj.getClobsCount(), obj.getPolysCount());
+            }
+        }
 
         LOGGER.trace("Got it.");
         if (fullObject == null) {
