@@ -20,8 +20,10 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 
+import com.evolveum.prism.xml.ns._public.types_2.ObjectReferenceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
@@ -650,14 +652,7 @@ public class XNodeProcessor {
         }
 
         for (XNode subnode : xlist) {
-            if (itemName.equals(referenceDefinition.getName())) {
-                // This is "real" reference (oid type and nothing more)
-                ref.add(parseReferenceValue(subnode, referenceDefinition));
-            } else {
-                // This is a composite object (complete object stored inside
-                // reference)
-                ref.add(parseReferenceAsCompositeObject(subnode, referenceDefinition));
-            }
+            parsePrismReferenceValueFromXNode(ref, subnode, referenceDefinition, itemName);
         }
         return ref;
     }
@@ -665,15 +660,37 @@ public class XNodeProcessor {
     private PrismReference parsePrismReferenceFromMap(MapXNode xmap, QName itemName,
                                                       PrismReferenceDefinition referenceDefinition) throws SchemaException {
         PrismReference ref = referenceDefinition.instantiate();
-        if (itemName.equals(referenceDefinition.getName())) {
-            // This is "real" reference (oid type and nothing more)
-            ref.add(parseReferenceValue(xmap, referenceDefinition));
+        parsePrismReferenceValueFromXNode(ref, xmap, referenceDefinition, itemName);
+        return ref;
+    }
+
+    private void parsePrismReferenceValueFromXNode(PrismReference ref, XNode subnode, PrismReferenceDefinition referenceDefinition, QName itemName) throws SchemaException {
+        /*
+         *  We distinguish between "real" references and composite objects by
+         *  (1) looking at type QName of XNode passed (whether it's ObjectType or ObjectReferenceType)
+         *  (2) comparing itemName and name from reference definition - e.g. linkRef vs. link
+         */
+        boolean isComposite;
+        if (subnode.getTypeQName() != null) {
+            QName typeName = subnode.getTypeQName();
+            if (prismContext != null) {
+                ItemDefinition definition = prismContext.getSchemaRegistry().findItemDefinitionByType(typeName);
+                isComposite = definition instanceof PrismObjectDefinition;
+            } else {
+                isComposite = PrismConstants.REFERENCE_TYPE_NAME.equals(typeName.getLocalPart());
+            }
         } else {
+            isComposite = !itemName.equals(referenceDefinition.getName());
+        }
+
+        if (isComposite) {
             // This is a composite object (complete object stored inside
             // reference)
-            ref.add(parseReferenceAsCompositeObject(xmap, referenceDefinition));
+            ref.add(parseReferenceAsCompositeObject(subnode, referenceDefinition));
+        } else {
+            // This is "real" reference (oid type and nothing more)
+            ref.add(parseReferenceValue(subnode, referenceDefinition));
         }
-        return ref;
     }
 
     public PrismReferenceValue parseReferenceValue(XNode xnode, PrismReferenceDefinition referenceDefinition) throws SchemaException {
