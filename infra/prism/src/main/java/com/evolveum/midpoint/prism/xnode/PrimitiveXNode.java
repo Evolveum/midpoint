@@ -228,7 +228,7 @@ public class PrimitiveXNode<T> extends XNode {
 			return value.equals(other.value);
 		} else if (!other.isParsed() && !isParsed()){
 			String thisStringVal = this.getStringValue();
-			String otherStringVal = this.getStringValue();
+			String otherStringVal = other.getStringValue();
 			return thisStringVal.equals(otherStringVal);
 		} else if (other.isParsed() && !isParsed()){
 			return other.value.equals(this.getStringValue());

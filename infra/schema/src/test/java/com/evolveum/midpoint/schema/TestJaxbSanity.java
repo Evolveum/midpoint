@@ -43,7 +43,6 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
@@ -293,9 +292,9 @@ public class TestJaxbSanity {
 		
 		//FIXME : modification value -> rawType...
         RawType rawType = mod.getItemDelta().get(0).getValue().get(0);
-        ItemDefinition assignmentDefinition = PrismTestUtil.getPrismContext().getSchemaRegistry().findPropertyDefinitionByCompileTimeClass(AssignmentType.class);
+        ItemDefinition assignmentDefinition = PrismTestUtil.getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AssignmentType.class);
         assertNotNull(assignmentDefinition);
-		AssignmentType assignmentType = ((PrismPropertyValue<AssignmentType>) rawType.getParsedValue(assignmentDefinition, null)).getValue();
+		AssignmentType assignmentType = ((PrismContainerValue<AssignmentType>) rawType.getParsedValue(assignmentDefinition, null)).getValue();
 //                was: (JAXBElement<AssignmentType>) mod.getItemDelta().get(0).getValue().get(0).getContent().get(0);
 		assertNotNull(assignmentType);
 		

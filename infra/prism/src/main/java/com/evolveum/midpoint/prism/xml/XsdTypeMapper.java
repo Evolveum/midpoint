@@ -168,11 +168,19 @@ public class XsdTypeMapper {
         }
         return null;
     }
-    
+
     public static <T> Class<T> toJavaType(QName xsdType) {
+        return toJavaType(xsdType, true);
+    }
+
+    public static <T> Class<T> toJavaTypeIfKnown(QName xsdType) {
+        return toJavaType(xsdType, false);
+    }
+
+    private static <T> Class<T> toJavaType(QName xsdType, boolean errorIfNoMapping) {
         Class<T> javaType = xsdToJavaTypeMap.get(xsdType);
         if (javaType == null) {
-            if (xsdType.getNamespaceURI().equals(XMLConstants.W3C_XML_SCHEMA_NS_URI)) {
+            if (errorIfNoMapping && xsdType.getNamespaceURI().equals(XMLConstants.W3C_XML_SCHEMA_NS_URI)) {
                 throw new IllegalArgumentException("No type mapping for XSD type " + xsdType);
             } else {
                 return null;
