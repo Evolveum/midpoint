@@ -160,23 +160,6 @@ public class ROrg extends RAbstractRole<OrgType> {
         repo.setTenant(jaxb.isTenant());
     }
 
-    public static void copyToJAXB(ROrg repo, OrgType jaxb, PrismContext prismContext,
-                                  Collection<SelectorOptions<GetOperationOptions>> options) throws
-            DtoTranslationException {
-        RAbstractRole.copyToJAXB(repo, jaxb, prismContext, options);
-
-        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-        jaxb.setCostCenter(repo.getCostCenter());
-        jaxb.setDisplayName(RPolyString.copyToJAXB(repo.getDisplayName()));
-        jaxb.setIdentifier(repo.getIdentifier());
-        jaxb.setLocality(RPolyString.copyToJAXB(repo.getLocality()));
-        jaxb.setTenant(repo.getTenant());
-        
-        if (SelectorOptions.hasToLoadPath(OrgType.F_ORG_TYPE, options)) {
-            jaxb.getOrgType().addAll(RUtil.safeSetToList(repo.getOrgType()));
-        }
-    }
-
     @Override
     public OrgType toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
             throws DtoTranslationException {

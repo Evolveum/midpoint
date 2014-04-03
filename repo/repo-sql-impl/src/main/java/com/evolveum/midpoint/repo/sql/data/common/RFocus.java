@@ -169,26 +169,12 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
         }
     }
 
+    @Deprecated
     public static <T extends FocusType> void copyToJAXB(RFocus<T> repo, FocusType jaxb, PrismContext prismContext,
                                                         Collection<SelectorOptions<GetOperationOptions>> options) throws
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext, options);
 
-        if (SelectorOptions.hasToLoadPath(FocusType.F_LINK_REF, options)) {
-            List linkRefs = RUtil.safeSetReferencesToList(repo.getLinkRef(), prismContext);
-            if (!linkRefs.isEmpty()) {
-                jaxb.getLinkRef().addAll(linkRefs);
-            }
-        }
 
-        if (SelectorOptions.hasToLoadPath(FocusType.F_ASSIGNMENT, options)) {
-            for (RAssignment rAssignment : repo.getAssignment()) {
-                jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
-            }
-        }
-
-        if (repo.getActivation() != null) {
-            jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
-        }
     }
 }

@@ -89,15 +89,6 @@ public class RRole extends RAbstractRole<RoleType> {
         return result;
     }
 
-    public static void copyToJAXB(RRole repo, RoleType jaxb, PrismContext prismContext,
-                                  Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-        RAbstractRole.copyToJAXB(repo, jaxb, prismContext, options);
-
-        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-        jaxb.setRoleType(repo.getRoleType());
-    }
-
     public static void copyFromJAXB(RoleType jaxb, RRole repo, PrismContext prismContext)
             throws DtoTranslationException {
         RAbstractRole.copyFromJAXB(jaxb, repo, prismContext);

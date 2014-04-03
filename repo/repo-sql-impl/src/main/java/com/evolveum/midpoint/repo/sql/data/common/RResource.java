@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.ROperationalState;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -30,7 +29,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceBusinessConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import org.hibernate.annotations.Cascade;
@@ -41,7 +39,6 @@ import org.hibernate.annotations.Where;
 import javax.persistence.*;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -152,39 +149,6 @@ public class RResource extends RObject<ResourceType> {
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (namespace != null ? namespace.hashCode() : 0);
         return result;
-    }
-
-    public static void copyToJAXB(RResource repo, ResourceType jaxb, PrismContext prismContext,
-                                  Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-        RObject.copyToJAXB(repo, jaxb, prismContext, options);
-
-        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-        jaxb.setNamespace(repo.getNamespace());
-
-        if (repo.getConnectorRef() != null) {
-            jaxb.setConnectorRef(repo.getConnectorRef().toJAXB(prismContext));
-        }
-
-        try {
-            if (!isResourceBusinessConfigurationEmpty(repo)) {
-                ResourceBusinessConfigurationType business = new ResourceBusinessConfigurationType();
-                jaxb.setBusiness(business);
-                if (repo.getAdministrativeState() != null) {
-                    business.setAdministrativeState(repo.getAdministrativeState().getSchemaValue());
-                }
-                List<ObjectReferenceType> approvers = RUtil.safeSetReferencesToList(repo.getApproverRef(), prismContext);
-                if (!approvers.isEmpty()) {
-                    business.getApproverRef().addAll(approvers);
-                }
-            }
-            if (repo.getOperationalState() != null) {
-                jaxb.setOperationalState(repo.getOperationalState().toJAXB(jaxb,
-                        new ItemPath(ResourceType.F_OPERATIONAL_STATE), prismContext));
-            }
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
-        }
     }
 
     public static void copyFromJAXB(ResourceType jaxb, RResource repo, PrismContext prismContext)

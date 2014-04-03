@@ -503,7 +503,8 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return result;
     }
 
-    public static <T extends ObjectType> void copyToJAXB(RObject<T> repo, ObjectType jaxb, PrismContext prismContext,
+    @Deprecated
+    protected static <T extends ObjectType> void copyToJAXB(RObject<T> repo, ObjectType jaxb, PrismContext prismContext,
                                                          Collection<SelectorOptions<GetOperationOptions>> options)
             throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
@@ -517,33 +518,6 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
             List orgRefs = RUtil.safeSetReferencesToList(repo.getParentOrgRef(), prismContext);
             if (!orgRefs.isEmpty()) {
                 jaxb.getParentOrgRef().addAll(orgRefs);
-            }
-        }
-
-        if (SelectorOptions.hasToLoadPath(ObjectType.F_TRIGGER, options)) {
-            if (repo.getTrigger() != null) {
-                for (RTrigger trigger : repo.getTrigger()) {
-                    jaxb.getTrigger().add(trigger.toJAXB(prismContext));
-                }
-            }
-        }
-
-        if (SelectorOptions.hasToLoadPath(ObjectType.F_METADATA, options)) {
-            MetadataType metadata = MetadataFactory.toJAXB(repo, prismContext);
-            jaxb.setMetadata(metadata);
-        }
-
-        if (SelectorOptions.hasToLoadPath(ObjectType.F_TENANT_REF, options)) {
-            if (repo.getTenantRef() != null) {
-                jaxb.setTenantRef(repo.getTenantRef().toJAXB(prismContext));
-            }
-        }
-
-        if (SelectorOptions.hasToLoadPath(ObjectType.F_EXTENSION, options)) {
-            ExtensionType extension = new ExtensionType();
-            copyExtensionToJAXB(repo, extension.asPrismContainerValue(), prismContext, RObjectType.OBJECT);
-            if (!extension.asPrismContainerValue().isEmpty()) {
-                jaxb.setExtension(extension);
             }
         }
     }
@@ -579,6 +553,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         }
     }
 
+    @Deprecated
     public abstract T toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
             throws DtoTranslationException;
 

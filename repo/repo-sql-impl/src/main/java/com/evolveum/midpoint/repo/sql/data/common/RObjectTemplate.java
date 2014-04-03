@@ -34,7 +34,6 @@ import org.hibernate.annotations.Where;
 import javax.persistence.*;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -108,22 +107,6 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (type != null ? type.hashCode() : 0);
         return result;
-    }
-
-    public static void copyToJAXB(RObjectTemplate repo, ObjectTemplateType jaxb, PrismContext prismContext,
-                                  Collection<SelectorOptions<GetOperationOptions>> options) throws
-            DtoTranslationException {
-        RObject.copyToJAXB(repo, jaxb, prismContext, options);
-
-        //set name c:userTemplate or c:objectTemplate
-        jaxb.asPrismObject().setElementName(repo.getType().getSchemaValue());
-
-        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-
-        List includeRef = RUtil.safeSetReferencesToList(repo.getIncludeRef(), prismContext);
-        if (!includeRef.isEmpty()) {
-            jaxb.getIncludeRef().addAll(includeRef);
-        }
     }
 
     public static void copyFromJAXB(ObjectTemplateType jaxb, RObjectTemplate repo, PrismContext prismContext) throws

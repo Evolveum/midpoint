@@ -117,18 +117,6 @@ public class RConnectorHost extends RObject<ConnectorHostType> {
         return result;
     }
 
-    public static void copyToJAXB(RConnectorHost repo, ConnectorHostType jaxb, PrismContext prismContext,
-                                  Collection<SelectorOptions<GetOperationOptions>> options) throws
-            DtoTranslationException {
-        RObject.copyToJAXB(repo, jaxb, prismContext, options);
-
-        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-        jaxb.setHostname(repo.getHostname());
-        jaxb.setPort(repo.getPort());
-        jaxb.setProtectConnection(repo.isProtectConnection());
-        jaxb.setTimeout(repo.getTimeout());
-    }
-
     public static void copyFromJAXB(ConnectorHostType jaxb, RConnectorHost repo, PrismContext prismContext) throws
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);

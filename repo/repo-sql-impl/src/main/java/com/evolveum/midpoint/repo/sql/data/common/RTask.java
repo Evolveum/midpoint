@@ -341,59 +341,6 @@ public class RTask extends RObject<TaskType> {
         return result1;
     }
 
-    public static void copyToJAXB(RTask repo, TaskType jaxb, PrismContext prismContext,
-                                  Collection<SelectorOptions<GetOperationOptions>> options) throws
-            DtoTranslationException {
-        RObject.copyToJAXB(repo, jaxb, prismContext, options);
-
-        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-        jaxb.setTaskIdentifier(repo.getTaskIdentifier());
-        if (repo.getExecutionStatus() != null) {
-            jaxb.setExecutionStatus(repo.getExecutionStatus().getSchemaValue());
-        }
-        jaxb.setHandlerUri(repo.getHandlerUri());
-        jaxb.setLastRunFinishTimestamp(repo.getLastRunFinishTimestamp());
-        jaxb.setCompletionTimestamp(repo.getCompletionTimestamp());
-        jaxb.setLastRunStartTimestamp(repo.getLastRunStartTimestamp());
-        jaxb.setNode(repo.getNode());
-        jaxb.setProgress(repo.getProgress());
-        jaxb.setExpectedTotal(repo.getExpectedTotal());
-        if (repo.getBinding() != null) {
-            jaxb.setBinding(repo.getBinding().getSchemaValue());
-        }
-        if (repo.getRecurrence() != null) {
-            jaxb.setRecurrence(repo.getRecurrence().getSchemaValue());
-        }
-        if (repo.getResultStatus() != null) {
-            jaxb.setResultStatus(repo.getResultStatus().getSchemaValue());
-        }
-        jaxb.setCanRunOnNode(repo.getCanRunOnNode());
-        if (repo.getThreadStopAction() != null) {
-            jaxb.setThreadStopAction(repo.getThreadStopAction().getSchemaValue());
-        }
-        jaxb.setCategory(repo.getCategory());
-        jaxb.setParent(repo.getParent());
-
-        if (repo.getObjectRef() != null) {
-            jaxb.setObjectRef(repo.getObjectRef().toJAXB(prismContext));
-        }
-        if (repo.getOwnerRef() != null) {
-            jaxb.setOwnerRef(repo.getOwnerRef().toJAXB(prismContext));
-        }
-
-        if (repo.getResult() != null) {
-            jaxb.setResult(repo.getResult().toJAXB(prismContext));
-        }
-
-        if (repo.getWaitingReason() != null) {
-            jaxb.setWaitingReason(repo.getWaitingReason().getSchemaValue());
-        }
-        List types = RUtil.safeSetToList(repo.getDependent());
-        if (!types.isEmpty()) {
-            jaxb.getDependent().addAll(types);
-        }
-    }
-
     public static void copyFromJAXB(TaskType jaxb, RTask repo, PrismContext prismContext) throws
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);

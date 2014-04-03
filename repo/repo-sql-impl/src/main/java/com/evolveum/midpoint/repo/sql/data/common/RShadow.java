@@ -303,61 +303,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         return result1;
     }
 
-    public static <T extends ShadowType> void copyToJAXB(RShadow<T> repo, ShadowType jaxb,
-                                                         PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-        RObject.copyToJAXB(repo, jaxb, prismContext, options);
-
-        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-        jaxb.setObjectClass(RUtil.stringToQName(repo.getObjectClass()));
-        jaxb.setIntent(repo.getIntent());
-        jaxb.setFullSynchronizationTimestamp(repo.getFullSynchronizationTimestamp());
-        if (repo.getActivation() != null) {
-            jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
-        }
-
-        if (repo.getResult() != null) {
-            jaxb.setResult(repo.getResult().toJAXB(prismContext));
-        }
-
-        if (repo.getResourceRef() != null) {
-            jaxb.setResourceRef(repo.getResourceRef().toJAXB(prismContext));
-        }
-
-        jaxb.setAttemptNumber(repo.getAttemptNumber());
-        if (repo.getFailedOperationType() != null) {
-            jaxb.setFailedOperationType(repo.getFailedOperationType().getSchemaValue());
-        }
-
-        if (repo.getSynchronizationSituation() != null) {
-            jaxb.setSynchronizationSituation(repo.getSynchronizationSituation().getSchemaValue());
-        }
-
-        jaxb.setIteration(repo.getIteration());
-        jaxb.setIterationToken(repo.getIterationToken());
-        jaxb.setAssigned(repo.isAssigned());
-        jaxb.setExists(repo.isExists());
-        jaxb.setDead(repo.isDead());
-        if (repo.getKind() != null) {
-            jaxb.setKind(repo.getKind().getSchemaValue());
-        }
-
-        List situations = RUtil.safeSetSyncSituationToList(repo.getSynchronizationSituationDescription());
-        if (!situations.isEmpty()) {
-            jaxb.getSynchronizationSituationDescription().addAll(situations);
-        }
-
-        jaxb.setSynchronizationTimestamp(repo.getSynchronizationTimestamp());
-
-        if (SelectorOptions.hasToLoadPath(ShadowType.F_ATTRIBUTES, options)) {
-            ShadowAttributesType attributes = new ShadowAttributesType();
-            copyExtensionToJAXB(repo, attributes.asPrismContainerValue(), prismContext, RObjectType.SHADOW);
-            if (!attributes.asPrismContainerValue().isEmpty()) {
-                jaxb.setAttributes(attributes);
-            }
-        }
-    }
-
     public static <T extends ShadowType> void copyFromJAXB(ShadowType jaxb, RShadow<T> repo,
                                                            PrismContext prismContext) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
@@ -413,7 +358,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
             throws DtoTranslationException {
         ShadowType object = new ShadowType();
         RUtil.revive(object, prismContext);
-        RShadow.copyToJAXB(this, object, prismContext, options);
+        RObject.copyToJAXB(this, object, prismContext, options);
 
         return (T) object;
     }

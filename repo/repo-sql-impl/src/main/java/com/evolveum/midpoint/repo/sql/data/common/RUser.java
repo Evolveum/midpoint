@@ -403,66 +403,6 @@ public class RUser extends RFocus<UserType> {
         repo.setOrganization(RUtil.listPolyToSet(jaxb.getOrganization()));
     }
 
-    public static void copyToJAXB(RUser repo, UserType jaxb, PrismContext prismContext,
-                                  Collection<SelectorOptions<GetOperationOptions>> options) throws
-            DtoTranslationException {
-        RFocus.copyToJAXB(repo, jaxb, prismContext, options);
-
-        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-        jaxb.setFullName(RPolyString.copyToJAXB(repo.getFullName()));
-        jaxb.setGivenName(RPolyString.copyToJAXB(repo.getGivenName()));
-        jaxb.setFamilyName(RPolyString.copyToJAXB(repo.getFamilyName()));
-        jaxb.setHonorificPrefix(RPolyString.copyToJAXB(repo.getHonorificPrefix()));
-        jaxb.setHonorificSuffix(RPolyString.copyToJAXB(repo.getHonorificSuffix()));
-        jaxb.setEmployeeNumber(repo.getEmployeeNumber());
-        jaxb.setLocality(RPolyString.copyToJAXB(repo.getLocality()));
-        jaxb.setAdditionalName(RPolyString.copyToJAXB(repo.getAdditionalName()));
-        jaxb.setEmailAddress(repo.getEmailAddress());
-        jaxb.setTelephoneNumber(repo.getTelephoneNumber());
-
-        jaxb.setCostCenter(repo.getCostCenter());
-        jaxb.setTimezone(repo.getTimezone());
-        jaxb.setLocale(repo.getLocale());
-        jaxb.setPreferredLanguage(repo.getPreferredLanguage());
-        jaxb.setTitle(RPolyString.copyToJAXB(repo.getTitle()));
-        jaxb.setNickName(RPolyString.copyToJAXB(repo.getNickName()));
-        if (SelectorOptions.hasToLoadPath(UserType.F_JPEG_PHOTO, options)) {
-            jaxb.setJpegPhoto(repo.getJpegPhoto());
-        }
-
-        if (repo.getCredentials() != null) {
-            ItemPath path = new ItemPath(UserType.F_CREDENTIALS);
-            jaxb.setCredentials(repo.getCredentials().toJAXB(jaxb, path, prismContext));
-        }
-
-        if (SelectorOptions.hasToLoadPath(UserType.F_EMPLOYEE_TYPE, options)) {
-            List types = RUtil.safeSetToList(repo.getEmployeeType());
-            if (!types.isEmpty()) {
-                jaxb.getEmployeeType().addAll(types);
-            }
-        }
-
-        if (SelectorOptions.hasToLoadPath(UserType.F_ORGANIZATIONAL_UNIT, options)) {
-            List units = RUtil.safeSetPolyToList(repo.getOrganizationalUnit());
-            if (!units.isEmpty()) {
-                jaxb.getOrganizationalUnit().addAll(units);
-            }
-        }
-
-        if (SelectorOptions.hasToLoadPath(UserType.F_ORGANIZATION, options)) {
-            List units = RUtil.safeSetPolyToList(repo.getOrganization());
-            if (!units.isEmpty()) {
-                jaxb.getOrganization().addAll(units);
-            }
-        }
-
-        if (SelectorOptions.hasToLoadPath(UserType.F_RESULT, options)) {
-            if (repo.getResult() != null) {
-                jaxb.setResult(repo.getResult().toJAXB(prismContext));
-            }
-        }
-    }
-
     @Override
     public UserType toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
             throws DtoTranslationException {

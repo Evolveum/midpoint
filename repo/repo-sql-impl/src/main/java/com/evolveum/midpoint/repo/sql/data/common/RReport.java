@@ -138,26 +138,6 @@ public class RReport extends RObject<ReportType> {
         }
     }
 
-    public static void copyToJAXB(RReport repo, ReportType jaxb, PrismContext prismContext,
-                                  Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-
-        RObject.copyToJAXB(repo, jaxb, prismContext, options);
-
-        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-        jaxb.setParent(repo.getParent());
-        jaxb.setUseHibernateSession(repo.getUseHibernateSession());
-        if (repo.getDataSource() != null) {
-            jaxb.setDataSource(repo.getDataSource().toJAXB(prismContext));
-        }
-        if (repo.getOrientation() != null) {
-            jaxb.setOrientation(repo.getOrientation().getSchemaValue());
-        }
-        if (repo.getExport() != null) {
-            jaxb.setExport(repo.getExport().getSchemaValue());
-        }
-    }
-
     @Override
     public ReportType toJAXB(PrismContext prismContext,
                              Collection<SelectorOptions<GetOperationOptions>> options)

@@ -165,32 +165,6 @@ public class RConnector extends RObject<ConnectorType> {
         return result;
     }
 
-    public static void copyToJAXB(RConnector repo, ConnectorType jaxb, PrismContext prismContext,
-                                  Collection<SelectorOptions<GetOperationOptions>> options) throws
-            DtoTranslationException {
-        RObject.copyToJAXB(repo, jaxb, prismContext, options);
-
-        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-        jaxb.setConnectorBundle(repo.getConnectorBundle());
-        jaxb.setConnectorType(repo.getConnectorType());
-        jaxb.setConnectorVersion(repo.getConnectorVersion());
-        jaxb.setFramework(repo.getFramework());
-        jaxb.setNamespace(repo.getNamespace());
-
-        try {
-            if (repo.getConnectorHostRef() != null) {
-                jaxb.setConnectorHostRef(repo.getConnectorHostRef().toJAXB(prismContext));
-            }
-
-            List types = RUtil.safeSetToList(repo.getTargetSystemType());
-            if (!types.isEmpty()) {
-                jaxb.getTargetSystemType().addAll(types);
-            }
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
-        }
-    }
-
     public static void copyFromJAXB(ConnectorType jaxb, RConnector repo, PrismContext prismContext) throws
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);

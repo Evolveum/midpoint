@@ -107,21 +107,6 @@ public class RSystemConfiguration extends RObject<SystemConfigurationType> {
         return result;
     }
 
-    public static void copyToJAXB(RSystemConfiguration repo, SystemConfigurationType jaxb,
-                                  PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-        RObject.copyToJAXB(repo, jaxb, prismContext, options);
-
-        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-        if (repo.getDefaultUserTemplateRef() != null) {
-            jaxb.setDefaultUserTemplateRef(repo.getDefaultUserTemplateRef().toJAXB(prismContext));
-        }
-
-        if (repo.getGlobalPasswordPolicyRef() != null) {
-            jaxb.setGlobalPasswordPolicyRef(repo.getGlobalPasswordPolicyRef().toJAXB(prismContext));
-        }
-    }
-
     public static void copyFromJAXB(SystemConfigurationType jaxb, RSystemConfiguration repo,
                                     PrismContext prismContext) throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);

@@ -71,15 +71,6 @@ public class RSecurityPolicy extends RObject<SecurityPolicyType> {
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
     }
 
-    public static void copyToJAXB(RSecurityPolicy repo, SecurityPolicyType jaxb, PrismContext prismContext,
-                                  Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-
-        RObject.copyToJAXB(repo, jaxb, prismContext, options);
-
-        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-    }
-
     @Override
     public SecurityPolicyType toJAXB(PrismContext prismContext,
                              Collection<SelectorOptions<GetOperationOptions>> options)

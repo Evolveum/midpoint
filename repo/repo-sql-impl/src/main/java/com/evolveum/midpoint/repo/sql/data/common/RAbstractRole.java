@@ -164,46 +164,6 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
         return result;
     }
 
-    public static <T extends AbstractRoleType> void copyToJAXB(RAbstractRole<T> repo, AbstractRoleType jaxb,
-                                                               PrismContext prismContext,
-                                                               Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-        RFocus.copyToJAXB(repo, jaxb, prismContext, options);
-
-        jaxb.setRequestable(repo.getRequestable());
-        if (SelectorOptions.hasToLoadPath(AbstractRoleType.F_INDUCEMENT, options)) {
-            if (repo.getInducement() != null) {
-                for (RAssignment inducement : repo.getInducement()) {
-                    jaxb.getInducement().add(inducement.toJAXB(prismContext));
-                }
-            }
-        }
-        if (SelectorOptions.hasToLoadPath(AbstractRoleType.F_EXCLUSION, options)) {
-            if (repo.getExclusion() != null) {
-                for (RExclusion rExclusion : repo.getExclusion()) {
-                    jaxb.getExclusion().add(rExclusion.toJAXB(prismContext));
-                }
-            }
-        }
-        if (SelectorOptions.hasToLoadPath(AbstractRoleType.F_AUTHORIZATION, options)) {
-            if (repo.getAuthorization() != null) {
-                for (RAuthorization rAuth : repo.getAuthorization()) {
-                    jaxb.getAuthorization().add(rAuth.toJAXB(prismContext));
-                }
-            }
-        }
-
-        if (SelectorOptions.hasToLoadPath(AbstractRoleType.F_APPROVER_REF, options)) {
-            if (repo.getApproverRef() != null) {
-                for (RObjectReference repoRef : repo.getApproverRef()) {
-                    jaxb.getApproverRef().add(repoRef.toJAXB(prismContext));
-                }
-            }
-        }
-
-        jaxb.setApprovalProcess(repo.getApprovalProcess());
-    }
-
     public static <T extends AbstractRoleType> void copyFromJAXB(AbstractRoleType jaxb, RAbstractRole<T> repo,
                                                                  PrismContext prismContext) throws DtoTranslationException {
         RFocus.copyFromJAXB(jaxb, repo, prismContext);

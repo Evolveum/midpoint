@@ -155,21 +155,6 @@ public class RNode extends RObject<NodeType> {
         return result;
     }
 
-    public static void copyToJAXB(RNode repo, NodeType jaxb, PrismContext prismContext,
-                                  Collection<SelectorOptions<GetOperationOptions>> options) throws
-            DtoTranslationException {
-        RObject.copyToJAXB(repo, jaxb, prismContext, options);
-
-        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-        jaxb.setHostname(repo.getHostname());
-        jaxb.setNodeIdentifier(repo.getNodeIdentifier());
-        jaxb.setJmxPort(repo.getJmxPort());
-        jaxb.setLastCheckInTime(repo.getLastCheckInTime());
-        jaxb.setRunning(repo.getRunning());
-        jaxb.setClustered(repo.getClustered());
-        jaxb.setInternalNodeIdentifier(repo.getInternalNodeIdentifier());
-    }
-
     public static void copyFromJAXB(NodeType jaxb, RNode repo, PrismContext prismContext) throws
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
