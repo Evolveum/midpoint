@@ -33,7 +33,7 @@ import javax.persistence.*;
 @Entity
 @IdClass(ROExtClobId.class)
 @Table(name = "m_object_ext_clob")
-@org.hibernate.annotations.Table(appliesTo = "m_object_ext_string",
+@org.hibernate.annotations.Table(appliesTo = "m_object_ext_clob",
         indexes = {@Index(name = "iExtensionClobDef", columnNames = {"owner_oid", "ownerType"})})
 public class ROExtClob implements ROExtValue {
 
