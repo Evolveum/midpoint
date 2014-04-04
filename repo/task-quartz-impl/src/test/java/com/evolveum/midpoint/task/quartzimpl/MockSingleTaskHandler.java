@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
+import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -39,16 +40,26 @@ public class MockSingleTaskHandler implements TaskHandler {
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(MockSingleTaskHandler.class);
     private String MOCK_HANDLER_URI = "http://midpoint.evolveum.com/test/mock";
-    private QName L1_FLAG_QNAME = new QName(MOCK_HANDLER_URI, "l1Flag", "m");
-    private QName WFS_FLAG_QNAME = new QName(MOCK_HANDLER_URI, "wfsFlag", "m");
+    private String NS_EXT = "http://myself.me/schemas/whatever";
+    private QName L1_FLAG_QNAME = new QName(NS_EXT, "l1Flag", "m");
+    private QName WFS_FLAG_QNAME = new QName(NS_EXT, "wfsFlag", "m");
 
     private TaskManagerQuartzImpl taskManager;
 
 	private String id;
-	
-	MockSingleTaskHandler(String id, TaskManagerQuartzImpl taskManager) {
+
+    private PrismPropertyDefinition l1FlagDefinition;
+    private PrismPropertyDefinition wfsFlagDefinition;
+
+
+    MockSingleTaskHandler(String id, TaskManagerQuartzImpl taskManager) {
 		this.id = id;
         this.taskManager = taskManager;
+
+        l1FlagDefinition = taskManager.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(L1_FLAG_QNAME);
+        Validate.notNull(l1FlagDefinition, "l1Flag property is unknown");
+        wfsFlagDefinition = taskManager.getPrismContext().getSchemaRegistry().findPropertyDefinitionByElementName(WFS_FLAG_QNAME);
+        Validate.notNull(wfsFlagDefinition, "wfsFlag property is unknown");
 	}
 
 	private boolean hasRun = false;
@@ -56,9 +67,6 @@ public class MockSingleTaskHandler implements TaskHandler {
 	@Override
 	public TaskRunResult run(Task task) {
 		LOGGER.info("MockSingle.run starting (id = " + id + ")");
-
-        PrismPropertyDefinition l1FlagDefinition = new PrismPropertyDefinition(L1_FLAG_QNAME, DOMUtil.XSD_BOOLEAN, taskManager.getPrismContext());
-        PrismPropertyDefinition wfsFlagDefinition = new PrismPropertyDefinition(WFS_FLAG_QNAME, DOMUtil.XSD_BOOLEAN, taskManager.getPrismContext());
 
 		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(MockSingleTaskHandler.class.getName()+".run");

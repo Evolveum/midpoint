@@ -40,4 +40,8 @@
 	
 	<xsd:element name="dead" type="xsd:int"/>
 
+    <!-- used for some handlers tests -->
+    <xsd:element name="l1Flag" type="xsd:boolean"/>
+    <xsd:element name="wfsFlag" type="xsd:boolean"/>
+
 </xsd:schema>
