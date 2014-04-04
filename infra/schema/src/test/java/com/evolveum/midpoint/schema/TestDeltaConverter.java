@@ -33,6 +33,9 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -281,11 +284,14 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	List<RawType> valueElements = mod1.getValue();
     	assertEquals("Wrong number of value elements", 1, valueElements.size());
     	RawType val = valueElements.get(0);
-    	List<Object> values = val.getContent();
-    	assertEquals("Wrong number of values", 1, values.size());
-    	JAXBElement<ProtectedStringType> valueElement = (JAXBElement<ProtectedStringType>)values.iterator().next();
-//    	assertEquals("Wrong element name", PasswordType.F_VALUE, valueElement.getName());
-    	assertEquals("Wrong element value", protectedString, valueElement.getValue());
+        MapXNode valXNode = (MapXNode) val.serializeToXNode();
+        PrimitiveXNode clearValueNode = (PrimitiveXNode) valXNode.get(ProtectedStringType.F_CLEAR_VALUE);
+        assertEquals("Wrong element value", protectedString.getClearValue(), clearValueNode.getParsedValue(DOMUtil.XSD_STRING));
+//    	List<Object> values = val.getContent();
+//    	assertEquals("Wrong number of values", 1, values.size());
+//    	JAXBElement<ProtectedStringType> valueElement = (JAXBElement<ProtectedStringType>)values.iterator().next();
+////    	assertEquals("Wrong element name", PasswordType.F_VALUE, valueElement.getName());
+//    	assertEquals("Wrong element value", protectedString, valueElement.getValue());
     }
     
     @Test

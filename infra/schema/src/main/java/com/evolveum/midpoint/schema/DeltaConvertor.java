@@ -369,8 +369,6 @@ public class DeltaConvertor {
     private static void addModValues(ItemDelta delta, ItemDeltaType mod, Collection<PrismValue> values,
             Document document) throws SchemaException {
 //    	QName elementName = delta.getElementName();
-    	RawType modValue = new RawType();
-        mod.getValue().add(modValue);
         if (values == null || values.isEmpty()) {
         	// We need to create "nil" element otherwise the element name will be lost
         	// (and this is different from empty element)
@@ -379,13 +377,18 @@ public class DeltaConvertor {
         	//FIXME : DOM?? vs Xnode??
         	
 			//modValue.setXnode(null);
+
+            RawType modValue = new RawType();
+            mod.getValue().add(modValue);
+
         } else {
 	        for (PrismValue value : values) {
 	        	//FIXME: serilaize to XNode instead of dom??
-	        	Object xmlValue = toAny(delta, value, document);
-	            modValue.getContent().add(xmlValue);
-//	        	XNode xnode = toXNode(delta, value);
-//	        	modValue.setXnode(xnode);
+//	        	Object xmlValue = toAny(delta, value, document);
+//	            modValue.getContent().add(xmlValue);
+	        	XNode xnode = toXNode(delta, value);
+                RawType modValue = new RawType(xnode);
+                mod.getValue().add(modValue);
 	        }
         }
     }
@@ -403,17 +406,18 @@ public class DeltaConvertor {
 //			return delta.getPrismContext().getXnodeProcessor().serializeItem()
 			return node;
 		}
-		if (value instanceof PrismPropertyValue<?>) {
-			PrismPropertyValue<?> pval = (PrismPropertyValue<?>)value;
-			Object raw = pval.getRawElement();
-			if (XNode.class.isAssignableFrom(raw.getClass())){
-				return (XNode) pval.getRawElement();
-			}
-//			return ;
-			throw new SystemException("something strange happened. There is a raw element, but it is not XNode"+value);
-		} else {
-			throw new SystemException("Null prism context in "+value+" in "+delta);
-		}
+        throw new IllegalStateException("ItemDelta without prismContext");
+//		if (value instanceof PrismPropertyValue<?>) {
+//			PrismPropertyValue<?> pval = (PrismPropertyValue<?>)value;
+//			Object raw = pval.getRawElement();
+//			if (XNode.class.isAssignableFrom(raw.getClass())){
+//				return (XNode) pval.getRawElement();
+//			}
+////			return ;
+//			throw new SystemException("something strange happened. There is a raw element, but it is not XNode"+value);
+//		} else {
+//			throw new SystemException("Null prism context in "+value+" in "+delta);
+//		}
     	
     }
 
