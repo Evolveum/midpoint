@@ -24,17 +24,7 @@
 	<itemDelta>
 		<t:modificationType>add</t:modificationType>
         <t:path>c:inducement[5]/c:targetRef</t:path>
-		<t:value>
-            <targetRef oid="12345678-d34d-b33f-f00d-987987987987" type="c:RoleType"/>
+		<t:value oid="12345678-d34d-b33f-f00d-987987987987" type="c:RoleType">
 		</t:value>
 	</itemDelta>
-    <itemDelta>
-        <t:modificationType>delete</t:modificationType>
-        <t:path>c:inducement[5]/c:construction</t:path>
-        <t:value>
-            <c:construction>
-                <c:resourceRef oid="00000000-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
-            </c:construction>
-        </t:value>
-    </itemDelta>
 </objectModification>

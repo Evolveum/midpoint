@@ -350,7 +350,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         repositoryService.modifyObject(UserType.class, userToModifyOid, delta.getModifications(), parentResult);
 
         UserType modifiedUser = repositoryService.getObject(UserType.class, userToModifyOid, null, parentResult).asObjectable();
-        AssertJUnit.assertEquals("assertion failed", 3, modifiedUser.getAssignment().size());
+        AssertJUnit.assertEquals("wrong number of assignments", 3, modifiedUser.getAssignment().size());
 
     }
 

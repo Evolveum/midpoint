@@ -24,10 +24,8 @@
 	<itemDelta>
 		<t:modificationType>delete</t:modificationType>
 		<t:path>c:assignment</t:path>
-		<t:value>
-			<c:assignment id="4">
-				<c:targetRef oid="12345678-d34d-b33f-f00d-987987987989" type="c:RoleType"/>
-			</c:assignment>
+		<t:value id="4">
+            <c:targetRef oid="12345678-d34d-b33f-f00d-987987987989" type="c:RoleType"/>
 		</t:value>
 	</itemDelta>
 </objectModification>

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
   ~ You may obtain a copy of the License at
   ~
-  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~      http://www.apache.org/licenses/LICENSE-2.0
   ~
   ~ Unless required by applicable law or agreed to in writing, software
   ~ distributed under the License is distributed on an "AS IS" BASIS,
@@ -19,24 +19,17 @@
 <objectModification
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<oid>00000000-8888-6666-0000-100000000005</oid>
 	<itemDelta>
-		<t:modificationType>delete</t:modificationType>
-		<t:path>c:assignment</t:path>
-		<t:value id="1">
-            <c:construction>
-                <c:resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
-            </c:construction>
-		</t:value>
-	</itemDelta>
-    <itemDelta>
-        <t:modificationType>add</t:modificationType>
-        <t:path>c:inducement</t:path>
-        <t:value id="1">
-            <c:construction>
-                <c:resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
-            </c:construction>
+		<t:modificationType>add</t:modificationType>
+        <t:path>c:inducement[5]/c:targetRef</t:path>
+		<t:value xsiType="c:ObjectReferenceType" oid="12345678-d34d-b33f-f00d-987987987987" type="c:RoleType" >
         </t:value>
-    </itemDelta>
+        <!--<t:value>-->
+            <!--<c:oid>12345678-d34d-b33f-f00d-987987987987</c:oid>-->
+            <!--<c:type>c:RoleType</c:type>-->
+        <!--</t:value>-->
+	</itemDelta>
 </objectModification>

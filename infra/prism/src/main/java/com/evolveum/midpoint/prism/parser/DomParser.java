@@ -286,7 +286,9 @@ public class DomParser implements Parser {
 	private static <T> T parsePrimitiveElementValue(Element element, QName typeName) throws SchemaException {
 		if (ItemPath.XSD_TYPE.equals(typeName)) {
 			return (T) parsePath(element);
-		} else if (XmlTypeConverter.canConvert(typeName)) {
+		} else if (DOMUtil.XSD_QNAME.equals(typeName)) {
+            return (T) DOMUtil.getQNameValue(element);
+        } else if (XmlTypeConverter.canConvert(typeName)) {
 			return (T) XmlTypeConverter.toJavaValue(element, typeName);
 		} else {
 			throw new SchemaException("Cannot convert element '"+element+"' to "+typeName);

@@ -680,7 +680,7 @@ public class XNodeProcessor {
                 isComposite = PrismConstants.REFERENCE_TYPE_NAME.equals(typeName.getLocalPart());
             }
         } else {
-            isComposite = !itemName.equals(referenceDefinition.getName());
+            isComposite = !QNameUtil.match(itemName, referenceDefinition.getName());
         }
 
         if (isComposite) {
@@ -712,17 +712,25 @@ public class XNodeProcessor {
                 throw new SchemaException("Target type specified neither in reference nor in the schema");
             }
         } else {
+            if (StringUtils.isBlank(type.getNamespaceURI())) {
+                // resolve type without namespace (only when prismContext is known)
+                if (prismContext == null) {
+                    throw new SchemaException("Couldn't parse unqualified type name '"+type+"' without prismContext");
+                }
+                type = prismContext.getSchemaRegistry().resolveUnqualifiedTypeName(type);
+            }
+
             QName defTargetType = referenceDefinition.getTargetTypeName();
+
             if (defTargetType != null && !QNameUtil.match(defTargetType, type)) {
                 //one more check - if the type is not a subtype of the schema type
-
-                if (!qnameToClass(defTargetType).isAssignableFrom(qnameToClass(type))){
+                Class clazz = qnameToClass(type);
+                if (clazz == null) {
+                    throw new SchemaException("Unknown target type: " + type);
+                }
+                if (!qnameToClass(defTargetType).isAssignableFrom(clazz)){
                     throw new SchemaException("Target type specified in reference ("+type+") does not match target type in schema ("+defTargetType+")");
                 }
-            }
-            // if the type is specified without namespace, use the full qname..this is maybe FIXME later..
-            if (defTargetType != null && StringUtils.isBlank(type.getNamespaceURI())){
-            	type = defTargetType;
             }
         }
         
@@ -824,7 +832,11 @@ public class XNodeProcessor {
     }
 
     private Class qnameToClass(QName type){
-        return getSchemaRegistry().determineCompileTimeClass(type);
+        Class c = getSchemaRegistry().determineCompileTimeClass(type);
+        if (c == null) {
+            throw new IllegalStateException("No class for " + type);
+        }
+        return c;
     }
     //endregion
 

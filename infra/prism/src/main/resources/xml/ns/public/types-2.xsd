@@ -396,7 +396,7 @@
         <xsd:sequence>
         	<xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
         </xsd:sequence>
-        <xsd:attribute name="type" type="xsd:QName" use="optional" />
+        <xsd:anyAttribute processContents="lax"/>
     </xsd:complexType>
     
     <!-- ########################################### -->
@@ -423,7 +423,8 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-            <xsd:element name="value" type="tns:RawType">
+            <!--<xsd:element name="value" type="tns:RawType">-->
+            <xsd:element name="value" type="xsd:anyType">
 <!--                 <xsd:complexType> -->
 <!--                     <xsd:sequence> -->
 <!--                         <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"> -->

@@ -3,11 +3,16 @@ package com.evolveum.prism.xml.ns._public.types_2;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAnyAttribute;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlMixed;
@@ -55,12 +60,11 @@ public class RawType implements Serializable, Cloneable, Equals {
 	private static final long serialVersionUID = 4430291958902286779L;
 	
 	public RawType() {
-        getContent();       // initialize the ContentList (otherwise JAXB provides its own implementation of it!)
 	}
 
     public RawType(XNode xnode) {
         this.xnode = xnode;
-        getContent();       // initialization has to come after setting xnode
+        ((ContentList) content).fillIn();
     }
 
     /*
@@ -92,16 +96,29 @@ public class RawType implements Serializable, Cloneable, Equals {
      */
     @XmlMixed
     @XmlAnyElement
-    protected List<Object> content;
+    protected List<Object> content = new ContentList();   // must be here, otherwise JAXB provides its own implementation of the list
+
+    /**
+     * Raw attributes: set when parsing via JAXB.
+     *
+     * Attributes are not serialized when marshalling this object via JAXB (except xsiType one).
+     * All information is marshalled into XML elements, regardless of whether they originate
+     * from elements or attributes. We hope the JAXB will be abandoned soon, so this is not
+     * a big problem.
+     */
+    @XmlAnyAttribute
+    private Map<QName, String> attributes = new AttributesMap();
 
     /**
      * Explicit designation of the value type.
      * It is set either when parsing via JAXB or when receiving XNode value.
      *
      * It is *NOT* updated on xnode/parsed changes, which are forbidden anyway.
+     *
+     * Will be removed when we get rid of JAXB.
      */
-    @XmlAttribute(name = "type")
-    private QName type;
+    @XmlAttribute(name = "xsiType")
+    private QName xsiType;
 
     //region General getters/setters
     public XNode getXnode() {
@@ -109,28 +126,19 @@ public class RawType implements Serializable, Cloneable, Equals {
     }
 
     public List<Object> getContent() {
-        if (content == null) {
-            ContentList newContentList = new ContentList();
-            try {
-                newContentList.fillIn();
-            } catch (SchemaException e) {
-                throw new SystemException("Couldn't prepare RawType contents: " + e.getMessage(), e);
-            }
-            content = newContentList;
-        }
-        return content;
+        return content;                     // content is initialized at instantiation time
     }
 
-    public QName getType() {
+    public QName getXsiType() {
         if (xnode != null) {
             return xnode.getTypeQName();
         } else {
-            return type;
+            return xsiType;
         }
     }
 
-    public void setType(QName type) {
-        this.type = type;
+    public void setXsiType(QName type) {
+        this.xsiType = type;
         if (xnode != null) {
             xnode.setTypeQName(type);
         }
@@ -151,12 +159,19 @@ public class RawType implements Serializable, Cloneable, Equals {
 
         @Override
         public void clear() {
-            xnode = null;
-            parsed = null;
+            removeContent(false);
             super.clear();
 	    }
 
-        void fillIn() throws SchemaException {
+        void fillIn() {
+            try {
+                fillInWithSchemaException();
+            } catch (SchemaException e) {
+                throw new SystemException("Couldn't prepare RawType contents: " + e.getMessage(), e);
+            }
+        }
+
+        private void fillInWithSchemaException() throws SchemaException {
             DomParser domParser;
             XNode xnodeToSerialize;
             if (parsed != null) {
@@ -227,10 +242,35 @@ public class RawType implements Serializable, Cloneable, Equals {
         }
     }
 
+    private void removeContent(boolean removeAttributes) {
+        if (parsed != null) {
+            throw new UnsupportedOperationException("Clearing content is unsupported if the content is already parsed");
+        } else if (xnode != null) {
+            if (xnode instanceof PrimitiveXNode) {
+                if (!removeAttributes) {
+                    xnode = null;           // primitive xnode of this kind got here from the content (not from attributes), so remove it
+                }
+            } else if (xnode instanceof MapXNode) {
+                Iterator<Map.Entry<QName, XNode>> iterator = ((MapXNode) xnode).entrySet().iterator();
+                while (iterator.hasNext()) {
+                    Map.Entry<QName, XNode> entry = iterator.next();
+                    boolean entryIsAttribute = (entry.getValue() instanceof PrimitiveXNode && ((PrimitiveXNode) entry.getValue()).isAttribute());
+                    if (removeAttributes == entryIsAttribute) {
+                        iterator.remove();
+                    }
+                }
+            } else {
+                throw new IllegalStateException("Unsupported xnode type: " + xnode);
+            }
+        } else {
+            // no content, nothing to remove
+        }
+    }
+
     private void addObject(Object e) {
         if (e instanceof String) {
             if (!StringUtils.isBlank((String) e)) {
-                addString((String) e);
+                addStringContent((String) e);
             }
         } else if (e instanceof Element) {
             addElement((Element) e);
@@ -275,31 +315,136 @@ public class RawType implements Serializable, Cloneable, Equals {
         return (MapXNode) xnode;
     }
 
-    private void addString(final String val) {
-        ValueParser valueParser = new ValueParser() {
+    class StringValueParser implements ValueParser {
+        String val;
 
-            @Override
-            public Object parse(QName typeName)
-                    throws SchemaException {
+        StringValueParser(String val) {
+            this.val = val;
+        }
+
+        @Override
+        public Object parse(QName typeName) throws SchemaException {
+            // XmlTypeConverter is not able to deal with QNames, so we have to do it here
+            // Currently we know nothing about prefixes (although this might change in the future),
+            // so we'll simply strip them away.
+            //
+            // TODO deal with ItemPathType as well
+            if (DOMUtil.XSD_QNAME.equals(typeName)) {
+                if (val != null) {
+                    int i = val.indexOf(':');
+                    if (i >= 0) {
+                        return new QName(val.substring(i+1));
+                    } else {
+                        return new QName(val);
+                    }
+                } else {
+                    return null;
+                }
+            } else {
                 return XmlTypeConverter.toJavaValue(val, typeName);
             }
+        }
 
-            @Override
-            public boolean isEmpty() {
-                return StringUtils.isEmpty(val);
-            }
+        @Override
+        public boolean isEmpty() {
+            return StringUtils.isEmpty(val);
+        }
 
-            @Override
-            public String getStringValue() {
-                return val;
-            }
-        };
+        @Override
+        public String getStringValue() {
+            return val;
+        }
+    }
+
+    private void addStringContent(final String val) {
+        ValueParser valueParser = new StringValueParser(val);
         if (xnode != null || parsed != null) {
             throw new IllegalStateException("Trying to add text value to already filled-in RawType. Value being added = " + val);
         }
-        xnode = new PrimitiveXNode();
-        ((PrimitiveXNode)xnode).setValueParser(valueParser);
+        PrimitiveXNode newXNode = new PrimitiveXNode();
+        newXNode.setValueParser(valueParser);
+        newXNode.setAttribute(false);
+        xnode = newXNode;
         updateXNodeType();
+    }
+
+    //endregion
+
+    //region AttributesMap management
+    class AttributesMap implements Map<QName, String>, Serializable {
+
+        private Map<QName, String> map = new HashMap<>();
+
+        @Override
+        public int size() {
+            return map.size();
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return map.isEmpty();
+        }
+
+        @Override
+        public boolean containsKey(Object key) {
+            return map.containsKey(key);
+        }
+
+        @Override
+        public boolean containsValue(Object value) {
+            return map.containsValue(value);
+        }
+
+        @Override
+        public String get(Object key) {
+            return map.get(key);
+        }
+
+        @Override
+        public String put(QName key, String value) {
+            addStringFromAttribute(key, value);
+            System.out.println("Adding attribute " + key + " = " + value);
+            return map.put(key, value);
+        }
+
+        @Override
+        public String remove(Object key) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void putAll(Map<? extends QName, ? extends String> m) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void clear() {
+            removeContent(true);
+        }
+
+        @Override
+        public Set<QName> keySet() {
+            return map.keySet();
+        }
+
+        @Override
+        public Collection<String> values() {
+            return map.values();
+        }
+
+        @Override
+        public Set<Entry<QName, String>> entrySet() {
+            return map.entrySet();
+        }
+    }
+
+    private void addStringFromAttribute(QName attributeName, String val) {
+        ValueParser valueParser = new StringValueParser(val);
+        PrimitiveXNode newXNode = new PrimitiveXNode();
+        newXNode.setValueParser(valueParser);
+        newXNode.setAttribute(true);
+        xnode = prepareMapXNode();
+        ((MapXNode) xnode).put(attributeName, newXNode);
     }
     //endregion
 
@@ -344,8 +489,8 @@ public class RawType implements Serializable, Cloneable, Equals {
     }
 
     private void updateXNodeType() {
-        if (type != null && xnode != null) {
-            xnode.setTypeQName(type);
+        if (xsiType != null && xnode != null) {
+            xnode.setTypeQName(xsiType);
         }
     }
 
@@ -363,7 +508,7 @@ public class RawType implements Serializable, Cloneable, Equals {
     //region Cloning, comparing, dumping (TODO)
     public RawType clone() {
     	RawType clone = new RawType();
-        clone.type = CloneUtil.clone(type);
+        clone.xsiType = CloneUtil.clone(xsiType);
         if (xnode != null) {
     	    clone.xnode = xnode.clone();
             clone.updateXNodeType();

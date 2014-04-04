@@ -274,10 +274,10 @@ public class DeltaConvertor {
         ItemDefinition containingPcd = pcDef.findItemDefinition(parentPath);
         PrismContainerDefinition containerDef = null;
         if (containingPcd == null) {
-        	QName elementName = parentPath.lastNamed().getName();
-        	containerDef = pcDef.findContainerDefinition(parentPath.allExceptLast());
+//        	QName elementName = parentPath.lastNamed().getName();
+        	containerDef = pcDef.findContainerDefinition(parentPath.allUpToLastNamed());
         	if (containerDef == null){
-        		throw new SchemaException("No definition for " + parentPath.allExceptLast().lastNamed().getName() + " (while creating delta for " + pcDef + ")");
+        		throw new SchemaException("No definition for " + parentPath.allUpToLastNamed().lastNamed().getName() + " (while creating delta for " + pcDef + ")");
         	} 
         	
 //        	containingPcd = pcDef.getPrismContext().getXnodeProcessor().locateItemDefinition(containerDef, elementName, propMod.getValue().);

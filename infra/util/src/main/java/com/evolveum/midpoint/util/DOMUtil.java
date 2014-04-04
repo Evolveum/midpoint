@@ -80,6 +80,8 @@ public class DOMUtil {
 	public static final QName XSI_NIL = new QName(W3C_XML_SCHEMA_INSTANCE_NS_URI, "nil", NS_W3C_XSI_PREFIX);
 	public static final QName XML_ID_ATTRIBUTE = new QName(W3C_XML_XML_URI, "id", W3C_XML_XML_PREFIX);
 
+    public static final String HACKED_XSI_TYPE = "xsiType";
+
 	public static final String NS_W3C_XML_SCHEMA_PREFIX = "xsd";
 	public static final QName XSD_SCHEMA_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "schema",
 			NS_W3C_XML_SCHEMA_PREFIX);
@@ -451,13 +453,19 @@ public class DOMUtil {
 	public static QName resolveXsiType(Element element, String defaultNamespacePrefix) {
 		String xsiType = element.getAttributeNS(XSI_TYPE.getNamespaceURI(), XSI_TYPE.getLocalPart());
 		if (xsiType == null || xsiType.isEmpty()) {
-			return null;
-		}
+			xsiType = element.getAttribute(HACKED_XSI_TYPE);
+        }
+        if (xsiType == null || xsiType.isEmpty()) {
+            return null;
+        }
 		return resolveQName(element, xsiType, defaultNamespacePrefix);
 	}
 
 	public static boolean hasXsiType(Element element) {
 		String xsiType = element.getAttributeNS(XSI_TYPE.getNamespaceURI(), XSI_TYPE.getLocalPart());
+        if (xsiType == null || xsiType.isEmpty()) {
+            xsiType = element.getAttribute(HACKED_XSI_TYPE);
+        }
 		if (xsiType == null || xsiType.isEmpty()) {
 			return false;
 		}
