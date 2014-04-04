@@ -36,48 +36,48 @@ This resource definition contains only the very basic definitions for midPoint t
 	xmlns:my="http://myself.me/schemas/whatever"
         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
 
-    <resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef">
+	<resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef">
 
-        <!-- Resource name. It will be displayed in GUI.  -->
-        <name>Active Directory Advanced Sync</name>
+		<!-- Resource name. It will be displayed in GUI.  -->
+		<name>Active Directory Advanced Sync</name>
 
-        <!-- Reference to the ICF AD connector. OID is "virtual" for now. -->
-        <connectorRef type="ConnectorType">
-            <filter>
-                <q:equal>
-				<q:path>c:connectorType</q:path>
-                    <q:value>Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector</q:value>
-                </q:equal>
-            </filter>
-        </connectorRef>
+		<!-- Reference to the ICF AD connector. OID is "virtual" for now. -->
+		<connectorRef type="ConnectorType">
+			<filter>
+				<q:equal>
+					<q:path>c:connectorType</q:path>
+					<q:value>Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector</q:value>
+				</q:equal>
+			</filter>
+		</connectorRef>
 
-        <!-- Configuration section contains configuration of the connector,
+		<!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-        <connectorConfiguration>
+		<connectorConfiguration>
 
-            <!-- Configuration specific for the Active Directory connector -->
-            <icfc:configurationProperties
+			<!-- Configuration specific for the Active Directory connector -->
+			<icfc:configurationProperties
                 xmlns:icfcad="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/ActiveDirectory.Connector/Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector">
-                <icfcad:DirectoryAdminName>administrator</icfcad:DirectoryAdminName>
-		<icfcad:DirectoryAdminPassword><clearValue>secret</clearValue></icfcad:DirectoryAdminPassword>
-                <icfcad:ObjectClass>User</icfcad:ObjectClass>
-                <icfcad:Container>cn=Users,dc=example,dc=com</icfcad:Container>
-                <icfcad:CreateHomeDirectory>true</icfcad:CreateHomeDirectory>
-		<icfcad:LDAPHostName>localhost</icfcad:LDAPHostName><!-- This is the hostname of AD server as seen from the ConnectorServer instance! -->
-                <icfcad:SearchChildDomains>false</icfcad:SearchChildDomains>
-                <icfcad:DomainName>example.com</icfcad:DomainName>
-  		<icfcad:SyncGlobalCatalogServer>localhost</icfcad:SyncGlobalCatalogServer><!-- hostname of DC to look up for changes when synchronizing -->
-		<icfcad:SyncDomainController>localhost</icfcad:SyncDomainController><!-- hostname of DC to look up for changes when synchronizing -->
-            </icfc:configurationProperties>
+				<icfcad:DirectoryAdminName>administrator</icfcad:DirectoryAdminName>
+				<icfcad:DirectoryAdminPassword><clearValue>secret</clearValue></icfcad:DirectoryAdminPassword>
+				<icfcad:ObjectClass>User</icfcad:ObjectClass>
+				<icfcad:Container>cn=Users,dc=example,dc=com</icfcad:Container>
+				<icfcad:CreateHomeDirectory>true</icfcad:CreateHomeDirectory>
+				<icfcad:LDAPHostName>localhost</icfcad:LDAPHostName><!-- This is the hostname of AD server as seen from the ConnectorServer instance! -->
+				<icfcad:SearchChildDomains>false</icfcad:SearchChildDomains>
+				<icfcad:DomainName>example.com</icfcad:DomainName>
+				<icfcad:SyncGlobalCatalogServer>localhost</icfcad:SyncGlobalCatalogServer><!-- hostname of DC to look up for changes when synchronizing -->
+				<icfcad:SyncDomainController>localhost</icfcad:SyncDomainController><!-- hostname of DC to look up for changes when synchronizing -->
+			</icfc:configurationProperties>
 
-            <icfc:resultsHandlerConfiguration>  <!-- currently this requires latest Evolveum version of .net connector server -->
-                <icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>
-            </icfc:resultsHandlerConfiguration>
+			<icfc:resultsHandlerConfiguration>  <!-- currently this requires latest Evolveum version of .net connector server -->
+				<icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>
+			</icfc:resultsHandlerConfiguration>
 
 
-        </connectorConfiguration>
+		</connectorConfiguration>
 
-        <!-- Resource schema definition.
+		<!-- Resource schema definition.
              It defines all the object classes that are available to midPoint
              (accounts, groups, ...).
 
@@ -88,7 +88,7 @@ This resource definition contains only the very basic definitions for midPoint t
 			 the resource on the first use of this resource definition.
 		 -->
 
-        <!-- Resource Schema Handling definition.
+		<!-- Resource Schema Handling definition.
              This part defines how the schema defined above will be used by
              midPoint. It defines expressions and limitations for individual
              schema attributes.
@@ -100,75 +100,75 @@ This resource definition contains only the very basic definitions for midPoint t
              
         -->
 
-        <schemaHandling>
-            <accountType>
-                <name>default</name>
-                <displayName>Default Account</displayName>
-                <default>true</default>
-                <objectClass>ri:AccountObjectClass</objectClass>
+		<schemaHandling>
+			<accountType>
+				<name>default</name>
+				<displayName>Default Account</displayName>
+				<default>true</default>
+				<objectClass>ri:AccountObjectClass</objectClass>
 
-                <attribute>
-                    <ref>ri:givenName</ref>
-                    <!-- required attribute on AD -->
-                    <displayName>Given Name</displayName>
-                    <outbound>
-                        <strength>weak</strength>
-                        <source>
-                        	<path>$user/givenName</path>
-                        </source>
-                    </outbound>
-                    <inbound>
-                        <target>
-                            <path>$user/givenName</path>
-                        </target>
-                    </inbound>
-                </attribute>
-                <attribute>
-                    <ref>ri:sn</ref>
-                    <displayName>Surname</displayName>
-                    <outbound>
-                        <strength>weak</strength>
-                        <source>
-                        	<path>$user/familyName</path>
-                        </source>
-                    </outbound>
-                    <inbound>
-                        <target>
-                            <path>$user/familyName</path>
-                        </target>
-                    </inbound>
-                </attribute>
-                <attribute>
-                    <ref>ri:sAMAccountName</ref>
-                    <!-- required attribute on AD -->
-                    <displayName>Login name</displayName>
-                    <outbound>
-                        <strength>weak</strength>
-                        <source>
-                        	<path>$user/name</path>
-                        </source>
-                    </outbound>
-                    <inbound>
-                        <target>
-                            <path>$user/name</path>
-                        </target>
-                    </inbound>
-                </attribute>
+				<attribute>
+					<ref>ri:givenName</ref>
+					<!-- required attribute on AD -->
+					<displayName>Given Name</displayName>
+					<outbound>
+						<strength>weak</strength>
+						<source>
+							<path>$user/givenName</path>
+						</source>
+					</outbound>
+					<inbound>
+						<target>
+							<path>$user/givenName</path>
+						</target>
+					</inbound>
+				</attribute>
+				<attribute>
+					<ref>ri:sn</ref>
+					<displayName>Surname</displayName>
+					<outbound>
+						<strength>weak</strength>
+						<source>
+							<path>$user/familyName</path>
+						</source>
+					</outbound>
+					<inbound>
+						<target>
+							<path>$user/familyName</path>
+						</target>
+					</inbound>
+				</attribute>
+				<attribute>
+					<ref>ri:sAMAccountName</ref>
+					<!-- required attribute on AD -->
+					<displayName>Login name</displayName>
+					<outbound>
+						<strength>weak</strength>
+						<source>
+							<path>$user/name</path>
+						</source>
+					</outbound>
+					<inbound>
+						<target>
+							<path>$user/name</path>
+						</target>
+					</inbound>
+				</attribute>
 
-                <attribute>
-                    <ref>ri:mail</ref>
-                    <outbound>
-                    	<source>
+				<attribute>
+					<ref>ri:mail</ref>
+					<outbound>
+						<source>
 							<path>$user/emailAddress</path>
 						</source>
-                    </outbound>
-                    <inbound>
-                        <target>
-                            <path>$user/emailAddress</path>
-                        </target>
-                    </inbound>
-                </attribute>
-		<attribute><!-- This attribute must be set to
+					</outbound>
+					<inbound>
+						<target>
+							<path>$user/emailAddress</path>
+						</target>
+					</inbound>
+				</attribute>
+				<attribute><!-- This attribute must be set to
 other than "false". We will set it to "true" to expire the password
 immediately (after create). Note there is no "initial" attribute, because the
 current implementation of forms would set the __PASSWORD_EXPIRED__ = false by
@@ -178,61 +178,61 @@ changed, so this outbound will not be processed.
 Please note that AD itself does not support changing the _PASSWORD_EXPIRED__
 to "false". The only way of resetting the flag is to change user's password.
 -->
-			<ref>ri:__PASSWORD_EXPIRED__</ref>
-			<outbound>
-				<expression>
-					<value>true</value>
-				</expression>
-			</outbound>
-		</attribute>
+					<ref>ri:__PASSWORD_EXPIRED__</ref>
+					<outbound>
+						<expression>
+							<value>true</value>
+						</expression>
+					</outbound>
+				</attribute>
 
-                <attribute>
-                    <ref>icfs:name</ref>
-                    <displayName>Distinguished Name</displayName>
+				<attribute>
+					<ref>icfs:name</ref>
+					<displayName>Distinguished Name</displayName>
 
-			<limitations>
-				<minOccurs>0</minOccurs>
-				<access>
-					<create>true</create>
-					<read>true</read>
-				</access>
-			</limitations>
+					<limitations>
+						<minOccurs>0</minOccurs>
+						<access>
+							<create>true</create>
+							<read>true</read>
+						</access>
+					</limitations>
 
-                    <outbound>
-                        <source>
-                        	<path>$user/givenName</path>
-                        </source>
-                        <source>
-                        	<path>$user/familyName</path>
-                        </source>
-                        <expression>
-                        	<script>
-                            	<code>
+					<outbound>
+						<source>
+							<path>$user/givenName</path>
+						</source>
+						<source>
+							<path>$user/familyName</path>
+						</source>
+						<expression>
+							<script>
+								<code>
 				'cn='+givenName+' '+familyName+iterationToken+',cn=Users,dc=example,dc=com'
-                            	</code>
-                            </script>
-                        </expression>
-                    </outbound>
-                </attribute>
-		<iteration>
-			<maxIterations>5</maxIterations>
-		</iteration>
-		<protected>
-                	<icfs:name>cn=Administrator,cn=Users,dc=example,dc=com</icfs:name>
-            	</protected>
-                <activation>
-                    <administrativeStatus>
-                        <outbound/>
-                    </administrativeStatus>
-                </activation>
-                <credentials>
-                    <password>
-                        <outbound/>
-                    </password>
-                </credentials>                
-            </accountType>
-        </schemaHandling>
-        <!--
+								</code>
+							</script>
+						</expression>
+					</outbound>
+				</attribute>
+				<iteration>
+					<maxIterations>5</maxIterations>
+				</iteration>
+				<protected>
+					<icfs:name>cn=Administrator,cn=Users,dc=example,dc=com</icfs:name>
+				</protected>
+				<activation>
+					<administrativeStatus>
+						<outbound/>
+					</administrativeStatus>
+				</activation>
+				<credentials>
+					<password>
+						<outbound/>
+					</password>
+				</credentials>                
+			</accountType>
+		</schemaHandling>
+		<!--
                 <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
                     <cap:credentials>
                         <cap:password/>
@@ -241,22 +241,22 @@ to "false". The only way of resetting the flag is to change user's password.
                     <cap:testConnection/>
                 </capabilities>
         -->
-        <scripts>
-            <script>
-                <host>resource</host>
-                <language>Shell</language>
-                <argument>
-                    <value>jbond</value>
-                    <name>HOMEDIR</name>
-                </argument>
-                <code>
+		<scripts>
+			<script>
+				<host>resource</host>
+				<language>Shell</language>
+				<argument>
+					<value>jbond</value>
+					<name>HOMEDIR</name>
+				</argument>
+				<code>
                     echo "after modify," >> C:\a.txt
                     exit
-                </code>
-                <operation>modify</operation>
-                <order>after</order>
-            </script>
-            <!--
+		</code>
+		<operation>modify</operation>
+		<order>after</order>
+	</script>
+	<!--
            <script>
            <operation>modify</operation>
            <order>before</order>
@@ -301,127 +301,126 @@ to "false". The only way of resetting the flag is to change user's password.
    exit
            </code>
            </script>-->
-        </scripts>
-        <!--
+</scripts>
+<!--
             Synchronization section describes the synchronization policy, timing,
             reactions and similar synchronization settings.
         -->
-        <synchronization>
-        	<objectSynchronization>
-	            <!--
+<synchronization>
+	<objectSynchronization>
+		<!--
 	                The synchronization for this resource is enabled.
 	                It means that the synchronization will react to changes detected by
 	                the system (live sync task, discovery or reconciliation) -->
-	            <enabled>true</enabled>
-	
-	            <correlation>
-	                <q:description>
+		<enabled>true</enabled>
+
+		<correlation>
+			<q:description>
 	                    Correlation expression is a search query.
 	                    Following search queury will look for users that have "name"
 	                    equal to the "sAMAccountName" attribute of the account. Simply speaking,
 	                    it will look for match in usernames in the IDM and the resource.
 	                    The correlation rule always looks for users, so it will not match
 	                    any other object type.
-	                </q:description>
-	                <q:equal>
-	                    <q:path>c:name</q:path>
-	                    <expression>
-	                        <ref>name</ref>
-	                        <script>
-	                        	<language>http://www.w3.org/TR/xpath/</language>
-		                        <code>
+			</q:description>
+			<q:equal>
+				<q:path>c:name</q:path>
+				<expression>
+					<ref>name</ref>
+					<script>
+						<language>http://www.w3.org/TR/xpath/</language>
+						<code>
 		                            $c:account/c:attributes/ri:sAMAccountName
-		                        </code>
-	                        </script>
-	                    </expression>
-	                </q:equal>
-	            </correlation>
-	
-	            <!-- Confirmation rule may be here, but as the search above will
+						</code>
+					</script>
+				</expression>
+			</q:equal>
+		</correlation>
+
+		<!-- Confirmation rule may be here, but as the search above will
 	                 always return at most one match, the confirmation rule is not needed. -->
-	
-	            <!-- Following section describes reactions to a situations.
+
+		<!-- Following section describes reactions to a situations.
 	                 The setting here assumes that this resource is authoritative,
 	                 therefore all accounts created on the resource should be
 	                 reflected as new users in IDM.
 	                 See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
 	             -->
-	            <reaction>
-	                <situation>linked</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
-	            </reaction>
-	            <reaction>
-	                <situation>deleted</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
-	            </reaction>
-	            <reaction>
-	                <situation>unlinked</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
-	            </reaction>
-	            <reaction>
-	                <situation>unmatched</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser">
-	                    <!-- Reference to the User Template is here. If the user would be
+		<reaction>
+			<situation>linked</situation>
+			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
+		</reaction>
+		<reaction>
+			<situation>deleted</situation>
+			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
+		</reaction>
+		<reaction>
+			<situation>unlinked</situation>
+			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+		</reaction>
+		<reaction>
+			<situation>unmatched</situation>
+			<!-- Reference to the User Template is here. If the user would be
 	                         created as a result of this action, it will be created according
 	                         to this template. -->
-	                    <objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
-	                </action>
-<!--	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>-->
-	            </reaction>
-			</objectSynchronization>
-        </synchronization>
-    </resource>
-    <objectTemplate oid="c0c010c0-d34d-b33f-f00d-777222222222">
-        <name>Default User Template2</name>
+			<objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
+			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser"/>
+			<!--	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>-->
+		</reaction>
+	</objectSynchronization>
+</synchronization>
+</resource>
+<objectTemplate oid="c0c010c0-d34d-b33f-f00d-777222222222">
+	<name>Default User Template2</name>
 
-        <description>
+	<description>
             Alternative User Template Object.
             This object is used when creating a new account, to set it up as needed.
-        </description>
+	</description>
 
-        <mapping>
-			<description>
+	<mapping>
+		<description>
                 Property mapping.
                 Defines how properties of user object are set up.
                 This specific definition sets a full name as a concatenation
                 of givenName and familyName.
-            </description>
-			<strength>weak</strength>
-			<source>
-				<path>$user/givenName</path>
-			</source>
-			<source>
-				<path>$user/familyName</path>
-			</source>
-			<expression>
-				<script>
-					<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-					<code>
+		</description>
+		<strength>weak</strength>
+		<source>
+			<path>$user/givenName</path>
+		</source>
+		<source>
+			<path>$user/familyName</path>
+		</source>
+		<expression>
+			<script>
+				<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+				<code>
 						givenName + ' ' + familyName
-					</code>
-				</script>
-			</expression>
-			<target>
-				<path>fullName</path>
-			</target>
-		</mapping>
+				</code>
+			</script>
+		</expression>
+		<target>
+			<path>fullName</path>
+		</target>
+	</mapping>
 
-    </objectTemplate>
+</objectTemplate>
 
-    <task oid="91919191-76e0-59e2-86d6-444f02d3ffff">
-        <name>Synchronization: Active Directory</name>
-        <description>
+<task oid="91919191-76e0-59e2-86d6-444f02d3ffff">
+	<name>Synchronization: Active Directory</name>
+	<description>
             Definition of a live sychnronization task. It will poll changelog and pull in changes
-        </description>
-        <taskIdentifier>91919191-76e0-59e2-86d6-444f02d3ffff</taskIdentifier>
-        <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-        <executionStatus>runnable</executionStatus>
-        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-2</handlerUri>
-        <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef"/>
-        <recurrence>recurring</recurrence>
-        <binding>tight</binding>
-        <schedule>
-            <interval>5</interval>
-        </schedule>
-    </task>
+	</description>
+	<taskIdentifier>91919191-76e0-59e2-86d6-444f02d3ffff</taskIdentifier>
+	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+	<executionStatus>runnable</executionStatus>
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-2</handlerUri>
+	<objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef"/>
+	<recurrence>recurring</recurrence>
+	<binding>tight</binding>
+	<schedule>
+		<interval>5</interval>
+	</schedule>
+</task>
 </objects>
