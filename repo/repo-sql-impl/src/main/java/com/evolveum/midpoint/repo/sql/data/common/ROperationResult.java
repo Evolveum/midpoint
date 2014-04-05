@@ -22,7 +22,6 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 
@@ -95,90 +94,12 @@ public class ROperationResult implements OperationResult {
 
     @Transient
     @Override
-    public String getParams() {
-        return null;
-    }
-
-    @Transient
-    @Override
-    public String getContext() {
-        return null;
-    }
-
-    @Transient
-    @Override
-    public String getReturns() {
-        return null;
-    }
-
-    @Transient
-    @Override
-    public String getPartialResults() {
-        return null;
-    }
-
-    @Transient
-    @Override
-    public String getDetails() {
-        return null;
-    }
-
-    @Transient
-    @Override
-    public String getLocalizedMessage() {
-        return null;
-    }
-
-    @Transient
-    @Override
-    public String getMessage() {
-        return null;
-    }
-
-    @Transient
-    @Override
-    public String getOperation() {
+    public String getFullResult() {
         return null;
     }
 
     @Override
-    public void setParams(String params) {
-
-    }
-
-    @Override
-    public void setContext(String context) {
-
-    }
-
-    @Override
-    public void setReturns(String returns) {
-
-    }
-
-    @Override
-    public void setPartialResults(String partialResults) {
-
-    }
-
-    @Override
-    public void setDetails(String details) {
-
-    }
-
-    @Override
-    public void setLocalizedMessage(String message) {
-
-    }
-
-    @Override
-    public void setMessage(String message) {
-
-    }
-
-    @Override
-    public void setOperation(String operation) {
-
+    public void setFullResult(String fullResult) {
     }
 
     @Override

@@ -28,47 +28,19 @@ import java.io.Serializable;
  */
 public interface OperationResult extends Serializable {
 
-    String getParams();
-    
-    String getContext();
-    
-    String getReturns();
-
-    String getPartialResults();
+    String getFullResult();
 
     ROperationResultStatus getStatus();
 
     Long getToken();
 
-    String getDetails();
-
-    String getLocalizedMessage();
-
-    String getMessage();
-
     String getMessageCode();
 
-    String getOperation();
-
-    void setParams(String params);
-    
-    void setContext(String context);
-    
-    void setReturns(String returns);
-
-    void setPartialResults(String partialResults);
+    void setFullResult(String fullResult);
 
     void setStatus(ROperationResultStatus status);
 
     void setToken(Long token);
 
-    void setDetails(String details);
-
-    void setLocalizedMessage(String message);
-
-    void setMessage(String message);
-
     void setMessageCode(String messageCode);
-
-    void setOperation(String operation);
 }

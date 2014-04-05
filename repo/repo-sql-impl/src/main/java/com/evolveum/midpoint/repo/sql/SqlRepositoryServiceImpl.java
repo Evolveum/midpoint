@@ -889,8 +889,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 // this is 5x faster than count with 3 inner joins, it can probably improved also for queries which
                 // filters uses only properties from concrete entities like RUser, RRole by improving interpreter [lazyman]
                 SQLQuery sqlQuery = session.createSQLQuery("SELECT COUNT(*) FROM " + RUtil.getTableName(hqlType));
-                Number n = (Number) sqlQuery.uniqueResult();
-                longCount = n.longValue();
+                longCount = (Number) sqlQuery.uniqueResult();
             } else {
                 LOGGER.trace("Updating query criteria.");
                 QueryEngine engine = new QueryEngine(getPrismContext());
