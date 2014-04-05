@@ -71,7 +71,6 @@ public class RUser extends RFocus<UserType> {
     private String preferredLanguage;
     private Set<RPolyString> organization;
     private ROperationResult result;
-    private byte[] jpegPhoto;
 
     @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)//, fetch = FetchType.LAZY)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
@@ -202,16 +201,6 @@ public class RUser extends RFocus<UserType> {
     @Embedded
     public RPolyString getTitle() {
         return title;
-    }
-
-    @Lob
-    @Basic(fetch = FetchType.LAZY)
-    public byte[] getJpegPhoto() {
-        return jpegPhoto;
-    }
-
-    public void setJpegPhoto(byte[] jpegPhoto) {
-        this.jpegPhoto = jpegPhoto;
     }
 
     public void setCostCenter(String costCenter) {
@@ -382,7 +371,6 @@ public class RUser extends RFocus<UserType> {
         repo.setPreferredLanguage(jaxb.getPreferredLanguage());
         repo.setTitle(RPolyString.copyFromJAXB(jaxb.getTitle()));
         repo.setNickName(RPolyString.copyFromJAXB(jaxb.getNickName()));
-        repo.setJpegPhoto(jaxb.getJpegPhoto());
 
         if (jaxb.getCredentials() != null) {
             RCredentials credentials = new RCredentials();
