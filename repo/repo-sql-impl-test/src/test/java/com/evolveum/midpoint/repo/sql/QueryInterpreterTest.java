@@ -83,12 +83,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             Criteria main = session.createCriteria(RUser.class, "u");
             ProjectionList projections = Projections.projectionList();
-            projections.add(Projections.property("u.fullObject"));
-            projections.add(Projections.property("u.stringsCount"));
-            projections.add(Projections.property("u.longsCount"));
-            projections.add(Projections.property("u.datesCount"));
-            projections.add(Projections.property("u.referencesCount"));
-            projections.add(Projections.property("u.polysCount"));
+            addFullObjectProjectionList("u", projections, false);
             main.setProjection(projections);
 
 
@@ -116,12 +111,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             Criteria main = session.createCriteria(RUser.class, "u");
             ProjectionList projections = Projections.projectionList();
-            projections.add(Projections.property("u.fullObject"));
-            projections.add(Projections.property("u.stringsCount"));
-            projections.add(Projections.property("u.longsCount"));
-            projections.add(Projections.property("u.datesCount"));
-            projections.add(Projections.property("u.referencesCount"));
-            projections.add(Projections.property("u.polysCount"));
+            addFullObjectProjectionList("u", projections, false);
             main.setProjection(projections);
 
             Criteria o = main.createCriteria("organization", "o");
@@ -148,12 +138,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             Criteria main = session.createCriteria(RUser.class, "u");
             ProjectionList projections = Projections.projectionList();
-            projections.add(Projections.property("u.fullObject"));
-            projections.add(Projections.property("u.stringsCount"));
-            projections.add(Projections.property("u.longsCount"));
-            projections.add(Projections.property("u.datesCount"));
-            projections.add(Projections.property("u.referencesCount"));
-            projections.add(Projections.property("u.polysCount"));
+            addFullObjectProjectionList("u", projections, false);
             main.setProjection(projections);
 
             Criteria o = main.createCriteria("organization", "o");
@@ -181,12 +166,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             Criteria d = main.createCriteria("dependent", "d");
             d.add(Restrictions.eq("d.elements", "123456"));
             ProjectionList projections = Projections.projectionList();
-            projections.add(Projections.property("t.fullObject"));
-            projections.add(Projections.property("t.stringsCount"));
-            projections.add(Projections.property("t.longsCount"));
-            projections.add(Projections.property("t.datesCount"));
-            projections.add(Projections.property("t.referencesCount"));
-            projections.add(Projections.property("t.polysCount"));
+            addFullObjectProjectionList("t", projections, false);
             main.setProjection(projections);
 
             String expected = HibernateToSqlTranslator.toSql(main);
@@ -225,12 +205,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             Criteria main = session.createCriteria(RTask.class, "t");
             main.add(Restrictions.eq("executionStatus", RTaskExecutionStatus.WAITING));
             ProjectionList projections = Projections.projectionList();
-            projections.add(Projections.property("t.fullObject"));
-            projections.add(Projections.property("t.stringsCount"));
-            projections.add(Projections.property("t.longsCount"));
-            projections.add(Projections.property("t.datesCount"));
-            projections.add(Projections.property("t.referencesCount"));
-            projections.add(Projections.property("t.polysCount"));
+            addFullObjectProjectionList("t", projections, false);
             main.setProjection(projections);
 
             String expected = HibernateToSqlTranslator.toSql(main);
@@ -254,12 +229,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             Criteria main = session.createCriteria(RUser.class, "u");
             main.add(Restrictions.eq("activation.administrativeStatus", RActivationStatus.ENABLED));
             ProjectionList projections = Projections.projectionList();
-            projections.add(Projections.property("u.fullObject"));
-            projections.add(Projections.property("u.stringsCount"));
-            projections.add(Projections.property("u.longsCount"));
-            projections.add(Projections.property("u.datesCount"));
-            projections.add(Projections.property("u.referencesCount"));
-            projections.add(Projections.property("u.polysCount"));
+            addFullObjectProjectionList("u", projections, false);
             main.setProjection(projections);
 
             String expected = HibernateToSqlTranslator.toSql(main);
@@ -295,12 +265,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             conjunction.add(c2);
             main.add(conjunction);
             ProjectionList projections = Projections.projectionList();
-            projections.add(Projections.property("g.fullObject"));
-            projections.add(Projections.property("g.stringsCount"));
-            projections.add(Projections.property("g.longsCount"));
-            projections.add(Projections.property("g.datesCount"));
-            projections.add(Projections.property("g.referencesCount"));
-            projections.add(Projections.property("g.polysCount"));
+            addFullObjectProjectionList("g", projections, false);
             main.setProjection(projections);
 
             String expected = HibernateToSqlTranslator.toSql(main);
@@ -320,12 +285,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         try {
             Criteria main = session.createCriteria(RShadow.class, "r");
             ProjectionList projections = Projections.projectionList();
-            projections.add(Projections.property("r.fullObject"));
-            projections.add(Projections.property("r.stringsCount"));
-            projections.add(Projections.property("r.longsCount"));
-            projections.add(Projections.property("r.datesCount"));
-            projections.add(Projections.property("r.referencesCount"));
-            projections.add(Projections.property("r.polysCount"));
+            addFullObjectProjectionList("r", projections, false);
             main.setProjection(projections);
 
             Criteria stringExt = main.createCriteria("strings", "s1");
@@ -375,12 +335,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     Restrictions.eq("name.norm", "cpt jack sparrow")));
             main.addOrder(Order.asc("name.orig"));
             ProjectionList projections = Projections.projectionList();
-            projections.add(Projections.property("o.fullObject"));
-            projections.add(Projections.property("o.stringsCount"));
-            projections.add(Projections.property("o.longsCount"));
-            projections.add(Projections.property("o.datesCount"));
-            projections.add(Projections.property("o.referencesCount"));
-            projections.add(Projections.property("o.polysCount"));
+            addFullObjectProjectionList("o", projections, false);
             main.setProjection(projections);
             String expected = HibernateToSqlTranslator.toSql(main);
 
@@ -406,12 +361,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         try {
             Criteria main = session.createCriteria(RUser.class, "u");
             ProjectionList projections = Projections.projectionList();
-            projections.add(Projections.property("u.fullObject"));
-            projections.add(Projections.property("u.stringsCount"));
-            projections.add(Projections.property("u.longsCount"));
-            projections.add(Projections.property("u.datesCount"));
-            projections.add(Projections.property("u.referencesCount"));
-            projections.add(Projections.property("u.polysCount"));
+            addFullObjectProjectionList("u", projections, false);
             main.setProjection(projections);
 
             main.add(Restrictions.eq("fullName.norm", "cpt jack sparrow"));
@@ -435,12 +385,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         try {
             Criteria main = session.createCriteria(RUser.class, "u");
             ProjectionList projections = Projections.projectionList();
-            projections.add(Projections.property("u.fullObject"));
-            projections.add(Projections.property("u.stringsCount"));
-            projections.add(Projections.property("u.longsCount"));
-            projections.add(Projections.property("u.datesCount"));
-            projections.add(Projections.property("u.referencesCount"));
-            projections.add(Projections.property("u.polysCount"));
+            addFullObjectProjectionList("u", projections, false);
             main.setProjection(projections);
 
             main.add(Restrictions.like("fullName.norm", "%cpt jack sparrow%").ignoreCase());
@@ -465,12 +410,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             Criteria main = session.createCriteria(RUser.class, "u");
             ProjectionList projections = Projections.projectionList();
             main.setProjection(projections);
-            projections.add(Projections.property("u.fullObject"));
-            projections.add(Projections.property("u.stringsCount"));
-            projections.add(Projections.property("u.longsCount"));
-            projections.add(Projections.property("u.datesCount"));
-            projections.add(Projections.property("u.referencesCount"));
-            projections.add(Projections.property("u.polysCount"));
+            addFullObjectProjectionList("u", projections, false);
 
             main.add(Restrictions.eq("name.norm", "some name identificator"));
             String expected = HibernateToSqlTranslator.toSql(main);
@@ -496,12 +436,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     Restrictions.eq("connectorType", "org.identityconnectors.ldap.LdapConnector"));
             main.add(connectorType);
             ProjectionList projections = Projections.projectionList();
-            projections.add(Projections.property("c.fullObject"));
-            projections.add(Projections.property("c.stringsCount"));
-            projections.add(Projections.property("c.longsCount"));
-            projections.add(Projections.property("c.datesCount"));
-            projections.add(Projections.property("c.referencesCount"));
-            projections.add(Projections.property("c.polysCount"));
+            addFullObjectProjectionList("c", projections, false);
             main.setProjection(projections);
 
             String expected = HibernateToSqlTranslator.toSql(main);
@@ -539,12 +474,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             conjunction.add(c2);
             main.add(conjunction);
             ProjectionList projections = Projections.projectionList();
-            projections.add(Projections.property("r.fullObject"));
-            projections.add(Projections.property("r.stringsCount"));
-            projections.add(Projections.property("r.longsCount"));
-            projections.add(Projections.property("r.datesCount"));
-            projections.add(Projections.property("r.referencesCount"));
-            projections.add(Projections.property("r.polysCount"));
+            addFullObjectProjectionList("r", projections, false);
             main.setProjection(projections);
 
             String expected = HibernateToSqlTranslator.toSql(main);
@@ -565,12 +495,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         try {
             Criteria main = session.createCriteria(RUser.class, "u");
             ProjectionList projections = Projections.projectionList();
-            projections.add(Projections.property("u.fullObject"));
-            projections.add(Projections.property("u.stringsCount"));
-            projections.add(Projections.property("u.longsCount"));
-            projections.add(Projections.property("u.datesCount"));
-            projections.add(Projections.property("u.referencesCount"));
-            projections.add(Projections.property("u.polysCount"));
+            addFullObjectProjectionList("u", projections, false);
             main.setProjection(projections);
 
             Criteria refs = main.createCriteria("linkRef", "l");
@@ -596,12 +521,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         try {
             Criteria main = session.createCriteria(RObject.class, "o");
             ProjectionList projections = Projections.projectionList();
-            projections.add(Projections.property("o.fullObject"));
-            projections.add(Projections.property("o.stringsCount"));
-            projections.add(Projections.property("o.longsCount"));
-            projections.add(Projections.property("o.datesCount"));
-            projections.add(Projections.property("o.referencesCount"));
-            projections.add(Projections.property("o.polysCount"));
+            addFullObjectProjectionList("o", projections, false);
             main.setProjection(projections);
 
             Criteria d = main.createCriteria("trigger", "t");
@@ -637,12 +557,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     Restrictions.eq("a.activation.administrativeStatus", RActivationStatus.ENABLED)
             ));
             ProjectionList projections = Projections.projectionList();
-            projections.add(Projections.property("u.fullObject"));
-            projections.add(Projections.property("u.stringsCount"));
-            projections.add(Projections.property("u.longsCount"));
-            projections.add(Projections.property("u.datesCount"));
-            projections.add(Projections.property("u.referencesCount"));
-            projections.add(Projections.property("u.polysCount"));
+            addFullObjectProjectionList("u", projections, false);
             main.setProjection(projections);
 
             String expected = HibernateToSqlTranslator.toSql(main);
@@ -675,12 +590,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     Restrictions.eq("a.activation.administrativeStatus", RActivationStatus.ENABLED)
             ));
             ProjectionList projections = Projections.projectionList();
-            projections.add(Projections.property("r.fullObject"));
-            projections.add(Projections.property("r.stringsCount"));
-            projections.add(Projections.property("r.longsCount"));
-            projections.add(Projections.property("r.datesCount"));
-            projections.add(Projections.property("r.referencesCount"));
-            projections.add(Projections.property("r.polysCount"));
+            addFullObjectProjectionList("r", projections, false);
             main.setProjection(projections);
 
             String expected = HibernateToSqlTranslator.toSql(main);
@@ -709,12 +619,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             Criteria main = session.createCriteria(RRole.class, "r");
             Criteria a = main.createCriteria("assignments", "a");
             ProjectionList projections = Projections.projectionList();
-            projections.add(Projections.property("r.fullObject"));
-            projections.add(Projections.property("r.stringsCount"));
-            projections.add(Projections.property("r.longsCount"));
-            projections.add(Projections.property("r.datesCount"));
-            projections.add(Projections.property("r.referencesCount"));
-            projections.add(Projections.property("r.polysCount"));
+            addFullObjectProjectionList("r", projections, false);
             main.setProjection(projections);
 
             Criterion and1 = Restrictions.and(
@@ -762,12 +667,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         try {
             Criteria main = session.createCriteria(RUser.class, "u");
             ProjectionList projections = Projections.projectionList();
-            projections.add(Projections.property("u.fullObject"));
-            projections.add(Projections.property("u.stringsCount"));
-            projections.add(Projections.property("u.longsCount"));
-            projections.add(Projections.property("u.datesCount"));
-            projections.add(Projections.property("u.referencesCount"));
-            projections.add(Projections.property("u.polysCount"));
+            addFullObjectProjectionList("u", projections, false);
             main.setProjection(projections);
 
             main.add(Restrictions.and(
@@ -806,12 +706,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         try {
             Criteria main = session.createCriteria(RObject.class, "o");
             ProjectionList projections = Projections.projectionList();
-            projections.add(Projections.property("o.fullObject"));
-            projections.add(Projections.property("o.stringsCount"));
-            projections.add(Projections.property("o.longsCount"));
-            projections.add(Projections.property("o.datesCount"));
-            projections.add(Projections.property("o.referencesCount"));
-            projections.add(Projections.property("o.polysCount"));
+            addFullObjectProjectionList("o", projections, false);
             main.setProjection(projections);
 
             Criteria d = main.createCriteria("trigger", "t");
@@ -843,28 +738,40 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         }
     }
 
+    private void addFullObjectProjectionList(String prefix, ProjectionList list, boolean group) {
+        if (prefix == null) {
+            prefix = "";
+        } else {
+            prefix = prefix + ".";
+        }
+
+        if (group) {
+            list.add(Projections.groupProperty(prefix + "fullObject"));
+            list.add(Projections.groupProperty(prefix + "stringsCount"));
+            list.add(Projections.groupProperty(prefix + "longsCount"));
+            list.add(Projections.groupProperty(prefix + "datesCount"));
+            list.add(Projections.groupProperty(prefix + "referencesCount"));
+            list.add(Projections.groupProperty(prefix + "polysCount"));
+        } else {
+            list.add(Projections.property(prefix + "fullObject"));
+            list.add(Projections.property(prefix + "stringsCount"));
+            list.add(Projections.property(prefix + "longsCount"));
+            list.add(Projections.property(prefix + "datesCount"));
+            list.add(Projections.property(prefix + "referencesCount"));
+            list.add(Projections.property(prefix + "polysCount"));
+        }
+    }
+
     @Test
     public void queryOrgStructure() throws Exception {
         Session session = open();
 
         try {
             ProjectionList list = Projections.projectionList();
-            list.add(Projections.groupProperty("o.fullObject"));
-            list.add(Projections.groupProperty("o.stringsCount"));
-            list.add(Projections.groupProperty("o.longsCount"));
-            list.add(Projections.groupProperty("o.datesCount"));
-            list.add(Projections.groupProperty("o.referencesCount"));
-            list.add(Projections.groupProperty("o.polysCount"));
-
+            addFullObjectProjectionList("o", list, true);
             list.add(Projections.groupProperty("o.name.orig"));
             list.add(Projections.groupProperty("closure.descendant"));
-
-            list.add(Projections.property("o.fullObject"));
-            list.add(Projections.property("o.stringsCount"));
-            list.add(Projections.property("o.longsCount"));
-            list.add(Projections.property("o.datesCount"));
-            list.add(Projections.property("o.referencesCount"));
-            list.add(Projections.property("o.polysCount"));
+            addFullObjectProjectionList("o", list, false);
 
             Criteria main = session.createCriteria(RObject.class, "o");
             main.createCriteria("descendants", "closure").setFetchMode("closure.ancestor", FetchMode.DEFAULT)
@@ -981,12 +888,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             Criteria main = session.createCriteria(RObject.class, "o");
             main.add(Restrictions.in("oid", Arrays.asList("1", "2")));
             ProjectionList projections = Projections.projectionList();
-            projections.add(Projections.property("o.fullObject"));
-            projections.add(Projections.property("o.stringsCount"));
-            projections.add(Projections.property("o.longsCount"));
-            projections.add(Projections.property("o.datesCount"));
-            projections.add(Projections.property("o.referencesCount"));
-            projections.add(Projections.property("o.polysCount"));
+            addFullObjectProjectionList("o", projections, false);
             main.setProjection(projections);
 
             String expected = HibernateToSqlTranslator.toSql(main);
@@ -1009,22 +911,10 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         try {
             ProjectionList list = Projections.projectionList();
-            list.add(Projections.groupProperty("o.fullObject"));
-            list.add(Projections.groupProperty("o.stringsCount"));
-            list.add(Projections.groupProperty("o.longsCount"));
-            list.add(Projections.groupProperty("o.datesCount"));
-            list.add(Projections.groupProperty("o.referencesCount"));
-            list.add(Projections.groupProperty("o.polysCount"));
-
+            addFullObjectProjectionList("o", list, true);
             list.add(Projections.groupProperty("o.name.orig"));
             list.add(Projections.groupProperty("closure.descendant"));
-
-            list.add(Projections.property("o.fullObject"));
-            list.add(Projections.property("o.stringsCount"));
-            list.add(Projections.property("o.longsCount"));
-            list.add(Projections.property("o.datesCount"));
-            list.add(Projections.property("o.referencesCount"));
-            list.add(Projections.property("o.polysCount"));
+            addFullObjectProjectionList("o", list, false);
 
             Criteria main = session.createCriteria(ROrg.class, "o");
             main.createCriteria("descendants", "closure").setFetchMode("closure.ancestor", FetchMode.DEFAULT)
