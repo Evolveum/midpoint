@@ -72,20 +72,13 @@ public class RUser extends RFocus<UserType> {
     private Set<RPolyString> organization;
     private ROperationResult result;
 
-    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)//, fetch = FetchType.LAZY)
+    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public ROperationResult getResult() {
-//        if (fieldHandler != null) {
-//            return (ROperationResult) fieldHandler.readObject(this, "result", result);
-//        }
         return result;
     }
 
     public void setResult(ROperationResult result) {
-//        if (fieldHandler != null) {
-//            this.result = (ROperationResult) fieldHandler.writeObject(this, "result", this.result, result);
-//            return;
-//        }
         this.result = result;
     }
     

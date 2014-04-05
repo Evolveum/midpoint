@@ -25,7 +25,6 @@ import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
 import com.evolveum.midpoint.repo.sql.data.common.OperationResult;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
-import com.evolveum.midpoint.repo.sql.data.common.RSynchronizationSituationDescription;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.container.*;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
@@ -347,7 +346,6 @@ public final class RUtil {
      */
     public static void fixCompositeIDHandling(SessionFactory sessionFactory) {
         fixCompositeIdentifierInMetaModel(sessionFactory, RObjectDeltaOperation.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RSynchronizationSituationDescription.class);
 
         fixCompositeIdentifierInMetaModel(sessionFactory, ROExtDate.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, ROExtString.class);
