@@ -74,7 +74,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
     private RFailedOperationType failedOperationType;
     private String intent;
     private RSynchronizationSituation synchronizationSituation;
-    private Set<RSynchronizationSituationDescription> synchronizationSituationDescription;
     //attributes
     private XMLGregorianCalendar synchronizationTimestamp;
     private RShadowKind kind;
@@ -143,16 +142,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
     @Embedded
     public RPolyString getName() {
         return name;
-    }
-
-    @ForeignKey(name = "fk_shadow_sync_situation")
-    @OneToMany(mappedBy = "shadow", orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RSynchronizationSituationDescription> getSynchronizationSituationDescription() {
-        if (synchronizationSituationDescription == null) {
-            synchronizationSituationDescription = new HashSet<RSynchronizationSituationDescription>();
-        }
-        return synchronizationSituationDescription;
     }
 
     @Enumerated(EnumType.ORDINAL)
@@ -236,11 +225,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         this.exists = exists;
     }
 
-    public void setSynchronizationSituationDescription(
-            Set<RSynchronizationSituationDescription> synchronizationSituationDescription) {
-        this.synchronizationSituationDescription = synchronizationSituationDescription;
-    }
-
     public void setIteration(Integer iteration) {
         this.iteration = iteration;
     }
@@ -268,8 +252,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         if (intent != null ? !intent.equals(that.intent) : that.intent != null) return false;
         if (synchronizationSituation != null ? !synchronizationSituation.equals(that.synchronizationSituation) : that.synchronizationSituation != null)
             return false;
-        if (synchronizationSituationDescription != null ? !synchronizationSituationDescription.equals(that.synchronizationSituationDescription) : that.synchronizationSituationDescription != null)
-            return false;
         if (kind != null ? !kind.equals(that.kind) : that.kind != null) return false;
         if (assigned != null ? !assigned.equals(that.assigned) : that.assigned != null) return false;
         if (exists != null ? !exists.equals(that.exists) : that.exists != null) return false;
@@ -292,7 +274,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         result1 = 31 * result1 + (failedOperationType != null ? failedOperationType.hashCode() : 0);
         result1 = 31 * result1 + (intent != null ? intent.hashCode() : 0);
         result1 = 31 * result1 + (synchronizationSituation != null ? synchronizationSituation.hashCode() : 0);
-        result1 = 31 * result1 + (synchronizationSituationDescription != null ? synchronizationSituationDescription.hashCode() : 0);
         result1 = 31 * result1 + (kind != null ? kind.hashCode() : 0);
         result1 = 31 * result1 + (assigned != null ? assigned.hashCode() : 0);
         result1 = 31 * result1 + (exists != null ? exists.hashCode() : 0);
@@ -330,8 +311,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
                     RSynchronizationSituation.class));
         }
 
-        repo.getSynchronizationSituationDescription()
-                .addAll(RUtil.listSyncSituationToSet(repo, jaxb.getSynchronizationSituationDescription()));
         repo.setSynchronizationTimestamp(jaxb.getSynchronizationTimestamp());
         repo.setResourceRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getResourceRef(), prismContext));
 
