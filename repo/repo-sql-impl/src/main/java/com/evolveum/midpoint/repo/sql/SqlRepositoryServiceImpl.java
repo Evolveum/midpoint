@@ -35,8 +35,8 @@ import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.data.common.any.RValueType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
+import com.evolveum.midpoint.repo.sql.query.*;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.*;
@@ -55,6 +55,7 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.*;
+import org.hibernate.Query;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.exception.ConstraintViolationException;
@@ -883,7 +884,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             Class<? extends RObject> hqlType = ClassMapper.getHQLTypeClass(type);
 
             session = beginReadOnlyTransaction();
-            Long longCount;
+            Number longCount;
             if (query == null || query.getFilter() == null) {
                 // this is 5x faster than count with 3 inner joins, it can probably improved also for queries which
                 // filters uses only properties from concrete entities like RUser, RRole by improving interpreter [lazyman]
@@ -892,17 +893,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 longCount = n.longValue();
             } else {
                 LOGGER.trace("Updating query criteria.");
-                Criteria criteria;
-                if (query != null && query.getFilter() != null) {
-                    QueryInterpreter interpreter = new QueryInterpreter();
-                    criteria = interpreter.interpret(query, type, null, getPrismContext(), true, session);
-                } else {
-                    criteria = session.createCriteria(hqlType);
-                }
-                criteria.setProjection(Projections.rowCount());
+                QueryEngine engine = new QueryEngine(getPrismContext());
+                RQuery rQuery = engine.interpret(query, type, null, true, session);
 
                 LOGGER.trace("Selecting total count.");
-                longCount = (Long) criteria.uniqueResult();
+                longCount = (Number) rQuery.uniqueResult();
             }
             count = longCount.intValue();
         } catch (QueryException | RuntimeException ex) {
@@ -976,11 +971,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Session session = null;
         try {
             session = beginReadOnlyTransaction();
-            QueryInterpreter interpreter = new QueryInterpreter();
-            Criteria criteria = interpreter.interpret(query, type, options, getPrismContext(), false, session);
-            criteria.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
+            QueryEngine engine = new QueryEngine(getPrismContext());
+            RQuery rQuery = engine.interpret(query, type, options, false, session);
 
-            List<GetObjectResult> objects = criteria.list();
+            List<GetObjectResult> objects = rQuery.list();
             LOGGER.trace("Found {} objects, translating to JAXB.",
                     new Object[]{(objects != null ? objects.size() : 0)});
 
@@ -1680,11 +1674,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Session session = null;
         try {
             session = beginReadOnlyTransaction();
-            QueryInterpreter interpreter = new QueryInterpreter();
-            Criteria criteria = interpreter.interpret(query, type, options, getPrismContext(), false, session);
-            criteria.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
+            QueryEngine engine = new QueryEngine(getPrismContext());
+            RQuery rQuery = engine.interpret(query, type, options, false, session);
 
-            ScrollableResults results = criteria.scroll(ScrollMode.FORWARD_ONLY);
+            ScrollableResults results = rQuery.scroll(ScrollMode.FORWARD_ONLY);
             try {
                 Iterator<GetObjectResult> iterator = new ScrollableResultsIterator(results);
                 while (iterator.hasNext()) {

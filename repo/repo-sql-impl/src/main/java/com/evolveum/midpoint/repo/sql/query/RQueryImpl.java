@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.query;
 
+import org.apache.commons.lang.Validate;
 import org.hibernate.HibernateException;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
@@ -25,11 +26,12 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class QueryHQLImpl implements Query {
+public class RQueryImpl implements RQuery {
 
     private org.hibernate.Query query;
 
-    public QueryHQLImpl(org.hibernate.Query query) {
+    public RQueryImpl(org.hibernate.Query query) {
+        Validate.notNull(query, "Query must not be null.");
         this.query = query;
     }
 
