@@ -18,7 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.audit;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.repo.sql.data.common.OperationResult;
+import com.evolveum.midpoint.repo.sql.data.common.OperationResultFull;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RChangeType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -37,7 +37,7 @@ import javax.persistence.*;
 @Entity
 @IdClass(RObjectDeltaOperationId.class)
 @Table(name = RObjectDeltaOperation.TABLE_NAME)
-public class RObjectDeltaOperation implements OperationResult {
+public class RObjectDeltaOperation implements OperationResultFull {
 
     public static final String TABLE_NAME = "m_audit_delta";
     public static final String COLUMN_RECORD_ID = "record_id";
