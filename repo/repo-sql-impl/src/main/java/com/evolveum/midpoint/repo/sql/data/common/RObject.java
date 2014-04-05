@@ -23,21 +23,16 @@ import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RCreateApproverRef;
 import com.evolveum.midpoint.repo.sql.data.common.type.RModifyApproverRef;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
-import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
 import org.apache.commons.lang.StringUtils;
@@ -50,7 +45,6 @@ import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.xml.datatype.XMLGregorianCalendar;
-
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
@@ -61,24 +55,23 @@ import java.util.Set;
  * @author lazyman
  */
 @NamedQueries({
-        @NamedQuery(name = "get.object", query = "select o.fullObject, o.stringsCount, o.longsCount, o.datesCount, o.referencesCount, o.clobsCount, o.polysCount from RObject as o where o.oid=:oid"),
+        @NamedQuery(name = "get.object", query = "select o.fullObject, o.stringsCount, o.longsCount, o.datesCount, o.referencesCount, o.polysCount from RObject as o where o.oid=:oid"),
         @NamedQuery(name = "searchShadowOwner.getShadow", query = "select s.oid from RShadow as s where s.oid = :oid"),
-        @NamedQuery(name = "searchShadowOwner.getOwner", query = "select o.fullObject, o.stringsCount, o.longsCount, o.datesCount, o.referencesCount, o.clobsCount, o.polysCount from RFocus as o left join o.linkRef as ref where ref.targetOid = :oid"),
-        @NamedQuery(name = "listAccountShadowOwner.getUser", query = "select u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.clobsCount, u.polysCount from RUser as u left join u.linkRef as ref where ref.targetOid = :oid"),
-        @NamedQuery(name = "getExtCount", query = "select stringsCount, longsCount, datesCount, referencesCount, clobsCount, polysCount from RObject where oid = :oid"),
+        @NamedQuery(name = "searchShadowOwner.getOwner", query = "select o.fullObject, o.stringsCount, o.longsCount, o.datesCount, o.referencesCount, o.polysCount from RFocus as o left join o.linkRef as ref where ref.targetOid = :oid"),
+        @NamedQuery(name = "listAccountShadowOwner.getUser", query = "select u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount from RUser as u left join u.linkRef as ref where ref.targetOid = :oid"),
+        @NamedQuery(name = "getExtCount", query = "select stringsCount, longsCount, datesCount, referencesCount, polysCount from RObject where oid = :oid"),
         @NamedQuery(name = "getVersion", query = "select o.version from RObject as o where o.oid = :oid"),
         @NamedQuery(name = "existIncorrect", query = "select count(*) from ROrgIncorrect as o where o.ancestorOid = :ancestorOid and o.descendantOid = :descendantOid"),
         @NamedQuery(name = "existOrgClosure", query = "select count(*) from ROrgClosure as o where o.ancestorOid = :ancestorOid and o.descendantOid = :descendantOid and o.depth = :depth"),
-        @NamedQuery(name = "fillHierarchy", query ="from ROrgIncorrect as o where o.ancestorOid = :oid"),
-        @NamedQuery(name = "sqlDeleteOrgClosure", query="delete from ROrgClosure as o where o.descendantOid = :oid or o.ancestorOid = :oid"),
-        @NamedQuery(name = "sqlDeleteOrgIncorrect", query="delete from ROrgIncorrect as o where o.descendantOid = :oid or o.ancestorOid = :oid"),
-        @NamedQuery(name = "listResourceObjectShadows", query="select s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.clobsCount, s.polysCount from RShadow as s left join s.resourceRef as ref where ref.targetOid = :oid"),
-        @NamedQuery(name = "getDefinition.ROExtClob", query="select c.name, c.type, c.valueType from ROExtClob as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
-        @NamedQuery(name = "getDefinition.ROExtDate", query="select c.name, c.type, c.valueType from ROExtDate as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
-        @NamedQuery(name = "getDefinition.ROExtString", query="select c.name, c.type, c.valueType from ROExtString as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
-        @NamedQuery(name = "getDefinition.ROExtPolyString", query="select c.name, c.type, c.valueType from ROExtPolyString as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
-        @NamedQuery(name = "getDefinition.ROExtLong", query="select c.name, c.type, c.valueType from ROExtLong as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
-        @NamedQuery(name = "getDefinition.ROExtReference", query="select c.name, c.type, c.valueType from ROExtReference as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "fillHierarchy", query = "from ROrgIncorrect as o where o.ancestorOid = :oid"),
+        @NamedQuery(name = "sqlDeleteOrgClosure", query = "delete from ROrgClosure as o where o.descendantOid = :oid or o.ancestorOid = :oid"),
+        @NamedQuery(name = "sqlDeleteOrgIncorrect", query = "delete from ROrgIncorrect as o where o.descendantOid = :oid or o.ancestorOid = :oid"),
+        @NamedQuery(name = "listResourceObjectShadows", query = "select s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount from RShadow as s left join s.resourceRef as ref where ref.targetOid = :oid"),
+        @NamedQuery(name = "getDefinition.ROExtDate", query = "select c.name, c.type, c.valueType from ROExtDate as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "getDefinition.ROExtString", query = "select c.name, c.type, c.valueType from ROExtString as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "getDefinition.ROExtPolyString", query = "select c.name, c.type, c.valueType from ROExtPolyString as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "getDefinition.ROExtLong", query = "select c.name, c.type, c.valueType from ROExtLong as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "getDefinition.ROExtReference", query = "select c.name, c.type, c.valueType from ROExtReference as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
 })
 @Entity
 @Table(name = "m_object")
@@ -115,13 +108,11 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     private Short longsCount;
     private Short datesCount;
     private Short referencesCount;
-    private Short clobsCount;
     private Short polysCount;
     private Set<ROExtString> strings;
     private Set<ROExtLong> longs;
     private Set<ROExtDate> dates;
     private Set<ROExtReference> references;
-    private Set<ROExtClob> clobs;
     private Set<ROExtPolyString> polys;
 
     @Id
@@ -236,15 +227,6 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
 //    @Cascade({PERSIST, REMOVE, REFRESH, DELETE, SAVE_UPDATE, REPLICATE, LOCK, DETACH})
-    public Set<ROExtClob> getClobs() {
-        if (clobs == null) {
-            clobs = new HashSet<>();
-        }
-        return clobs;
-    }
-
-    @OneToMany(mappedBy = "owner", orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<ROExtLong> getLongs() {
         if (longs == null) {
             longs = new HashSet<>();
@@ -314,13 +296,6 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
             referencesCount = 0;
         }
         return referencesCount;
-    }
-
-    public Short getClobsCount() {
-        if (clobsCount == null) {
-            clobsCount = 0;
-        }
-        return clobsCount;
     }
 
     public Short getPolysCount() {
@@ -414,20 +389,12 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         this.referencesCount = referencesCount;
     }
 
-    public void setClobsCount(Short clobsCount) {
-        this.clobsCount = clobsCount;
-    }
-
     public void setPolysCount(Short polysCount) {
         this.polysCount = polysCount;
     }
 
     public void setPolys(Set<ROExtPolyString> polys) {
         this.polys = polys;
-    }
-
-    public void setClobs(Set<ROExtClob> clobs) {
-        this.clobs = clobs;
     }
 
     public void setReferences(Set<ROExtReference> references) {
@@ -471,8 +438,6 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
             return false;
         if (!MetadataFactory.equals(this, rObject)) return false;
 
-        if (clobs != null ? !clobs.equals(rObject.clobs) : rObject.clobs != null) return false;
-        if (clobsCount != null ? !clobsCount.equals(rObject.clobsCount) : rObject.clobsCount != null) return false;
         if (dates != null ? !dates.equals(rObject.dates) : rObject.dates != null) return false;
         if (datesCount != null ? !datesCount.equals(rObject.datesCount) : rObject.datesCount != null) return false;
         if (longs != null ? !longs.equals(rObject.longs) : rObject.longs != null) return false;
@@ -483,7 +448,8 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         if (referencesCount != null ? !referencesCount.equals(rObject.referencesCount) : rObject.referencesCount != null)
             return false;
         if (strings != null ? !strings.equals(rObject.strings) : rObject.strings != null) return false;
-        if (stringsCount != null ? !stringsCount.equals(rObject.stringsCount) : rObject.stringsCount != null) return false;
+        if (stringsCount != null ? !stringsCount.equals(rObject.stringsCount) : rObject.stringsCount != null)
+            return false;
 
         return true;
     }
@@ -505,7 +471,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
 
     @Deprecated
     protected static <T extends ObjectType> void copyToJAXB(RObject<T> repo, ObjectType jaxb, PrismContext prismContext,
-                                                         Collection<SelectorOptions<GetOperationOptions>> options)
+                                                            Collection<SelectorOptions<GetOperationOptions>> options)
             throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
@@ -581,9 +547,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
             ex.setOwner(repo);
             ex.setOwnerType(ownerType);
 
-            if (value instanceof ROExtClob) {
-                repo.getClobs().add(value);
-            } else if (value instanceof ROExtDate) {
+            if (value instanceof ROExtDate) {
                 repo.getDates().add(value);
             } else if (value instanceof ROExtLong) {
                 repo.getLongs().add(value);
@@ -596,39 +560,10 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
             }
         }
 
-        repo.setClobsCount((short) repo.getClobs().size());
         repo.setStringsCount((short) repo.getStrings().size());
         repo.setDatesCount((short) repo.getDates().size());
         repo.setPolysCount((short) repo.getPolys().size());
         repo.setReferencesCount((short) repo.getReferences().size());
         repo.setLongsCount((short) repo.getLongs().size());
-    }
-
-    public static void copyExtensionToJAXB(RObject repo, PrismContainerValue containerValue,
-                                   PrismContext prismContext, RObjectType ownerType) throws
-            DtoTranslationException {
-        RAnyConverter converter = new RAnyConverter(prismContext);
-
-        if (repo.getClobsCount() > 0) convertValues(converter, containerValue, repo.getClobs(), ownerType);
-        if (repo.getDatesCount() > 0) convertValues(converter, containerValue, repo.getDates(), ownerType);
-        if (repo.getLongsCount() > 0) convertValues(converter, containerValue, repo.getLongs(), ownerType);
-        if (repo.getStringsCount() > 0) convertValues(converter, containerValue, repo.getStrings(), ownerType);
-        if (repo.getReferencesCount() > 0) convertValues(converter, containerValue, repo.getReferences(), ownerType);
-        if (repo.getPolysCount() > 0) convertValues(converter, containerValue, repo.getPolys(), ownerType);
-    }
-
-    private static <T extends RAnyValue> void convertValues(RAnyConverter converter, PrismContainerValue containerValue,
-                                                            Set<T> values, RObjectType ownerType) throws DtoTranslationException {
-        if (values == null) {
-            return;
-        }
-
-        for (RAnyValue value : values) {
-            ROExtValue ex = (ROExtValue) value;
-            if (!ownerType.equals(ex.getOwnerType())) {
-                continue;
-            }
-            converter.convertFromRValue(value, containerValue);
-        }
     }
 }

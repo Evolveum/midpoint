@@ -86,7 +86,7 @@ public class RAnyConverter {
             List<PrismValue> values = item.getValues();
             for (PrismValue value : values) {
                 if (value instanceof PrismContainerValue) {
-                    rValue = createClobValue(value, assignment);
+                    continue;
                 } else if (value instanceof PrismPropertyValue) {
                     PrismPropertyValue propertyValue = (PrismPropertyValue) value;
                     switch (getValueType(definition.getTypeName())) {
@@ -132,7 +132,7 @@ public class RAnyConverter {
                                     rValue = strValue;
                                 }
                             } else {
-                                rValue = createClobValue(propertyValue, assignment);
+                                continue;
                             }
                     }
                 } else if (value instanceof PrismReferenceValue) {
@@ -198,15 +198,6 @@ public class RAnyConverter {
         return RValueType.getTypeFromItemClass(((Item) itemable).getClass());
     }
 
-    private RAnyValue createClobValue(PrismValue prismValue, boolean assignment) throws SchemaException {
-        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
-        Element root = createElement(RUtil.CUSTOM_OBJECT);
-        domProcessor.serializeValueToDom(prismValue, root);
-        String value = DOMUtil.serializeDOMToString(root);
-
-        return !assignment ?  new ROExtClob(value) : new RAExtClob(value);
-    }
-
     private <T> T extractValue(PrismPropertyValue value, Class<T> returnType) throws SchemaException {
         ItemDefinition definition = value.getParent().getDefinition();
         //todo raw types
@@ -265,10 +256,6 @@ public class RAnyConverter {
     }
 
     private void addValueToItem(RAnyValue value, Item item) throws SchemaException {
-        if (value instanceof ROExtClob) {
-            return;
-        }
-
         Object realValue = createRealValue(value, item.getDefinition().getTypeName());
         if (!(value instanceof ROExtReference) && realValue == null) {
             throw new SchemaException("Real value must not be null. Some error occurred when adding value "

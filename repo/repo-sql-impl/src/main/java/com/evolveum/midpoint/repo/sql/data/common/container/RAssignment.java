@@ -19,7 +19,6 @@ package com.evolveum.midpoint.repo.sql.data.common.container;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.Metadata;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
@@ -27,8 +26,6 @@ import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RACreateApproverRef;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAModifyApproverRef;
-import com.evolveum.midpoint.repo.sql.data.common.type.RCreateApproverRef;
-import com.evolveum.midpoint.repo.sql.data.common.type.RModifyApproverRef;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -36,8 +33,6 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.*;
@@ -91,7 +86,7 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     private Set<RAssignmentReference> modifyApproverRef;
     private String modifyChannel;
 
-	public RAssignment() {
+    public RAssignment() {
         this(null, null);
     }
 
@@ -133,11 +128,11 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
     public REmbeddedReference getTargetRef() {
         return targetRef;
     }
-    
+
     @Embedded
     public REmbeddedReference getTenantRef() {
-		return tenantRef;
-	}
+        return tenantRef;
+    }
 
     @com.evolveum.midpoint.repo.sql.query.definition.Any(jaxbNameLocalPart = "extension")
     @OneToOne(optional = true, orphanRemoval = true)
@@ -273,9 +268,9 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         this.assignmentOwner = assignmentOwner;
     }
 
-	public void setTenantRef(REmbeddedReference tenantRef) {
-		this.tenantRef = tenantRef;
-	}
+    public void setTenantRef(REmbeddedReference tenantRef) {
+        this.tenantRef = tenantRef;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -314,34 +309,6 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         return result;
     }
 
-    public static void copyToJAXB(RAssignment repo, AssignmentType jaxb, PrismContext prismContext) throws
-            DtoTranslationException {
-        Validate.notNull(repo, "Repo object must not be null.");
-        Validate.notNull(jaxb, "JAXB object must not be null.");
-
-        jaxb.setId(RUtil.toLong(repo.getId()));
-        jaxb.setOrder(repo.getOrder());
-
-        if (repo.getExtension() != null) {
-            ExtensionType extension = new ExtensionType();
-            jaxb.setExtension(extension);
-            RAssignmentExtension.copyToJAXB(repo.getExtension(), extension, prismContext);
-        }
-        if (repo.getActivation() != null) {
-            jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
-        }
-
-        if (repo.getTargetRef() != null) {
-            jaxb.setTargetRef(repo.getTargetRef().toJAXB(prismContext));
-        }
-        if (repo.getTenantRef() != null) {
-            jaxb.setTenantRef(repo.getTenantRef().toJAXB(prismContext));
-        }
-
-        MetadataType metadata = MetadataFactory.toJAXB(repo, prismContext);
-        jaxb.setMetadata(metadata);
-    }
-
     public static void copyFromJAXB(AssignmentType jaxb, RAssignment repo, ObjectType parent, PrismContext prismContext)
             throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
@@ -370,15 +337,9 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
         }
 
         repo.setTargetRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTargetRef(), prismContext));
-        
+
         repo.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTenantRef(), prismContext));
 
         MetadataFactory.fromJAXB(jaxb.getMetadata(), repo, prismContext);
-    }
-
-    public AssignmentType toJAXB(PrismContext prismContext) throws DtoTranslationException {
-        AssignmentType object = new AssignmentType();
-        RAssignment.copyToJAXB(this, object, prismContext);
-        return object;
     }
 }

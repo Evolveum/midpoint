@@ -162,7 +162,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             if (obj != null) {
                 obj.toJAXB(getPrismContext(), options).asPrismObject();
                 fullObject = new GetObjectResult(obj.getFullObject(), obj.getStringsCount(), obj.getLongsCount(),
-                        obj.getDatesCount(), obj.getReferencesCount(), obj.getClobsCount(), obj.getPolysCount());
+                        obj.getDatesCount(), obj.getReferencesCount(), obj.getPolysCount());
             }
         }
 

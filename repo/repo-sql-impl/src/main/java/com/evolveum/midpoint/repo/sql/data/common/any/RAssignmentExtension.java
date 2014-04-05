@@ -51,14 +51,12 @@ public class RAssignmentExtension implements Serializable {
     private Short longsCount;
     private Short datesCount;
     private Short referencesCount;
-    private Short clobsCount;
     private Short polysCount;
 
     private Set<RAExtString> strings;
     private Set<RAExtLong> longs;
     private Set<RAExtDate> dates;
     private Set<RAExtReference> references;
-    private Set<RAExtClob> clobs;
     private Set<RAExtPolyString> polys;
 
     @ForeignKey(name = "none")
@@ -84,15 +82,6 @@ public class RAssignmentExtension implements Serializable {
             ownerId = owner.getId();
         }
         return ownerId;
-    }
-
-    @OneToMany(mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RAExtClob> getClobs() {
-        if (clobs == null) {
-            clobs = new HashSet<>();
-        }
-        return clobs;
     }
 
     @OneToMany(mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
@@ -156,10 +145,6 @@ public class RAssignmentExtension implements Serializable {
         return referencesCount;
     }
 
-    public Short getClobsCount() {
-        return clobsCount;
-    }
-
     public Short getPolysCount() {
         return polysCount;
     }
@@ -180,20 +165,12 @@ public class RAssignmentExtension implements Serializable {
         this.referencesCount = referencesCount;
     }
 
-    public void setClobsCount(Short clobsCount) {
-        this.clobsCount = clobsCount;
-    }
-
     public void setPolysCount(Short polysCount) {
         this.polysCount = polysCount;
     }
 
     public void setPolys(Set<RAExtPolyString> polys) {
         this.polys = polys;
-    }
-
-    public void setClobs(Set<RAExtClob> clobs) {
-        this.clobs = clobs;
     }
 
     public void setReferences(Set<RAExtReference> references) {
@@ -231,8 +208,6 @@ public class RAssignmentExtension implements Serializable {
 
         RAssignmentExtension that = (RAssignmentExtension) o;
 
-        if (clobs != null ? !clobs.equals(that.clobs) : that.clobs != null) return false;
-        if (clobsCount != null ? !clobsCount.equals(that.clobsCount) : that.clobsCount != null) return false;
         if (dates != null ? !dates.equals(that.dates) : that.dates != null) return false;
         if (datesCount != null ? !datesCount.equals(that.datesCount) : that.datesCount != null) return false;
         if (longs != null ? !longs.equals(that.longs) : that.longs != null) return false;
@@ -254,41 +229,8 @@ public class RAssignmentExtension implements Serializable {
         result = 31 * result + (longsCount != null ? longsCount.hashCode() : 0);
         result = 31 * result + (datesCount != null ? datesCount.hashCode() : 0);
         result = 31 * result + (referencesCount != null ? referencesCount.hashCode() : 0);
-        result = 31 * result + (clobsCount != null ? clobsCount.hashCode() : 0);
         result = 31 * result + (polysCount != null ? polysCount.hashCode() : 0);
         return result;
-    }
-
-    public static void copyToJAXB(RAssignmentExtension repo, ExtensionType jaxb, PrismContext prismContext) throws
-            DtoTranslationException {
-        Validate.notNull(repo, "Repo object must not be null.");
-        Validate.notNull(jaxb, "JAXB object must not be null.");
-
-        copyToJAXB(repo, jaxb.asPrismContainerValue(), prismContext);
-    }
-
-    private static void copyToJAXB(RAssignmentExtension repo, PrismContainerValue containerValue,
-                                   PrismContext prismContext) throws
-            DtoTranslationException {
-        RAnyConverter converter = new RAnyConverter(prismContext);
-
-        if (repo.getClobsCount() > 0) convertValues(converter, containerValue, repo.getClobs());
-        if (repo.getDatesCount() > 0) convertValues(converter, containerValue, repo.getDates());
-        if (repo.getLongsCount() > 0) convertValues(converter, containerValue, repo.getLongs());
-        if (repo.getStringsCount() > 0) convertValues(converter, containerValue, repo.getStrings());
-        if (repo.getReferencesCount() > 0) convertValues(converter, containerValue, repo.getReferences());
-        if (repo.getPolysCount() > 0) convertValues(converter, containerValue, repo.getPolys());
-    }
-
-    private static <T extends RAnyValue> void convertValues(RAnyConverter converter, PrismContainerValue containerValue,
-                                                            Set<T> values) throws DtoTranslationException {
-        if (values == null) {
-            return;
-        }
-
-        for (RAnyValue value : values) {
-            converter.convertFromRValue(value, containerValue);
-        }
     }
 
     public static void copyFromJAXB(ShadowAttributesType jaxb, RAssignmentExtension repo,
@@ -326,9 +268,7 @@ public class RAssignmentExtension implements Serializable {
         for (RAnyValue value : values) {
             ((RAExtValue) value).setAnyContainer(repo);
 
-            if (value instanceof RAExtClob) {
-                repo.getClobs().add((RAExtClob) value);
-            } else if (value instanceof RAExtDate) {
+            if (value instanceof RAExtDate) {
                 repo.getDates().add((RAExtDate) value);
             } else if (value instanceof RAExtLong) {
                 repo.getLongs().add((RAExtLong) value);
@@ -341,7 +281,6 @@ public class RAssignmentExtension implements Serializable {
             }
         }
 
-        repo.setClobsCount((short) repo.getClobs().size());
         repo.setStringsCount((short) repo.getStrings().size());
         repo.setDatesCount((short) repo.getDates().size());
         repo.setPolysCount((short) repo.getPolys().size());

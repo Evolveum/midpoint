@@ -88,7 +88,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             projections.add(Projections.property("u.longsCount"));
             projections.add(Projections.property("u.datesCount"));
             projections.add(Projections.property("u.referencesCount"));
-            projections.add(Projections.property("u.clobsCount"));
             projections.add(Projections.property("u.polysCount"));
             main.setProjection(projections);
 
@@ -122,7 +121,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             projections.add(Projections.property("u.longsCount"));
             projections.add(Projections.property("u.datesCount"));
             projections.add(Projections.property("u.referencesCount"));
-            projections.add(Projections.property("u.clobsCount"));
             projections.add(Projections.property("u.polysCount"));
             main.setProjection(projections);
 
@@ -155,7 +153,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             projections.add(Projections.property("u.longsCount"));
             projections.add(Projections.property("u.datesCount"));
             projections.add(Projections.property("u.referencesCount"));
-            projections.add(Projections.property("u.clobsCount"));
             projections.add(Projections.property("u.polysCount"));
             main.setProjection(projections);
 
@@ -189,7 +186,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             projections.add(Projections.property("t.longsCount"));
             projections.add(Projections.property("t.datesCount"));
             projections.add(Projections.property("t.referencesCount"));
-            projections.add(Projections.property("t.clobsCount"));
             projections.add(Projections.property("t.polysCount"));
             main.setProjection(projections);
 
@@ -234,7 +230,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             projections.add(Projections.property("t.longsCount"));
             projections.add(Projections.property("t.datesCount"));
             projections.add(Projections.property("t.referencesCount"));
-            projections.add(Projections.property("t.clobsCount"));
             projections.add(Projections.property("t.polysCount"));
             main.setProjection(projections);
 
@@ -264,7 +259,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             projections.add(Projections.property("u.longsCount"));
             projections.add(Projections.property("u.datesCount"));
             projections.add(Projections.property("u.referencesCount"));
-            projections.add(Projections.property("u.clobsCount"));
             projections.add(Projections.property("u.polysCount"));
             main.setProjection(projections);
 
@@ -306,7 +300,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             projections.add(Projections.property("g.longsCount"));
             projections.add(Projections.property("g.datesCount"));
             projections.add(Projections.property("g.referencesCount"));
-            projections.add(Projections.property("g.clobsCount"));
             projections.add(Projections.property("g.polysCount"));
             main.setProjection(projections);
 
@@ -332,7 +325,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             projections.add(Projections.property("r.longsCount"));
             projections.add(Projections.property("r.datesCount"));
             projections.add(Projections.property("r.referencesCount"));
-            projections.add(Projections.property("r.clobsCount"));
             projections.add(Projections.property("r.polysCount"));
             main.setProjection(projections);
 
@@ -388,7 +380,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             projections.add(Projections.property("o.longsCount"));
             projections.add(Projections.property("o.datesCount"));
             projections.add(Projections.property("o.referencesCount"));
-            projections.add(Projections.property("o.clobsCount"));
             projections.add(Projections.property("o.polysCount"));
             main.setProjection(projections);
             String expected = HibernateToSqlTranslator.toSql(main);
@@ -420,7 +411,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             projections.add(Projections.property("u.longsCount"));
             projections.add(Projections.property("u.datesCount"));
             projections.add(Projections.property("u.referencesCount"));
-            projections.add(Projections.property("u.clobsCount"));
             projections.add(Projections.property("u.polysCount"));
             main.setProjection(projections);
 
@@ -450,7 +440,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             projections.add(Projections.property("u.longsCount"));
             projections.add(Projections.property("u.datesCount"));
             projections.add(Projections.property("u.referencesCount"));
-            projections.add(Projections.property("u.clobsCount"));
             projections.add(Projections.property("u.polysCount"));
             main.setProjection(projections);
 
@@ -481,7 +470,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             projections.add(Projections.property("u.longsCount"));
             projections.add(Projections.property("u.datesCount"));
             projections.add(Projections.property("u.referencesCount"));
-            projections.add(Projections.property("u.clobsCount"));
             projections.add(Projections.property("u.polysCount"));
 
             main.add(Restrictions.eq("name.norm", "some name identificator"));
@@ -513,7 +501,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             projections.add(Projections.property("c.longsCount"));
             projections.add(Projections.property("c.datesCount"));
             projections.add(Projections.property("c.referencesCount"));
-            projections.add(Projections.property("c.clobsCount"));
             projections.add(Projections.property("c.polysCount"));
             main.setProjection(projections);
 
@@ -557,7 +544,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             projections.add(Projections.property("r.longsCount"));
             projections.add(Projections.property("r.datesCount"));
             projections.add(Projections.property("r.referencesCount"));
-            projections.add(Projections.property("r.clobsCount"));
             projections.add(Projections.property("r.polysCount"));
             main.setProjection(projections);
 
@@ -584,7 +570,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             projections.add(Projections.property("u.longsCount"));
             projections.add(Projections.property("u.datesCount"));
             projections.add(Projections.property("u.referencesCount"));
-            projections.add(Projections.property("u.clobsCount"));
             projections.add(Projections.property("u.polysCount"));
             main.setProjection(projections);
 
@@ -616,7 +601,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             projections.add(Projections.property("o.longsCount"));
             projections.add(Projections.property("o.datesCount"));
             projections.add(Projections.property("o.referencesCount"));
-            projections.add(Projections.property("o.clobsCount"));
             projections.add(Projections.property("o.polysCount"));
             main.setProjection(projections);
 
@@ -658,7 +642,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             projections.add(Projections.property("u.longsCount"));
             projections.add(Projections.property("u.datesCount"));
             projections.add(Projections.property("u.referencesCount"));
-            projections.add(Projections.property("u.clobsCount"));
             projections.add(Projections.property("u.polysCount"));
             main.setProjection(projections);
 
@@ -697,7 +680,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             projections.add(Projections.property("r.longsCount"));
             projections.add(Projections.property("r.datesCount"));
             projections.add(Projections.property("r.referencesCount"));
-            projections.add(Projections.property("r.clobsCount"));
             projections.add(Projections.property("r.polysCount"));
             main.setProjection(projections);
 
@@ -732,7 +714,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             projections.add(Projections.property("r.longsCount"));
             projections.add(Projections.property("r.datesCount"));
             projections.add(Projections.property("r.referencesCount"));
-            projections.add(Projections.property("r.clobsCount"));
             projections.add(Projections.property("r.polysCount"));
             main.setProjection(projections);
 
@@ -786,7 +767,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             projections.add(Projections.property("u.longsCount"));
             projections.add(Projections.property("u.datesCount"));
             projections.add(Projections.property("u.referencesCount"));
-            projections.add(Projections.property("u.clobsCount"));
             projections.add(Projections.property("u.polysCount"));
             main.setProjection(projections);
 
@@ -831,7 +811,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             projections.add(Projections.property("o.longsCount"));
             projections.add(Projections.property("o.datesCount"));
             projections.add(Projections.property("o.referencesCount"));
-            projections.add(Projections.property("o.clobsCount"));
             projections.add(Projections.property("o.polysCount"));
             main.setProjection(projections);
 
@@ -875,7 +854,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             list.add(Projections.groupProperty("o.longsCount"));
             list.add(Projections.groupProperty("o.datesCount"));
             list.add(Projections.groupProperty("o.referencesCount"));
-            list.add(Projections.groupProperty("o.clobsCount"));
             list.add(Projections.groupProperty("o.polysCount"));
 
             list.add(Projections.groupProperty("o.name.orig"));
@@ -886,7 +864,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             list.add(Projections.property("o.longsCount"));
             list.add(Projections.property("o.datesCount"));
             list.add(Projections.property("o.referencesCount"));
-            list.add(Projections.property("o.clobsCount"));
             list.add(Projections.property("o.polysCount"));
 
             Criteria main = session.createCriteria(RObject.class, "o");
@@ -1009,7 +986,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             projections.add(Projections.property("o.longsCount"));
             projections.add(Projections.property("o.datesCount"));
             projections.add(Projections.property("o.referencesCount"));
-            projections.add(Projections.property("o.clobsCount"));
             projections.add(Projections.property("o.polysCount"));
             main.setProjection(projections);
 
@@ -1038,7 +1014,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             list.add(Projections.groupProperty("o.longsCount"));
             list.add(Projections.groupProperty("o.datesCount"));
             list.add(Projections.groupProperty("o.referencesCount"));
-            list.add(Projections.groupProperty("o.clobsCount"));
             list.add(Projections.groupProperty("o.polysCount"));
 
             list.add(Projections.groupProperty("o.name.orig"));
@@ -1049,7 +1024,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             list.add(Projections.property("o.longsCount"));
             list.add(Projections.property("o.datesCount"));
             list.add(Projections.property("o.referencesCount"));
-            list.add(Projections.property("o.clobsCount"));
             list.add(Projections.property("o.polysCount"));
 
             Criteria main = session.createCriteria(ROrg.class, "o");

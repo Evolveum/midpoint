@@ -19,13 +19,13 @@ package com.evolveum.midpoint.repo.sql.util;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
-import com.evolveum.midpoint.repo.sql.data.common.*;
+import com.evolveum.midpoint.repo.sql.data.common.OperationResult;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
+import com.evolveum.midpoint.repo.sql.data.common.RSynchronizationSituationDescription;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.container.*;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
@@ -41,7 +41,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LocalizedMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ParamsType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
@@ -261,45 +264,6 @@ public final class RUtil {
         return set;
     }
 
-    public static List<PolyStringType> safeSetPolyToList(Set<RPolyString> set) {
-        if (set == null || set.isEmpty()) {
-            return new ArrayList<PolyStringType>();
-        }
-
-        List<PolyStringType> list = new ArrayList<PolyStringType>();
-        for (RPolyString str : set) {
-            list.add(RPolyString.copyToJAXB(str));
-        }
-        return list;
-    }
-
-    public static Set<RSynchronizationSituationDescription> listSyncSituationToSet(RShadow owner,
-                                                                                   List<SynchronizationSituationDescriptionType> list) {
-        Set<RSynchronizationSituationDescription> set = new HashSet<RSynchronizationSituationDescription>();
-        if (list != null) {
-            for (SynchronizationSituationDescriptionType str : list) {
-                if (str == null) {
-                    continue;
-                }
-                set.add(RSynchronizationSituationDescription.copyFromJAXB(owner, str));
-            }
-        }
-
-        return set;
-    }
-
-    public static List<SynchronizationSituationDescriptionType> safeSetSyncSituationToList(
-            Set<RSynchronizationSituationDescription> set) {
-        List<SynchronizationSituationDescriptionType> list = new ArrayList<SynchronizationSituationDescriptionType>();
-        for (RSynchronizationSituationDescription str : set) {
-            if (str == null) {
-                continue;
-            }
-            list.add(RSynchronizationSituationDescription.copyToJAXB(str));
-        }
-        return list;
-    }
-
     public static <T> List<T> safeSetToList(Set<T> set) {
         if (set == null || set.isEmpty()) {
             return new ArrayList<T>();
@@ -327,7 +291,7 @@ public final class RUtil {
     }
 
     public static Set safeListReferenceToSet(List<ObjectReferenceType> list, PrismContext prismContext,
-                                                               RObject owner, RReferenceOwner refOwner) {
+                                             RObject owner, RReferenceOwner refOwner) {
         Set<RObjectReference> set = new HashSet<RObjectReference>();
         if (list == null || list.isEmpty()) {
             return set;
@@ -387,7 +351,6 @@ public final class RUtil {
         fixCompositeIdentifierInMetaModel(sessionFactory, RObjectDeltaOperation.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RSynchronizationSituationDescription.class);
 
-        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtClob.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, ROExtDate.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, ROExtString.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, ROExtPolyString.class);
@@ -395,7 +358,6 @@ public final class RUtil {
         fixCompositeIdentifierInMetaModel(sessionFactory, ROExtLong.class);
 
         fixCompositeIdentifierInMetaModel(sessionFactory, RAssignmentExtension.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtClob.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RAExtDate.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RAExtString.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RAExtPolyString.class);
@@ -533,36 +495,6 @@ public final class RUtil {
 
         throw new IllegalArgumentException("Unknown value '" + object
                 + "' of type '" + object.getClass() + "', can't translate to '" + type + "'.");
-    }
-
-    /**
-     * This method creates full {@link ItemPath} from {@link com.evolveum.midpoint.prism.query.ValueFilter} created from
-     * main item path and last element, which is now definition.
-     * <p/>
-     * Will be deleted after query api update
-     *
-     * @param filter
-     * @return
-     */
-    @Deprecated
-    public static ItemPath createFullPath(ValueFilter filter) {
-        ItemDefinition def = filter.getDefinition();
-        ItemPath parentPath = filter.getParentPath();
-
-        List<ItemPathSegment> segments = new ArrayList<ItemPathSegment>();
-        if (parentPath != null) {
-            for (ItemPathSegment segment : parentPath.getSegments()) {
-                if (!(segment instanceof NameItemPathSegment)) {
-                    continue;
-                }
-
-                NameItemPathSegment named = (NameItemPathSegment) segment;
-                segments.add(new NameItemPathSegment(named.getName()));
-            }
-        }
-        segments.add(new NameItemPathSegment(def.getName()));
-
-        return new ItemPath(segments);
     }
 
     public static String qnameToString(QName qname) {

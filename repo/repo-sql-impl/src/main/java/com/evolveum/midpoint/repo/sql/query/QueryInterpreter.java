@@ -134,7 +134,6 @@ public class QueryInterpreter {
             projections.add(Projections.property("longsCount"));
             projections.add(Projections.property("datesCount"));
             projections.add(Projections.property("referencesCount"));
-            projections.add(Projections.property("clobsCount"));
             projections.add(Projections.property("polysCount"));
 
             criteria.setProjection(projections);

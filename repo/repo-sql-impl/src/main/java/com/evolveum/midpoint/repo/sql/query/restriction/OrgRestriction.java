@@ -105,7 +105,6 @@ public class OrgRestriction extends Restriction<OrgFilter> {
         list.add(Projections.groupProperty(alias + ".longsCount"));
         list.add(Projections.groupProperty(alias + ".datesCount"));
         list.add(Projections.groupProperty(alias + ".referencesCount"));
-        list.add(Projections.groupProperty(alias + ".clobsCount"));
         list.add(Projections.groupProperty(alias + ".polysCount"));
 
         list.add(Projections.groupProperty(alias + ".name.orig"));     //just used for sorting by name
@@ -116,7 +115,6 @@ public class OrgRestriction extends Restriction<OrgFilter> {
         list.add(Projections.property(alias + ".longsCount"));
         list.add(Projections.property(alias + ".datesCount"));
         list.add(Projections.property(alias + ".referencesCount"));
-        list.add(Projections.property(alias + ".clobsCount"));
         list.add(Projections.property(alias + ".polysCount"));
 
 
