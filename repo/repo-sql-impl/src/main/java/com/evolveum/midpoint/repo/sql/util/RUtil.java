@@ -41,10 +41,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.LocalizedMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ParamsType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
@@ -79,7 +77,7 @@ public final class RUtil {
      */
     public static final String LOB_STRING_TYPE = "org.hibernate.type.StringClobType";
 
-    public static final int COLUMN_LENGTH_QNAME = 200;
+    public static final int COLUMN_LENGTH_QNAME = 157;
 
     public static final String QNAME_DELIMITER = "#";
 
@@ -407,33 +405,20 @@ public final class RUtil {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
 
-        jaxb.setDetails(repo.getDetails());
-        jaxb.setMessage(repo.getMessage());
-        jaxb.setMessageCode(repo.getMessageCode());
-        jaxb.setOperation(repo.getOperation());
-        if (repo.getStatus() != null) {
-            jaxb.setStatus(repo.getStatus().getSchemaValue());
-        }
-        jaxb.setToken(repo.getToken());
-
         try {
-            jaxb.setLocalizedMessage(RUtil.toJAXB(OperationResultType.class, new ItemPath(
-                    OperationResultType.F_LOCALIZED_MESSAGE), repo.getLocalizedMessage(), LocalizedMessageType.class,
-                    prismContext));
-            jaxb.setParams(RUtil.toJAXB(OperationResultType.class, new ItemPath(OperationResultType.F_PARAMS),
-                    repo.getParams(), ParamsType.class, prismContext));
-
-            jaxb.setContext(RUtil.toJAXB(OperationResultType.class, new ItemPath(OperationResultType.F_CONTEXT),
-                    repo.getContext(), ParamsType.class, prismContext));
-
-            jaxb.setReturns(RUtil.toJAXB(OperationResultType.class, new ItemPath(OperationResultType.F_RETURNS),
-                    repo.getReturns(), ParamsType.class, prismContext));
-
-
-            if (StringUtils.isNotEmpty(repo.getPartialResults())) {
-                OperationResultType result = RUtil.toJAXB(repo.getPartialResults(), OperationResultType.class,
-                        prismContext);
+            if (StringUtils.isNotEmpty(repo.getFullResult())) {
+                OperationResultType result = RUtil.toJAXB(repo.getFullResult(), OperationResultType.class, prismContext);
+                jaxb.setContext(result.getContext());
+                jaxb.setLocalizedMessage(result.getLocalizedMessage());
+                jaxb.setMessageCode(result.getMessageCode());
+                jaxb.setReturns(result.getReturns());
                 jaxb.getPartialResults().addAll(result.getPartialResults());
+                jaxb.setDetails(result.getDetails());
+                jaxb.setMessage(result.getMessage());
+                jaxb.setOperation(result.getOperation());
+                jaxb.setStatus(result.getStatus());
+                jaxb.setParams(result.getParams());
+                jaxb.setToken(result.getToken());
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
@@ -445,24 +430,12 @@ public final class RUtil {
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
 
-        repo.setDetails(jaxb.getDetails());
-        repo.setMessage(jaxb.getMessage());
         repo.setMessageCode(jaxb.getMessageCode());
-        repo.setOperation(jaxb.getOperation());
         repo.setStatus(getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
         repo.setToken(jaxb.getToken());
 
         try {
-            repo.setLocalizedMessage(RUtil.toRepo(jaxb.getLocalizedMessage(), prismContext));
-            repo.setParams(RUtil.toRepo(jaxb.getParams(), prismContext));
-            repo.setContext(RUtil.toRepo(jaxb.getContext(), prismContext));
-            repo.setReturns(RUtil.toRepo(jaxb.getReturns(), prismContext));
-
-            if (!jaxb.getPartialResults().isEmpty()) {
-                OperationResultType result = new OperationResultType();
-                result.getPartialResults().addAll(jaxb.getPartialResults());
-                repo.setPartialResults(RUtil.toRepo(result, prismContext));
-            }
+            repo.setFullResult(RUtil.toRepo(jaxb, prismContext));
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
