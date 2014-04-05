@@ -9,6 +9,7 @@ CREATE TABLE midpoint_tests.idrepo (
 	firstName	VARCHAR(16),
 	lastName	VARCHAR(16),
 	fullName	VARCHAR(32),
+	description	VARCHAR(256),
 	disabled	BOOL,
 	PRIMARY KEY (userId)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;

@@ -139,7 +139,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             Long expectedTotal = null;
             if (countObjectsOnStart) {
                 expectedTotal = (long) modelObjectResolver.countObjects(type, query, opResult);
-                LOGGER.trace("{}: expecting {} objects to be processed", expectedTotal);
+                LOGGER.trace("{}: expecting {} objects to be processed", taskName, expectedTotal);
             }
 
             runResult.setProgress(0);

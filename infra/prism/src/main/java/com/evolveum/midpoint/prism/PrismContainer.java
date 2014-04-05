@@ -407,6 +407,15 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     	ItemPath rest = ItemPath.pathRestStartingWithName(itemPath);
     	return cval.findCreateItem(rest, type, itemDefinition, create);
     }
+    
+    public PrismContainerValue<V> findValue(long id) {
+        for (PrismContainerValue<V> pval : getValues()) {
+        	if (id == pval.getId()) {
+        		return pval;
+        	}
+        }
+        return null;
+    }
 
 	private PrismContainerValue<V> findValue(IdItemPathSegment idSegment) {
 		Long id = null;

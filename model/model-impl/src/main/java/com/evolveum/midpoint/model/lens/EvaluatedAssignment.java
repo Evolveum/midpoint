@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,16 +30,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
 /**
- * @author semancik
- *
+ * Evaluated assignment that contains all constructions and authorizations from the assignment 
+ * itself and all the applicable inducements from all the roles referenced from the assignment.
+ * 
+ * @author Radovan Semancik
  */
-public class Assignment implements DebugDumpable {
+public class EvaluatedAssignment implements DebugDumpable {
 
 	private Collection<Construction> constructions;
 	private Collection<PrismReferenceValue> orgRefVals;
 	private Collection<Authorization> authorizations;
 
-	public Assignment() {
+	public EvaluatedAssignment() {
 		constructions = new ArrayList<Construction>();
 		orgRefVals = new ArrayList<PrismReferenceValue>();
 		authorizations = new ArrayList<Authorization>();
@@ -85,7 +87,7 @@ public class Assignment implements DebugDumpable {
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		DebugUtil.debugDumpLabel(sb, "Assignment", indent);
+		DebugUtil.debugDumpLabel(sb, "EvaluatedAssignment", indent);
 		if (!constructions.isEmpty()) {
 			sb.append("\n");
 			DebugUtil.debugDumpLabel(sb, "Constructions", indent+1);
@@ -117,7 +119,7 @@ public class Assignment implements DebugDumpable {
 
 	@Override
 	public String toString() {
-		return "Assignment(acc=" + constructions + "; org="+orgRefVals+"; autz="+authorizations+")";
+		return "EvaluatedAssignment(acc=" + constructions + "; org="+orgRefVals+"; autz="+authorizations+")";
 	}
 	
 }
