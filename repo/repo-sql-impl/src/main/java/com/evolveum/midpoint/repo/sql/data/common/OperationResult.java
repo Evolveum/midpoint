@@ -21,22 +21,18 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import java.io.Serializable;
 
 /**
- * This interface helps handling and translation from and to entity classes like {@link ROperationResult}
+ * This interface helps handling and translation from and to
  * to {@link com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType}.
  *
  * @author lazyman
  */
 public interface OperationResult extends Serializable {
 
-    String getFullResult();
-
     ROperationResultStatus getStatus();
 
     Long getToken();
 
     String getMessageCode();
-
-    void setFullResult(String fullResult);
 
     void setStatus(ROperationResultStatus status);
 

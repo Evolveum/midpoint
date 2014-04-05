@@ -21,9 +21,9 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RFailedOperationType;
+import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RShadowKind;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation;
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.type.PrefixedStringType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -32,9 +32,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Type;
@@ -42,9 +40,6 @@ import org.hibernate.annotations.Type;
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 
 /**
@@ -60,14 +55,18 @@ import java.util.Set;
                 @Index(name = "iShadowResourceRef", columnNames = "resourceRef_targetOid"),
                 @Index(name = "iShadowDead", columnNames = "dead")})
 @ForeignKey(name = "fk_shadow")
-public class RShadow<T extends ShadowType> extends RObject<T> {
+public class RShadow<T extends ShadowType> extends RObject<T> implements OperationResult {
 
     private static final Trace LOGGER = TraceManager.getTrace(RShadow.class);
     private RPolyString name;
 
     private String objectClass;
     private RActivation activation;
-    private ROperationResult result;
+    //operation result
+    private ROperationResultStatus status;
+    private Long token;
+    private String messageCode;
+    //end of operation result
     private REmbeddedReference resourceRef;
     private Integer attemptNumber;
     private Boolean dead;
@@ -117,12 +116,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         return activation;
     }
 
-    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public ROperationResult getResult() {
-        return result;
-    }
-
     @Embedded
     public REmbeddedReference getResourceRef() {
         return resourceRef;
@@ -165,6 +158,32 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         return fullSynchronizationTimestamp;
     }
 
+    @Enumerated(EnumType.ORDINAL)
+    public ROperationResultStatus getStatus() {
+        return status;
+    }
+
+    @Column(nullable = true)
+    public Long getToken() {
+        return token;
+    }
+
+    public String getMessageCode() {
+        return messageCode;
+    }
+
+    public void setMessageCode(String messageCode) {
+        this.messageCode = messageCode;
+    }
+
+    public void setStatus(ROperationResultStatus status) {
+        this.status = status;
+    }
+
+    public void setToken(Long token) {
+        this.token = token;
+    }
+
     public void setFullSynchronizationTimestamp(XMLGregorianCalendar fullSynchronizationTimestamp) {
         this.fullSynchronizationTimestamp = fullSynchronizationTimestamp;
     }
@@ -191,10 +210,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
 
     public void setResourceRef(REmbeddedReference resourceRef) {
         this.resourceRef = resourceRef;
-    }
-
-    public void setResult(ROperationResult result) {
-        this.result = result;
     }
 
     public void setActivation(RActivation activation) {
@@ -248,7 +263,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         if (failedOperationType != that.failedOperationType) return false;
         if (objectClass != null ? !objectClass.equals(that.objectClass) : that.objectClass != null) return false;
         if (resourceRef != null ? !resourceRef.equals(that.resourceRef) : that.resourceRef != null) return false;
-        if (result != null ? !result.equals(that.result) : that.result != null) return false;
         if (intent != null ? !intent.equals(that.intent) : that.intent != null) return false;
         if (synchronizationSituation != null ? !synchronizationSituation.equals(that.synchronizationSituation) : that.synchronizationSituation != null)
             return false;
@@ -260,6 +274,9 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
             return false;
         if (fullSynchronizationTimestamp != null ? !fullSynchronizationTimestamp.equals(that.iterationToken) : that.fullSynchronizationTimestamp != null)
             return false;
+        if (messageCode != null ? !messageCode.equals(that.messageCode) : that.messageCode != null) return false;
+        if (status != that.status) return false;
+        if (token != null ? !token.equals(that.token) : that.token != null) return false;
 
         return true;
     }
@@ -280,6 +297,9 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         result1 = 31 * result1 + (iteration != null ? iteration.hashCode() : 0);
         result1 = 31 * result1 + (iterationToken != null ? iterationToken.hashCode() : 0);
         result1 = 31 * result1 + (fullSynchronizationTimestamp != null ? fullSynchronizationTimestamp.hashCode() : 0);
+        result1 = 31 * result1 + (status != null ? status.hashCode() : 0);
+        result1 = 31 * result1 + (token != null ? token.hashCode() : 0);
+        result1 = 31 * result1 + (messageCode != null ? messageCode.hashCode() : 0);
 
         return result1;
     }
@@ -299,12 +319,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
             repo.setActivation(activation);
         }
 
-        if (jaxb.getResult() != null) {
-            ROperationResult result = new ROperationResult();
-            result.setOwner(repo);
-            ROperationResult.copyFromJAXB(jaxb.getResult(), result, prismContext);
-            repo.setResult(result);
-        }
+        RUtil.copyResultFromJAXB(jaxb.getResult(), repo, prismContext);
 
         if (jaxb.getSynchronizationSituation() != null) {
             repo.setSynchronizationSituation(RUtil.getRepoEnumValue(jaxb.getSynchronizationSituation(),

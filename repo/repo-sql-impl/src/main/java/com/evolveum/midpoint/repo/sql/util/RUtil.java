@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
 import com.evolveum.midpoint.repo.sql.data.common.OperationResult;
+import com.evolveum.midpoint.repo.sql.data.common.OperationResultFull;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
@@ -398,44 +399,24 @@ public final class RUtil {
         }
     }
 
-    public static void copyResultToJAXB(OperationResult repo, OperationResultType jaxb, PrismContext prismContext) throws
-            DtoTranslationException {
-        Validate.notNull(jaxb, "JAXB object must not be null.");
-        Validate.notNull(repo, "Repo object must not be null.");
-
-        try {
-            if (StringUtils.isNotEmpty(repo.getFullResult())) {
-                OperationResultType result = RUtil.toJAXB(repo.getFullResult(), OperationResultType.class, prismContext);
-                jaxb.setContext(result.getContext());
-                jaxb.setLocalizedMessage(result.getLocalizedMessage());
-                jaxb.setMessageCode(result.getMessageCode());
-                jaxb.setReturns(result.getReturns());
-                jaxb.getPartialResults().addAll(result.getPartialResults());
-                jaxb.setDetails(result.getDetails());
-                jaxb.setMessage(result.getMessage());
-                jaxb.setOperation(result.getOperation());
-                jaxb.setStatus(result.getStatus());
-                jaxb.setParams(result.getParams());
-                jaxb.setToken(result.getToken());
-            }
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
-        }
-    }
-
     public static void copyResultFromJAXB(OperationResultType jaxb, OperationResult repo, PrismContext prismContext)
             throws DtoTranslationException {
-        Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
+
+        if (jaxb == null) {
+            return;
+        }
 
         repo.setMessageCode(jaxb.getMessageCode());
         repo.setStatus(getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
         repo.setToken(jaxb.getToken());
 
-        try {
-            repo.setFullResult(RUtil.toRepo(jaxb, prismContext));
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
+        if (repo instanceof OperationResultFull) {
+            try {
+                ((OperationResultFull) repo).setFullResult(RUtil.toRepo(jaxb, prismContext));
+            } catch (Exception ex) {
+                throw new DtoTranslationException(ex.getMessage(), ex);
+            }
         }
     }
 

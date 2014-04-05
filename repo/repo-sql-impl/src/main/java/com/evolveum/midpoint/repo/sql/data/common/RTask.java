@@ -32,7 +32,6 @@ import org.hibernate.annotations.Index;
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -43,7 +42,7 @@ import java.util.Set;
 @org.hibernate.annotations.Table(appliesTo = "m_task",
         indexes = {@Index(name = "iTaskNameOrig", columnNames = "name_orig"),
                 @Index(name = "iTaskNameNameNorm", columnNames = "name_norm")})
-public class RTask extends RObject<TaskType> {
+public class RTask extends RObject<TaskType> implements OperationResult {
 
     private RPolyString name;
     private String taskIdentifier;
@@ -51,7 +50,11 @@ public class RTask extends RObject<TaskType> {
     private String node;
     private String category;
     private String handlerUri;
-    private ROperationResult result;
+    //operation result
+    private ROperationResultStatus status;
+    private Long token;
+    private String messageCode;
+    //end of operation result
     private XMLGregorianCalendar lastRunStartTimestamp;
     private XMLGregorianCalendar lastRunFinishTimestamp;
     private XMLGregorianCalendar completionTimestamp;
@@ -88,12 +91,6 @@ public class RTask extends RObject<TaskType> {
     @Column(nullable = true)
     public String getCanRunOnNode() {
         return canRunOnNode;
-    }
-
-    @Enumerated(EnumType.ORDINAL)
-    @Column(nullable = true)
-    public ROperationResultStatus getResultStatus() {
-        return resultStatus;
     }
 
     public String getCategory() {
@@ -136,12 +133,6 @@ public class RTask extends RObject<TaskType> {
     @Enumerated(EnumType.ORDINAL)
     public RTaskRecurrence getRecurrence() {
         return recurrence;
-    }
-
-    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public ROperationResult getResult() {
-        return result;
     }
 
     @Embedded
@@ -223,6 +214,32 @@ public class RTask extends RObject<TaskType> {
         return taskIdentifier;
     }
 
+    @Enumerated(EnumType.ORDINAL)
+    public ROperationResultStatus getStatus() {
+        return status;
+    }
+
+    @Column(nullable = true)
+    public Long getToken() {
+        return token;
+    }
+
+    public String getMessageCode() {
+        return messageCode;
+    }
+
+    public void setMessageCode(String messageCode) {
+        this.messageCode = messageCode;
+    }
+
+    public void setStatus(ROperationResultStatus status) {
+        this.status = status;
+    }
+
+    public void setToken(Long token) {
+        this.token = token;
+    }
+
     public void setBinding(RTaskBinding binding) {
         this.binding = binding;
     }
@@ -257,10 +274,6 @@ public class RTask extends RObject<TaskType> {
 
     public void setRecurrence(RTaskRecurrence recurrence) {
         this.recurrence = recurrence;
-    }
-
-    public void setResult(ROperationResult result) {
-        this.result = result;
     }
 
     public void setTaskIdentifier(String taskIdentifier) {
@@ -298,7 +311,6 @@ public class RTask extends RObject<TaskType> {
         if (ownerRef != null ? !ownerRef.equals(rTask.ownerRef) : rTask.ownerRef != null) return false;
         if (progress != null ? !progress.equals(rTask.progress) : rTask.progress != null) return false;
         if (recurrence != rTask.recurrence) return false;
-        if (result != null ? !result.equals(rTask.result) : rTask.result != null) return false;
         if (taskIdentifier != null ? !taskIdentifier.equals(rTask.taskIdentifier) : rTask.taskIdentifier != null)
             return false;
         if (resultStatus != null ? !resultStatus.equals(rTask.resultStatus) : rTask.resultStatus != null) return false;
@@ -312,6 +324,9 @@ public class RTask extends RObject<TaskType> {
             return false;
         if (expectedTotal != null ? !expectedTotal.equals(rTask.expectedTotal) : rTask.expectedTotal != null)
             return false;
+        if (messageCode != null ? !messageCode.equals(rTask.messageCode) : rTask.messageCode != null) return false;
+        if (status != rTask.status) return false;
+        if (token != null ? !token.equals(rTask.token) : rTask.token != null) return false;
 
         return true;
     }
@@ -337,6 +352,9 @@ public class RTask extends RObject<TaskType> {
         result1 = 31 * result1 + (parent != null ? parent.hashCode() : 0);
         result1 = 31 * result1 + (waitingReason != null ? waitingReason.hashCode() : 0);
         result1 = 31 * result1 + (expectedTotal != null ? expectedTotal.hashCode() : 0);
+        result1 = 31 * result1 + (status != null ? status.hashCode() : 0);
+        result1 = 31 * result1 + (token != null ? token.hashCode() : 0);
+        result1 = 31 * result1 + (messageCode != null ? messageCode.hashCode() : 0);
 
         return result1;
     }
@@ -368,12 +386,7 @@ public class RTask extends RObject<TaskType> {
         repo.setWaitingReason(RUtil.getRepoEnumValue(jaxb.getWaitingReason(), RTaskWaitingReason.class));
         repo.setDependent(RUtil.listToSet(jaxb.getDependent()));
 
-        if (jaxb.getResult() != null) {
-            ROperationResult result = new ROperationResult();
-            result.setOwner(repo);
-            ROperationResult.copyFromJAXB(jaxb.getResult(), result, prismContext);
-            repo.setResult(result);
-        }
+        RUtil.copyResultFromJAXB(jaxb.getResult(), repo, prismContext);
     }
 
     @Override

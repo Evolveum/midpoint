@@ -17,22 +17,20 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RCredentials;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import org.hibernate.annotations.*;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -47,7 +45,7 @@ import java.util.Set;
                 @Index(name = "iGivenName", columnNames = "givenName_orig"),
                 @Index(name = "iLocality", columnNames = "locality_orig")})
 @ForeignKey(name = "fk_user")
-public class RUser extends RFocus<UserType> {
+public class RUser extends RFocus<UserType> implements OperationResult {
 
     private RPolyString name;
     private RPolyString fullName;
@@ -70,18 +68,12 @@ public class RUser extends RFocus<UserType> {
     private RPolyString nickName;
     private String preferredLanguage;
     private Set<RPolyString> organization;
-    private ROperationResult result;
+    //operation result
+    private ROperationResultStatus status;
+    private Long token;
+    private String messageCode;
+    //end of operation result
 
-    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public ROperationResult getResult() {
-        return result;
-    }
-
-    public void setResult(ROperationResult result) {
-        this.result = result;
-    }
-    
     @ElementCollection
     @ForeignKey(name = "fk_user_organization")
     @CollectionTable(name = "m_user_organization", joinColumns = {
@@ -194,6 +186,32 @@ public class RUser extends RFocus<UserType> {
     @Embedded
     public RPolyString getTitle() {
         return title;
+    }
+
+    @Enumerated(EnumType.ORDINAL)
+    public ROperationResultStatus getStatus() {
+        return status;
+    }
+
+    @Column(nullable = true)
+    public Long getToken() {
+        return token;
+    }
+
+    public String getMessageCode() {
+        return messageCode;
+    }
+
+    public void setMessageCode(String messageCode) {
+        this.messageCode = messageCode;
+    }
+
+    public void setStatus(ROperationResultStatus status) {
+        this.status = status;
+    }
+
+    public void setToken(Long token) {
+        this.token = token;
     }
 
     public void setCostCenter(String costCenter) {
@@ -316,6 +334,9 @@ public class RUser extends RFocus<UserType> {
         if (timezone != null ? !timezone.equals(rUser.timezone) : rUser.timezone != null) return false;
         if (costCenter != null ? !costCenter.equals(rUser.costCenter) : rUser.costCenter != null) return false;
         if (organization != null ? !organization.equals(rUser.organization) : rUser.organization != null) return false;
+        if (messageCode != null ? !messageCode.equals(rUser.messageCode) : rUser.messageCode != null) return false;
+        if (status != rUser.status) return false;
+        if (token != null ? !token.equals(rUser.token) : rUser.token != null) return false;
 
         return true;
     }
@@ -338,6 +359,9 @@ public class RUser extends RFocus<UserType> {
         result = 31 * result + (nickName != null ? nickName.hashCode() : 0);
         result = 31 * result + (preferredLanguage != null ? preferredLanguage.hashCode() : 0);
         result = 31 * result + (timezone != null ? timezone.hashCode() : 0);
+        result = 31 * result + (status != null ? status.hashCode() : 0);
+        result = 31 * result + (token != null ? token.hashCode() : 0);
+        result = 31 * result + (messageCode != null ? messageCode.hashCode() : 0);
 
         return result;
     }
@@ -370,13 +394,8 @@ public class RUser extends RFocus<UserType> {
             RCredentials.copyFromJAXB(jaxb.getCredentials(), credentials, prismContext);
             repo.setCredentials(credentials);
         }
-        
-        if (jaxb.getResult() != null) {
-            ROperationResult result = new ROperationResult();
-            result.setOwner(repo);
-            ROperationResult.copyFromJAXB(jaxb.getResult(), result, prismContext);
-            repo.setResult(result);
-        }
+
+        RUtil.copyResultFromJAXB(jaxb.getResult(), repo, prismContext);
 
         //sets
         repo.setEmployeeType(RUtil.listToSet(jaxb.getEmployeeType()));
