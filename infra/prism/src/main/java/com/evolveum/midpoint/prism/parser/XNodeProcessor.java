@@ -366,7 +366,7 @@ public class XNodeProcessor {
 
     public <T> PrismPropertyValue<T> parsePrismPropertyValue(XNode xnode, PrismProperty<T> property) throws SchemaException {
         Validate.notNull(xnode);
-        Validate.notNull(xnode);
+        Validate.notNull(property);
         T realValue = parsePrismPropertyRealValue(xnode, property.getDefinition());
         if (realValue == null) {
             return null;
@@ -512,7 +512,8 @@ public class XNodeProcessor {
         return itemPathType;
     }
 
-    private <T> void parseProtectedType(ProtectedDataType<T> protectedType, MapXNode xmap) throws SchemaException {
+    // public because of tests
+    public <T> void parseProtectedType(ProtectedDataType<T> protectedType, MapXNode xmap) throws SchemaException {
         XNode xEncryptedData = xmap.get(ProtectedDataType.F_ENCRYPTED_DATA);
         if (xEncryptedData != null) {
             if (!(xEncryptedData instanceof MapXNode)) {
@@ -551,7 +552,11 @@ public class XNodeProcessor {
             	xClearValue = xmap.get(new QName(ProtectedDataType.F_CLEAR_VALUE.getLocalPart()));
             }
             if (xClearValue == null){
-            	return;
+                if (!xmap.isEmpty()) {
+                    throw new SchemaException("Unknown content in ProtectedStringType: " + xmap.keySet());
+                } else {
+            	    return;
+                }
             }
             if (!(xClearValue instanceof PrimitiveXNode)){
                 //this is maybe not good..
