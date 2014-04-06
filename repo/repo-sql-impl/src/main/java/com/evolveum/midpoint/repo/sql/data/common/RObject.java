@@ -86,7 +86,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     private String oid;
     private int version;
     //full XML
-    private String fullObject;
+    private byte[] fullObject;
     //org. closure table
     private Set<ROrgClosure> descendants;
     private Set<ROrgClosure> ancestors;
@@ -172,8 +172,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     }
 
     @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getFullObject() {
+    public byte[] getFullObject() {
         return fullObject;
     }
 
@@ -338,7 +337,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         this.modifyTimestamp = modifyTimestamp;
     }
 
-    public void setFullObject(String fullObject) {
+    public void setFullObject(byte[] fullObject) {
         this.fullObject = fullObject;
     }
 

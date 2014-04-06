@@ -23,7 +23,7 @@ public class GetObjectResult implements Serializable {
         }
     };
 
-    private String fullObject;
+    private byte[] fullObject;
 
     private Short stringsCount;
     private Short longsCount;
@@ -32,11 +32,11 @@ public class GetObjectResult implements Serializable {
     private Short polysCount;
 
     public GetObjectResult(Object[] values) {
-        this((String) values[0], (Short) values[1], (Short) values[2], (Short) values[3],
+        this((byte[]) values[0], (Short) values[1], (Short) values[2], (Short) values[3],
                 (Short) values[4], (Short) values[5]);
     }
 
-    public GetObjectResult(String fullObject, Short stringsCount, Short longsCount, Short datesCount,
+    public GetObjectResult(byte[] fullObject, Short stringsCount, Short longsCount, Short datesCount,
                            Short referencesCount, Short polysCount) {
 
         Validate.notNull(fullObject, "Full object xml must not be null.");
@@ -55,7 +55,7 @@ public class GetObjectResult implements Serializable {
                 getReferencesCount(), getPolysCount()};
     }
 
-    public String getFullObject() {
+    public byte[] getFullObject() {
         return fullObject;
     }
 

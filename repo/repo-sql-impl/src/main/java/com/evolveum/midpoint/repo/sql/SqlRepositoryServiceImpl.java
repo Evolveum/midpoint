@@ -33,17 +33,16 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.data.common.any.RValueType;
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
-import com.evolveum.midpoint.repo.sql.query.*;
+import com.evolveum.midpoint.repo.sql.query.QueryEngine;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query.RQuery;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -55,7 +54,6 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.*;
-import org.hibernate.Query;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.exception.ConstraintViolationException;
@@ -552,16 +550,17 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         savedObject.setVersion(Integer.toString(object.getVersion()));
 
         PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
-        String fullObject = domProcessor.serializeObjectToString(savedObject);
+        String xml = domProcessor.serializeObjectToString(savedObject);
+        byte[] fullObject = RUtil.getByteArrayFromXml(xml, getConfiguration().isUseZip());
 
-        if (LOGGER.isTraceEnabled()) LOGGER.trace("Storing full object\n{}", fullObject);
+        if (LOGGER.isTraceEnabled()) LOGGER.trace("Storing full object\n{}", xml);
 
         LOGGER.debug("Flushing session.");
         session.flush();
         LOGGER.debug("Session flushed.");
 
         Query query = session.createSQLQuery("update m_object set fullObject = :fullObject where oid=:oid");
-        query.setString("fullObject", fullObject);
+        query.setParameter("fullObject", fullObject);
         query.setString("oid", savedObject.getOid());
 
         int result = query.executeUpdate();
@@ -1000,7 +999,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                                                                      Session session) throws SchemaException {
 
         PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
-        PrismObject<T> prismObject = domProcessor.parseObject(result.getFullObject());
+        String xml = RUtil.getXmlFromByteArray(result.getFullObject(), getConfiguration().isUseZip());
+        PrismObject<T> prismObject = domProcessor.parseObject(xml);
 
         if (ShadowType.class.equals(prismObject.getCompileTimeClass())) {
             //we store it because provisioning now sends it to repo, but it should be transient
