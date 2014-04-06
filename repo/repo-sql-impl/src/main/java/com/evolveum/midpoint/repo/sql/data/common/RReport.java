@@ -18,8 +18,6 @@ import java.util.Collection;
 
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
-@org.hibernate.annotations.Table(appliesTo = "m_report",
-        indexes = {@Index(name = "iReportName", columnNames = "name_orig")})
 @ForeignKey(name = "fk_report")
 public class RReport extends RObject<ReportType> {
 

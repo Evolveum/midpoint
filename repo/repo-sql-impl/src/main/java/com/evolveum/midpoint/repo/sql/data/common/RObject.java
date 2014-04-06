@@ -77,7 +77,8 @@ import java.util.Set;
 @Table(name = "m_object")
 @org.hibernate.annotations.Table(appliesTo = "m_object",
         indexes = {@Index(name = "iObjectNameOrig", columnNames = "name_orig"),
-                @Index(name = "iObjectNameNorm", columnNames = "name_norm")})
+                @Index(name = "iObjectNameNorm", columnNames = "name_norm"),
+                @Index(name = "iObjectNameOrigNorm", columnNames = {"name_orig", "name_norm"})})
 @ForeignKey(name = "fk_object")
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class RObject<T extends ObjectType> implements Metadata<RObjectReference>, Serializable {

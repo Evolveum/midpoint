@@ -28,11 +28,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -40,9 +38,6 @@ import java.util.Set;
  */
 @Entity
 @ForeignKey(name = "fk_connector")
-@org.hibernate.annotations.Table(appliesTo = "m_connector",
-        indexes = {@Index(name = "iConnectorNameOrig", columnNames = "name_orig"),
-                @Index(name = "iConnectorNameNorm", columnNames = "name_norm")})
 public class RConnector extends RObject<ConnectorType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RConnector.class);

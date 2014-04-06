@@ -48,10 +48,8 @@ import java.util.Collection;
 @Entity
 @Table(name = "m_shadow")
 @org.hibernate.annotations.Table(appliesTo = "m_shadow",
-        indexes = {@Index(name = "iShadowNameOrig", columnNames = "name_orig"),
-                @Index(name = "iShadowAdministrative", columnNames = "administrativeStatus"),
+        indexes = {@Index(name = "iShadowAdministrative", columnNames = "administrativeStatus"),
                 @Index(name = "iShadowEffective", columnNames = "effectiveStatus"),
-                @Index(name = "iShadowNameNorm", columnNames = "name_norm"),
                 @Index(name = "iShadowResourceRef", columnNames = "resourceRef_targetOid"),
                 @Index(name = "iShadowDead", columnNames = "dead")})
 @ForeignKey(name = "fk_shadow")

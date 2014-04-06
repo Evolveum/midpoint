@@ -39,8 +39,7 @@ import java.util.Set;
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
 @org.hibernate.annotations.Table(appliesTo = "m_user",
-        indexes = {@Index(name = "iUserName", columnNames = "name_orig"),
-                @Index(name = "iFullName", columnNames = "fullName_orig"),
+        indexes = {@Index(name = "iFullName", columnNames = "fullName_orig"),
                 @Index(name = "iFamilyName", columnNames = "familyName_orig"),
                 @Index(name = "iGivenName", columnNames = "givenName_orig"),
                 @Index(name = "iLocality", columnNames = "locality_orig")})

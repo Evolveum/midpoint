@@ -24,7 +24,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -38,8 +37,6 @@ import java.util.Collection;
 @Entity
 @ForeignKey(name = "fk_system_configuration")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
-@org.hibernate.annotations.Table(appliesTo = "m_system_configuration",
-        indexes = {@Index(name = "iSystemConfigurationName", columnNames = "name_orig")})
 public class RSystemConfiguration extends RObject<SystemConfigurationType> {
 
     private RPolyString name;

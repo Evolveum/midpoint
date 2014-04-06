@@ -22,11 +22,9 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import java.util.Collection;
@@ -38,8 +36,6 @@ import java.util.Set;
 @Entity
 @ForeignKey(name = "fk_org")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
-@org.hibernate.annotations.Table(appliesTo = "m_org",
-        indexes = {@Index(name = "iOrgName", columnNames = "name_orig")})
 public class ROrg extends RAbstractRole<OrgType> {
 
     private RPolyString name;
@@ -108,14 +104,14 @@ public class ROrg extends RAbstractRole<OrgType> {
     }
 
     public Boolean getTenant() {
-		return tenant;
-	}
+        return tenant;
+    }
 
-	public void setTenant(Boolean tenant) {
-		this.tenant = tenant;
-	}
+    public void setTenant(Boolean tenant) {
+        this.tenant = tenant;
+    }
 
-	@Override
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

@@ -41,7 +41,10 @@ import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * @author lazyman
@@ -68,7 +71,7 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RObjectReference> getLinkRef() {
         if (linkRef == null) {
-            linkRef = new HashSet<RObjectReference>();
+            linkRef = new HashSet<>();
         }
         return linkRef;
     }
@@ -76,7 +79,7 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
     @Transient
     protected Set<RAssignment> getAssignments(RAssignmentOwner owner) {
         Set<RAssignment> assignments = getAssignments();
-        Set<RAssignment> wanted = new HashSet<RAssignment>();
+        Set<RAssignment> wanted = new HashSet<>();
         if (assignments == null) {
             return wanted;
         }

@@ -28,7 +28,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
@@ -42,8 +41,6 @@ import java.util.Set;
 @Entity
 @ForeignKey(name = "fk_object_template")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
-@org.hibernate.annotations.Table(appliesTo = "m_object_template",
-        indexes = {@Index(name = "iObjectTemplate", columnNames = "name_orig")})
 public class RObjectTemplate extends RObject<ObjectTemplateType> {
 
     private RPolyString name;
