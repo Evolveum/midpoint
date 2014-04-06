@@ -401,8 +401,10 @@ public class DeltaConvertor {
 	        	System.out.println("value: " + value.debugDump());
 	        	//FIXME: serilaize to XNode instead of dom??
 	        	Object xmlValue = toAny(delta, value, document);
-//	        	System.out.println("xmlValue " + xmlValue);
+	        	System.out.println("xmlValue " + xmlValue);
+	        	RawType modValue = new RawType();
 	            modValue.getContent().add(xmlValue);
+	            mod.getValue().add(modValue);
 //	        	XNode xnode = toXNode(delta, value);
 //	        	modValue.setXnode(xnode);
 	        }

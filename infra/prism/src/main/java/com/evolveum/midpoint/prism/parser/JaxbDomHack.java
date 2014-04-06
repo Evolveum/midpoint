@@ -296,6 +296,7 @@ public class JaxbDomHack {
 	 * Serializes prism value to JAXB "any" format as returned by JAXB getAny() methods. 
 	 */
 	public Object toAny(PrismValue value) throws SchemaException {
+		System.out.println("jxb dom hack " + value);
 		Document document = DOMUtil.getDocument();
 		if (value == null) {
 			return value;
@@ -334,6 +335,7 @@ public class JaxbDomHack {
 			if (pval.getParent().getCompileTimeClass() == null) {
 				// This has to be runtime schema without a compile-time representation.
 				// We need to convert it to DOM
+				System.out.println("jxb dom hack containerable");
 				xmlValue = prismContext.serializeValueToDom(pval, elementName, document);
 			} else {
 				xmlValue = pval.asContainerable();

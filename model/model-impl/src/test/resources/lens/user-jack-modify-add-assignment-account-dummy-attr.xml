@@ -27,7 +27,7 @@
 		<t:modificationType>add</t:modificationType>
 		<t:path>assignment</t:path>
 		<t:value>
-			<c:assignment>
+<!-- 			<c:assignment> -->
 				<c:construction>
 					<c:resourceRef oid="10000000-0000-0000-0000-000000000004"/>
 					<c:attribute>
@@ -47,7 +47,7 @@
 						</c:outbound>
 					</c:attribute>
 				</c:construction>
-			</c:assignment>
+<!-- 			</c:assignment> -->
 		</t:value>
 	</itemDelta>
 </objectModification>

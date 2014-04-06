@@ -286,6 +286,8 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	RawType val = valueElements.get(0);
         MapXNode valXNode = (MapXNode) val.serializeToXNode();
         PrimitiveXNode clearValueNode = (PrimitiveXNode) valXNode.get(ProtectedStringType.F_CLEAR_VALUE);
+        val.getParsedValue(null, null);
+//        System.out.println("clear value " + clearValueNode);
         assertEquals("Wrong element value", protectedString.getClearValue(), clearValueNode.getParsedValue(DOMUtil.XSD_STRING));
 //    	List<Object> values = val.getContent();
 //    	assertEquals("Wrong number of values", 1, values.size());

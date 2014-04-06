@@ -840,13 +840,14 @@ public class PrismBeanConverter {
 				}
 				XNode marshelled = marshallValue(valueToMarshall, fieldTypeName, isAttribute);
 				if (!getter.getReturnType().equals(valueToMarshall.getClass()) && getter.getReturnType().isAssignableFrom(valueToMarshall.getClass())){
-					
+					if (prismContext != null){
 					PrismObjectDefinition def = prismContext.getSchemaRegistry().determineDefinitionFromClass(valueToMarshall.getClass());
 					if (def != null){
 						QName type = def.getTypeName();
 						System.out.println("setting type def: " + type);
 						marshelled.setTypeQName(type);
 						marshelled.setExplicitTypeDeclaration(true);
+					}
 					}
 				}
 				xmap.put(elementName, marshelled);

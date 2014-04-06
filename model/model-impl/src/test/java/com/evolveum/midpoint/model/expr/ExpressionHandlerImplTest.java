@@ -111,7 +111,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 
 		ObjectSynchronizationType synchronization = resourceType.getSynchronization().getObjectSynchronization().get(0);
 		for (ConditionalSearchFilterType filter : synchronization.getCorrelation()){
-            Element valueExpressionElement = findChildElement(filter.getFilterClause(), SchemaConstants.NS_C, "valueExpression");
+            Element valueExpressionElement = findChildElement(filter.getFilterClause(), SchemaConstants.NS_C, "expression");
             ExpressionType expression = PrismTestUtil.getPrismContext().getJaxbDomHack()
                     .toJavaValue(valueExpressionElement, ExpressionType.class);
             LOGGER.debug("Expression: {}",SchemaDebugUtil.prettyPrint(expression));

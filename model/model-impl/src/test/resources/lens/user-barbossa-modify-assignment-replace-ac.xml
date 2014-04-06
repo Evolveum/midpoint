@@ -26,7 +26,7 @@
 		<t:modificationType>replace</t:modificationType>
 		<t:path>assignment[1001]/construction</t:path>
 		<t:value>
-			<construction>
+<!-- 			<construction> -->
 				<description>Brethren account construction</description>
 				<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
 				<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
@@ -70,7 +70,7 @@
 						</expression>
 					</outbound>
 				</attribute>
-			</construction>
+<!-- 			</construction> -->
 		</t:value>
 	</apit:itemDelta>
 </apit:objectModification>

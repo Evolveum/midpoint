@@ -272,7 +272,9 @@ public class MapXNode extends XNode implements Map<QName,XNode> {
 	public int hashCode() {
 		int result = 0xCAFEBABE;
         for (XNode node : this.values()) {
-            result = result ^ node.hashCode();          // using XOR instead of multiplying and adding in order to achieve commutativity
+        	if (node != null){
+        		result = result ^ node.hashCode();          // using XOR instead of multiplying and adding in order to achieve commutativity
+        	}
         }
 		return result;
 	}

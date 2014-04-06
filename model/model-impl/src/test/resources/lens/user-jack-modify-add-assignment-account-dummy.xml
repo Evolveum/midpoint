@@ -26,11 +26,11 @@
 		<t:modificationType>add</t:modificationType>
 		<t:path>c:assignment</t:path>
 		<t:value>
-			<c:assignment>
+<!-- 			<c:assignment> -->
 				<c:construction>
 					<c:resourceRef oid="10000000-0000-0000-0000-000000000004"/>
 				</c:construction>
-			</c:assignment>
+<!-- 			</c:assignment> -->
 		</t:value>
 	</itemDelta>
 </objectModification>

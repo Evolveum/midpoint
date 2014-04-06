@@ -197,14 +197,11 @@ public class TestClockwork extends AbstractLensTest {
         try {
         	
         	assignAccountToJackAsync("test030AssignAccountToJackAsyncNoserialize", false);
-        } catch (Exception e){
-        	e.printStackTrace();
-        	throw e;
+    
+        } finally {
+        	mockClockworkHook.reset();
+        	unassignJackAccount();
         }
-//        } finally {
-//        	mockClockworkHook.reset();
-//        	unassignJackAccount();
-//        }
 	}
 
 //	@Test

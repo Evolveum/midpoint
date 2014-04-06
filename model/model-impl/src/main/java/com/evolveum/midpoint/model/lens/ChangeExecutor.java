@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.model.lens;
 
 import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
+import ch.qos.logback.core.pattern.parser.ScanException;
 
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -558,6 +559,9 @@ public class ChangeExecutor {
     		
     		result.computeStatus();
     		if (objectContext != null) {
+    			if (!objectDelta.hasCompleteDefinition()){
+    				throw new SchemaException("object delta does not have complete definition");
+    			}
 	    		LensObjectDeltaOperation<T> objectDeltaOp = new LensObjectDeltaOperation<T>(objectDelta.clone());
 		        objectDeltaOp.setExecutionResult(result);
 		        objectContext.addToExecutedDeltas(objectDeltaOp);

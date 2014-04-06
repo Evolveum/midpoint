@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.parser.PrismBeanConverter;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jvnet.jaxb2_commons.lang.Equals;
@@ -38,6 +39,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.parser.DomParser;
 import com.evolveum.midpoint.prism.parser.XNodeProcessor;
+import com.evolveum.midpoint.prism.parser.XNodeSerializer;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
@@ -45,6 +47,7 @@ import com.evolveum.midpoint.prism.xnode.ValueParser;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
@@ -283,15 +286,22 @@ public class RawType implements Serializable, Cloneable, Equals {
     }
 
     private void addJaxbElement(JAXBElement jaxb) {
-        PrismBeanConverter converter = new PrismBeanConverter(null);
+    	PrismBeanConverter converter = new PrismBeanConverter(null);
+    	XNodeSerializer serializer = new XNodeSerializer(converter);
+    	
+        
         XNode newXNode;
         try {
-            newXNode = converter.marshall(jaxb.getValue());
+        	if (ProtectedDataType.class.isAssignableFrom(jaxb.getValue().getClass())){
+        		xnode = serializer.serializeProtectedDataType((ProtectedDataType) jaxb.getValue());
+        	} else{
+        		xnode = converter.marshall(jaxb.getValue());
+        	}
         } catch (SchemaException ex) {
             throw new IllegalArgumentException("Cannot parse element: "+ex+" Reason: "+ex.getMessage(), ex);
         }
-        MapXNode mapXNode = prepareMapXNode();
-        mapXNode.put(jaxb.getName(), newXNode);
+//        MapXNode mapXNode = prepareMapXNode();
+//        mapXNode.put(jaxb.getName(), newXNode);
     }
 
     private void addElement(Element e) {
@@ -498,7 +508,14 @@ public class RawType implements Serializable, Cloneable, Equals {
         if (xnode != null) {
             return xnode;
         } else if (parsed != null) {
-            return parsed.getPrismContext().getXnodeProcessor().serializeItemValue(parsed);
+        	XNodeProcessor processor = null;
+        	if (parsed.getPrismContext() != null){
+        		processor = parsed.getPrismContext().getXnodeProcessor();
+        	} else{
+        		processor = new XNodeProcessor();
+        	}
+        	System.out.println("parsed :  " + parsed);
+            return processor.serializeItemValue(parsed);
         } else {
             return null;            // or an exception here?
         }

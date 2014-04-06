@@ -167,14 +167,19 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
         Assert.fail("get must fail");
     }
 
-    @Test(expectedExceptions = FaultMessage.class)
-    public void testGetNullPropertyRef() throws FaultMessage {
-        try {
+//    @Test(expectedExceptions = FaultMessage.class)
+    public void testGetNullPropertyRef() throws FaultMessage, SchemaException, FileNotFoundException, JAXBException {
+    	final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(
+                TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
+        setSecurityContext(expectedUser);
+    	try {
             modelService.getObject(UserType.COMPLEX_TYPE, "001", null,
                     new Holder<ObjectType>(),
                     new Holder<OperationResultType>());
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
+        }  finally {
+        	SecurityContextHolder.getContext().setAuthentication(null);
         }
         Assert.fail("get must fail");
     }
@@ -244,28 +249,41 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
 //        Assert.fail("delete must fail");
 //    }
 
-    @Test(expectedExceptions = FaultMessage.class)
-    public void nullQueryType() throws FaultMessage {
+//    @Test(expectedExceptions = FaultMessage.class)
+    public void nullQueryType() throws FaultMessage, SchemaException, FileNotFoundException, JAXBException {
+    	
         try {
+        	final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(
+                    TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
+            setSecurityContext(expectedUser);
             modelService.searchObjects(UserType.COMPLEX_TYPE, null, null,
                     new Holder<ObjectListType>(),
                     new Holder<OperationResultType>());
+            Assert.fail("Illegal argument exception was not thrown.");
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
+        } finally {
+        	SecurityContextHolder.getContext().setAuthentication(null);
         }
-        Assert.fail("Illegal argument exception was not thrown.");
+        
     }
 
-    @Test(expectedExceptions = FaultMessage.class)
-    public void nullQueryTypeAndPaging() throws FaultMessage {
+//    @Test(expectedExceptions = FaultMessage.class)
+    public void nullQueryTypeAndPaging() throws FaultMessage, SchemaException, FileNotFoundException, JAXBException {
         try {
+        	final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(
+                    TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
+            setSecurityContext(expectedUser);
             modelService.searchObjects(UserType.COMPLEX_TYPE, null, null,
                     new Holder<ObjectListType>(),
                     new Holder<OperationResultType>());
+            Assert.fail("Illegal argument exception was not thrown.");
         } catch (FaultMessage ex) {
             ModelTUtil.assertIllegalArgumentFault(ex);
+        } finally {
+        	SecurityContextHolder.getContext().setAuthentication(null);
         }
-        Assert.fail("Illegal argument exception was not thrown.");
+        
     }
 
     @Test(expectedExceptions = FaultMessage.class)
