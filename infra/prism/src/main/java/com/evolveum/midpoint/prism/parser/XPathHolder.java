@@ -351,15 +351,14 @@ public class XPathHolder {
                 if (!StringUtils.isEmpty(qname.getPrefix())) {
                     sb.append(qname.getPrefix() + ":" + qname.getLocalPart());
                 } else {
-                    // Default namespace
-                    // TODO: HACK - because of broken implementations of JAXP and
-                    // JVM, we will transform default namespace to some namespace
-                    // problem with default namespace resolution - implementation is
-                    // broken:
-                    // http://stackoverflow.com/questions/1730710/xpath-is-there-a-way-to-set-a-default-namespace-for-queries
-                    // Jaxen and Saxon are treating xpath with "./:" differently
-                    sb.append(DEFAULT_PREFIX + ":" + qname.getLocalPart());
-                    // sb.append(qname.getLocalPart());
+                    if (StringUtils.isNotEmpty(qname.getNamespaceURI())) {
+                        String prefix = GlobalDynamicNamespacePrefixMapper.getPreferredPrefix(qname.getNamespaceURI());
+                        seg.setQNamePrefix(prefix);     // hack - we modify the path segment here (only the form, not the meaning), but nevertheless it's ugly
+                        sb.append(seg.getQName().getPrefix() + ":" + seg.getQName().getLocalPart());
+                    } else {
+                        // no namespace, no prefix
+                        sb.append(qname.getLocalPart());
+                    }
                 }
             }
 		}
