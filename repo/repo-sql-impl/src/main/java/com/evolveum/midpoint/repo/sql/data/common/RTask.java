@@ -52,13 +52,10 @@ public class RTask extends RObject<TaskType> implements OperationResult {
     private String handlerUri;
     //operation result
     private ROperationResultStatus status;
-    private Long token;
-    private String messageCode;
     //end of operation result
     private XMLGregorianCalendar lastRunStartTimestamp;
     private XMLGregorianCalendar lastRunFinishTimestamp;
     private XMLGregorianCalendar completionTimestamp;
-    private Long progress;
     private RTaskRecurrence recurrence;
     private RTaskBinding binding;
 
@@ -66,12 +63,10 @@ public class RTask extends RObject<TaskType> implements OperationResult {
     private REmbeddedReference ownerRef;
     private String parent;
 
-    private ROperationResultStatus resultStatus;
     private String canRunOnNode;
     private RThreadStopAction threadStopAction;
     private Set<String> dependent;
     private RTaskWaitingReason waitingReason;
-    private Long expectedTotal;
 
     @ElementCollection
     @ForeignKey(name = "fk_task_dependent")
@@ -140,24 +135,12 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         return name;
     }
 
-    public Long getExpectedTotal() {
-        return expectedTotal;
-    }
-
-    public void setExpectedTotal(Long expectedTotal) {
-        this.expectedTotal = expectedTotal;
-    }
-
     public void setName(RPolyString name) {
         this.name = name;
     }
 
     public void setCanRunOnNode(String canRunOnNode) {
         this.canRunOnNode = canRunOnNode;
-    }
-
-    public void setResultStatus(ROperationResultStatus resultStatus) {
-        this.resultStatus = resultStatus;
     }
 
     public void setThreadStopAction(RThreadStopAction threadStopAction) {
@@ -205,11 +188,6 @@ public class RTask extends RObject<TaskType> implements OperationResult {
     }
 
     @Column(nullable = true)
-    public Long getProgress() {
-        return progress;
-    }
-
-    @Column(nullable = true)
     public String getTaskIdentifier() {
         return taskIdentifier;
     }
@@ -219,25 +197,8 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         return status;
     }
 
-    @Column(nullable = true)
-    public Long getToken() {
-        return token;
-    }
-
-    public String getMessageCode() {
-        return messageCode;
-    }
-
-    public void setMessageCode(String messageCode) {
-        this.messageCode = messageCode;
-    }
-
     public void setStatus(ROperationResultStatus status) {
         this.status = status;
-    }
-
-    public void setToken(Long token) {
-        this.token = token;
     }
 
     public void setBinding(RTaskBinding binding) {
@@ -266,10 +227,6 @@ public class RTask extends RObject<TaskType> implements OperationResult {
 
     public void setNode(String node) {
         this.node = node;
-    }
-
-    public void setProgress(Long progress) {
-        this.progress = progress;
     }
 
     public void setRecurrence(RTaskRecurrence recurrence) {
@@ -309,11 +266,9 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         if (node != null ? !node.equals(rTask.node) : rTask.node != null) return false;
         if (objectRef != null ? !objectRef.equals(rTask.objectRef) : rTask.objectRef != null) return false;
         if (ownerRef != null ? !ownerRef.equals(rTask.ownerRef) : rTask.ownerRef != null) return false;
-        if (progress != null ? !progress.equals(rTask.progress) : rTask.progress != null) return false;
         if (recurrence != rTask.recurrence) return false;
         if (taskIdentifier != null ? !taskIdentifier.equals(rTask.taskIdentifier) : rTask.taskIdentifier != null)
             return false;
-        if (resultStatus != null ? !resultStatus.equals(rTask.resultStatus) : rTask.resultStatus != null) return false;
         if (canRunOnNode != null ? !canRunOnNode.equals(rTask.canRunOnNode) : rTask.canRunOnNode != null) return false;
         if (threadStopAction != null ? !threadStopAction.equals(rTask.threadStopAction) :
                 rTask.threadStopAction != null) return false;
@@ -322,11 +277,7 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         if (dependent != null ? !dependent.equals(rTask.dependent) : rTask.dependent != null) return false;
         if (waitingReason != null ? !waitingReason.equals(rTask.waitingReason) : rTask.waitingReason != null)
             return false;
-        if (expectedTotal != null ? !expectedTotal.equals(rTask.expectedTotal) : rTask.expectedTotal != null)
-            return false;
-        if (messageCode != null ? !messageCode.equals(rTask.messageCode) : rTask.messageCode != null) return false;
         if (status != rTask.status) return false;
-        if (token != null ? !token.equals(rTask.token) : rTask.token != null) return false;
 
         return true;
     }
@@ -342,19 +293,14 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         result1 = 31 * result1 + (lastRunStartTimestamp != null ? lastRunStartTimestamp.hashCode() : 0);
         result1 = 31 * result1 + (completionTimestamp != null ? completionTimestamp.hashCode() : 0);
         result1 = 31 * result1 + (lastRunFinishTimestamp != null ? lastRunFinishTimestamp.hashCode() : 0);
-        result1 = 31 * result1 + (progress != null ? progress.hashCode() : 0);
         result1 = 31 * result1 + (recurrence != null ? recurrence.hashCode() : 0);
         result1 = 31 * result1 + (binding != null ? binding.hashCode() : 0);
-        result1 = 31 * result1 + (resultStatus != null ? resultStatus.hashCode() : 0);
         result1 = 31 * result1 + (canRunOnNode != null ? canRunOnNode.hashCode() : 0);
         result1 = 31 * result1 + (threadStopAction != null ? threadStopAction.hashCode() : 0);
         result1 = 31 * result1 + (category != null ? category.hashCode() : 0);
         result1 = 31 * result1 + (parent != null ? parent.hashCode() : 0);
         result1 = 31 * result1 + (waitingReason != null ? waitingReason.hashCode() : 0);
-        result1 = 31 * result1 + (expectedTotal != null ? expectedTotal.hashCode() : 0);
         result1 = 31 * result1 + (status != null ? status.hashCode() : 0);
-        result1 = 31 * result1 + (token != null ? token.hashCode() : 0);
-        result1 = 31 * result1 + (messageCode != null ? messageCode.hashCode() : 0);
 
         return result1;
     }
@@ -371,15 +317,12 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         repo.setCompletionTimestamp(jaxb.getCompletionTimestamp());
         repo.setLastRunStartTimestamp(jaxb.getLastRunStartTimestamp());
         repo.setNode(jaxb.getNode());
-        repo.setProgress(jaxb.getProgress());
         repo.setBinding(RUtil.getRepoEnumValue(jaxb.getBinding(), RTaskBinding.class));
         repo.setRecurrence(RUtil.getRepoEnumValue(jaxb.getRecurrence(), RTaskRecurrence.class));
-        repo.setResultStatus(RUtil.getRepoEnumValue(jaxb.getResultStatus(), ROperationResultStatus.class));
         repo.setCanRunOnNode(jaxb.getCanRunOnNode());
         repo.setThreadStopAction(RUtil.getRepoEnumValue(jaxb.getThreadStopAction(), RThreadStopAction.class));
         repo.setCategory(jaxb.getCategory());
         repo.setParent(jaxb.getParent());
-        repo.setExpectedTotal(jaxb.getExpectedTotal());
 
         repo.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getObjectRef(), prismContext));
         repo.setOwnerRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), prismContext));

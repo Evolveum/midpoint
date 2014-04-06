@@ -56,7 +56,7 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RObjectReference> getIncludeRef() {
         if (includeRef == null) {
-            includeRef = new HashSet<RObjectReference>();
+            includeRef = new HashSet<>();
         }
         return includeRef;
     }

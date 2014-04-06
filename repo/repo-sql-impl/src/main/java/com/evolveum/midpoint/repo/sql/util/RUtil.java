@@ -407,9 +407,7 @@ public final class RUtil {
             return;
         }
 
-        repo.setMessageCode(jaxb.getMessageCode());
         repo.setStatus(getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
-        repo.setToken(jaxb.getToken());
 
         if (repo instanceof OperationResultFull) {
             try {

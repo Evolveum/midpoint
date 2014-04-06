@@ -23,12 +23,10 @@ import java.util.Collection;
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
 @org.hibernate.annotations.Table(appliesTo = "m_report_output",
         indexes = {@Index(name = "iReportOutputName", columnNames = "name_orig")})
-@ForeignKey(name = "fk_reportoutput")
+@ForeignKey(name = "fk_report_output")
 public class RReportOutput extends RObject<ReportOutputType> {
 
-    //private static final Trace LOGGER = TraceManager.getTrace(RReportOutput.class);
     private RPolyString name;
-    private String reportFilePath;
     private REmbeddedReference reportRef;
 
     @Embedded
@@ -38,14 +36,6 @@ public class RReportOutput extends RObject<ReportOutputType> {
 
     public void setName(RPolyString name) {
         this.name = name;
-    }
-
-    public String getReportFilePath() {
-        return reportFilePath;
-    }
-
-    public void setReportFilePath(String reportFilePath) {
-        this.reportFilePath = reportFilePath;
     }
 
     @Embedded
@@ -68,8 +58,6 @@ public class RReportOutput extends RObject<ReportOutputType> {
 
         if (name != null ? !name.equals(object.name) : object.name != null)
             return false;
-        if (reportFilePath != null ? !reportFilePath.equals(object.reportFilePath) : object.reportFilePath != null)
-            return false;
         if (reportRef != null ? !reportRef.equals(object.reportRef) : object.reportRef != null)
             return false;
 
@@ -80,7 +68,6 @@ public class RReportOutput extends RObject<ReportOutputType> {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (reportFilePath != null ? reportFilePath.hashCode() : 0);
         return result;
     }
 
@@ -89,7 +76,6 @@ public class RReportOutput extends RObject<ReportOutputType> {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
-        repo.setReportFilePath(jaxb.getFilePath());
         repo.setReportRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getReportRef(), prismContext));
     }
 

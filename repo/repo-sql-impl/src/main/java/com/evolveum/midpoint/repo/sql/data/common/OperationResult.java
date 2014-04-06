@@ -30,13 +30,5 @@ public interface OperationResult extends Serializable {
 
     ROperationResultStatus getStatus();
 
-    Long getToken();
-
-    String getMessageCode();
-
     void setStatus(ROperationResultStatus status);
-
-    void setToken(Long token);
-
-    void setMessageCode(String messageCode);
 }

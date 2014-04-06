@@ -64,8 +64,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
     private RActivation activation;
     //operation result
     private ROperationResultStatus status;
-    private Long token;
-    private String messageCode;
     //end of operation result
     private REmbeddedReference resourceRef;
     private Integer attemptNumber;
@@ -163,25 +161,8 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
         return status;
     }
 
-    @Column(nullable = true)
-    public Long getToken() {
-        return token;
-    }
-
-    public String getMessageCode() {
-        return messageCode;
-    }
-
-    public void setMessageCode(String messageCode) {
-        this.messageCode = messageCode;
-    }
-
     public void setStatus(ROperationResultStatus status) {
         this.status = status;
-    }
-
-    public void setToken(Long token) {
-        this.token = token;
     }
 
     public void setFullSynchronizationTimestamp(XMLGregorianCalendar fullSynchronizationTimestamp) {
@@ -274,9 +255,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
             return false;
         if (fullSynchronizationTimestamp != null ? !fullSynchronizationTimestamp.equals(that.iterationToken) : that.fullSynchronizationTimestamp != null)
             return false;
-        if (messageCode != null ? !messageCode.equals(that.messageCode) : that.messageCode != null) return false;
         if (status != that.status) return false;
-        if (token != null ? !token.equals(that.token) : that.token != null) return false;
 
         return true;
     }
@@ -298,8 +277,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
         result1 = 31 * result1 + (iterationToken != null ? iterationToken.hashCode() : 0);
         result1 = 31 * result1 + (fullSynchronizationTimestamp != null ? fullSynchronizationTimestamp.hashCode() : 0);
         result1 = 31 * result1 + (status != null ? status.hashCode() : 0);
-        result1 = 31 * result1 + (token != null ? token.hashCode() : 0);
-        result1 = 31 * result1 + (messageCode != null ? messageCode.hashCode() : 0);
 
         return result1;
     }

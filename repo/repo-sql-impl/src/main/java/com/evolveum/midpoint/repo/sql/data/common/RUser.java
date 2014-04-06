@@ -70,8 +70,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
     private Set<RPolyString> organization;
     //operation result
     private ROperationResultStatus status;
-    private Long token;
-    private String messageCode;
     //end of operation result
 
     @ElementCollection
@@ -193,25 +191,8 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         return status;
     }
 
-    @Column(nullable = true)
-    public Long getToken() {
-        return token;
-    }
-
-    public String getMessageCode() {
-        return messageCode;
-    }
-
-    public void setMessageCode(String messageCode) {
-        this.messageCode = messageCode;
-    }
-
     public void setStatus(ROperationResultStatus status) {
         this.status = status;
-    }
-
-    public void setToken(Long token) {
-        this.token = token;
     }
 
     public void setCostCenter(String costCenter) {
@@ -334,9 +315,7 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         if (timezone != null ? !timezone.equals(rUser.timezone) : rUser.timezone != null) return false;
         if (costCenter != null ? !costCenter.equals(rUser.costCenter) : rUser.costCenter != null) return false;
         if (organization != null ? !organization.equals(rUser.organization) : rUser.organization != null) return false;
-        if (messageCode != null ? !messageCode.equals(rUser.messageCode) : rUser.messageCode != null) return false;
         if (status != rUser.status) return false;
-        if (token != null ? !token.equals(rUser.token) : rUser.token != null) return false;
 
         return true;
     }
@@ -360,8 +339,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         result = 31 * result + (preferredLanguage != null ? preferredLanguage.hashCode() : 0);
         result = 31 * result + (timezone != null ? timezone.hashCode() : 0);
         result = 31 * result + (status != null ? status.hashCode() : 0);
-        result = 31 * result + (token != null ? token.hashCode() : 0);
-        result = 31 * result + (messageCode != null ? messageCode.hashCode() : 0);
 
         return result;
     }

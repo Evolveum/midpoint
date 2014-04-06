@@ -52,8 +52,6 @@ public class RObjectDeltaOperation implements OperationResultFull {
     private RChangeType deltaType;
     //operation result
     private ROperationResultStatus status;
-    private Long token;
-    private String messageCode;
     private String fullResult;
 
 
@@ -118,15 +116,6 @@ public class RObjectDeltaOperation implements OperationResultFull {
         return status;
     }
 
-    @Column(nullable = true)
-    public Long getToken() {
-        return token;
-    }
-
-    public String getMessageCode() {
-        return messageCode;
-    }
-
     public void setRecord(RAuditEventRecord record) {
         this.record = record;
     }
@@ -147,14 +136,6 @@ public class RObjectDeltaOperation implements OperationResultFull {
 
     public void setStatus(ROperationResultStatus status) {
         this.status = status;
-    }
-
-    public void setToken(Long token) {
-        this.token = token;
-    }
-
-    public void setMessageCode(String messageCode) {
-        this.messageCode = messageCode;
     }
 
     public void setFullResult(String fullResult) {
@@ -189,7 +170,6 @@ public class RObjectDeltaOperation implements OperationResultFull {
         if (fullResult != null ? !fullResult.equals(that.fullResult) : that.fullResult != null)
             return false;
         if (status != that.status) return false;
-        if (token != null ? !token.equals(that.token) : that.token != null) return false;
         if (deltaType != null ? !deltaType.equals(that.deltaType) : that.deltaType != null) return false;
         if (deltaOid != null ? !deltaOid.equals(that.deltaOid) : that.deltaOid != null) return false;
 
@@ -201,8 +181,6 @@ public class RObjectDeltaOperation implements OperationResultFull {
         int result1 = delta != null ? delta.hashCode() : 0;
         result1 = 31 * result1 + (getChecksum() != null ? getChecksum().hashCode() : 0);
         result1 = 31 * result1 + (status != null ? status.hashCode() : 0);
-        result1 = 31 * result1 + (token != null ? token.hashCode() : 0);
-        result1 = 31 * result1 + (messageCode != null ? messageCode.hashCode() : 0);
         result1 = 31 * result1 + (fullResult != null ? fullResult.hashCode() : 0);
         result1 = 31 * result1 + (deltaOid != null ? deltaOid.hashCode() : 0);
         result1 = 31 * result1 + (deltaType != null ? deltaType.hashCode() : 0);
