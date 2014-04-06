@@ -159,7 +159,7 @@ public class ModelCrudService {
 							throw new IllegalArgumentException("No object to add specified. Check your delta. Add delta must contain object to add");
 //							return handleTaskResult(task);
 						}
-						Object objToAdd = deltaType.getObjectToAdd().getAny();
+						Object objToAdd = deltaType.getObjectToAdd();
 						if (!(objToAdd instanceof ShadowType)){
 							LOGGER.trace("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
 							throw new IllegalArgumentException("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());

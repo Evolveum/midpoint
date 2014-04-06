@@ -47,8 +47,10 @@ import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.parser.util.XNodeProcessorUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -64,6 +66,10 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedByteArrayType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedDataType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_2.RawType;
 
 public class PrismBeanConverter {
@@ -119,6 +125,20 @@ public class PrismBeanConverter {
             } catch (IllegalAccessException e) {
                 throw new SystemException("Cannot instantiate bean of type "+beanClass+": "+e.getMessage(), e);
             }
+        } 
+
+		if (ProtectedDataType.class.isAssignableFrom(beanClass)){
+			ProtectedDataType protectedDataType = null;
+			if (bean instanceof ProtectedStringType){
+				protectedDataType = new ProtectedStringType();
+			} else if (bean instanceof ProtectedByteArrayType){
+				protectedDataType = new ProtectedByteArrayType();
+			} else{
+				throw new SchemaException("Unexpected subtype of protected data type: " + bean.getClass());
+			}
+        	XNodeProcessorUtil.parseProtectedType(protectedDataType, xnode, prismContext);
+        	return (T) protectedDataType;
+    		
         }
 		for (Entry<QName,XNode> entry: xnode.entrySet()) {
 			QName key = entry.getKey();
@@ -138,6 +158,13 @@ public class PrismBeanConverter {
 			if (field == null && propertyGetter == null) {
 				// We have to try to find a more generic field, such as xsd:any (TODO) or substitution element
 				// check for global element definition first
+				if (xsubnode.getTypeQName()!= null){
+					System.out.println("type qname " + xnode.getTypeQName());
+					Class explicitParamType = getSchemaRegistry().determineCompileTimeClass(xsubnode.getTypeQName());
+					if (explicitParamType != null){
+						beanClass = explicitParamType; 
+					}
+				}
 				objectFactory = getObjectFactory(beanClass.getPackage());
 				elementMethod = findElementMethodInObjectFactory(objectFactory, propName);
 				if (elementMethod == null) {
@@ -587,7 +614,7 @@ public class PrismBeanConverter {
 		for (int i = 0; i< methods.length; i++){
 			Method method = methods[i];
 			if (method.isAnnotationPresent(XmlAttribute.class)){
-				System.out.println("methodName: " + method.getName());
+//				System.out.println("methodName: " + method.getName());
 				String propname = getPropertyNameFromGetter(method.getName());
 				//StringUtils.uncapitalize(StringUtils.removeStart("get", method.getName()))
 				propOrder.add(propname);
@@ -681,16 +708,16 @@ public class PrismBeanConverter {
 	}
 
     // TODO hacked, for now
-    private <T> String findEnumFieldValue(Class classType, Object bean){
-        String name = bean.toString();
-        for (Field field: classType.getDeclaredFields()) {
-            XmlEnumValue xmlEnumValue = field.getAnnotation(XmlEnumValue.class);
-            if (xmlEnumValue != null && field.getName().equals(name)) {
-                return xmlEnumValue.value();
-            }
-        }
-        return null;
-    }
+//    private <T> String findEnumFieldValue(Class classType, Object bean){
+//        String name = bean.toString();
+//        for (Field field: classType.getDeclaredFields()) {
+//            XmlEnumValue xmlEnumValue = field.getAnnotation(XmlEnumValue.class);
+//            if (xmlEnumValue != null && field.getName().equals(name)) {
+//                return xmlEnumValue.value();
+//            }
+//        }
+//        return null;
+//    }
 
     private <T> String findEnumFieldName(Class classType, T primValue){
 		for (Field field: classType.getDeclaredFields()) {
@@ -717,14 +744,16 @@ public class PrismBeanConverter {
 		if (bean == null) {
 			return null;
 		}
-		
+		if (bean instanceof ObjectDeltaType){
+		System.out.println("prism bean marshalling: " + bean);
+		}
 		MapXNode xmap = new MapXNode();
 				
 		Class<? extends Object> beanClass = bean.getClass();
 		
 		//check for enums
 		if (beanClass.isEnum()){
-			String enumValue = findEnumFieldValue(beanClass, bean);
+			String enumValue = XNodeProcessorUtil.findEnumFieldValue(beanClass, bean);
 			if (StringUtils.isEmpty(enumValue)){
 				enumValue = bean.toString();
 			}
@@ -810,7 +839,19 @@ public class PrismBeanConverter {
 				} else{
 					valueToMarshall = getterResult;
 				}
-				xmap.put(elementName, marshallValue(valueToMarshall, fieldTypeName, isAttribute));
+				XNode marshelled = marshallValue(valueToMarshall, fieldTypeName, isAttribute);
+				if (!getter.getReturnType().equals(valueToMarshall.getClass()) && getter.getReturnType().isAssignableFrom(valueToMarshall.getClass())){
+					
+					PrismObjectDefinition def = prismContext.getSchemaRegistry().determineDefinitionFromClass(valueToMarshall.getClass());
+					if (def != null){
+						QName type = def.getTypeName();
+						System.out.println("setting type def: " + type);
+						marshelled.setTypeQName(type);
+						marshelled.setExplicitTypeDeclaration(true);
+					}
+				}
+				xmap.put(elementName, marshelled);
+				
 //				setExplicitTypeDeclarationIfNeeded(getter, valueToMarshall, xmap, fieldTypeName);
 			}
 		}

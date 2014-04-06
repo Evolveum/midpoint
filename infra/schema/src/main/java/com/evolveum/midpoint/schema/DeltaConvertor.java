@@ -19,10 +19,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectDeltaListType;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -43,6 +45,8 @@ import com.evolveum.midpoint.prism.parser.XNodeSerializer;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.RawTypeUtil;
 import com.evolveum.midpoint.prism.util.ValueSerializationUtil;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -56,6 +60,7 @@ import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_2.RawType;
 
 /**
@@ -98,9 +103,10 @@ public class DeltaConvertor {
         if (objectDeltaType.getChangeType() == ChangeTypeType.ADD) {
         	ObjectDelta<T> objectDelta = new ObjectDelta<T>(type, ChangeType.ADD, prismContext);
             objectDelta.setOid(objectDeltaType.getOid());
-            Object objectToAddElement = objectDeltaType.getObjectToAdd().getAny();
-            PrismObject<T> objectToAdd = prismContext.getJaxbDomHack().parseObjectFromJaxb(objectToAddElement);
-            objectDelta.setObjectToAdd(objectToAdd);
+            ObjectType objectToAddElement = objectDeltaType.getObjectToAdd();
+//            PrismObject<T> objectToAdd = prismContext.getXnodeProcessor().parseObject(objectToAddElement.getXnode());
+//            PrismObject<T> objectToAdd = prismContext.getJaxbDomHack().parseObjectFromJaxb(objectToAddElement);
+            objectDelta.setObjectToAdd(objectToAddElement.asPrismObject());
             return objectDelta;
         } else if (objectDeltaType.getChangeType() == ChangeTypeType.MODIFY) {
         	ObjectDelta<T> objectDelta = new ObjectDelta<T>(type, ChangeType.MODIFY, prismContext);
@@ -175,7 +181,7 @@ public class DeltaConvertor {
         return modType;
     }
     
-	public static ObjectDeltaType toObjectDeltaType(ObjectDelta<? extends Objectable> objectDelta) throws SchemaException {
+	public static ObjectDeltaType toObjectDeltaType(ObjectDelta<? extends ObjectType> objectDelta) throws SchemaException {
 		ObjectDeltaType objectDeltaType = new ObjectDeltaType();
 		objectDeltaType.setChangeType(convertChangeType(objectDelta.getChangeType()));
 		Class<? extends Objectable> type = objectDelta.getObjectTypeClass();
@@ -187,12 +193,21 @@ public class DeltaConvertor {
 		objectDeltaType.setOid(objectDelta.getOid());
 		
 		if (objectDelta.getChangeType() == ChangeType.ADD) {
-			PrismObject<? extends Objectable> prismObject = objectDelta.getObjectToAdd();
+			PrismObject<? extends ObjectType> prismObject = objectDelta.getObjectToAdd();
 			if (prismObject != null) {
-				Element objectElement = prismObject.getPrismContext().getJaxbDomHack().serializeObjectToJaxb(prismObject);
-				ObjectDeltaType.ObjectToAdd objectToAdd = new ObjectDeltaType.ObjectToAdd();
-				objectToAdd.setAny(objectElement);
-				objectDeltaType.setObjectToAdd(objectToAdd);
+//				Element objectElement = prismObject.getPrismContext().getJaxbDomHack().serializeObjectToJaxb(prismObject);
+//				ObjectDeltaType.ObjectToAdd objectToAdd = new ObjectDeltaType.ObjectToAdd();
+//				objectToAdd.setAny(new JAXBElement(new QName("any"), prismObject.getCompileTimeClass(), prismObject.asObjectable()));
+//				XNode node = prismObject.getPrismContext().getXnodeProcessor().serializeObject(prismObject);
+//				MapXNode objToAdd = null;
+//				if (node instanceof RootXNode){
+//					objToAdd = (MapXNode) ((RootXNode) node).getSubnode();
+//				} else if (node instanceof MapXNode){
+//					objToAdd = (MapXNode) node;
+//				} else {
+//					throw new IllegalArgumentException("cannot process delta with object to add: " + node);
+//				}
+				objectDeltaType.setObjectToAdd(prismObject.asObjectable());
 			}
 		} else if (objectDelta.getChangeType() == ChangeType.MODIFY) {
 		    ObjectModificationType modType = new ObjectModificationType();
@@ -214,7 +229,7 @@ public class DeltaConvertor {
 		return objectDeltaType;
 	}
 
-    public static String toObjectDeltaTypeXml(ObjectDelta<? extends Objectable> delta) throws SchemaException, JAXBException {
+    public static String toObjectDeltaTypeXml(ObjectDelta<? extends ObjectType> delta) throws SchemaException, JAXBException {
         ObjectDeltaType objectDeltaType = toObjectDeltaType(delta);
         Element element = delta.getPrismContext().getJaxbDomHack().marshalJaxbObjectToDom(objectDeltaType, SchemaConstants.T_OBJECT_DELTA);
         return DOMUtil.serializeDOMToString(element);
@@ -381,8 +396,10 @@ public class DeltaConvertor {
 			modValue.setXnode(null);
         } else {
 	        for (PrismValue value : values) {
+	        	System.out.println("value: " + value.debugDump());
 	        	//FIXME: serilaize to XNode instead of dom??
 	        	Object xmlValue = toAny(delta, value, document);
+//	        	System.out.println("xmlValue " + xmlValue);
 	            modValue.getContent().add(xmlValue);
 //	        	XNode xnode = toXNode(delta, value);
 //	        	modValue.setXnode(xnode);

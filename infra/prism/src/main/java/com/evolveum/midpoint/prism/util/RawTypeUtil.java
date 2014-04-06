@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.parser.DomParser;
+import com.evolveum.midpoint.prism.parser.util.XNodeProcessorUtil;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
@@ -122,13 +123,17 @@ public class RawTypeUtil {
         		PolyStringType polyString = new PolyStringType((PolyString) realValue);
         		xmlValue = polyString;
         	}
-//        	if (XmlTypeConverter.canConvert(realValue.getClass())) {
+        	
+        	if (XmlTypeConverter.canConvert(realValue.getClass())) {
 //        		// Always record xsi:type. This is FIXME, but should work OK for now (until we put definition into deltas)
-//        		xmlValue = XmlTypeConverter.toXsdElement(realValue, elementName, document, true);
-//        	}
+        		Element e = (Element) XmlTypeConverter.toXsdElement(realValue, elementName, document, true);
+        		return e.getTextContent();
+        	}
 		} else if (value instanceof PrismReferenceValue) {
 			PrismReferenceValue rval = (PrismReferenceValue)value;
-			xmlValue = prismContext.serializeValueToDom(rval, elementName, document);
+			xmlValue = rval.asReferencable();
+//			xmlValue = prismContext.serializeValueToDom(rval, elementName, document);
+			
 		} else if (value instanceof PrismContainerValue<?>) {
 			PrismContainerValue<?> pval = (PrismContainerValue<?>)value;
 			if (pval.getParent().getCompileTimeClass() == null) {
@@ -141,7 +146,14 @@ public class RawTypeUtil {
 		} else {
 			throw new IllegalArgumentException("Unknown type "+value);
 		}
-		if (!(xmlValue instanceof Element) && !(xmlValue instanceof JAXBElement) && !(xmlValue instanceof String) && !xmlValue.getClass().isPrimitive()) {
+		if (!(xmlValue instanceof Element) && !(xmlValue instanceof JAXBElement) && !(xmlValue instanceof String) && !xmlValue.getClass().isPrimitive() ) {
+			if (xmlValue.getClass().isEnum()){
+				String enumValue = XNodeProcessorUtil.findEnumFieldValue(xmlValue.getClass(), xmlValue);
+				if (enumValue == null){
+					enumValue = xmlValue.toString();
+				}
+				return enumValue;
+			}
     		xmlValue = new JAXBElement(elementName, xmlValue.getClass(), xmlValue);
     	}
         return xmlValue;

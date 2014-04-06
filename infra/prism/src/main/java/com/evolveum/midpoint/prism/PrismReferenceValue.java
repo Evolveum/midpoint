@@ -25,12 +25,14 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 
 import java.io.Serializable;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
+
 import org.w3c.dom.Element;
 
 /**
@@ -47,6 +49,9 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
     private QName relation = null;
     private String description = null;
     private SearchFilterType filter = null;
+    
+    
+    private Referencable referencable;
     
     public PrismReferenceValue() {
         this(null,null,null);
@@ -379,7 +384,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		}
 		return refVal;
 	}
-
+	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -406,6 +411,24 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		return sb.toString();
 	}
 
+	public Referencable asReferencable(){
+		if (referencable == null){
+			Itemable parent = getParent();
+			QName xsdType = parent.getDefinition().getTypeName();
+			Class clazz = getPrismContext().getSchemaRegistry().getCompileTimeClass(xsdType);
+			if (clazz != null){
+				try {
+					referencable = (Referencable) clazz.newInstance();
+				} catch (InstantiationException | IllegalAccessException e) {
+					throw new SystemException("Couldn't create jaxb object instance of '" + clazz + "': "+e.getMessage(), e);
+				}
+			}
+			referencable.setupReferenceValue(this);
+		}
+		return referencable;
+		
+	}
+	
 	@Override
     public String debugDump() {
         return toString();

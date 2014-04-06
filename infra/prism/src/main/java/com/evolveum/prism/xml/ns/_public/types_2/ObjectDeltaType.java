@@ -29,6 +29,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
@@ -36,8 +38,10 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.util.exception.SystemException;
+
 import org.w3c.dom.Element;
 
 
@@ -92,7 +96,7 @@ public class ObjectDeltaType implements Serializable {
     protected ChangeTypeType changeType;
     @XmlElement(required = true)
     protected QName objectType;
-    protected ObjectDeltaType.ObjectToAdd objectToAdd;
+    protected ObjectType objectToAdd;
     @XmlElement(required = true)
     protected String oid;
     protected List<ItemDeltaType> itemDelta;
@@ -156,7 +160,7 @@ public class ObjectDeltaType implements Serializable {
      *     {@link ObjectDeltaType.ObjectToAdd }
      *     
      */
-    public ObjectDeltaType.ObjectToAdd getObjectToAdd() {
+    public ObjectType getObjectToAdd() {
         return objectToAdd;
     }
 
@@ -168,7 +172,7 @@ public class ObjectDeltaType implements Serializable {
      *     {@link ObjectDeltaType.ObjectToAdd }
      *     
      */
-    public void setObjectToAdd(ObjectDeltaType.ObjectToAdd value) {
+    public <T extends ObjectType> void setObjectToAdd(T value) {
         this.objectToAdd = value;
     }
 
@@ -303,7 +307,7 @@ public class ObjectDeltaType implements Serializable {
     public static class ObjectToAdd implements Serializable {
 
         @XmlAnyElement(lax = true)
-        protected Object any;
+        protected JAXBElement<?> any;
 
         /**
          * Gets the value of the any property.
@@ -314,7 +318,7 @@ public class ObjectDeltaType implements Serializable {
          *     {@link Element }
          *     
          */
-        public Object getAny() {
+        public JAXBElement<?> getAny() {
             return any;
         }
 
@@ -327,7 +331,7 @@ public class ObjectDeltaType implements Serializable {
          *     {@link Element }
          *     
          */
-        public void setAny(Object value) {
+        public void setAny(JAXBElement<?> value) {
             this.any = value;
         }
 
@@ -338,7 +342,7 @@ public class ObjectDeltaType implements Serializable {
                 try {
                     Method clone = any.getClass().getMethod("clone");
                     clone.setAccessible(true);
-                    retval.any = clone.invoke(any);
+                    retval.any = (JAXBElement<?>) clone.invoke(any);
                 } catch (NoSuchMethodException e) {
                     throw new SystemException("Cannot clone objectToAdd: " + any, e);
                 } catch (InvocationTargetException e) {
@@ -365,7 +369,7 @@ public class ObjectDeltaType implements Serializable {
         clone.setChangeType(getChangeType());
         clone.setObjectType(getObjectType());
         if (getObjectToAdd() != null) {
-            clone.setObjectToAdd(getObjectToAdd().clone());
+            clone.setObjectToAdd(getObjectToAdd());
         }
         for (ItemDeltaType mod : getItemDelta()) {
             clone.getItemDelta().add(mod.clone());

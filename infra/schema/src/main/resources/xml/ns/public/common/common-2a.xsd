@@ -375,7 +375,8 @@
                 <a:object/>
             </xsd:appinfo>
         </xsd:annotation>
-
+		<xsd:complexContent>
+            <xsd:extension base="t:ObjectType">
         <xsd:sequence>
             <xsd:element name="name" type="t:PolyStringType" minOccurs="0">
                 <xsd:annotation>
@@ -604,7 +605,8 @@
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
-
+	</xsd:extension>
+	</xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="object" type="tns:ObjectType"/>
     

@@ -249,6 +249,16 @@
 			<xsd:element name="cipherValue" type="xsd:base64Binary" minOccurs="1"/>
 		</xsd:sequence>
 	</xsd:complexType>
+	
+	<xsd:complexType name="ObjectType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				
+			</xsd:documentation>
+		</xsd:annotation>
+		
+	</xsd:complexType>
 
     <!-- ########################################### -->
     <!-- ##         DATA STRUCTURE TYPES          ## -->

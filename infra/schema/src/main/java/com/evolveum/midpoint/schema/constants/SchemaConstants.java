@@ -16,6 +16,9 @@
 
 package com.evolveum.midpoint.schema.constants;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
@@ -36,6 +39,8 @@ public abstract class SchemaConstants {
 
 	public static final String NS_MIDPOINT_PUBLIC = "http://midpoint.evolveum.com/xml/ns/public";
 	public static final String NS_MIDPOINT_TEST = "http://midpoint.evolveum.com/xml/ns/test";
+	
+	public static final Map<String, String> prefixNsMap = new HashMap<String, String>(); 
 
 	// NAMESPACES
 	
@@ -203,4 +208,8 @@ public abstract class SchemaConstants {
     public static final QName C_WF_PROCESS_INSTANCE = new QName(NS_C, "wfProcessInstance");
 
     public static final QName APIT_ITEM_LIST = new QName(SchemaConstants.NS_API_TYPES, "itemList");
+    
+    private static void addUsualPrefixNs(String prefix, String namespace){
+    	prefixNsMap.put(prefix, namespace);
+    }
 }

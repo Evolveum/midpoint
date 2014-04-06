@@ -9,4 +9,6 @@ public interface Referencable {
 
 	
 	public PrismReferenceValue asReferenceValue();
+	
+	public void setupReferenceValue(PrismReferenceValue value);
 }

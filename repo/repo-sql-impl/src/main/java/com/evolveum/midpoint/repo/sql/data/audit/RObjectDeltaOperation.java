@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.audit;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.sql.data.common.OperationResult;
@@ -26,6 +27,7 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
@@ -321,8 +323,9 @@ public class RObjectDeltaOperation implements OperationResult {
             if (operation.getObjectDelta() != null) {
                 ObjectDelta delta = operation.getObjectDelta();
                 //this two step conversion is twice as fast compared to DeltaConvertor.toObjectDeltaTypeXml(delta)
-                ObjectDeltaType xmlDelta = DeltaConvertor.toObjectDeltaType(delta);
-                auditDelta.setDelta(RUtil.toRepo(xmlDelta, SchemaConstantsGenerated.T_OBJECT_DELTA, prismContext));
+                String xmlDelta = DeltaConvertor.toObjectDeltaTypeXml(delta);
+//                ItemDefinition def = prismContext.getSchemaRegistry().findItemDefinitionByElementName(SchemaConstants.T_OBJECT_DELTA_TYPE);
+                auditDelta.setDelta(xmlDelta);//(def, SchemaConstantsGenerated.T_OBJECT_DELTA, xmlDelta, prismContext));
 
                 auditDelta.setDeltaOid(delta.getOid());
                 auditDelta.setDeltaType(RUtil.getRepoEnumValue(delta.getChangeType(), RChangeType.class));

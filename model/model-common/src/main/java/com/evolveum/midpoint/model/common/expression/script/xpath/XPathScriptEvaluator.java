@@ -141,7 +141,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
             throws ExpressionEvaluationException, ObjectNotFoundException, ExpressionSyntaxException {
 
         XPathExpressionCodeHolder codeHolder = new XPathExpressionCodeHolder(code);
-
+        System.out.println("code " + code);
         XPath xpath = factory.newXPath();
         XPathVariableResolver variableResolver = new LazyXPathVariableResolver(variables, objectResolver, 
         		contextDescription, prismContext, result);
