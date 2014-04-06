@@ -112,7 +112,7 @@ public class SqlRepositoryConfiguration {
         setDataSource(configuration.getString(PROPERTY_DATASOURCE, null));
         setMinPoolSize(configuration.getInt(PROPERTY_MIN_POOL_SIZE, 8));
         setMaxPoolSize(configuration.getInt(PROPERTY_MAX_POOL_SIZE, 20));
-        setUseZip(configuration.getBoolean(PROPERTY_USE_ZIP, true));
+        setUseZip(configuration.getBoolean(PROPERTY_USE_ZIP, false));
 
         computeDefaultConcurrencyParameters();
 
