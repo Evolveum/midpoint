@@ -25,7 +25,8 @@
 		<t:modificationType>replace</t:modificationType>
         <t:path>c:assignment[4]/targetRef</t:path>
 		<t:value>
-            <targetRef oid="12345678-d34d-b33f-f00d-987987987989" type="c:RoleType" />
+            <oid>12345678-d34d-b33f-f00d-987987987989</oid>
+            <type>c:RoleType</type>
 		</t:value>
 	</itemDelta>
 </objectModification>

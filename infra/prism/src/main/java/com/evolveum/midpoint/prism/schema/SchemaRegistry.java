@@ -547,8 +547,28 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		}		
 		return inputSource;
 	}
-	
-	class Input implements LSInput {
+
+    // TODO fix this temporary and inefficient implementation
+    public QName resolveUnqualifiedTypeName(QName type) throws SchemaException {
+        QName typeFound = null;
+        for (SchemaDescription desc: schemaDescriptions) {
+            QName typeInSchema = new QName(desc.getNamespace(), type.getLocalPart());
+            if (desc.getSchema() != null && desc.getSchema().findComplexTypeDefinition(typeInSchema) != null) {
+                if (typeFound != null) {
+                    throw new SchemaException("Ambiguous type name: " + type);
+                } else {
+                    typeFound = typeInSchema;
+                }
+            }
+        }
+        if (typeFound == null) {
+            throw new SchemaException("Unknown type: " + type);
+        } else {
+            return typeFound;
+        }
+    }
+
+    class Input implements LSInput {
 
 		private String publicId;
 		private String systemId;
@@ -826,21 +846,22 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
         return schema.findItemDefinition(elementName, ItemDefinition.class);
     }
 
-	public PrismPropertyDefinition findPropertyDefinitionByElementName(QName elementName) {
+    public ItemDefinition findItemDefinitionByType(QName typeName) {
+        PrismSchema schema = findSchemaByNamespace(typeName.getNamespaceURI());
+        if (schema == null) {
+            return null;
+        }
+        return schema.findItemDefinitionByType(typeName, ItemDefinition.class);
+    }
+
+
+    public PrismPropertyDefinition findPropertyDefinitionByElementName(QName elementName) {
 		PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());
 		if (schema == null) {
 			return null;
 		}
 		return schema.findPropertyDefinitionByElementName(elementName);
 	}
-
-    public <T> PrismPropertyDefinition<T> findPropertyDefinitionByCompileTimeClass(Class<T> compileTimeClass) {
-        PrismSchema schema = findSchemaByCompileTimeClass(compileTimeClass);
-        if (schema == null) {
-            return null;
-        }
-        return schema.findPropertyDefinitionByCompileTimeClass(compileTimeClass);
-    }
 
     public PrismReferenceDefinition findReferenceDefinitionByElementName(QName elementName) {
         PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());

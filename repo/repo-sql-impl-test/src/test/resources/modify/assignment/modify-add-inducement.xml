@@ -25,11 +25,10 @@
 		<t:modificationType>add</t:modificationType>
 		<t:path>c:inducement</t:path>
 		<t:value>
-			<c:assignment id="5">
-                <c:construction>
-                    <c:resourceRef oid="00000000-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
-                </c:construction>
-			</c:assignment>
+            <id>5</id>
+            <c:construction>
+                <c:resourceRef oid="00000000-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
+            </c:construction>
 		</t:value>
 	</itemDelta>
 </objectModification>

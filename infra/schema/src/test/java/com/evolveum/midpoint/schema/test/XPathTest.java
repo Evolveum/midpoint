@@ -17,7 +17,9 @@
 package com.evolveum.midpoint.schema.test;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
@@ -118,7 +120,7 @@ public class XPathTest {
             ItemPath path = pathType.getItemPath();
             XPathHolder xpath = new XPathHolder(path);
 
-            AssertJUnit.assertEquals("c:extension/piracy:ship[2]/c:name", xpath.getXPath());
+            AssertJUnit.assertEquals("c:extension/piracy:ship[2]/c:name", xpath.getXPathWithoutDeclarations());
 
             System.out.println("XPATH: " + xpath);
 
@@ -157,7 +159,7 @@ public class XPathTest {
 
             System.out.println("XPath from segments: " + xpathFromSegments);
 
-            AssertJUnit.assertEquals("c:extension/piracy:ship[2]/c:name", xpathFromSegments.getXPath());
+            AssertJUnit.assertEquals("c:extension/piracy:ship[2]/c:name", xpathFromSegments.getXPathWithoutDeclarations());
 
         }
 
@@ -246,7 +248,7 @@ public class XPathTest {
 
         XPathHolder xpath = new XPathHolder(xpathStr);
 
-        AssertJUnit.assertEquals("$v:var/x:xyz[10]", xpath.getXPath());
+        AssertJUnit.assertEquals("$v:var/x:xyz[10]", xpath.getXPathWithoutDeclarations());
         AssertJUnit.assertEquals("http://vvv.com", xpath.getNamespaceMap().get("v"));
         AssertJUnit.assertEquals("http://www.xxx.com", xpath.getNamespaceMap().get("x"));
     }
@@ -257,7 +259,7 @@ public class XPathTest {
         XPathHolder dotPath = new XPathHolder(".");
 
         AssertJUnit.assertTrue(dotPath.toSegments().isEmpty());
-        AssertJUnit.assertEquals(".", dotPath.getXPath());
+        AssertJUnit.assertEquals(".", dotPath.getXPathWithoutDeclarations());
     }
 
     @Test
@@ -293,8 +295,8 @@ public class XPathTest {
 
         XPathHolder xpath = new XPathHolder(xpathStr);
 
-        System.out.println("Pure XPath: "+xpath.getXPath());
-        AssertJUnit.assertEquals("foo:foofoo/x:bar", xpath.getXPath());
+        System.out.println("Pure XPath: "+xpath.getXPathWithoutDeclarations());
+        AssertJUnit.assertEquals("foo:foofoo/x:bar", xpath.getXPathWithoutDeclarations());
 
         System.out.println("ROUND TRIP: "+xpath.getXPathWithDeclarations());
         AssertJUnit.assertEquals("declare default namespace 'http://default.com/'; declare namespace foo='http://ff.com/'; declare namespace bar='http://www.b.com'; declare namespace x='http://xxx.com/'; foo:foofoo/x:bar",
@@ -313,8 +315,8 @@ public class XPathTest {
 
         XPathHolder xpath = new XPathHolder(xpathStr, namespaceMap);
 
-        System.out.println("Pure XPath: "+xpath.getXPath());
-        AssertJUnit.assertEquals("foo:foo/bar:bar", xpath.getXPath());
+        System.out.println("Pure XPath: "+xpath.getXPathWithoutDeclarations());
+        AssertJUnit.assertEquals("foo:foo/bar:bar", xpath.getXPathWithoutDeclarations());
 
         System.out.println("ROUND TRIP: "+xpath.getXPathWithDeclarations());
         AssertJUnit.assertEquals("foo:foo/bar:bar", xpath.getXPathWithDeclarations());
@@ -343,8 +345,8 @@ public class XPathTest {
 
         XPathHolder xpath = new XPathHolder(xpathStr);
 
-        System.out.println("Stragechars Pure XPath: "+xpath.getXPath());
-        AssertJUnit.assertEquals("$i:user/i:extension/ri:foobar", xpath.getXPath());
+        System.out.println("Stragechars Pure XPath: "+xpath.getXPathWithoutDeclarations());
+        AssertJUnit.assertEquals("$i:user/i:extension/ri:foobar", xpath.getXPathWithoutDeclarations());
 
         System.out.println("Stragechars ROUND TRIP: "+xpath.getXPathWithDeclarations());
 
@@ -367,8 +369,30 @@ public class XPathTest {
     	assertEquals("Wrong element name", "bar", element.getLocalName());
     	assertEquals("Wrong element namespace", NS_BAR, element.getNamespaceURI());
     	Map<String, String> nsdecls = DOMUtil.getNamespaceDeclarations(element);
-    	assertEquals("Wrong declaration for prefix "+XPathHolder.DEFAULT_PREFIX, NS_FOO, nsdecls.get(XPathHolder.DEFAULT_PREFIX));
-    	assertEquals("Wrong element content", XPathHolder.DEFAULT_PREFIX+":foo", element.getTextContent());
+//    	assertEquals("Wrong declaration for prefix "+XPathHolder.DEFAULT_PREFIX, NS_FOO, nsdecls.get(XPathHolder.DEFAULT_PREFIX));
+        String prefix = nsdecls.keySet().iterator().next();
+    	assertEquals("Wrong element content", prefix+":foo", element.getTextContent());
+    }
+
+    @Test
+    public void testXPathSerializationToDom() {
+        // GIVEN
+        QName qname1 = new QName(SchemaConstants.NS_C, "extension");
+        QName qname2 = new QName(NS_FOO, "foo");
+        XPathHolder xPathHolder1 = new XPathHolder(qname1, qname2);
+        QName elementQName = new QName(NS_BAR, "bar");
+
+        // WHEN
+        Element element = xPathHolder1.toElement(elementQName, DOMUtil.getDocument());
+        XPathHolder xPathHolder2 = new XPathHolder(element);
+
+        // THEN
+        System.out.println("XPath from QNames:");
+        System.out.println(DOMUtil.serializeDOMToString(element));
+
+        ItemPath xpath1 = xPathHolder1.toItemPath();
+        ItemPath xpath2 = xPathHolder2.toItemPath();
+        assertTrue("Paths are not equal", xpath1.equals(xpath2));
     }
 
     //not actual anymore..we have something like "wildcard" in xpath..there don't need to be prefix specified.we will try to match the local names

@@ -31,6 +31,8 @@ import javax.xml.bind.annotation.XmlElementDecl;
 import javax.xml.bind.annotation.XmlRegistry;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 
@@ -56,6 +58,7 @@ public class ObjectFactory implements Serializable {
     private final static QName _PolyStringTypeOrig_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "orig");
     private final static QName _ProtectedDataTypeEncryptedData_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "encryptedData");
     private final static QName _ItemPathType_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "path");
+    private final static QName _Object_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-2a", "object");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: com.evolveum.prism.xml.ns._public.types_2
@@ -127,6 +130,10 @@ public class ObjectFactory implements Serializable {
     public ProtectedStringType createProtectedStringType() {
         return new ProtectedStringType();
     }
+    
+//    public ObjectType createObjectType() {
+//        return new ObjectType();
+//    }
 
     /**
      * Create an instance of {@link EncryptionMethodType }
@@ -193,6 +200,7 @@ public class ObjectFactory implements Serializable {
     public ObjectDeltaType.ObjectToAdd createObjectDeltaTypeObjectToAdd() {
         return new ObjectDeltaType.ObjectToAdd();
     }
+    
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link ObjectDeltaType }{@code >}}
@@ -230,9 +238,23 @@ public class ObjectFactory implements Serializable {
         return new JAXBElement<EncryptedDataType>(_ProtectedDataTypeEncryptedData_QNAME, EncryptedDataType.class, ProtectedDataType.class, value);
     }
     
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-2", name = "encryptedData", scope = ProtectedStringType.class)
+    public JAXBElement<EncryptedDataType> createProtectedStringTypeEncryptedData(EncryptedDataType value) {
+        return new JAXBElement<EncryptedDataType>(_ProtectedDataTypeEncryptedData_QNAME, EncryptedDataType.class, ProtectedStringType.class, value);
+    }
+    
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-2", name = "path", scope = ItemPathType.class)
     public JAXBElement<ItemPath> createItemPathType(ItemPath value) {
         return new JAXBElement<ItemPath>(_ItemPathType_QNAME, ItemPath.class, ItemPathType.class, value);
+    }
+    
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link ObjectType }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-2a", name = "object")
+    public JAXBElement<ObjectType> createObject(ObjectType value) {
+        return new JAXBElement<ObjectType>(_Object_QNAME, ObjectType.class, null, value);
     }
 
     /**

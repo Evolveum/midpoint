@@ -289,10 +289,10 @@ public class DeltaConvertor {
         ItemDefinition containingPcd = pcDef.findItemDefinition(parentPath);
         PrismContainerDefinition containerDef = null;
         if (containingPcd == null) {
-        	QName elementName = parentPath.lastNamed().getName();
-        	containerDef = pcDef.findContainerDefinition(parentPath.allExceptLast());
+//        	QName elementName = parentPath.lastNamed().getName();
+        	containerDef = pcDef.findContainerDefinition(parentPath.allUpToLastNamed());
         	if (containerDef == null){
-        		throw new SchemaException("No definition for " + parentPath.allExceptLast().lastNamed().getName() + " (while creating delta for " + pcDef + ")");
+        		throw new SchemaException("No definition for " + parentPath.allUpToLastNamed().lastNamed().getName() + " (while creating delta for " + pcDef + ")");
         	} 
         	
 //        	containingPcd = pcDef.getPrismContext().getXnodeProcessor().locateItemDefinition(containerDef, elementName, propMod.getValue().);
@@ -384,8 +384,6 @@ public class DeltaConvertor {
     private static void addModValues(ItemDelta delta, ItemDeltaType mod, Collection<PrismValue> values,
             Document document) throws SchemaException {
 //    	QName elementName = delta.getElementName();
-    	RawType modValue = new RawType();
-        mod.getValue().add(modValue);
         if (values == null || values.isEmpty()) {
         	// We need to create "nil" element otherwise the element name will be lost
         	// (and this is different from empty element)
@@ -393,7 +391,11 @@ public class DeltaConvertor {
 //        	DOMUtil.setNill(nilValueElement);
         	//FIXME : DOM?? vs Xnode??
         	
-			modValue.setXnode(null);
+			//modValue.setXnode(null);
+
+            RawType modValue = new RawType();
+            mod.getValue().add(modValue);
+
         } else {
 	        for (PrismValue value : values) {
 	        	System.out.println("value: " + value.debugDump());
@@ -420,17 +422,18 @@ public class DeltaConvertor {
 //			return delta.getPrismContext().getXnodeProcessor().serializeItem()
 			return node;
 		}
-		if (value instanceof PrismPropertyValue<?>) {
-			PrismPropertyValue<?> pval = (PrismPropertyValue<?>)value;
-			Object raw = pval.getRawElement();
-			if (XNode.class.isAssignableFrom(raw.getClass())){
-				return (XNode) pval.getRawElement();
-			}
-//			return ;
-			throw new SystemException("something strange happened. There is a raw element, but it is not XNode"+value);
-		} else {
-			throw new SystemException("Null prism context in "+value+" in "+delta);
-		}
+        throw new IllegalStateException("ItemDelta without prismContext");
+//		if (value instanceof PrismPropertyValue<?>) {
+//			PrismPropertyValue<?> pval = (PrismPropertyValue<?>)value;
+//			Object raw = pval.getRawElement();
+//			if (XNode.class.isAssignableFrom(raw.getClass())){
+//				return (XNode) pval.getRawElement();
+//			}
+////			return ;
+//			throw new SystemException("something strange happened. There is a raw element, but it is not XNode"+value);
+//		} else {
+//			throw new SystemException("Null prism context in "+value+" in "+delta);
+//		}
     	
     }
 

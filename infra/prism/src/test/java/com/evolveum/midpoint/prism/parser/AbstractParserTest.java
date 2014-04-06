@@ -117,9 +117,6 @@ public abstract class AbstractParserTest {
 		System.out.println("XNode after parsing:");
 		System.out.println(xnode.debugDump());
 		
-		
-		
-		
 		// WHEN (parse to prism)
 		PrismObject<UserType> user = processor.parseObject(xnode);
 		
@@ -127,7 +124,6 @@ public abstract class AbstractParserTest {
 		System.out.println("Parsed user:");
 		System.out.println(user.debugDump());
 
-		
 		assertUserJackXNodeOrdering("serialized xnode", xnode);
 		
 		assertUserJack(user);		

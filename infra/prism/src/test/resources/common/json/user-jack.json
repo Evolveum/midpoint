@@ -42,7 +42,8 @@
       "description" : "Assignment 2",
       "accountConstruction" : {
         "howto" : "Just do it",
-        "when" : 1330080532000
+        "when" : 1330080532000,
+        "value" : [ "ABC", { "fullName" : "Nobody" } ]
       }
     } ],
     "activation" : {

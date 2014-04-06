@@ -22,10 +22,8 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -476,7 +474,9 @@ public class PrismBeanConverter {
 		Object propValue;
 		if (paramType.equals(XNode.class)) {
 			propValue = xsubnode;
-		} else {
+		} else if (paramType.equals(RawType.class)) {
+            propValue = new RawType(xsubnode);
+        } else {
 			if (xsubnode instanceof PrimitiveXNode<?>) {
 				propValue = unmarshallPrimitive(((PrimitiveXNode<?>)xsubnode), paramType);
 			} else if (xsubnode instanceof MapXNode) {
@@ -639,8 +639,7 @@ public class PrismBeanConverter {
 		}
 		
 		if (RawType.class.isAssignableFrom(classType)) {
-			RawType rawType = new RawType();
-			rawType.setXnode(xprim);
+			RawType rawType = new RawType(xprim);
 			return (T) rawType;
 		}
 		
@@ -1026,26 +1025,8 @@ public class PrismBeanConverter {
 		return xprim;
 	}
 
-	private XNode marshalRawValue(RawType value) {
-		
-		XNode xnode = value.getXnode();
-		if (xnode != null){
-			return xnode;
-		} else {
-			Object realValue = value.getRealValue();
-			
-			if (realValue != null && XmlTypeConverter.canConvert(realValue.getClass())){
-//			if (realValue.getClass().isPrimitive()){
-				QName type = XsdTypeMapper.toXsdType(realValue.getClass());
-				PrimitiveXNode xprim = new PrimitiveXNode();
-				xprim.setValue(realValue);
-				xprim.setExplicitTypeDeclaration(true);
-				xprim.setTypeQName(type);
-				return xprim;
-			}
-		}
- 		
-		return value.getXnode();
+	private XNode marshalRawValue(RawType value) throws SchemaException {
+        return value.serializeToXNode();
 	}
 
 	private XNode marshalItemPath(ItemPathType itemPath){

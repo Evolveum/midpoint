@@ -24,10 +24,8 @@
 	<itemDelta>
 		<t:modificationType>delete</t:modificationType>
 		<t:path>c:inducement</t:path>
-		<t:value>
-            <c:inducement id="3">
-                <c:targetRef oid="00000000-76e0-48e2-86d6-3d4f02d3e1a2" type="c:OrgType"/>
-            </c:inducement>
+		<t:value id="3">
+            <c:targetRef oid="00000000-76e0-48e2-86d6-3d4f02d3e1a2" type="c:OrgType"/>
 		</t:value>
 	</itemDelta>
 </objectModification>

@@ -167,11 +167,21 @@ public class ListXNode extends XNode implements List<XNode> {
 	public String toString() {
 		return "XNode(list:"+subnodes.size()+" elements)";
 	}
-	
-	@Override
-	public int hashCode() {
-		// TODO Auto-generated method stub
-		return 1;
-	}
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ListXNode xNodes = (ListXNode) o;
+
+        if (!subnodes.equals(xNodes.subnodes)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return subnodes.hashCode();
+    }
 }

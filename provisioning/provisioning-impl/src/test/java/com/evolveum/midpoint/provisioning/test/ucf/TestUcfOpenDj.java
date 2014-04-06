@@ -28,6 +28,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
@@ -721,14 +723,12 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		Document doc = DOMUtil.getDocument();
 		ItemPathType path = new ItemPathType();
 //		PropertyPath propPath = new PropertyPath(new PropertyPath(ResourceObjectShadowType.F_CREDENTIALS), CredentialsType.F_PASSWORD);
-		path.getContent().add("c:credentials/c:password/t:value");          // TODO will this work?
+		path.getContent().add("credentials/password/value");
 		propMod.setPath(path);
-		
+
 		//set the replace value
-		RawType value = new RawType();
-//		Element valueElement = PrismTestUtil.marshalObjectToDom(passPs, PasswordType.F_VALUE, doc);
-		JAXBElement<ProtectedStringType> jaxb = new JAXBElement<ProtectedStringType>(ProtectedStringType.COMPLEX_TYPE, ProtectedStringType.class, passPs);
-		value.getContent().add(jaxb);
+        MapXNode passPsXnode = prismContext.getXnodeProcessor().createSerializer().serializeProtectedDataType(passPs);
+		RawType value = new RawType(passPsXnode);
 		propMod.getValue().add(value);
 		
 		//set the modificaion type

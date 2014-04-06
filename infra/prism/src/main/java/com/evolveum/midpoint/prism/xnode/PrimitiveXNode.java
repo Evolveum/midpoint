@@ -227,8 +227,8 @@ public class PrimitiveXNode<T> extends XNode {
 		if (other.isParsed() && isParsed()){
 			return value.equals(other.value);
 		} else if (!other.isParsed() && !isParsed()){
-			String thisStringVal = valueParser.getStringValue();
-			String otherStringVal = other.getValueParser().getStringValue();
+			String thisStringVal = this.getStringValue();
+			String otherStringVal = other.getStringValue();
 			return thisStringVal.equals(otherStringVal);
 		} else if (other.isParsed() && !isParsed()){
 			return other.value.equals(this.getStringValue());
@@ -238,10 +238,21 @@ public class PrimitiveXNode<T> extends XNode {
 		
 		return false;
 	}
-	
+
+    /**
+     * The basic idea of equals() is:
+     *  - if parsed, compare the value;
+     *  - if unparsed, compare getStringValue()
+     * Therefore the hashcode is generated based on value (if parsed) or getStringValue() (if unparsed).
+     */
 	@Override
 	public int hashCode() {
-		// TODO FIXME this is really not good way..
-		return 1;
+        Object objectToHash;
+        if (isParsed()) {
+            objectToHash = value;
+        } else {
+            objectToHash = getStringValue();
+        }
+        return objectToHash != null ? objectToHash.hashCode() : 0;
 	}
 }

@@ -35,6 +35,9 @@ user:
     accountConstruction:
       howto: "Whatever"
       when: 1330080532000
+      value:
+      - ABC
+      - fullName : Nobody
   - id: 1113
     description: "Assignment 3"
   activation:

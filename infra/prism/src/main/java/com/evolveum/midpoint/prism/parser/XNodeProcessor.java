@@ -20,8 +20,10 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 
+import com.evolveum.prism.xml.ns._public.types_2.ObjectReferenceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
@@ -365,7 +367,7 @@ public class XNodeProcessor {
 
     public <T> PrismPropertyValue<T> parsePrismPropertyValue(XNode xnode, PrismProperty<T> property) throws SchemaException {
         Validate.notNull(xnode);
-        Validate.notNull(xnode);
+        Validate.notNull(property);
         T realValue = parsePrismPropertyRealValue(xnode, property.getDefinition());
         if (realValue == null) {
             return null;
@@ -653,14 +655,7 @@ public class XNodeProcessor {
         }
 
         for (XNode subnode : xlist) {
-            if (itemName.equals(referenceDefinition.getName())) {
-                // This is "real" reference (oid type and nothing more)
-                ref.add(parseReferenceValue(subnode, referenceDefinition));
-            } else {
-                // This is a composite object (complete object stored inside
-                // reference)
-                ref.add(parseReferenceAsCompositeObject(subnode, referenceDefinition));
-            }
+            parsePrismReferenceValueFromXNode(ref, subnode, referenceDefinition, itemName);
         }
         return ref;
     }
@@ -668,15 +663,37 @@ public class XNodeProcessor {
     private PrismReference parsePrismReferenceFromMap(MapXNode xmap, QName itemName,
                                                       PrismReferenceDefinition referenceDefinition) throws SchemaException {
         PrismReference ref = referenceDefinition.instantiate();
-        if (itemName.equals(referenceDefinition.getName())) {
-            // This is "real" reference (oid type and nothing more)
-            ref.add(parseReferenceValue(xmap, referenceDefinition));
+        parsePrismReferenceValueFromXNode(ref, xmap, referenceDefinition, itemName);
+        return ref;
+    }
+
+    private void parsePrismReferenceValueFromXNode(PrismReference ref, XNode subnode, PrismReferenceDefinition referenceDefinition, QName itemName) throws SchemaException {
+        /*
+         *  We distinguish between "real" references and composite objects by
+         *  (1) looking at type QName of XNode passed (whether it's ObjectType or ObjectReferenceType)
+         *  (2) comparing itemName and name from reference definition - e.g. linkRef vs. link
+         */
+        boolean isComposite;
+        if (subnode.getTypeQName() != null) {
+            QName typeName = subnode.getTypeQName();
+            if (prismContext != null) {
+                ItemDefinition definition = prismContext.getSchemaRegistry().findItemDefinitionByType(typeName);
+                isComposite = definition instanceof PrismObjectDefinition;
+            } else {
+                isComposite = PrismConstants.REFERENCE_TYPE_NAME.equals(typeName.getLocalPart());
+            }
         } else {
+            isComposite = !QNameUtil.match(itemName, referenceDefinition.getName());
+        }
+
+        if (isComposite) {
             // This is a composite object (complete object stored inside
             // reference)
-            ref.add(parseReferenceAsCompositeObject(xmap, referenceDefinition));
+            ref.add(parseReferenceAsCompositeObject(subnode, referenceDefinition));
+        } else {
+            // This is "real" reference (oid type and nothing more)
+            ref.add(parseReferenceValue(subnode, referenceDefinition));
         }
-        return ref;
     }
 
     public PrismReferenceValue parseReferenceValue(XNode xnode, PrismReferenceDefinition referenceDefinition) throws SchemaException {
@@ -698,17 +715,25 @@ public class XNodeProcessor {
                 throw new SchemaException("Target type specified neither in reference nor in the schema");
             }
         } else {
+            if (StringUtils.isBlank(type.getNamespaceURI())) {
+                // resolve type without namespace (only when prismContext is known)
+                if (prismContext == null) {
+                    throw new SchemaException("Couldn't parse unqualified type name '"+type+"' without prismContext");
+                }
+                type = prismContext.getSchemaRegistry().resolveUnqualifiedTypeName(type);
+            }
+
             QName defTargetType = referenceDefinition.getTargetTypeName();
+
             if (defTargetType != null && !QNameUtil.match(defTargetType, type)) {
                 //one more check - if the type is not a subtype of the schema type
-
-                if (!qnameToClass(defTargetType).isAssignableFrom(qnameToClass(type))){
+                Class clazz = qnameToClass(type);
+                if (clazz == null) {
+                    throw new SchemaException("Unknown target type: " + type);
+                }
+                if (!qnameToClass(defTargetType).isAssignableFrom(clazz)){
                     throw new SchemaException("Target type specified in reference ("+type+") does not match target type in schema ("+defTargetType+")");
                 }
-            }
-            // if the type is specified without namespace, use the full qname..this is maybe FIXME later..
-            if (defTargetType != null && StringUtils.isBlank(type.getNamespaceURI())){
-            	type = defTargetType;
             }
         }
         
@@ -810,7 +835,11 @@ public class XNodeProcessor {
     }
 
     private Class qnameToClass(QName type){
-        return getSchemaRegistry().determineCompileTimeClass(type);
+        Class c = getSchemaRegistry().determineCompileTimeClass(type);
+        if (c == null) {
+            throw new IllegalStateException("No class for " + type);
+        }
+        return c;
     }
     //endregion
 
@@ -934,6 +963,11 @@ public class XNodeProcessor {
     public RootXNode serializeItemValueAsRoot(PrismValue pval, QName elementName) throws SchemaException {
         XNodeSerializer serializer = createSerializer();
         return serializer.serializeItemValueAsRoot(pval, elementName);
+    }
+
+    public XNode serializeItemValue(PrismValue pval) throws SchemaException {
+        XNodeSerializer serializer = createSerializer();
+        return serializer.serializeItemValue(pval, null);
     }
 
     public <V extends PrismValue> RootXNode serializeItemAsRoot(Item<V> item) throws SchemaException {

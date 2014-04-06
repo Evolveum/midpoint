@@ -172,6 +172,11 @@ public class XNodeSerializer {
     // definition may be null
     public <V extends PrismValue> XNode serializeItemValue(V itemValue, ItemDefinition definition) throws SchemaException {
         XNode xnode;
+        if (definition == null) {
+            if (itemValue.getParent() != null) {
+                definition = itemValue.getParent().getDefinition();
+            }
+        }
         if (definition == null){
             return serializePropertyRawValue((PrismPropertyValue<?>) itemValue);
         }
@@ -342,7 +347,8 @@ public class XNodeSerializer {
         return xprim;
     }
 
-    private <T> MapXNode serializeProtectedDataType(ProtectedDataType<T> protectedType) throws SchemaException {
+    // TODO create more appropriate interface to be able to simply serialize ProtectedStringType instances
+    public <T> MapXNode serializeProtectedDataType(ProtectedDataType<T> protectedType) throws SchemaException {
         MapXNode xmap = new MapXNode();
         if (protectedType.getEncryptedDataType() != null) {
             EncryptedDataType encryptedDataType = protectedType.getEncryptedDataType();

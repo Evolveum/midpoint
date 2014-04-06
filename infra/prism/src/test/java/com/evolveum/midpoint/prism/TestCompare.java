@@ -118,7 +118,7 @@ public abstract class TestCompare {
 		PrismObject<UserType> jackModified = prismContext.parseObject(getFile(USER_JACK_MODIFIED_FILE_BASENAME));
 		
 		// WHEN
-		ObjectDelta<UserType> jackDelta = jackOriginal.diff(jackModified);
+		ObjectDelta<UserType> jackDelta = jackOriginal.diff (jackModified);
 		
 		// THEN
 		System.out.println("Jack delta:");
@@ -174,13 +174,20 @@ public abstract class TestCompare {
 		PrismObject<UserType> jackModified = prismContext.parseObject(getFile(USER_JACK_MODIFIED_FILE_BASENAME));
 		
 		ObjectDelta<UserType> jackDelta = jackOriginal.diff(jackModified);
+
+//        System.out.println("jackOriginal:\n" + prismContext.getXnodeProcessor().serializeObject(jackOriginal).debugDump(1));
+//        System.out.println("jackModified:\n" + prismContext.getXnodeProcessor().serializeObject(jackModified).debugDump(1));
+//        System.out.println("jackDelta:\n" + jackDelta.debugDump());
+
 		jackDelta.assertDefinitions();
 		jackDelta.checkConsistence(true, true, true);
 		
 		// WHEN
 		jackDelta.applyTo(jackOriginal);
-		
-		// THEN
+
+//        System.out.println("jackOriginal after applying delta:\n" + prismContext.getXnodeProcessor().serializeObject(jackOriginal).debugDump(1));
+
+        // THEN
 		assertTrue("Roundtrip failed", jackOriginal.equivalent(jackModified));
 	}
 	

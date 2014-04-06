@@ -5982,13 +5982,13 @@
             </xsd:appinfo>
         </xsd:annotation>
 	    <xsd:sequence>
-	        <xsd:element name="name" type="xsd:QName"/>
+	        <xsd:element name="name" type="xsd:QName" minOccurs="0"/>
 	        <xsd:element name="shadowRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1"/>
 	        <xsd:element name="identifiers" type="tns:ShadowIdentifiersType" minOccurs="0" maxOccurs="1"/>
 	    </xsd:sequence>
 	    <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
-    
+
     <xsd:complexType name="ShadowIdentifiersType">
     	<xsd:annotation>
             <xsd:documentation>

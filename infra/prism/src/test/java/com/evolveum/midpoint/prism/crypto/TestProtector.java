@@ -27,7 +27,7 @@ public class TestProtector {
 //	}
 	
 	
-	private static Protector createProtector(String xmlCipher){
+	public static Protector createProtector(String xmlCipher){
 		AESProtector protector = new AESProtector();
 //		protector.setPrismContext(prismContext);
 		protector.setKeyStorePassword(KEYSTORE_PASSWORD);

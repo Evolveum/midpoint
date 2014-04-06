@@ -44,10 +44,13 @@
     <assignment>
 		<construction>
 			<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
-			<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
 			<attribute>
 				<ref>ri:l</ref>
-<!-- 				<value>Shipwreck cove</value> -->
+                <c:outbound>
+                    <c:expression>
+                        <c:value>Shipwreck cove</c:value>
+                    </c:expression>
+                </c:outbound>
 			</attribute>
 		</construction>
 	</assignment>

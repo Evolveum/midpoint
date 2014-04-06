@@ -309,7 +309,7 @@ public class QueryConvertor {
 		}
 		
 		if (itemPath.last() == null){
-			throw new SchemaException("Cannot convert query, becasue query does not contian property path.");
+			throw new SchemaException("Cannot convert query, because query does not contain property path.");
 		}
 
 		QName itemName = ItemPath.getName(itemPath.last());

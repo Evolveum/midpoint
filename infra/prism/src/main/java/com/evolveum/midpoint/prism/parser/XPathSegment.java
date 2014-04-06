@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.prism.parser;
 
+import org.apache.commons.lang.StringUtils;
+
 import javax.xml.namespace.QName;
 
 /**
@@ -147,4 +149,20 @@ public class XPathSegment {
         return result;
     }
 
+    /**
+     * Sets a given prefix to current QName (without changing NS URI).
+     * It's a bit of hack.
+     *
+     * Precondition: there is no prefix set.
+     * @param prefix
+     */
+    public void setQNamePrefix(String prefix) {
+        if (qName == null) {
+            throw new IllegalStateException("qName is null");
+        }
+        if (StringUtils.isNotEmpty(qName.getPrefix())) {
+            throw new IllegalStateException("Prefix for qName is already set: " + qName.getPrefix());
+        }
+        qName = new QName(qName.getNamespaceURI(), qName.getLocalPart(), prefix);
+    }
 }

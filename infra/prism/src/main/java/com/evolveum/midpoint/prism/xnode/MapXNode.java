@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.prism.xnode;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -268,12 +269,12 @@ public class MapXNode extends XNode implements Map<QName,XNode> {
 		return MiscUtil.unorderedCollectionEquals(this.values(), other.values());
 	}
 
-	//TODO: really ugly.. TODO implement in proper way :)
 	public int hashCode() {
-		int result = 1;
-		System.out.println("map hask code");
+		int result = 0xCAFEBABE;
+        for (XNode node : this.values()) {
+            result = result ^ node.hashCode();          // using XOR instead of multiplying and adding in order to achieve commutativity
+        }
 		return result;
-//		return subnodes.hashCode();
 	}
 
 	@Override
@@ -336,7 +337,7 @@ public class MapXNode extends XNode implements Map<QName,XNode> {
 		return sb.toString();
 	}
 	
-	private class Entry implements Map.Entry<QName, XNode> {
+	private class Entry implements Map.Entry<QName, XNode>, Serializable {
 
 		private QName key;
 		private XNode value;

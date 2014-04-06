@@ -272,19 +272,6 @@ public class PrismSchema implements DebugDumpable {
 		return findPropertyDefinitionByElementName(elementName, PrismPropertyDefinition.class);
 	}
 
-    public <C> PrismPropertyDefinition<C> findPropertyDefinitionByCompileTimeClass(Class<C> type) {
-        for (Definition def: getDefinitions()) {
-            if (def instanceof PrismPropertyDefinition<?>) {
-                PrismPropertyDefinition<C> propDef = (PrismPropertyDefinition<C>)def;
-                if (type.equals(propDef.getTypeClass())) {
-                    return propDef;
-                }
-            }
-        }
-        return null;
-    }
-
-
     public PrismReferenceDefinition findReferenceDefinitionByElementName(QName elementName) {
         return findReferenceDefinitionByElementName(elementName, PrismReferenceDefinition.class);
     }

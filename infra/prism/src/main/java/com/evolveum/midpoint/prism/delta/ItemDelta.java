@@ -95,8 +95,8 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
 		if (path.isEmpty()) {
 			this.elementName = null;
 		} else {
-			this.elementName = ((NameItemPathSegment)path.last()).getName();
-			this.parentPath = path.allExceptLast();
+			this.elementName = path.lastNamed().getName();
+			this.parentPath = path.allUpToLastNamed();
 		}
 		this.definition = itemDefinition;
 	}
