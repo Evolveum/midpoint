@@ -45,6 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.SessionFactory;
@@ -61,8 +62,12 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * @author lazyman
@@ -511,5 +516,52 @@ public final class RUtil {
     public static String getTableName(Class hqlType) {
         MidPointNamingStrategy namingStrategy = new MidPointNamingStrategy();
         return namingStrategy.classToTableName(hqlType.getSimpleName());
+    }
+
+    public static byte[] getByteArrayFromXml(String xml, boolean compress) {
+        byte[] array;
+
+        GZIPOutputStream gzip = null;
+        try {
+            if (compress) {
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                gzip = new GZIPOutputStream(out);
+                gzip.write(xml.getBytes("utf-8"));
+                gzip.close();
+                out.close();
+
+                array = out.toByteArray();
+            } else {
+                array = xml.getBytes("utf-8");
+            }
+        } catch (Exception ex) {
+            throw new SystemException("Couldn't save full xml object, reason: " + ex.getMessage(), ex);
+        } finally {
+            IOUtils.closeQuietly(gzip);
+        }
+        LOGGER.info("toArray>>> {}", (array != null ? array.length : null));
+        return array;
+    }
+
+    public static String getXmlFromByteArray(byte[] array, boolean compressed) {
+        String xml;
+        LOGGER.info("fromArray>>> {}", (array != null ? array.length : null));
+        GZIPInputStream gzip = null;
+        try {
+            if (compressed) {
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                gzip = new GZIPInputStream(new ByteArrayInputStream(array));
+                IOUtils.copy(gzip, out);
+                xml = new String(out.toByteArray(), "utf-8");
+            } else {
+                xml = new String(array, "utf-8");
+            }
+        } catch (Exception ex) {
+            throw new SystemException("Couldn't read data from full object column, reason: " + ex.getMessage(), ex);
+        } finally {
+            IOUtils.closeQuietly(gzip);
+        }
+
+        return xml;
     }
 }
