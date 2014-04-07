@@ -25,7 +25,10 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
 import org.hibernate.annotations.ForeignKey;
 
-import javax.persistence.*;
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 import java.util.Collection;
 
 /**
@@ -39,8 +42,6 @@ public class RConnectorHost extends RObject<ConnectorHostType> {
     private RPolyString name;
     private String hostname;
     private String port;
-    private Boolean protectConnection;
-    private Integer timeout;
 
     public String getHostname() {
         return hostname;
@@ -58,11 +59,6 @@ public class RConnectorHost extends RObject<ConnectorHostType> {
         this.port = port;
     }
 
-    @Column(nullable = true)
-    public Boolean isProtectConnection() {
-        return protectConnection;
-    }
-
     @Embedded
     public RPolyString getName() {
         return name;
@@ -70,19 +66,6 @@ public class RConnectorHost extends RObject<ConnectorHostType> {
 
     public void setName(RPolyString name) {
         this.name = name;
-    }
-
-    public void setProtectConnection(Boolean protectConnection) {
-        this.protectConnection = protectConnection;
-    }
-
-    @Column(nullable = true)
-    public Integer getTimeout() {
-        return timeout;
-    }
-
-    public void setTimeout(Integer timeout) {
-        this.timeout = timeout;
     }
 
     @Override
@@ -96,9 +79,6 @@ public class RConnectorHost extends RObject<ConnectorHostType> {
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (hostname != null ? !hostname.equals(that.hostname) : that.hostname != null) return false;
         if (port != null ? !port.equals(that.port) : that.port != null) return false;
-        if (protectConnection != null ? !protectConnection.equals(that.protectConnection) : that.protectConnection != null)
-            return false;
-        if (timeout != null ? !timeout.equals(that.timeout) : that.timeout != null) return false;
 
         return true;
     }
@@ -109,8 +89,6 @@ public class RConnectorHost extends RObject<ConnectorHostType> {
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (hostname != null ? hostname.hashCode() : 0);
         result = 31 * result + (port != null ? port.hashCode() : 0);
-        result = 31 * result + (protectConnection != null ? protectConnection.hashCode() : 0);
-        result = 31 * result + (timeout != null ? timeout.hashCode() : 0);
         return result;
     }
 
@@ -121,8 +99,6 @@ public class RConnectorHost extends RObject<ConnectorHostType> {
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setHostname(jaxb.getHostname());
         repo.setPort(jaxb.getPort());
-        repo.setTimeout(jaxb.getTimeout());
-        repo.setProtectConnection(jaxb.isProtectConnection());
     }
 
     @Override

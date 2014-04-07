@@ -48,7 +48,6 @@ public class RConnector extends RObject<ConnectorType> {
     private String connectorVersion;
     private String connectorBundle;
     private Set<String> targetSystemType;
-    private String namespace;
 
     @Embedded
     public REmbeddedReference getConnectorHostRef() {
@@ -65,10 +64,6 @@ public class RConnector extends RObject<ConnectorType> {
 
     public String getConnectorVersion() {
         return connectorVersion;
-    }
-
-    public String getNamespace() {
-        return namespace;
     }
 
     @ElementCollection
@@ -114,10 +109,6 @@ public class RConnector extends RObject<ConnectorType> {
         this.connectorVersion = connectorVersion;
     }
 
-    public void setNamespace(String namespace) {
-        this.namespace = namespace;
-    }
-
     public void setTargetSystemType(Set<String> targetSystemType) {
         this.targetSystemType = targetSystemType;
     }
@@ -140,7 +131,6 @@ public class RConnector extends RObject<ConnectorType> {
         if (connectorVersion != null ? !connectorVersion.equals(that.connectorVersion) : that.connectorVersion != null)
             return false;
         if (framework != null ? !framework.equals(that.framework) : that.framework != null) return false;
-        if (namespace != null ? !namespace.equals(that.namespace) : that.namespace != null) return false;
         if (targetSystemType != null ? !targetSystemType.equals(that.targetSystemType) : that.targetSystemType != null)
             return false;
 
@@ -155,7 +145,6 @@ public class RConnector extends RObject<ConnectorType> {
         result = 31 * result + (connectorType != null ? connectorType.hashCode() : 0);
         result = 31 * result + (connectorVersion != null ? connectorVersion.hashCode() : 0);
         result = 31 * result + (connectorBundle != null ? connectorBundle.hashCode() : 0);
-        result = 31 * result + (namespace != null ? namespace.hashCode() : 0);
 
         return result;
     }
@@ -169,7 +158,6 @@ public class RConnector extends RObject<ConnectorType> {
         repo.setConnectorType(jaxb.getConnectorType());
         repo.setConnectorVersion(jaxb.getConnectorVersion());
         repo.setFramework(jaxb.getFramework());
-        repo.setNamespace(jaxb.getNamespace());
         repo.setConnectorHostRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getConnectorHostRef(), prismContext));
 
         if (jaxb.getConnectorHost() != null) {

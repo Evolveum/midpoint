@@ -51,7 +51,6 @@ public class RResource extends RObject<ResourceType> {
     private static final Trace LOGGER = TraceManager.getTrace(RResource.class);
     private RPolyString name;
     private REmbeddedReference connectorRef;
-    private String namespace;
     private ROperationalState operationalState;
     //resource business configuration, embedded component can't be used, because then it couldn't use
     //non embedded approverRef relationship
@@ -81,10 +80,6 @@ public class RResource extends RObject<ResourceType> {
         return connectorRef;
     }
 
-    public String getNamespace() {
-        return namespace;
-    }
-
     @Embedded
     public ROperationalState getOperationalState() {
         return operationalState;
@@ -111,10 +106,6 @@ public class RResource extends RObject<ResourceType> {
         this.operationalState = operationalState;
     }
 
-    public void setNamespace(String namespace) {
-        this.namespace = namespace;
-    }
-
     public void setConnectorRef(REmbeddedReference connectorRef) {
         this.connectorRef = connectorRef;
     }
@@ -134,8 +125,6 @@ public class RResource extends RObject<ResourceType> {
             return false;
         if (connectorRef != null ? !connectorRef.equals(rResource.connectorRef) : rResource.connectorRef != null)
             return false;
-        if (namespace != null ? !namespace.equals(rResource.namespace) : rResource.namespace != null)
-            return false;
 
         return true;
     }
@@ -144,7 +133,6 @@ public class RResource extends RObject<ResourceType> {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (namespace != null ? namespace.hashCode() : 0);
         return result;
     }
 
@@ -153,7 +141,6 @@ public class RResource extends RObject<ResourceType> {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
-        repo.setNamespace(jaxb.getNamespace());
         repo.setConnectorRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getConnectorRef(), prismContext));
 
         if (jaxb.getConnector() != null) {
@@ -176,10 +163,6 @@ public class RResource extends RObject<ResourceType> {
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
-    }
-
-    private static boolean isResourceBusinessConfigurationEmpty(RResource repo) {
-        return repo.getApproverRef().isEmpty() && repo.getAdministrativeState() == null;
     }
 
     @Override
