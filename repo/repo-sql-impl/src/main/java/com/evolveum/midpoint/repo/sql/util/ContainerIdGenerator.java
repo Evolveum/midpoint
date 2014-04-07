@@ -74,20 +74,6 @@ public class ContainerIdGenerator implements IdentifierGenerator {
         return builder.toString();
     }
 
-    private Short getNextId(Set<? extends Container> set) {
-        Short id = 0;
-        if (set != null) {
-            for (Container container : set) {
-                Short contId = container.getId();
-                if (contId != null && contId > id) {
-                    id = contId;
-                }
-            }
-        }
-
-        return (short) (id + 1);
-    }
-
     /**
      * This method provides simplyfied id generator (without DB selects)
      * Improve it later (fixes MID-1430).
@@ -133,7 +119,6 @@ public class ContainerIdGenerator implements IdentifierGenerator {
         if (parent instanceof RAbstractRole) {
             RAbstractRole role = (RAbstractRole) parent;
             containers.addAll(role.getExclusion());
-            containers.addAll(role.getAuthorization());
         }
 
         return containers;

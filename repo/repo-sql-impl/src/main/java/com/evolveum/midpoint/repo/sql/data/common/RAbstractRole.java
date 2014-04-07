@@ -18,7 +18,6 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
-import com.evolveum.midpoint.repo.sql.data.common.container.RAuthorization;
 import com.evolveum.midpoint.repo.sql.data.common.container.RExclusion;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
@@ -29,9 +28,10 @@ import com.evolveum.midpoint.repo.sql.query.definition.VirtualCollection;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExclusionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -41,7 +41,6 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -64,17 +63,6 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
     private Boolean requestable;
     private Set<RObjectReference> approverRef;
     private String approvalProcess;
-    private Set<RAuthorization> authorization;
-
-    @OneToMany(mappedBy = RAuthorization.F_OWNER, orphanRemoval = true)
-    @ForeignKey(name = "none")
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RAuthorization> getAuthorization() {
-        if (authorization == null) {
-            authorization = new HashSet<RAuthorization>();
-        }
-        return authorization;
-    }
 
     public Boolean getRequestable() {
         return requestable;
@@ -127,10 +115,6 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
         this.requestable = requestable;
     }
 
-    public void setAuthorization(Set<RAuthorization> authorization) {
-        this.authorization = authorization;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o)
@@ -149,8 +133,6 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
         if (approvalProcess != null ? !approvalProcess.equals(that.approvalProcess) : that.approvalProcess != null)
             return false;
         if (requestable != null ? !requestable.equals(that.requestable) : that.requestable != null)
-            return false;
-        if (authorization != null ? !authorization.equals(that.authorization) : that.authorization != null)
             return false;
 
         return true;
@@ -181,13 +163,6 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
             RExclusion.copyFromJAXB(exclusion, rExclusion, jaxb, prismContext);
 
             repo.getExclusion().add(rExclusion);
-        }
-
-        for (AuthorizationType authorization : jaxb.getAuthorization()) {
-            RAuthorization rAuth = new RAuthorization(repo);
-            RAuthorization.copyFromJAXB(authorization, rAuth, jaxb, prismContext);
-
-            repo.getAuthorization().add(rAuth);
         }
 
         for (ObjectReferenceType approverRef : jaxb.getApproverRef()) {
