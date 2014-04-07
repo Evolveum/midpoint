@@ -117,6 +117,7 @@ public class TreeTablePanel extends SimplePanel<String> {
     private static final String ID_FORM = "form";
     private static final String ID_CONFIRM_DELETE_POPUP = "confirmDeletePopup";
     private static final String ID_MOVE_POPUP = "movePopup";
+    private static final String ID_ADD_DELETE_POPUP = "addDeletePopup";
     private static final String ID_TREE_MENU = "treeMenu";
     private static final String ID_TREE_HEADER = "treeHeader";
     private static final String ID_SEARCH_FORM = "searchForm";
@@ -165,6 +166,29 @@ public class TreeTablePanel extends SimplePanel<String> {
             @Override
             protected void rowSelected(AjaxRequestTarget target, IModel<OrgTableDto> row, Operation operation) {
                 moveConfirmedPerformed(target, selected.getObject(), row.getObject(), operation);
+            }
+        });
+
+        add(new OrgUnitAddDeletePopup(ID_ADD_DELETE_POPUP){
+
+            @Override
+            public void addPerformed(AjaxRequestTarget target, OrgType selected){
+                addOrgUnitToUserPerformed(target, selected);
+            }
+
+            @Override
+            public void removePerformed(AjaxRequestTarget target, OrgType selected){
+                removeOrgUnitToUserPerformed(target, selected);
+            }
+
+            @Override
+            public ObjectQuery getAddProviderQuery(){
+                return null;
+            }
+
+            @Override
+            public ObjectQuery getRemoveProviderQuery(){
+                return null;
             }
         });
 
@@ -435,22 +459,24 @@ public class TreeTablePanel extends SimplePanel<String> {
                     }
                 }));
         headerMenuItems.add(new InlineMenuItem());
-        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addToHierarchy"), true,
-                new HeaderMenuAction(this) {
 
-                    @Override
-                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        movePerformed(target, OrgUnitBrowser.Operation.ADD);
-                    }
-                }));
-        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.removeFromHierarchy"), true,
-                new HeaderMenuAction(this) {
-
-                    @Override
-                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        movePerformed(target, OrgUnitBrowser.Operation.REMOVE);
-                    }
-                }));
+        //TODO - disabled until issue MID-1809 is resolved. Uncomment when finished
+//        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addToHierarchy"), true,
+//                new HeaderMenuAction(this) {
+//
+//                    @Override
+//                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+//                        addToHierarchyPerformed(target);
+//                    }
+//                }));
+//        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.removeFromHierarchy"), true,
+//                new HeaderMenuAction(this) {
+//
+//                    @Override
+//                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+//                        removeFromHierarchyPerformed(target);
+//                    }
+//                }));
         headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.enable"), true,
                 new HeaderMenuAction(this) {
 
@@ -881,7 +907,7 @@ public class TreeTablePanel extends SimplePanel<String> {
 
         TaskType taskType = new TaskType();
 
-        taskType.setName(WebMiscUtil.createPolyFromOrigString(OPERATION_RECOMPUTE));
+        taskType.setName(WebMiscUtil.createPolyFromOrigString(createStringResource("TreeTablePanel.recomputeTask", org.getName()).getString()));
         taskType.setBinding(TaskBindingType.LOOSE);
         taskType.setExecutionStatus(TaskExecutionStatusType.RUNNABLE);
         taskType.setRecurrence(TaskRecurrenceType.SINGLE);
@@ -978,5 +1004,28 @@ public class TreeTablePanel extends SimplePanel<String> {
         PageParameters parameters = new PageParameters();
         parameters.add(OnePageParameterEncoder.PARAMETER, root.getOid());
         setResponsePage(PageOrgUnit.class, parameters);
+    }
+
+    private void addToHierarchyPerformed(AjaxRequestTarget target){
+        showAddDeletePopup(target, OrgUnitAddDeletePopup.ActionState.ADD);
+    }
+
+    private void removeFromHierarchyPerformed(AjaxRequestTarget target){
+        showAddDeletePopup(target, OrgUnitAddDeletePopup.ActionState.DELETE);
+    }
+
+    private void showAddDeletePopup(AjaxRequestTarget target, OrgUnitAddDeletePopup.ActionState state){
+        OrgUnitAddDeletePopup dialog = (OrgUnitAddDeletePopup) get(ID_ADD_DELETE_POPUP);
+        dialog.setState(state, target);
+
+        dialog.show(target);
+    }
+
+    private void addOrgUnitToUserPerformed(AjaxRequestTarget target, OrgType org){
+        //TODO
+    }
+
+    private void removeOrgUnitToUserPerformed(AjaxRequestTarget target, OrgType org){
+        //TODO
     }
 }

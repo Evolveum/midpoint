@@ -73,8 +73,6 @@ public class PageOrgUnit extends PageAdminUsers {
     private static final String LOAD_UNIT = DOT_CLASS + "loadOrgUnit";
     private static final String SAVE_UNIT = DOT_CLASS + "saveOrgUnit";
     private static final String LOAD_PARENT_UNITS = DOT_CLASS + "loadParentOrgUnits";
-    private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
-    private static final String OPERATION_LOAD_ASSIGNMENT = DOT_CLASS + "loadAssignment";
 
     private static final String ID_LABEL_SIZE = "col-md-4";
     private static final String ID_INPUT_SIZE = "col-md-6";
