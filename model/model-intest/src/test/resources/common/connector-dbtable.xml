@@ -37,6 +37,7 @@
 	            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 	            xmlns:qn342="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
 	            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+	            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 	            elementFormDefault="qualified"
 	            targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector">
 	        <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"/>
@@ -103,7 +104,7 @@
 	                </xsd:appinfo>
 	              </xsd:annotation>
 	            </xsd:element>
-				<xsd:element minOccurs="0" name="password" type="c:ProtectedStringType">
+				<xsd:element minOccurs="0" name="password" type="t:ProtectedStringType">
 	              <xsd:annotation>
 	                <xsd:appinfo>
 	                  <a:displayName>User Password</a:displayName>

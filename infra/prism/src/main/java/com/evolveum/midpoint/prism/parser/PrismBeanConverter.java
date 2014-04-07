@@ -156,13 +156,6 @@ public class PrismBeanConverter {
 			if (field == null && propertyGetter == null) {
 				// We have to try to find a more generic field, such as xsd:any (TODO) or substitution element
 				// check for global element definition first
-				if (xsubnode.getTypeQName()!= null){
-					System.out.println("type qname " + xnode.getTypeQName());
-					Class explicitParamType = getSchemaRegistry().determineCompileTimeClass(xsubnode.getTypeQName());
-					if (explicitParamType != null){
-						beanClass = explicitParamType; 
-					}
-				}
 				objectFactory = getObjectFactory(beanClass.getPackage());
 				elementMethod = findElementMethodInObjectFactory(objectFactory, propName);
 				if (elementMethod == null) {

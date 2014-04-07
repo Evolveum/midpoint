@@ -34,6 +34,7 @@
                      xmlns:qn915="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
                      xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
                      xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+                     xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'
                      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
                      elementFormDefault="qualified"
                      targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector">
@@ -66,7 +67,7 @@
                         </xsd:appinfo>
                      </xsd:annotation>
                   </xsd:element>
-                  <xsd:element minOccurs="0" name="uselessGuardedString" type="c:ProtectedStringType">
+                  <xsd:element minOccurs="0" name="uselessGuardedString" type="t:ProtectedStringType">
                      <xsd:annotation>
                         <xsd:appinfo>
                            <a:displayName>UI_INSTANCE_USELESS_GUARDED_STRING</a:displayName>

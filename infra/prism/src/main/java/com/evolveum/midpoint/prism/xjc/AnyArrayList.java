@@ -78,9 +78,7 @@ public class AnyArrayList<C extends Containerable> extends AbstractList<Object> 
     	} else {
 	    	for (Item<?> item: containerValue.getItems()) {
 	    		if (index < item.getValues().size()) {
-	    			Object o = asElement(item.getValue(index));
-	    			System.out.println("asElement " + o);
-	    			return o;
+	    			return asElement(item.getValue(index));
 	    		} else {
 	    			index -= item.getValues().size(); 
 	    		}
