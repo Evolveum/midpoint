@@ -191,6 +191,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Validate.notEmpty(oid, "Oid must not be null or empty.");
         Validate.notNull(result, "Operation result must not be null.");
 
+        LOGGER.debug("Getting object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
+
         final String operation = "getting";
         int attempt = 1;
 
@@ -219,8 +221,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                                                                    Collection<SelectorOptions<GetOperationOptions>> options,
                                                                    OperationResult result)
             throws ObjectNotFoundException, SchemaException {
-        LOGGER.debug("Getting object '{}' with oid '{}'.", new Object[]{type.getSimpleName(), oid});
-
         PrismObject<T> objectType = null;
 
         Session session = null;
@@ -259,6 +259,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             throws ObjectNotFoundException {
         Validate.notEmpty(shadowOid, "Oid must not be null or empty.");
         Validate.notNull(result, "Operation result must not be null.");
+
+        LOGGER.debug("Searching shadow owner for {}", shadowOid);
 
         final String operation = "searching shadow owner";
         int attempt = 1;
@@ -329,6 +331,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Validate.notEmpty(accountOid, "Oid must not be null or empty.");
         Validate.notNull(result, "Operation result must not be null.");
 
+        LOGGER.debug("Selecting account shadow owner for account {}.", new Object[]{accountOid});
+
         final String operation = "listing account shadow owner";
         int attempt = 1;
 
@@ -350,7 +354,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Session session = null;
         try {
             session = beginReadOnlyTransaction();
-            LOGGER.trace("Selecting account shadow owner for account {}.", new Object[]{accountOid});
             Query query = session.getNamedQuery("listAccountShadowOwner.getUser");
             query.setString("oid", accountOid);
             query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
@@ -396,6 +399,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         validateName(object);
         Validate.notNull(result, "Operation result must not be null.");
 
+        LOGGER.debug("Adding object type '{}'", new Object[]{object.getCompileTimeClass().getSimpleName()});
+
         if (InternalsConfig.encryptionChecks && !RepoAddOptions.isAllowUnencryptedValues(options)) {
             CryptoUtil.checkEncrypted(object);
         }
@@ -434,8 +439,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     private <T extends ObjectType> String addObjectAttempt(PrismObject<T> object, RepoAddOptions options,
                                                            OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException {
-        LOGGER.debug("Adding object type '{}'", new Object[]{object.getCompileTimeClass().getSimpleName()});
-
         String oid = null;
         Session session = null;
         // it is needed to keep the original oid for example for import options. if we do not keep it
@@ -705,6 +708,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Validate.notEmpty(oid, "Oid must not be null or empty.");
         Validate.notNull(result, "Operation result must not be null.");
 
+        LOGGER.debug("Deleting object type '{}' with oid '{}'", new Object[]{type.getSimpleName(), oid});
+
         final String operation = "deleting";
         int attempt = 1;
 
@@ -770,8 +775,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private <T extends ObjectType> void deleteObjectAttempt(Class<T> type, String oid, OperationResult result)
             throws ObjectNotFoundException {
-        LOGGER.debug("Deleting object type '{}' with oid '{}'", new Object[]{type.getSimpleName(), oid});
-
         Session session = null;
         try {
             session = beginTransaction();
@@ -854,7 +857,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
 
-        LOGGER.trace("Counting objects of type '{}', query (on trace level).", new Object[]{type});
+        LOGGER.debug("Counting objects of type '{}', query (on trace level).", new Object[]{type});
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Full query\n{}", new Object[]{(query == null ? "undefined" : query.debugDump())});
         }
@@ -964,8 +967,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     private <T extends ObjectType> List<PrismObject<T>> searchObjectsAttempt(Class<T> type, ObjectQuery query,
                                                                              Collection<SelectorOptions<GetOperationOptions>> options,
                                                                              OperationResult result) throws SchemaException {
-
-        List<PrismObject<T>> list = new ArrayList<PrismObject<T>>();
+        List<PrismObject<T>> list = new ArrayList<>();
         Session session = null;
         try {
             session = beginReadOnlyTransaction();
@@ -973,9 +975,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             RQuery rQuery = engine.interpret(query, type, options, false, session);
 
             List<GetObjectResult> objects = rQuery.list();
-            LOGGER.trace("Found {} objects, translating to JAXB.",
-                    new Object[]{(objects != null ? objects.size() : 0)});
-
+            LOGGER.trace("Found {} objects, translating to JAXB.", new Object[]{(objects != null ? objects.size() : 0)});
 
             for (GetObjectResult object : objects) {
                 PrismObject<T> prismObject = updateLoadedObject(object, type, session);
@@ -1325,7 +1325,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Validate.notNull(resourceObjectShadowType, "Resource object shadow type must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
 
-        LOGGER.trace("Listing resource object shadows '{}' for resource '{}'.",
+        LOGGER.debug("Listing resource object shadows '{}' for resource '{}'.",
                 new Object[]{resourceObjectShadowType.getSimpleName(), resourceOid});
         OperationResult subResult = result.createSubresult(LIST_RESOURCE_OBJECT_SHADOWS);
         subResult.addParam("oid", resourceOid);
@@ -1364,7 +1364,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
 
             List<GetObjectResult> shadows = query.list();
-            LOGGER.trace("Query returned {} shadows, transforming to JAXB types.",
+            LOGGER.debug("Query returned {} shadows, transforming to JAXB types.",
                     new Object[]{(shadows != null ? shadows.size() : 0)});
 
             if (shadows != null) {
@@ -1374,7 +1374,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 }
             }
             session.getTransaction().commit();
-            LOGGER.trace("Done.");
         } catch (SchemaException | RuntimeException ex) {
             handleGeneralException(ex, session, result);
         } finally {
@@ -1434,6 +1433,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
      */
     @Override
     public RepositoryDiag getRepositoryDiag() {
+        LOGGER.debug("Getting repository diagnostics.");
+
         RepositoryDiag diag = new RepositoryDiag();
         diag.setImplementationShortName(IMPLEMENTATION_SHORT_NAME);
         diag.setImplementationDescription(IMPLEMENTATION_DESCRIPTION);
@@ -1567,7 +1568,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Validate.notNull(oid, "Object oid must not be null.");
         Validate.notNull(parentResult, "Operation result must not be null.");
 
-        LOGGER.trace("Getting version for {} with oid '{}'.", new Object[]{type.getSimpleName(), oid});
+        LOGGER.debug("Getting version for {} with oid '{}'.", new Object[]{type.getSimpleName(), oid});
 
         OperationResult subResult = parentResult.createMinorSubresult(GET_VERSION);
         subResult.addParam("type", type.getName());
@@ -1751,6 +1752,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
+    @Deprecated
     @Override
     public void cleanupTasks(CleanupPolicyType policy, OperationResult parentResult) {
         OperationResult subResult = parentResult.createSubresult(CLEANUP_TASKS);
@@ -1784,7 +1786,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             return 0;
         }
 
-        LOGGER.debug("Doing task cleanup");
+        LOGGER.debug("Doing task cleanup, date={}", minValue);
         Query query = session.createQuery("delete from RTask as t where t.completionTimestamp < :timestamp");
         query.setParameter("timestamp", XMLGregorianCalendarType.asXMLGregorianCalendar(minValue));
         return query.executeUpdate();
