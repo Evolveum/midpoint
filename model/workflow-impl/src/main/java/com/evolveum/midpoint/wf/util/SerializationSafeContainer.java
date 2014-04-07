@@ -74,32 +74,32 @@ public class SerializationSafeContainer<T> implements Serializable {
         this.actualValue = value;
         Class clazz = value.getClass();
 
+        checkPrismContext();
         if (value instanceof PrismObject) {
-            checkPrismContext();
             this.typeName = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz).getTypeName();
             this.valueForStorageWhenEncoded = MiscDataUtil.serializeObjectToXml((PrismObject) value, prismContext);
             this.valueForStorageWhenNotEncoded = null;
             encodingScheme = EncodingScheme.PRISM_OBJECT;
-        } else if (value instanceof Containerable) {
-            checkPrismContext();
-            this.typeName = prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(clazz).getTypeName();
-            this.valueForStorageWhenEncoded = MiscDataUtil.serializeContainerableToXml((Containerable) value, prismContext);
-            this.valueForStorageWhenNotEncoded = null;
-            encodingScheme = EncodingScheme.PRISM_CONTAINER;
-        } else if (value != null && prismContext.getJaxbDomHack().canConvert(value.getClass())) {
-            checkPrismContext();
-            PrismPropertyDefinition propDef = prismContext.getSchemaRegistry().findPropertyDefinitionByCompileTimeClass(value.getClass());
-            if (propDef == null) {
-                throw new IllegalStateException("No property definition for class " + value.getClass());
-            }
-            this.typeName = propDef.getTypeName();
-            try {
-                this.valueForStorageWhenEncoded = prismContext.getJaxbDomHack().marshalElementToString(new JAXBElement<Object>(new QName("value"), Object.class, value));
-            } catch (JAXBException e) {
-                throw new SystemException("Couldn't serialize JAXB object of type " + value.getClass(), e);
-            }
-            this.valueForStorageWhenNotEncoded = null;
-            encodingScheme = EncodingScheme.JAXB;
+            // TODO fix all this
+//        } else if (prismContext.canSerialize(value.getClass())) {
+//            this.typeName = prismContext.getSchemaRegistry().getT
+//            this.valueForStorageWhenEncoded = prismContext((Containerable) value, prismContext);
+//            this.valueForStorageWhenNotEncoded = null;
+//            encodingScheme = EncodingScheme.PRISM_CONTAINER;
+//        } else if (value != null && prismContext.getJaxbDomHack().canConvert(value.getClass())) {
+//            checkPrismContext();
+//            PrismPropertyDefinition propDef = prismContext.getSchemaRegistry().findPropertyDefinitionByCompileTimeClass(value.getClass());
+//            if (propDef == null) {
+//                throw new IllegalStateException("No property definition for class " + value.getClass());
+//            }
+//            this.typeName = propDef.getTypeName();
+//            try {
+//                this.valueForStorageWhenEncoded = prismContext.getJaxbDomHack().marshalElementToString(new JAXBElement<Object>(new QName("value"), Object.class, value));
+//            } catch (JAXBException e) {
+//                throw new SystemException("Couldn't serialize JAXB object of type " + value.getClass(), e);
+//            }
+//            this.valueForStorageWhenNotEncoded = null;
+//            encodingScheme = EncodingScheme.JAXB;
         } else if (value == null || value instanceof Serializable) {
             this.valueForStorageWhenNotEncoded = value;
             this.valueForStorageWhenEncoded = null;
