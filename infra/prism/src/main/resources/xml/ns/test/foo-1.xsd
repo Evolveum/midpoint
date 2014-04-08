@@ -361,5 +361,54 @@
     </xsd:complexType>
     <xsd:element name="resource" type="tns:ResourceType"/>
 
+    <xsd:complexType name="EventHandlerType">
+        <xsd:attribute name="name" type="xsd:string"/>
+    </xsd:complexType>
+    <xsd:element name="handler" type="tns:EventHandlerType" abstract="true" />
+
+    <xsd:complexType name="EventHandlerChainType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:EventHandlerType">
+                <xsd:sequence>
+                    <xsd:element ref="tns:handler" minOccurs="0" maxOccurs="unbounded" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="handlerChain" type="tns:EventHandlerChainType" substitutionGroup="tns:handler" />
+
+    <xsd:complexType name="EventCategoryFilterType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:EventHandlerType">
+                <xsd:sequence>
+                    <xsd:element name="category" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="categoryFilter" type="tns:EventCategoryFilterType" substitutionGroup="tns:handler" />
+
+    <xsd:complexType name="EventStatusFilterType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:EventHandlerType">
+                <xsd:sequence>
+                    <xsd:element name="status" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="statusFilter" type="tns:EventStatusFilterType" substitutionGroup="tns:handler" />
+
+    <xsd:complexType name="EventOperationFilterType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:EventHandlerType">
+                <xsd:sequence>
+                    <xsd:element name="operation" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="operationFilter" type="tns:EventOperationFilterType" substitutionGroup="tns:handler" />
+
 </xsd:schema>
 
