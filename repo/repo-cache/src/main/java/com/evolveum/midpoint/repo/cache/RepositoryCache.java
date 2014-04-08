@@ -310,4 +310,12 @@ public class RepositoryCache implements RepositoryService {
 		repository.cleanupTasks(policy, parentResult);
 	}
 
+	@Override
+	public <T extends ObjectType> boolean matchObject(PrismObject<T> object, ObjectQuery query)
+			throws SchemaException {
+		return repository.matchObject(object, query);
+	}
+	
+	
+
 }

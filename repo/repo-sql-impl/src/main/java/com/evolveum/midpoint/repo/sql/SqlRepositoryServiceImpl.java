@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.*;
@@ -62,6 +63,7 @@ import org.hibernate.jdbc.Work;
 import org.springframework.stereotype.Repository;
 
 import javax.xml.namespace.QName;
+
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.Driver;
@@ -1791,4 +1793,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         query.setParameter("timestamp", XMLGregorianCalendarType.asXMLGregorianCalendar(minValue));
         return query.executeUpdate();
     }
+
+	@Override
+	public <T extends ObjectType> boolean matchObject(PrismObject<T> object, ObjectQuery query) throws SchemaException {
+		boolean applicable = ObjectQuery.match(object, query.getFilter(), getMatchingRuleRegistry());
+		return applicable;
+	}
 }

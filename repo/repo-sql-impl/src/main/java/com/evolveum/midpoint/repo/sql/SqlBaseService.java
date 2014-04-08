@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,14 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.*;
@@ -33,6 +35,7 @@ import org.springframework.orm.hibernate4.HibernateOptimisticLockingFailureExcep
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 
 import javax.xml.datatype.Duration;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Date;
@@ -57,6 +60,8 @@ public class SqlBaseService {
     private SessionFactory sessionFactory;
     @Autowired
     private LocalSessionFactoryBean sessionFactoryBean;
+    @Autowired(required = true)
+	private MatchingRuleRegistry matchingRuleRegistry;
 
     private SqlRepositoryFactory repositoryFactory;
 
@@ -94,7 +99,15 @@ public class SqlBaseService {
         this.sessionFactory = sessionFactory;
     }
 
-    protected int logOperationAttempt(String oid, String operation, int attempt, RuntimeException ex,
+    public MatchingRuleRegistry getMatchingRuleRegistry() {
+		return matchingRuleRegistry;
+	}
+
+	public void setMatchingRuleRegistry(MatchingRuleRegistry matchingRuleRegistry) {
+		this.matchingRuleRegistry = matchingRuleRegistry;
+	}
+
+	protected int logOperationAttempt(String oid, String operation, int attempt, RuntimeException ex,
                                       OperationResult result) {
 
         boolean serializationException = isExceptionRelatedToSerialization(ex);
