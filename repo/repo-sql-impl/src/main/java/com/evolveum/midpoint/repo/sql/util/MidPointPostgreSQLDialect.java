@@ -16,14 +16,14 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
-import org.hibernate.dialect.PostgreSQL82Dialect;
+import org.hibernate.dialect.PostgresPlusDialect;
 
 import java.sql.Types;
 
 /**
  * @author lazyman
  */
-public class MidPointPostgreSQLDialect extends PostgreSQL82Dialect {
+public class MidPointPostgreSQLDialect extends PostgresPlusDialect {
 
     public MidPointPostgreSQLDialect() {
         registerColumnType(Types.BLOB, "bytea");
