@@ -47,10 +47,8 @@
                 <ref>ri:weapon</ref>
                 <outbound>
                 	<expression>
-						<value>
-							<ri:weapon>cutlass</ri:weapon>
-							<ri:weapon>pistol</ri:weapon>
-						</value>
+						<value>cutlass</value>
+                        <value>pistol</value>
 					</expression>
 				</outbound>
             </attribute>
