@@ -130,7 +130,7 @@
 						<script>
 							<language>http://www.w3.org/TR/xpath/</language>
 							<code>
-								concat($c:name/t:orig, $c:iterationToken)
+								concat($name, $iterationToken)
 							</code>
 						</script>
 					</expression>
@@ -163,7 +163,7 @@
 				<outbound>
 					<strength>strong</strength>
 					<source>
-						<path>$c:user/c:organizationalUnit</path>
+						<path>$user/organizationalUnit</path>
 					</source>
 				</outbound>
 			</attribute>

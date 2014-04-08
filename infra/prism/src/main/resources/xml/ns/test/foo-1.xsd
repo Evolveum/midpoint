@@ -361,6 +361,7 @@
     </xsd:complexType>
     <xsd:element name="resource" type="tns:ResourceType"/>
 
+    <!-- The following is currently not supported by prism. Keeping it here if needed in the future... -->
     <xsd:complexType name="EventHandlerType">
         <xsd:attribute name="name" type="xsd:string"/>
     </xsd:complexType>

@@ -798,6 +798,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assignmentType.setConstruction(constructionType);
 		ObjectReferenceType resourceRef = new ObjectReferenceType();
 		resourceRef.setOid(resourceOid);
+        resourceRef.setType(ResourceType.COMPLEX_TYPE);
 		constructionType.setResourceRef(resourceRef);
 		constructionType.setIntent(intent);
 		return assignmentType;

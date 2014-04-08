@@ -23,13 +23,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventCategoryFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
-
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 
 /**
  * @author mederly
@@ -39,22 +35,19 @@ public class CategoryFilter extends BaseHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(CategoryFilter.class);
 
-    @PostConstruct
-    public void init() {
-        register(EventCategoryFilterType.class);
-    }
-
     @Override
     public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, 
     		Task task, OperationResult result) {
 
+        if (eventHandlerType.getCategory().isEmpty()) {
+            return true;
+        }
+
         boolean retval = false;
 
-        EventCategoryFilterType eventCategoryFilterType = (EventCategoryFilterType) eventHandlerType;
+        logStart(LOGGER, event, eventHandlerType, eventHandlerType.getCategory());
 
-        logStart(LOGGER, event, eventHandlerType, eventCategoryFilterType.getCategory());
-
-        for (EventCategoryType eventCategoryType : eventCategoryFilterType.getCategory()) {
+        for (EventCategoryType eventCategoryType : eventHandlerType.getCategory()) {
 
             if (eventCategoryType == null) {
                 LOGGER.warn("Filtering on null EventCategoryType: " + eventHandlerType);

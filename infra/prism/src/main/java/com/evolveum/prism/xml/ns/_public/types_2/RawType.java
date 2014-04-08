@@ -494,7 +494,9 @@ public class RawType implements Serializable, Cloneable, Equals {
         Validate.notNull(itemName);
         Item<V> item = itemDefinition.instantiate();
         V newValue = getParsedValue(itemDefinition, itemName);
-        item.add((V) newValue.clone());
+        if (newValue != null) {
+            item.add((V) newValue.clone());
+        }
         return item;
     }
 

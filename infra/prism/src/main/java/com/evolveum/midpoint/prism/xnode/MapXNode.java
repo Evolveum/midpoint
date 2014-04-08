@@ -232,26 +232,30 @@ public class MapXNode extends XNode implements Map<QName,XNode> {
 		for (java.util.Map.Entry<QName, XNode> otherEntry: other.entrySet()) {
 			QName otherKey = otherEntry.getKey();
 			XNode otherValue = otherEntry.getValue();
-			XNode myValue = get(otherKey);
-			if (myValue == null) {
-				put(otherKey, otherValue);
-			} else {
-				ListXNode myList;
-				if (myValue instanceof ListXNode) {
-					myList = (ListXNode)myValue;
-				} else {
-					myList = new ListXNode();
-					myList.add(myValue);
-					put(otherKey, myList);
-				}
-				if (otherValue instanceof ListXNode) {
-					myList.addAll((ListXNode)otherValue);
-				} else {
-					myList.add(otherValue);
-				}
-			}
-		}
-	}
+            merge (otherKey, otherValue);
+        }
+    }
+
+    public void merge(QName otherKey, XNode otherValue) {
+        XNode myValue = get(otherKey);
+        if (myValue == null) {
+            put(otherKey, otherValue);
+        } else {
+            ListXNode myList;
+            if (myValue instanceof ListXNode) {
+                myList = (ListXNode)myValue;
+            } else {
+                myList = new ListXNode();
+                myList.add(myValue);
+                put(otherKey, myList);
+            }
+            if (otherValue instanceof ListXNode) {
+                myList.addAll((ListXNode)otherValue);
+            } else {
+                myList.add(otherValue);
+            }
+        }
+    }
 
 	@Override
 	public void accept(Visitor visitor) {
