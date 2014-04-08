@@ -736,8 +736,15 @@ public class PrismBeanConverter {
 		if (bean == null) {
 			return null;
 		}
-		if (bean instanceof ObjectDeltaType){
-		System.out.println("prism bean marshalling: " + bean);
+        if (bean instanceof ItemPathType) {
+            return marshalItemPath((ItemPathType) bean);
+        } else if (bean instanceof SearchFilterType) {
+            return marshalSearchFilterType((SearchFilterType) bean);
+        } else if (bean instanceof RawType) {
+            return marshalRawValue((RawType) bean);
+        }
+        if (bean instanceof ObjectDeltaType){
+		    System.out.println("prism bean marshalling: " + bean);
 		}
 		MapXNode xmap = new MapXNode();
 				
@@ -995,13 +1002,6 @@ public class PrismBeanConverter {
 		if (value == null) {
 			return null;
 		}
-		if (value instanceof ItemPathType){
-			return marshalItemPath((ItemPathType) value);
-		} else if (value instanceof SearchFilterType){
-			return marshalSearchFilterType((SearchFilterType) value);
-		} else if (value instanceof RawType){
-			return marshalRawValue((RawType) value);
-		} else		
 		if (canProcess(value.getClass())) {
 			// This must be a bean
 			return marshall(value);
