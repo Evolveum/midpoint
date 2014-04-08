@@ -892,17 +892,25 @@ public class TestSanity extends AbstractModelIntegrationTest {
      	resource = PrismTestUtil.parseObject(new File(RESOURCE_DUMMY_FILENAME));
      
 		try {
-			addObjectViaModelWS(resource.asObjectable(), null, new Holder<String>(),
-                    new Holder<OperationResultType>());
+     	Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+     	options = new ModelExecuteOptionsType();
+        options.setIsImport(Boolean.TRUE);
+			addObjectViaModelWS(resource.asObjectable(), options, new Holder<String>(),
+                    resultHolder);
+			
+			OperationResultType result = resultHolder.value;
+			TestUtil.assertFailure(result);
+			
 			fail("Expected object already exists exception, but haven't got one.");
 		} catch (FaultMessage ex) {
+			LOGGER.info("fault {}", ex.getFaultInfo());
+			LOGGER.info("fault {}", ex.getCause());
 			if (ex.getFaultInfo() instanceof ObjectAlreadyExistsFaultType){ 
 			// this is OK, we expect this
 			} else{
 				fail("Expected object already exists exception, but haven't got one.");
 			}
-			LOGGER.info("fault {}", ex.getFaultInfo());
-			LOGGER.info("fault {}", ex.getCause());
+			
 		} 
      	
          
@@ -2858,7 +2866,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // THEN
         // Wait a bit to give the sync cycle time to detect the change
-        basicWaitForSyncChangeDetection(syncCycle, tokenBefore, 3, result);
+        basicWaitForSyncChangeDetection(syncCycle, tokenBefore, 4, result);
 
         //check user and account ref
         userType = searchUserByName("e");
@@ -2872,7 +2880,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         PrismAsserts.assertEqualsPolyString("Name doesn't match",  "uid=e,ou=people,dc=example,dc=com", account.getName());
         
-        assertAndStoreSyncTokenIncrement(syncCycle, 3);
+        assertAndStoreSyncTokenIncrement(syncCycle, 4);
         checkAllShadows();
     }
 
@@ -2969,7 +2977,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
     public void test200ImportFromResource() throws Exception {
         TestUtil.displayTestTile("test200ImportFromResource");
         // GIVEN
-        
         checkAllShadows();
         assertNoRepoCache();
 
@@ -3191,13 +3198,19 @@ public class TestSanity extends AbstractModelIntegrationTest {
             
             String attributeValueL = ShadowUtil.getMultiStringAttributeValueAsSingle(account, 
             		new QName(ResourceTypeUtil.getResourceNamespace(resourceTypeOpenDjrepo), "l"));
-            assertEquals("Unexcpected value of l", "middle of nowhere", attributeValueL);
+//            assertEquals("Unexcpected value of l", "middle of nowhere", attributeValueL);
+            assertEquals("Unexcpected value of l", getUserLocality(user), attributeValueL);
         }
         
         // This also includes "idm" user imported from LDAP. Later we need to ignore that one.
         assertEquals("Wrong number of users after import", 10, uobjects.getObject().size());
         
         checkAllShadows();
+      
+    }
+    
+    private String getUserLocality(UserType user){
+    	return user.getLocality() != null ? user.getLocality().getOrig() :"middle of nowhere";
     }
 
     @Test
@@ -3328,7 +3341,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         OpenDJController.assertAttribute(entry, "displayName", "Guybrush Threepwood");
         // The "l" attribute is assigned indirectly through schemaHandling and
         // config object
-        OpenDJController.assertAttribute(entry, "l", "middle of nowhere");
+        OpenDJController.assertAttribute(entry, "l", "Deep in the Caribbean");
 
         // Set by the role
         OpenDJController.assertAttribute(entry, "employeeType", "sailor");
@@ -3478,7 +3491,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         OpenDJController.assertAttribute(entry, "displayName", "Guybrush Threepwood");
         // The "l" attribute is assigned indirectly through schemaHandling and
         // config object. It is not tolerant, therefore the other value should be gone now
-        OpenDJController.assertAttribute(entry, "l", "middle of nowhere");
+        OpenDJController.assertAttribute(entry, "l", "Deep in the Caribbean");
 
         // Set by the role
         OpenDJController.assertAttribute(entry, "employeeType", "sailor");
@@ -3726,7 +3739,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     	
     	ItemDeltaType mod1 = new ItemDeltaType();
     	mod1.setModificationType(ModificationTypeType.REPLACE);
-    	ItemPathType path = new ItemPathType(new ItemPath(ShadowType.F_ATTRIBUTES));
+    	ItemPathType path = new ItemPathType(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "givenName")));
     	mod1.setPath(path);
     	
     	RawType value = new RawType();
@@ -3793,9 +3806,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
     	Document doc = DOMUtil.getDocument();
         ItemDeltaType passwordDelta = new ItemDeltaType();
         passwordDelta.setModificationType(ModificationTypeType.REPLACE);
-        passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password"));
+        passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password/value"));
         RawType passwordValue = new RawType();
-        passwordValue.getContent().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_VALUE, ModelClientUtil.createProtectedString(newPassword)));
+        passwordValue.getContent().add(ModelClientUtil.toJaxbElement(ItemDeltaType.F_VALUE, ModelClientUtil.createProtectedString(newPassword)));
         passwordDelta.getValue().add(passwordValue);
     	
 //    	ItemDeltaType mod1 = new ItemDeltaType();

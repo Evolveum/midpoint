@@ -225,7 +225,11 @@ This is now the only account type that midPoint can work with. -->
 						<script>
 							<relativityMode>absolute</relativityMode>
 							<language>http://www.w3.org/TR/xpath/</language>
-							<code>func:determineLdapSingleAttributeValue($c:account/c:attributes/icfs:name, 'cn', $c:input)</code>
+							<code>
+								declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+	 							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
+	 							func:determineLdapSingleAttributeValue($c:account/c:attributes/icfs:name, 'cn', $c:input)
+	 						</code>
 						</script>
 					</expression>
                     <target>
@@ -249,7 +253,7 @@ This is now the only account type that midPoint can work with. -->
                 
                 <outbound>
                 	<source>
-                		<path>$c:user/c:familyName</path>
+                		<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";$c:user/c:familyName</path>
                 	</source>
                     <expression>
                     	<script>
@@ -271,12 +275,16 @@ This is now the only account type that midPoint can work with. -->
 						<script>
 							<relativityMode>absolute</relativityMode>
 							<language>http://www.w3.org/TR/xpath/</language>
-							<code>func:determineLdapSingleAttributeValue($c:account/c:attributes/icfs:name, 'sn', $c:input)</code>
+							<code>
+								declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+	 							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
+	 							func:determineLdapSingleAttributeValue($c:account/c:attributes/icfs:name, 'sn', $c:input)
+ 							</code>
 						</script>
 					</expression>
                     <target>
                     	<!-- Relative path, we want to test the default target context which is $user -->
-                    	<path>familyName</path>
+                    	<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";familyName</path>
                     </target>
                 </inbound>
 
@@ -296,7 +304,7 @@ This is now the only account type that midPoint can work with. -->
                     	and default expression (which is asIs).
                     </description>
                 	<source>
-                		<path>givenName</path>
+                		<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";givenName</path>
                 	</source>
                 </outbound>
                 <!-- givenName will be synchronized to user's givenName -->
@@ -306,12 +314,16 @@ This is now the only account type that midPoint can work with. -->
 						<script>
 							<relativityMode>absolute</relativityMode>
 							<language>http://www.w3.org/TR/xpath/</language>
- 							<code>func:determineLdapSingleAttributeValue($c:account/c:attributes/icfs:name, 'givenName', $c:input)</code>  
+ 							<code>
+	 							declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+	 							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
+	 							func:determineLdapSingleAttributeValue($c:account/c:attributes/icfs:name, 'givenName', $c:input)</code>  
 <!--							<code>func:logDebug($c:account/c:attributes/icfs:name, 'givenName', $c:input)</code> -->
 						</script>
 					</expression>
                     <target>
                     	<path>
+                        	declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
                         	$user/givenName
                         </path>
                     </target>
@@ -338,7 +350,7 @@ This is now the only account type that midPoint can work with. -->
                 	     as a side-effect as it is a naming attribute. -->
                 	<strength>weak</strength>
                 	<source>
-                		<path>$user/name</path>
+                		<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";$user/name</path>
                 	</source>
                     <expression>
 	                    <script>
@@ -366,7 +378,7 @@ This is now the only account type that midPoint can work with. -->
                 		</script>
                		</expression>
                     <target>
-                    	<path>$user/name</path>
+                    	<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";$user/name</path>
                     </target>
                 </inbound>
 
@@ -520,6 +532,19 @@ This is now the only account type that midPoint can work with. -->
                 	<source>
                 		<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";$c:user/c:locality</path>
                 	</source>
+                	<expression>
+                		<script>
+                			<c:language>http://www.w3.org/TR/xpath/</c:language>
+                			<c:returnType>scalar</c:returnType>
+                			<code>
+                				declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+                				if (empty($c:user/c:locality)) then
+                					"middle of nowhere"
+                				else
+                					$c:user/c:locality
+                			</code>
+                		</script>
+                	</expression>
                     <!-- <expression xmlns:my="http://whatever.com/my"> -->
                         <!-- Definition of extra variable for the XPath expression.
                              The variable will appear as "$my:config" in the Xpath
@@ -647,12 +672,14 @@ This is now the only account type that midPoint can work with. -->
 	equal to the "uid" attribute of the account. Simply speaking,
 	it will look for match in usernames in the IDM and the resource. -->
 	            <q:equal>
-	                <q:path>c:name</q:path>
+	                <q:path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";c:name</q:path>
 	                <expression>
 	                	<script>
 	                		<language>http://www.w3.org/TR/xpath/</language>
 		                    <code>
-		                        $c:account/c:attributes/dj:uid
+			                    declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+			                    declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+			                    $c:account/c:attributes/dj:uid
 		                    </code>
 						</script>
 	                </expression>
