@@ -234,7 +234,7 @@ public class DomParser implements Parser {
 		} else {
 			xsub = parseElementList(elements); 
 		}
-		xmap.put(elementQName, xsub);
+		xmap.merge(elementQName, xsub);
 	}
 
 	/**

@@ -143,8 +143,8 @@ public class NotificationManagerImpl implements NotificationManager {
 
         NotificationConfigurationType notificationConfigurationType = systemConfigurationType.getNotificationConfiguration();
 
-        for (JAXBElement<? extends EventHandlerType> eventHandlerType : notificationConfigurationType.getHandler()) {
-            processEvent(event, eventHandlerType.getValue(), task, result);
+        for (EventHandlerType eventHandlerType : notificationConfigurationType.getHandler()) {
+            processEvent(event, eventHandlerType, task, result);
         }
 
         if (LOGGER.isTraceEnabled()) {

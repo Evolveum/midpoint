@@ -41,6 +41,8 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.foo.EventHandlerChainType;
+import com.evolveum.midpoint.prism.foo.EventHandlerType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
@@ -80,7 +82,9 @@ public abstract class AbstractParserTest {
 	private static final QName XSD_COMPLEX_TYPE_ELEMENT_NAME 
 			= new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "complexType");
 
-	@BeforeSuite
+    public static final String EVENT_HANDLER_FILE_BASENAME = "event-handler";
+
+    @BeforeSuite
 	public void setupDebug() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
 		PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
@@ -390,4 +394,38 @@ public abstract class AbstractParserTest {
 	protected void validateResourceSchema(String dataString, PrismContext prismContext) throws SAXException, IOException {
 		// Nothing to do by default
 	}
+
+    // The following is not supported now (and probably won't be in the future).
+    // Enable it if that changes.
+    @Test(enabled = false)
+    public void testParseEventHandler() throws Exception {
+        final String TEST_NAME = "testParseEventHandler";
+        displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        Parser parser = createParser();
+        XNodeProcessor processor = new XNodeProcessor();
+        PrismContext prismContext = PrismTestUtil.getPrismContext();
+        processor.setPrismContext(prismContext);
+
+        // WHEN (parse to xnode)
+        RootXNode xnode = (RootXNode) parser.parse(getFile(EVENT_HANDLER_FILE_BASENAME));
+        System.out.println("XNode after parsing:");
+        System.out.println(xnode.debugDump());
+
+        // WHEN (parse to prism)
+        EventHandlerType eventHandlerType = processor.getPrismContext().getBeanConverter().unmarshall((MapXNode) xnode.getSubnode(), EventHandlerChainType.class);
+
+        // THEN
+        System.out.println("Parsed object:");
+        System.out.println(eventHandlerType);
+
+        // WHEN2 (marshalling)
+        MapXNode marshalled = (MapXNode) processor.getPrismContext().getBeanConverter().marshall(eventHandlerType);
+
+        System.out.println("XNode after unmarshalling and marshalling back:");
+        System.out.println(marshalled.debugDump());
+
+    }
+
 }

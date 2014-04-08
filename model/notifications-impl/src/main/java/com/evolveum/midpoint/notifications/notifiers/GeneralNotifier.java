@@ -106,12 +106,12 @@ public class GeneralNotifier extends BaseHandler {
 
             // executing embedded filters
             boolean filteredOut = false;
-            for (JAXBElement<? extends EventHandlerType> handlerType : generalNotifierType.getHandler()) {
-                if (!notificationManager.processEvent(event, handlerType.getValue(), task, result)) {
-                    filteredOut = true;
-                    break;
-                }
-            }
+//            for (EventHandlerType handlerType : generalNotifierType.getHandler()) {
+//                if (!notificationManager.processEvent(event, handlerType.getValue(), task, result)) {
+//                    filteredOut = true;
+//                    break;
+//                }
+//            }
 
             if (filteredOut) {
                 getLogger().trace("Filtered out by embedded filter");

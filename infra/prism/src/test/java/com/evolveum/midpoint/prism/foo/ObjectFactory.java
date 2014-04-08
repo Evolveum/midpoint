@@ -48,6 +48,11 @@ public class ObjectFactory {
     private final static QName _DisplayName_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "displayName");
     private final static QName _Account_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "account");
     private final static QName _Description_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "description");
+    private final static QName _StatusFilter_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-2a", "statusFilter");
+    private final static QName _CategoryFilter_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-2a", "categoryFilter");
+    private final static QName _OperationFilter_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-2a", "operationFilter");
+    private final static QName _HandlerChain_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-2a", "handlerChain");
+    private final static QName _Handler_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-2a", "handler");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: com.evolveum.midpoint.xml.ns.test.foo_1
@@ -214,13 +219,91 @@ public class ObjectFactory {
         return new JAXBElement<AccountType>(_Account_QNAME, AccountType.class, null, value);
     }
 
+
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
-     * 
+     * Create an instance of {@link EventHandlerType }
+     *
      */
-    @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "description")
-    public JAXBElement<String> createDescription(String value) {
-        return new JAXBElement<String>(_Description_QNAME, String.class, null, value);
+    public EventHandlerType createEventHandlerType() {
+        return new EventHandlerType();
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link EventHandlerType }{@code >}}
+     *
+     */
+    @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "handler")
+    public JAXBElement<EventHandlerType> createHandler(EventHandlerType value) {
+        return new JAXBElement<EventHandlerType>(_Handler_QNAME, EventHandlerType.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link EventHandlerChainType }
+     *
+     */
+    public EventHandlerChainType createEventHandlerChainType() {
+        return new EventHandlerChainType();
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link EventHandlerChainType }{@code >}}
+     *
+     */
+    @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "handlerChain", substitutionHeadNamespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", substitutionHeadName = "handler")
+    public JAXBElement<EventHandlerChainType> createHandlerChain(EventHandlerChainType value) {
+        return new JAXBElement<EventHandlerChainType>(_HandlerChain_QNAME, EventHandlerChainType.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link EventStatusFilterType }
+     *
+     */
+    public EventStatusFilterType createEventStatusFilterType() {
+        return new EventStatusFilterType();
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link EventStatusFilterType }{@code >}}
+     *
+     */
+    @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "statusFilter", substitutionHeadNamespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", substitutionHeadName = "handler")
+    public JAXBElement<EventStatusFilterType> createStatusFilter(EventStatusFilterType value) {
+        return new JAXBElement<EventStatusFilterType>(_StatusFilter_QNAME, EventStatusFilterType.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link EventOperationFilterType }
+     *
+     */
+    public EventOperationFilterType createEventOperationFilterType() {
+        return new EventOperationFilterType();
+    }
+
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link EventOperationFilterType }{@code >}}
+     *
+     */
+    @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "operationFilter", substitutionHeadNamespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", substitutionHeadName = "handler")
+    public JAXBElement<EventOperationFilterType> createOperationFilter(EventOperationFilterType value) {
+        return new JAXBElement<EventOperationFilterType>(_OperationFilter_QNAME, EventOperationFilterType.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link EventCategoryFilterType }
+     *
+     */
+    public EventCategoryFilterType createEventCategoryFilterType() {
+        return new EventCategoryFilterType();
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link EventCategoryFilterType }{@code >}}
+     *
+     */
+    @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "categoryFilter", substitutionHeadNamespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", substitutionHeadName = "handler")
+    public JAXBElement<EventCategoryFilterType> createCategoryFilter(EventCategoryFilterType value) {
+        return new JAXBElement<EventCategoryFilterType>(_CategoryFilter_QNAME, EventCategoryFilterType.class, null, value);
     }
 
 }

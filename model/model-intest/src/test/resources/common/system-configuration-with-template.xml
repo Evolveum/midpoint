@@ -21,49 +21,48 @@
 	<name>System Configuration</name>
 	<defaultUserTemplate>
 	    <name>Default User Template</name>
-	    <propertyConstruction>
-	        <property>c:fullName</property>
-	        <valueConstruction>
-	        	<strength>weak</strength>
-	            <expression>
-	            	<code>
-	                    declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
-	                    concat($c:user/c:givenName,' ',$c:user/c:familyName)
-	                </code>
-	            </expression>
-	        </valueConstruction>
-	    </propertyConstruction>
-	    <propertyConstruction>
-	        <property>c:assignment</property>
-	        <valueConstruction>
-	        	<strength>weak</strength>
+	    <mapping>
+            <strength>weak</strength>
+	        <target>c:fullName</target>
+            <expression>
+                <script>
+                    <language>http://www.w3.org/TR/xpath/</language>
+                    <code>
+                        declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+                        concat($c:user/c:givenName,' ',$c:user/c:familyName)
+                    </code>
+                </script>
+            </expression>
+	    </mapping>
+	    <mapping>
+            <strength>weak</strength>
+	        <target>c:assignment</target>
+	        <expression>
 	            <value>
-	            	<assignment>
-						<construction>
-							<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
-						</construction>
-					</assignment>
+                    <construction>
+                        <resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+                    </construction>
 	            </value>
-	        </valueConstruction>
-	    </propertyConstruction>
+	        </expression>
+	    </mapping>
 	</defaultUserTemplate>
 	<logging>
-		<logger>
-			<level>all</level>
-			<category>category1</category>
-			<category>category2</category>
-			<component>util</component>
-			<component>common</component>
-			<component>model</component>
-			<component>provisioning</component>
-			<component>repository</component>
-			<component>gui</component>
-			<package>com.evolveum.midpoint</package>
-			<appender>File Appender</appender>
-		</logger>
+		<!--<logger>-->
+			<!--<level>all</level>-->
+			<!--<category>category1</category>-->
+			<!--<category>category2</category>-->
+			<!--<component>util</component>-->
+			<!--<component>common</component>-->
+			<!--<component>model</component>-->
+			<!--<component>provisioning</component>-->
+			<!--<component>repository</component>-->
+			<!--<component>gui</component>-->
+			<!--<package>com.evolveum.midpoint</package>-->
+			<!--<appender>File Appender</appender>-->
+		<!--</logger>-->
 		<appender xsi:type="FileAppenderConfigurationType" name="File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 			<pattern>%d{HH:mm:ss,SSS} %-5p [%c] - %m%n</pattern>
-			<filePath>${catalina.base}/logs/idm.log</filePath>
+			<fileName>${catalina.base}/logs/idm.log</fileName>
 			<maxFileSize>1024</maxFileSize>
 		</appender>
 	</logging>
