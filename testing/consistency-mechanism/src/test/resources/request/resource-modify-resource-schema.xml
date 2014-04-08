@@ -18,24 +18,34 @@
 <!-- Object modification description that is changing user "jack" by adding 
 	a new account -->
 
-<a:objectModification
-	xmlns:a='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+<t:objectDelta
+	xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-2"
+    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+    xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+    xmlns:my="http://whatever.com/my">
+    <t:changeType>modify</t:changeType>
+    <t:objectType>c:ResourceType</t:objectType>
 	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
-	<a:modification>
+	<t:itemDelta>
 		<t:modificationType>replace</t:modificationType>
+		<t:path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";c:schemaHandling</t:path>
 		<t:value>
-			<schemaHandling oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-          xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-          xmlns:my="http://whatever.com/my">
+<!-- 			<schemaHandling oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" -->
+<!--           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" -->
+<!--           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" -->
+<!--           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2" -->
+<!--           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2" -->
+<!--           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" -->
+<!--           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" -->
+<!--           xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" -->
+<!--           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" -->
+<!--           xmlns:my="http://whatever.com/my"> -->
 
 
         <!-- Definition of default account type.
@@ -190,7 +200,8 @@ else {
 						<script>
 							<language>http://www.w3.org/TR/xpath/</language>
 							<code>
-								$c:givenName/t:orig
+								declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+								$givenName
 							</code>
 						</script>
 					</expression>
@@ -234,40 +245,7 @@ else {
 						</expression>
 					</outbound>
 			</attribute>
-            <!-- Definition of description attribute handling. -->
-<!--             <attribute> -->
-<!--                 <ref>ri:description</ref> -->
-
-<!--                 This outbound expression is not really an expression.-->
-<!--               It is using a fixed literal insead of dynamically -->
-<!--               generated value. --> 
-<!--                 <outbound> -->
-<!--                     <strength>weak</strength> -->
-
-<!--                     <value>Created by IDM</value> -->
-<!--                 </outbound> -->
-
-<!--                 <inbound> -->
-<!--                     <valueFilter -->
-<!--                             type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter" -->
-<!--                             xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd"> -->
-<!--                         <f:replace> -->
-<!--                             Replaces all unicode control characters with empty string -->
-<!--                             <f:pattern>\p{C}</f:pattern> -->
-
-<!--                             <f:replacement></f:replacement> -->
-<!--                         </f:replace> -->
-<!--                     </valueFilter> -->
-<!--                     <target> -->
-<!--                         declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"; -->
-<!--                         declare namespace my="http://whatever.com/my"; -->
-<!--                         $i:user/i:extension/my:description -->
-<!--                     </target> -->
-<!--                 </inbound> -->
-                <!-- No inbound expression for description. We don't want to synchronize that -->
-<!--             </attribute> -->
-
-
+ 
             <attribute>
                 <ref>ri:carLicense</ref>
 
@@ -309,55 +287,34 @@ else {
             <!-- Definition of description attribute handling. -->
             <!-- This attribute is using a lookup table to translate the values
  valid for user to a values valid for the resource account. -->
-            <attribute>
-            <ref>ri:l</ref>
-            <c:tolerant>false</c:tolerant>
+             <attribute>
+                <ref>ri:l</ref>
+                <c:tolerant>false</c:tolerant>
 
                 <!-- Outbound expression definition. This expression is using
               a configuration object (set into an XPath variable) to
               translate values. -->
                 <outbound>
+                	<strength>strong</strength>
                 	<source>
-                		<path>$c:user/c:locality</path>
+                		<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";$c:user/c:locality</path>
                 	</source>
-                    <expression xmlns:my="http://whatever.com/my">
-                        <!-- Definition of extra variable for the XPath expression.
-                             The variable will appear as "$my:config" in the Xpath
-                             expression below. It will contain the content of XML
-                             object stored by OID c0c010c0-d34d-b33f-f00d-999111111111. -->
-                        <variable>
-                            <name>my:config</name>
-                            <objectRef oid="c0c010c0-d34d-b33f-f00d-999111111111" type="c:GenericObjectType"/>
-                        </variable>
-                        <!-- Example of setting a variable to a string value. -->
-                        <variable>
-                            <name>my:defaultLocation</name>
-                            <value>middle of nowhere</value>
-                        </variable>
-                    	<script>
-                    		<language>http://www.w3.org/TR/xpath/</language>
-	                        <returnType>scalar</returnType>
-	                        <!-- The expression itself. It translates the value of
-	                             user's attribute "locality" (expressed as $i:user/i:locality)
-	                             using a lookup table defined in the configuration object
-	                             in the $my:config variable specified above. -->
-	                        <c:relativityMode>absolute</c:relativityMode>
-	                        <c:code>
-	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
-	                            declare namespace t="http://prism.evolveum.com/xml/ns/public/types-2";
-	                            declare namespace my="http://whatever.com/my";
-	
-	                            if ($my:config/i:extension/my:locations/my:location[@key=$i:locality/t:orig]) then
-	                            	$my:config/i:extension/my:locations/my:location[@key=$i:locality/t:orig]
-	                            else
-	                            	$my:defaultLocation
-	                        </c:code>
-                        </script>
-                    </expression>
+                	<expression>
+                		<script>
+                			<c:language>http://www.w3.org/TR/xpath/</c:language>
+                			<c:returnType>scalar</c:returnType>
+                			<code>
+                				declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+                				if (empty($c:user/c:locality)) then
+                					"middle of nowhere"
+                				else
+                					$c:user/c:locality
+                			</code>
+                		</script>
+                	</expression>
 
                 </outbound>
-            
-                </attribute>
+            </attribute>
                 <attribute>
 				<ref>ri:employeeType</ref>
 				<displayName>Employee Type</displayName>
@@ -406,21 +363,6 @@ else {
                 </administrativeStatus>
             </activation>
 
-<!--             <activation> -->
-<!--                 <enabled> -->
-<!--                     <outbound> -->
-<!--                         <expression> -->
-<!--                         	<asIs/> -->
-<!--                         </expression> -->
-<!--                     </outbound> -->
-<!--                     <inbound> -->
-<!--                     	<expression> -->
-<!--                     		<asIs/> -->
-<!--                     	</expression> -->
-<!--                     </inbound> -->
-<!--                 </enabled> -->
-<!--             </activation> -->
-            
            <credentials>
                 <password>
                     <outbound>
@@ -445,9 +387,9 @@ else {
             <displayName>LDAP Group</displayName>
             <objectClass>ri:GroupObjectClass</objectClass>
         </objectType>
-    </schemaHandling>
+<!--     </schemaHandling> -->
 
 			
 		</t:value>
-	</a:modification>
-</a:objectModification>
+	</t:itemDelta>
+</t:objectDelta>

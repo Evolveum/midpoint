@@ -215,7 +215,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
             }
             MapXNode xfilter = new MapXNode();
             for (Entry<QName,XNode> entry: xmap.entrySet()) {
-                if (!QNameUtil.match(entry.getKey(), SearchFilterType.F_DESCRIPTION)) {
+                if (!QNameUtil.match(entry.getKey(), SearchFilterType.F_DESCRIPTION) && !QNameUtil.match(entry.getKey(), new QName("condition"))) {
                     xfilter.put(entry.getKey(), entry.getValue());
                 }
             }

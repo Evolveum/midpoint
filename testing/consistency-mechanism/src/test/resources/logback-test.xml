@@ -31,8 +31,8 @@
 	<logger name="com.evolveum.midpoint" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.provisioning" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.lens.ChangeExecutor" level="TRACE" />
-	<!--<logger name="com.evolveum.midpoint.provisioning" level="TRACE" />-->
+	<logger name="com.evolveum.midpoint.model.lens.ChangeExecutor" level="DEBUG" />
+<!-- 	<logger name="com.evolveum.midpoint.provisioning" level="TRACE" /> -->
 	<!--<logger name="com.evolveum.midpoint.common" level="TRACE" />-->
 	
 	<!-- Silencing some chatty packages -->
@@ -42,7 +42,7 @@
 	<logger name="com.evolveum.midpoint.model.sync.action" level="DEBUG" />
 	
 	<!-- Projector traces are just too much info. DEBUG is enough. Also, clockwork will dump the context at important points. -->
-	<logger name="com.evolveum.midpoint.model.lens.projector" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.lens.projector" level="INFO" />
 	
 	<logger name="com.evolveum.midpoint.testing.consistency" level="TRACE" />
 	<logger name="com.evolveum.midpoint.test" level="TRACE" />

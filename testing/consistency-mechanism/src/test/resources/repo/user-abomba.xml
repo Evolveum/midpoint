@@ -17,6 +17,7 @@
 <i:user oid="c0c010c0-d34d-b33f-f00d-016016111111" 
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+   xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
    xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
    xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
@@ -38,7 +39,7 @@
     <i:credentials>
         <i:password>
         	<i:value>
-	            <i:clearValue>deadmentellnotales</i:clearValue>
+	            <t:clearValue>deadmentellnotales</t:clearValue>
             </i:value>
         </i:password>
     </i:credentials>

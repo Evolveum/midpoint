@@ -19,7 +19,7 @@
    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
     <name>guybrush</name>
 
-    <linkRef oid="a0c010c0-d34d-b33f-f00d-111111111222" type="AccountShadowType"/>
+    <linkRef oid="a0c010c0-d34d-b33f-f00d-111111111222" type="ShadowType"/>
 
     <fullName>Guybrush Threepwood</fullName>
     <givenName>Guybrush</givenName>

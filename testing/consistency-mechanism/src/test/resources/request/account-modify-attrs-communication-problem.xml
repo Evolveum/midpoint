@@ -17,31 +17,28 @@
 
 <!-- Object modification description that is changing account of "guybrush" -->
 
-<objectModification
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
+<objectDelta
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+	xmlns="http://prism.evolveum.com/xml/ns/public/types-2"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
+	<changeType>modify</changeType>
+	<objectType>c:ShadowType</objectType>
 	<oid>will be replaced by the test code</oid>
-	<modification>
-		<t:modificationType>add</t:modificationType>
-		<t:path>c:attributes</t:path>
-		<t:value>
-			<ri:employeeNumber>emp4321</ri:employeeNumber>
-		</t:value>
-	</modification>
-	<modification>
-		<t:modificationType>replace</t:modificationType>
-		<t:path>c:attributes</t:path>
-		<t:value>
-			<ri:givenName>Jackkk</ri:givenName>
-		</t:value>
-	</modification>
+	<itemDelta>
+		<modificationType>add</modificationType>
+		<path>declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";attributes/ri:employeeNumber</path>
+		<value>emp4321</value>
+	</itemDelta>
+	<itemDelta>
+		<modificationType>replace</modificationType>
+		<path>declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";attributes/ri:givenName</path>
+		<value>Jackkk</value>
+	</itemDelta>
 <!-- 	<modification> -->
-<!-- 		<t:modificationType>delete</t:modificationType> -->
-<!-- 		<t:path>c:attributes</t:path> -->
-<!-- 		<t:value> -->
+<!-- 		<modificationType>delete</modificationType> -->
+<!-- 		<path>c:attributes</path> -->
+<!-- 		<value> -->
 <!-- 			<ri:sn>Sparrow</ri:sn> -->
-<!-- 		</t:value> -->
+<!-- 		</value> -->
 <!-- 	</modification> -->
-</objectModification>
+</objectDelta>

@@ -33,7 +33,7 @@
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<executionStatus>runnable</executionStatus>
 	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-2</handlerUri>
-	<objectRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
+	<objectRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" type="ResourceType"/>
 	<recurrence>recurring</recurrence>
 	<binding>tight</binding>
 	<schedule>

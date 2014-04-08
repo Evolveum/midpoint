@@ -17,7 +17,7 @@
 
 <!-- Object modification description that is changing account of "guybrush" -->
 
-<c:account
+<c:shadow
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
@@ -36,4 +36,4 @@
 		<ri:sn>Sparrow</ri:sn>
 
 	</c:attributes>
-</c:account>
+</c:shadow>
