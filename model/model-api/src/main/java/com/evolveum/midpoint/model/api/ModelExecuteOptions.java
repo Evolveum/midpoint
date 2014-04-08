@@ -63,6 +63,8 @@ public class ModelExecuteOptions implements Serializable {
      */
     Boolean overwrite;
     
+    Boolean isImport;
+    
 
     public Boolean getForce() {
 		return force;
@@ -185,6 +187,30 @@ public class ModelExecuteOptions implements Serializable {
 		return opts;
 	}
 
+	public Boolean getIsImport() {
+		return isImport;
+	}
+	
+	public void setIsImport(Boolean isImport) {
+		this.isImport = isImport;
+	}
+	
+	public static boolean isIsImport(ModelExecuteOptions options){
+		if (options == null){
+			return false;
+		}
+		if (options.isImport == null){
+			return false;
+		}
+		return options.isImport;
+	}
+	
+	public static ModelExecuteOptions createIsImport(){
+		ModelExecuteOptions opts = new ModelExecuteOptions();
+		opts.setIsImport(true);
+		return opts;
+	}
+	
     public void setExecuteImmediatelyAfterApproval(Boolean executeImmediatelyAfterApproval) {
         this.executeImmediatelyAfterApproval = executeImmediatelyAfterApproval;
     }
@@ -213,6 +239,7 @@ public class ModelExecuteOptions implements Serializable {
         retval.setReconcile(reconcile);
         retval.setExecuteImmediatelyAfterApproval(executeImmediatelyAfterApproval);
         retval.setOverwrite(overwrite);
+        retval.setIsImport(isImport);
         return retval;
     }
 
@@ -227,6 +254,7 @@ public class ModelExecuteOptions implements Serializable {
         retval.setReconcile(type.isReconcile());
         retval.setExecuteImmediatelyAfterApproval(type.isExecuteImmediatelyAfterApproval());
         retval.setOverwrite(type.isOverwrite());
+        retval.setIsImport(type.isIsImport());
         return retval;
     }
     
@@ -254,6 +282,9 @@ public class ModelExecuteOptions implements Serializable {
     		}
     		if (ModelExecuteOptionsType.F_RECONCILE.getLocalPart().equals(option)){
     			retVal.setReconcile(true);
+    		}
+    		if (ModelExecuteOptionsType.F_IS_IMPORT.getLocalPart().equals(option)){
+    			retVal.setIsImport(true);;
     		}
     	}
     	

@@ -546,6 +546,8 @@ public class JaxbTestUtil {
 			JAXBElement<T> element = (JAXBElement<T>) getUnmarshaller().unmarshal(is);
 			adopt(element);
 			return element;
+		} catch (RuntimeException ex){
+			throw new SystemException(ex);
 		} finally {
 			if (is != null) {
 				IOUtils.closeQuietly(is);

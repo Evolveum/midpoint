@@ -17,15 +17,16 @@
 
 <!-- Modification that triggers rename -->
 
-<objectModification
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
+<objectDelta
+	xmlns="http://prism.evolveum.com/xml/ns/public/types-2"
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+	<t:changeType>modify</t:changeType>
+	<objectType>c:UserType</objectType>
 	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
-	<modification>
+	<itemDelta>
 		<t:modificationType>replace</t:modificationType>
-		<t:value>
-			<c:name>jsparrow</c:name>
-		</t:value>
-	</modification>
-</objectModification>
+		<t:path>c:name</t:path>
+		<t:value>jsparrow</t:value>
+	</itemDelta>
+</objectDelta>

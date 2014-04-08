@@ -17,32 +17,32 @@
 
 <!-- Object modification description that is changing account of "guybrush" -->
 
-<objectModification
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
+<objectDelta
+	xmlns="http://prism.evolveum.com/xml/ns/public/types-2"
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
+	<t:changeType>modify</t:changeType>
+	<objectType>c:ShadowType</objectType>
 	<oid>will be replaced by the test code</oid>
-	<modification>
+	<itemDelta>
 		<t:modificationType>replace</t:modificationType>
-		<t:path>c:attributes</t:path>
-		<t:value>
-			<ri:roomNumber>captain's cabin</ri:roomNumber>
-		</t:value>
-	</modification>
-	<modification>
+		<t:path>
+			declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+			declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+			c:attributes/ri:roomNumber
+		</t:path>
+		<t:value>captain's cabin</t:value>
+	</itemDelta>
+	<itemDelta>
 		<t:modificationType>add</t:modificationType>
-		<t:path>c:attributes</t:path>
-		<t:value>
-			<ri:businessCategory>capsize</ri:businessCategory>
-			<ri:businessCategory>fighting</ri:businessCategory>
-		</t:value>
-	</modification>
-	<modification>
+		<t:path>declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";c:attributes/ri:businessCategory</t:path>
+		<t:value>capsize</t:value>
+		<t:value>fighting</t:value>
+	</itemDelta>
+	<itemDelta>
 		<t:modificationType>add</t:modificationType>
-		<t:path>c:attributes</t:path>
-		<t:value>
-			<ri:employeeType>A</ri:employeeType>
-		</t:value>
-	</modification>
-</objectModification>
+		<t:path>declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";c:attributes/ri:employeeType</t:path>
+		<t:value>A</t:value>
+	</itemDelta>
+</objectDelta>
