@@ -64,6 +64,9 @@ public class AnyArrayList<C extends Containerable> extends AbstractList<Object> 
 	    	// Each item and each value are presented as one list entry
     		// (multi-valued items are represented as multiple occurrences of the same element)
 	    	int size = 0;
+	    	if (containerValue.isEmpty()){
+	    		return size;
+	    	}
 	    	for (Item<?> item: containerValue.getItems()) {
 	    		size += item.getValues().size();
 	    	}
@@ -76,15 +79,18 @@ public class AnyArrayList<C extends Containerable> extends AbstractList<Object> 
     	if (isSchemaless()) {
     		return containerValue.getRawElements().get(index);
     	} else {
-	    	for (Item<?> item: containerValue.getItems()) {
-	    		if (index < item.getValues().size()) {
-	    			return asElement(item.getValue(index));
-	    		} else {
-	    			index -= item.getValues().size(); 
-	    		}
-	    	}
-	    	throw new IndexOutOfBoundsException();
-    	}
+			if (containerValue != null) {
+				for (Item<?> item : containerValue.getItems()) {
+					if (index < item.getValues().size()) {
+						return asElement(item.getValue(index));
+					} else {
+						index -= item.getValues().size();
+					}
+				}
+				throw new IndexOutOfBoundsException();
+			}
+			return null;  //TODO: is this OK??
+		}
     }
 
 	@Override

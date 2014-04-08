@@ -279,7 +279,7 @@ public class XNodeProcessor {
 					// No definition for item, but the schema is runtime. the definition may come later.
 					// Null is OK here.
 				} else {
-					throw new SchemaException("Item " + itemQName + " has no definition (in container "+containerDef+")", itemQName);
+					throw new SchemaException("Item " + itemQName + " has no definition (in container "+containerDef+")"  + "while parsing " + xmap.debugDump(), itemQName);
 				}
 			}
 			Item<?> item = parseItem(xentry.getValue(), itemQName, itemDef);

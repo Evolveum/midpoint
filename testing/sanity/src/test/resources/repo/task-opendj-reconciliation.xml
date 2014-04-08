@@ -19,6 +19,7 @@
 
 <task oid="91919191-76e0-59e2-86d6-3d4f02d30000"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:my="http://whatever.com/my"
@@ -36,7 +37,7 @@
 	<executionStatus>runnable</executionStatus>
 
 	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-2</handlerUri>
-	<objectRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
+	<objectRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" type="c:ResourceType"/>
 	<recurrence>recurring</recurrence>
 	<binding>tight</binding>
 	<schedule>

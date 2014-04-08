@@ -338,6 +338,13 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		OperationResult result = parentResult.createSubresult(EXECUTE_CHANGES);
 		result.addParam(OperationResult.PARAM_OPTIONS, options);
 		
+		if (ModelExecuteOptions.isIsImport(options)){
+			for (ObjectDelta<? extends ObjectType> delta : deltas){
+				if (delta.isAdd()){
+					Utils.resolveReferences(delta.getObjectToAdd(), cacheRepositoryService, false, prismContext, result);
+				}
+			}
+		}
 		// Make sure everything is encrypted as needed before logging anything.
 		// But before that we need to make sure that we have proper definition, otherwise we
 		// might miss some encryptable data in dynamic schemas
@@ -404,7 +411,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				auditService.audit(auditRecord, task);
 				
 			} else {				
-					
+				
 				LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, options, task, result);
 
 				clockwork.run(context, task, result);

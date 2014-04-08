@@ -580,9 +580,12 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         Set<RAnyValue> values = new HashSet<RAnyValue>();
         try {
             List<Item<?>> items = containerValue.getItems();
-            for (Item item : items) {
-                values.addAll(converter.convertToRValue(item, false));
-            }
+			//TODO: is this ehought??should we try items without definitions??
+            if (items != null) {
+				for (Item item : items) {
+					values.addAll(converter.convertToRValue(item, false));
+				}
+			}
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }

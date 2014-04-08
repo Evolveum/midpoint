@@ -17,30 +17,29 @@
 
 <!-- Object modification description that is changing user "jack" by adding a new account -->
 
-<objectModification
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
+<objectDelta
+	xmlns="http://prism.evolveum.com/xml/ns/public/types-2"
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+	<t:changeType>modify</t:changeType>
+	<objectType>c:UserType</objectType>
 	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
 	<!-- Let's honor Jack with a proper title -->
-	<modification>
+	<itemDelta>
 		<t:modificationType>replace</t:modificationType>
-		<t:value>
-			<c:fullName>Cpt. Jack Sparrow</c:fullName>
-		</t:value>
-	</modification>
+		<t:path>c:fullName</t:path>
+		<t:value>Cpt. Jack Sparrow</t:value>
+	</itemDelta>
 	<!-- And place him somewhere -->
-	<modification>
+	<itemDelta>
 		<t:modificationType>replace</t:modificationType>
-		<t:value>
-			<c:locality>somewhere</c:locality>
-		</t:value>
-	</modification>
+		<t:path>c:locality</t:path>
+		<t:value>somewhere</t:value>
+	</itemDelta>
 	<!-- Give him a number -->
-	<modification>
+	<itemDelta>
 		<t:modificationType>replace</t:modificationType>
-		<t:value>
-			<c:employeeNumber>1</c:employeeNumber>
-		</t:value>
-	</modification>
-</objectModification>
+		<t:path>c:employeeNumber</t:path>
+		<t:value>1</t:value>
+	</itemDelta>
+</objectDelta>

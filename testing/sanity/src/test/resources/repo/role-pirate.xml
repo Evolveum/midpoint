@@ -16,6 +16,7 @@
 <role oid="12345678-d34d-b33f-f00d-987987987988"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
     <name>Pirate Role</name>
     <inducement>
@@ -32,7 +33,7 @@
                 <outbound>
                 	<strength>strong</strength>
                 	<expression>
-						<value>Bloody Pirate</value>
+						<t:value>Bloody Pirate</t:value>
 					</expression>
 				</outbound>
             </attribute>    		
@@ -40,10 +41,8 @@
                 <ref>ri:businessCategory</ref>
                 <outbound>
                 	<expression>
-						<value>
-							<ri:businessCategory>loot</ri:businessCategory>
-							<ri:businessCategory>murder</ri:businessCategory>
-						</value>
+						<t:value>loot</t:value>
+						<t:value>murder</t:value>
 					</expression>
 				</outbound>
             </attribute>    		

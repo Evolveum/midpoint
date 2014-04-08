@@ -933,9 +933,9 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	 */
 	public boolean hasImplicitTypeDefinition(QName elementName, QName typeName) {
 		PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());
-        if (schema == null) {
-            return false;
-        }
+		if (schema == null) {
+			return false;
+		}
 		ItemDefinition itemDefinition = schema.findItemDefinition(elementName, ItemDefinition.class);
 		if (itemDefinition == null) {
 			return false;
