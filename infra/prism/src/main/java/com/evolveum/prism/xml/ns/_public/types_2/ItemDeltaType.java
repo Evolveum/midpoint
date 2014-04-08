@@ -59,6 +59,7 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 
 
 /**
@@ -579,7 +580,7 @@ public class ItemDeltaType implements Serializable, Cloneable {
 		if (value == null) {
 			if (other.value != null)
 				return false;
-		} else if (!value.equals(other.value))
+		} else if (!MiscUtil.unorderedCollectionEquals(value, other.value))
 			return false;
 		return true;
 	}

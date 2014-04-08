@@ -139,6 +139,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 /**
  * Consistency test suite. It tests consistency mechanisms. It works as end-to-end integration test accross all subsystems.
@@ -155,6 +156,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	private static final String SYSTEM_CONFIGURATION_FILENAME = REPO_DIR_NAME + "system-configuration.xml";
 //	private static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000001";
 
+	private static final String SAMPLE_CONFIGURATION_OBJECT_FILENAME = REPO_DIR_NAME + "sample-configuration-object.xml";
+    private static final String SAMPLE_CONFIGURATION_OBJECT_OID = "c0c010c0-d34d-b33f-f00d-999111111111";
+	
 	private static final String RESOURCE_OPENDJ_FILENAME = REPO_DIR_NAME + "resource-opendj.xml";
 	private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 
@@ -163,8 +167,6 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 //	private static final String TASK_OPENDJ_SYNC_FILENAME = REPO_DIR_NAME + "task-opendj-sync.xml";
 //	private static final String TASK_OPENDJ_SYNC_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
 
-	private static final String SAMPLE_CONFIGURATION_OBJECT_FILENAME = REPO_DIR_NAME + "sample-configuration-object.xml";
-	private static final String SAMPLE_CONFIGURATION_OBJECT_OID = "c0c010c0-d34d-b33f-f00d-999111111111";
 
 	private static final String USER_TEMPLATE_FILENAME = REPO_DIR_NAME + "user-template.xml";
 //	private static final String USER_TEMPLATE_OID = "c0c010c0-d34d-b33f-f00d-777111111111";
@@ -261,13 +263,26 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 //	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account.xml";
 //	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_DENIELS_FILENAME = "src/test/resources/request/user-modify-add-account-deniels.xml";
-	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM = "src/test/resources/request/user-modify-add-account-communication-problem.xml";
+	private static final String REQUEST_USER_MODIFY_ASSIGNE_ACCOUNT = "src/test/resources/request/user-modify-assign-account.xml";
+	
+//	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM = "src/test/resources/request/user-modify-add-account-communication-problem.xml";
+	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM_OID = "c0c010c0-d34d-b33f-f00d-111111111100";
+	
 	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_DIRECTLY = "src/test/resources/request/user-modify-add-account-directly.xml";
-	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_LINKED_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account-already-exist-linked.xml";
-	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_UNLINKED_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account-already-exist-unlinked.xml";
-	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_COMMUNICATION_PROBLEM_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account-already-exist-communication-problem.xml";
+	
+//	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_LINKED_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account-already-exist-linked.xml";
+	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_LINKED_OPENDJ_OID = "c0c010c0-d34d-b33f-f00d-111111114444";
+	
+//	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_UNLINKED_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account-already-exist-unlinked.xml";
+	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_UNLINKED_OPENDJ_OID = "c0c010c0-d34d-b33f-f00d-111111115555";
+	
+//	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_COMMUNICATION_PROBLEM_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account-already-exist-communication-problem.xml";
+	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_COMMUNICATION_PROBLEM_OPENDJ_OID = "c0c010c0-d34d-b33f-f00d-111111116666";
+	
 	private static final String REQUEST_USER_MODIFY_DELETE_ACCOUNT = "src/test/resources/request/user-modify-delete-account.xml";
 	private static final String REQUEST_USER_MODIFY_DELETE_ACCOUNT_COMMUNICATION_PROBLEM = "src/test/resources/request/user-modify-delete-account-communication-problem.xml";
+	
+	
 	private static final String REQUEST_ACCOUNT_MODIFY_NOT_FOUND_DELETE_ACCOUNT = "src/test/resources/request/account-guybrush-modify-attributes.xml";
 	private static final String REQUEST_ACCOUNT_MODIFY_COMMUNICATION_PROBLEM = "src/test/resources/request/account-modify-attrs-communication-problem.xml";
 	private static final String REQUEST_ADD_ACCOUNT_JACKIE = "src/test/resources/request/add-account-jack.xml";
@@ -409,7 +424,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 				ldapConnectorOid, null, result);
 		display("LDAP Connector: ", ldapConnector);
 
-		repositoryService.getObject(GenericObjectType.class, SAMPLE_CONFIGURATION_OBJECT_OID, null, result);
+//		repositoryService.getObject(GenericObjectType.class, SAMPLE_CONFIGURATION_OBJECT_OID, null, result);
 	}
 
 	/**
@@ -701,6 +716,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 				null, parentResult);
 		ObjectReferenceType ort = new ObjectReferenceType();
 		ort.setOid(oid);
+		ort.setType(ShadowType.COMPLEX_TYPE);
 
 		jackUser.asObjectable().getLinkRef().add(ort);
 
@@ -840,8 +856,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		PrismObject<ShadowType> jackUserAccount = repositoryService.getObject(ShadowType.class, accountRef, null, parentResult);
 		display("Jack's account: ", jackUserAccount.debugDump());
 					
-		// WHEN
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_LINKED_OPENDJ_FILENAME, USER_JACK2_OID, UserType.class, task, null, parentResult);
+		// WHEN REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_LINKED_OPENDJ_FILENAME
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGNE_ACCOUNT, USER_JACK2_OID, UserType.class, task, null, parentResult);
 
 		// THEN		
 		//expected thet the dn and ri:uid will be jackie1 because jackie already exists and is liked to another user..
@@ -877,8 +893,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		Task task = taskManager.createTaskInstance();
 		
-		//WHEN
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_UNLINKED_OPENDJ_FILENAME, USER_WILL_OID, UserType.class, task, null, parentResult);
+		//WHEN REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_UNLINKED_OPENDJ_FILENAME
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGNE_ACCOUNT, USER_WILL_OID, UserType.class, task, null, parentResult);
 //		TestUtil.displayWhen(TEST_NAME);
 
 		// THEN
@@ -919,15 +935,16 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 			ItemDefinition syncDef = resourceTypeOpenDjrepo.asPrismObject().getDefinition().findItemDefinition(ResourceType.F_SYNCHRONIZATION);
 			assertNotNull("null definition for sync delta", syncDef);
 
-			ObjectModificationType omt = unmarshallJaxbFromFile(REQUEST_RESOURCE_MODIFY_SYNCHRONIZATION, ObjectModificationType.class);
-			assertEquals(1, omt.getItemDelta().size());
-			ItemDeltaType syncItemType = omt.getItemDelta().get(0);
-			ItemDelta sd = DeltaConvertor.createItemDelta(syncItemType, resourceTypeOpenDjrepo.asPrismObject().getDefinition());
-			Collection resSyncDelta = new ArrayList();
-			resSyncDelta.add(sd);
+			ObjectDeltaType omt = unmarshallJaxbFromFile(REQUEST_RESOURCE_MODIFY_SYNCHRONIZATION, ObjectDeltaType.class);
+			ObjectDelta objectDelta = DeltaConvertor.createObjectDelta(omt, prismContext);
+//			assertEquals(1, omt.getItemDelta().size());
+//			ItemDeltaType syncItemType = omt.getItemDelta().get(0);
+//			ItemDelta sd = DeltaConvertor.createItemDelta(syncItemType, resourceTypeOpenDjrepo.asPrismObject().getDefinition());
+//			Collection resSyncDelta = new ArrayList();
+//			resSyncDelta.add(sd);
 //			ObjectDelta resSyncDelta = DeltaConvertor.createObjectDelta(omt, resourceTypeOpenDjrepo.asPrismObject().getDefinition());
 			
-			repositoryService.modifyObject(ResourceType.class, RESOURCE_OPENDJ_OID, resSyncDelta, parentResult);
+			repositoryService.modifyObject(ResourceType.class, RESOURCE_OPENDJ_OID, objectDelta.getModifications(), parentResult);
 			requestToExecuteChanges(REQUEST_RESOURCE_MODIFY_RESOURCE_SCHEMA,
 					RESOURCE_OPENDJ_OID, ResourceType.class, task, null,
 					parentResult);
@@ -1191,7 +1208,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		Task task = taskManager.createTaskInstance();
 		
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM, USER_E_OID, UserType.class, task, null, parentResult);
+		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGNE_ACCOUNT, USER_E_OID, UserType.class, task, null, parentResult);
 		
 
 		parentResult.computeStatus();
@@ -1302,8 +1320,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		Task task = taskManager.createTaskInstance();
 		
-		//WHEN
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_COMMUNICATION_PROBLEM_OPENDJ_FILENAME, USER_ELAINE_OID, UserType.class, task, null, parentResult);
+		//WHEN REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_COMMUNICATION_PROBLEM_OPENDJ_FILENAME
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGNE_ACCOUNT, USER_ELAINE_OID, UserType.class, task, null, parentResult);
 
 		//THEN
 		String accountOid = assertUserOneAccountRef(USER_ELAINE_OID);
@@ -1401,7 +1419,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		Task task = taskManager.createTaskInstance();
 		
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM, USER_ANGELIKA_OID, UserType.class, task, null, parentResult);
+		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGNE_ACCOUNT, USER_ANGELIKA_OID, UserType.class, task, null, parentResult);
 		
 		parentResult.computeStatus();
 		display("add object communication problem result: ", parentResult);
@@ -1442,7 +1461,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		Task task = taskManager.createTaskInstance();
 		//and add account to the user while resource is UP
 		
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM, USER_ALICE_OID, UserType.class, task, null, parentResult);
+		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGNE_ACCOUNT, USER_ALICE_OID, UserType.class, task, null, parentResult);
 		
 		//then stop openDJ
 		openDJController.stop();
@@ -1485,7 +1505,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		Task task = taskManager.createTaskInstance();
 		
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM, USER_BOB_NO_FAMILY_NAME_OID, UserType.class, task, null, parentResult);
+		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGNE_ACCOUNT, USER_BOB_NO_FAMILY_NAME_OID, UserType.class, task, null, parentResult);
 		
 		parentResult.computeStatus();
 		display("add object communication problem result: ", parentResult);
@@ -1577,7 +1598,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		Task task = taskManager.createTaskInstance();
 		
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM, USER_JOHN_WEAK_OID, UserType.class, task, null, parentResult);
+		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGNE_ACCOUNT, USER_JOHN_WEAK_OID, UserType.class, task, null, parentResult);
 		
 		parentResult.computeStatus();
 		display("add object communication problem result: ", parentResult);
@@ -1612,7 +1634,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 				
 		Task task = taskManager.createTaskInstance();
 		
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM, USER_DONALD_OID, UserType.class, task, null, parentResult);
+		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGNE_ACCOUNT, USER_DONALD_OID, UserType.class, task, null, parentResult);
 		
 		parentResult.computeStatus();
 		display("add object communication problem result: ", parentResult);
@@ -1651,7 +1674,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 				
 		Task task = taskManager.createTaskInstance();
 		
-		requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM, USER_DISCOVERY_OID, UserType.class, task, null, parentResult);
+		//REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
+		requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGNE_ACCOUNT, USER_DISCOVERY_OID, UserType.class, task, null, parentResult);
 		
 		parentResult.computeStatus();
 		display("add object communication problem result: ", parentResult);
@@ -1817,7 +1841,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(USER_HERMAN_FILENAME));
         display("Adding user", user);
         
-        requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM, USER_HERMAN_OID, UserType.class, task, null, result);
+        //REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM
+        requestToExecuteChanges(REQUEST_USER_MODIFY_ASSIGNE_ACCOUNT, USER_HERMAN_OID, UserType.class, task, null, result);
         
 
 //        ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
@@ -2116,7 +2141,7 @@ LOGGER.info("starting rename");
 	private void requestToExecuteChanges(String requestFilename, String objectOid,
 			Class type, Task task, ModelExecuteOptions options, OperationResult parentResult)
 			throws Exception {
-
+		LOGGER.info("start unmarshaling delta: {}", requestFilename);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltas(type, requestFilename, objectOid);
 		
 		// WHEN
@@ -2124,17 +2149,26 @@ LOGGER.info("starting rename");
 	}
 	
 	private Collection<ObjectDelta<? extends ObjectType>> createDeltas(Class type, String requestFilename, String objectOid) throws FileNotFoundException, SchemaException, JAXBException{
-		ObjectModificationType objectChange = unmarshallJaxbFromFile(
-				requestFilename, ObjectModificationType.class);
+		
+		try{
+		ObjectDeltaType objectChange = unmarshallJaxbFromFile(
+				requestFilename, ObjectDeltaType.class);
+		LOGGER.info("unmarshalled delta: {}" + objectChange);
+		LOGGER.info("object type in delta {}", objectChange.getObjectType());
+		objectChange.setOid(objectOid);
 
-		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange,
-				type, PrismTestUtil.getPrismContext());
+		ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, prismContext);
 
-		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(objectOid,
-				delta.getModifications(), type, prismContext);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(modifyDelta);
+//		ObjectDelta modifyDelta = ObjectDelta.createModifyDelta(objectOid,
+//				delta.getModifications(), type, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = createDeltaCollection(delta);
 
 		return deltas;
+		} catch (Exception ex){
+			LOGGER.error("ERROR while unmarshalling: {}", ex);
+			throw ex;
+		}
+		
 	}
 
 
