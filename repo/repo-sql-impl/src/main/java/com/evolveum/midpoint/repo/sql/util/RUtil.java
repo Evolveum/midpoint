@@ -541,13 +541,13 @@ public final class RUtil {
         } finally {
             IOUtils.closeQuietly(gzip);
         }
-        LOGGER.info("toArray>>> {}", (array != null ? array.length : null));
+
         return array;
     }
 
     public static String getXmlFromByteArray(byte[] array, boolean compressed) {
         String xml;
-        LOGGER.info("fromArray>>> {}", (array != null ? array.length : null));
+
         GZIPInputStream gzip = null;
         try {
             if (compressed) {
