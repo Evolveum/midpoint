@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.repo.sql.util.MidPointMySQLDialect;
 import com.evolveum.midpoint.repo.sql.util.MidPointNamingStrategy;
+import com.evolveum.midpoint.repo.sql.util.MidPointPostgreSQLDialect;
 import com.evolveum.midpoint.repo.sql.util.UnicodeSQLServer2008Dialect;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import org.hibernate.cfg.Configuration;
@@ -56,7 +57,7 @@ public class SpringApplicationContextTest extends BaseSQLRepoTest {
         createSQLSchema("./target/sqlserver-schema.sql", UnicodeSQLServer2008Dialect.class.getName());
         createSQLSchema("./target/mysql-schema.sql", MidPointMySQLDialect.class.getName());
         createSQLSchema("./target/oracle-schema.sql", Oracle10gDialect.class.getName());
-        createSQLSchema("./target/postgresql-schema.sql", PostgresPlusDialect.class.getName());
+        createSQLSchema("./target/postgresql-schema.sql", MidPointPostgreSQLDialect.class.getName());
     }
 
     private void createSQLSchema(String fileName, String dialect) throws Exception {

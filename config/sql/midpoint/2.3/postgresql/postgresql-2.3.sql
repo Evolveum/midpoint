@@ -241,7 +241,7 @@ CREATE TABLE m_object (
   creatorRef_targetOid  VARCHAR(36),
   creatorRef_type       INT4,
   datesCount            INT2,
-  fullObject            OID,
+  fullObject            BYTEA,
   longsCount            INT2,
   modifierRef_relation  VARCHAR(157),
   modifierRef_targetOid VARCHAR(36),
