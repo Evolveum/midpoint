@@ -684,8 +684,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertResourceSchemaFetchIncrement(0);
 		assertResourceSchemaParseCountIncrement(0);
 		assertConnectorCapabilitiesFetchIncrement(0);
-        // TODO reenable this test!
-//		assertConnectorInitializationCountIncrement(0);
+		assertConnectorInitializationCountIncrement(0);
 		assertConnectorSchemaParseIncrement(0);
 	}
 	
