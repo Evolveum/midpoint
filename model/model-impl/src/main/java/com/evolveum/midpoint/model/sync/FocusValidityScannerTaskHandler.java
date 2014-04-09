@@ -104,12 +104,11 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 						LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef, 
 								thisScanTimestamp, true),
 						LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef, 
-								thisScanTimestamp, true)
-		// BUG BUG BUG
-//						LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), 
-//								focusObjectDef, thisScanTimestamp, true),
-//						LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), 
-//								focusObjectDef, thisScanTimestamp, true)
+								thisScanTimestamp, true),
+						LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
+								focusObjectDef, thisScanTimestamp, true),
+						LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
+								focusObjectDef, thisScanTimestamp, true)
 				);
 		} else {
 			filter = OrFilter.createOr(
@@ -124,20 +123,19 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 									lastScanTimestamp, false),
 							LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef, 
 									thisScanTimestamp, true)
-						)
-	// BUG BUG BUG
-//						AndFilter.createAnd(
-//								GreaterFilter.createGreater(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), 
-//										focusObjectDef, lastScanTimestamp, false),
-//								LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), 
-//										focusObjectDef, thisScanTimestamp, true)
-//							),
-//						AndFilter.createAnd(
-//								GreaterFilter.createGreater(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), 
-//										focusObjectDef, lastScanTimestamp, false),
-//								LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), 
-//										focusObjectDef, thisScanTimestamp, true)
-//							)
+						),
+						AndFilter.createAnd(
+								GreaterFilter.createGreater(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
+										focusObjectDef, lastScanTimestamp, false),
+								LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
+										focusObjectDef, thisScanTimestamp, true)
+							),
+						AndFilter.createAnd(
+								GreaterFilter.createGreater(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
+										focusObjectDef, lastScanTimestamp, false),
+								LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
+										focusObjectDef, thisScanTimestamp, true)
+							)
 			);			
 		}
 		
