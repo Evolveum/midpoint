@@ -44,18 +44,6 @@
 			<property name="net.sf.jasperreports.export.csv.exclude.origin.band.1" value="title"/>
 			<property name="net.sf.jasperreports.export.csv.exclude.origin.band.2" value="pageFooter"/>
 			<import value="com.evolveum.midpoint.report.ReportUtils"/>
-			<style fontName="DejaVu Sans" fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="true" 
-				   name="Base" pdfEncoding="Identity-H" pdfFontName="DejaVuSans.ttf" vAlign="Middle">
-			</style>
-			<style backcolor="#267994" fontSize="26" forecolor="#FFFFFF" isDefault="false"
-                   mode="Opaque" name="Title" style="Base"/> 
-			<style fontSize="12" forecolor="#000000" isDefault="false" name="Page header"
-                   style="Base"/>
-			<style backcolor="#333333" fontSize="12" forecolor="#FFFFFF" hAlign="Center"
-                   isDefault="false" mode="Opaque" name="Column header" style="Base"/>
-			<style isBold="false" isDefault="false" name="Detail" style="Base"/>
-			<style fontSize="9" forecolor="#000000" isDefault="false" name="Page footer"
-                   style="Base"/>
 			<parameter name="from" class="java.sql.Timestamp"/>
 			<parameter name="to" class="java.sql.Timestamp"/>
 			<parameter name="hqlQuery" class="java.lang.String"/>
@@ -71,7 +59,7 @@
 				<fieldDescription><![CDATA[eventStage]]></fieldDescription>
 			</field>
 			<field name="targetName" class="java.lang.String"/>
-			<field name="targetType" class="com.evolveum.midpoint.repo.sql.data.common.other.RContainerType">
+			<field name="targetType" class="com.evolveum.midpoint.repo.sql.data.common.other.RObjectType">
 				<fieldDescription><![CDATA[targetType]]></fieldDescription>
 			</field>
 			<field name="targetOwnerName" class="java.lang.String"/>
@@ -271,6 +259,22 @@
 			</summary>
 		</jasperReport>
 	</template>
+	<templateStyle>
+		<jasperTemplate xmlns="http://jasperreports.sourceforge.net/dtds/jaspertemplate.dtd">
+			<style fontName="DejaVu Sans" fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="true" 
+				   name="Base" pdfEncoding="Identity-H" pdfFontName="DejaVuSans.ttf" vAlign="Middle">
+			</style>
+			<style backcolor="#267994" fontSize="26" forecolor="#FFFFFF" isDefault="false"
+                   mode="Opaque" name="Title" style="Base"/> 
+			<style fontSize="12" forecolor="#000000" isDefault="false" name="Page header"
+                   style="Base"/>
+			<style backcolor="#333333" fontSize="12" forecolor="#FFFFFF" hAlign="Center"
+                   isDefault="false" mode="Opaque" name="Column header" style="Base"/>
+			<style isBold="false" isDefault="false" name="Detail" style="Base"/>
+			<style fontSize="9" forecolor="#000000" isDefault="false" name="Page footer"
+                   style="Base"/>
+		</jasperTemplate>
+	</templateStyle>
 	<orientation>landscape</orientation>
 	<export>pdf</export>
 	<!-- set to true if report needs hibernate session (e.g. hql query is used) -->
