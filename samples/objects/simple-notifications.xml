@@ -23,21 +23,23 @@
              before logging and cleanup policy items -->
 
     <notificationConfiguration>
-
+		<handler>
         <simpleAccountNotifier>
             <recipientExpression>
                 <value>somebody@acme.org</value>
             </recipientExpression>
             <transport>mail</transport>
         </simpleAccountNotifier>
-
+	</handler>
+	
+	<handler>
         <simpleUserNotifier>
             <recipientExpression>
                 <value>somebody@acme.org</value>
             </recipientExpression>
             <transport>mail</transport>
         </simpleUserNotifier>
-
+	</handler>
         <mail>
             <redirectToFile>c:\midpoint\mail-notifications.log</redirectToFile>
         </mail>

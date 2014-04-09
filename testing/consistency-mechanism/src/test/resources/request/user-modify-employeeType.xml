@@ -25,7 +25,7 @@
 	<oid>will-be-replaced</oid>
 	<!-- Let's honor Jack with a proper title -->
 	<itemDelta>
-		<modificationType>replace</:modificationType>
+		<modificationType>replace</modificationType>
 		<path>employeeType</path>
 		<value>boss</value>
 	</itemDelta>

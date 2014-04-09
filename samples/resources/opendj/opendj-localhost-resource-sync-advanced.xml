@@ -36,6 +36,7 @@ object.
          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
          xmlns:my="http://whatever.com/my"
+         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2">
 
 
@@ -76,7 +77,7 @@ object.
 			<icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
 			<icfcldap:principal>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:principal>
 			 <icfcldap:credentials>
-                    <clearValue>secret</clearValue>
+                    <t:clearValue>secret</t:clearValue>
                 </icfcldap:credentials>
 			<icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
 			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
@@ -396,7 +397,7 @@ object.
 					<expression>
 						<variable xmlns:my="http://whatever.com/my">
 							<name>my:defaultLocation</name>
-							<value xsi:type="xsd:string">middle of nowhere</value>
+							<value>middle of nowhere</value>
 						</variable>
 						<script>
 							<description>XPath expression that is using a variable declared above</description>
@@ -585,17 +586,17 @@ object.
             <!-- This additional level of depth (the "locations" element) is needed now
                  because current repository does not support generic multi-valued
                  properties. This might be fixed in next releases. -->
-            <my:locations>
-                <!-- Lookup table. The "key" attribute is a key, the element content
-                     is a value. However, the data structure may be structured differently,
-                     it depends on a specific XPath that is used for lookup (see the
-                     definition of outbound expression for "l" attribute in the resource
-                     definition above). -->
-                <my:location key="home">Here</my:location>
+<!--             <my:locations> 
+                  Lookup table. The "key" attribute is a key, the element content
+                      is a value. However, the data structure may be structured differently,
+                      it depends on a specific XPath that is used for lookup (see the 
+                      definition of outbound expression for "l" attribute in the resource
+                      definition above).  
+                 <my:location key="home">Here</my:location> -->
 
-                <my:location key="work">There</my:location>
-                <my:location key="somewhere">There there over the corner</my:location>
-            </my:locations>
+<!--                 <my:location key="work">There</my:location> -->
+<!--                 <my:location key="somewhere">There there over the corner</my:location> -->
+<!--             </my:locations> -->
         </extension>
         <!-- This is generic object, it must have an "application level" type.
              However, this is not used in the current business logic. Can be anything. -->

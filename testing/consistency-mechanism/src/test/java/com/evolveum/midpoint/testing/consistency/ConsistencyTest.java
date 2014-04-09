@@ -1578,9 +1578,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		assertNotNull(name + "'s account must contain reference on the resource", resourceAccount.getResourceRef());
 		assertEquals(resourceTypeOpenDjrepo.getOid(), resourceAccount.getResourceRef().getOid());
 		
-		if (modify){
-			assertNull(name + "'s account must not have object change", resourceAccount.getObjectChange());
-		}
+//		if (modify){
+//			assertNull(name + "'s account must not have object change", resourceAccount.getObjectChange());
+//		}
 		
 		return resourceAccount;
 //		assertNotNull("Identifier in the angelica's account after discovery must not be null.",ResourceObjectShadowUtil.getAttributesContainer(faieldAccount).getIdentifier().getRealValue());
