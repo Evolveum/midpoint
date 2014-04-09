@@ -204,7 +204,7 @@
 						</access>
 					</limitations>	
 				</attribute>
-				<attribute ref="ri:cn"
+				<attribute
 					xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
 					<ref>ri:cn</ref>
 					<displayName>Common Name</displayName>
@@ -227,7 +227,7 @@
 						</target>
 					</inbound>
 				</attribute>
-				<attribute ref="ri:sn"
+				<attribute
 					xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
 					<ref>ri:sn</ref>
 					<displayName>Surname</displayName>
@@ -259,7 +259,7 @@
 						</target>
 					</inbound>
 				</attribute>
-				<attribute ref="ri:givenName"
+				<attribute
 					xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
 					<ref>ri:givenName</ref>
 					<displayName>Given Name</displayName>
@@ -277,7 +277,7 @@
 						</source>
 					</outbound>
 				</attribute>
-				<attribute ref="ri:description"
+				<attribute
 					xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
 					<ref>ri:description</ref>
 					<outbound>
@@ -287,7 +287,7 @@
 						</expression>
 					</outbound>
 				</attribute>
-				<attribute ref="ri:title"
+				<attribute
 					xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
 					<ref>ri:title</ref>
 					<displayName>Title before name</displayName>
@@ -306,7 +306,7 @@
                         </target>
 					</inbound>
 				</attribute>
-				<attribute ref="ri:notDefinedAttributeInTheResourceSchema"
+				<attribute
 					xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
 					<ref>ri:notDefinedAttributeInTheResourceSchema</ref>
 					<displayName>Not defined attribute in the resource schema</displayName>
