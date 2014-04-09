@@ -65,7 +65,7 @@ import com.evolveum.prism.xml.ns._public.types_2.KeyInfoType;
  * @author Radovan Semancik
  * @author lazyman
  */
-public class AESProtector implements Protector {
+public class AESProtector extends BaseProtector {
 	
 	private static final String KEY_DIGEST_TYPE = "SHA1";
 	private static final String DEFAULT_ENCRYPTION_ALGORITHM = XMLCipher.AES_128;
@@ -184,57 +184,50 @@ public class AESProtector implements Protector {
         return encryptionKeyAlias;
     }
 	
-	@Override
-	public <T> void decrypt(ProtectedData<T> protectedData) throws EncryptionException, SchemaException {
-		if (!protectedData.isEncrypted()) {
-			return;
-			//TODO: is this exception really needed?? isn't it better just return the same protected data??
-			//throw new IllegalArgumentException("Attempt to decrypt protected data that are not encrypted");
-		}
-		
-		EncryptedDataType encryptedDataType = protectedData.getEncryptedDataType();
-		
-		EncryptionMethodType encryptionMethodType = encryptedDataType.getEncryptionMethod();
-		if (encryptionMethodType == null) {
-			throw new SchemaException("No encryptionMethod element in protected data");
-		}
-		String algorithmUri = encryptionMethodType.getAlgorithm();
-		if (StringUtils.isBlank(algorithmUri)) {
-			throw new SchemaException("No algorithm URI in encryptionMethod element in protected data");
-		}
-		
-		KeyInfoType keyInfo = encryptedDataType.getKeyInfo();
-		if (keyInfo == null) {
-			throw new SchemaException("No keyInfo element in protected data");
-		}
-		String keyName = keyInfo.getKeyName();
-		if (StringUtils.isBlank(keyName)) {
-			throw new SchemaException("No keyName defined in keyInfo element in protected data");
-		}
-		SecretKey key = getSecretKeyByDigest(keyName);
-		
-		CipherDataType cipherData = encryptedDataType.getCipherData();
-		if (cipherData == null) {
-			throw new SchemaException("No cipherData element in protected data");
-		}
-		byte[] encryptedBytes = cipherData.getCipherValue();
-		if (encryptedBytes == null || encryptedBytes.length == 0) {
-			throw new SchemaException("No cipherValue in cipherData element in protected data");
-		}
-		
-		byte[] decryptedData;
-		try {
-			decryptedData = decryptBytes(encryptedBytes, algorithmUri, key);
-		} catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
-				| NoSuchProviderException | IllegalBlockSizeException | BadPaddingException
-				| InvalidAlgorithmParameterException e) {
-			throw new EncryptionException(e.getMessage(), e);
-		}
-		
-		protectedData.setClearBytes(decryptedData);
-	}
+    @Override
+    protected <T> byte[] decryptBytes(ProtectedData<T> protectedData) throws SchemaException, EncryptionException {
+        EncryptedDataType encryptedDataType = protectedData.getEncryptedDataType();
 
-	@Override
+        EncryptionMethodType encryptionMethodType = encryptedDataType.getEncryptionMethod();
+        if (encryptionMethodType == null) {
+            throw new SchemaException("No encryptionMethod element in protected data");
+        }
+        String algorithmUri = encryptionMethodType.getAlgorithm();
+        if (StringUtils.isBlank(algorithmUri)) {
+            throw new SchemaException("No algorithm URI in encryptionMethod element in protected data");
+        }
+
+        KeyInfoType keyInfo = encryptedDataType.getKeyInfo();
+        if (keyInfo == null) {
+            throw new SchemaException("No keyInfo element in protected data");
+        }
+        String keyName = keyInfo.getKeyName();
+        if (StringUtils.isBlank(keyName)) {
+            throw new SchemaException("No keyName defined in keyInfo element in protected data");
+        }
+        SecretKey key = getSecretKeyByDigest(keyName);
+
+        CipherDataType cipherData = encryptedDataType.getCipherData();
+        if (cipherData == null) {
+            throw new SchemaException("No cipherData element in protected data");
+        }
+        byte[] encryptedBytes = cipherData.getCipherValue();
+        if (encryptedBytes == null || encryptedBytes.length == 0) {
+            throw new SchemaException("No cipherValue in cipherData element in protected data");
+        }
+
+        byte[] decryptedData;
+        try {
+            decryptedData = decryptBytes(encryptedBytes, algorithmUri, key);
+        } catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
+                | NoSuchProviderException | IllegalBlockSizeException | BadPaddingException
+                | InvalidAlgorithmParameterException e) {
+            throw new EncryptionException(e.getMessage(), e);
+        }
+        return decryptedData;
+    }
+
+    @Override
 	public <T> void encrypt(ProtectedData<T> protectedData) throws EncryptionException {
 		if (protectedData.isEncrypted()) {
 			throw new IllegalArgumentException("Attempt to encrypt protected data that are already encrypted");
@@ -270,35 +263,6 @@ public class AESProtector implements Protector {
 		protectedData.setEncryptedData(encryptedDataType);
 		protectedData.destroyCleartext();
 	}
-
-    @Override
-    public String decryptString(ProtectedStringType protectedString) throws EncryptionException {
-        try {
-            ProtectedStringType clone = protectedString.clone();
-        	decrypt(clone);
-        	return clone.getClearValue();
-        } catch (SchemaException ex){
-        	throw new EncryptionException(ex);
-        }
-        
-    }
-
-    @Override
-    public ProtectedStringType encryptString(String text) throws EncryptionException {
-    	ProtectedStringType protectedString = new ProtectedStringType();
-    	protectedString.setClearValue(text);
-    	encrypt(protectedString);
-    	return protectedString;
-    	
-//        throw new UnsupportedOperationException();      // TODO implement this
-    }
-
-    @Override
-    public boolean isEncrypted(ProtectedStringType ps) {
-    	Validate.notNull(ps, "Protected string must not be null.");
-    	return ps.isEncrypted();
-//        throw new UnsupportedOperationException();      // TODO implement this
-    }
 
     private byte[] encryptBytes(byte[] clearData, String algorithmUri, Key key) throws NoSuchAlgorithmException, NoSuchPaddingException, NoSuchProviderException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
 		Cipher cipher = getCipher(Cipher.ENCRYPT_MODE, algorithmUri);

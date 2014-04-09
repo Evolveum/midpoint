@@ -67,13 +67,7 @@ public class ProtectedStringType extends ProtectedDataType<String> {
 
 	@Override
 	public void setClearBytes(byte[] bytes) {
-		try {
-			// We want fixed charset here, independent of locale. We want consistent and portable encryption/decryption.
-			String clearValue = new String(bytes, CHARSET);
-			setClearValue(clearValue);
-		} catch (UnsupportedEncodingException e) {
-			throw new SystemException("Unsupported charset '"+CHARSET+"', is this system from 19th century?", e);
-		}
+        setClearValue(bytesToString(bytes));
 	}
 
 	@Override
@@ -91,5 +85,14 @@ public class ProtectedStringType extends ProtectedDataType<String> {
         ProtectedStringType cloned = new ProtectedStringType();
         cloneTo(cloned);
         return cloned;
+    }
+
+    public static String bytesToString(byte[] clearBytes) {
+        try {
+            // We want fixed charset here, independent of locale. We want consistent and portable encryption/decryption.
+            return new String(clearBytes, CHARSET);
+        } catch (UnsupportedEncodingException e) {
+            throw new SystemException("Unsupported charset '"+CHARSET+"', is this system from 19th century?", e);
+        }
     }
 }
