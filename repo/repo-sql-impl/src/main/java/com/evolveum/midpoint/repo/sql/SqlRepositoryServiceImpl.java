@@ -859,7 +859,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
 
-        LOGGER.debug("Counting objects of type '{}', query (on trace level).", new Object[]{type});
+        LOGGER.debug("Counting objects of type '{}', query (on trace level).", new Object[]{type.getSimpleName()});
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Full query\n{}", new Object[]{(query == null ? "undefined" : query.debugDump())});
         }

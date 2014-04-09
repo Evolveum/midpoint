@@ -30,6 +30,7 @@ import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
+import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
@@ -41,6 +42,7 @@ import org.hibernate.criterion.Order;
 import org.hibernate.criterion.ProjectionList;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.sql.JoinType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -87,7 +89,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             main.setProjection(projections);
 
 
-            Criteria o = main.createCriteria("organization", "o");
+            Criteria o = main.createCriteria("organization", "o", JoinType.LEFT_OUTER_JOIN);
 
             o.add(Restrictions.eq("o.norm", "asdf"));
 
@@ -114,7 +116,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             addFullObjectProjectionList("u", projections, false);
             main.setProjection(projections);
 
-            Criteria o = main.createCriteria("organization", "o");
+            Criteria o = main.createCriteria("organization", "o", JoinType.LEFT_OUTER_JOIN);
 
             o.add(Restrictions.eq("o.orig", "asdf"));
 
@@ -141,7 +143,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             addFullObjectProjectionList("u", projections, false);
             main.setProjection(projections);
 
-            Criteria o = main.createCriteria("organization", "o");
+            Criteria o = main.createCriteria("organization", "o", JoinType.LEFT_OUTER_JOIN);
 
             o.add(Restrictions.conjunction()
                     .add(Restrictions.eq("o.orig", "asdf"))
@@ -163,7 +165,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         try {
             Criteria main = session.createCriteria(RTask.class, "t");
-            Criteria d = main.createCriteria("dependent", "d");
+            Criteria d = main.createCriteria("dependent", "d", JoinType.LEFT_OUTER_JOIN);
             d.add(Restrictions.eq("d.elements", "123456"));
             ProjectionList projections = Projections.projectionList();
             addFullObjectProjectionList("t", projections, false);
@@ -250,7 +252,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         try {
             Criteria main = session.createCriteria(RGenericObject.class, "g");
 
-            Criteria stringExt = main.createCriteria("longs", "l");
+            Criteria stringExt = main.createCriteria("longs", "l", JoinType.LEFT_OUTER_JOIN);
 
             //and
             Criterion c1 = Restrictions.eq("name.norm", "generic object");
@@ -288,7 +290,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             addFullObjectProjectionList("r", projections, false);
             main.setProjection(projections);
 
-            Criteria stringExt = main.createCriteria("strings", "s1");
+            Criteria stringExt = main.createCriteria("strings", "s1", JoinType.LEFT_OUTER_JOIN);
 
             //or
             Criterion c1 = Restrictions.eq("intent", "some account type");
@@ -427,7 +429,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     @Test
     public void queryConnectorByType() throws Exception {
-        LOGGER.info("===[{}]===", new Object[]{"queryConnectorByType"});
         Session session = open();
 
         try {
@@ -453,12 +454,11 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     @Test
     public void queryAccountByAttributesAndResourceRef() throws Exception {
-        LOGGER.info("===[{}]===", new Object[]{"queryAccountByAttributesAndResourceRef"});
         Session session = open();
         try {
             Criteria main = session.createCriteria(RShadow.class, "r");
 
-            Criteria stringAttr = main.createCriteria("strings", "s1x");
+            Criteria stringAttr = main.createCriteria("strings", "s1x", JoinType.LEFT_OUTER_JOIN);
 
             //and
             Criterion c1 = Restrictions.conjunction().add(
@@ -498,7 +498,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             addFullObjectProjectionList("u", projections, false);
             main.setProjection(projections);
 
-            Criteria refs = main.createCriteria("linkRef", "l");
+            Criteria refs = main.createCriteria("linkRef", "l", JoinType.LEFT_OUTER_JOIN);
             refs.add(Restrictions.conjunction().add(Restrictions.eq("l.targetOid", "123")));
 
             String expected = HibernateToSqlTranslator.toSql(main);
@@ -524,7 +524,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             addFullObjectProjectionList("o", projections, false);
             main.setProjection(projections);
 
-            Criteria d = main.createCriteria("trigger", "t");
+            Criteria d = main.createCriteria("trigger", "t", JoinType.LEFT_OUTER_JOIN);
             d.add(Restrictions.le("t.timestamp", new Timestamp(NOW.getTime())));
 
             String expected = HibernateToSqlTranslator.toSql(main);
@@ -551,7 +551,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
         try {
             Criteria main = session.createCriteria(RUser.class, "u");
-            Criteria a = main.createCriteria("assignments", "a");
+            Criteria a = main.createCriteria("assignments", "a", JoinType.LEFT_OUTER_JOIN);
             a.add(Restrictions.and(
                     Restrictions.eq("a.assignmentOwner", RAssignmentOwner.FOCUS),
                     Restrictions.eq("a.activation.administrativeStatus", RActivationStatus.ENABLED)
@@ -584,7 +584,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
         try {
             Criteria main = session.createCriteria(RRole.class, "r");
-            Criteria a = main.createCriteria("assignments", "a");
+            Criteria a = main.createCriteria("assignments", "a", JoinType.LEFT_OUTER_JOIN);
             a.add(Restrictions.and(
                     Restrictions.eq("a.assignmentOwner", RAssignmentOwner.ABSTRACT_ROLE),
                     Restrictions.eq("a.activation.administrativeStatus", RActivationStatus.ENABLED)
@@ -617,7 +617,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
         try {
             Criteria main = session.createCriteria(RRole.class, "r");
-            Criteria a = main.createCriteria("assignments", "a");
+            Criteria a = main.createCriteria("assignments", "a", JoinType.LEFT_OUTER_JOIN);
             ProjectionList projections = Projections.projectionList();
             addFullObjectProjectionList("r", projections, false);
             main.setProjection(projections);
@@ -709,7 +709,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             addFullObjectProjectionList("o", projections, false);
             main.setProjection(projections);
 
-            Criteria d = main.createCriteria("trigger", "t");
+            Criteria d = main.createCriteria("trigger", "t", JoinType.LEFT_OUTER_JOIN);
             d.add(Restrictions.and(
                     Restrictions.gt("t.timestamp", new Timestamp(NOW.getTime())),
                     Restrictions.lt("t.timestamp", new Timestamp(NOW.getTime()))
@@ -972,6 +972,84 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             String expected = HibernateToSqlTranslator.toSql(main);
             LOGGER.info(">>> >>> {}",expected);
+        } finally {
+            close(session);
+        }
+    }
+
+
+    @Test
+    public void test100ActivationQuery() throws Exception {
+        PrismObjectDefinition<UserType> focusObjectDef = prismContext.getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(UserType.class);
+
+        XMLGregorianCalendar thisScanTimestamp = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
+
+        OrFilter filter = OrFilter.createOr(
+                LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef,
+                        thisScanTimestamp, true),
+                LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef,
+                        thisScanTimestamp, true),
+						LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
+								focusObjectDef, thisScanTimestamp, true),
+						LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
+								focusObjectDef, thisScanTimestamp, true)
+        );
+
+        Session session = open();
+        try {
+            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+            String real = getInterpretedQuery(session, UserType.class, query, false);
+
+            String expected = null;
+            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test200ActivationQuery() throws Exception {
+        PrismObjectDefinition<UserType> focusObjectDef = prismContext.getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(UserType.class);
+
+        XMLGregorianCalendar lastScanTimestamp = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
+        XMLGregorianCalendar thisScanTimestamp = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
+
+        OrFilter filter = OrFilter.createOr(
+                AndFilter.createAnd(
+                        GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef,
+                                lastScanTimestamp, false),
+                        LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef,
+                                thisScanTimestamp, true)
+                ),
+                AndFilter.createAnd(
+                        GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef,
+                                lastScanTimestamp, false),
+                        LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef,
+                                thisScanTimestamp, true)
+                ),
+                AndFilter.createAnd(
+                        GreaterFilter.createGreater(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
+                                focusObjectDef, lastScanTimestamp, false),
+                        LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
+                                focusObjectDef, thisScanTimestamp, true)
+                    ),
+                AndFilter.createAnd(
+                        GreaterFilter.createGreater(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
+                                focusObjectDef, lastScanTimestamp, false),
+                        LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
+                                focusObjectDef, thisScanTimestamp, true)
+                    )
+        );
+
+        Session session = open();
+        try {
+            ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+            String real = getInterpretedQuery(session, UserType.class, query, false);
+
+            String expected = null;
+            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
         } finally {
             close(session);
         }
