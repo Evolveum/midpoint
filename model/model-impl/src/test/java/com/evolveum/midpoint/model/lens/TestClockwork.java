@@ -352,6 +352,7 @@ public class TestClockwork extends AbstractLensTest {
         assertEquals(SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
         
         ObjectDelta<?> executedDelta = getExecutedDelta(accContext);
+        assertNotNull("No executed delta in "+accContext, executedDelta);
         assertEquals(ChangeType.ADD, executedDelta.getChangeType());
         PrismAsserts.assertPropertyAdd(executedDelta, getIcfsNameAttributePath(), "jack");
         PrismAsserts.assertPropertyAdd(executedDelta, dummyResourceCtl.getAttributeFullnamePath(), "Jack Sparrow");

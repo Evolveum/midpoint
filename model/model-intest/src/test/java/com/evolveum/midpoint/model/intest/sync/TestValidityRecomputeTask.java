@@ -15,10 +15,12 @@
  */
 package com.evolveum.midpoint.model.intest.sync;
 
+import static org.testng.AssertJUnit.assertEquals;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -35,6 +37,9 @@ import com.evolveum.midpoint.model.intest.TestTriggerTask;
 import com.evolveum.midpoint.model.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -249,6 +254,45 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assertNoDummyAccount(null, USER_HERMAN_USERNAME);
 	}
 	
+	@Test
+    public void test120HermanDisableAssignmentJudge() throws Exception {
+		final String TEST_NAME = "test120HermanDisableAssignmentJudge";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ActivationType activationType = new ActivationType();
+        activationType.setAdministrativeStatus(ActivationStatusType.ENABLED);
+        assignRole(USER_HERMAN_OID, ROLE_JUDGE_OID, activationType, task, result);
+        assertDummyAccount(null, USER_HERMAN_USERNAME);
+        AssignmentType judgeAssignment = getJudgeAssignment(USER_HERMAN_OID);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyObjectReplace(UserType.class, USER_HERMAN_OID, 
+        		new ItemPath(
+        				new NameItemPathSegment(UserType.F_ASSIGNMENT),
+        				new IdItemPathSegment(judgeAssignment.getId()),
+        				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
+        				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)), 
+        		task, result, ActivationStatusType.DISABLED);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        PrismObject<UserType> user = getUser(USER_HERMAN_OID);
+        display("User after", user);
+        assertNoDummyAccount(null, USER_HERMAN_USERNAME);
+	}
+	
+	private AssignmentType getJudgeAssignment(String userOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		PrismObject<UserType> user = getUser(userOid);
+		List<AssignmentType> assignments = user.asObjectable().getAssignment();
+		assertEquals("Wrong num ass", 1, assignments.size());
+		return assignments.iterator().next();
+	}
+
 	@Test
     public void test190HermanGoesInvalid() throws Exception {
 		final String TEST_NAME = "test190HermanGoesInvalid";
