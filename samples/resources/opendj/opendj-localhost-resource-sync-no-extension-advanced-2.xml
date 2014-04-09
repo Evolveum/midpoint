@@ -402,7 +402,7 @@ else {
 					<expression>
 						<variable xmlns:my="http://whatever.com/my">
 							<name>my:defaultLocation</name>
-							<value xsi:type="xsd:string">middle of nowhere</value>
+							<value xsiType="xsd:string">middle of nowhere</value>
 						</variable>
 						<script>
 							<description>XPath expression that is using a variable declared above</description>
