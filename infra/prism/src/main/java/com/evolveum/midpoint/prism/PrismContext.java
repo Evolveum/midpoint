@@ -77,6 +77,7 @@ public class PrismContext {
 	private DomParser parserDom;
 	private JaxbDomHack jaxbDomHack;
 
+    //region Standard overhead
 	private PrismContext() {
 		// empty
 	}
@@ -183,6 +184,7 @@ public class PrismContext {
 		}
 		return parser;
 	}
+    //endregion
 
     //region Parsing Prism objects
 	/**
@@ -299,6 +301,21 @@ public class PrismContext {
 
     //endregion
 
+    //region Parsing anything (without knowing the definition up-front)
+    /**
+     * Parses (almost) anything: either an item with a definition, or an atomic (i.e. property-like) value.
+     * Does not care for schemaless items!
+     *
+     * @param node
+     * @return either Item or an unmarshalled bean value
+     * @throws SchemaException
+     */
+    public Object parseAnyData(String dataString, String language) throws SchemaException {
+        XNode xnode = parseToXNode(dataString, language);
+        return xnodeProcessor.parseAnyData(xnode);
+    }
+    //endregion
+
     //region Parsing to XNode
     private XNode parseToXNode(String dataString, String language) throws SchemaException {
         Parser parser = getParserNotNull(language);
@@ -399,6 +416,12 @@ public class PrismContext {
 		return parser.serializeToString(xroot);
 	}
 
+    public String serializeAnyData(Object object, String language) throws SchemaException {
+        Parser parser = getParserNotNull(language);
+        RootXNode xnode = xnodeProcessor.serializeAnyData(object);
+        return parser.serializeToString(xnode);
+    }
+
 //    public <T> String serializeAtomicValues(QName elementName, String language, T... values) throws SchemaException {
 //        Parser parser = getParserNotNull(language);
 //        PrismPropertyDefinition<T> definition = schemaRegistry.findPropertyDefinitionByElementName(elementName);
@@ -444,30 +467,5 @@ public class PrismContext {
         RootXNode rootXNode = xnodeProcessor.serializeItemAsRoot(item);
         return new RawType(rootXNode);
     }
-
-    /**
-     * Method used to marshal objects to xml in debug messages.
-     * @param object
-     * @return xml as string
-     */
-//    public String silentMarshalObject(Object object, Trace logger) {
-//        String xml = null;
-//        try {
-//            QName fakeQName=new QName(PrismConstants.NS_PREFIX + "debug", "debugPrintObject");
-//            if (object instanceof Objectable) {
-//                xml = prismDomProcessor.serializeObjectToString(((Objectable) object).asPrismObject());
-//            } else if (object instanceof Containerable) {
-//                Element fakeParent = DOMUtil.createElement(DOMUtil.getDocument(), fakeQName);
-//                xml = prismDomProcessor.serializeObjectToString(((Containerable) object).asPrismContainerValue(),
-//                        fakeParent);
-//            } else {
-//                xml = prismJaxbProcessor.marshalElementToString(new JAXBElement<Object>(fakeQName, Object.class, object));
-//            }
-//        } catch (Exception ex) {
-//            Trace log = logger != null ? logger : LOGGER;
-//            LoggingUtils.logException(log, "Couldn't marshal element to string {}", ex, object);
-//        }
-//        return xml;
-//    }
 
 }

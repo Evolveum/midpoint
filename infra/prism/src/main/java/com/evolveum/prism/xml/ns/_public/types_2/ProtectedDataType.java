@@ -26,6 +26,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.apache.xml.security.utils.Base64;
 import org.w3c.dom.Element;
@@ -296,24 +297,31 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
 	}
 
     protected void cloneTo(ProtectedDataType<T> cloned) {
-        for (Object o : getContent()) {
-            if (o instanceof JAXBElement<?>) {
-                JAXBElement<?> je = (JAXBElement) o;
-                Object v = je.getValue();
-                if (v instanceof EncryptedDataType) {
-                    EncryptedDataType edt = (EncryptedDataType) v;
-                    cloned.addContent(new JAXBElement<EncryptedDataType>(je.getName(), (Class) je.getDeclaredType(), edt.clone()));
-                } else {
-                    throw new IllegalStateException("Unknown JAXB element "+je+ " in ProtectedDataType");
-                }
-            } else if (o instanceof Element) {
-                cloned.addContent(((Element) o).cloneNode(true));
-            } else if (o instanceof String) {
-                cloned.addContent(o);           // will this work?
-            } else {
-                throw new IllegalStateException("Unknown object of type "+o.getClass()+ " in ProtectedDataType");
-            }
-        }
+        cloned.clearValue = CloneUtil.clone(clearValue);
+        cloned.encryptedDataType = CloneUtil.clone(encryptedDataType);
+
+        // content is virtual, there is no point in copying it
+
+//        for (Object o : getContent()) {
+//            if (o instanceof JAXBElement<?>) {
+//                JAXBElement<?> je = (JAXBElement) o;
+//                Object v = je.getValue();
+//                if (v == null) {
+//                    // do nothing
+//                } else if (v instanceof EncryptedDataType) {
+//                    EncryptedDataType edt = (EncryptedDataType) v;
+//                    cloned.addContent(new JAXBElement<EncryptedDataType>(je.getName(), (Class) je.getDeclaredType(), edt.clone()));
+//                } else {
+//                    throw new IllegalStateException("Unknown JAXB element "+je.getName()+" ("+je.getValue().getClass()+") in ProtectedDataType");
+//                }
+//            } else if (o instanceof Element) {
+//                cloned.addContent(((Element) o).cloneNode(true));
+//            } else if (o instanceof String) {
+//                cloned.addContent(o);           // will this work?
+//            } else {
+//                throw new IllegalStateException("Unknown object of type "+o.getClass()+ " in ProtectedDataType");
+//            }
+//        }
     }
 
     class ContentList implements List<Object>, Serializable {
@@ -435,6 +443,7 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
 		@Override
 		public Object get(int index) {
 			if (index == 0) {
+                // what if encryptedDataType is null and clearValue is set? [pm]
 				return toJaxbElement(encryptedDataType);
 			} else {
 				return null;

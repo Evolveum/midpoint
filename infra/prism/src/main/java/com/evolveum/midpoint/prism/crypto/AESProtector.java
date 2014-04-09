@@ -274,8 +274,9 @@ public class AESProtector implements Protector {
     @Override
     public String decryptString(ProtectedStringType protectedString) throws EncryptionException {
         try {
-        	decrypt(protectedString);
-        	return protectedString.getClearValue();
+            ProtectedStringType clone = protectedString.clone();
+        	decrypt(clone);
+        	return clone.getClearValue();
         } catch (SchemaException ex){
         	throw new EncryptionException(ex);
         }
