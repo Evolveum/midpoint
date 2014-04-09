@@ -28,7 +28,7 @@
 	<executionStatus>runnable</executionStatus>
 
 	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-2</handlerUri>
-	<objectRef oid="10000000-0000-0000-0000-000000131404"/>
+	<objectRef oid="10000000-0000-0000-0000-000000131404" type="ResourceType"/>
 	<recurrence>single</recurrence>
 
 </task>
