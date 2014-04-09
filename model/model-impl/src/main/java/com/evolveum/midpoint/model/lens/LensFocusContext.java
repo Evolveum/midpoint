@@ -185,48 +185,6 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     	}
     }
     
-    /**
-     * Returns delta of user assignments, both primary and secondary (merged together).
-     * The returned object is (kind of) immutable. Changing it may do strange things (but most likely the changes will be lost).
-     * Only works for UserType now.
-     * 
-     * This is relative to execution wave to avoid re-processing of already executed assignments.
-     */
-    public ContainerDelta<AssignmentType> getExecutionWaveAssignmentDelta() throws SchemaException {
-    	if (!FocusType.class.isAssignableFrom(getObjectTypeClass())) {
-    		throw new UnsupportedOperationException("Attempt to get assignment deltas from "+getObjectTypeClass());
-    	}
-        ObjectDelta<? extends FocusType> userDelta = (ObjectDelta<? extends FocusType>) getWaveDelta(getLensContext().getExecutionWave());
-        if (userDelta == null) {
-            return createEmptyAssignmentDelta();
-        }
-        ContainerDelta<AssignmentType> assignmentDelta = userDelta.findContainerDelta(new ItemPath(FocusType.F_ASSIGNMENT));
-        if (assignmentDelta == null) { 
-            return createEmptyAssignmentDelta();
-        }
-        return assignmentDelta;
-    }
-    
-	public Collection<? extends ItemDelta<?>> getExecutionWaveAssignmentItemDeltas(Long id) throws SchemaException {
-		if (!FocusType.class.isAssignableFrom(getObjectTypeClass())) {
-    		throw new UnsupportedOperationException("Attempt to get assignment deltas from "+getObjectTypeClass());
-    	}
-        ObjectDelta<? extends FocusType> userDelta = (ObjectDelta<? extends FocusType>) getWaveDelta(getLensContext().getExecutionWave());
-        if (userDelta == null) {
-            return null;
-        }
-        return userDelta.findItemDeltasSubPath(new ItemPath(new NameItemPathSegment(FocusType.F_ASSIGNMENT),
-        									  new IdItemPathSegment(id)));
-	}
-
-    private ContainerDelta<AssignmentType> createEmptyAssignmentDelta() {
-        return new ContainerDelta<AssignmentType>(getAssignmentContainerDefinition());
-    }
-    
-    private PrismContainerDefinition<AssignmentType> getAssignmentContainerDefinition() {
-		return getObjectDefinition().findContainerDefinition(FocusType.F_ASSIGNMENT);
-	}
-    
     @Override
 	public void cleanup() {
 		super.cleanup();
