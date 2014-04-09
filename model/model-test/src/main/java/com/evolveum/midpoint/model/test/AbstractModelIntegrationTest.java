@@ -1330,6 +1330,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         ConstructionType accountConstruntion = new ConstructionType();
         ObjectReferenceType resourceRef = new ObjectReferenceType();
         resourceRef.setOid(resourceOid);
+        resourceRef.setType(ResourceType.COMPLEX_TYPE);
 		accountConstruntion.setResourceRef(resourceRef);
 		accountConstruntion.setKind(ShadowKindType.ACCOUNT);
 		assignmentType.setConstruction(accountConstruntion);

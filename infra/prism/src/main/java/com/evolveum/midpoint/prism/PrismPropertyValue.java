@@ -238,8 +238,11 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 			// This is OK
 			return;
 		}
-		
-		if (value instanceof RawType) {
+        if (value instanceof SchemaDefinitionType) {
+            return;
+        }
+
+        if (value instanceof RawType) {
 			return;
 		}
 		

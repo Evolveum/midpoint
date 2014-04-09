@@ -249,7 +249,7 @@
 						<script>
 							<language>http://www.w3.org/TR/xpath/</language>
 							<code>
-								$c:givenName/t:orig
+								$givenName
 							</code>
 						</script>
 					</expression>
@@ -380,6 +380,8 @@
 							<script>
 								<language>http://www.w3.org/TR/xpath/</language>
 								<code>
+                                    declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+                                    declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2";
 									$c:account/c:attributes/ri:employeeNumber
 								</code>
 							</script>

@@ -31,6 +31,7 @@ import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.query.definition.*;
 import com.evolveum.midpoint.repo.sql.query.matcher.Matcher;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -99,7 +100,7 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
             propPathSegments.add(new NameItemPathSegment(qname));
             propPath = new ItemPath(propPathSegments);
             // get entity query definition
-            if (qname.equals(ObjectType.F_EXTENSION) || qname.equals(ShadowType.F_ATTRIBUTES)) {
+            if (QNameUtil.match(qname, ObjectType.F_EXTENSION) || QNameUtil.match(qname, ShadowType.F_ATTRIBUTES)) {
                 break;
             }
 
@@ -180,7 +181,7 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
             propPathSegments.add(new NameItemPathSegment(qname));
             propPath = new ItemPath(propPathSegments);
 
-            if (qname.equals(ObjectType.F_EXTENSION) || qname.equals(ShadowType.F_ATTRIBUTES)) {
+            if (QNameUtil.match(qname, ObjectType.F_EXTENSION) || QNameUtil.match(qname, ShadowType.F_ATTRIBUTES)) {
                 break;
             }
 

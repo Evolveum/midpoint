@@ -419,7 +419,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	
 	@Test
     public void test205AutzJackObjectFilterCaribbeanfRole() throws Exception {
-		final String TEST_NAME = "test205AutzJackObjectFilterCaribbeanfRole";
+		final String TEST_NAME = "test205AutzJackObjectFilterCaribbeanRole";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);

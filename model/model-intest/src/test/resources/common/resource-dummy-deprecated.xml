@@ -177,6 +177,7 @@
 					<strength>weak</strength>
 					<source>
 						<path>
+                            declare namespace piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy";
 							$user/extension/piracy:weapon
 						</path>
 					</source>
@@ -414,12 +415,14 @@
                 <outbound>
                     <strength>weak</strength>
                     <source>
-                        <path>$focus/extension/piracy:costCenter</path>
+                        <path>declare namespace piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy";
+                            $focus/extension/piracy:costCenter</path>
                     </source>
                 </outbound>
                 <inbound>
                     <target>
-                        <path>$focus/extension/piracy:costCenter</path>
+                        <path>declare namespace piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy";
+                            $focus/extension/piracy:costCenter</path>
                     </target>
                 </inbound>
             </attribute>
@@ -547,7 +550,8 @@ end
 				<q:equal>
 					<q:path>c:name</q:path>
 					<valueExpression>
-						<path>$account/attributes/icfs:name</path>
+						<path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
+                            $account/attributes/icfs:name</path>
 					</valueExpression>
 				</q:equal>
 			</correlation>

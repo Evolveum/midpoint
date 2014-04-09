@@ -830,6 +830,7 @@ public class IntegrationTestTools {
 		association.setName(associationName);
 		ObjectReferenceType shadowRefType = new ObjectReferenceType();
 		shadowRefType.setOid(groupOid);
+        shadowRefType.setType(ShadowType.COMPLEX_TYPE);
 		association.setShadowRef(shadowRefType);
 		ItemPath entitlementAssociationPath = new ItemPath(ShadowType.F_ASSOCIATION);
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationDeleteContainer(ShadowType.class, 

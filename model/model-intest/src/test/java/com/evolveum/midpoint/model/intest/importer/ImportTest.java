@@ -25,6 +25,8 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -648,12 +650,12 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		
 		if (fromRepo) {
 			Object passwordRawElement = guardedPVal.getRawElement();
-			if (!(passwordRawElement instanceof Element)) {
-				AssertJUnit.fail("Expected password value of type "+Element.class+" but got "+passwordRawElement.getClass());
+			if (!(passwordRawElement instanceof MapXNode)) {
+				AssertJUnit.fail("Expected password value of type "+MapXNode.class+" but got "+passwordRawElement.getClass());
 			}
-			Element passwordDomElement = (Element)passwordRawElement;
-			assertTrue("uselessGuardedString was not encrypted (clearValue)",passwordDomElement.getElementsByTagNameNS(SchemaConstants.NS_C, "clearValue").getLength()==0);
-	        assertTrue("uselessGuardedString was not encrypted (no EncryptedData)",passwordDomElement.getElementsByTagNameNS(DOMUtil.NS_XML_ENC,"EncryptedData").getLength()==1);
+			MapXNode passwordXNode = (MapXNode) passwordRawElement;
+			assertTrue("uselessGuardedString was not encrypted (clearValue)", passwordXNode.get(new QName("clearValue")) == null);
+	        assertTrue("uselessGuardedString was not encrypted (no encryptedData)", passwordXNode.get(new QName("encryptedData")) != null);
 		} else {
 			ProtectedStringType psType = guardedPVal.getValue();
 			assertNull("uselessGuardedString was not encrypted (clearValue)", psType.getClearValue());

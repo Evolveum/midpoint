@@ -132,7 +132,7 @@
 						<script>
 							<language>http://www.w3.org/TR/xpath/</language>
 							<code>
-								concat($c:name/t:orig, $c:iterationToken)
+								concat($name, $iterationToken)
 							</code>
 						</script>
 					</expression>
@@ -176,7 +176,8 @@
 				<outbound>
 					<strength>strong</strength>
 					<source>
-						<path xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
+						<path>
+                            declare namespace piracy = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
 							extension/piracy:weapon
 						</path>
 					</source>

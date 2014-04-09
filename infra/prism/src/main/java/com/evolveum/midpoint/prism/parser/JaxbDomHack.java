@@ -460,11 +460,10 @@ public class JaxbDomHack {
         try {
             QName fakeQName=new QName(PrismConstants.NS_PREFIX + "debug", "debugPrintObject");
             if (object instanceof Objectable) {
-                xml = prismDomProcessor.serializeObjectToString(((Objectable) object).asPrismObject());
+                xml = prismContext.serializeObjectToString(((Objectable) object).asPrismObject(), PrismContext.LANG_XML);
             } else if (object instanceof Containerable) {
-                Element fakeParent = DOMUtil.createElement(DOMUtil.getDocument(), fakeQName);
-                xml = prismDomProcessor.serializeObjectToString(((Containerable) object).asPrismContainerValue(),
-                        fakeParent);
+                xml = prismContext.serializeContainerValueToString(((Containerable) object).asPrismContainerValue(),
+                        fakeQName, PrismContext.LANG_XML);
             } else {
                 xml = marshalElementToString(new JAXBElement<Object>(fakeQName, Object.class, object));
             }

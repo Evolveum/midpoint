@@ -1076,40 +1076,40 @@ public class PrismDomProcessor {
 	 * is a copy of the object and does not change with the object. But the
 	 * representation is fully DOM-compliant.
 	 */
-	public Element serializeToDom(PrismObject<?> object) throws SchemaException {
-		return serializeToDom(object, false);
-	}
+//	public Element serializeToDom(PrismObject<?> object) throws SchemaException {
+//		return serializeToDom(object, false);
+//	}
 
-	public Element serializeToDom(PrismObject<?> object, boolean serializeCompositeObjects) throws SchemaException {
-		DomSerializer domSerializer = null;
-		domSerializer.setSerializeCompositeObjects(serializeCompositeObjects);
-//		return domSerializer.serialize(object);
-		return null;
-	}
+//	public Element serializeToDom(PrismObject<?> object, boolean serializeCompositeObjects) throws SchemaException {
+//		DomSerializer domSerializer = null;
+//		domSerializer.setSerializeCompositeObjects(serializeCompositeObjects);
+////		return domSerializer.serialize(object);
+//		return null;
+//	}
 
-	public <T extends Containerable> Element serializeToDom(PrismContainerValue<T> object, Element parentElement)
-			throws SchemaException {
+//	public <T extends Containerable> Element serializeToDom(PrismContainerValue<T> object, Element parentElement)
+//			throws SchemaException {
+//
+//		DomSerializer domSerializer = null;
+////		return domSerializer.serializeContainerValue(object, parentElement);
+//		return null;
+//	}
 
-		DomSerializer domSerializer = null;
-//		return domSerializer.serializeContainerValue(object, parentElement);
-		return null;
-	}
+//	public <T extends Objectable> String serializeObjectToString(PrismObject<T> object) throws SchemaException {
+//		return serializeObjectToString(object, false);
+//	}
 
-	public <T extends Objectable> String serializeObjectToString(PrismObject<T> object) throws SchemaException {
-		return serializeObjectToString(object, false);
-	}
+//	public <T extends Objectable> String serializeObjectToString(PrismObject<T> object,
+//			boolean serializeCompositeObjects) throws SchemaException {
+//		Element element = serializeToDom(object, serializeCompositeObjects);
+//		return DOMUtil.serializeDOMToString(element);
+//	}
 
-	public <T extends Objectable> String serializeObjectToString(PrismObject<T> object,
-			boolean serializeCompositeObjects) throws SchemaException {
-		Element element = serializeToDom(object, serializeCompositeObjects);
-		return DOMUtil.serializeDOMToString(element);
-	}
-
-	public <T extends Containerable> String serializeObjectToString(PrismContainerValue<T> object, Element parentElement)
-			throws SchemaException {
-		Element element = serializeToDom(object, parentElement);
-		return DOMUtil.serializeDOMToString(element);
-	}
+//	public <T extends Containerable> String serializeObjectToString(PrismContainerValue<T> object, Element parentElement)
+//			throws SchemaException {
+//		Element element = serializeToDom(object, parentElement);
+//		return DOMUtil.serializeDOMToString(element);
+//	}
 
 	public Element serializeValueToDom(PrismValue pval, QName elementName) throws SchemaException {
 		return serializeValueToDom(pval, elementName, DOMUtil.getDocument());

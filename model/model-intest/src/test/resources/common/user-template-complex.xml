@@ -55,10 +55,8 @@
     	</source>
     	<expression>
             <value>
-            	<assignment>
-					<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>
-				</assignment>
-            </value>    	
+                <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>
+            </value>
     	</expression>
     	<target>
     		<path>assignment</path>
