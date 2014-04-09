@@ -659,6 +659,87 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         PrismObject<ShadowType> accountShadow = getShadowModel(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID);
 		assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
 	}
+	
+	private XMLGregorianCalendar judgeAssignmentValidFrom;
+	private XMLGregorianCalendar judgeAssignmentValidTo;
+	
+	@Test
+    public void test300HermanAssignJudgeNotYetValid() throws Exception {
+		final String TEST_NAME = "test300HermanAssignJudgeNotYetValid";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ActivationType activationType = new ActivationType();
+        judgeAssignmentValidFrom = clock.currentTimeXMLGregorianCalendar();
+        judgeAssignmentValidFrom.add(XmlTypeConverter.createDuration(10*60*1000)); // 10 minutes ahead
+        activationType.setValidFrom(judgeAssignmentValidFrom);
+        judgeAssignmentValidTo = clock.currentTimeXMLGregorianCalendar();
+        judgeAssignmentValidTo.add(XmlTypeConverter.createDuration(30*60*1000)); // 30 minutes ahead
+        activationType.setValidTo(judgeAssignmentValidTo);
+        display("Assignment validFrom", judgeAssignmentValidFrom);
+        display("Assignment validTo", judgeAssignmentValidTo);
+        
+        testHermanAssignRoleJudgeInvalid(TEST_NAME, activationType, task, result);
+	}
+	
+	@Test(enabled=false) // MID-1830
+    public void test310HermanAssignJudgeBecomesValid() throws Exception {
+		final String TEST_NAME = "test310HermanAssignJudgeBecomesValid";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        XMLGregorianCalendar start = (XMLGregorianCalendar) judgeAssignmentValidFrom.clone();
+        start.add(XmlTypeConverter.createDuration(1*60*1000));
+        clock.override(start);
+        display("Start", start);
+        
+        // WHEN
+        // just wait
+        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
+        
+        assertRoleJudgeValid(TEST_NAME, task, result);
+	}
+	
+	@Test(enabled=false) // MID-1830
+    public void test315HermanAssignJudgeBecomesInValid() throws Exception {
+		final String TEST_NAME = "test315HermanAssignJudgeBecomesInValid";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        XMLGregorianCalendar start = (XMLGregorianCalendar) judgeAssignmentValidTo.clone();
+        start.add(XmlTypeConverter.createDuration(1*60*1000));
+        clock.override(start);
+        display("Start", start);
+        
+        // WHEN
+        // just wait
+        waitForTaskNextRun(TASK_VALIDITY_SCANNER_OID, true);
+        
+        assertRoleJudgeInValid(TEST_NAME, task, result);
+	}
+		
+	private void assertRoleJudgeValid(final String TEST_NAME, Task task, OperationResult result) throws Exception {	            
+        assertDummyAccount(null, USER_HERMAN_USERNAME);
+        PrismObject<UserType> user = getUser(USER_HERMAN_OID);
+        display("User after", user);
+        assertLinks(user, 1);
+	}
+	
+	private void assertRoleJudgeInValid(final String TEST_NAME, Task task, OperationResult result) throws Exception {	            
+        assertNoDummyAccount(null, USER_HERMAN_USERNAME);
+        PrismObject<UserType> user = getUser(USER_HERMAN_OID);
+        display("User after", user);
+        assertLinks(user, 0);
+	}
 
 
 }
