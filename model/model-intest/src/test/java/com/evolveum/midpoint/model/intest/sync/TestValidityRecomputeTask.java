@@ -822,10 +822,16 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("Assignment validFrom", judgeAssignmentValidFrom);
         display("Assignment validTo", judgeAssignmentValidTo);
         
-        testHermanAssignRoleJudgeInvalid(TEST_NAME, activationType, task, result);
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_HERMAN_OID, ROLE_JUDGE_OID, activationType, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        assertNoDummyAccount(null, USER_HERMAN_USERNAME);
 	}
 	
-	@Test(enabled=false) // MID-1830
+	@Test
     public void test310HermanAssignJudgeBecomesValid() throws Exception {
 		final String TEST_NAME = "test310HermanAssignJudgeBecomesValid";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -834,6 +840,8 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
+        PrismObject<UserType> user = getUser(USER_HERMAN_OID);
+        display("User before", user);
         XMLGregorianCalendar start = (XMLGregorianCalendar) judgeAssignmentValidFrom.clone();
         start.add(XmlTypeConverter.createDuration(1*60*1000));
         clock.override(start);
@@ -846,7 +854,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assertRoleJudgeValid(TEST_NAME, task, result);
 	}
 	
-	@Test(enabled=false) // MID-1830
+	@Test
     public void test315HermanAssignJudgeBecomesInValid() throws Exception {
 		final String TEST_NAME = "test315HermanAssignJudgeBecomesInValid";
         TestUtil.displayTestTile(this, TEST_NAME);
