@@ -1414,11 +1414,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             rObject = clazz.newInstance();
             Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz, PrismContext.class);
             method.invoke(clazz, object, rObject, getPrismContext());
-
-//            if (!add) {
-            ContainerIdGenerator gen = new ContainerIdGenerator();
-            gen.generateIdForObject(rObject);
-//            }
         } catch (Exception ex) {
             String message = ex.getMessage();
             if (StringUtils.isEmpty(message) && ex.getCause() != null) {
@@ -1794,9 +1789,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         return query.executeUpdate();
     }
 
-	@Override
-	public <T extends ObjectType> boolean matchObject(PrismObject<T> object, ObjectQuery query) throws SchemaException {
-		boolean applicable = ObjectQuery.match(object, query.getFilter(), getMatchingRuleRegistry());
-		return applicable;
-	}
+    @Override
+    public <T extends ObjectType> boolean matchObject(PrismObject<T> object, ObjectQuery query) throws SchemaException {
+        boolean applicable = ObjectQuery.match(object, query.getFilter(), getMatchingRuleRegistry());
+        return applicable;
+    }
 }
