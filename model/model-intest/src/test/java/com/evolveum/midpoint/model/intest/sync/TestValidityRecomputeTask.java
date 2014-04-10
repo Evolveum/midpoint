@@ -271,7 +271,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyObjectReplace(UserType.class, USER_HERMAN_OID, 
+        modifyObjectReplaceProperty(UserType.class, USER_HERMAN_OID, 
         		new ItemPath(
         				new NameItemPathSegment(UserType.F_ASSIGNMENT),
         				new IdItemPathSegment(judgeAssignment.getId()),
@@ -286,6 +286,102 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assertNoDummyAccount(null, USER_HERMAN_USERNAME);
 	}
 	
+	@Test
+    public void test122HermanEnableAssignmentJudge() throws Exception {
+		final String TEST_NAME = "test122HermanEnableAssignmentJudge";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        assertNoDummyAccount(null, USER_HERMAN_USERNAME);
+        AssignmentType judgeAssignment = getJudgeAssignment(USER_HERMAN_OID);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyObjectReplaceProperty(UserType.class, USER_HERMAN_OID, 
+        		new ItemPath(
+        				new NameItemPathSegment(UserType.F_ASSIGNMENT),
+        				new IdItemPathSegment(judgeAssignment.getId()),
+        				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
+        				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)), 
+        		task, result, ActivationStatusType.ENABLED);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        PrismObject<UserType> user = getUser(USER_HERMAN_OID);
+        display("User after", user);
+        assertDummyAccount(null, USER_HERMAN_USERNAME);
+	}
+	
+	@Test
+    public void test124HermanAssignmentJudgeValidToSetInvalid() throws Exception {
+		final String TEST_NAME = "test124HermanAssignmentJudgeValidToSetInvalid";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        assertDummyAccount(null, USER_HERMAN_USERNAME);
+        AssignmentType judgeAssignment = getJudgeAssignment(USER_HERMAN_OID);
+        ActivationType activationType = new ActivationType();
+        XMLGregorianCalendar validTo = clock.currentTimeXMLGregorianCalendar();
+        validTo.add(XmlTypeConverter.createDuration(-60*60*1000)); // one hour ago
+        activationType.setValidTo(validTo);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyObjectReplaceContainer(UserType.class, USER_HERMAN_OID, 
+        		new ItemPath(
+        				new NameItemPathSegment(UserType.F_ASSIGNMENT),
+        				new IdItemPathSegment(judgeAssignment.getId()),
+        				new NameItemPathSegment(AssignmentType.F_ACTIVATION)), 
+        		task, result, activationType);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        PrismObject<UserType> user = getUser(USER_HERMAN_OID);
+        display("User after", user);
+        assertNoDummyAccount(null, USER_HERMAN_USERNAME);
+	}
+
+	@Test
+    public void test126HermanAssignmentJudgeValidToSetValid() throws Exception {
+		final String TEST_NAME = "test126HermanAssignmentJudgeValidToSetValid";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        assertNoDummyAccount(null, USER_HERMAN_USERNAME);
+        AssignmentType judgeAssignment = getJudgeAssignment(USER_HERMAN_OID);
+        XMLGregorianCalendar validTo = clock.currentTimeXMLGregorianCalendar();
+        validTo.add(XmlTypeConverter.createDuration(60*60*1000)); // one hour ahead
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyObjectReplaceProperty(UserType.class, USER_HERMAN_OID, 
+        		new ItemPath(
+        				new NameItemPathSegment(UserType.F_ASSIGNMENT),
+        				new IdItemPathSegment(judgeAssignment.getId()),
+        				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
+        				new NameItemPathSegment(ActivationType.F_VALID_TO)), 
+        		task, result, validTo);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        PrismObject<UserType> user = getUser(USER_HERMAN_OID);
+        display("User after", user);
+        assertDummyAccount(null, USER_HERMAN_USERNAME);
+        
+        // CLEANUP
+        unassignAllRoles(USER_HERMAN_OID);
+        assertNoDummyAccount(null, USER_HERMAN_USERNAME);
+	}
+
 	private AssignmentType getJudgeAssignment(String userOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		PrismObject<UserType> user = getUser(userOid);
 		List<AssignmentType> assignments = user.asObjectable().getAssignment();
