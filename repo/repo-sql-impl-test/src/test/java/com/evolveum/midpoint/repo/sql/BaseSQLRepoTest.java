@@ -70,7 +70,7 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     @Autowired
     protected PrismContext prismContext;
     @Autowired
-    private SessionFactory factory;
+    protected SessionFactory factory;
 
     protected static Set<Class> initializedClasses = new HashSet<Class>();
 
