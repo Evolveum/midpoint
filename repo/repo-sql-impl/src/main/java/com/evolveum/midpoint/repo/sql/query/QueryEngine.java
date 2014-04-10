@@ -90,7 +90,8 @@ public class QueryEngine {
         query.setString("aOid", filter.getOrgRef().getOid());
         if (filter.getMaxDepth() != null) {
             if (filter.getMaxDepth() != 1) {
-                query.setInteger("minDepth", filter.getMinDepth());
+                int minDepth = filter.getMinDepth() == null ? 1 : filter.getMinDepth();
+                query.setInteger("minDepth", minDepth);
             }
             query.setInteger("maxDepth", filter.getMaxDepth());
         }
