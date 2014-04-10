@@ -896,7 +896,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 longCount = (Number) sqlQuery.uniqueResult();
             } else {
                 LOGGER.trace("Updating query criteria.");
-                QueryEngine engine = new QueryEngine(getPrismContext());
+                QueryEngine engine = new QueryEngine(getConfiguration(), getPrismContext());
                 RQuery rQuery = engine.interpret(query, type, null, true, session);
 
                 LOGGER.trace("Selecting total count.");
@@ -973,7 +973,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Session session = null;
         try {
             session = beginReadOnlyTransaction();
-            QueryEngine engine = new QueryEngine(getPrismContext());
+            QueryEngine engine = new QueryEngine(getConfiguration(), getPrismContext());
             RQuery rQuery = engine.interpret(query, type, options, false, session);
 
             List<GetObjectResult> objects = rQuery.list();
@@ -1671,7 +1671,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Session session = null;
         try {
             session = beginReadOnlyTransaction();
-            QueryEngine engine = new QueryEngine(getPrismContext());
+            QueryEngine engine = new QueryEngine(getConfiguration(), getPrismContext());
             RQuery rQuery = engine.interpret(query, type, options, false, session);
 
             ScrollableResults results = rQuery.scroll(ScrollMode.FORWARD_ONLY);

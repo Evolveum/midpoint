@@ -63,9 +63,8 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
 
     @Autowired
     protected LocalSessionFactoryBean sessionFactoryBean;
-
     @Autowired
-    protected RepositoryService repositoryService;
+    protected SqlRepositoryServiceImpl repositoryService;
     @Autowired
     protected AuditService auditService;
     @Autowired
@@ -164,8 +163,14 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
 
         LOGGER.info("QUERY TYPE TO CONVERT : {}", (query.getFilter() != null ? query.getFilter().debugDump(3) : null));
 
-        QueryEngine engine = new QueryEngine(prismContext);
+        QueryEngine engine = new QueryEngine(repositoryService.getConfiguration(), prismContext);
         RQuery rQuery = engine.interpret(query, type, null, interpretCount, session);
+        //just test if DB will handle it or throws some exception
+        if (interpretCount) {
+            rQuery.uniqueResult();
+        } else {
+            rQuery.list();
+        }
 
         if (rQuery instanceof RQueryCriteriaImpl) {
             Criteria criteria = ((RQueryCriteriaImpl) rQuery).getCriteria();

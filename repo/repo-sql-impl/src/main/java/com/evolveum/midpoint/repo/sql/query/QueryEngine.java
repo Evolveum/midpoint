@@ -2,6 +2,7 @@ package com.evolveum.midpoint.repo.sql.query;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -17,9 +18,11 @@ import java.util.Collection;
  */
 public class QueryEngine {
 
+    private SqlRepositoryConfiguration repoConfiguration;
     private PrismContext prismContext;
 
-    public QueryEngine(PrismContext prismContext) {
+    public QueryEngine(SqlRepositoryConfiguration config, PrismContext prismContext) {
+        this.repoConfiguration = config;
         this.prismContext = prismContext;
     }
 
@@ -29,8 +32,7 @@ public class QueryEngine {
 
         //todo search some query library for query filter match
 
-
-        QueryInterpreter interpreter = new QueryInterpreter();
+        QueryInterpreter interpreter = new QueryInterpreter(repoConfiguration);
         Criteria criteria = interpreter.interpret(query, type, options, prismContext, countingObjects, session);
         if (countingObjects) {
             criteria.setProjection(Projections.rowCount());

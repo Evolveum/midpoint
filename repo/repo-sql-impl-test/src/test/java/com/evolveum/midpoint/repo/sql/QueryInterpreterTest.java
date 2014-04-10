@@ -746,12 +746,14 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         }
 
         if (group) {
-            list.add(Projections.groupProperty(prefix + "fullObject"));
-            list.add(Projections.groupProperty(prefix + "stringsCount"));
-            list.add(Projections.groupProperty(prefix + "longsCount"));
-            list.add(Projections.groupProperty(prefix + "datesCount"));
-            list.add(Projections.groupProperty(prefix + "referencesCount"));
-            list.add(Projections.groupProperty(prefix + "polysCount"));
+            if (repositoryService.getConfiguration().isUsingSQLServer()) {
+                list.add(Projections.groupProperty(prefix + "fullObject"));
+                list.add(Projections.groupProperty(prefix + "stringsCount"));
+                list.add(Projections.groupProperty(prefix + "longsCount"));
+                list.add(Projections.groupProperty(prefix + "datesCount"));
+                list.add(Projections.groupProperty(prefix + "referencesCount"));
+                list.add(Projections.groupProperty(prefix + "polysCount"));
+            }
         } else {
             list.add(Projections.property(prefix + "fullObject"));
             list.add(Projections.property(prefix + "stringsCount"));
@@ -768,10 +770,11 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         try {
             ProjectionList list = Projections.projectionList();
+            addFullObjectProjectionList("o", list, false);
             addFullObjectProjectionList("o", list, true);
             list.add(Projections.groupProperty("o.name.orig"));
             list.add(Projections.groupProperty("closure.descendant"));
-            addFullObjectProjectionList("o", list, false);
+
 
             Criteria main = session.createCriteria(RObject.class, "o");
             main.createCriteria("descendants", "closure").setFetchMode("closure.ancestor", FetchMode.DEFAULT)
@@ -911,10 +914,10 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         try {
             ProjectionList list = Projections.projectionList();
+            addFullObjectProjectionList("o", list, false);
             addFullObjectProjectionList("o", list, true);
             list.add(Projections.groupProperty("o.name.orig"));
             list.add(Projections.groupProperty("closure.descendant"));
-            addFullObjectProjectionList("o", list, false);
 
             Criteria main = session.createCriteria(ROrg.class, "o");
             main.createCriteria("descendants", "closure").setFetchMode("closure.ancestor", FetchMode.DEFAULT)
@@ -1034,13 +1037,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                                 focusObjectDef, lastScanTimestamp, false),
                         LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
                                 focusObjectDef, thisScanTimestamp, true)
-                    ),
+                ),
                 AndFilter.createAnd(
                         GreaterFilter.createGreater(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
                                 focusObjectDef, lastScanTimestamp, false),
                         LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
                                 focusObjectDef, thisScanTimestamp, true)
-                    )
+                )
         );
 
         Session session = open();
