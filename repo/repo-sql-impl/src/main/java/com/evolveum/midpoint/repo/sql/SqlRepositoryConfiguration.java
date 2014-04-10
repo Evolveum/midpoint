@@ -49,6 +49,9 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_JDBC_USERNAME = "jdbcUsername";
     public static final String PROPERTY_JDBC_URL = "jdbcUrl";
     public static final String PROPERTY_DATASOURCE = "dataSource";
+    public static final String PROPERTY_USE_ZIP = "useZip";
+    public static final String PROPERTY_MIN_POOL_SIZE = "minPoolSize";
+    public static final String PROPERTY_MAX_POOL_SIZE = "maxPoolSize";
 
     // concurrency properties
     public static final String PROPERTY_TRANSACTION_ISOLATION = "transactionIsolation";
@@ -63,12 +66,12 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_ITERATIVE_SEARCH_BY_PAGING_BATCH_SIZE = "iterativeSearchByPagingBatchSize";
 
     //embedded configuration
-    private boolean embedded = true;
+    private boolean embedded;
     private boolean asServer;
     private String baseDir;
     private String fileName;
     private boolean tcpSSL;
-    private int port = 5437;
+    private int port;
     private boolean dropIfExists;
     //connection for hibernate
     private String driverClassName;
@@ -78,6 +81,9 @@ public class SqlRepositoryConfiguration {
     private String hibernateDialect;
     private String hibernateHbm2ddl;
     private String dataSource;
+    private int minPoolSize;
+    private int maxPoolSize;
+    private boolean useZip;
 
     private TransactionIsolation transactionIsolation;
     private boolean lockForUpdateViaHibernate;
@@ -90,20 +96,23 @@ public class SqlRepositoryConfiguration {
     private int iterativeSearchByPagingBatchSize;
 
     public SqlRepositoryConfiguration(Configuration configuration) {
-        setAsServer(configuration.getBoolean(PROPERTY_AS_SERVER, asServer));
+        setAsServer(configuration.getBoolean(PROPERTY_AS_SERVER, false));
         setBaseDir(configuration.getString(PROPERTY_BASE_DIR, baseDir));
         setDriverClassName(configuration.getString(PROPERTY_DRIVER_CLASS_NAME, driverClassName));
-        setEmbedded(configuration.getBoolean(PROPERTY_EMBEDDED, embedded));
+        setEmbedded(configuration.getBoolean(PROPERTY_EMBEDDED, true));
         setHibernateDialect(configuration.getString(PROPERTY_HIBERNATE_DIALECT, hibernateDialect));
         setHibernateHbm2ddl(configuration.getString(PROPERTY_HIBERNATE_HBM2DDL, hibernateHbm2ddl));
         setJdbcPassword(configuration.getString(PROPERTY_JDBC_PASSWORD, jdbcPassword));
         setJdbcUrl(configuration.getString(PROPERTY_JDBC_URL, jdbcUrl));
         setJdbcUsername(configuration.getString(PROPERTY_JDBC_USERNAME, jdbcUsername));
-        setPort(configuration.getInt(PROPERTY_PORT, port));
+        setPort(configuration.getInt(PROPERTY_PORT, 5437));
         setTcpSSL(configuration.getBoolean(PROPERTY_TCP_SSL, tcpSSL));
         setFileName(configuration.getString(PROPERTY_FILE_NAME, fileName));
         setDropIfExists(configuration.getBoolean(PROPERTY_DROP_IF_EXISTS, dropIfExists));
         setDataSource(configuration.getString(PROPERTY_DATASOURCE, null));
+        setMinPoolSize(configuration.getInt(PROPERTY_MIN_POOL_SIZE, 8));
+        setMaxPoolSize(configuration.getInt(PROPERTY_MAX_POOL_SIZE, 20));
+        setUseZip(configuration.getBoolean(PROPERTY_USE_ZIP, false));
 
         computeDefaultConcurrencyParameters();
 
@@ -175,8 +184,7 @@ public class SqlRepositoryConfiguration {
     /**
      * Configuration validation.
      *
-     * @throws RepositoryServiceFactoryException
-     *          if configuration is invalid.
+     * @throws RepositoryServiceFactoryException if configuration is invalid.
      */
     public void validate() throws RepositoryServiceFactoryException {
         if (StringUtils.isEmpty(getDataSource())) {
@@ -193,9 +201,21 @@ public class SqlRepositoryConfiguration {
             notEmpty(getBaseDir(), "Base dir is empty or not defined.");
             if (isAsServer()) {
                 if (getPort() < 0 || getPort() > 65535) {
-                    throw new RepositoryServiceFactoryException("Port must be in interval (0-65535)");
+                    throw new RepositoryServiceFactoryException("Port must be in interval (0-65534)");
                 }
             }
+        }
+
+        if (getMinPoolSize() <= 0) {
+            throw new RepositoryServiceFactoryException("Min. pool size must be greater than zero.");
+        }
+
+        if (getMaxPoolSize() <= 0) {
+            throw new RepositoryServiceFactoryException("Max. pool size must be greater than zero.");
+        }
+
+        if (getMinPoolSize() > getMaxPoolSize()) {
+            throw new RepositoryServiceFactoryException("Max. pool size must be greater than min. pool size.");
         }
     }
 
@@ -425,6 +445,30 @@ public class SqlRepositoryConfiguration {
 
     public void setDataSource(String dataSource) {
         this.dataSource = dataSource;
+    }
+
+    public int getMinPoolSize() {
+        return minPoolSize;
+    }
+
+    public void setMinPoolSize(int minPoolSize) {
+        this.minPoolSize = minPoolSize;
+    }
+
+    public int getMaxPoolSize() {
+        return maxPoolSize;
+    }
+
+    public void setMaxPoolSize(int maxPoolSize) {
+        this.maxPoolSize = maxPoolSize;
+    }
+
+    public boolean isUseZip() {
+        return useZip;
+    }
+
+    public void setUseZip(boolean useZip) {
+        this.useZip = useZip;
     }
 
     public boolean isUsingH2() {

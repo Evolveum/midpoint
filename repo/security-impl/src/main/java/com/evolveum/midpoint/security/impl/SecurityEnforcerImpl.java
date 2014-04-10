@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 
 import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.ConfigAttribute;
 import org.springframework.security.access.SecurityConfig;
@@ -45,6 +46,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -79,7 +81,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	private static final Trace LOGGER = TraceManager.getTrace(SecurityEnforcerImpl.class);
 	
 	@Autowired(required = true)
-	private MatchingRuleRegistry matchingRuleRegistry;
+	@Qualifier("cacheRepositoryService")
+	private RepositoryService repositoryService;
 	
 	private UserProfileService userProfileService = null;
 	
@@ -285,8 +288,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			LOGGER.trace("  specials empty: {}", specSpecial);
 		}
 		if (specFilter != null) {
+			// TODO: organizational structure
 			ObjectQuery q = QueryConvertor.createObjectQuery(object.getCompileTimeClass(), specFilter, object.getPrismContext());
-			boolean applicable = ObjectQuery.match(object, q.getFilter(), matchingRuleRegistry);
+			boolean applicable = repositoryService.matchObject(object, q);
 			if (applicable) {
 				LOGGER.trace("  Authorization applicable for {} (filter)", desc);
 			} else {

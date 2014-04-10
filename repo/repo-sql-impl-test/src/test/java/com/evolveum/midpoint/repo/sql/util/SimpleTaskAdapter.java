@@ -485,12 +485,14 @@ public class SimpleTaskAdapter implements Task {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
+    @Deprecated
     @Override
     public TaskRunResult waitForSubtasks(Integer interval, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 
+    @Deprecated
     @Override
     public TaskRunResult waitForSubtasks(Integer interval, Collection<ItemDelta<?>> extensionDeltas,
                                          OperationResult parentResult)

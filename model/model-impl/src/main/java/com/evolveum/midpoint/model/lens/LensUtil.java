@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.mutable.MutableBoolean;
 
+import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
@@ -71,6 +72,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.IterationSpecificationType;
@@ -84,6 +86,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TimeIntervalStatusType;
 
 /**
  * @author semancik
@@ -887,5 +890,15 @@ public class LensUtil {
 		}
 		return realValue;
 
+	}
+    
+    public static boolean isValid(AssignmentType assignmentType, XMLGregorianCalendar now, ActivationComputer activationComputer) {
+		ActivationType activationType = assignmentType.getActivation();
+		if (activationType == null) {
+			return true;
+		}
+		TimeIntervalStatusType validityStatus = activationComputer.getValidityStatus(activationType, now);
+		ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType, validityStatus);
+		return effectiveStatus == ActivationStatusType.ENABLED;
 	}
 }

@@ -25,7 +25,7 @@
          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
          xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
 
-    <object xsi:type="UserType" version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+    <user version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 
             xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
@@ -48,6 +48,10 @@
         </metadata>
 
         <assignment id="1">
+            <description>Some assignment description</description>
+            <extension>
+                <my:dead xsi:type="xsd:int">123</my:dead>
+            </extension>
             <metadata>
                 <creatorRef oid="dddccccc-cccc-cccc-cccc-000022222222" type="c:UserType"/>
                 <createApproverRef oid="dddccccc-cccc-cccc-cccc-000022222222" type="c:UserType"/>
@@ -59,9 +63,7 @@
                 <modifyChannel>http://modifyChannelUri</modifyChannel>
             </metadata>
             <construction>
-                <description>
-                    Account construction.
-                </description>
+                <description>Account construction.</description>
                 <resourceRef oid="c0c010c0-d34d-b33f-f00d-333bbbbbbbb2" type="c:ResourceType"/>
                 <intent>default</intent>
             </construction>
@@ -108,11 +110,9 @@
         <activation>
             <administrativeStatus>archived</administrativeStatus>
             <effectiveStatus>disabled</effectiveStatus>
-            <disableReason>asdfreason</disableReason>
+            <disableReason>some reason</disableReason>
         </activation>
-        <iteration>123</iteration>
-        <iterationToken>stringtoken</iterationToken>
-    </object>
+    </user>
 
     <object xsi:type="UserType" version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 
@@ -152,31 +152,19 @@
         <activation>
             <administrativeStatus>archived</administrativeStatus>
             <effectiveStatus>disabled</effectiveStatus>
+            <disableReason>asdfreason</disableReason>
         </activation>
+        <iteration>123</iteration>
+        <iterationToken>stringtoken</iterationToken>
     </object>
 
     <resource>
-
-        <!-- Resource name. It will be displayed in GUI.  -->
         <name>Localhost OpenDJ</name>
-
-        <description>
-            LDAP resource using an Identity Connector Framework LDAP connector. It contains configuration
-            for use with stock OpenDJ and OpenDS servers.
-
-            This resource definition contains also definition to enable synchronization and
-            especially an expression that is using a lookup of value from an configuration
-            object.
-        </description>
-
+        <description>LDAP resource using an Identity Connector Framework LDAP connector.</description>
         <connectorRef type="ConnectorType" oid="123">
-            <description>
-                Reference to the ICF LDAP connector. This is dynamic reference, it will be translated to
-                OID during import.
-            </description>
+            <description>Reference to the ICF LDAP connector.</description>
             <and>
                 <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-2a#ConnectorType"/>
-
                 <equal>
                     <value>
                         <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
@@ -185,17 +173,13 @@
             </and>
         </connectorRef>
 
-        <!-- Configuration section contains configuration of the connector,
-             such as hostnames and passwords -->
         <connectorConfiguration
                 xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector"
                 xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
 
-            <!-- Configuration specific for the LDAP connector -->
             <icfc:configurationProperties>
                 <icfcldap:port>1389</icfcldap:port>
                 <icfcldap:host>localhost</icfcldap:host>
-
                 <icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
                 <icfcldap:principal>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:principal>
                 <icfcldap:credentials>
@@ -204,62 +188,36 @@
                 <icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com
                 </icfcldap:modifiersNamesToFilterOut>
                 <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
-
                 <icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
                 <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
             </icfc:configurationProperties>
-
-            <!-- Generic ICF configuration -->
-
             <icfc:connectorPoolConfiguration>
                 <icfc:minEvictableIdleTimeMillis>120000</icfc:minEvictableIdleTimeMillis>
-
                 <icfc:minIdle>1</icfc:minIdle>
                 <icfc:maxIdle>10</icfc:maxIdle>
                 <icfc:maxObjects>10</icfc:maxObjects>
                 <icfc:maxWait>150000</icfc:maxWait>
             </icfc:connectorPoolConfiguration>
-
             <icfc:producerBufferSize>100</icfc:producerBufferSize>
-
             <icfc:timeouts>
                 <icfc:create>-1</icfc:create>
                 <icfc:get>-1</icfc:get>
                 <icfc:update>-1</icfc:update>
                 <icfc:delete>-1</icfc:delete>
                 <icfc:test>-1</icfc:test>
-
                 <icfc:scriptOnConnector>-1</icfc:scriptOnConnector>
                 <icfc:scriptOnResource>-1</icfc:scriptOnResource>
                 <icfc:authentication>-1</icfc:authentication>
                 <icfc:search>-1</icfc:search>
                 <icfc:validate>-1</icfc:validate>
                 <icfc:sync>-1</icfc:sync>
-
                 <icfc:schema>-1</icfc:schema>
             </icfc:timeouts>
-
         </connectorConfiguration>
-
- <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
-
         <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
-
-        <!-- Resource schema definition.
-             It defines all the object classes that are available to midPoint
-             (accounts, groups, ...).
-
-             This should be direct mapping of ICF schema (and therefore also
-             LDAP schema). This is not supposed to be customized during deployment
-             unless the underlying LDAP schema is non-standard (also see below).
-
-             This schema is normally generated from the resource on the first use.
-             Therefore it is not needed to provide the schema here during import.
-             This example has a schema definition to show how it looks like and also to
-             demonstrate that it can be provided during import if needed. -->
         <schema>
             <definition>
-            <xsd:schema elementFormDefault="qualified"
+                <xsd:schema elementFormDefault="qualified"
 					targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
 					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
@@ -365,18 +323,6 @@
 				</xsd:schema>
             </definition>
         </schema>
-
-
-        <!-- Resource Schema Handling definition.
-             This part defines how the schema defined above will be used by
-             midPoint. It defines expressions and limitations for individual
-             schema attributes.
-
-             The expressions that describe both inbound and outbound flow of
-             the attributes are defined in this section.
-
-             This is the part where most of the customization takes place.
-        -->
 		<schemaHandling>
 			<accountType>
 				<name>default</name>
@@ -395,7 +341,6 @@
 						</source>
 						<expression>
 							<script>
-								<!-- No explicit script language was specified. It means that this is Groovy -->
 								<code>
 									'uid=' + name + iterationToken + ',ou=people,dc=example,dc=com'
 								</code>
@@ -433,13 +378,11 @@
 					<access>update</access>
 					<outbound>
 						<source>
-							<!-- The path can be shorteden like this. $user is a default source "context" in outbound -->
 							<path>familyName</path>
 						</source>
 					</outbound>
 					<inbound>
 						<target>
-							<!-- The path can be shorteden like this. $user is a default target "context" in inbound -->
 							<path>familyName</path>
 						</target>
 					</inbound>
@@ -452,7 +395,6 @@
 					<access>update</access>
 					<outbound>
 						<source>
-							<!-- Full namespace prefixes can be used in the path -->
 							<path>$c:user/c:givenName</path>
 						</source>
 					</outbound>
@@ -491,7 +433,6 @@
 					</outbound>
 					<inbound>
 						<target>
-							<!-- Namespace prefixes can be also declared inside a path -->
 							<path>
 								declare namespace my="http://whatever.com/my";
 								$c:user/c:extension/my:description
@@ -518,34 +459,32 @@
 						</expression>
 					</outbound>
 				</attribute>
-
-		           <credentials>
-		               <password>
-		                   <outbound>
-		                   	<expression>
-		                       	<asIs/>
-		                       </expression>
-		                   </outbound>
-		                   <inbound>
-		                   	<strength>weak</strength>
-		                       <expression>
-		                           <generate/>
-		                       </expression>
-		                   </inbound>
-		               </password>
-		           </credentials>
-
-		           <activation>
-		               <enabled>
-		                   <outbound/>
-		                   <inbound>
-		                   	<strength>weak</strength>
-		                       <expression>
-		                           <asIs/>
-		                       </expression>
-		                   </inbound>
-		               </enabled>
-		           </activation>
+                <credentials>
+                   <password>
+                       <outbound>
+                        <expression>
+                            <asIs/>
+                           </expression>
+                       </outbound>
+                       <inbound>
+                        <strength>weak</strength>
+                           <expression>
+                               <generate/>
+                           </expression>
+                       </inbound>
+                   </password>
+                </credentials>
+                <activation>
+                   <enabled>
+                       <outbound/>
+                       <inbound>
+                        <strength>weak</strength>
+                           <expression>
+                               <asIs/>
+                           </expression>
+                       </inbound>
+                   </enabled>
+                </activation>
 				<iteration>
 					<maxIterations>5</maxIterations>
 				</iteration>
@@ -554,155 +493,58 @@
 		           </protected>
 			</accountType>
 		</schemaHandling>
-
-<!--         <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"> -->
-<!--             <cap:activation> -->
-
-<!--                 <cap:status> -->
-<!--                     <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute> -->
-<!--                     <cap:enableValue/> -->
-<!--                     <cap:disableValue>true</cap:disableValue> -->
-<!--                 </cap:status> -->
-<!--             </cap:activation> -->
-<!--             <cap:credentials> -->
-<!--                 <cap:password/> -->
-
-<!--             </cap:credentials> -->
-<!--             <cap:liveSync/> -->
-<!--             <cap:testConnection/> -->
-<!--         </capabilities> -->
-
-        <!--
-            Synchronization section describes the synchronization policy, timing,
-            reactions and similar synchronization settings.
-        -->
+        <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+            <native>
+                <cap:delete/>
+            </native>
+            <configured>
+                <cap:activation>
+                    <cap:status>
+                        <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
+                        <cap:enableValue/>
+                        <cap:disableValue>true</cap:disableValue>
+                    </cap:status>
+                </cap:activation>
+            </configured>
+        </capabilities>
         <synchronization>
-            <!--
-                The synchronization for this resource is enabled.
-                It means that the synchronization will react to changes detected by
-                the system (live sync task, discovery or reconciliation) -->
             <enabled>true</enabled>
-
             <correlation>
-                <description>
-                    Correlation expression is a search query.
-                    Following search queury will look for users that have "name"
-                    equal to the "uid" attribute of the account. Simply speaking,
-                    it will look for match in usernames in the IDM and the resource.
-                    The correlation rule always looks for users, so it will not match
-                    any other object type.
-                </description>
+                <description>Correlation expression is a search query.</description>
                 <equal>
                     <path>.</path>
                     <valueExpression>
                         <ref>name</ref>
-
                         <code>
                             $c:account/c:attributes/ri:uid
                         </code>
                     </valueExpression>
                 </equal>
             </correlation>
-
-            <!-- Confirmation rule may be here, but as the search above will
-                 always return at most one match, the confirmation rule is not needed. -->
-
-            <!-- Following section describes reactions to a situations.
-                 The setting here assumes that this resource is authoritative,
-                 therefore all accounts created on the resource should be
-                 reflected as new users in IDM.
-                 See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
-             -->
-
             <reaction>
                 <situation>linked</situation>
                 <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
-                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#disableAccount"/>-->
-            </reaction>
-            <reaction>
-                <situation>deleted</situation>
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
-                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#disableUser"/>-->
-            </reaction>
-
-            <reaction>
-                <situation>unlinked</situation>
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
-                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#enableUser"/>-->
             </reaction>
             <reaction>
                 <situation>unmatched</situation>
                 <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser">
-                    <!-- Reference to the User Template is here. If the user would be
-                         created as a result of this action, it will be created according
-                         to this template. -->
-
                     <userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
                 </action>
-                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>-->
             </reaction>
-
         </synchronization>
-        
-         <projection>
-   <assignmentPolicyEnforcement>positive</assignmentPolicyEnforcement>
-   </projection>
-
+        <projection>
+            <assignmentPolicyEnforcement>positive</assignmentPolicyEnforcement>
+        </projection>
     </resource>
-
-    <resource>
-
-        <name>Localhost OpenDJ Simple</name>
-
-        <connectorRef oid="cccccccc-cccc-cccc-cccc-000022222222" type="ConnectorType">
-        </connectorRef>
-
-        <connectorConfiguration
-                xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector"
-                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
-
-            <!-- Configuration specific for the LDAP connector -->
-            <icfc:configurationProperties>
-                <icfcldap:port>1389</icfcldap:port>
-                <icfcldap:host>localhost</icfcldap:host>
-
-                <icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
-                <icfcldap:principal>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:principal>
-                <icfcldap:credentials>
-                    <clearValue>secret</clearValue>
-                </icfcldap:credentials>
-                <icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com
-                </icfcldap:modifiersNamesToFilterOut>
-                <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
-
-                <icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
-                <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
-            </icfc:configurationProperties>
-
-
-        </connectorConfiguration>
-
-    </resource>
-
 
     <objectTemplate>
         <name>Default User Template</name>
-        <description>
-            User Template Object.
-            This object is used when creating a new account, to set it up as needed.
+        <description>User Template Object.
         </description>
         <includeRef oid="1234" type="c:UserType"/>
         <includeRef oid="12345" type="c:ResourceType"/>
-        <iteration>
-            <maxIterations>123</maxIterations>
-        </iteration>
         <mapping>
-            <description>
-                Property construction.
-                Defines how properties of user object are set up.
-                This specific definition sets a full name as a concatenation
-                of givenName and familyName.
-            </description>
+            <description>Property construction.</description>
             <strength>weak</strength>
             <source>
             	<path>$user/givenName</path>
@@ -723,21 +565,10 @@
 
     <objectTemplate>
         <name>Default User Template2</name>
-
-        <description>
-            Alternative User Template Object.
-            This object is used when creating a new account, to set it up as needed.
-        </description>
-
+        <description>Alternative User Template Object.</description>
         <includeRef oid="12346" type="c:UserType"/>
-
 		<mapping>
-            <description>
-                Property construction.
-                Defines how properties of user object are set up.
-                This specific definition sets a full name as a concatenation
-                of givenName and familyName.
-            </description>
+            <description>Property construction.</description>
             <strength>weak</strength>
             <source>
             	<path>$user/givenName</path>
@@ -757,14 +588,8 @@
     </objectTemplate>
 
     <genericObject oid="9999">
-
         <name>My Sample Config Object</name>
-        <description>
-            Sample custom configuration object. Object of the genericObject type are
-            in fact free-form objects. They can contain almost any XML data in the
-            extension part. They are supposed to hold data structures that parametrize
-            the IDM custom business logic or IDM expressions.
-        </description>
+        <description>Sample custom configuration object.</description>
         <extension xmlns:p="http://example.com/p">
             <p:stringType>some text in here</p:stringType>
             <p:intType>1234</p:intType>
@@ -790,21 +615,16 @@
 
     <task oid="555">
         <name>Synchronization: Embedded Test OpenDJ</name>
-        <description>
-            Definition of a live sychnronization task. It will poll changelog and pull in changes
-        </description>
+        <description>Definition of a live sychnronization task. It will poll changelog and pull in changes</description>
         <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <executionStatus>runnable</executionStatus>
-
-
         <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-2</handlerUri>
         <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
         <recurrence>recurring</recurrence>
         <binding>tight</binding>
         <schedule>
             <interval>5</interval>
-
         </schedule>
     </task>
 
@@ -1315,14 +1135,9 @@
                     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"/>
                     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-2"/>
 
-                    <!-- sample how HQL query for jasper design (queryString element) can be added to configuration schema -->
                     <xsd:element name="hqlQuery" type="xsd:string"/>
-
-                    <!-- sample how query api datasource configuration should look like-->
                     <xsd:element name="type" type="xsd:QName"/>
                     <xsd:element name="filter" type="q:FilterType"/>
-
-                    <!-- sample how audit configuration probably should look like -->
                     <xsd:element name="LOGO_PATH" type="xsd:string"/>
                     <xsd:element name="BaseTemplateStyles" type="xsd:string"/>
                     <xsd:element name="from" type="xsd:dateTime"/>
@@ -1332,10 +1147,8 @@
                         <xsd:restriction base="xsd:string">
                             <xsd:enumeration value="createSession"/>
                             <xsd:enumeration value="getObject"/>
-                            <!-- possibly others -->
                         </xsd:restriction>
                     </xsd:simpleType>
-
                 </xsd:schema>
             </definition>
         </configurationSchema>

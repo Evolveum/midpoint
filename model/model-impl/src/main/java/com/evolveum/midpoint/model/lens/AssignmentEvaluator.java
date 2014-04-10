@@ -201,7 +201,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		checkSchema(assignmentType, sourceDescription);
 		
-		if (isValid(assignmentType, now)) {
+		if (LensUtil.isValid(assignmentType, now, activationComputer)) {
 		
 			if (assignmentType.getAccountConstruction() != null || assignmentType.getConstruction() != null) {
 				
@@ -439,16 +439,6 @@ public class AssignmentEvaluator<F extends FocusType> {
 				}
 			}
 		}
-	}
-	
-	private boolean isValid(AssignmentType assignmentType, XMLGregorianCalendar now) {
-		ActivationType activationType = assignmentType.getActivation();
-		if (activationType == null) {
-			return true;
-		}
-		TimeIntervalStatusType validityStatus = activationComputer.getValidityStatus(activationType, now);
-		ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType, validityStatus);
-		return effectiveStatus == ActivationStatusType.ENABLED;
 	}
 
 }

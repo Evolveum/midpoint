@@ -24,13 +24,13 @@ import java.io.Serializable;
 public class RMetadataId implements Serializable {
 
     private String ownerOid;
-    private Long ownerId;
+    private Short ownerId;
 
-    public Long getOwnerId() {
+    public Short getOwnerId() {
         return ownerId;
     }
 
-    public void setOwnerId(Long ownerId) {
+    public void setOwnerId(Short ownerId) {
         this.ownerId = ownerId;
     }
 

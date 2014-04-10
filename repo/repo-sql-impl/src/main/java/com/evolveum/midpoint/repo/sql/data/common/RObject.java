@@ -16,31 +16,36 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.sql.data.common.any.*;
+import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.type.RCreateApproverRef;
+import com.evolveum.midpoint.repo.sql.data.common.type.RModifyApproverRef;
+import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
-import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
-import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
-import com.evolveum.midpoint.repo.sql.query.definition.VirtualProperty;
+import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.*;
+import org.hibernate.annotations.NamedQueries;
+import org.hibernate.annotations.NamedQuery;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -49,66 +54,78 @@ import java.util.Set;
 /**
  * @author lazyman
  */
+@NamedQueries({
+        @NamedQuery(name = "get.object", query = "select o.fullObject, o.stringsCount, o.longsCount, o.datesCount, o.referencesCount, o.polysCount from RObject as o where o.oid=:oid"),
+        @NamedQuery(name = "searchShadowOwner.getShadow", query = "select s.oid from RShadow as s where s.oid = :oid"),
+        @NamedQuery(name = "searchShadowOwner.getOwner", query = "select o.fullObject, o.stringsCount, o.longsCount, o.datesCount, o.referencesCount, o.polysCount from RFocus as o left join o.linkRef as ref where ref.targetOid = :oid"),
+        @NamedQuery(name = "listAccountShadowOwner.getUser", query = "select u.fullObject, u.stringsCount, u.longsCount, u.datesCount, u.referencesCount, u.polysCount from RUser as u left join u.linkRef as ref where ref.targetOid = :oid"),
+        @NamedQuery(name = "getExtCount", query = "select stringsCount, longsCount, datesCount, referencesCount, polysCount from RObject where oid = :oid"),
+        @NamedQuery(name = "getVersion", query = "select o.version from RObject as o where o.oid = :oid"),
+        @NamedQuery(name = "existIncorrect", query = "select count(*) from ROrgIncorrect as o where o.ancestorOid = :ancestorOid and o.descendantOid = :descendantOid"),
+        @NamedQuery(name = "existOrgClosure", query = "select count(*) from ROrgClosure as o where o.ancestorOid = :ancestorOid and o.descendantOid = :descendantOid and o.depth = :depth"),
+        @NamedQuery(name = "fillHierarchy", query = "from ROrgIncorrect as o where o.ancestorOid = :oid"),
+        @NamedQuery(name = "sqlDeleteOrgClosure", query = "delete from ROrgClosure as o where o.descendantOid = :oid or o.ancestorOid = :oid"),
+        @NamedQuery(name = "sqlDeleteOrgIncorrect", query = "delete from ROrgIncorrect as o where o.descendantOid = :oid or o.ancestorOid = :oid"),
+        @NamedQuery(name = "listResourceObjectShadows", query = "select s.fullObject, s.stringsCount, s.longsCount, s.datesCount, s.referencesCount, s.polysCount from RShadow as s left join s.resourceRef as ref where ref.targetOid = :oid"),
+        @NamedQuery(name = "getDefinition.ROExtDate", query = "select c.name, c.type, c.valueType from ROExtDate as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "getDefinition.ROExtString", query = "select c.name, c.type, c.valueType from ROExtString as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "getDefinition.ROExtPolyString", query = "select c.name, c.type, c.valueType from ROExtPolyString as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "getDefinition.ROExtLong", query = "select c.name, c.type, c.valueType from ROExtLong as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
+        @NamedQuery(name = "getDefinition.ROExtReference", query = "select c.name, c.type, c.valueType from ROExtReference as c where c.ownerOid = :oid and c.ownerType = :ownerType"),
+})
 @Entity
 @Table(name = "m_object")
 @org.hibernate.annotations.Table(appliesTo = "m_object",
         indexes = {@Index(name = "iObjectNameOrig", columnNames = "name_orig"),
-		@Index(name = "iObjectNameNorm", columnNames = "name_norm")})
+                @Index(name = "iObjectNameNorm", columnNames = "name_norm")})
 @ForeignKey(name = "fk_object")
-public abstract class RObject<T extends ObjectType> extends RContainer {//implements FieldHandled {
+@Inheritance(strategy = InheritanceType.JOINED)
+public abstract class RObject<T extends ObjectType> implements Metadata<RObjectReference>, Serializable {
 
-	private RPolyString name;
-    private String description;
-    private RAnyContainer extension;
-    private long version;
+    private String oid;
+    private int version;
+    //full XML
+    private byte[] fullObject;
+    //org. closure table
     private Set<ROrgClosure> descendants;
     private Set<ROrgClosure> ancestors;
+    //ObjectType
+    private RPolyString name;
     private Set<RObjectReference> parentOrgRef;
     private Set<RTrigger> trigger;
-    private RMetadata metadata;
     private REmbeddedReference tenantRef;
+    //Metadata
+    private XMLGregorianCalendar createTimestamp;
+    private REmbeddedReference creatorRef;
+    private Set<RObjectReference> createApproverRef;
+    private String createChannel;
+    private XMLGregorianCalendar modifyTimestamp;
+    private REmbeddedReference modifierRef;
+    private Set<RObjectReference> modifyApproverRef;
+    private String modifyChannel;
+    //extension, and other "any" like shadow/attributes
+    private Short stringsCount;
+    private Short longsCount;
+    private Short datesCount;
+    private Short referencesCount;
+    private Short polysCount;
+    private Set<ROExtString> strings;
+    private Set<ROExtLong> longs;
+    private Set<ROExtDate> dates;
+    private Set<ROExtReference> references;
+    private Set<ROExtPolyString> polys;
 
-//    /**
-//     * Used for lazy loading properties (entities)
-//     */
-//    private FieldHandler fieldHandler;
-//
-//    public FieldHandler getFieldHandler() {
-//        return fieldHandler;
-//    }
-//
-//    public void setFieldHandler(FieldHandler fieldHandler) {
-//        this.fieldHandler = fieldHandler;
-//    }
-    
-    @Embedded
-    public RPolyString getName() {
-		return name;
-	}
-
-	public void setName(RPolyString name) {
-		this.name = name;
-	}
-   
-
-//    @LazyToOne(LazyToOneOption.NO_PROXY)
-    @OneToOne(mappedBy = RMetadata.F_OWNER, optional = true, orphanRemoval = true)//, fetch = FetchType.LAZY)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public RMetadata getMetadata() {
-//        if (fieldHandler != null) {
-//            return (RMetadata) fieldHandler.readObject(this, "metadata", metadata);
-//        }
-        return metadata;
+    @Id
+    @GeneratedValue(generator = "ContainerOidGenerator")
+    @GenericGenerator(name = "ContainerOidGenerator", strategy = "com.evolveum.midpoint.repo.sql.util.ObjectOidGenerator")
+    @Column(name = "oid", nullable = false, updatable = false, length = RUtil.COLUMN_LENGTH_OID)
+    public String getOid() {
+        return oid;
     }
 
-   
-
-	public void setMetadata(RMetadata metadata) {
-//        if (fieldHandler != null) {
-//            this.metadata = (RMetadata) fieldHandler.writeObject(this, "metadata", this.metadata, metadata);
-//            return;
-//        }
-        this.metadata = metadata;
+    @Embedded
+    public RPolyString getName() {
+        return name;
     }
 
     @ForeignKey(name = "none")
@@ -116,13 +133,9 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RTrigger> getTrigger() {
         if (trigger == null) {
-            trigger = new HashSet<RTrigger>();
+            trigger = new HashSet<>();
         }
         return trigger;
-    }
-
-    public void setTrigger(Set<RTrigger> trigger) {
-        this.trigger = trigger;
     }
 
     @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RParentOrgRef.DISCRIMINATOR)
@@ -131,28 +144,12 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RObjectReference> getParentOrgRef() {
         if (parentOrgRef == null) {
-            parentOrgRef = new HashSet<RObjectReference>();
+            parentOrgRef = new HashSet<>();
         }
         return parentOrgRef;
     }
 
-    public void setParentOrgRef(Set<RObjectReference> parentOrgRef) {
-        this.parentOrgRef = parentOrgRef;
-    }
-
-    @com.evolveum.midpoint.repo.sql.query.definition.Any(jaxbNameLocalPart = "extension")
-    @OneToOne(optional = true, orphanRemoval = true)
-    @ForeignKey(name = "none")
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    @JoinColumns({@JoinColumn(name = "extOid", referencedColumnName = "owner_oid"),
-            @JoinColumn(name = "extId", referencedColumnName = "owner_id"),
-            @JoinColumn(name = "extType", referencedColumnName = "owner_type")})
-    public RAnyContainer getExtension() {
-        return extension;
-    }
-
     @OneToMany(fetch = FetchType.LAZY, targetEntity = ROrgClosure.class, mappedBy = "descendant")
-//, orphanRemoval = true)
     @Cascade({org.hibernate.annotations.CascadeType.DELETE})
     public Set<ROrgClosure> getDescendants() {
         return descendants;
@@ -164,6 +161,205 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
         return ancestors;
     }
 
+    public int getVersion() {
+        return version;
+    }
+
+    @Embedded
+    public REmbeddedReference getTenantRef() {
+        return tenantRef;
+    }
+
+    @Lob
+    public byte[] getFullObject() {
+        return fullObject;
+    }
+
+    @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RCreateApproverRef.DISCRIMINATOR)
+    @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RObjectReference> getCreateApproverRef() {
+        if (createApproverRef == null) {
+            createApproverRef = new HashSet<>();
+        }
+        return createApproverRef;
+    }
+
+    public String getCreateChannel() {
+        return createChannel;
+    }
+
+    public XMLGregorianCalendar getCreateTimestamp() {
+        return createTimestamp;
+    }
+
+    @Embedded
+    public REmbeddedReference getCreatorRef() {
+        return creatorRef;
+    }
+
+    @Embedded
+    public REmbeddedReference getModifierRef() {
+        return modifierRef;
+    }
+
+    @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RModifyApproverRef.DISCRIMINATOR)
+    @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
+    @ForeignKey(name = "none")
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RObjectReference> getModifyApproverRef() {
+        if (modifyApproverRef == null) {
+            modifyApproverRef = new HashSet<>();
+        }
+        return modifyApproverRef;
+    }
+
+    public String getModifyChannel() {
+        return modifyChannel;
+    }
+
+    public XMLGregorianCalendar getModifyTimestamp() {
+        return modifyTimestamp;
+    }
+
+    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+//    @Cascade({PERSIST, REMOVE, REFRESH, DELETE, SAVE_UPDATE, REPLICATE, LOCK, DETACH})
+    public Set<ROExtLong> getLongs() {
+        if (longs == null) {
+            longs = new HashSet<>();
+        }
+        return longs;
+    }
+
+    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<ROExtString> getStrings() {
+        if (strings == null) {
+            strings = new HashSet<>();
+        }
+        return strings;
+    }
+
+    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<ROExtDate> getDates() {
+        if (dates == null) {
+            dates = new HashSet<>();
+        }
+        return dates;
+    }
+
+    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<ROExtReference> getReferences() {
+        if (references == null) {
+            references = new HashSet<>();
+        }
+        return references;
+    }
+
+    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<ROExtPolyString> getPolys() {
+        if (polys == null) {
+            polys = new HashSet<>();
+        }
+        return polys;
+    }
+
+    public Short getStringsCount() {
+        if (stringsCount == null) {
+            stringsCount = 0;
+        }
+        return stringsCount;
+    }
+
+    public Short getLongsCount() {
+        if (longsCount == null) {
+            longsCount = 0;
+        }
+        return longsCount;
+    }
+
+    public Short getDatesCount() {
+        if (datesCount == null) {
+            datesCount = 0;
+        }
+        return datesCount;
+    }
+
+    public Short getReferencesCount() {
+        if (referencesCount == null) {
+            referencesCount = 0;
+        }
+        return referencesCount;
+    }
+
+    public Short getPolysCount() {
+        if (polysCount == null) {
+            polysCount = 0;
+        }
+        return polysCount;
+    }
+
+    public void setCreateApproverRef(Set<RObjectReference> createApproverRef) {
+        this.createApproverRef = createApproverRef;
+    }
+
+    public void setCreateChannel(String createChannel) {
+        this.createChannel = createChannel;
+    }
+
+    public void setCreateTimestamp(XMLGregorianCalendar createTimestamp) {
+        this.createTimestamp = createTimestamp;
+    }
+
+    public void setCreatorRef(REmbeddedReference creatorRef) {
+        this.creatorRef = creatorRef;
+    }
+
+    public void setModifierRef(REmbeddedReference modifierRef) {
+        this.modifierRef = modifierRef;
+    }
+
+    public void setModifyApproverRef(Set<RObjectReference> modifyApproverRef) {
+        this.modifyApproverRef = modifyApproverRef;
+    }
+
+    public void setModifyChannel(String modifyChannel) {
+        this.modifyChannel = modifyChannel;
+    }
+
+    public void setModifyTimestamp(XMLGregorianCalendar modifyTimestamp) {
+        this.modifyTimestamp = modifyTimestamp;
+    }
+
+    public void setFullObject(byte[] fullObject) {
+        this.fullObject = fullObject;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
+    }
+
+    public void setTenantRef(REmbeddedReference tenantRef) {
+        this.tenantRef = tenantRef;
+    }
+
+    public void setName(RPolyString name) {
+        this.name = name;
+    }
+
+    public void setOid(String oid) {
+        this.oid = oid;
+    }
+
+    public void setTrigger(Set<RTrigger> trigger) {
+        this.trigger = trigger;
+    }
+
     public void setDescendants(Set<ROrgClosure> descendants) {
         this.descendants = descendants;
     }
@@ -172,41 +368,51 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
         this.ancestors = ancestors;
     }
 
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getDescription() {
-        return description;
+    public void setParentOrgRef(Set<RObjectReference> parentOrgRef) {
+        this.parentOrgRef = parentOrgRef;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setStringsCount(Short stringsCount) {
+        this.stringsCount = stringsCount;
     }
 
-    public void setExtension(RAnyContainer extension) {
-        this.extension = extension;
-        if (this.extension != null) {
-            this.extension.setOwnerType(RContainerType.OBJECT);
-        }
+    public void setLongsCount(Short longsCount) {
+        this.longsCount = longsCount;
     }
 
-    public long getVersion() {
-        return version;
+    public void setDatesCount(Short datesCount) {
+        this.datesCount = datesCount;
     }
 
-    public void setVersion(long version) {
-        this.version = version;
+    public void setReferencesCount(Short referencesCount) {
+        this.referencesCount = referencesCount;
     }
-    
-    @Embedded
-    public REmbeddedReference getTenantRef() {
-		return tenantRef;
-	}
 
-	public void setTenantRef(REmbeddedReference tenantRef) {
-		this.tenantRef = tenantRef;
-	}
+    public void setPolysCount(Short polysCount) {
+        this.polysCount = polysCount;
+    }
 
-	@Override
+    public void setPolys(Set<ROExtPolyString> polys) {
+        this.polys = polys;
+    }
+
+    public void setReferences(Set<ROExtReference> references) {
+        this.references = references;
+    }
+
+    public void setDates(Set<ROExtDate> dates) {
+        this.dates = dates;
+    }
+
+    public void setLongs(Set<ROExtLong> longs) {
+        this.longs = longs;
+    }
+
+    public void setStrings(Set<ROExtString> strings) {
+        this.strings = strings;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o)
             return true;
@@ -216,12 +422,8 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
             return false;
 
         RObject rObject = (RObject) o;
-        
+
         if (name != null ? !name.equals(rObject.name) : rObject.name != null)
-        	return false;
-        if (description != null ? !description.equals(rObject.description) : rObject.description != null)
-            return false;
-        if (extension != null ? !extension.equals(rObject.extension) : rObject.extension != null)
             return false;
         if (descendants != null ? !descendants.equals(rObject.descendants) : rObject.descendants != null)
             return false;
@@ -233,6 +435,21 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
             return false;
         if (tenantRef != null ? !tenantRef.equals(rObject.tenantRef) : rObject.tenantRef != null)
             return false;
+        if (!MetadataFactory.equals(this, rObject)) return false;
+
+        if (dates != null ? !dates.equals(rObject.dates) : rObject.dates != null) return false;
+        if (datesCount != null ? !datesCount.equals(rObject.datesCount) : rObject.datesCount != null) return false;
+        if (longs != null ? !longs.equals(rObject.longs) : rObject.longs != null) return false;
+        if (longsCount != null ? !longsCount.equals(rObject.longsCount) : rObject.longsCount != null) return false;
+        if (polys != null ? !polys.equals(rObject.polys) : rObject.polys != null) return false;
+        if (polysCount != null ? !polysCount.equals(rObject.polysCount) : rObject.polysCount != null) return false;
+        if (references != null ? !references.equals(rObject.references) : rObject.references != null) return false;
+        if (referencesCount != null ? !referencesCount.equals(rObject.referencesCount) : rObject.referencesCount != null)
+            return false;
+        if (strings != null ? !strings.equals(rObject.strings) : rObject.strings != null) return false;
+        if (stringsCount != null ? !stringsCount.equals(rObject.stringsCount) : rObject.stringsCount != null)
+            return false;
+
         return true;
     }
 
@@ -240,54 +457,33 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (description != null ? description.hashCode() : 0);
+
+        result = 31 * result + (createTimestamp != null ? createTimestamp.hashCode() : 0);
+        result = 31 * result + (creatorRef != null ? creatorRef.hashCode() : 0);
+        result = 31 * result + (createChannel != null ? createChannel.hashCode() : 0);
+        result = 31 * result + (modifyTimestamp != null ? modifyTimestamp.hashCode() : 0);
+        result = 31 * result + (modifierRef != null ? modifierRef.hashCode() : 0);
+        result = 31 * result + (modifyChannel != null ? modifyChannel.hashCode() : 0);
+
         return result;
     }
 
-    public static <T extends ObjectType> void copyToJAXB(RObject<T> repo, ObjectType jaxb, PrismContext prismContext,
-                                  Collection<SelectorOptions<GetOperationOptions>> options)
+    @Deprecated
+    protected static <T extends ObjectType> void copyToJAXB(RObject<T> repo, ObjectType jaxb, PrismContext prismContext,
+                                                            Collection<SelectorOptions<GetOperationOptions>> options)
             throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-        jaxb.setDescription(repo.getDescription());
         jaxb.setOid(repo.getOid());
-        jaxb.setVersion(Long.toString(repo.getVersion()));
-
-        if (SelectorOptions.hasToLoadPath(ObjectType.F_EXTENSION, options)) {
-            if (repo.getExtension() != null) {
-                ExtensionType extension = new ExtensionType();
-                jaxb.setExtension(extension);
-                RAnyContainer.copyToJAXB(repo.getExtension(), extension, prismContext);
-            }
-        }
+        jaxb.setVersion(Integer.toString(repo.getVersion()));
 
         if (SelectorOptions.hasToLoadPath(ObjectType.F_PARENT_ORG_REF, options)) {
             List orgRefs = RUtil.safeSetReferencesToList(repo.getParentOrgRef(), prismContext);
             if (!orgRefs.isEmpty()) {
                 jaxb.getParentOrgRef().addAll(orgRefs);
             }
-        }
-
-        if (SelectorOptions.hasToLoadPath(ObjectType.F_TRIGGER, options)) {
-            if (repo.getTrigger() != null) {
-                for (RTrigger trigger : repo.getTrigger()) {
-                    jaxb.getTrigger().add(trigger.toJAXB(prismContext));
-                }
-            }
-        }
-
-        if (SelectorOptions.hasToLoadPath(ObjectType.F_METADATA, options)) {
-            if (repo.getMetadata() != null) {
-                jaxb.setMetadata(repo.getMetadata().toJAXB(prismContext));
-            }
-        }
-        
-        if (SelectorOptions.hasToLoadPath(ObjectType.F_TENANT_REF, options)) {
-        	if (repo.getTenantRef() != null) {
-        		jaxb.setTenantRef(repo.getTenantRef().toJAXB(prismContext));
-        	}
         }
     }
 
@@ -297,22 +493,12 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
         Validate.notNull(repo, "Repo object must not be null.");
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
-        repo.setDescription(jaxb.getDescription());
         repo.setOid(jaxb.getOid());
-        repo.setId(0L); // objects types have default id
 
         String strVersion = jaxb.getVersion();
-        long version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*") ? Long.parseLong(jaxb
+        int version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*") ? Integer.parseInt(jaxb
                 .getVersion()) : 0;
         repo.setVersion(version);
-
-        if (jaxb.getExtension() != null) {
-            RAnyContainer extension = new RAnyContainer();
-            extension.setOwner(repo);
-
-            repo.setExtension(extension);
-            RAnyContainer.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
-        }
 
         repo.getParentOrgRef().addAll(RUtil.safeListReferenceToSet(jaxb.getParentOrgRef(), prismContext,
                 repo, RReferenceOwner.OBJECT_PARENT_ORG));
@@ -324,16 +510,59 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
             repo.getTrigger().add(rTrigger);
         }
 
-        if (jaxb.getMetadata() != null) {
-            RMetadata metadata = new RMetadata();
-            metadata.setOwner(repo);
-            RMetadata.copyFromJAXB(jaxb.getMetadata(), metadata, prismContext);
-            repo.setMetadata(metadata);
-        }
-        
+        MetadataFactory.fromJAXB(jaxb.getMetadata(), repo, prismContext);
         repo.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTenantRef(), prismContext));
+
+        if (jaxb.getExtension() != null) {
+            copyFromJAXB(jaxb.getExtension().asPrismContainerValue(), repo, prismContext, RObjectExtensionType.EXTENSION);
+        }
     }
 
+    @Deprecated
     public abstract T toJAXB(PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
             throws DtoTranslationException;
+
+    @Override
+    public String toString() {
+        return RUtil.getDebugString(this);
+    }
+
+    public static void copyFromJAXB(PrismContainerValue containerValue, RObject repo, PrismContext prismContext,
+                                    RObjectExtensionType ownerType) throws DtoTranslationException {
+        RAnyConverter converter = new RAnyConverter(prismContext);
+
+        Set<RAnyValue> values = new HashSet<RAnyValue>();
+        try {
+            List<Item<?>> items = containerValue.getItems();
+            for (Item item : items) {
+                values.addAll(converter.convertToRValue(item, false));
+            }
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
+
+        for (RAnyValue value : values) {
+            ROExtValue ex = (ROExtValue) value;
+            ex.setOwner(repo);
+            ex.setOwnerType(ownerType);
+
+            if (value instanceof ROExtDate) {
+                repo.getDates().add(value);
+            } else if (value instanceof ROExtLong) {
+                repo.getLongs().add(value);
+            } else if (value instanceof ROExtReference) {
+                repo.getReferences().add(value);
+            } else if (value instanceof ROExtString) {
+                repo.getStrings().add(value);
+            } else if (value instanceof ROExtPolyString) {
+                repo.getPolys().add(value);
+            }
+        }
+
+        repo.setStringsCount((short) repo.getStrings().size());
+        repo.setDatesCount((short) repo.getDates().size());
+        repo.setPolysCount((short) repo.getPolys().size());
+        repo.setReferencesCount((short) repo.getReferences().size());
+        repo.setLongsCount((short) repo.getLongs().size());
+    }
 }

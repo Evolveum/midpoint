@@ -16,9 +16,8 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
-import com.evolveum.midpoint.repo.sql.data.common.RContainer;
-import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.apache.commons.lang.Validate;
@@ -33,32 +32,32 @@ import java.util.Map;
  */
 public final class ClassMapper {
 
-    private static final Map<ObjectTypes, RContainerType> types = new HashMap<ObjectTypes, RContainerType>();
+    private static final Map<ObjectTypes, RObjectType> types = new HashMap<>();
 
     private ClassMapper() {
     }
 
     static {
-        types.put(ObjectTypes.ACCOUNT, RContainerType.ACCOUNT);
-        types.put(ObjectTypes.CONNECTOR, RContainerType.CONNECTOR);
-        types.put(ObjectTypes.CONNECTOR_HOST, RContainerType.CONNECTOR_HOST);
-        types.put(ObjectTypes.GENERIC_OBJECT, RContainerType.GENERIC_OBJECT);
-        types.put(ObjectTypes.OBJECT, RContainerType.OBJECT);
-        types.put(ObjectTypes.PASSWORD_POLICY, RContainerType.VALUE_POLICY);
-        types.put(ObjectTypes.RESOURCE, RContainerType.RESOURCE);
-        types.put(ObjectTypes.SHADOW, RContainerType.SHADOW);
-        types.put(ObjectTypes.ROLE, RContainerType.ROLE);
-        types.put(ObjectTypes.SYSTEM_CONFIGURATION, RContainerType.SYSTEM_CONFIGURATION);
-        types.put(ObjectTypes.TASK, RContainerType.TASK);
-        types.put(ObjectTypes.USER, RContainerType.USER);
-        types.put(ObjectTypes.REPORT, RContainerType.REPORT);
-        types.put(ObjectTypes.REPORT_OUTPUT, RContainerType.REPORT_OUTPUT);
-        types.put(ObjectTypes.OBJECT_TEMPLATE, RContainerType.OBJECT_TEMPLATE);
-        types.put(ObjectTypes.NODE, RContainerType.NODE);
-        types.put(ObjectTypes.ORG, RContainerType.ORG);
-        types.put(ObjectTypes.ABSTRACT_ROLE, RContainerType.ABSTRACT_ROLE);
-        types.put(ObjectTypes.FOCUS_TYPE, RContainerType.FOCUS);
-        types.put(ObjectTypes.SECURITY_POLICY, RContainerType.SECURITY_POLICY);
+        types.put(ObjectTypes.ACCOUNT, RObjectType.ACCOUNT);
+        types.put(ObjectTypes.CONNECTOR, RObjectType.CONNECTOR);
+        types.put(ObjectTypes.CONNECTOR_HOST, RObjectType.CONNECTOR_HOST);
+        types.put(ObjectTypes.GENERIC_OBJECT, RObjectType.GENERIC_OBJECT);
+        types.put(ObjectTypes.OBJECT, RObjectType.OBJECT);
+        types.put(ObjectTypes.PASSWORD_POLICY, RObjectType.VALUE_POLICY);
+        types.put(ObjectTypes.RESOURCE, RObjectType.RESOURCE);
+        types.put(ObjectTypes.SHADOW, RObjectType.SHADOW);
+        types.put(ObjectTypes.ROLE, RObjectType.ROLE);
+        types.put(ObjectTypes.SYSTEM_CONFIGURATION, RObjectType.SYSTEM_CONFIGURATION);
+        types.put(ObjectTypes.TASK, RObjectType.TASK);
+        types.put(ObjectTypes.USER, RObjectType.USER);
+        types.put(ObjectTypes.REPORT, RObjectType.REPORT);
+        types.put(ObjectTypes.REPORT_OUTPUT, RObjectType.REPORT_OUTPUT);
+        types.put(ObjectTypes.OBJECT_TEMPLATE, RObjectType.OBJECT_TEMPLATE);
+        types.put(ObjectTypes.NODE, RObjectType.NODE);
+        types.put(ObjectTypes.ORG, RObjectType.ORG);
+        types.put(ObjectTypes.ABSTRACT_ROLE, RObjectType.ABSTRACT_ROLE);
+        types.put(ObjectTypes.FOCUS_TYPE, RObjectType.FOCUS);
+        types.put(ObjectTypes.SECURITY_POLICY, RObjectType.SECURITY_POLICY);
 
         for (ObjectTypes type : ObjectTypes.values()) {
             if (!types.containsKey(type)) {
@@ -85,11 +84,11 @@ public final class ClassMapper {
         return hqlType.getSimpleName();
     }
 
-    public static RContainerType getHQLTypeForQName(QName qname) {
+    public static RObjectType getHQLTypeForQName(QName qname) {
         if (qname == null) {
             return null;
         }
-        for (Map.Entry<ObjectTypes, RContainerType> entry : types.entrySet()) {
+        for (Map.Entry<ObjectTypes, RObjectType> entry : types.entrySet()) {
             if (entry.getKey().getTypeQName().equals(qname)) {
                 return entry.getValue();
             }
@@ -98,11 +97,11 @@ public final class ClassMapper {
         throw new IllegalArgumentException("Couldn't find hql type for qname " + qname);
     }
 
-    public static ObjectTypes getObjectTypeForHQLType(RContainerType type) {
+    public static ObjectTypes getObjectTypeForHQLType(RObjectType type) {
         if (type == null) {
             return null;
         }
-        for (Map.Entry<ObjectTypes, RContainerType> entry : types.entrySet()) {
+        for (Map.Entry<ObjectTypes, RObjectType> entry : types.entrySet()) {
             if (entry.getValue().equals(type)) {
                 return entry.getKey();
             }
@@ -111,11 +110,11 @@ public final class ClassMapper {
         throw new IllegalArgumentException("Couldn't find qname for hql type " + type);
     }
 
-    public static ObjectTypes getObjectTypeForHQLType(Class<? extends RContainer> type) {
+    public static ObjectTypes getObjectTypeForHQLType(Class<? extends RObject> type) {
         if (type == null) {
             return null;
         }
-        for (Map.Entry<ObjectTypes, RContainerType> entry : types.entrySet()) {
+        for (Map.Entry<ObjectTypes, RObjectType> entry : types.entrySet()) {
             if (entry.getValue().getClazz().equals(type)) {
                 return entry.getKey();
             }
@@ -124,12 +123,12 @@ public final class ClassMapper {
         throw new IllegalArgumentException("Couldn't find qname for hql type " + type);
     }
 
-    public static QName getQNameForHQLType(RContainerType type) {
+    public static QName getQNameForHQLType(RObjectType type) {
         ObjectTypes types = getObjectTypeForHQLType(type);
         return types == null ? null : types.getTypeQName();
     }
 
-    public static Collection<RContainerType> getKnownTypes() {
+    public static Collection<RObjectType> getKnownTypes() {
         return types.values();
     }
 }

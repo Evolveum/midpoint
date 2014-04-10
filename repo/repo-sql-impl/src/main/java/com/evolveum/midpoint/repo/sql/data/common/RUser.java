@@ -17,22 +17,20 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RCredentials;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import org.hibernate.annotations.*;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
-import javax.persistence.Entity;
-import javax.persistence.Table;
-
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -41,16 +39,12 @@ import java.util.Set;
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
 @org.hibernate.annotations.Table(appliesTo = "m_user",
-        indexes = {@Index(name = "iUserName", columnNames = "name_orig"),
-                @Index(name = "iFullName", columnNames = "fullName_orig"),
+        indexes = {@Index(name = "iFullName", columnNames = "fullName_orig"),
                 @Index(name = "iFamilyName", columnNames = "familyName_orig"),
                 @Index(name = "iGivenName", columnNames = "givenName_orig"),
-                @Index(name = "iLocality", columnNames = "locality_orig"),
-                @Index(name = "iAdditionalName", columnNames = "additionalName_orig"),
-                @Index(name = "iHonorificPrefix", columnNames = "honorificPrefix_orig"),
-                @Index(name = "iHonorificSuffix", columnNames = "honorificSuffix_orig")})
+                @Index(name = "iLocality", columnNames = "locality_orig")})
 @ForeignKey(name = "fk_user")
-public class RUser extends RFocus<UserType> {// implements FieldHandled {
+public class RUser extends RFocus<UserType> implements OperationResult {
 
     private RPolyString name;
     private RPolyString fullName;
@@ -73,45 +67,14 @@ public class RUser extends RFocus<UserType> {// implements FieldHandled {
     private RPolyString nickName;
     private String preferredLanguage;
     private Set<RPolyString> organization;
-    private ROperationResult result;
-    private byte[] jpegPhoto;
+    //operation result
+    private ROperationResultStatus status;
+    //end of operation result
 
-//    /**
-//     * Used for lazy loading properties (entities)
-//     */
-//    private FieldHandler fieldHandler;
-//
-//    public FieldHandler getFieldHandler() {
-//        return fieldHandler;
-//    }
-//
-//    public void setFieldHandler(FieldHandler fieldHandler) {
-//        this.fieldHandler = fieldHandler;
-//    }
-
-//    @LazyToOne(LazyToOneOption.NO_PROXY)
-    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)//, fetch = FetchType.LAZY)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public ROperationResult getResult() {
-//        if (fieldHandler != null) {
-//            return (ROperationResult) fieldHandler.readObject(this, "result", result);
-//        }
-        return result;
-    }
-
-    public void setResult(ROperationResult result) {
-//        if (fieldHandler != null) {
-//            this.result = (ROperationResult) fieldHandler.writeObject(this, "result", this.result, result);
-//            return;
-//        }
-        this.result = result;
-    }
-    
     @ElementCollection
     @ForeignKey(name = "fk_user_organization")
     @CollectionTable(name = "m_user_organization", joinColumns = {
-            @JoinColumn(name = "user_oid", referencedColumnName = "oid"),
-            @JoinColumn(name = "user_id", referencedColumnName = "id")
+            @JoinColumn(name = "user_oid", referencedColumnName = "oid")
     })
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RPolyString> getOrganization() {
@@ -135,8 +98,7 @@ public class RUser extends RFocus<UserType> {// implements FieldHandled {
     @ElementCollection
     @ForeignKey(name = "fk_user_org_unit")
     @CollectionTable(name = "m_user_organizational_unit", joinColumns = {
-            @JoinColumn(name = "user_oid", referencedColumnName = "oid"),
-            @JoinColumn(name = "user_id", referencedColumnName = "id")
+            @JoinColumn(name = "user_oid", referencedColumnName = "oid")
     })
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RPolyString> getOrganizationalUnit() {
@@ -150,8 +112,7 @@ public class RUser extends RFocus<UserType> {// implements FieldHandled {
     @ElementCollection
     @ForeignKey(name = "fk_user_employee_type")
     @CollectionTable(name = "m_user_employee_type", joinColumns = {
-            @JoinColumn(name = "user_oid", referencedColumnName = "oid"),
-            @JoinColumn(name = "user_id", referencedColumnName = "id")
+            @JoinColumn(name = "user_oid", referencedColumnName = "oid")
     })
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<String> getEmployeeType() {
@@ -224,14 +185,13 @@ public class RUser extends RFocus<UserType> {// implements FieldHandled {
         return title;
     }
 
-    @Lob
-    @Basic(fetch = FetchType.LAZY)
-    public byte[] getJpegPhoto() {
-        return jpegPhoto;
+    @Enumerated(EnumType.ORDINAL)
+    public ROperationResultStatus getStatus() {
+        return status;
     }
 
-    public void setJpegPhoto(byte[] jpegPhoto) {
-        this.jpegPhoto = jpegPhoto;
+    public void setStatus(ROperationResultStatus status) {
+        this.status = status;
     }
 
     public void setCostCenter(String costCenter) {
@@ -354,6 +314,7 @@ public class RUser extends RFocus<UserType> {// implements FieldHandled {
         if (timezone != null ? !timezone.equals(rUser.timezone) : rUser.timezone != null) return false;
         if (costCenter != null ? !costCenter.equals(rUser.costCenter) : rUser.costCenter != null) return false;
         if (organization != null ? !organization.equals(rUser.organization) : rUser.organization != null) return false;
+        if (status != rUser.status) return false;
 
         return true;
     }
@@ -376,6 +337,7 @@ public class RUser extends RFocus<UserType> {// implements FieldHandled {
         result = 31 * result + (nickName != null ? nickName.hashCode() : 0);
         result = 31 * result + (preferredLanguage != null ? preferredLanguage.hashCode() : 0);
         result = 31 * result + (timezone != null ? timezone.hashCode() : 0);
+        result = 31 * result + (status != null ? status.hashCode() : 0);
 
         return result;
     }
@@ -402,85 +364,19 @@ public class RUser extends RFocus<UserType> {// implements FieldHandled {
         repo.setPreferredLanguage(jaxb.getPreferredLanguage());
         repo.setTitle(RPolyString.copyFromJAXB(jaxb.getTitle()));
         repo.setNickName(RPolyString.copyFromJAXB(jaxb.getNickName()));
-        repo.setJpegPhoto(jaxb.getJpegPhoto());
 
         if (jaxb.getCredentials() != null) {
             RCredentials credentials = new RCredentials();
             RCredentials.copyFromJAXB(jaxb.getCredentials(), credentials, prismContext);
             repo.setCredentials(credentials);
         }
-        
-        if (jaxb.getResult() != null) {
-            ROperationResult result = new ROperationResult();
-            result.setOwner(repo);
-            ROperationResult.copyFromJAXB(jaxb.getResult(), result, prismContext);
-            repo.setResult(result);
-        }
+
+        RUtil.copyResultFromJAXB(jaxb.getResult(), repo, prismContext);
 
         //sets
         repo.setEmployeeType(RUtil.listToSet(jaxb.getEmployeeType()));
         repo.setOrganizationalUnit(RUtil.listPolyToSet(jaxb.getOrganizationalUnit()));
         repo.setOrganization(RUtil.listPolyToSet(jaxb.getOrganization()));
-    }
-
-    public static void copyToJAXB(RUser repo, UserType jaxb, PrismContext prismContext,
-                                  Collection<SelectorOptions<GetOperationOptions>> options) throws
-            DtoTranslationException {
-        RFocus.copyToJAXB(repo, jaxb, prismContext, options);
-
-        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-        jaxb.setFullName(RPolyString.copyToJAXB(repo.getFullName()));
-        jaxb.setGivenName(RPolyString.copyToJAXB(repo.getGivenName()));
-        jaxb.setFamilyName(RPolyString.copyToJAXB(repo.getFamilyName()));
-        jaxb.setHonorificPrefix(RPolyString.copyToJAXB(repo.getHonorificPrefix()));
-        jaxb.setHonorificSuffix(RPolyString.copyToJAXB(repo.getHonorificSuffix()));
-        jaxb.setEmployeeNumber(repo.getEmployeeNumber());
-        jaxb.setLocality(RPolyString.copyToJAXB(repo.getLocality()));
-        jaxb.setAdditionalName(RPolyString.copyToJAXB(repo.getAdditionalName()));
-        jaxb.setEmailAddress(repo.getEmailAddress());
-        jaxb.setTelephoneNumber(repo.getTelephoneNumber());
-
-        jaxb.setCostCenter(repo.getCostCenter());
-        jaxb.setTimezone(repo.getTimezone());
-        jaxb.setLocale(repo.getLocale());
-        jaxb.setPreferredLanguage(repo.getPreferredLanguage());
-        jaxb.setTitle(RPolyString.copyToJAXB(repo.getTitle()));
-        jaxb.setNickName(RPolyString.copyToJAXB(repo.getNickName()));
-        if (SelectorOptions.hasToLoadPath(UserType.F_JPEG_PHOTO, options)) {
-            jaxb.setJpegPhoto(repo.getJpegPhoto());
-        }
-
-        if (repo.getCredentials() != null) {
-            ItemPath path = new ItemPath(UserType.F_CREDENTIALS);
-            jaxb.setCredentials(repo.getCredentials().toJAXB(jaxb, path, prismContext));
-        }
-
-        if (SelectorOptions.hasToLoadPath(UserType.F_EMPLOYEE_TYPE, options)) {
-            List types = RUtil.safeSetToList(repo.getEmployeeType());
-            if (!types.isEmpty()) {
-                jaxb.getEmployeeType().addAll(types);
-            }
-        }
-
-        if (SelectorOptions.hasToLoadPath(UserType.F_ORGANIZATIONAL_UNIT, options)) {
-            List units = RUtil.safeSetPolyToList(repo.getOrganizationalUnit());
-            if (!units.isEmpty()) {
-                jaxb.getOrganizationalUnit().addAll(units);
-            }
-        }
-
-        if (SelectorOptions.hasToLoadPath(UserType.F_ORGANIZATION, options)) {
-            List units = RUtil.safeSetPolyToList(repo.getOrganization());
-            if (!units.isEmpty()) {
-                jaxb.getOrganization().addAll(units);
-            }
-        }
-
-        if (SelectorOptions.hasToLoadPath(UserType.F_RESULT, options)) {
-            if (repo.getResult() != null) {
-                jaxb.setResult(repo.getResult().toJAXB(prismContext));
-            }
-        }
     }
 
     @Override

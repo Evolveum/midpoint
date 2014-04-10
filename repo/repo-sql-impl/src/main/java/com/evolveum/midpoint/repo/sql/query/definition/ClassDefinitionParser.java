@@ -16,7 +16,9 @@
 
 package com.evolveum.midpoint.repo.sql.query.definition;
 
-import com.evolveum.midpoint.repo.sql.data.common.*;
+import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
@@ -118,16 +120,11 @@ public class ClassDefinitionParser {
 
             entityDef.addDefinition(def);
         }
-
-        for (VirtualEntity entity : qEntity.entities()) {
-
-        }
     }
 
     private QName createQName(JaxbName name) {
         return new QName(name.namespace(), name.localPart());
     }
-
 
     private Definition createDefinition(QName jaxbName, Class jaxbType, String jpaName, AnnotatedElement object) {
         Class jpaType = (object instanceof Class) ? (Class) object : ((Method) object).getReturnType();
@@ -136,7 +133,7 @@ public class ClassDefinitionParser {
         if (ObjectReference.class.isAssignableFrom(jpaType)) {
             ReferenceDefinition refDef = new ReferenceDefinition(jaxbName, jaxbType, jpaName, jpaType);
             definition = updateReferenceDefinition(refDef, object);
-        } else if (RAnyContainer.class.isAssignableFrom(jpaType)) {
+        } else if (RAssignmentExtension.class.isAssignableFrom(jpaType)) {
             definition = new AnyDefinition(jaxbName, jaxbType, jpaName, jpaType);
         } else if (Set.class.isAssignableFrom(jpaType)) {
             CollectionDefinition collDef = new CollectionDefinition(jaxbName, jaxbType, jpaName, jpaType);
@@ -144,10 +141,7 @@ public class ClassDefinitionParser {
             definition = collDef;
         } else if (isEntity(object)) {
             EntityDefinition entityDef = new EntityDefinition(jaxbName, jaxbType, jpaName, jpaType);
-            if ("com.evolveum.midpoint.repo.sql.data.common.embedded".equals(jpaType.getPackage().getName())
-                    //todo not good, check some interface or annotation, DO NOT ENUMERATE [lazyman]
-                    || RMetadata.class.equals(jpaType)
-                    || ROperationResult.class.equals(jpaType)) {
+            if ("com.evolveum.midpoint.repo.sql.data.common.embedded".equals(jpaType.getPackage().getName())) {
                 updateEntityDefinition(entityDef);
             }
             definition = entityDef;

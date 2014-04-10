@@ -221,19 +221,6 @@ public class PartialLoadingTest extends BaseSQLRepoTest {
         }
     }
 
-    private String getInterpretedGet(String oid, Class<? extends ObjectType> type,
-                                     Collection<SelectorOptions<GetOperationOptions>> options) throws Exception {
-        Session session = open();
-        try {
-            QueryInterpreter interpreter = new QueryInterpreter();
-            Criteria criteria = interpreter.interpretGet(oid, type, options, prismContext, session);
-
-            return HibernateToSqlTranslator.toSql(criteria);
-        } finally {
-            close(session);
-        }
-    }
-
     private List<String> addUsers(int count, OperationResult result) throws Exception {
         List<String> oids = new ArrayList<String>();
 

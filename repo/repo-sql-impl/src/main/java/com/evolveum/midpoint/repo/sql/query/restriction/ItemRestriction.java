@@ -34,11 +34,13 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.Validate;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.sql.JoinType;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -98,6 +100,9 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
             propPathSegments.add(new NameItemPathSegment(qname));
             propPath = new ItemPath(propPathSegments);
             // get entity query definition
+            if (qname.equals(ObjectType.F_EXTENSION) || qname.equals(ShadowType.F_ATTRIBUTES)) {
+                break;
+            }
 
             Definition childDef = definition.findDefinition(qname, Definition.class);
             if (childDef == null) {
@@ -175,8 +180,12 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
             // create new property path
             propPathSegments.add(new NameItemPathSegment(qname));
             propPath = new ItemPath(propPathSegments);
-            // get entity query definition
 
+            if (qname.equals(ObjectType.F_EXTENSION) || qname.equals(ShadowType.F_ATTRIBUTES)) {
+                break;
+            }
+
+            // get entity query definition
             Definition childDef = definition.findDefinition(qname, Definition.class);
             if (childDef == null) {
                 throw new QueryException("Definition '" + definition + "' doesn't contain child definition '"
@@ -305,7 +314,7 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
 
         // create new criteria and alias for this relationship
         String alias = getContext().addAlias(path, def);
-        Criteria criteria = pCriteria.createCriteria(realName, alias);
+        Criteria criteria = pCriteria.createCriteria(realName, alias, JoinType.LEFT_OUTER_JOIN);
         getContext().addCriteria(path, criteria);
         //also add virtual path to criteria map
         getContext().addCriteria(virtualPath, criteria);
@@ -406,6 +415,11 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
             LOGGER.debug("Trying to query PolyString value but filter contains PolyStringType '{}'.", new Object[]{filter});
             PolyStringType type = (PolyStringType) value;
             value = new PolyString(type.getOrig(), type.getNorm());
+        }
+
+        if (String.class.equals(def.getJaxbType()) && (value instanceof QName)) {
+            //eg. shadow/objectClass
+            value = RUtil.qnameToString((QName) value);
         }
 
         if (value != null && !def.getJaxbType().isAssignableFrom(value.getClass())) {

@@ -29,8 +29,8 @@
         <property name="password" value="#{sqlRepositoryFactory.sqlConfiguration.jdbcPassword}"/>
 
         <property name="acquireIncrement" value="3"/>
-        <property name="minPoolSize" value="8"/>
-        <property name="maxPoolSize" value="20"/>
+        <property name="minPoolSize" value="#{sqlRepositoryFactory.sqlConfiguration.minPoolSize}"/>
+        <property name="maxPoolSize" value="#{sqlRepositoryFactory.sqlConfiguration.maxPoolSize}"/>
         <property name="idleConnectionTestPeriod" value="1800"/>
         <property name="connectionTesterClassName" value="com.evolveum.midpoint.repo.sql.util.MidPointConnectionTester" />
         <property name="connectionCustomizerClassName"
@@ -69,12 +69,14 @@
             <list>
                 <value>com.evolveum.midpoint.repo.sql.data.common</value>
                 <value>com.evolveum.midpoint.repo.sql.data.common.any</value>
+                <value>com.evolveum.midpoint.repo.sql.data.common.container</value>
                 <value>com.evolveum.midpoint.repo.sql.data.common.embedded</value>
                 <value>com.evolveum.midpoint.repo.sql.data.common.enums</value>
                 <value>com.evolveum.midpoint.repo.sql.data.common.id</value>
                 <value>com.evolveum.midpoint.repo.sql.data.common.other</value>
                 <value>com.evolveum.midpoint.repo.sql.data.common.type</value>
                 <value>com.evolveum.midpoint.repo.sql.data.audit</value>
+                <!--<value>com.evolveum.midpoint.repo.sql.data.poc</value>-->
             </list>
         </property>
     </bean>

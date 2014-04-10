@@ -18,7 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.audit;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.repo.sql.data.common.OperationResult;
+import com.evolveum.midpoint.repo.sql.data.common.OperationResultFull;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RChangeType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -26,7 +26,6 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
-
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Type;
 
@@ -38,7 +37,7 @@ import javax.persistence.*;
 @Entity
 @IdClass(RObjectDeltaOperationId.class)
 @Table(name = RObjectDeltaOperation.TABLE_NAME)
-public class RObjectDeltaOperation implements OperationResult {
+public class RObjectDeltaOperation implements OperationResultFull {
 
     public static final String TABLE_NAME = "m_audit_delta";
     public static final String COLUMN_RECORD_ID = "record_id";
@@ -52,18 +51,8 @@ public class RObjectDeltaOperation implements OperationResult {
     private String deltaOid;
     private RChangeType deltaType;
     //operation result
-    private String operation;
     private ROperationResultStatus status;
-    private Long token;
-    private String messageCode;
-    private String message;
-    private String details;
-
-    private String localizedMessage;
-    private String params;
-    private String context;
-    private String returns;
-    private String partialResults;
+    private String fullResult;
 
 
     @ForeignKey(name = "none")
@@ -88,7 +77,7 @@ public class RObjectDeltaOperation implements OperationResult {
     /**
      * This method is used for content comparing when querying database (we don't want to compare clob values).
      *
-     * @return md5 hash of {@link RObjectDeltaOperation#delta} and {@link RObjectDeltaOperation#partialResults}
+     * @return md5 hash of {@link RObjectDeltaOperation#delta} and {@link RObjectDeltaOperation#fullResult}
      */
     @Id
     @Column(length = 32, name = "checksum")
@@ -118,64 +107,13 @@ public class RObjectDeltaOperation implements OperationResult {
 
     @Lob
     @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getParams() {
-        return params;
-    }
-    
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getContext() {
-        return context;
-    }
-    
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getReturns() {
-        return returns;
-    }
-
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getPartialResults() {
-        return partialResults;
+    public String getFullResult() {
+        return fullResult;
     }
 
     @Enumerated(EnumType.ORDINAL)
     public ROperationResultStatus getStatus() {
         return status;
-    }
-
-    @Column(nullable = true)
-    public Long getToken() {
-        return token;
-    }
-
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getDetails() {
-        return details;
-    }
-
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getLocalizedMessage() {
-        return localizedMessage;
-    }
-
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getMessage() {
-        return message;
-    }
-
-    public String getMessageCode() {
-        return messageCode;
-    }
-
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    public String getOperation() {
-        return operation;
     }
 
     public void setRecord(RAuditEventRecord record) {
@@ -196,54 +134,12 @@ public class RObjectDeltaOperation implements OperationResult {
         recomputeChecksum();
     }
 
-    public void setOperation(String operation) {
-        this.operation = operation;
-
-        recomputeChecksum();
-    }
-
     public void setStatus(ROperationResultStatus status) {
         this.status = status;
     }
 
-    public void setToken(Long token) {
-        this.token = token;
-    }
-
-    public void setMessageCode(String messageCode) {
-        this.messageCode = messageCode;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-
-        recomputeChecksum();
-    }
-
-    public void setDetails(String details) {
-        this.details = details;
-
-        recomputeChecksum();
-    }
-
-    public void setLocalizedMessage(String localizedMessage) {
-        this.localizedMessage = localizedMessage;
-    }
-
-    public void setParams(String params) {
-        this.params = params;
-    }
-    
-    public void setContext(String context) {
-    	this.context = context;
-    }
-    
-    public void setReturns(String returns) {
-		this.returns = returns;
-	}
-
-    public void setPartialResults(String partialResults) {
-        this.partialResults = partialResults;
+    public void setFullResult(String fullResult) {
+        this.fullResult = fullResult;
 
         recomputeChecksum();
     }
@@ -258,7 +154,7 @@ public class RObjectDeltaOperation implements OperationResult {
 
     @Transient
     private void recomputeChecksum() {
-        checksum = RUtil.computeChecksum(delta, operation, message, details, partialResults);
+        checksum = RUtil.computeChecksum(delta, fullResult);
     }
 
     @Override
@@ -271,19 +167,9 @@ public class RObjectDeltaOperation implements OperationResult {
         if (getChecksum() != null ? !getChecksum().equals(that.getChecksum()) : that.getChecksum() != null)
             return false;
         if (delta != null ? !delta.equals(that.delta) : that.delta != null) return false;
-        if (details != null ? !details.equals(that.details) : that.details != null) return false;
-        if (localizedMessage != null ? !localizedMessage.equals(that.localizedMessage) : that.localizedMessage != null)
-            return false;
-        if (message != null ? !message.equals(that.message) : that.message != null) return false;
-        if (messageCode != null ? !messageCode.equals(that.messageCode) : that.messageCode != null) return false;
-        if (operation != null ? !operation.equals(that.operation) : that.operation != null) return false;
-        if (params != null ? !params.equals(that.params) : that.params != null) return false;
-        if (context != null ? !context.equals(that.context) : that.context != null) return false;
-        if (returns != null ? !returns.equals(that.params) : that.returns != null) return false;
-        if (partialResults != null ? !partialResults.equals(that.partialResults) : that.partialResults != null)
+        if (fullResult != null ? !fullResult.equals(that.fullResult) : that.fullResult != null)
             return false;
         if (status != that.status) return false;
-        if (token != null ? !token.equals(that.token) : that.token != null) return false;
         if (deltaType != null ? !deltaType.equals(that.deltaType) : that.deltaType != null) return false;
         if (deltaOid != null ? !deltaOid.equals(that.deltaOid) : that.deltaOid != null) return false;
 
@@ -294,17 +180,8 @@ public class RObjectDeltaOperation implements OperationResult {
     public int hashCode() {
         int result1 = delta != null ? delta.hashCode() : 0;
         result1 = 31 * result1 + (getChecksum() != null ? getChecksum().hashCode() : 0);
-        result1 = 31 * result1 + (operation != null ? operation.hashCode() : 0);
         result1 = 31 * result1 + (status != null ? status.hashCode() : 0);
-        result1 = 31 * result1 + (token != null ? token.hashCode() : 0);
-        result1 = 31 * result1 + (messageCode != null ? messageCode.hashCode() : 0);
-        result1 = 31 * result1 + (message != null ? message.hashCode() : 0);
-        result1 = 31 * result1 + (details != null ? details.hashCode() : 0);
-        result1 = 31 * result1 + (localizedMessage != null ? localizedMessage.hashCode() : 0);
-        result1 = 31 * result1 + (params != null ? params.hashCode() : 0);
-        result1 = 31 * result1 + (context != null ? context.hashCode() : 0);
-        result1 = 31 * result1 + (returns != null ? returns.hashCode() : 0);
-        result1 = 31 * result1 + (partialResults != null ? partialResults.hashCode() : 0);
+        result1 = 31 * result1 + (fullResult != null ? fullResult.hashCode() : 0);
         result1 = 31 * result1 + (deltaOid != null ? deltaOid.hashCode() : 0);
         result1 = 31 * result1 + (deltaType != null ? deltaType.hashCode() : 0);
         return result1;

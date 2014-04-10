@@ -181,11 +181,9 @@
 							<textFieldExpression><![CDATA[$F{lastName}]]></textFieldExpression>
 						</textField>
 						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-							<reportElement style="Detail" x="320" y="1" width="100" height="18" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8">
-								<printWhenExpression><![CDATA[!$F{activation}.getAdministrativeStatus().getSchemaValue().value().isEmpty()]]></printWhenExpression>
-							</reportElement>
+							<reportElement style="Detail" x="320" y="1" width="100" height="18" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
 							<textElement verticalAlignment="Middle"/>
-							<textFieldExpression><![CDATA[$F{activation}.getAdministrativeStatus().getSchemaValue()]]></textFieldExpression>
+							<textFieldExpression><![CDATA[$F{activationField}.getSchemaValue()]]></textFieldExpression>
 						</textField>
 						<subreport isUsingCache="true">
 							<reportElement style="Detail" positionType="Float" x="420" y="0" width="100" height="18" isPrintWhenDetailOverflows="true" uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9"/>
@@ -354,7 +352,7 @@
 			u.givenName.orig as firstName, 
 			u.familyName.orig as lastName, 
 			u.activation.administrativeStatus as activationField 
-			from RUser as u 
+			from RUser as u
 			where $P{activation} = null or u.activation.administrativeStatus = $P{activation}
 			order by u.name.orig
 		</r:hqlQuery>

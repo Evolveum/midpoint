@@ -19,35 +19,36 @@ package com.evolveum.midpoint.repo.sql.util;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
-import com.evolveum.midpoint.repo.sql.data.common.*;
+import com.evolveum.midpoint.repo.sql.data.common.OperationResult;
+import com.evolveum.midpoint.repo.sql.data.common.OperationResultFull;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAssignmentReference;
+import com.evolveum.midpoint.repo.sql.data.common.container.RExclusion;
+import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
-import com.evolveum.midpoint.repo.sql.data.common.other.RContainerType;
-import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectSelector;
-import com.evolveum.midpoint.schema.RetrieveOption;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.SessionFactory;
@@ -64,9 +65,12 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
-
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * @author lazyman
@@ -81,10 +85,9 @@ public final class RUtil {
      */
     public static final String LOB_STRING_TYPE = "org.hibernate.type.StringClobType";
 
-    /**
-     * This constant is used for {@link QName#localPart} column size in database.
-     */
-    public static final int COLUMN_LENGTH_LOCALPART = 100;
+    public static final int COLUMN_LENGTH_QNAME = 157;
+
+    public static final String QNAME_DELIMITER = "#";
 
     /**
      * This constant is used for oid column size in database.
@@ -188,27 +191,6 @@ public final class RUtil {
         return element.getValue();
     }
 
-    public static Item cloneValuesFromJaxb(AuthorizationType jaxb, QName itemName){
-    	if (!jaxb.getItem().isEmpty()){
-    		Item jaxbContainer = jaxb.asPrismContainerValue().findItem(itemName);
-			if (jaxbContainer != null) {
-//				Item newContainer = jaxbContainer.clone();
-				return jaxbContainer.clone();
-			}
-    	}
-    	return null;
-    }
-    
-    public static <T extends PrismValue> Collection<T> cloneValuesToJaxb(AuthorizationType objectSpecification, QName itemName){
-    	PrismContainerValue objSpecCont = objectSpecification.asPrismContainerValue();
-    	Item itemContainer = objSpecCont.findItem(itemName);
-		if (!objectSpecification.getItem().isEmpty() && itemContainer != null){
-			return PrismValue.cloneCollection(itemContainer.getValues());
-//		jaxbContainer.findOrCreateProperty(SchemaConstants.C_ITEM).addAll(cloned);
-//			jaxb.getItem().addAll(objectSpecification.getItem());
-		}
-		return null;
-    }
     private static Element getFirstSubElement(Element parent) {
         if (parent == null) {
             return null;
@@ -288,45 +270,6 @@ public final class RUtil {
         return set;
     }
 
-    public static List<PolyStringType> safeSetPolyToList(Set<RPolyString> set) {
-        if (set == null || set.isEmpty()) {
-            return new ArrayList<PolyStringType>();
-        }
-
-        List<PolyStringType> list = new ArrayList<PolyStringType>();
-        for (RPolyString str : set) {
-            list.add(RPolyString.copyToJAXB(str));
-        }
-        return list;
-    }
-
-    public static Set<RSynchronizationSituationDescription> listSyncSituationToSet(RShadow owner,
-                                                                                   List<SynchronizationSituationDescriptionType> list) {
-        Set<RSynchronizationSituationDescription> set = new HashSet<RSynchronizationSituationDescription>();
-        if (list != null) {
-            for (SynchronizationSituationDescriptionType str : list) {
-                if (str == null) {
-                    continue;
-                }
-                set.add(RSynchronizationSituationDescription.copyFromJAXB(owner, str));
-            }
-        }
-
-        return set;
-    }
-
-    public static List<SynchronizationSituationDescriptionType> safeSetSyncSituationToList(
-            Set<RSynchronizationSituationDescription> set) {
-        List<SynchronizationSituationDescriptionType> list = new ArrayList<SynchronizationSituationDescriptionType>();
-        for (RSynchronizationSituationDescription str : set) {
-            if (str == null) {
-                continue;
-            }
-            list.add(RSynchronizationSituationDescription.copyToJAXB(str));
-        }
-        return list;
-    }
-
     public static <T> List<T> safeSetToList(Set<T> set) {
         if (set == null || set.isEmpty()) {
             return new ArrayList<T>();
@@ -338,12 +281,13 @@ public final class RUtil {
         return list;
     }
 
-    public static List<ObjectReferenceType> safeSetReferencesToList(Set<RObjectReference> set, PrismContext prismContext) {
+    public static List<ObjectReferenceType> safeSetReferencesToList(Set<? extends RObjectReference> set, PrismContext prismContext) {
+        List<ObjectReferenceType> list = new ArrayList<ObjectReferenceType>();
+
         if (set == null || set.isEmpty()) {
-            return new ArrayList<ObjectReferenceType>();
+            return list;
         }
 
-        List<ObjectReferenceType> list = new ArrayList<ObjectReferenceType>();
         for (RObjectReference str : set) {
             ObjectReferenceType ort = new ObjectReferenceType();
             RObjectReference.copyToJAXB(str, ort, prismContext);
@@ -352,8 +296,8 @@ public final class RUtil {
         return list;
     }
 
-    public static Set<RObjectReference> safeListReferenceToSet(List<ObjectReferenceType> list, PrismContext prismContext,
-                                                               RContainer owner, RReferenceOwner refOwner) {
+    public static Set safeListReferenceToSet(List<ObjectReferenceType> list, PrismContext prismContext,
+                                             RObject owner, RReferenceOwner refOwner) {
         Set<RObjectReference> set = new HashSet<RObjectReference>();
         if (list == null || list.isEmpty()) {
             return set;
@@ -369,7 +313,7 @@ public final class RUtil {
     }
 
     public static RObjectReference jaxbRefToRepo(ObjectReferenceType reference, PrismContext prismContext,
-                                                 RContainer owner, RReferenceOwner refOwner) {
+                                                 RObject owner, RReferenceOwner refOwner) {
         if (reference == null) {
             return null;
         }
@@ -394,12 +338,12 @@ public final class RUtil {
         return ref;
     }
 
-    public static Long getLongFromString(String val) {
+    public static Integer getIntegerFromString(String val) {
         if (val == null || !val.matches("[0-9]+")) {
             return null;
         }
 
-        return Long.parseLong(val);
+        return Integer.parseInt(val);
     }
 
     /**
@@ -411,27 +355,34 @@ public final class RUtil {
      */
     public static void fixCompositeIDHandling(SessionFactory sessionFactory) {
         fixCompositeIdentifierInMetaModel(sessionFactory, RObjectDeltaOperation.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RSynchronizationSituationDescription.class);
 
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAnyContainer.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAnyClob.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAnyDate.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAnyString.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAnyPolyString.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAnyReference.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAnyLong.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtDate.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtString.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtPolyString.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtReference.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, ROExtLong.class);
+
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAssignmentExtension.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtDate.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtString.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtPolyString.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtReference.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtLong.class);
 
         fixCompositeIdentifierInMetaModel(sessionFactory, RObjectReference.class);
         for (RReferenceOwner owner : RReferenceOwner.values()) {
             fixCompositeIdentifierInMetaModel(sessionFactory, owner.getClazz());
         }
 
-        fixCompositeIdentifierInMetaModel(sessionFactory, RContainer.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, RAssignmentReference.class);
+        for (RCReferenceOwner owner : RCReferenceOwner.values()) {
+            fixCompositeIdentifierInMetaModel(sessionFactory, owner.getClazz());
+        }
+
         fixCompositeIdentifierInMetaModel(sessionFactory, RAssignment.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAuthorization.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RExclusion.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RTrigger.class);
-        for (RContainerType type : ClassMapper.getKnownTypes()) {
+        for (RObjectType type : ClassMapper.getKnownTypes()) {
             fixCompositeIdentifierInMetaModel(sessionFactory, type.getClazz());
         }
     }
@@ -455,69 +406,22 @@ public final class RUtil {
         }
     }
 
-    public static void copyResultToJAXB(OperationResult repo, OperationResultType jaxb, PrismContext prismContext) throws
-            DtoTranslationException {
-        Validate.notNull(jaxb, "JAXB object must not be null.");
-        Validate.notNull(repo, "Repo object must not be null.");
-
-        jaxb.setDetails(repo.getDetails());
-        jaxb.setMessage(repo.getMessage());
-        jaxb.setMessageCode(repo.getMessageCode());
-        jaxb.setOperation(repo.getOperation());
-        if (repo.getStatus() != null) {
-            jaxb.setStatus(repo.getStatus().getSchemaValue());
-        }
-        jaxb.setToken(repo.getToken());
-
-        try {
-            jaxb.setLocalizedMessage(RUtil.toJAXB(OperationResultType.class, new ItemPath(
-                    OperationResultType.F_LOCALIZED_MESSAGE), repo.getLocalizedMessage(), LocalizedMessageType.class,
-                    prismContext));
-            jaxb.setParams(RUtil.toJAXB(OperationResultType.class, new ItemPath(OperationResultType.F_PARAMS),
-                    repo.getParams(), ParamsType.class, prismContext));
-            
-            jaxb.setContext(RUtil.toJAXB(OperationResultType.class, new ItemPath(OperationResultType.F_CONTEXT),
-                    repo.getContext(), ParamsType.class, prismContext));
-
-            jaxb.setReturns(RUtil.toJAXB(OperationResultType.class, new ItemPath(OperationResultType.F_RETURNS),
-                    repo.getReturns(), ParamsType.class, prismContext));
-
-
-            if (StringUtils.isNotEmpty(repo.getPartialResults())) {
-                OperationResultType result = RUtil.toJAXB(repo.getPartialResults(), OperationResultType.class,
-                        prismContext);
-                jaxb.getPartialResults().addAll(result.getPartialResults());
-            }
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
-        }
-    }
-
     public static void copyResultFromJAXB(OperationResultType jaxb, OperationResult repo, PrismContext prismContext)
             throws DtoTranslationException {
-        Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
 
-        repo.setDetails(jaxb.getDetails());
-        repo.setMessage(jaxb.getMessage());
-        repo.setMessageCode(jaxb.getMessageCode());
-        repo.setOperation(jaxb.getOperation());
+        if (jaxb == null) {
+            return;
+        }
+
         repo.setStatus(getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
-        repo.setToken(jaxb.getToken());
 
-        try {
-            repo.setLocalizedMessage(RUtil.toRepo(jaxb.getLocalizedMessage(), prismContext));
-            repo.setParams(RUtil.toRepo(jaxb.getParams(), prismContext));
-            repo.setContext(RUtil.toRepo(jaxb.getContext(), prismContext));
-            repo.setReturns(RUtil.toRepo(jaxb.getReturns(), prismContext));
-
-            if (!jaxb.getPartialResults().isEmpty()) {
-                OperationResultType result = new OperationResultType();
-                result.getPartialResults().addAll(jaxb.getPartialResults());
-                repo.setPartialResults(RUtil.toRepo(result, prismContext));
+        if (repo instanceof OperationResultFull) {
+            try {
+                ((OperationResultFull) repo).setFullResult(RUtil.toRepo(jaxb, prismContext));
+            } catch (Exception ex) {
+                throw new DtoTranslationException(ex.getMessage(), ex);
             }
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
         }
     }
 
@@ -550,33 +454,116 @@ public final class RUtil {
                 + "' of type '" + object.getClass() + "', can't translate to '" + type + "'.");
     }
 
-    /**
-     * This method creates full {@link ItemPath} from {@link com.evolveum.midpoint.prism.query.ValueFilter} created from
-     * main item path and last element, which is now definition.
-     * <p/>
-     * Will be deleted after query api update
-     *
-     * @param filter
-     * @return
-     */
-    @Deprecated
-    public static ItemPath createFullPath(ValueFilter filter) {
-        ItemDefinition def = filter.getDefinition();
-        ItemPath parentPath = filter.getParentPath();
-
-        List<ItemPathSegment> segments = new ArrayList<ItemPathSegment>();
-        if (parentPath != null) {
-            for (ItemPathSegment segment : parentPath.getSegments()) {
-                if (!(segment instanceof NameItemPathSegment)) {
-                    continue;
-                }
-
-                NameItemPathSegment named = (NameItemPathSegment) segment;
-                segments.add(new NameItemPathSegment(named.getName()));
-            }
+    public static String qnameToString(QName qname) {
+        StringBuilder sb = new StringBuilder();
+        if (qname != null) {
+            sb.append(qname.getNamespaceURI());
         }
-        segments.add(new NameItemPathSegment(def.getName()));
+        sb.append(QNAME_DELIMITER);
+        if (qname != null) {
+            sb.append(qname.getLocalPart());
+        }
 
-        return new ItemPath(segments);
+        return sb.toString();
+    }
+
+    public static QName stringToQName(String text) {
+        if (StringUtils.isEmpty(text)) {
+            return null;
+        }
+
+        int index = text.lastIndexOf(QNAME_DELIMITER);
+        String namespace = StringUtils.left(text, index);
+        String localPart = StringUtils.right(text, text.length() - index - 1);
+
+        if (StringUtils.isEmpty(localPart)) {
+            return null;
+        }
+
+        return new QName(namespace, localPart);
+    }
+
+    public static Long toLong(Short s) {
+        if (s == null) {
+            return null;
+        }
+
+        return s.longValue();
+    }
+
+    public static Short toShort(Long l) {
+        if (l == null) {
+            return null;
+        }
+
+        if (l > Short.MAX_VALUE || l < Short.MIN_VALUE) {
+            throw new IllegalArgumentException("Couldn't cast value to short " + l);
+        }
+
+        return l.shortValue();
+    }
+
+    public static String getDebugString(RObject object) {
+        StringBuilder sb = new StringBuilder();
+        if (object.getName() != null) {
+            sb.append(object.getName().getOrig());
+        } else {
+            sb.append("null");
+        }
+        sb.append('(').append(object.getOid()).append(')');
+
+        return sb.toString();
+    }
+
+    public static String getTableName(Class hqlType) {
+        MidPointNamingStrategy namingStrategy = new MidPointNamingStrategy();
+        return namingStrategy.classToTableName(hqlType.getSimpleName());
+    }
+
+    public static byte[] getByteArrayFromXml(String xml, boolean compress) {
+        byte[] array;
+
+        GZIPOutputStream gzip = null;
+        try {
+            if (compress) {
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                gzip = new GZIPOutputStream(out);
+                gzip.write(xml.getBytes("utf-8"));
+                gzip.close();
+                out.close();
+
+                array = out.toByteArray();
+            } else {
+                array = xml.getBytes("utf-8");
+            }
+        } catch (Exception ex) {
+            throw new SystemException("Couldn't save full xml object, reason: " + ex.getMessage(), ex);
+        } finally {
+            IOUtils.closeQuietly(gzip);
+        }
+
+        return array;
+    }
+
+    public static String getXmlFromByteArray(byte[] array, boolean compressed) {
+        String xml;
+
+        GZIPInputStream gzip = null;
+        try {
+            if (compressed) {
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                gzip = new GZIPInputStream(new ByteArrayInputStream(array));
+                IOUtils.copy(gzip, out);
+                xml = new String(out.toByteArray(), "utf-8");
+            } else {
+                xml = new String(array, "utf-8");
+            }
+        } catch (Exception ex) {
+            throw new SystemException("Couldn't read data from full object column, reason: " + ex.getMessage(), ex);
+        } finally {
+            IOUtils.closeQuietly(gzip);
+        }
+
+        return xml;
     }
 }

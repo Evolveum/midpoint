@@ -21,22 +21,18 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RObjectTemplateType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RIncludeRef;
-import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
-import org.apache.commons.lang.StringUtils;
-import org.hibernate.annotations.*;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
-import javax.persistence.Entity;
-import javax.persistence.Table;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -45,14 +41,9 @@ import java.util.Set;
 @Entity
 @ForeignKey(name = "fk_object_template")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
-@org.hibernate.annotations.Table(appliesTo = "m_object_template",
-        indexes = {@Index(name = "iObjectTemplate", columnNames = "name_orig")})
 public class RObjectTemplate extends RObject<ObjectTemplateType> {
 
     private RPolyString name;
-    private String iteration;
-    private String mapping;
-    private String accountConstruction;
     private RObjectTemplateType type;
     private Set<RObjectReference> includeRef;
 
@@ -62,7 +53,7 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RObjectReference> getIncludeRef() {
         if (includeRef == null) {
-            includeRef = new HashSet<RObjectReference>();
+            includeRef = new HashSet<>();
         }
         return includeRef;
     }
@@ -70,31 +61,6 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
     @Enumerated(EnumType.ORDINAL)
     public RObjectTemplateType getType() {
         return type;
-    }
-
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    @Column(nullable = true)
-    public String getAccountConstruction() {
-        return accountConstruction;
-    }
-
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    @Column(nullable = true)
-    public String getMapping() {
-        return mapping;
-    }
-
-    @Lob
-    @Type(type = RUtil.LOB_STRING_TYPE)
-    @Column(nullable = true)
-    public String getIteration() {
-        return iteration;
-    }
-
-    public void setIteration(String iteration) {
-        this.iteration = iteration;
     }
 
     public void setType(RObjectTemplateType type) {
@@ -114,14 +80,6 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
         this.name = name;
     }
 
-    public void setAccountConstruction(String accountConstruction) {
-        this.accountConstruction = accountConstruction;
-    }
-
-    public void setMapping(String mapping) {
-        this.mapping = mapping;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -131,16 +89,11 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
         RObjectTemplate that = (RObjectTemplate) o;
 
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (accountConstruction != null ? !accountConstruction.equals(that.accountConstruction) : that.accountConstruction != null)
-            return false;
-        if (mapping != null ? !mapping.equals(that.mapping) : that.mapping != null)
-            return false;
         if (type != null ? !type.equals(that.type) : that.type != null)
             return false;
         if (includeRef != null ? !includeRef.equals(that.includeRef) : that.includeRef != null)
             return false;
-        if (iteration != null ? !iteration.equals(that.iteration) : that.iteration != null)
-            return false;
+
 
         return true;
     }
@@ -149,46 +102,8 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (mapping != null ? mapping.hashCode() : 0);
-        result = 31 * result + (accountConstruction != null ? accountConstruction.hashCode() : 0);
         result = 31 * result + (type != null ? type.hashCode() : 0);
-        result = 31 * result + (iteration != null ? iteration.hashCode() : 0);
         return result;
-    }
-
-    public static void copyToJAXB(RObjectTemplate repo, ObjectTemplateType jaxb, PrismContext prismContext,
-                                  Collection<SelectorOptions<GetOperationOptions>> options) throws
-            DtoTranslationException {
-        RObject.copyToJAXB(repo, jaxb, prismContext, options);
-
-        //set name c:userTemplate or c:objectTemplate
-        jaxb.asPrismObject().setElementName(repo.getType().getSchemaValue());
-
-        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-
-        List includeRef = RUtil.safeSetReferencesToList(repo.getIncludeRef(), prismContext);
-        if (!includeRef.isEmpty()) {
-            jaxb.getIncludeRef().addAll(includeRef);
-        }
-
-        try {
-            if (StringUtils.isNotEmpty(repo.getAccountConstruction())) {
-                ObjectTemplateType holder = RUtil.toJAXB(repo.getAccountConstruction(), ObjectTemplateType.class, prismContext);
-                jaxb.getAccountConstruction().addAll(holder.getAccountConstruction());
-            }
-
-            if (StringUtils.isNotEmpty(repo.getMapping())) {
-                ObjectTemplateType holder = RUtil.toJAXB(repo.getMapping(), ObjectTemplateType.class, prismContext);
-                jaxb.getMapping().addAll(holder.getMapping());
-            }
-
-            if (StringUtils.isNotEmpty(repo.getIteration())) {
-                ObjectTemplateType holder = RUtil.toJAXB(repo.getIteration(), ObjectTemplateType.class, prismContext);
-                jaxb.setIteration(holder.getIteration());
-            }
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
-        }
     }
 
     public static void copyFromJAXB(ObjectTemplateType jaxb, RObjectTemplate repo, PrismContext prismContext) throws
@@ -200,39 +115,6 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
 
         repo.getIncludeRef().addAll(RUtil.safeListReferenceToSet(
                 jaxb.getIncludeRef(), prismContext, repo, RReferenceOwner.INCLUDE));
-        try {
-            if (!jaxb.getAccountConstruction().isEmpty()) {
-                ObjectTemplateType template = new ObjectTemplateType();
-                // template needs name for serialization, in here it doesn't matter if it's objectTemplate
-                // or userTemplate, it's only wrapper for data
-                template.asPrismObject().setElementName(SchemaConstantsGenerated.C_OBJECT_TEMPLATE);
-
-                template.getAccountConstruction().addAll(jaxb.getAccountConstruction());
-                repo.setAccountConstruction(RUtil.toRepo(template, prismContext));
-            }
-
-            if (!jaxb.getMapping().isEmpty()) {
-                ObjectTemplateType template = new ObjectTemplateType();
-                // template needs name for serialization, in here it doesn't matter if it's objectTemplate
-                // or userTemplate, it's only wrapper for data
-                template.asPrismObject().setElementName(SchemaConstantsGenerated.C_OBJECT_TEMPLATE);
-
-                template.getMapping().addAll(jaxb.getMapping());
-                repo.setMapping(RUtil.toRepo(template, prismContext));
-            }
-
-            if (jaxb.getIteration() != null) {
-                ObjectTemplateType template = new ObjectTemplateType();
-                // template needs name for serialization, in here it doesn't matter if it's objectTemplate
-                // or userTemplate, it's only wrapper for data
-                template.asPrismObject().setElementName(SchemaConstantsGenerated.C_OBJECT_TEMPLATE);
-
-                template.setIteration(jaxb.getIteration());
-                repo.setIteration(RUtil.toRepo(template, prismContext));
-            }
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
-        }
     }
 
     @Override

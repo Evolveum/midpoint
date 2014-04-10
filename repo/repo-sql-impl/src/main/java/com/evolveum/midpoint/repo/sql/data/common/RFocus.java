@@ -17,10 +17,11 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
-import com.evolveum.midpoint.repo.sql.data.common.type.RAccountRef;
+import com.evolveum.midpoint.repo.sql.data.common.type.RLinkRef;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualCollection;
@@ -40,7 +41,10 @@ import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * @author lazyman
@@ -60,16 +64,14 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
     private Set<RObjectReference> linkRef;
     private Set<RAssignment> assignments;
     private RActivation activation;
-    private String iterationToken;
-    private Integer iteration;
 
-    @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RAccountRef.DISCRIMINATOR)
+    @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RLinkRef.DISCRIMINATOR)
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
     @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RObjectReference> getLinkRef() {
         if (linkRef == null) {
-            linkRef = new HashSet<RObjectReference>();
+            linkRef = new HashSet<>();
         }
         return linkRef;
     }
@@ -77,7 +79,7 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
     @Transient
     protected Set<RAssignment> getAssignments(RAssignmentOwner owner) {
         Set<RAssignment> assignments = getAssignments();
-        Set<RAssignment> wanted = new HashSet<RAssignment>();
+        Set<RAssignment> wanted = new HashSet<>();
         if (assignments == null) {
             return wanted;
         }
@@ -103,7 +105,7 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RAssignment> getAssignments() {
         if (assignments == null) {
-            assignments = new HashSet<RAssignment>();
+            assignments = new HashSet<>();
         }
         return assignments;
     }
@@ -111,14 +113,6 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
     @Embedded
     public RActivation getActivation() {
         return activation;
-    }
-
-    public String getIterationToken() {
-        return iterationToken;
-    }
-
-    public Integer getIteration() {
-        return iteration;
     }
 
     public void setAssignments(Set<RAssignment> assignments) {
@@ -133,14 +127,6 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
         this.activation = activation;
     }
 
-    public void setIterationToken(String iterationToken) {
-        this.iterationToken = iterationToken;
-    }
-
-    public void setIteration(Integer iteration) {
-        this.iteration = iteration;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -152,8 +138,6 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
         if (assignments != null ? !assignments.equals(other.assignments) : other.assignments != null) return false;
         if (linkRef != null ? !linkRef.equals(other.linkRef) : other.linkRef != null) return false;
         if (activation != null ? !activation.equals(other.activation) : other.activation != null) return false;
-        if (iterationToken != null ? !iterationToken.equals(other.iterationToken) : other.iterationToken != null) return false;
-        if (iteration != null ? !iteration.equals(other.iteration) : other.iteration != null) return false;
 
         return true;
     }
@@ -162,8 +146,6 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (activation != null ? activation.hashCode() : 0);
-        result = 31 * result + (iterationToken != null ? iterationToken.hashCode() : 0);
-        result = 31 * result + (iteration != null ? iteration.hashCode() : 0);
 
         return result;
     }
@@ -171,9 +153,6 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
     public static <T extends FocusType> void copyFromJAXB(FocusType jaxb, RFocus<T> repo, PrismContext prismContext) throws
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
-
-        repo.setIterationToken(jaxb.getIterationToken());
-        repo.setIteration(jaxb.getIteration());
 
         repo.getLinkRef().addAll(
                 RUtil.safeListReferenceToSet(jaxb.getLinkRef(), prismContext, repo, RReferenceOwner.USER_ACCOUNT));
@@ -193,29 +172,12 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
         }
     }
 
+    @Deprecated
     public static <T extends FocusType> void copyToJAXB(RFocus<T> repo, FocusType jaxb, PrismContext prismContext,
-                                  Collection<SelectorOptions<GetOperationOptions>> options) throws
+                                                        Collection<SelectorOptions<GetOperationOptions>> options) throws
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext, options);
 
-        jaxb.setIteration(repo.getIteration());
-        jaxb.setIterationToken(repo.getIterationToken());
 
-        if (SelectorOptions.hasToLoadPath(FocusType.F_LINK_REF, options)) {
-            List linkRefs = RUtil.safeSetReferencesToList(repo.getLinkRef(), prismContext);
-            if (!linkRefs.isEmpty()) {
-                jaxb.getLinkRef().addAll(linkRefs);
-            }
-        }
-
-        if (SelectorOptions.hasToLoadPath(FocusType.F_ASSIGNMENT, options)) {
-            for (RAssignment rAssignment : repo.getAssignment()) {
-                jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
-            }
-        }
-
-        if (repo.getActivation() != null) {
-            jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
-        }
     }
 }

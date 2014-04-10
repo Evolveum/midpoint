@@ -16,10 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
-import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
-import com.evolveum.midpoint.repo.sql.data.common.RContainer;
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.ROwnable;
+import com.evolveum.midpoint.repo.sql.data.common.container.Container;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
@@ -28,7 +25,6 @@ import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.id.IdentifierGenerator;
 
 import java.io.Serializable;
-import java.util.UUID;
 
 /**
  * @author lazyman
@@ -39,55 +35,15 @@ public class ContainerOidGenerator implements IdentifierGenerator {
 
     @Override
     public Serializable generate(SessionImplementor session, Object object) throws HibernateException {
-        if (object instanceof RAnyContainer) {
-            RAnyContainer any = (RAnyContainer) object;
-            RContainer owner = any.getOwner();
-            String oid = owner.getOid();
-            if (oid == null) {
-                oid = generate(owner);
-                owner.setOid(oid);
-            }
-            LOGGER.trace("Created oid='{}' for any.", new Object[]{oid});
-            return oid;
-        }
-
         return generate(object);
     }
 
     private String generate(Object object) {
-        RContainer container = null;
-        if (object instanceof ROwnable) {
-            container = ((ROwnable) object).getContainerOwner();
-        } else if (object instanceof RObject) {
-            container = (RContainer) object;
+        Container container = (Container) object;
+        if (StringUtils.isNotEmpty(container.getOwnerOid())) {
+            return container.getOwnerOid();
         }
 
-        if (container == null) {
-            throw new HibernateException("Couldn't create id for '"
-                    + object.getClass().getSimpleName() + "' (should not happen).");
-        }
-
-        if (StringUtils.isNotEmpty(container.getOid())) {
-            LOGGER.trace("Created oid='{}' for '{}'.", new Object[]{container.getOid(), toString(object)});
-            return container.getOid();
-        }
-
-        String oid = UUID.randomUUID().toString();
-        LOGGER.trace("Created oid='{}' for '{}'.", new Object[]{oid, toString(object)});
-        return oid;
-    }
-
-    private String toString(Object object) {
-        RContainer container = (RContainer) object;
-
-        StringBuilder builder = new StringBuilder();
-        builder.append(object.getClass().getSimpleName());
-        builder.append("[");
-        builder.append(container.getOid());
-        builder.append(",");
-        builder.append(container.getId());
-        builder.append("]");
-
-        return builder.toString();
+        throw new RuntimeException("Unknown oid, should not happen.");
     }
 }
