@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.model.lens;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
@@ -22,13 +24,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
  * @author semancik
  *
  */
-public class AssignmentPathSegment {
+public class AssignmentPathSegment implements DebugDumpable {
 	
 	private AssignmentType assignmentType;
-	private EvaluatedAssignment evaluatedAssignment;
 	private ObjectType target;
 	private ObjectType source;
 	private boolean evaluateConstructions = true;
+	private boolean validityOverride = false;
 	private int evaluationOrder;
 	private ObjectType varThisObject;
 	
@@ -44,14 +46,6 @@ public class AssignmentPathSegment {
 
 	public void setAssignmentType(AssignmentType assignmentType) {
 		this.assignmentType = assignmentType;
-	}
-
-	public EvaluatedAssignment getEvaluatedAssignment() {
-		return evaluatedAssignment;
-	}
-
-	public void setEvaluatedAssignment(EvaluatedAssignment evaluatedAssignment) {
-		this.evaluatedAssignment = evaluatedAssignment;
 	}
 
 	public ObjectType getTarget() {
@@ -77,6 +71,15 @@ public class AssignmentPathSegment {
 	public void setEvaluateConstructions(boolean evaluateConstructions) {
 		this.evaluateConstructions = evaluateConstructions;
 	}
+	
+	public boolean isValidityOverride() {
+		return validityOverride;
+	}
+
+	public void setValidityOverride(boolean validityOverride) {
+		this.validityOverride = validityOverride;
+	}
+
 	public int getEvaluationOrder() {
 		return evaluationOrder;
 	}
@@ -98,7 +101,6 @@ public class AssignmentPathSegment {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((assignmentType == null) ? 0 : assignmentType.hashCode());
-		result = prime * result + ((evaluatedAssignment == null) ? 0 : evaluatedAssignment.hashCode());
 		result = prime * result + ((source == null) ? 0 : source.hashCode());
 		result = prime * result + ((target == null) ? 0 : target.hashCode());
 		return result;
@@ -117,11 +119,6 @@ public class AssignmentPathSegment {
 			if (other.assignmentType != null)
 				return false;
 		} else if (!assignmentType.equals(other.assignmentType))
-			return false;
-		if (evaluatedAssignment == null) {
-			if (other.evaluatedAssignment != null)
-				return false;
-		} else if (!evaluatedAssignment.equals(other.evaluatedAssignment))
 			return false;
 		if (source == null) {
 			if (other.source != null)
@@ -154,4 +151,32 @@ public class AssignmentPathSegment {
 		sb.append(")");
 		return sb.toString();
 	}
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.debugDumpLabel(sb, "AssignmentPathSegment", indent);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "evaluateConstructions", evaluateConstructions, indent + 1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "validityOverride", validityOverride, indent + 1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "evaluationOrder", evaluationOrder, indent + 1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "assignmentType", assignmentType.toString(), indent + 1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "target", target==null?"null":target.toString(), indent + 1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "source", source==null?"null":source.toString(), indent + 1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "varThisObject", varThisObject==null?"null":varThisObject.toString(), indent + 1);
+		return sb.toString();
+	}
+	
+	
 }

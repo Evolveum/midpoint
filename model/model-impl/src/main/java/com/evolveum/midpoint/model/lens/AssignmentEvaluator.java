@@ -180,6 +180,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		assignmentPathSegment.setSource(source);
 		assignmentPathSegment.setEvaluationOrder(1);
 		assignmentPathSegment.setEvaluateConstructions(true);
+		assignmentPathSegment.setValidityOverride(true);
 		
 		evaluateAssignment(evalAssignment, assignmentPathSegment, source, sourceDescription, assignmentPath, task, result);
 		
@@ -201,7 +202,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		checkSchema(assignmentType, sourceDescription);
 		
-		if (LensUtil.isValid(assignmentType, now, activationComputer)) {
+		boolean isValid = LensUtil.isValid(assignmentType, now, activationComputer);
+		if (isValid || assignmentPathSegment.isValidityOverride()) {
 		
 			if (assignmentType.getAccountConstruction() != null || assignmentType.getConstruction() != null) {
 				
@@ -223,16 +225,18 @@ public class AssignmentEvaluator<F extends FocusType> {
 			} else {
 				throw new SchemaException("No target or construcion in assignment in " + source);
 			}
+			
 		} else {
 			LOGGER.trace("Skipping evaluation of assignment {} because it is not valid", assignmentType);
 		}
+		evalAssignment.setValid(isValid);
 		
 		assignmentPath.remove(assignmentPathSegment);
 	}
 
-	private void evaluateConstruction(EvaluatedAssignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectType source, String sourceDescription,
+	private void evaluateConstruction(EvaluatedAssignment evaluatedAssignment, AssignmentPathSegment assignmentPathSegment, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, ObjectType orderOneObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		assertSource(source, assignment);
+		assertSource(source, evaluatedAssignment);
 		
 		
 		AssignmentType assignmentType = assignmentPathSegment.getAssignmentType();
@@ -260,8 +264,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		construction.evaluate(task, result);
 		
-		assignment.addConstruction(construction);
-		assignmentPathSegment.setEvaluatedAssignment(assignment);
+		evaluatedAssignment.addConstruction(construction);
 	}
 
 	private void evaluateTargetRef(EvaluatedAssignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectReferenceType targetRef, ObjectType source,

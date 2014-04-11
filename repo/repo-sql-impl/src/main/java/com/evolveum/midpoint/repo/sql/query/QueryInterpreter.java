@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.query.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.query.matcher.DefaultMatcher;
@@ -102,6 +103,16 @@ public class QueryInterpreter {
 
 
         AVAILABLE_MATCHERS = Collections.unmodifiableMap(matchers);
+    }
+
+    private SqlRepositoryConfiguration repoConfiguration;
+
+    public QueryInterpreter(SqlRepositoryConfiguration repoConfiguration) {
+        this.repoConfiguration = repoConfiguration;
+    }
+
+    public SqlRepositoryConfiguration getRepoConfiguration() {
+        return repoConfiguration;
     }
 
     public Criteria interpret(ObjectQuery query, Class<? extends ObjectType> type,

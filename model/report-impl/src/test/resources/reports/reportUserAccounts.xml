@@ -95,7 +95,7 @@
 			from RObjectReference as o, 
 			RShadow as s, 
 			RResource as r 
-			where s.resourceRef.targetOid = r.oid and o.owner.oid = $P{userOid} and o.type = 9 and o.targetOid = s.oid and s.kind = 0 
+			where s.resourceRef.targetOid = r.oid and o.owner.oid = $P{userOid} and o.type = 7 and o.targetOid = s.oid and s.kind = 0 
 			order by r.name.orig, s.name.orig
 		</r:hqlQueryAccounts>
 	</configuration>			

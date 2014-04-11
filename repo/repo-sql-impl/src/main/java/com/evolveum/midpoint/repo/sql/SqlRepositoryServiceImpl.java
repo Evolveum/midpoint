@@ -896,7 +896,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 longCount = (Number) sqlQuery.uniqueResult();
             } else {
                 LOGGER.trace("Updating query criteria.");
-                QueryEngine engine = new QueryEngine(getPrismContext());
+                QueryEngine engine = new QueryEngine(getConfiguration(), getPrismContext());
                 RQuery rQuery = engine.interpret(query, type, null, true, session);
 
                 LOGGER.trace("Selecting total count.");
@@ -973,7 +973,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Session session = null;
         try {
             session = beginReadOnlyTransaction();
-            QueryEngine engine = new QueryEngine(getPrismContext());
+            QueryEngine engine = new QueryEngine(getConfiguration(), getPrismContext());
             RQuery rQuery = engine.interpret(query, type, options, false, session);
 
             List<GetObjectResult> objects = rQuery.list();
@@ -1414,11 +1414,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             rObject = clazz.newInstance();
             Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz, PrismContext.class);
             method.invoke(clazz, object, rObject, getPrismContext());
-
-//            if (!add) {
-            ContainerIdGenerator gen = new ContainerIdGenerator();
-            gen.generateIdForObject(rObject);
-//            }
         } catch (Exception ex) {
             String message = ex.getMessage();
             if (StringUtils.isEmpty(message) && ex.getCause() != null) {
@@ -1676,7 +1671,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Session session = null;
         try {
             session = beginReadOnlyTransaction();
-            QueryEngine engine = new QueryEngine(getPrismContext());
+            QueryEngine engine = new QueryEngine(getConfiguration(), getPrismContext());
             RQuery rQuery = engine.interpret(query, type, options, false, session);
 
             ScrollableResults results = rQuery.scroll(ScrollMode.FORWARD_ONLY);
@@ -1794,9 +1789,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         return query.executeUpdate();
     }
 
-	@Override
-	public <T extends ObjectType> boolean matchObject(PrismObject<T> object, ObjectQuery query) throws SchemaException {
-		boolean applicable = ObjectQuery.match(object, query.getFilter(), getMatchingRuleRegistry());
-		return applicable;
-	}
+    @Override
+    public <T extends ObjectType> boolean matchObject(PrismObject<T> object, ObjectQuery query) throws SchemaException {
+        boolean applicable = ObjectQuery.match(object, query.getFilter(), getMatchingRuleRegistry());
+        return applicable;
+    }
 }

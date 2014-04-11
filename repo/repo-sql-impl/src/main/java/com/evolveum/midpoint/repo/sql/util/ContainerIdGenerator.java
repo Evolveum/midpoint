@@ -16,9 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
-import com.evolveum.midpoint.repo.sql.data.common.RAbstractRole;
-import com.evolveum.midpoint.repo.sql.data.common.RFocus;
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.ROwnable;
 import com.evolveum.midpoint.repo.sql.data.common.container.Container;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -28,8 +25,6 @@ import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.id.IdentifierGenerator;
 
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author lazyman
@@ -72,55 +67,5 @@ public class ContainerIdGenerator implements IdentifierGenerator {
         builder.append("]");
 
         return builder.toString();
-    }
-
-    /**
-     * This method provides simplyfied id generator (without DB selects)
-     * Improve it later (fixes MID-1430).
-     *
-     * @param container
-     */
-    public void generateIdForObject(RObject container) {
-        if (container == null) {
-            return;
-        }
-
-        Set<Container> containers = getChildrenContainers(container);
-        Set<Short> usedIds = new HashSet<>();
-        for (Container c : containers) {
-            if (c.getId() != null) {
-                usedIds.add(c.getId());
-            }
-        }
-
-        Short nextId = 1;
-        for (Container c : containers) {
-            if (c.getId() != null) {
-                continue;
-            }
-
-            while (usedIds.contains(nextId)) {
-                nextId++;
-            }
-
-            c.setId(nextId);
-            usedIds.add(nextId);
-        }
-    }
-
-    private Set<Container> getChildrenContainers(RObject parent) {
-        Set<Container> containers = new HashSet<>();
-        containers.addAll(parent.getTrigger());
-
-        if (parent instanceof RFocus) {
-            containers.addAll(((RFocus) parent).getAssignments());
-        }
-
-        if (parent instanceof RAbstractRole) {
-            RAbstractRole role = (RAbstractRole) parent;
-            containers.addAll(role.getExclusion());
-        }
-
-        return containers;
     }
 }
