@@ -9,7 +9,7 @@ import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import org.apache.commons.lang.ObjectUtils;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -35,16 +35,15 @@ public class QueryEngine {
                               boolean countingObjects, Session session) throws QueryException {
 
         //todo search some query library for query filter match
-
         //todo implement as query library search, this is just a proof of concept [lazyman]
-//        if (query != null && query.getFilter() != null && query.getFilter() instanceof OrgFilter) {
-//            // http://stackoverflow.com/questions/10515391/oracle-equivalent-of-postgres-distinct-on
-//            // select distinct col1, first_value(col2) over (partition by col1 order by col2 asc) from tmp
-//            RQuery q =  createOrgQuery((OrgFilter) query.getFilter(), type, countingObjects, session);
-//            if (q != null) {
-//                return q;
-//            }
-//        }
+        if (query != null && query.getFilter() != null && query.getFilter() instanceof OrgFilter) {
+            // http://stackoverflow.com/questions/10515391/oracle-equivalent-of-postgres-distinct-on
+            // select distinct col1, first_value(col2) over (partition by col1 order by col2 asc) from tmp
+            RQuery q =  createOrgQuery((OrgFilter) query.getFilter(), type, countingObjects, session);
+            if (q != null) {
+                return q;
+            }
+        }
 
         QueryInterpreter interpreter = new QueryInterpreter(repoConfiguration);
         Criteria criteria = interpreter.interpret(query, type, options, prismContext, countingObjects, session);
@@ -72,11 +71,16 @@ public class QueryEngine {
         }
         sb.append("from ").append(ClassMapper.getHQLType(type)).append(" as o left join o.descendants as d ");
         sb.append("where d.ancestorOid = :aOid ");
-        if (filter.getMaxDepth() != null) {
-            if (filter.getMaxDepth() == 1) {
-                sb.append("and d.depth = :maxDepth ");
+        if (filter.getMinDepth() != null || filter.getMaxDepth() != null) {
+            if (ObjectUtils.equals(filter.getMinDepth(), filter.getMaxDepth())) {
+                sb.append("and d.depth = :depth");
             } else {
-                sb.append("and d.depth <=:maxDepth and d.depth>:minDepth ");
+                if (filter.getMinDepth() != null) {
+                    sb.append("and d.depth > :minDepth ");
+                }
+                if (filter.getMaxDepth() != null) {
+                    sb.append("and d.depth <= :maxDepth ");
+                }
             }
         }
 
@@ -88,63 +92,22 @@ public class QueryEngine {
 
         Query query = session.createQuery(sb.toString());
         query.setString("aOid", filter.getOrgRef().getOid());
-        if (filter.getMaxDepth() != null) {
-            if (filter.getMaxDepth() != 1) {
-                int minDepth = filter.getMinDepth() == null ? 1 : filter.getMinDepth();
-                query.setInteger("minDepth", minDepth);
+        if (filter.getMinDepth() != null || filter.getMaxDepth() != null) {
+            if (ObjectUtils.equals(filter.getMinDepth(), filter.getMaxDepth())) {
+                query.setInteger("depth", filter.getMinDepth());
+            } else {
+                if (filter.getMinDepth() != null) {
+                    query.setInteger("minDepth", filter.getMinDepth());
+                }
+                if (filter.getMaxDepth() != null) {
+                    query.setInteger("maxDepth", filter.getMaxDepth());
+                }
             }
-            query.setInteger("maxDepth", filter.getMaxDepth());
         }
+
         if (!countingObjects) {
             query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
         }
-
-//        Query query = session.createQuery(
-//                "select o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount from "
-//                        + ClassMapper.getHQLType(UserType.class) + " as o left join o.descendants as d "
-//                        + "where d.ancestorOid=:aOid and d.depth <=:maxDepth and d.depth>:minDepth "
-//                        + "group by o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount, o.name.orig "
-//                        + "order by o.name.orig asc");
-
-
-
-
-
-//        SELECT o.fullobject,
-//                o.stringscount,
-//                o.longscount,
-//                o.datescount,
-//                o.referencescount,
-//                o.polyscount,
-//                o.name_orig
-//        FROM   m_object o INNER JOIN m_org_closure c ON o.oid = c.descendant_oid
-//        WHERE  ( c.ancestor_oid = '' AND c.depthvalue <=1 AND c.depthvalue >0)
-//        GROUP  BY o.name_orig, o.fullobject,o.stringscount, o.longscount,
-//                o.datescount,
-//                o.referencescount,
-//                o.polyscount ORDER  BY o.name_orig ASC
-//        Query query = null;
-//
-//        session.createQuery(
-//                "select o.fullobject,o.stringscount,o.longscount,o.datescount,o.referencescount,o.polyscount from "
-//        + ClassMapper.getHQLType(type) + " as o left join o.descendants as d "
-//        + "where d.ancestorOid=:aOid and d.depth <=:maxDepth and d.depth>:midDepth "
-//        + "group by o.fullobject,o.stringscount,o.longscount,o.datescount,o.referencescount,o.polyscount "
-//        + "order by o.name.orig asc");
-
-//        SELECT o.fullobject,
-//                o.stringscount,
-//                o.longscount,
-//                o.datescount,
-//                o.referencescount,
-//                o.polyscount,
-//                o.name_orig
-//        FROM   m_object o INNER JOIN m_org_closure c ON o.oid = c.descendant_oid
-//        WHERE  ( c.ancestor_oid = '' AND c.depthvalue <=1 AND c.depthvalue >0)
-//        GROUP  BY o.name_orig, o.fullobject,o.stringscount, o.longscount,
-//                o.datescount,
-//                o.referencescount,
-//                o.polyscount ORDER  BY o.name_orig ASC
 
         return new RQueryImpl(query);
     }
