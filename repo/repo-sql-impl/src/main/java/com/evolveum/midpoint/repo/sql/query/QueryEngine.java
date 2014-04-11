@@ -73,7 +73,7 @@ public class QueryEngine {
         sb.append("where d.ancestorOid = :aOid ");
         if (filter.getMinDepth() != null || filter.getMaxDepth() != null) {
             if (ObjectUtils.equals(filter.getMinDepth(), filter.getMaxDepth())) {
-                sb.append("and d.depth = :depth");
+                sb.append("and d.depth = :depth ");
             } else {
                 if (filter.getMinDepth() != null) {
                     sb.append("and d.depth > :minDepth ");
