@@ -209,7 +209,8 @@ public class RObjectDeltaOperation implements OperationResultFull {
             }
 
             if (operation.getExecutionResult() != null) {
-                RUtil.copyResultFromJAXB(operation.getExecutionResult().createOperationResultType(),
+            	ItemDefinition def = prismContext.getSchemaRegistry().findItemDefinitionByElementName(SchemaConstantsGenerated.C_OPERATION_RESULT);
+                RUtil.copyResultFromJAXB(def, SchemaConstantsGenerated.C_OPERATION_RESULT, operation.getExecutionResult().createOperationResultType(),
                         auditDelta, prismContext);
             }
         } catch (Exception ex) {

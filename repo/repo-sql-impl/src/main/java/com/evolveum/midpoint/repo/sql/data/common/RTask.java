@@ -331,7 +331,7 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         repo.setWaitingReason(RUtil.getRepoEnumValue(jaxb.getWaitingReason(), RTaskWaitingReason.class));
         repo.setDependent(RUtil.listToSet(jaxb.getDependent()));
 
-        RUtil.copyResultFromJAXB(jaxb.getResult(), repo, prismContext);
+        RUtil.copyResultFromJAXB(taskDefinition, jaxb.F_RESULT, jaxb.getResult(), repo, prismContext);
     }
 
     @Override

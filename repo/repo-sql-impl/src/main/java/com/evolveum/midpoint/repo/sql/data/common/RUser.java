@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RCredentials;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -25,11 +26,13 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
+
 import java.util.Collection;
 import java.util.Set;
 
@@ -371,7 +374,8 @@ public class RUser extends RFocus<UserType> implements OperationResult {
             repo.setCredentials(credentials);
         }
 
-        RUtil.copyResultFromJAXB(jaxb.getResult(), repo, prismContext);
+        ItemDefinition def = jaxb.asPrismObject().getDefinition();
+        RUtil.copyResultFromJAXB(def, jaxb.F_RESULT, jaxb.getResult(), repo, prismContext);
 
         //sets
         repo.setEmployeeType(RUtil.listToSet(jaxb.getEmployeeType()));

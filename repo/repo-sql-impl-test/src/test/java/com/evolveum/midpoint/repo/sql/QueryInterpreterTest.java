@@ -356,8 +356,9 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             c3.add(Restrictions.eq("s1.name", new QName("http://example.com/p", "stringType")));
             c3.add(Restrictions.eq("s1.value", "uid=test,dc=example,dc=com"));
             //or
-            Criterion c4 = Restrictions.conjunction().add(
-                    Restrictions.eq("r.resourceRef.targetOid", "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e"));
+            Conjunction c4 = Restrictions.conjunction();
+            c4.add(Restrictions.eq("r.resourceRef.targetOid", "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e"));
+            c4.add(Restrictions.eq("r.resourceRef.type", QNameUtil.qNameToUri(ResourceType.COMPLEX_TYPE)));
 
             Disjunction disjunction = Restrictions.disjunction();
             disjunction.add(c1);
@@ -512,8 +513,9 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             Criteria stringAttr = main.createCriteria("strings", "s1x", JoinType.LEFT_OUTER_JOIN);
 
             //and
-            Criterion c1 = Restrictions.conjunction().add(
-                    Restrictions.eq("r.resourceRef.targetOid", "aae7be60-df56-11df-8608-0002a5d5c51b"));
+            Conjunction c1 = Restrictions.conjunction();
+            c1.add(Restrictions.eq("r.resourceRef.targetOid", "aae7be60-df56-11df-8608-0002a5d5c51b"));
+            c1.add(Restrictions.eq("r.resourceRef.type", QNameUtil.qNameToUri(ResourceType.COMPLEX_TYPE)));
             //and
             Conjunction c2 = Restrictions.conjunction();
             c2.add(Restrictions.eq("s1x.ownerType", RObjectExtensionType.ATTRIBUTES));
