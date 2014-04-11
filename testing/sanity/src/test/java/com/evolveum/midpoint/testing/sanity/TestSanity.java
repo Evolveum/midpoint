@@ -705,7 +705,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         
 	}
 
-    private String addObjectViaModelWS(ObjectType objectType, ModelExecuteOptionsType options, Holder<String> oidHolder, Holder<OperationResultType> resultHolder) throws FaultMessage {
+    private void addObjectViaModelWS(ObjectType objectType, ModelExecuteOptionsType options, Holder<String> oidHolder, Holder<OperationResultType> resultHolder) throws FaultMessage {
     	ObjectDeltaListType deltaList = new ObjectDeltaListType();
     	ObjectDeltaType objectDelta = new ObjectDeltaType();
     	objectDelta.setObjectToAdd(objectType);
@@ -714,9 +714,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
     	objectDelta.setChangeType(ChangeTypeType.ADD);
     	deltaList.getDelta().add(objectDelta);
     	resultHolder.value = modelWeb.executeChanges(deltaList, options);
-    	String oid = deltaList.getDelta().get(0).getObjectToAdd().asPrismObject().getOid();
-    	LOGGER.info("ADDED OBJECT. NEW OID {}", oid);
-    	return oid;
+    	
+//    	return oid;
 //        throw new UnsupportedOperationException("Implement later");
     }
 
@@ -948,7 +947,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         display("Adding user object", userType);
 
         // WHEN
-        String oid = addObjectViaModelWS(userType, null, oidHolder, resultHolder);
+        addObjectViaModelWS(userType, null, oidHolder, resultHolder);
 
         // THEN
 

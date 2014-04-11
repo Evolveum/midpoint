@@ -28,7 +28,7 @@
 
 	<name>
 		<t:orig>Dummy Resource</t:orig>
-		<t:norm>dummyresource</t:norm>
+		<t:norm>dummy resource</t:norm>
 	</name>
 	<connectorRef type="c:ConnectorType">
 		<filter>
