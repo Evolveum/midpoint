@@ -43,6 +43,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -299,14 +300,14 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 //master:
 //
 //			// TODO: organizational structure
-//			ObjectQuery q = QueryConvertor.createObjectQuery(object.getCompileTimeClass(), specFilter, object.getPrismContext());
-//			boolean applicable = repositoryService.matchObject(object, q);
+			ObjectQuery q = QueryJaxbConvertor.createObjectQuery(object.getCompileTimeClass(), specFilter, object.getPrismContext());
+			boolean applicable = repositoryService.matchObject(object, q);
 
             // this is temporary code
-            boolean applicable = false;
-            if (!applicable) {
-                throw new UnsupportedOperationException("fix this!");
-            }
+//            boolean applicable = false;
+//            if (!applicable) {
+//                throw new UnsupportedOperationException("fix this!");
+//            }
             // end of temporary code
 
             if (applicable) {

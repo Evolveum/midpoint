@@ -20,15 +20,19 @@ import java.util.Collection;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 
 /**
  * @author semancik
  *
  */
-public class ConstructionPack {
+public class ConstructionPack implements DebugDumpable {
 	
 	private Collection<PrismPropertyValue<Construction>> constructions = new ArrayList<PrismPropertyValue<Construction>>();
 	private boolean forceRecon;
+	private boolean hasValidAssignment = false;
 	
 	public boolean isForceRecon() {
 		return forceRecon;
@@ -46,9 +50,37 @@ public class ConstructionPack {
 		constructions.add(construction);
 	}
 
+	public boolean hasValidAssignment() {
+		return hasValidAssignment;
+	}
+
+	public void setHasValidAssignment(boolean hasValidAssignment) {
+		this.hasValidAssignment = hasValidAssignment;
+	}
+
 	@Override
 	public String toString() {
 		return "ConstructionPack(" + SchemaDebugUtil.prettyPrint(constructions) + (forceRecon ? ", forceRecon" : "") + ")";
 	}
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.debugDumpLabel(sb, "ConstructionPack", indent);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "forceRecon", forceRecon, indent + 1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "hasValidAssignment", hasValidAssignment, indent + 1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "Constructions", constructions, indent + 1);
+		return sb.toString();
+	}
+	
+	
 
 }

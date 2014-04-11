@@ -24,8 +24,8 @@
 	<apit:oid>c0c010c0-d34d-b33f-f00d-111111111112</apit:oid>
 	<apit:itemDelta>
 		<t:modificationType>delete</t:modificationType>
-		<t:path>assignment[1]</t:path>
-		<t:value>
+		<t:path>assignment</t:path>
+		<t:value id="1">
 <!-- 			<assignment id="1"> -->
 				<construction>
 					<description>Undead monkey account construction</description>

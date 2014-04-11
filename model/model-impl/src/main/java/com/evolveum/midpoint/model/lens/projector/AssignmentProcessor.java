@@ -407,6 +407,7 @@ public class AssignmentProcessor {
 		            	if (LOGGER.isTraceEnabled()) {
 		            		LOGGER.trace("Processing unchanged assignment {}", new Object[]{SchemaDebugUtil.prettyPrint(assignmentCVal)});
 		            	}
+		            	boolean isValid = LensUtil.isValid(assignmentType, now, activationComputer);
 		            	EvaluatedAssignment evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                if (evaluatedAssignment == null) {
 		                	continue;
@@ -442,20 +443,30 @@ public class AssignmentProcessor {
             if (rat.getIntent() == null) {
                 throw new IllegalStateException("Account type is null in ResourceAccountType during assignment processing");
             }
+            String desc = rat.toHumanReadableString();
 
-            // SITUATION: The projection should exist, there is NO CHANGE in assignments
+            // SITUATION: The projection should exist (if valid), there is NO CHANGE in assignments
             if (zeroConstructionMap.containsKey(rat)) {
             	
-                LensProjectionContext accountSyncContext = context.findProjectionContext(rat);
-                if (accountSyncContext == null) {
+                LensProjectionContext projectionContext = context.findProjectionContext(rat);
+                if (projectionContext == null) {
                 	// The projection should exist before the change but it does not
                 	// This happens during reconciliation if there is an inconsistency. 
                 	// Pretend that the assignment was just added. That should do.
-                	accountSyncContext = LensUtil.getOrCreateProjectionContext(context, rat);
+                	projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
                 }
-            	accountSyncContext.setLegal(true);
-            	accountSyncContext.setLegalOld(true);
-            	accountSyncContext.setAssigned(true);
+                ConstructionPack constructionPack = zeroConstructionMap.get(rat);
+                if (constructionPack.hasValidAssignment()) {
+                	LOGGER.trace("Projection {} legal: unchanged (valid)", desc);
+	            	projectionContext.setLegal(true);
+	            	projectionContext.setLegalOld(true);
+	            	projectionContext.setAssigned(true);
+                } else {
+                	LOGGER.trace("Projection {} illegal: unchanged (invalid)", desc);
+                	projectionContext.setLegal(false);
+	            	projectionContext.setLegalOld(false);
+	            	projectionContext.setAssigned(false);
+                }
 
                 
             // SITUATION: The projection is both ASSIGNED and UNASSIGNED
@@ -464,28 +475,83 @@ public class AssignmentProcessor {
             	// removed and another is added and they include the same account.
             	// Keep original account state
             	
-            	LensProjectionContext projectionContext = context.findProjectionContext(rat);
-            	if (projectionContext == null) {
-                	// The projection should exist before the change but it does not
-                	// This happens during reconciliation if there is an inconsistency. 
-                	// Pretend that the assignment was just added. That should do.
-            		projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
-                }
-            	projectionContext.setAssigned(true);
-            	projectionContext.setLegal(true);
-            	projectionContext.setLegalOld(true);
+            	ConstructionPack plusPack = plusConstructionMap.get(rat);
+            	ConstructionPack minusPack = minusConstructionMap.get(rat);
+            	
+            	if (plusPack.hasValidAssignment() && minusPack.hasValidAssignment()) {
+            	
+	            	LensProjectionContext projectionContext = context.findProjectionContext(rat);
+	            	if (projectionContext == null) {
+	                	// The projection should exist before the change but it does not
+	                	// This happens during reconciliation if there is an inconsistency. 
+	                	// Pretend that the assignment was just added. That should do.
+	            		projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
+	                }
+	            	LOGGER.trace("Projection {} legal: both assigned and unassigned (valid)", desc);
+	            	projectionContext.setAssigned(true);
+	            	projectionContext.setLegal(true);
+	            	projectionContext.setLegalOld(true);
+	            	
+            	} else if (!plusPack.hasValidAssignment() && !minusPack.hasValidAssignment()) {
+            		// Just ignore it, do not even create projection context
+                	LOGGER.trace("Projection {} ignoring: both assigned and unassigned (invalid)", desc);
+                	
+            	} else if (plusPack.hasValidAssignment() && !minusPack.hasValidAssignment()) {
+            		// Assignment became valid. Same as if it was assigned.
+            		LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
+	            	projectionContext.setAssigned(true);
+	            	projectionContext.setLegalOld(false);
+	            	AssignmentPolicyEnforcementType assignmentPolicyEnforcement = projectionContext.getAssignmentPolicyEnforcementType();
+	            	if (assignmentPolicyEnforcement != AssignmentPolicyEnforcementType.NONE) {
+	            		LOGGER.trace("Projection {} legal: both assigned and unassigned (invalid->valid)", desc);
+	            		projectionContext.setLegal(true);
+	            	}
+	            	
+            	} else if (!plusPack.hasValidAssignment() && minusPack.hasValidAssignment()) {
+            		// Assignment became invalid. Same as if it was unassigned.
+            		if (accountExists(context,rat)) {
+                		LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
+                		projectionContext.setAssigned(false);
+                		projectionContext.setLegalOld(true);
+                		
+                		AssignmentPolicyEnforcementType assignmentPolicyEnforcement = projectionContext.getAssignmentPolicyEnforcementType();
+                		// TODO: check for MARK and LEGALIZE enforcement policies ....add delete laso for relative enforcemenet
+                		if (assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.FULL 
+                				|| assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.RELATIVE) {
+                			LOGGER.trace("Projection {} illegal: both assigned and unassigned (valid->invalid)", desc);
+    	                	projectionContext.setLegal(false);
+                		} else {
+                			LOGGER.trace("Projection {} legal: both assigned and unassigned (valid->invalid), but allowed by policy ({})", desc, assignmentPolicyEnforcement);
+    	                	projectionContext.setLegal(true);
+                		}
+                	} else {
+
+                		LOGGER.trace("Projection {} nothing: both assigned and unassigned (valid->invalid) but not there", desc);
+                		// We have to delete something that is not there. Nothing to do.
+                	}
+	            	
+            	} else {
+            		throw new IllegalStateException("Whoops!?!");
+            	}
                 
 
             // SITUATION: The projection is ASSIGNED
             } else if (plusConstructionMap.containsKey(rat)) {
             	
-            	LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
-            	projectionContext.setAssigned(true);
-            	projectionContext.setLegalOld(false);
-            	AssignmentPolicyEnforcementType assignmentPolicyEnforcement = projectionContext.getAssignmentPolicyEnforcementType();
-            	if (assignmentPolicyEnforcement != AssignmentPolicyEnforcementType.NONE) {
-            		projectionContext.setLegal(true);
-            	}
+            	ConstructionPack constructionPack = plusConstructionMap.get(rat);
+                if (constructionPack.hasValidAssignment()) {
+	            	LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
+	            	projectionContext.setAssigned(true);
+	            	projectionContext.setLegalOld(false);
+	            	AssignmentPolicyEnforcementType assignmentPolicyEnforcement = projectionContext.getAssignmentPolicyEnforcementType();
+	            	if (assignmentPolicyEnforcement != AssignmentPolicyEnforcementType.NONE) {
+	            		LOGGER.trace("Projection {} legal: assigned (valid)", desc);
+	            		projectionContext.setLegal(true);
+	            	}
+                } else {
+                	// Just ignore it, do not even create projection context
+                	LOGGER.trace("Projection {} ignoring: assigned (invalid)", desc);
+                }
 
         	// SITUATION: The projection is UNASSIGNED
             } else if (minusConstructionMap.containsKey(rat)) {
@@ -499,17 +565,20 @@ public class AssignmentProcessor {
             		// TODO: check for MARK and LEGALIZE enforcement policies ....add delete laso for relative enforcemenet
             		if (assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.FULL 
             				|| assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.RELATIVE) {
+            			LOGGER.trace("Projection {} illegal: unassigned", desc);
 	                	projectionContext.setLegal(false);
             		} else {
+            			LOGGER.trace("Projection {} legal: unassigned, but allowed by policy ({})", desc, assignmentPolicyEnforcement);
 	                	projectionContext.setLegal(true);
             		}
             	} else {
 
+            		LOGGER.trace("Projection {} nothing: unassigned but not there", desc);
             		// We have to delete something that is not there. Nothing to do.
             	}
 
             } else {
-                throw new IllegalStateException("Projection " + rat + " went looney");
+                throw new IllegalStateException("Projection " + desc + " went looney");
             }
 
             PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountDeltaSetTriple = 
@@ -695,7 +764,9 @@ public class AssignmentProcessor {
 				continue;
 			}
 		
+			String desc = projectionContext.toHumanReadableString();
 			if (projectionContext.isLegalize()){
+				LOGGER.trace("Projection {} legal: legalized", desc);
 				createAssignmentDelta(context, projectionContext);
 				projectionContext.setAssigned(true);
 				projectionContext.setLegal(true);
@@ -705,6 +776,7 @@ public class AssignmentProcessor {
 				AssignmentPolicyEnforcementType enforcementType = projectionContext.getAssignmentPolicyEnforcementType();
 				
 				if (enforcementType == AssignmentPolicyEnforcementType.FULL) {
+					LOGGER.trace("Projection {} illegal: no assginment in FULL enforcement", desc);
 					// What is not explicitly allowed is illegal in FULL enforcement mode
 					projectionContext.setLegal(false);
 					// We need to set the old value for legal to false. There was no assignment delta for it.
@@ -717,9 +789,15 @@ public class AssignmentProcessor {
 					
 				} else if (enforcementType == AssignmentPolicyEnforcementType.NONE && !projectionContext.isThombstone()) {
 					if (projectionContext.isAdd()) {
+						LOGGER.trace("Projection {} legal: added in NONE policy", desc);
 						projectionContext.setLegal(true);
 						projectionContext.setLegalOld(false);
 					} else {
+						if (projectionContext.isExists()) {
+							LOGGER.trace("Projection {} legal: exists in NONE policy", desc);
+						} else {
+							LOGGER.trace("Projection {} illegal: does not exists in NONE policy", desc);
+						}
 						// Everything that exists was legal and is legal. Nothing really changes.
 						projectionContext.setLegal(projectionContext.isExists());
 						projectionContext.setLegalOld(projectionContext.isExists());
@@ -727,12 +805,14 @@ public class AssignmentProcessor {
 				
 				} else if (enforcementType == AssignmentPolicyEnforcementType.POSITIVE && !projectionContext.isThombstone()) {
 					// Everything that is not yet dead is legal in POSITIVE enforcement mode
+					LOGGER.trace("Projection {} legal: not dead in POSITIVE policy", desc);
 					projectionContext.setLegal(true);
 					projectionContext.setLegalOld(true);
 					
 				} else if (enforcementType == AssignmentPolicyEnforcementType.RELATIVE && !projectionContext.isThombstone() &&
 						projectionContext.isLegal() == null && projectionContext.isLegalOld() == null) {
 					// RELATIVE mode and nothing has changed. Maintain status quo. Pretend that it is legal.
+					LOGGER.trace("Projection {} legal: no change in RELATIVE policy", desc);
 					projectionContext.setLegal(true);
 					projectionContext.setLegalOld(true);
 				}
@@ -857,10 +937,13 @@ public class AssignmentProcessor {
     private <F extends ObjectType> void collectToAccountMap(LensContext<F> context,
             Map<ResourceShadowDiscriminator, ConstructionPack> accountMap, EvaluatedAssignment evaluatedAssignment, 
             boolean forceRecon, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        for (Construction accountConstruction : evaluatedAssignment.getConstructions()) {
-            String resourceOid = accountConstruction.getResource(result).getOid();
-            String intent = accountConstruction.getIntent();
-            ShadowKindType kind = accountConstruction.getKind();
+    	if (LOGGER.isTraceEnabled()) {
+    		LOGGER.trace("Collecting evaluated assignment:\n{}", evaluatedAssignment.debugDump());
+    	}
+        for (Construction construction : evaluatedAssignment.getConstructions()) {
+            String resourceOid = construction.getResource(result).getOid();
+            String intent = construction.getIntent();
+            ShadowKindType kind = construction.getKind();
             ResourceType resource = LensUtil.getResource(context, resourceOid, provisioningService, result);
             intent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
             ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, kind, intent);
@@ -871,7 +954,10 @@ public class AssignmentProcessor {
                 constructionPack = new ConstructionPack();
                 accountMap.put(rat, constructionPack);
             }
-            constructionPack.add(new PrismPropertyValue<Construction>(accountConstruction));
+            constructionPack.add(new PrismPropertyValue<Construction>(construction));
+            if (evaluatedAssignment.isValid()) {
+            	constructionPack.setHasValidAssignment(true);
+            }
             if (forceRecon) {
             	constructionPack.setForceRecon(true);
             }

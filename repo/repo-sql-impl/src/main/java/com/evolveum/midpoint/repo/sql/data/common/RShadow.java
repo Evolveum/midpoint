@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.Definition;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
@@ -32,6 +34,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
@@ -237,7 +240,8 @@ public class RShadow<T extends ShadowType> extends RObject<T> implements Operati
         repo.setKind(RUtil.getRepoEnumValue(jaxb.getKind(), RShadowKind.class));
         repo.setFullSynchronizationTimestamp(jaxb.getFullSynchronizationTimestamp());
 
-        RUtil.copyResultFromJAXB(jaxb.getResult(), repo, prismContext);
+        ItemDefinition def = jaxb.asPrismObject().getDefinition();
+        RUtil.copyResultFromJAXB(def, ShadowType.F_RESULT, jaxb.getResult(), repo, prismContext);
 
         if (jaxb.getSynchronizationSituation() != null) {
             repo.setSynchronizationSituation(RUtil.getRepoEnumValue(jaxb.getSynchronizationSituation(),

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * System-wide clock. This class provides current time. By default is only proxies the usual system
@@ -31,6 +33,8 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
  * @author Radovan Semancik
  */
 public class Clock {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(Clock.class);
 	
 	private Long override = null;
 	// TODO: more sophisticated functions
@@ -65,7 +69,11 @@ public class Clock {
 	}
 	
 	public void override(long overrideTimestamp) {
+		LOGGER.info("Clock override: {}", override);
 		this.override = overrideTimestamp;
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Clock current time: {}", currentTimeXMLGregorianCalendar());
+		}
 	}
 	
 	public void override(XMLGregorianCalendar overrideTimestamp) {
@@ -83,7 +91,11 @@ public class Clock {
 	}
 
 	public void resetOverride() {
+		LOGGER.info("Clock override reset");
 		this.override = null;
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Clock current time: {}", currentTimeXMLGregorianCalendar());
+		}
 	}
 
 }

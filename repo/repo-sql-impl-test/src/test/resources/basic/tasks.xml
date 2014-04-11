@@ -35,7 +35,7 @@
         <executionStatus>runnable</executionStatus>
 
         <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-2</handlerUri>
-        <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
+        <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
         <recurrence>recurring</recurrence>
         <binding>tight</binding>
         <completionTimestamp>2013-05-07T10:38:21.350+02:00</completionTimestamp>
@@ -54,7 +54,7 @@
         <executionStatus>runnable</executionStatus>
 
         <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-2</handlerUri>
-        <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
+        <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
         <recurrence>recurring</recurrence>
         <binding>tight</binding>
         <completionTimestamp>2013-05-07T11:38:21.350+02:00</completionTimestamp>
@@ -73,7 +73,7 @@
         <executionStatus>runnable</executionStatus>
 
         <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-2</handlerUri>
-        <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
+        <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
         <recurrence>recurring</recurrence>
         <binding>tight</binding>
         <completionTimestamp>2013-05-07T12:38:21.350+02:00</completionTimestamp>

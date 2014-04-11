@@ -40,6 +40,7 @@ public class EvaluatedAssignment implements DebugDumpable {
 	private Collection<Construction> constructions;
 	private Collection<PrismReferenceValue> orgRefVals;
 	private Collection<Authorization> authorizations;
+	private boolean isValid;
 
 	public EvaluatedAssignment() {
 		constructions = new ArrayList<Construction>();
@@ -71,6 +72,14 @@ public class EvaluatedAssignment implements DebugDumpable {
 		authorizations.add(authorization);
 	}
 
+	public boolean isValid() {
+		return isValid;
+	}
+
+	public void setValid(boolean isValid) {
+		this.isValid = isValid;
+	}
+
 	public Collection<ResourceType> getResources(OperationResult result) throws ObjectNotFoundException, SchemaException {
 		Collection<ResourceType> resources = new ArrayList<ResourceType>();
 		for (Construction acctConstr: constructions) {
@@ -88,6 +97,8 @@ public class EvaluatedAssignment implements DebugDumpable {
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.debugDumpLabel(sb, "EvaluatedAssignment", indent);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "isValid", isValid, indent + 1);
 		if (!constructions.isEmpty()) {
 			sb.append("\n");
 			DebugUtil.debugDumpLabel(sb, "Constructions", indent+1);
