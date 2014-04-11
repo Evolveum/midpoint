@@ -37,14 +37,14 @@ public class QueryEngine {
         //todo search some query library for query filter match
 
         //todo implement as query library search, this is just a proof of concept [lazyman]
-        if (query != null && query.getFilter() != null && query.getFilter() instanceof OrgFilter) {
-            // http://stackoverflow.com/questions/10515391/oracle-equivalent-of-postgres-distinct-on
-            // select distinct col1, first_value(col2) over (partition by col1 order by col2 asc) from tmp
-            RQuery q =  createOrgQuery((OrgFilter) query.getFilter(), type, countingObjects, session);
-            if (q != null) {
-                return q;
-            }
-        }
+//        if (query != null && query.getFilter() != null && query.getFilter() instanceof OrgFilter) {
+//            // http://stackoverflow.com/questions/10515391/oracle-equivalent-of-postgres-distinct-on
+//            // select distinct col1, first_value(col2) over (partition by col1 order by col2 asc) from tmp
+//            RQuery q =  createOrgQuery((OrgFilter) query.getFilter(), type, countingObjects, session);
+//            if (q != null) {
+//                return q;
+//            }
+//        }
 
         QueryInterpreter interpreter = new QueryInterpreter(repoConfiguration);
         Criteria criteria = interpreter.interpret(query, type, options, prismContext, countingObjects, session);
