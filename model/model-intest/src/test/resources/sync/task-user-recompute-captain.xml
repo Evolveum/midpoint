@@ -26,10 +26,12 @@
 	
 	<extension>
 		<modelext:objectQuery>
+		<q:filter>
 			<q:equal>
 				<q:path>employeeType</q:path>
 				<q:value>CAPTAIN</q:value>
 			</q:equal>
+			</q:filter>
 		</modelext:objectQuery>
 	</extension>
 	
