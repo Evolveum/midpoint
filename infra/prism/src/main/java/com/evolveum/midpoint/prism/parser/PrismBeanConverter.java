@@ -32,18 +32,15 @@ import java.util.Set;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementDecl;
 import javax.xml.bind.annotation.XmlElementRef;
 import javax.xml.bind.annotation.XmlEnumValue;
-import javax.xml.bind.annotation.XmlSchema;
 import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.Revivable;
@@ -73,6 +70,8 @@ import com.evolveum.prism.xml.ns._public.types_2.RawType;
 public class PrismBeanConverter {
 	
 	public static final String DEFAULT_NAMESPACE_PLACEHOLDER = "##default";
+
+    private PrismBeanInspector inspector = new PrismBeanInspector();
 	
 	private PrismContext prismContext;
 
@@ -145,10 +144,10 @@ public class PrismBeanConverter {
             }
 			XNode xsubnode = entry.getValue();
 			String propName = key.getLocalPart();
-			Field field = findPropertyField(beanClass, propName);
+			Field field = inspector.findPropertyField(beanClass, propName);
 			Method propertyGetter = null;
 			if (field == null) {
-				propertyGetter = findPropertyGetter(beanClass, propName);
+				propertyGetter = inspector.findPropertyGetter(beanClass, propName);
 			}
 
 			Method elementMethod = null;
@@ -156,12 +155,13 @@ public class PrismBeanConverter {
 			if (field == null && propertyGetter == null) {
 				// We have to try to find a more generic field, such as xsd:any (TODO) or substitution element
 				// check for global element definition first
-				objectFactory = getObjectFactory(beanClass.getPackage());
-				elementMethod = findElementMethodInObjectFactory(objectFactory, propName);
+                Class objectFactoryClass = inspector.getObjectFactoryClass(beanClass.getPackage());
+				objectFactory = instantiateObjectFactory(objectFactoryClass);
+				elementMethod = inspector.findElementMethodInObjectFactory(objectFactoryClass, propName);
 				if (elementMethod == null) {
 					throw new SchemaException("No field "+propName+" in class "+beanClass+" (and no element method in object factory too)");
 				}
-				field = lookupSubstitution(beanClass, elementMethod);
+				field = inspector.lookupSubstitution(beanClass, elementMethod);
 				if (field == null) {
 					throw new SchemaException("No field "+propName+" in class "+beanClass+" (and no suitable substitution too)");
 				}
@@ -173,14 +173,14 @@ public class PrismBeanConverter {
 				fieldName = propName;
 			}
 			
-			Method setter = findSetter(beanClass, fieldName);
+			Method setter = inspector.findSetter(beanClass, fieldName);
 			Method getter = null;
 			boolean wrapInJaxbElement = false;
 			Class<?> paramType = null;
 			if (setter == null) {
 				// No setter. But if the property is multi-value we need to look
 				// for a getter that returns a collection (Collection<Whatever>)
-				getter = findPropertyGetter(beanClass, fieldName);
+				getter = inspector.findPropertyGetter(beanClass, fieldName);
 				if (getter == null) {
 					throw new SchemaException("Cannot find setter or getter for field "+fieldName+" in "+beanClass);
 				}
@@ -248,8 +248,9 @@ public class PrismBeanConverter {
 						Type actualType = getTypeArgument(genericType, "add some description");
 						 if (actualType instanceof WildcardType) {
 							 if (elementMethod == null) {
-									objectFactory = getObjectFactory(beanClass.getPackage());
-									elementMethod = findElementMethodInObjectFactory(objectFactory, propName);
+									Class objectFactoryClass = inspector.getObjectFactoryClass(beanClass.getPackage());
+                                    objectFactory = instantiateObjectFactory(objectFactoryClass);
+									elementMethod = inspector.findElementMethodInObjectFactory(objectFactoryClass, propName);
 								}
 								// This is the case of Collection<JAXBElement<?>>
 								// we need to exctract the specific type from the factory method
@@ -289,7 +290,7 @@ public class PrismBeanConverter {
 			
 			
 						
-			String paramNamespace = determineNamespace(paramType);
+			String paramNamespace = inspector.determineNamespace(paramType);
 			
 			//check for subclasses???
 			if (xsubnode.getTypeQName()!= null){
@@ -356,6 +357,14 @@ public class PrismBeanConverter {
 		return bean;
 	}
 
+    private Object instantiateObjectFactory(Class objectFactoryClass) {
+        try {
+            return objectFactoryClass.newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new IllegalArgumentException("Cannot instantiate object factory class "+objectFactoryClass.getName()+": "+e.getMessage(), e);
+        }
+    }
+
     // parses any subtype of SearchFilterType
 	private <T extends SearchFilterType> T unmarshalSearchFilterType(MapXNode xmap, Class<T> beanClass) throws SchemaException {
 		if (xmap == null) {
@@ -378,7 +387,6 @@ public class PrismBeanConverter {
 		return value.serializeToXNode(prismContext);
 	}
 
-	
 	private Type getTypeArgument(Type origType, String desc) {
 		if (!(origType instanceof ParameterizedType)) {
 			throw new IllegalArgumentException("No a parametrized type "+desc);
@@ -409,60 +417,6 @@ public class PrismBeanConverter {
 		}
 	}
 
-	private Method findElementMethodInObjectFactory(Object objectFactory, String propName) {
-		Class<? extends Object> objectFactoryClass = objectFactory.getClass();
-		for (Method method: objectFactoryClass.getDeclaredMethods()) {
-			XmlElementDecl xmlElementDecl = method.getAnnotation(XmlElementDecl.class);
-			if (xmlElementDecl == null) {
-				continue;
-			}
-			if (propName.equals(xmlElementDecl.name())) {
-				return method;
-			}
-		}	
-		return null;
-	}
-	
-	private Field lookupSubstitution(Class beanClass, Method elementMethod) {
-		XmlElementDecl xmlElementDecl = elementMethod.getAnnotation(XmlElementDecl.class);
-		if (xmlElementDecl == null) {
-			return null;
-		}
-		final String substitutionHeadName = xmlElementDecl.substitutionHeadName();
-		if (substitutionHeadName == null) {
-			return null;
-		}
-		return findField(beanClass,new Handler<Field>() {
-			@Override
-			public boolean handle(Field field) {
-				XmlElementRef xmlElementRef = field.getAnnotation(XmlElementRef.class);
-				if (xmlElementRef == null) {
-					return false;
-				}
-				String name = xmlElementRef.name();
-				if (name == null) {
-					return false;
-				}
-				return name.equals(substitutionHeadName);
-			}
-		});
-	}
-
-
-	private Object getObjectFactory(Package pkg) {
-		Class objectFactoryClass;
-		try {
-			objectFactoryClass = Class.forName(pkg.getName()+".ObjectFactory");
-		} catch (ClassNotFoundException e) {
-			throw new IllegalArgumentException("Cannot find object factory class in package "+pkg.getName()+": "+e.getMessage(), e);
-		}
-		try {
-			return objectFactoryClass.newInstance();
-		} catch (InstantiationException | IllegalAccessException e) {
-			throw new IllegalArgumentException("Cannot instantiate object factory class in package "+pkg.getName()+": "+e.getMessage(), e);
-		}
-	}
-	
 	private Object convertSinglePropValue(XNode xsubnode, String fieldName, Class paramType, Class classType, String schemaNamespace) throws SchemaException {
 		Object propValue;
 		if (paramType.equals(XNode.class)) {
@@ -492,132 +446,6 @@ public class PrismBeanConverter {
 		return propValue;
 	}
 
-	private <T> Field findPropertyField(Class<T> classType, String propName) {
-		Field field = findPropertyFieldExact(classType, propName);
-		if (field != null) {
-			return field;
-		}
-		// Fields for some reserved words are prefixed by underscore, so try also this.
-		return findPropertyFieldExact(classType, "_"+propName);
-	}
-	
-	private <T> Field findPropertyFieldExact(Class<T> classType, String propName) {
-		for (Field field: classType.getDeclaredFields()) {
-			XmlElement xmlElement = field.getAnnotation(XmlElement.class);
-			if (xmlElement != null && xmlElement.name() != null && xmlElement.name().equals(propName)) {
-				return field;
-			}
-			XmlAttribute xmlAttribute = field.getAnnotation(XmlAttribute.class);
-			if (xmlAttribute != null && xmlAttribute.name() != null && xmlAttribute.name().equals(propName)) {
-				return field;
-			}
-		}
-		try {
-			return classType.getDeclaredField(propName);
-		} catch (NoSuchFieldException e) {
-			// nothing found
-		}
-		Class<? super T> superclass = classType.getSuperclass();
-		if (superclass.equals(Object.class)) {
-			return null;
-		}
-		return findPropertyField(superclass, propName);
-	}
-	
-	private Field findField(Class classType, Handler<Field> selector) {
-		for (Field field: classType.getDeclaredFields()) {
-			if (selector.handle(field)) {
-				return field;
-			}
-		}
-		Class superclass = classType.getSuperclass();
-		if (superclass.equals(Object.class)) {
-			return null;
-		}
-		return findField(superclass, selector);
-	}
-	
-	private <T> Method findPropertyGetter(Class<T> classType, String propName) {
-		if (propName.startsWith("_")) {
-			propName = propName.substring(1);
-		}
-		for (Method method: classType.getDeclaredMethods()) {
-			XmlElement xmlElement = method.getAnnotation(XmlElement.class);
-			if (xmlElement != null && xmlElement.name() != null && xmlElement.name().equals(propName)) {
-				return method;
-			}
-			XmlAttribute xmlAttribute = method.getAnnotation(XmlAttribute.class);
-			if (xmlAttribute != null && xmlAttribute.name() != null && xmlAttribute.name().equals(propName)) {
-				return method;
-			}
-		}
-		String getterName = "get"+StringUtils.capitalize(propName);
-		try {
-			return classType.getDeclaredMethod(getterName);
-		} catch (NoSuchMethodException e) {
-			// nothing found
-		}
-		getterName = "is"+StringUtils.capitalize(propName);
-		try {
-			return classType.getDeclaredMethod(getterName);
-		} catch (NoSuchMethodException e) {
-			// nothing found
-		}
-		Class<? super T> superclass = classType.getSuperclass();
-		if (superclass.equals(Object.class)) {
-			return null;
-		}
-		return findPropertyGetter(superclass, propName);
-	}
-	
-	private List<String> getPropOrder(Class<? extends Object> beanClass) {
-		List<String> propOrder;
-		
-		// Superclass first!
-		Class superclass = beanClass.getSuperclass();
-		if (superclass.equals(Object.class) || superclass.getAnnotation(XmlType.class) == null) {
-			propOrder = new ArrayList<>();
-		} else {
-			propOrder = getPropOrder(superclass);
-		}
-		
-		XmlType xmlType = beanClass.getAnnotation(XmlType.class);
-		if (xmlType == null) {
-			throw new IllegalArgumentException("Cannot marshall "+beanClass+" it does not have @XmlType annotation");
-		}
-		
-		String[] myPropOrder = xmlType.propOrder();
-		if (myPropOrder != null) {
-			for (String myProp: myPropOrder) {
-				if (!StringUtils.isBlank(myProp)) {
-					propOrder.add(myProp);
-				}
-			}
-		}
-		
-		Field[] fields = beanClass.getDeclaredFields();
-		for (int i = 0; i< fields.length; i++){
-			Field field = fields[i];
-			if (field.isAnnotationPresent(XmlAttribute.class)){
-				propOrder.add(field.getName());
-			}
-		}
-		
-		Method[] methods = beanClass.getDeclaredMethods();
-		for (int i = 0; i< methods.length; i++){
-			Method method = methods[i];
-			if (method.isAnnotationPresent(XmlAttribute.class)){
-//				System.out.println("methodName: " + method.getName());
-				String propname = getPropertyNameFromGetter(method.getName());
-				//StringUtils.uncapitalize(StringUtils.removeStart("get", method.getName()))
-				propOrder.add(propname);
-			}
-		}
-		
-		return propOrder;
-	}
-
-	
 	public <T> T unmarshallPrimitive(PrimitiveXNode<?> xprim, QName typeQName) throws SchemaException {
 		Class<T> classType = getSchemaRegistry().determineCompileTimeClass(typeQName);
 		return unmarshallPrimitive(xprim, classType);
@@ -672,7 +500,7 @@ public class PrismBeanConverter {
 		}
 		primValue = StringUtils.trim(primValue);
 		
-		String javaEnumString = findEnumFieldName(classType, primValue);
+		String javaEnumString = inspector.findEnumFieldName(classType, primValue);
 //		for (Field field: classType.getDeclaredFields()) {
 //			XmlEnumValue xmlEnumValue = field.getAnnotation(XmlEnumValue.class);
 //			if (xmlEnumValue != null && xmlEnumValue.value() != null && xmlEnumValue.value().equals(primValue)) {
@@ -711,16 +539,7 @@ public class PrismBeanConverter {
 //        return null;
 //    }
 
-    private <T> String findEnumFieldName(Class classType, T primValue){
-		for (Field field: classType.getDeclaredFields()) {
-			XmlEnumValue xmlEnumValue = field.getAnnotation(XmlEnumValue.class);
-			if (xmlEnumValue != null && xmlEnumValue.value() != null && xmlEnumValue.value().equals(primValue)) {
-				return field.getName();
-			}
-		}
-		return null;
-	}
-	
+
 	private <T> T postConvertUnmarshall(Object parsedPrimValue) {
 		if (parsedPrimValue == null) {
 			return null;
@@ -756,7 +575,7 @@ public class PrismBeanConverter {
 			if (StringUtils.isEmpty(enumValue)){
 				enumValue = bean.toString();
 			}
-			QName fieldTypeName = findFieldTypeName(null, beanClass, DEFAULT_NAMESPACE_PLACEHOLDER);
+			QName fieldTypeName = inspector.findFieldTypeName(null, beanClass, DEFAULT_NAMESPACE_PLACEHOLDER);
 			return createPrimitiveXNode(enumValue, fieldTypeName, false);
 //			return marshallValue(bean, fieldTypeName, false);
 		}
@@ -766,15 +585,15 @@ public class PrismBeanConverter {
 			throw new IllegalArgumentException("Cannot marshall "+beanClass+" it does not have @XmlType annotation");
 		}
 		
-		String namespace = determineNamespace(beanClass);
+		String namespace = inspector.determineNamespace(beanClass);
 		if (namespace == null) {
 			throw new IllegalArgumentException("Cannot determine namespace of "+beanClass);
 		}
 		
-		List<String> propOrder = getPropOrder(beanClass);
+		List<String> propOrder = inspector.getPropOrder(beanClass);
 		for (String fieldName: propOrder) {
 			QName elementName = new QName(namespace, fieldName);
-			Method getter = findPropertyGetter(beanClass, fieldName);
+			Method getter = inspector.findPropertyGetter(beanClass, fieldName);
 			if (getter == null) {
 				throw new IllegalStateException("No getter for field "+fieldName+" in "+beanClass);
 			}
@@ -789,8 +608,8 @@ public class PrismBeanConverter {
 				continue;
 			}
 			
-			Field field = findPropertyField(beanClass, fieldName);
-			boolean isAttribute = isAttribute(field, getter);
+			Field field = inspector.findPropertyField(beanClass, fieldName);
+			boolean isAttribute = inspector.isAttribute(field, getter);
 			
 			if (getterResult instanceof Collection<?>) {
 				Collection col = (Collection)getterResult;
@@ -807,7 +626,7 @@ public class PrismBeanConverter {
 					continue;
 				}
 				
-				QName fieldTypeName = findFieldTypeName(field, getterResultValue.getClass(), namespace);
+				QName fieldTypeName = inspector.findFieldTypeName(field, getterResultValue.getClass(), namespace);
 								
 				ListXNode xlist = new ListXNode();
 				boolean isJaxb = false;
@@ -830,7 +649,7 @@ public class PrismBeanConverter {
 					xmap.put(elementName, xlist);
 //				}
 			} else {
-				QName fieldTypeName = findFieldTypeName(field, getterResult.getClass(), namespace);
+				QName fieldTypeName = inspector.findFieldTypeName(field, getterResult.getClass(), namespace);
 				Object valueToMarshall = null;
 				if (getterResult instanceof JAXBElement){
 					valueToMarshall = ((JAXBElement) getterResult).getValue();
@@ -901,9 +720,9 @@ public class PrismBeanConverter {
 			return;
 		}
 		
-		List<String> propOrder = getPropOrder(beanClass);
+		List<String> propOrder = inspector.getPropOrder(beanClass);
 		for (String fieldName: propOrder) {
-			Method getter = findPropertyGetter(beanClass, fieldName);
+			Method getter = inspector.findPropertyGetter(beanClass, fieldName);
 			if (getter == null) {
 				throw new IllegalStateException("No getter for field "+fieldName+" in "+beanClass);
 			}
@@ -965,39 +784,6 @@ public class PrismBeanConverter {
 		}
 	}
 	
-	private boolean isAttribute(Field field, Method getter){
-		if (field == null && getter == null){
-			return false;
-		}
-		
-		if (field != null && field.isAnnotationPresent(XmlAttribute.class)){
-			return true;
-		}
-		
-		if (getter != null && getter.isAnnotationPresent(XmlAttribute.class)){
-			return true;
-		}
-		
-		return false;
-	}
-	private String determineNamespace(Class<? extends Object> beanClass) {
-		XmlType xmlType = beanClass.getAnnotation(XmlType.class);
-		if (xmlType == null) {
-			return null;
-		}
-		
-		String namespace = xmlType.namespace();
-		if (namespace == null || DEFAULT_NAMESPACE_PLACEHOLDER.equals(namespace)) {
-			XmlSchema xmlSchema = beanClass.getPackage().getAnnotation(XmlSchema.class);
-			namespace = xmlSchema.namespace();
-		}
-		if (StringUtils.isBlank(namespace) || DEFAULT_NAMESPACE_PLACEHOLDER.equals(namespace)) {
-			return null;
-		}
-		
-		return namespace;
-	}
-
 	private <T> XNode marshallValue(T value, QName fieldTypeName, boolean isAttribute) throws SchemaException {
 		if (value == null) {
 			return null;
@@ -1032,90 +818,7 @@ public class PrismBeanConverter {
 		xprim.setTypeQName(ItemPathType.COMPLEX_TYPE);
 		return xprim;
 	}
-	
-	private <T> Method findSetter(Class<T> classType, String fieldName) {
-		String setterName = getSetterName(fieldName);
-		for(Method method: classType.getMethods()) {
-			if (!method.getName().equals(setterName)) {
-				continue;
-			}
-			Class<?>[] parameterTypes = method.getParameterTypes();
-			if (parameterTypes.length != 1) {
-				continue;
-			}
-			Class<?> setterType = parameterTypes[0];
-			if (setterType.equals(Object.class) || Node.class.isAssignableFrom(setterType)) {
-				// Leave for second pass, let's try find a better setter
-				continue;
-			}
-			return method;
-		}
-		// Second pass
-		for(Method method: classType.getMethods()) {
-			if (!method.getName().equals(setterName)) {
-				continue;
-			}
-			Class<?>[] parameterTypes = method.getParameterTypes();
-			if (parameterTypes.length != 1) {
-				continue;
-			}
-			return method;
-		}
-		return null;
-	}
-	
-	private String getPropertyNameFromGetter(String getterName) {
-		if ((getterName.length() > 3) && getterName.startsWith("get") && 
-				Character.isUpperCase(getterName.charAt(3))) {
-			String propPart = getterName.substring(3);
-			return StringUtils.uncapitalize(propPart);
-		}
-		return getterName;
-	}
 
-	private String getSetterName(String fieldName) {
-		if (fieldName.startsWith("_")) {
-			fieldName = fieldName.substring(1);
-		}
-		return "set"+StringUtils.capitalize(fieldName);
-	}
-	
-	private QName findFieldTypeName(Field field, Class fieldType, String schemaNamespace) {
-		QName propTypeQname = null;
-		XmlSchemaType xmlSchemaType = null;
-		if (field != null) {
-			xmlSchemaType = field.getAnnotation(XmlSchemaType.class);
-		}
-		if (xmlSchemaType != null) {
-			String propTypeLocalPart = xmlSchemaType.name();
-			if (propTypeLocalPart != null) {
-				String propTypeNamespace = xmlSchemaType.namespace();
-				if (propTypeNamespace == null) {
-					propTypeNamespace = XMLConstants.W3C_XML_SCHEMA_NS_URI;
-				}
-				propTypeQname = new QName(propTypeNamespace, propTypeLocalPart);
-			}
-		}
-		if (propTypeQname == null) {
-			propTypeQname = XsdTypeMapper.getJavaToXsdMapping(fieldType);
-		}
-		
-		if (propTypeQname == null) {
-			XmlType xmlType = (XmlType) fieldType.getAnnotation(XmlType.class);
-			if (xmlType != null) {
-				String propTypeLocalPart = xmlType.name();
-				if (propTypeLocalPart != null) {
-					String propTypeNamespace = xmlType.namespace();
-					if (propTypeNamespace == null || propTypeNamespace.equals(DEFAULT_NAMESPACE_PLACEHOLDER)) {
-						propTypeNamespace = schemaNamespace;
-					}
-					propTypeQname = new QName(propTypeNamespace, propTypeLocalPart);
-				}
-			}	
-		}
-		
-		return propTypeQname;
-	}
 
 }
  
