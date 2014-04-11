@@ -283,26 +283,33 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 		if (specFilter != null) {
 
-TODO: resolve conflict
+//TODO: resolve conflict
 		
-Original:
+//Original:
+//
+//			ObjectQuery q = QueryConvertor.createObjectQuery(object.getCompileTimeClass(), specFilter, object.getPrismContext());
+//			boolean applicable = ObjectQuery.match(object, q.getFilter(), matchingRuleRegistry);
+//
+//prism:
+//
+//			ObjectFilter filter = QueryConvertor.parseFilter(specFilter, object.getCompileTimeClass(), object.getPrismContext());
+//			boolean applicable = ObjectQuery.match(object, filter, matchingRuleRegistry);
+//
+//
+//master:
+//
+//			// TODO: organizational structure
+//			ObjectQuery q = QueryConvertor.createObjectQuery(object.getCompileTimeClass(), specFilter, object.getPrismContext());
+//			boolean applicable = repositoryService.matchObject(object, q);
 
-			ObjectQuery q = QueryConvertor.createObjectQuery(object.getCompileTimeClass(), specFilter, object.getPrismContext());
-			boolean applicable = ObjectQuery.match(object, q.getFilter(), matchingRuleRegistry);
+            // this is temporary code
+            boolean applicable = false;
+            if (!applicable) {
+                throw new UnsupportedOperationException("fix this!");
+            }
+            // end of temporary code
 
-prism:
-
-			ObjectFilter filter = QueryConvertor.parseFilter(specFilter, object.getCompileTimeClass(), object.getPrismContext());
-			boolean applicable = ObjectQuery.match(object, filter, matchingRuleRegistry);
-
-
-master:
-
-			// TODO: organizational structure
-			ObjectQuery q = QueryConvertor.createObjectQuery(object.getCompileTimeClass(), specFilter, object.getPrismContext());
-			boolean applicable = repositoryService.matchObject(object, q);
-
-			if (applicable) {
+            if (applicable) {
 				LOGGER.trace("  Authorization applicable for {} (filter)", desc);
 			} else {
 				LOGGER.trace("  Authorization not applicable for {} (filter)", desc);

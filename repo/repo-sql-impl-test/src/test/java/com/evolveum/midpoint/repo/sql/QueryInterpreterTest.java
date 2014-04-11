@@ -30,6 +30,7 @@ import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.RQueryImpl;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.Query;
@@ -357,7 +358,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             //or
             Criterion c4 = Restrictions.conjunction().add(
                     Restrictions.eq("r.resourceRef.targetOid", "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e"));
-        c4.add(Restrictions.eq("r.resourceRef.type", QNameUtil.qNameToUri(ResourceType.COMPLEX_TYPE)));
 
             Disjunction disjunction = Restrictions.disjunction();
             disjunction.add(c1);

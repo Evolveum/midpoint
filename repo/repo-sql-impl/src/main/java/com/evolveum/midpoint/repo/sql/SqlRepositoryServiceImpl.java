@@ -556,7 +556,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         savedObject.setVersion(Integer.toString(object.getVersion()));
 
 //        PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
-        String xml = getPrismContext().serializeObjectToString(savedObject);
+        String xml = getPrismContext().serializeObjectToString(savedObject, PrismContext.LANG_XML);
         byte[] fullObject = RUtil.getByteArrayFromXml(xml, getConfiguration().isUseZip());
 
         if (LOGGER.isTraceEnabled()) LOGGER.trace("Storing full object\n{}", xml);

@@ -20,6 +20,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContainer;

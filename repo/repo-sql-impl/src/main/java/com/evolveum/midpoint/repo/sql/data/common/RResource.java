@@ -141,8 +141,6 @@ public class RResource extends RObject<ResourceType> {
         return result;
     }
 
-        PrismObjectDefinition<ResourceType> resourceDef = prismContext.getSchemaRegistry().determineDefinitionFromClass(ResourceType.class);
-        
     public static void copyFromJAXB(ResourceType jaxb, RResource repo, PrismContext prismContext)
             throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
