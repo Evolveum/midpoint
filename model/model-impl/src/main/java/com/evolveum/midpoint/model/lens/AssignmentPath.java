@@ -18,13 +18,15 @@ package com.evolveum.midpoint.model.lens;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 
 /**
  * @author semancik
  *
  */
-public class AssignmentPath {
+public class AssignmentPath implements DebugDumpable {
 	
 	private List<AssignmentPathSegment> segments;
 
@@ -90,6 +92,20 @@ public class AssignmentPath {
 	@Override
 	public String toString() {
 		return "AssignmentPath(" + segments + ")";
+	}
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.debugDumpLabel(sb, "AssignmentPath", indent);
+		sb.append("\n");
+		DebugUtil.debugDump(segments, indent + 1);
+		return sb.toString();
 	}
 	
 	
