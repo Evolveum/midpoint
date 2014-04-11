@@ -99,8 +99,7 @@ public class LessFilter<T> extends ComparativeFilter<T>{
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("LESS: \n");
-		
+		sb.append("LESS:");
 		return debugDump(indent, sb);
 	}
 	

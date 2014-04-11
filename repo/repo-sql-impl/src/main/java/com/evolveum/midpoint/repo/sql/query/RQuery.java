@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.query;
 
-import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
 import org.hibernate.ScrollMode;
 import org.hibernate.ScrollableResults;
@@ -26,30 +25,11 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class QueryCriteriaImpl implements Query {
+public interface RQuery {
 
-    private Criteria criteria;
+    List list() throws HibernateException;
 
-    public QueryCriteriaImpl(Criteria criteria) {
-        this.criteria = criteria;
-    }
+    Object uniqueResult() throws HibernateException;
 
-    @Override
-    public List list() throws HibernateException {
-        return criteria.list();
-    }
-
-    @Override
-    public Object uniqueResult() throws HibernateException {
-        return criteria.uniqueResult();
-    }
-
-    @Override
-    public ScrollableResults scroll(ScrollMode mode) throws HibernateException {
-        return criteria.scroll(mode);
-    }
-
-    public Criteria getCriteria() {
-        return criteria;
-    }
+    ScrollableResults scroll(ScrollMode mode) throws HibernateException;
 }

@@ -21,13 +21,8 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
-import com.evolveum.midpoint.repo.sql.data.common.container.Container;
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.RTask;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
-import com.evolveum.midpoint.repo.sql.util.MidPointNamingStrategy;
 import com.evolveum.midpoint.repo.sql.util.SimpleTaskAdapter;
-import com.evolveum.midpoint.repo.sql.util.UnicodeSQLServer2008Dialect;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -38,9 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Query;
-import org.hibernate.SQLQuery;
 import org.hibernate.Session;
-import org.hibernate.dialect.Dialect;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -50,8 +43,6 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.File;
-import java.sql.Timestamp;
-import java.sql.Types;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -65,7 +56,7 @@ public class CleanupTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(CleanupTest.class);
 
-    @Test(enabled = false)
+    @Test
     public void testTasksCleanup() throws Exception {
         // GIVEN
         final File file = new File(FOLDER_BASIC, "tasks.xml");
@@ -104,83 +95,6 @@ public class CleanupTest extends BaseSQLRepoTest {
         duration.addTo(mark);
 
         AssertJUnit.assertTrue("finished: " + finished + ", mark: " + mark, finished.after(mark));
-    }
-
-    private void doExperimentalCleanup(Calendar when) {
-        //experimental stuff before integration to main implementation
-        Session session = getFactory().openSession();
-        try {
-            session.beginTransaction();
-
-            MidPointNamingStrategy namingStrategy = new MidPointNamingStrategy();
-            final String taskTableName = namingStrategy.classToTableName(RTask.class.getSimpleName());
-            final String objectTableName = namingStrategy.classToTableName(RObject.class.getSimpleName());
-            final String containerTableName = namingStrategy.classToTableName(Container.class.getSimpleName());
-
-            final String completionTimestampColumn = "completionTimestamp";
-
-            Dialect dialect = Dialect.getDialect(sessionFactoryBean.getHibernateProperties());
-            //create temporary table
-            String prefix = "";
-            if (UnicodeSQLServer2008Dialect.class.equals(dialect.getClass())) {
-                prefix = "#";   //this creates temporary table as with global scope
-            }
-            final String tempTable = prefix + dialect.generateTemporaryTableName(taskTableName);
-
-            StringBuilder sb = new StringBuilder();
-            sb.append(dialect.getCreateTemporaryTableString());
-            sb.append(' ').append(tempTable).append(" (oid ");
-            sb.append(dialect.getTypeName(Types.VARCHAR, 36, 0, 0));
-            sb.append(" not null)");
-            sb.append(dialect.getCreateTemporaryTablePostfix());
-
-            SQLQuery query = session.createSQLQuery(sb.toString());
-            query.executeUpdate();
-
-            //fill temporary table
-            sb = new StringBuilder();
-            sb.append("insert into ").append(tempTable).append(' ');            //todo improve this insert
-            sb.append("select t.oid as oid from ").append(taskTableName).append(" t");
-            sb.append(" inner join ").append(objectTableName).append(" o on t.id = o.id and t.oid = o.oid");
-            sb.append(" inner join ").append(containerTableName).append(" c on t.id = c.id and t.oid = c.oid");
-            sb.append(" where t.").append(completionTimestampColumn).append(" < ?");
-
-            query = session.createSQLQuery(sb.toString());
-            query.setParameter(0, new Timestamp(when.getTimeInMillis()));
-            query.executeUpdate();
-
-            //drop records from m_task, m_object, m_container
-            sb = new StringBuilder();
-            sb.append("delete from ").append(taskTableName);
-            sb.append(" where id = 0 and (oid in (select oid from ").append(tempTable).append("))");
-            session.createSQLQuery(sb.toString()).executeUpdate();
-
-            sb = new StringBuilder();
-            sb.append("delete from ").append(objectTableName);
-            sb.append(" where id = 0 and (oid in (select oid from ").append(tempTable).append("))");
-            session.createSQLQuery(sb.toString()).executeUpdate();
-
-            sb = new StringBuilder();
-            sb.append("delete from ").append(containerTableName);
-            sb.append(" where id = 0 and (oid in (select oid from ").append(tempTable).append("))");
-            long count = session.createSQLQuery(sb.toString()).executeUpdate();
-
-            LOGGER.info("REMOVED {} OBJECTS.", new Object[]{count});
-
-            //drop temporary table
-            if (dialect.dropTemporaryTableAfterUse()) {
-                LOGGER.info("Dropping temporary table.");
-                sb = new StringBuilder();
-                sb.append(dialect.getDropTemporaryTableString());
-                sb.append(' ').append(tempTable);
-
-                session.createSQLQuery(sb.toString()).executeUpdate();
-            }
-
-            session.getTransaction().commit();
-        } finally {
-            session.close();
-        }
     }
 
     private Calendar create_2013_07_12_12_00_Calendar() {

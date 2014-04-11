@@ -922,7 +922,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
         Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
-        modifications.add(createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, false));
+        modifications.add(createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, false));
         ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -1013,7 +1013,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
         ObjectDelta<UserType> userDelta = createAssignmentUserDelta(USER_JACK_OID, ROLE_JUDGE_OID, RoleType.COMPLEX_TYPE, null, null, false);
-        userDelta.addModification(createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, true));
+        userDelta.addModification(createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true));
         
         // WHEN
         modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);

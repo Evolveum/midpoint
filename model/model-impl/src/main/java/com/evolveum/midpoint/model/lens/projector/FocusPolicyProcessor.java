@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.model.lens.projector;
 
+import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -27,12 +29,15 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.apache.xpath.FoundIndex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.ModelObjectResolver;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
@@ -44,6 +49,7 @@ import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
+import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.model.trigger.RecomputeTriggerHandler;
@@ -284,7 +290,12 @@ public class FocusPolicyProcessor {
 		}
 		
 		int maxIterations = LensUtil.determineMaxIterations(userTemplate.getIteration());
-		int iteration = 0;
+		int iteration = focusContext.getIteration();
+		String iterationToken = focusContext.getIterationToken();
+		boolean wasResetIterationCounter = false;
+		
+		// This is fixed now. TODO: make it configurable
+		boolean resetOnRename = true;
 
 		ObjectDelta<F> userSecondaryDelta = focusContext.getProjectionWaveSecondaryDelta();
 		ObjectDelta<F> userPrimaryDelta = focusContext.getProjectionWavePrimaryDelta();
@@ -292,12 +303,23 @@ public class FocusPolicyProcessor {
 		PrismObjectDefinition<F> focusDefinition = getFocusDefinition(focusContext.getObjectTypeClass());
 		Collection<ItemDelta<? extends PrismValue>> itemDeltas = null;
 		XMLGregorianCalendar nextRecomputeTime = null;
+		
+		PrismObject<F> focusCurrent = focusContext.getObjectCurrent();
+		if (focusCurrent != null && iterationToken == null) {
+			Integer focusIteration = focusCurrent.asObjectable().getIteration();
+			if (focusIteration != null) {
+				iteration = focusIteration;
+			}
+			iterationToken = focusCurrent.asObjectable().getIterationToken();
+		}
 	
 		while (true) {
 		
 			ExpressionVariables variables = Utils.getDefaultExpressionVariables(focusContext.getObjectNew(), null, null, null);
-			String iterationToken = LensUtil.formatIterationToken(context, focusContext, 
+			if (iterationToken == null) {
+				iterationToken = LensUtil.formatIterationToken(context, focusContext, 
 					userTemplate.getIteration(), iteration, expressionFactory, variables, task, result);
+			}
 			
 			LOGGER.trace("Applying {} to {}, iteration {} ({})", 
 					new Object[]{userTemplate, focusContext.getObjectNew(), iteration, iterationToken});
@@ -318,20 +340,40 @@ public class FocusPolicyProcessor {
 						iteration, iterationToken,
 						now, userTemplate.toString(), task, result);
 				
+				DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>> nameTriple = outputTripleMap.get(new ItemPath(FocusType.F_NAME));
+				if (resetOnRename && !wasResetIterationCounter && nameTriple != null && 
+						focusContext.getIterationToken() == null && (nameTriple.hasPlusSet() || nameTriple.hasMinusSet())) {
+					// Make sure this happens only the very first time during the first recompute.
+					// Otherwise it will always change the token (especially if the token expression has a random part)
+					// hence the focusContext.getIterationToken() == null
+		        	wasResetIterationCounter = true;
+		        	iteration = 0;
+		    		iterationToken = null;
+		    		LOGGER.trace("Resetting iteration counter and token because rename was detected");
+		    		continue;
+		        }
+				
 				itemDeltas = new ArrayList<>();
 				for (Entry<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> entry: outputTripleMap.entrySet()) {
 					ItemPath itemPath = entry.getKey();
 					DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>> outputTriple = entry.getValue();
-					
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Computed triple for {}:\n{}", itemPath, outputTriple.debugDump());
+					}
 					ItemDelta<? extends PrismValue> apropriItemDelta = null;
-					
+//					boolean addUnchangedValues = focusContext.isAdd();
+					// We need to add unchanged values otherwise the unconditional mappings will not be applies
+					boolean addUnchangedValues = true;
 					ItemDelta<? extends PrismValue> itemDelta = LensUtil.consolidateTripleToDelta(itemPath, (DeltaSetTriple)outputTriple,
 							focusDefinition.findItemDefinition(itemPath), apropriItemDelta, userOdo.getNewObject(), null, 
-							true, true, false, "object template "+userTemplate, true);
+							addUnchangedValues, true, false, "object template "+userTemplate, true);
 					
 					itemDelta.simplify();
 					itemDelta.validate("object template "+userTemplate);
 					itemDeltas.add(itemDelta);
+					if (LOGGER.isTraceEnabled()) {
+						LOGGER.trace("Computed delta:\n{}", itemDelta.debugDump());
+					}
 				}
 				
 				// construct objectNew as the preview how the change will look like
@@ -390,8 +432,18 @@ public class FocusPolicyProcessor {
 		        LOGGER.trace("Current focus does not satisfy constraints. Conflicting object: {}; iteration={}, maxIterations={}",
 		        		new Object[]{checker.getConflictingObject(), iteration, maxIterations});
 		        conflictMessage = checker.getMessages();
+		        
+				if (!wasResetIterationCounter) {
+		        	wasResetIterationCounter = true;
+			        if (iteration != 0) {
+			        	iterationToken = null;
+			        	iteration = 0;
+			    		LOGGER.trace("Resetting iteration counter and token after conflict");
+			    		continue;
+			        }
+		        }
 			}
-	        
+				        
 	        // Next iteration
 			iteration++;
 	        iterationToken = null;
@@ -431,6 +483,17 @@ public class FocusPolicyProcessor {
 				}
 			}
 		}
+		
+		// We have to remember the token and iteration in the context.
+		// The context can be recomputed several times. But we always want
+		// to use the same iterationToken if possible. If there is a random
+		// part in the iterationToken expression that we need to avoid recomputing
+		// the token otherwise the value can change all the time (even for the same inputs).
+		// Storing the token in the secondary delta is not enough because secondary deltas can be dropped
+		// if the context is re-projected.
+		focusContext.setIteration(iteration);
+		focusContext.setIterationToken(iterationToken);
+		addIterationTokenDeltas(focusContext, iteration, iterationToken);
 		
 		if (nextRecomputeTime != null) {
 			
@@ -656,6 +719,36 @@ public class FocusPolicyProcessor {
 			activationDefinition = focusDefinition.findContainerDefinition(FocusType.F_ACTIVATION);
 		}
 		return activationDefinition;
+	}
+	
+	/**
+	 * Adds deltas for iteration and iterationToken to the focus if needed.
+	 */
+	private <F extends FocusType> void addIterationTokenDeltas(LensFocusContext<F> focusContext, int iteration, String iterationToken) throws SchemaException {
+		PrismObject<F> objectCurrent = focusContext.getObjectCurrent();
+		if (objectCurrent != null) {
+			Integer iterationOld = objectCurrent.asObjectable().getIteration();
+			String iterationTokenOld = objectCurrent.asObjectable().getIterationToken();
+			if (iterationOld != null && iterationOld == iteration &&
+					iterationTokenOld != null && iterationTokenOld.equals(iterationToken)) {
+				// Already stored
+				return;
+			}
+		}
+		PrismObjectDefinition<F> objDef = focusContext.getObjectDefinition();
+		
+		PrismPropertyValue<Integer> iterationVal = new PrismPropertyValue<Integer>(iteration);
+		iterationVal.setOriginType(OriginType.USER_POLICY);
+		PropertyDelta<Integer> iterationDelta = PropertyDelta.createReplaceDelta(objDef, 
+				FocusType.F_ITERATION, iterationVal);
+		focusContext.swallowToSecondaryDelta(iterationDelta);
+		
+		PrismPropertyValue<String> iterationTokenVal = new PrismPropertyValue<String>(iterationToken);
+		iterationTokenVal.setOriginType(OriginType.USER_POLICY);
+		PropertyDelta<String> iterationTokenDelta = PropertyDelta.createReplaceDelta(objDef, 
+				FocusType.F_ITERATION_TOKEN, iterationTokenVal);
+		focusContext.swallowToSecondaryDelta(iterationTokenDelta);
+		
 	}
 
 }

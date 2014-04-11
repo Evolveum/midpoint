@@ -16,7 +16,8 @@
 
 package com.evolveum.midpoint.repo.sql.query.definition;
 
-import com.evolveum.midpoint.repo.sql.data.common.*;
+import com.evolveum.midpoint.repo.sql.data.common.ObjectReference;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
@@ -119,16 +120,11 @@ public class ClassDefinitionParser {
 
             entityDef.addDefinition(def);
         }
-
-        for (VirtualEntity entity : qEntity.entities()) {
-
-        }
     }
 
     private QName createQName(JaxbName name) {
         return new QName(name.namespace(), name.localPart());
     }
-
 
     private Definition createDefinition(QName jaxbName, Class jaxbType, String jpaName, AnnotatedElement object) {
         Class jpaType = (object instanceof Class) ? (Class) object : ((Method) object).getReturnType();
@@ -145,10 +141,7 @@ public class ClassDefinitionParser {
             definition = collDef;
         } else if (isEntity(object)) {
             EntityDefinition entityDef = new EntityDefinition(jaxbName, jaxbType, jpaName, jpaType);
-            if ("com.evolveum.midpoint.repo.sql.data.common.embedded".equals(jpaType.getPackage().getName())
-                    //todo not good, check some interface or annotation, DO NOT ENUMERATE [lazyman]
-//                    || RMetadata.class.equals(jpaType) todo fix metadata shit
-                    || ROperationResult.class.equals(jpaType)) {
+            if ("com.evolveum.midpoint.repo.sql.data.common.embedded".equals(jpaType.getPackage().getName())) {
                 updateEntityDefinition(entityDef);
             }
             definition = entityDef;

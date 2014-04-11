@@ -28,7 +28,6 @@ public class RAExtDateId implements Serializable {
     private Short ownerId;
     private Timestamp value;
     private String name;
-    private String type;
 
     public String getOwnerOid() {
         return ownerOid;
@@ -62,14 +61,6 @@ public class RAExtDateId implements Serializable {
         this.name = name;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -80,7 +71,6 @@ public class RAExtDateId implements Serializable {
         if (name != null ? !name.equals(raDateId.name) : raDateId.name != null) return false;
         if (ownerId != null ? !ownerId.equals(raDateId.ownerId) : raDateId.ownerId != null) return false;
         if (ownerOid != null ? !ownerOid.equals(raDateId.ownerOid) : raDateId.ownerOid != null) return false;
-        if (type != null ? !type.equals(raDateId.type) : raDateId.type != null) return false;
         if (value != null ? !value.equals(raDateId.value) : raDateId.value != null) return false;
 
         return true;
@@ -92,7 +82,6 @@ public class RAExtDateId implements Serializable {
         result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
         result = 31 * result + (value != null ? value.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (type != null ? type.hashCode() : 0);
         return result;
     }
 
@@ -103,7 +92,6 @@ public class RAExtDateId implements Serializable {
                 ", ownerId=" + ownerId +
                 ", value=" + value +
                 ", name='" + name + '\'' +
-                ", type='" + type + '\'' +
                 '}';
     }
 }

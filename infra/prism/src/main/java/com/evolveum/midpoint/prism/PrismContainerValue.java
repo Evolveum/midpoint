@@ -1149,6 +1149,9 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     
 	@Override
     public boolean isEmpty() {
+		if (id != null) {
+			return false;
+		}
 		if (items == null) {
 			return true;
 		}

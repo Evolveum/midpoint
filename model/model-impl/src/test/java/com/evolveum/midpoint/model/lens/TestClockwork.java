@@ -248,7 +248,7 @@ public class TestClockwork extends AbstractLensTest {
         display("Output context", context);
         
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-        assertEffectiveActivationDeltaOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
+        assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
         		ActivationStatusType.DISABLED);
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
@@ -339,7 +339,7 @@ public class TestClockwork extends AbstractLensTest {
 	private void assertJackAssignAccountContext(LensContext<UserType> context) {
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
         if (context.getFocusContext().getSecondaryDelta() != null) {
-        	assertEffectiveActivationDeltaOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
+        	assertSideEffectiveDeltasOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
         		ActivationStatusType.ENABLED);
         }
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
@@ -352,6 +352,7 @@ public class TestClockwork extends AbstractLensTest {
         assertEquals(SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
         
         ObjectDelta<?> executedDelta = getExecutedDelta(accContext);
+        assertNotNull("No executed delta in "+accContext, executedDelta);
         assertEquals(ChangeType.ADD, executedDelta.getChangeType());
         PrismAsserts.assertPropertyAdd(executedDelta, getIcfsNameAttributePath(), "jack");
         PrismAsserts.assertPropertyAdd(executedDelta, dummyResourceCtl.getAttributeFullnamePath(), "Jack Sparrow");

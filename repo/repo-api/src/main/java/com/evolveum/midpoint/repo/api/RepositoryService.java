@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,9 +41,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 /**
  * <p>Identity Repository Interface.</p>
  * <p>
- * Status: public
- * Stability: draft
- * @version 0.3
+ * <ul>
+ *   <li>Status: public</li>
+ *   <li>Stability: stable</li>
+ * </ul>
+ * @version 3.0
  * @author Radovan Semancik
  * </p><p>
  * This service provides repository for objects that are commonly found
@@ -321,6 +323,23 @@ public interface RepositoryService {
 	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
 			throws SchemaException;
 
+	/**
+	 * Matches object to the specified search filter, returns true if the object matches or false otherwise.
+	 * This is supposed to be a very cheap operation. It actually does not use an underlying database unless it
+	 * needs to (which is usually required only for query parts related to the organizational structure).
+	 * This is very lightweight operation. Therefore also the usual operation result is omitted here. All error
+	 * conditions are communicated just by throwing the exceptions.
+	 * 
+	 * The object which is provided to this operation is assumed to be fresh (up to date).
+	 * 
+	 * @param object object to be matched
+	 * @param query search query
+	 * @return true if the object matches specified object filter or false otherwise
+	 * @throws SchemaException
+	 * 				specified object or search filter contain data that violate the schema
+	 */
+	<T extends ObjectType> boolean matchObject(PrismObject<T> object, ObjectQuery query) throws SchemaException;
+	
 	/**
 	 * <p>Modifies object using relative change description.</p>
 	 * Must fail if user with

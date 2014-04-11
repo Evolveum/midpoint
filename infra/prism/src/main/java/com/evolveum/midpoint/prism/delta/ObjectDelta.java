@@ -826,6 +826,22 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     	fillInModificationDeleteContainer(this, propertyPath, containerValues);
     }
     
+    public <C extends Containerable> void addModificationReplaceContainer(QName propertyQName, PrismContainerValue<C>... containerValues) {
+    	addModificationReplaceContainer(new ItemPath(propertyQName), containerValues);
+    }
+    
+    public <C extends Containerable> void addModificationReplaceContainer(ItemPath propertyPath, PrismContainerValue<C>... containerValues) {
+    	fillInModificationReplaceContainer(this, propertyPath, containerValues);
+    }
+    
+    public static <O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationReplaceContainer(Class<O> type, String oid, 
+    		ItemPath propertyPath, PrismContext prismContext, C... containerValues) throws SchemaException {
+    	ObjectDelta<O> objectDelta = new ObjectDelta<O>(type, ChangeType.MODIFY, prismContext);
+    	objectDelta.setOid(oid);
+    	fillInModificationReplaceContainer(objectDelta, propertyPath, containerValues);
+    	return objectDelta;
+    }
+    
     protected static <O extends Objectable, X> void fillInModificationReplaceProperty(ObjectDelta<O> objectDelta,
     		ItemPath propertyPath, X... propertyValues) {
     	PropertyDelta<X> propertyDelta = objectDelta.createPropertyModification(propertyPath);
@@ -888,23 +904,17 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     	return createModificationDeleteContainer(type, oid, new ItemPath(containerName), prismContext, containerValues);
     }
     
-    /**
-     * Supposed to work with containers that are completely identified by path (container ID present in path).
-     */    
-    public static <O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationDeleteContainer(Class<O> type, String oid, ItemPath containerPath,
-    		PrismContext prismContext) {
-    	ObjectDelta<O> objectDelta = new ObjectDelta<O>(type, ChangeType.MODIFY, prismContext);
-    	objectDelta.setOid(oid);
-    	fillInModificationDeleteContainer(objectDelta, containerPath);
-    	return objectDelta;
-    }
-    
     public static <O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationDeleteContainer(Class<O> type, String oid, ItemPath containerPath,
     		PrismContext prismContext, PrismContainerValue<C>... containerValues) {
     	ObjectDelta<O> objectDelta = new ObjectDelta<O>(type, ChangeType.MODIFY, prismContext);
     	objectDelta.setOid(oid);
     	fillInModificationDeleteContainer(objectDelta, containerPath, containerValues);
     	return objectDelta;
+    }
+    
+    public static <O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationDeleteContainer(Class<O> type, String oid, 
+    		QName containerName, PrismContext prismContext, C... containerValues) throws SchemaException {
+    	return createModificationDeleteContainer(type, oid, new ItemPath(containerName), prismContext, containerValues);
     }
     
     public static <O extends Objectable, C extends Containerable> ObjectDelta<O> createModificationDeleteContainer(Class<O> type, String oid, 
@@ -981,12 +991,33 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
 	    	containerDelta.setValuesToReplace(containerValues);
     	}
     }
+    
+    protected static <O extends Objectable, C extends Containerable> void fillInModificationReplaceContainer(ObjectDelta<O> objectDelta,
+    		ItemPath propertyPath, C... containerValues) throws SchemaException {
+    	if (containerValues != null) {
+    		ContainerDelta<C> containerDelta = objectDelta.createContainerModification(propertyPath);
+	    	Collection<PrismContainerValue<C>> valuesToReplace = toPrismContainerValues(objectDelta.getObjectTypeClass(), propertyPath, objectDelta.getPrismContext(), containerValues);
+	    	containerDelta.setValuesToReplace(valuesToReplace);
+	    	objectDelta.addModification(containerDelta);
+    	}
+    }
         
     protected static <X> Collection<PrismPropertyValue<X>> toPrismPropertyValues(PrismContext prismContext, X... propertyValues) {
     	Collection<PrismPropertyValue<X>> pvalues = new ArrayList<PrismPropertyValue<X>>(propertyValues.length);
     	for (X val: propertyValues) {
     		PrismUtil.recomputeRealValue(val, prismContext);
     		PrismPropertyValue<X> pval = new PrismPropertyValue<X>(val);
+    		pvalues.add(pval);
+    	}
+    	return pvalues;
+    }
+    
+    protected static <O extends Objectable, C extends Containerable> Collection<PrismContainerValue<C>> toPrismContainerValues(Class<O> type, ItemPath path, PrismContext prismContext, C... containerValues) throws SchemaException {
+    	Collection<PrismContainerValue<C>> pvalues = new ArrayList<PrismContainerValue<C>>(containerValues.length);
+    	for (C val: containerValues) {
+    		prismContext.adopt(val, type, path);
+    		PrismUtil.recomputeRealValue(val, prismContext);
+    		PrismContainerValue<C> pval = val.asPrismContainerValue();
     		pvalues.add(pval);
     	}
     	return pvalues;

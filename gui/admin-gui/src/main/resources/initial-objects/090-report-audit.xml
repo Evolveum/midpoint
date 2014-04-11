@@ -62,7 +62,7 @@
 				<fieldDescription><![CDATA[eventStage]]></fieldDescription>
 			</field>
 			<field name="targetName" class="java.lang.String"/>
-			<field name="targetType" class="com.evolveum.midpoint.repo.sql.data.common.other.RContainerType">
+			<field name="targetType" class="com.evolveum.midpoint.repo.sql.data.common.other.RObjectType">
 				<fieldDescription><![CDATA[targetType]]></fieldDescription>
 			</field>
 			<field name="targetOwnerName" class="java.lang.String"/>
@@ -263,18 +263,20 @@
 		</jasperReport>
 	</template>
 	<templateStyle>
-		<style fontName="DejaVu Sans" fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="true" 
+		<jasperTemplate xmlns="http://jasperreports.sourceforge.net/dtds/jaspertemplate.dtd">
+			<style fontName="DejaVu Sans" fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="true" 
 				   name="Base" pdfEncoding="Identity-H" pdfFontName="DejaVuSans.ttf" vAlign="Middle">
-		</style>
-		<style backcolor="#267994" fontSize="26" forecolor="#FFFFFF" isDefault="false"
+			</style>
+			<style backcolor="#267994" fontSize="26" forecolor="#FFFFFF" isDefault="false"
                    mode="Opaque" name="Title" style="Base"/> 
-		<style fontSize="12" forecolor="#000000" isDefault="false" name="Page header"
+			<style fontSize="12" forecolor="#000000" isDefault="false" name="Page header"
                    style="Base"/>
-		<style backcolor="#333333" fontSize="12" forecolor="#FFFFFF" hAlign="Center"
+			<style backcolor="#333333" fontSize="12" forecolor="#FFFFFF" hAlign="Center"
                    isDefault="false" mode="Opaque" name="Column header" style="Base"/>
-		<style isBold="false" isDefault="false" name="Detail" style="Base"/>
-		<style fontSize="9" forecolor="#000000" isDefault="false" name="Page footer"
+			<style isBold="false" isDefault="false" name="Detail" style="Base"/>
+			<style fontSize="9" forecolor="#000000" isDefault="false" name="Page footer"
                    style="Base"/>
+		</jasperTemplate>
 	</templateStyle>
 	<orientation>landscape</orientation>
 	<export>pdf</export>

@@ -25,9 +25,13 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -50,11 +54,13 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAc
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.dto.*;
+import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -103,7 +109,7 @@ public class TreeTablePanel extends SimplePanel<String> {
     private static final String OPERATION_MOVE_OBJECT = DOT_CLASS + "moveObject";
     private static final String OPERATION_UPDATE_OBJECTS = DOT_CLASS + "updateObjects";
     private static final String OPERATION_UPDATE_OBJECT = DOT_CLASS + "updateObject";
-    private static final String OPERATION_RECONCILE = DOT_CLASS + "reconcile";
+    private static final String OPERATION_RECOMPUTE = DOT_CLASS + "recompute";
 
     private static final String ID_TREE = "tree";
     private static final String ID_TREE_CONTAINER = "treeContainer";
@@ -827,17 +833,25 @@ public class TreeTablePanel extends SimplePanel<String> {
             objects.add(orgDto);
         }
 
-        Task task = getPageBase().createSimpleTask(OPERATION_RECONCILE);
-        OperationResult result = new OperationResult(OPERATION_RECONCILE);
+        Task task = getPageBase().createSimpleTask(OPERATION_RECOMPUTE);
+        OperationResult result = new OperationResult(OPERATION_RECOMPUTE);
 
         try {
-
             for(OrgTableDto org: objects){
+
+                PrismObject<TaskType> recomputeTask = prepareRecomputeTask(org);
+
+                ObjectDelta taskDelta = ObjectDelta.createAddDelta(recomputeTask);
+
+                if(LOGGER.isTraceEnabled()){
+                    LOGGER.trace(taskDelta.debugDump());
+                }
+
                 ObjectDelta emptyDelta = ObjectDelta.createEmptyModifyDelta(OrgType.class,
                         org.getOid(), getPageBase().getPrismContext());
                 ModelExecuteOptions options = new ModelExecuteOptions();
                 options.setReconcile(true);
-                getPageBase().getModelService().executeChanges(WebMiscUtil.createDeltaCollection(emptyDelta), options, task, result);
+                getPageBase().getModelService().executeChanges(WebMiscUtil.createDeltaCollection(emptyDelta, taskDelta), options, task, result);
             }
 
             result.recordSuccess();
@@ -849,6 +863,46 @@ public class TreeTablePanel extends SimplePanel<String> {
         getPageBase().showResult(result);
         target.add(getPageBase().getFeedbackPanel());
         refreshTabbedPanel(target);
+    }
+
+    private PrismObject<TaskType> prepareRecomputeTask(OrgTableDto org) throws SchemaException{
+        PrismPropertyDefinition propertyDef = getPageBase().getPrismContext().getSchemaRegistry()
+                .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
+
+        ObjectQuery query = new ObjectQuery();
+        ObjectFilter refFilter = RefFilter.createReferenceEqual(UserType.F_PARENT_ORG_REF,
+                UserType.class, getPageBase().getPrismContext(), org.getOid());
+        query.setFilter(refFilter);
+
+        QueryType queryType = QueryConvertor.createQueryType(query, getPageBase().getPrismContext());
+
+        PrismProperty<QueryType> property = propertyDef.instantiate();
+        property.setRealValue(queryType);
+
+        TaskType taskType = new TaskType();
+
+        taskType.setName(WebMiscUtil.createPolyFromOrigString(OPERATION_RECOMPUTE));
+        taskType.setBinding(TaskBindingType.LOOSE);
+        taskType.setExecutionStatus(TaskExecutionStatusType.RUNNABLE);
+        taskType.setRecurrence(TaskRecurrenceType.SINGLE);
+
+        MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
+
+        ObjectReferenceType ownerRef = new ObjectReferenceType();
+        ownerRef.setOid(owner.getOid());
+        ownerRef.setType(owner.getUser().COMPLEX_TYPE);
+        taskType.setOwnerRef(ownerRef);
+
+        ExtensionType extensionType = new ExtensionType();
+        taskType.setExtension(extensionType);
+
+        getPageBase().getPrismContext().adopt(taskType);
+
+        extensionType.asPrismContainerValue().add(property);
+
+        taskType.setHandlerUri("http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-2");
+
+        return taskType.asPrismObject();
     }
 
     private void deleteRootPerformed(AjaxRequestTarget target) {

@@ -36,25 +36,25 @@ This resource definition contains also definition to enable synchronization.
 	xmlns:my="http://myself.me/schemas/whatever">
 
 	<resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee">
-    
-    	<!-- Resource name. It will be displayed in GUI.  -->
+
+		<!-- Resource name. It will be displayed in GUI.  -->
 		<name>Localhost DBTable</name>
-     
-     	<!-- Reference to the ICF DatabaseTable connector. OID is "virtual" for now. -->
+
+		<!-- Reference to the ICF DatabaseTable connector. OID is "virtual" for now. -->
 		<connectorRef type="ConnectorType">
 			<filter>
-		        <q:equal>
-				<q:path>c:connectorType</q:path>
-		          <q:value>org.identityconnectors.databasetable.DatabaseTableConnector</q:value>
-		        </q:equal>
-		      </filter>
+				<q:equal>
+					<q:path>c:connectorType</q:path>
+					<q:value>org.identityconnectors.databasetable.DatabaseTableConnector</q:value>
+				</q:equal>
+			</filter>
 		</connectorRef>
 
-        <!-- Configuration section contains configuration of the connector,
+		<!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
 		<connectorConfiguration>
 
-            <!-- Configuration specific for the DBTable connector -->
+			<!-- Configuration specific for the DBTable connector -->
 			<icfc:configurationProperties
 			xmlns:icscdbtable="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.databasetable-connector/org.identityconnectors.databasetable.DatabaseTableConnector">
 				<icscdbtable:port>3306</icscdbtable:port>
@@ -75,13 +75,13 @@ This resource definition contains also definition to enable synchronization.
 				<icscdbtable:changeLogColumn>change_timestamp</icscdbtable:changeLogColumn>
 				<icscdbtable:datasource></icscdbtable:datasource>
 			</icfc:configurationProperties>
-		
+
 			<!-- Generic ICF configuration -->
 
 
 		</connectorConfiguration>
 
-        <!-- Resource Schema Handling definition.
+		<!-- Resource Schema Handling definition.
              This part defines how the schema defined above will be used by
              midPoint. It defines expressions and limitations for individual
              schema attributes.
@@ -93,25 +93,25 @@ This resource definition contains also definition to enable synchronization.
         -->
 		<schemaHandling>
 
-            <!-- Definition of default account type.
+			<!-- Definition of default account type.
                  This is now the only account type that midPoint can work with. -->
 			<accountType>
 				<name>default</name>
 
-                <!-- Readable name for the account type -->
+				<!-- Readable name for the account type -->
 				<displayName>Default Account</displayName>
 				<default>true</default>
 
-                <!-- Reference to the Resource Schema (see above) specifying
+				<!-- Reference to the Resource Schema (see above) specifying
                      object class for this account type -->
 				<objectClass>ri:AccountObjectClass</objectClass>
 				<attribute>
 					<ref>icfs:uid</ref>
 
-                    <!-- Readable name for the attribute. This will be used in GUI -->
+					<!-- Readable name for the attribute. This will be used in GUI -->
 					<displayName>Entry UUID</displayName>
 
-                    <!-- Access limitation for this attribute.
+					<!-- Access limitation for this attribute.
                          Entry UUID is created by the directory server itelf
                          and it is immutable. We can only read it. -->
 					<limitations>
@@ -123,10 +123,10 @@ This resource definition contains also definition to enable synchronization.
 				<attribute>
 					<ref>icfs:name</ref>
 
-                    <!-- Readable name for the attribute. This will be used in GUI -->
+					<!-- Readable name for the attribute. This will be used in GUI -->
 					<displayName>Name</displayName>
 
-                    <!-- Access limitation for this attribute.
+					<!-- Access limitation for this attribute.
                           -->
 					<limitations>
 						<minOccurs>0</minOccurs>
@@ -143,7 +143,7 @@ This resource definition contains also definition to enable synchronization.
 					</outbound>
 					<inbound>
 						<target>
-						  <path>$user/name</path>
+							<path>$user/name</path>
 						</target>
 					</inbound>
 				</attribute>
@@ -158,10 +158,10 @@ This resource definition contains also definition to enable synchronization.
 					</outbound>
 					<inbound>
 						<target>
-						  <path>$user/givenName</path>
+							<path>$user/givenName</path>
 						</target>
 					</inbound>
-							
+
 				</attribute>
 				<attribute>
 					<ref>ri:lastName</ref>
@@ -173,11 +173,11 @@ This resource definition contains also definition to enable synchronization.
 						</source>
 					</outbound>
 					<inbound>
-					<target>
-					  <path>$user/familyName</path>
-					</target>
+						<target>
+							<path>$user/familyName</path>
+						</target>
 					</inbound>
-							
+
 				</attribute>
 				<attribute>
 					<ref>ri:fullName</ref>
@@ -189,9 +189,9 @@ This resource definition contains also definition to enable synchronization.
 						</source>
 					</outbound>
 					<inbound>
-					<target>
-					  <path>$user/fullName</path>
-					</target>
+						<target>
+							<path>$user/fullName</path>
+						</target>
 					</inbound>
 				</attribute>
 				<activation>
@@ -206,10 +206,10 @@ This resource definition contains also definition to enable synchronization.
 					<password>
 						<outbound/>
 						<inbound>
-					    <strength>weak</strength>
-						  <expression>
-						    <generate/>
-						  </expression>
+							<strength>weak</strength>
+							<expression>
+								<generate/>
+							</expression>
 						</inbound>
 					</password>
 				</credentials>
@@ -227,80 +227,79 @@ This resource definition contains also definition to enable synchronization.
 				</cap:activation>
 			</configured>
 		</capabilities>
-        <synchronization>
-        	<objectSynchronization>
-	            <!--
+		<synchronization>
+			<objectSynchronization>
+				<!--
 	                The synchronization for this resource is enabled.
 	                It means that the synchronization will react to changes detected by
 	                the system (live sync task, discovery or reconciliation) -->
-	            <enabled>true</enabled>
-	
-	            <correlation>
-	                <q:description>
+				<enabled>true</enabled>
+
+				<correlation>
+					<q:description>
 	                    Correlation expression is a search query.
 	                    Following search queury will look for users that have "name"
 	                    equal to the "name" attribute of the account. Simply speaking,
 	                    it will look for match in usernames in the IDM and the resource.
 	                    The correlation rule always looks for users, so it will not match
 	                    any other object type.
-	                </q:description>
-	                <q:equal>
-	                    <q:path>c:name</q:path>
-	                    <expression>
-	                        <ref>name</ref>
-	                        <script>
-	                        	<language>http://www.w3.org/TR/xpath/</language>
-		                        <code>
+					</q:description>
+					<q:equal>
+						<q:path>c:name</q:path>
+						<expression>
+							<ref>name</ref>
+							<script>
+								<language>http://www.w3.org/TR/xpath/</language>
+								<code>
 		                            $c:account/c:attributes/icfs:name
-		                        </code>
-	                        </script>
-	                    </expression>
-	                </q:equal>
-	            </correlation>
-	
-	            <!-- Confirmation rule may be here, but as the search above will
+								</code>
+							</script>
+						</expression>
+					</q:equal>
+				</correlation>
+
+				<!-- Confirmation rule may be here, but as the search above will
 	                 always return at most one match, the confirmation rule is not needed. -->
-	
-	            <!-- Following section describes reactions to a situations.
+
+				<!-- Following section describes reactions to a situations.
 	                 The setting here assumes that this resource is authoritative,
 	                 therefore all accounts created on the resource should be
 	                 reflected as new users in IDM.
 	                 See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
 	             -->
-	            <reaction>
-	                <situation>linked</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
-	            </reaction>
-	            <reaction>
-	                <situation>deleted</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
-	            </reaction>
-	            <reaction>
-	                <situation>unlinked</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
-	            </reaction>
-	            <reaction>
-	                <situation>unmatched</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser">
-	                    <!-- Reference to the User Template is here. If the user would be
+				<reaction>
+					<situation>linked</situation>
+					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
+				</reaction>
+				<reaction>
+					<situation>deleted</situation>
+					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
+				</reaction>
+				<reaction>
+					<situation>unlinked</situation>
+					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+				</reaction>
+				<reaction>
+					<situation>unmatched</situation>
+					<!-- Reference to the User Template is here. If the user would be
 	                         created as a result of this action, it will be created according
 	                         to this template. -->
-	                    <objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
-	                </action>
-	     <!--           <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>-->
-	            </reaction>
+					<objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
+					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser"/>
+					<!--           <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>-->
+				</reaction>
 			</objectSynchronization>
-        </synchronization>
+		</synchronization>
 
 	</resource>
 
-    <objectTemplate oid="c0c010c0-d34d-b33f-f00d-777222222222">
-        <name>Default User Template2</name>
+	<objectTemplate oid="c0c010c0-d34d-b33f-f00d-777222222222">
+		<name>Default User Template2</name>
 
-        <description>
+		<description>
             Alternative User Template Object.
             This object is used when creating a new account, to set it up as needed.
-        </description>
+		</description>
 
 		<mapping>
 			<description>
@@ -308,7 +307,7 @@ This resource definition contains also definition to enable synchronization.
                 Defines how properties of user object are set up.
                 This specific definition sets a full name as a concatenation
                 of givenName and familyName.
-            </description>
+			</description>
 			<strength>weak</strength>
 			<source>
 				<path>$user/givenName</path>
@@ -329,22 +328,22 @@ This resource definition contains also definition to enable synchronization.
 			</target>
 		</mapping>
 
-    </objectTemplate>
-    <task oid="91919191-76e0-59e2-8787-3d4f02d3ffff">
-        <name>Synchronization: DBTable</name>
-        <description>
+	</objectTemplate>
+	<task oid="91919191-76e0-59e2-8787-3d4f02d3ffff">
+		<name>Synchronization: DBTable</name>
+		<description>
             Definition of a live synchronization task. It will poll changelog and pull in changes
-        </description>
-        <taskIdentifier>91919191-76e0-59e2-8787-3d4f02d3ffff</taskIdentifier>
-        <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
-        <executionStatus>runnable</executionStatus>
-        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-2</handlerUri>
+		</description>
+		<taskIdentifier>91919191-76e0-59e2-8787-3d4f02d3ffff</taskIdentifier>
+		<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
+		<executionStatus>runnable</executionStatus>
+		<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-2</handlerUri>
         <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee" type="c:ResourceType"/>
-        <recurrence>recurring</recurrence>
-        <binding>tight</binding>
-        <schedule>
-            <interval>5</interval>
-        </schedule>
-    </task>
+		<recurrence>recurring</recurrence>
+		<binding>tight</binding>
+		<schedule>
+			<interval>5</interval>
+		</schedule>
+	</task>
 
 </objects>

@@ -22,13 +22,15 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
+import com.evolveum.midpoint.repo.sql.query.QueryEngine;
+import com.evolveum.midpoint.repo.sql.query.RQuery;
+import com.evolveum.midpoint.repo.sql.query.RQueryCriteriaImpl;
+import com.evolveum.midpoint.repo.sql.query.RQueryImpl;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -40,7 +42,6 @@ import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Projections;
 import org.hibernate.dialect.H2Dialect;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
@@ -51,8 +52,6 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import java.io.File;
@@ -74,15 +73,14 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
 
     @Autowired
     protected LocalSessionFactoryBean sessionFactoryBean;
-
     @Autowired
-    protected RepositoryService repositoryService;
+    protected SqlRepositoryServiceImpl repositoryService;
     @Autowired
     protected AuditService auditService;
     @Autowired
     protected PrismContext prismContext;
     @Autowired
-    private SessionFactory factory;
+    protected SessionFactory factory;
 
     protected static Set<Class> initializedClasses = new HashSet<Class>();
 
@@ -179,15 +177,23 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     protected <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, ObjectQuery query,
                                                                 boolean interpretCount) throws Exception {
 
-        QueryInterpreter interpreter = new QueryInterpreter();
         LOGGER.info("QUERY TYPE TO CONVERT : {}", (query.getFilter() != null ? query.getFilter().debugDump(3) : null));
 
-        Criteria criteria = interpreter.interpret(query, type, null, prismContext, interpretCount, session);
+        QueryEngine engine = new QueryEngine(repositoryService.getConfiguration(), prismContext);
+        RQuery rQuery = engine.interpret(query, type, null, interpretCount, session);
+        //just test if DB will handle it or throws some exception
         if (interpretCount) {
-            criteria.setProjection(Projections.rowCount());
+            rQuery.uniqueResult();
+        } else {
+            rQuery.list();
         }
 
-        return HibernateToSqlTranslator.toSql(criteria);
+        if (rQuery instanceof RQueryCriteriaImpl) {
+            Criteria criteria = ((RQueryCriteriaImpl) rQuery).getCriteria();
+            return HibernateToSqlTranslator.toSql(criteria);
+        }
+
+        return HibernateToSqlTranslator.toSql(factory, ((RQueryImpl) rQuery).getQuery().getQueryString());
     }
 
     protected <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, File file) throws
@@ -198,9 +204,6 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     protected <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, File file,
                                                                 boolean interpretCount) throws Exception {
 
-        QueryInterpreter interpreter = new QueryInterpreter();
-
-        Document document = DOMUtil.parseFile(file);
         QueryType queryType = PrismTestUtil.getJaxbUtil().unmarshalObject(file, QueryType.class);
 
         LOGGER.info("QUERY TYPE TO CONVERT : {}", ObjectQueryUtil.dump(queryType));
@@ -211,10 +214,7 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
         } catch (Exception ex) {
             LOGGER.info("error while converting query: " + ex.getMessage(), ex);
         }
-        Criteria criteria = interpreter.interpret(query, type, null, prismContext, interpretCount, session);
-        if (interpretCount) {
-            criteria.setProjection(Projections.rowCount());
-        }
-        return HibernateToSqlTranslator.toSql(criteria);
+
+        return getInterpretedQuery(session, type, query, interpretCount);
     }
 }

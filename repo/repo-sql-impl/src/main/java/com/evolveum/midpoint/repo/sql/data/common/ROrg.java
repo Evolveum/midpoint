@@ -22,11 +22,9 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import java.util.Collection;
@@ -38,8 +36,6 @@ import java.util.Set;
 @Entity
 @ForeignKey(name = "fk_org")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
-@org.hibernate.annotations.Table(appliesTo = "m_org",
-        indexes = {@Index(name = "iOrgName", columnNames = "name_orig")})
 public class ROrg extends RAbstractRole<OrgType> {
 
     private RPolyString name;
@@ -108,14 +104,14 @@ public class ROrg extends RAbstractRole<OrgType> {
     }
 
     public Boolean getTenant() {
-		return tenant;
-	}
+        return tenant;
+    }
 
-	public void setTenant(Boolean tenant) {
-		this.tenant = tenant;
-	}
+    public void setTenant(Boolean tenant) {
+        this.tenant = tenant;
+    }
 
-	@Override
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -158,23 +154,6 @@ public class ROrg extends RAbstractRole<OrgType> {
         repo.setLocality(RPolyString.copyFromJAXB(jaxb.getLocality()));
         repo.setOrgType(RUtil.listToSet(jaxb.getOrgType()));
         repo.setTenant(jaxb.isTenant());
-    }
-
-    public static void copyToJAXB(ROrg repo, OrgType jaxb, PrismContext prismContext,
-                                  Collection<SelectorOptions<GetOperationOptions>> options) throws
-            DtoTranslationException {
-        RAbstractRole.copyToJAXB(repo, jaxb, prismContext, options);
-
-        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-        jaxb.setCostCenter(repo.getCostCenter());
-        jaxb.setDisplayName(RPolyString.copyToJAXB(repo.getDisplayName()));
-        jaxb.setIdentifier(repo.getIdentifier());
-        jaxb.setLocality(RPolyString.copyToJAXB(repo.getLocality()));
-        jaxb.setTenant(repo.getTenant());
-        
-        if (SelectorOptions.hasToLoadPath(OrgType.F_ORG_TYPE, options)) {
-            jaxb.getOrgType().addAll(RUtil.safeSetToList(repo.getOrgType()));
-        }
     }
 
     @Override

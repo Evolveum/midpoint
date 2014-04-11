@@ -1943,8 +1943,27 @@
                     </xsd:element>
                     
                     <xsd:element name="iteration" type="xsd:int" minOccurs="0">
+                    <xsd:annotation>
+                    	<xsd:documentation>
+                    		Iteration number. Starts with 0. It is used to iterativelly find unique identifier
+                    		for the object.
+                    	</xsd:documentation>
+                    	<xsd:appinfo>
+            				<a:operational>true</a:operational>
+            			</xsd:appinfo>
+                    </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="iterationToken" type="xsd:string" minOccurs="0">
+	                    <xsd:annotation>
+	                    	<xsd:documentation>
+	                    		Iteration token. String value that is usualy a suffix to the identifier based
+	                    		on iteration number. E.g. ".007". It is used to iterativelly find unique identifier
+	                    		for the object.
+	                    	</xsd:documentation>
+	                    	<xsd:appinfo>
+	            				<a:operational>true</a:operational>
+	            			</xsd:appinfo>
+            			</xsd:annotation>
                     </xsd:element>
 
                 </xsd:sequence>

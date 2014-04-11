@@ -34,7 +34,7 @@ import javax.persistence.*;
 @IdClass(RAExtReferenceId.class)
 @Table(name = "m_assignment_ext_reference")
 @org.hibernate.annotations.Table(appliesTo = "m_assignment_ext_reference",
-        indexes = {@Index(name = "iAExtensionReference", columnNames = {"extensionType", "eName", "eType", "targetoid"})})
+        indexes = {@Index(name = "iAExtensionReference", columnNames = {"extensionType", "eName", "targetoid"})})
 public class RAExtReference implements RAExtValue {
 
     //owner entity
@@ -100,7 +100,6 @@ public class RAExtReference implements RAExtValue {
         return name;
     }
 
-    @Id
     @Column(name = "eType", length = RUtil.COLUMN_LENGTH_QNAME)
     public String getType() {
         return type;

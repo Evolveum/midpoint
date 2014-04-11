@@ -18,9 +18,7 @@ package com.evolveum.midpoint.util;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAnyElement;
@@ -45,7 +43,11 @@ public final class JAXBUtil {
 
 	private static final Trace LOGGER = TraceManager.getTrace(JAXBUtil.class);
 
-	public static String getSchemaNamespace(Package pkg) {
+    private static final Map<Package, String> packageNamespaces = new HashMap<>();
+    private static final Map<QName, Class> classQNames = new HashMap<>();
+    private static final Set<String> scannedPackages = new HashSet<>();
+
+    public static String getSchemaNamespace(Package pkg) {
 		XmlSchema xmlSchemaAnn = pkg.getAnnotation(XmlSchema.class);
 		if (xmlSchemaAnn == null) {
 			return null;
@@ -222,8 +224,13 @@ public final class JAXBUtil {
 	}
 
 	public static <T> Class<T> findClassForType(QName typeName, Package pkg) {
-		XmlSchema xmlSchemaAnnotation = pkg.getAnnotation(XmlSchema.class);
-		String namespace = xmlSchemaAnnotation.namespace();
+        String namespace = packageNamespaces.get(pkg);
+        if (namespace == null) {
+            XmlSchema xmlSchemaAnnotation = pkg.getAnnotation(XmlSchema.class);
+            namespace = xmlSchemaAnnotation.namespace();
+            packageNamespaces.put(pkg, namespace);
+        }
+
 		if (namespace == null) {
 			throw new IllegalArgumentException("No namespace annotation in "+pkg);
 		}
@@ -231,12 +238,26 @@ public final class JAXBUtil {
 			throw new IllegalArgumentException("Looking for type in namespace " + typeName.getNamespaceURI() +
 					", but the package annotation indicates namespace " + namespace);
 		}
-		for (Class clazz: ClassPathUtil.listClasses(pkg)) {
-			QName foundTypeQName = getTypeQName(clazz);
-			if (typeName.equals(foundTypeQName)) {
-				return clazz;
-			}
-		}
+
+        Class clazz = classQNames.get(typeName);
+        if (clazz != null && pkg.equals(clazz.getPackage())) {
+            return clazz;
+        }
+
+        if (!scannedPackages.contains(pkg)) {
+            scannedPackages.add(pkg.getName());
+
+            for (Class c : ClassPathUtil.listClasses(pkg)) {
+                QName foundTypeQName = getTypeQName(c);
+                if (foundTypeQName != null) {
+                    classQNames.put(foundTypeQName, c);
+                }
+                if (typeName.equals(foundTypeQName)) {
+                    return c;
+                }
+            }
+        }
+
 		return null;
 	}
 	

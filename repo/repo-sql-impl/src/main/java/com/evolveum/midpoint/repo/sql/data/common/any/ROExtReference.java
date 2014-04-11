@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.ROExtReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
@@ -34,13 +35,14 @@ import javax.persistence.*;
 @IdClass(ROExtReferenceId.class)
 @Table(name = "m_object_ext_reference")
 @org.hibernate.annotations.Table(appliesTo = "m_object_ext_reference",
-        indexes = {@Index(name = "iExtensionReference", columnNames = {"ownerType", "eName", "eType", "targetoid"})})
+        indexes = {@Index(name = "iExtensionReference", columnNames = {"ownerType", "eName", "targetoid"}),
+                @Index(name = "iExtensionReferenceDef", columnNames = {"owner_oid", "ownerType"})})
 public class ROExtReference implements ROExtValue {
 
     //owner entity
     private RObject owner;
     private String ownerOid;
-    private RObjectType ownerType;
+    private RObjectExtensionType ownerType;
 
     private boolean dynamic;
     private String name;
@@ -76,7 +78,7 @@ public class ROExtReference implements ROExtValue {
     @Id
     @Column(name = "ownerType")
     @Enumerated(EnumType.ORDINAL)
-    public RObjectType getOwnerType() {
+    public RObjectExtensionType getOwnerType() {
         return ownerType;
     }
 
@@ -86,7 +88,6 @@ public class ROExtReference implements ROExtValue {
         return name;
     }
 
-    @Id
     @Column(name = "eType", length = RUtil.COLUMN_LENGTH_QNAME)
     public String getType() {
         return type;
@@ -148,7 +149,7 @@ public class ROExtReference implements ROExtValue {
         this.ownerOid = ownerOid;
     }
 
-    public void setOwnerType(RObjectType ownerType) {
+    public void setOwnerType(RObjectExtensionType ownerType) {
         this.ownerType = ownerType;
     }
 

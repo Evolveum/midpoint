@@ -18,34 +18,27 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RFailedOperationType;
+import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RShadowKind;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation;
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sql.type.PrefixedStringType;
+import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
-import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 
 /**
@@ -54,49 +47,29 @@ import java.util.Set;
 @Entity
 @Table(name = "m_shadow")
 @org.hibernate.annotations.Table(appliesTo = "m_shadow",
-        indexes = {@Index(name = "iShadowNameOrig", columnNames = "name_orig"),
-                @Index(name = "iShadowAdministrative", columnNames = "administrativeStatus"),
-                @Index(name = "iShadowEffective", columnNames = "effectiveStatus"),
-                @Index(name = "iShadowNameNorm", columnNames = "name_norm"),
-                @Index(name = "iShadowResourceRef", columnNames = "resourceRef_targetOid"),
+        indexes = {@Index(name = "iShadowResourceRef", columnNames = "resourceRef_targetOid"),
                 @Index(name = "iShadowDead", columnNames = "dead")})
 @ForeignKey(name = "fk_shadow")
-public class RShadow<T extends ShadowType> extends RObject<T> {
+public class RShadow<T extends ShadowType> extends RObject<T> implements OperationResult {
 
     private static final Trace LOGGER = TraceManager.getTrace(RShadow.class);
     private RPolyString name;
 
     private String objectClass;
-    private RActivation activation;
-    private ROperationResult result;
+    //operation result
+    private ROperationResultStatus status;
+    //end of operation result
     private REmbeddedReference resourceRef;
     private Integer attemptNumber;
     private Boolean dead;
     private RFailedOperationType failedOperationType;
     private String intent;
     private RSynchronizationSituation synchronizationSituation;
-    private Set<RSynchronizationSituationDescription> synchronizationSituationDescription;
     //attributes
     private XMLGregorianCalendar synchronizationTimestamp;
     private RShadowKind kind;
-    private Boolean assigned;
     private Boolean exists;
-    private Integer iteration;
-    private String iterationToken;
     private XMLGregorianCalendar fullSynchronizationTimestamp;
-
-    public Integer getIteration() {
-        return iteration;
-    }
-
-    @Type(type = PrefixedStringType.NAME)
-    public String getIterationToken() {
-        return iterationToken;
-    }
-
-    public Boolean isAssigned() {
-        return assigned;
-    }
 
     @Column(name = "exist")
     public Boolean isExists() {
@@ -112,17 +85,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
     @Column(length = RUtil.COLUMN_LENGTH_QNAME)
     public String getObjectClass() {
         return objectClass;
-    }
-
-    @Embedded
-    public RActivation getActivation() {
-        return activation;
-    }
-
-    @OneToOne(optional = true, mappedBy = "owner", orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public ROperationResult getResult() {
-        return result;
     }
 
     @Embedded
@@ -146,16 +108,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         return name;
     }
 
-    @ForeignKey(name = "fk_shadow_sync_situation")
-    @OneToMany(mappedBy = "shadow", orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
-    public Set<RSynchronizationSituationDescription> getSynchronizationSituationDescription() {
-        if (synchronizationSituationDescription == null) {
-            synchronizationSituationDescription = new HashSet<RSynchronizationSituationDescription>();
-        }
-        return synchronizationSituationDescription;
-    }
-
     @Enumerated(EnumType.ORDINAL)
     public RSynchronizationSituation getSynchronizationSituation() {
         return synchronizationSituation;
@@ -175,6 +127,15 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
 
     public XMLGregorianCalendar getFullSynchronizationTimestamp() {
         return fullSynchronizationTimestamp;
+    }
+
+    @Enumerated(EnumType.ORDINAL)
+    public ROperationResultStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ROperationResultStatus status) {
+        this.status = status;
     }
 
     public void setFullSynchronizationTimestamp(XMLGregorianCalendar fullSynchronizationTimestamp) {
@@ -205,14 +166,6 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         this.resourceRef = resourceRef;
     }
 
-    public void setResult(ROperationResult result) {
-        this.result = result;
-    }
-
-    public void setActivation(RActivation activation) {
-        this.activation = activation;
-    }
-
     public void setObjectClass(String objectClass) {
         this.objectClass = objectClass;
     }
@@ -229,25 +182,8 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         this.dead = dead;
     }
 
-    public void setAssigned(Boolean assigned) {
-        this.assigned = assigned;
-    }
-
     public void setExists(Boolean exists) {
         this.exists = exists;
-    }
-
-    public void setSynchronizationSituationDescription(
-            Set<RSynchronizationSituationDescription> synchronizationSituationDescription) {
-        this.synchronizationSituationDescription = synchronizationSituationDescription;
-    }
-
-    public void setIteration(Integer iteration) {
-        this.iteration = iteration;
-    }
-
-    public void setIterationToken(String iterationToken) {
-        this.iterationToken = iterationToken;
     }
 
     @Override
@@ -259,26 +195,17 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         RShadow that = (RShadow) o;
 
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
-        if (activation != null ? !activation.equals(that.activation) : that.activation != null) return false;
         if (attemptNumber != null ? !attemptNumber.equals(that.attemptNumber) : that.attemptNumber != null)
             return false;
         if (failedOperationType != that.failedOperationType) return false;
         if (objectClass != null ? !objectClass.equals(that.objectClass) : that.objectClass != null) return false;
         if (resourceRef != null ? !resourceRef.equals(that.resourceRef) : that.resourceRef != null) return false;
-        if (result != null ? !result.equals(that.result) : that.result != null) return false;
         if (intent != null ? !intent.equals(that.intent) : that.intent != null) return false;
         if (synchronizationSituation != null ? !synchronizationSituation.equals(that.synchronizationSituation) : that.synchronizationSituation != null)
             return false;
-        if (synchronizationSituationDescription != null ? !synchronizationSituationDescription.equals(that.synchronizationSituationDescription) : that.synchronizationSituationDescription != null)
-            return false;
         if (kind != null ? !kind.equals(that.kind) : that.kind != null) return false;
-        if (assigned != null ? !assigned.equals(that.assigned) : that.assigned != null) return false;
         if (exists != null ? !exists.equals(that.exists) : that.exists != null) return false;
-        if (iteration != null ? !iteration.equals(that.iteration) : that.iteration != null) return false;
-        if (iterationToken != null ? !iterationToken.equals(that.iterationToken) : that.iterationToken != null)
-            return false;
-        if (fullSynchronizationTimestamp != null ? !fullSynchronizationTimestamp.equals(that.iterationToken) : that.fullSynchronizationTimestamp != null)
-            return false;
+        if (status != that.status) return false;
 
         return true;
     }
@@ -288,75 +215,16 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         int result1 = super.hashCode();
         result1 = 31 * result1 + (name != null ? name.hashCode() : 0);
         result1 = 31 * result1 + (objectClass != null ? objectClass.hashCode() : 0);
-        result1 = 31 * result1 + (activation != null ? activation.hashCode() : 0);
         result1 = 31 * result1 + (attemptNumber != null ? attemptNumber.hashCode() : 0);
         result1 = 31 * result1 + (failedOperationType != null ? failedOperationType.hashCode() : 0);
         result1 = 31 * result1 + (intent != null ? intent.hashCode() : 0);
         result1 = 31 * result1 + (synchronizationSituation != null ? synchronizationSituation.hashCode() : 0);
-        result1 = 31 * result1 + (synchronizationSituationDescription != null ? synchronizationSituationDescription.hashCode() : 0);
         result1 = 31 * result1 + (kind != null ? kind.hashCode() : 0);
-        result1 = 31 * result1 + (assigned != null ? assigned.hashCode() : 0);
         result1 = 31 * result1 + (exists != null ? exists.hashCode() : 0);
-        result1 = 31 * result1 + (iteration != null ? iteration.hashCode() : 0);
-        result1 = 31 * result1 + (iterationToken != null ? iterationToken.hashCode() : 0);
         result1 = 31 * result1 + (fullSynchronizationTimestamp != null ? fullSynchronizationTimestamp.hashCode() : 0);
+        result1 = 31 * result1 + (status != null ? status.hashCode() : 0);
 
         return result1;
-    }
-
-    public static <T extends ShadowType> void copyToJAXB(RShadow<T> repo, ShadowType jaxb,
-                                                         PrismContext prismContext, Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-        RObject.copyToJAXB(repo, jaxb, prismContext, options);
-
-        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-        jaxb.setObjectClass(RUtil.stringToQName(repo.getObjectClass()));
-        jaxb.setIntent(repo.getIntent());
-        jaxb.setFullSynchronizationTimestamp(repo.getFullSynchronizationTimestamp());
-        if (repo.getActivation() != null) {
-            jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
-        }
-
-        if (repo.getResult() != null) {
-            jaxb.setResult(repo.getResult().toJAXB(prismContext));
-        }
-
-        if (repo.getResourceRef() != null) {
-            jaxb.setResourceRef(repo.getResourceRef().toJAXB(prismContext));
-        }
-
-        jaxb.setAttemptNumber(repo.getAttemptNumber());
-        if (repo.getFailedOperationType() != null) {
-            jaxb.setFailedOperationType(repo.getFailedOperationType().getSchemaValue());
-        }
-
-        if (repo.getSynchronizationSituation() != null) {
-            jaxb.setSynchronizationSituation(repo.getSynchronizationSituation().getSchemaValue());
-        }
-
-        jaxb.setIteration(repo.getIteration());
-        jaxb.setIterationToken(repo.getIterationToken());
-        jaxb.setAssigned(repo.isAssigned());
-        jaxb.setExists(repo.isExists());
-        jaxb.setDead(repo.isDead());
-        if (repo.getKind() != null) {
-            jaxb.setKind(repo.getKind().getSchemaValue());
-        }
-
-        List situations = RUtil.safeSetSyncSituationToList(repo.getSynchronizationSituationDescription());
-        if (!situations.isEmpty()) {
-            jaxb.getSynchronizationSituationDescription().addAll(situations);
-        }
-
-        jaxb.setSynchronizationTimestamp(repo.getSynchronizationTimestamp());
-
-        if (SelectorOptions.hasToLoadPath(ShadowType.F_ATTRIBUTES, options)) {
-            ShadowAttributesType attributes = new ShadowAttributesType();
-            copyExtensionToJAXB(repo, attributes.asPrismContainerValue(), prismContext, RObjectType.SHADOW);
-            if (!attributes.asPrismContainerValue().isEmpty()) {
-                jaxb.setAttributes(attributes);
-            }
-        }
     }
 
     public static <T extends ShadowType> void copyFromJAXB(ShadowType jaxb, RShadow<T> repo,
@@ -368,34 +236,19 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         repo.setIntent(jaxb.getIntent());
         repo.setKind(RUtil.getRepoEnumValue(jaxb.getKind(), RShadowKind.class));
         repo.setFullSynchronizationTimestamp(jaxb.getFullSynchronizationTimestamp());
-        if (jaxb.getActivation() != null) {
-            RActivation activation = new RActivation();
-            RActivation.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
-            repo.setActivation(activation);
-        }
 
-        if (jaxb.getResult() != null) {
-            ROperationResult result = new ROperationResult();
-            result.setOwner(repo);
-            ROperationResult.copyFromJAXB(jaxb.getResult(), result, prismContext);
-            repo.setResult(result);
-        }
+        RUtil.copyResultFromJAXB(jaxb.getResult(), repo, prismContext);
 
         if (jaxb.getSynchronizationSituation() != null) {
             repo.setSynchronizationSituation(RUtil.getRepoEnumValue(jaxb.getSynchronizationSituation(),
                     RSynchronizationSituation.class));
         }
 
-        repo.getSynchronizationSituationDescription()
-                .addAll(RUtil.listSyncSituationToSet(repo, jaxb.getSynchronizationSituationDescription()));
         repo.setSynchronizationTimestamp(jaxb.getSynchronizationTimestamp());
         repo.setResourceRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getResourceRef(), prismContext));
 
-        repo.setIteration(jaxb.getIteration());
-        repo.setIterationToken(jaxb.getIterationToken());
         repo.setAttemptNumber(jaxb.getAttemptNumber());
         repo.setExists(jaxb.isExists());
-        repo.setAssigned(jaxb.isAssigned());
         repo.setDead(jaxb.isDead());
         repo.setFailedOperationType(RUtil.getRepoEnumValue(jaxb.getFailedOperationType(), RFailedOperationType.class));
 
@@ -405,7 +258,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         }
 
         if (jaxb.getAttributes() != null) {
-            copyFromJAXB(jaxb.getAttributes().asPrismContainerValue(), repo, prismContext, RObjectType.SHADOW);
+            copyFromJAXB(jaxb.getAttributes().asPrismContainerValue(), repo, prismContext, RObjectExtensionType.ATTRIBUTES);
         }
     }
 
@@ -414,7 +267,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
             throws DtoTranslationException {
         ShadowType object = new ShadowType();
         RUtil.revive(object, prismContext);
-        RShadow.copyToJAXB(this, object, prismContext, options);
+        RObject.copyToJAXB(this, object, prismContext, options);
 
         return (T) object;
     }

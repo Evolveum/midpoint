@@ -32,7 +32,7 @@ import java.sql.Timestamp;
 @IdClass(RAExtDateId.class)
 @Table(name = "m_assignment_ext_date")
 @org.hibernate.annotations.Table(appliesTo = "m_assignment_ext_date",
-        indexes = {@Index(name = "iAExtensionDate", columnNames = {"extensionType", "eName", "eType", "dateValue"})})
+        indexes = {@Index(name = "iAExtensionDate", columnNames = {"extensionType", "eName", "dateValue"})})
 public class RAExtDate implements RAExtValue {
 
     //owner entity
@@ -97,7 +97,6 @@ public class RAExtDate implements RAExtValue {
         return name;
     }
 
-    @Id
     @Column(name = "eType", length = RUtil.COLUMN_LENGTH_QNAME)
     public String getType() {
         return type;

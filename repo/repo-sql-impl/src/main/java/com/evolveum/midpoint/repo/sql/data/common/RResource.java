@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.ROperationalState;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -34,19 +33,16 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceBusinessConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -55,14 +51,11 @@ import java.util.Set;
 @Entity
 @ForeignKey(name = "fk_resource")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
-@org.hibernate.annotations.Table(appliesTo = "m_resource",
-        indexes = {@Index(name = "iResourceName", columnNames = "name_orig")})
 public class RResource extends RObject<ResourceType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(RResource.class);
     private RPolyString name;
     private REmbeddedReference connectorRef;
-    private String namespace;
     private ROperationalState operationalState;
     //resource business configuration, embedded component can't be used, because then it couldn't use
     //non embedded approverRef relationship
@@ -92,10 +85,6 @@ public class RResource extends RObject<ResourceType> {
         return connectorRef;
     }
 
-    public String getNamespace() {
-        return namespace;
-    }
-
     @Embedded
     public ROperationalState getOperationalState() {
         return operationalState;
@@ -122,10 +111,6 @@ public class RResource extends RObject<ResourceType> {
         this.operationalState = operationalState;
     }
 
-    public void setNamespace(String namespace) {
-        this.namespace = namespace;
-    }
-
     public void setConnectorRef(REmbeddedReference connectorRef) {
         this.connectorRef = connectorRef;
     }
@@ -145,8 +130,6 @@ public class RResource extends RObject<ResourceType> {
             return false;
         if (connectorRef != null ? !connectorRef.equals(rResource.connectorRef) : rResource.connectorRef != null)
             return false;
-        if (namespace != null ? !namespace.equals(rResource.namespace) : rResource.namespace != null)
-            return false;
 
         return true;
     }
@@ -155,51 +138,16 @@ public class RResource extends RObject<ResourceType> {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (namespace != null ? namespace.hashCode() : 0);
         return result;
     }
 
-    public static void copyToJAXB(RResource repo, ResourceType jaxb, PrismContext prismContext,
-                                  Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-        RObject.copyToJAXB(repo, jaxb, prismContext, options);
-
         PrismObjectDefinition<ResourceType> resourceDef = prismContext.getSchemaRegistry().determineDefinitionFromClass(ResourceType.class);
         
-        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-        jaxb.setNamespace(repo.getNamespace());
-
-        if (repo.getConnectorRef() != null) {
-            jaxb.setConnectorRef(repo.getConnectorRef().toJAXB(prismContext));
-        }
-
-        try {
-            if (!isResourceBusinessConfigurationEmpty(repo)) {
-                ResourceBusinessConfigurationType business = new ResourceBusinessConfigurationType();
-                jaxb.setBusiness(business);
-                if (repo.getAdministrativeState() != null) {
-                    business.setAdministrativeState(repo.getAdministrativeState().getSchemaValue());
-                }
-                List<ObjectReferenceType> approvers = RUtil.safeSetReferencesToList(repo.getApproverRef(), prismContext);
-                if (!approvers.isEmpty()) {
-                    business.getApproverRef().addAll(approvers);
-                }
-            }
-            if (repo.getOperationalState() != null) {
-                jaxb.setOperationalState(repo.getOperationalState().toJAXB(jaxb,
-                        new ItemPath(ResourceType.F_OPERATIONAL_STATE), prismContext));
-            }
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
-        }
-    }
-
     public static void copyFromJAXB(ResourceType jaxb, RResource repo, PrismContext prismContext)
             throws DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
-        repo.setNamespace(jaxb.getNamespace());
         repo.setConnectorRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getConnectorRef(), prismContext));
 
         if (jaxb.getConnector() != null) {
@@ -224,10 +172,6 @@ public class RResource extends RObject<ResourceType> {
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
-    }
-
-    private static boolean isResourceBusinessConfigurationEmpty(RResource repo) {
-        return repo.getApproverRef().isEmpty() && repo.getAdministrativeState() == null;
     }
 
     @Override

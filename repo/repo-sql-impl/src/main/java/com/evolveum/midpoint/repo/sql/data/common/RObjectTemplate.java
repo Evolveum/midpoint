@@ -30,14 +30,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -46,8 +44,6 @@ import java.util.Set;
 @Entity
 @ForeignKey(name = "fk_object_template")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
-@org.hibernate.annotations.Table(appliesTo = "m_object_template",
-        indexes = {@Index(name = "iObjectTemplate", columnNames = "name_orig")})
 public class RObjectTemplate extends RObject<ObjectTemplateType> {
 
     private RPolyString name;
@@ -60,7 +56,7 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RObjectReference> getIncludeRef() {
         if (includeRef == null) {
-            includeRef = new HashSet<RObjectReference>();
+            includeRef = new HashSet<>();
         }
         return includeRef;
     }
@@ -111,22 +107,6 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (type != null ? type.hashCode() : 0);
         return result;
-    }
-
-    public static void copyToJAXB(RObjectTemplate repo, ObjectTemplateType jaxb, PrismContext prismContext,
-                                  Collection<SelectorOptions<GetOperationOptions>> options) throws
-            DtoTranslationException {
-        RObject.copyToJAXB(repo, jaxb, prismContext, options);
-
-        //set name c:userTemplate or c:objectTemplate
-        jaxb.asPrismObject().setElementName(repo.getType().getSchemaValue());
-
-        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-
-        List includeRef = RUtil.safeSetReferencesToList(repo.getIncludeRef(), prismContext);
-        if (!includeRef.isEmpty()) {
-            jaxb.getIncludeRef().addAll(includeRef);
-        }
     }
 
     public static void copyFromJAXB(ObjectTemplateType jaxb, RObjectTemplate repo, PrismContext prismContext) throws

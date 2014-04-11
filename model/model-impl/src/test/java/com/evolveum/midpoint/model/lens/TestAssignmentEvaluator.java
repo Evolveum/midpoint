@@ -29,9 +29,11 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.common.ActivationComputer;
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
-import com.evolveum.midpoint.model.lens.Assignment;
+import com.evolveum.midpoint.model.lens.EvaluatedAssignment;
 import com.evolveum.midpoint.model.lens.AssignmentEvaluator;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -62,6 +64,12 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 	@Autowired(required=true)
 	private ObjectResolver objectResolver;
 	
+	@Autowired(required=true)
+	private Clock clock;
+	
+	@Autowired(required=true)
+	private ActivationComputer activationComputer;
+	
 	public TestAssignmentEvaluator() throws JAXBException {
 		super();
 	}
@@ -85,7 +93,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		assignmentContainer.add(assignmentType.asPrismContainerValue());
 		
 		// WHEN
-		Assignment evaluatedAssignment = assignmentEvaluator.evaluate(assignmentType, userTypeJack, "testDirect", task, result);
+		EvaluatedAssignment evaluatedAssignment = assignmentEvaluator.evaluate(assignmentType, userTypeJack, "testDirect", task, result);
 		
 		// THEN
 		assertNotNull(evaluatedAssignment);
@@ -103,6 +111,8 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		
 		assignmentEvaluator.setObjectResolver(objectResolver);
 		assignmentEvaluator.setPrismContext(prismContext);
+		assignmentEvaluator.setActivationComputer(activationComputer);
+		assignmentEvaluator.setNow(clock.currentTimeXMLGregorianCalendar());
 		return assignmentEvaluator;
 	}
 	

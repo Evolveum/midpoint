@@ -383,7 +383,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
 		assertNotNull("Null model focus context", focusContext);
 		assertNull("Unexpected focus primary delta: "+focusContext.getPrimaryDelta(), focusContext.getPrimaryDelta());
-		assertEffectiveActivationDeltaOnly(focusContext.getSecondaryDelta(), "focus secondary delta", ActivationStatusType.ENABLED);
+		assertSideEffectiveDeltasOnly(focusContext.getSecondaryDelta(), "focus secondary delta", ActivationStatusType.ENABLED);
 		
 		Collection<? extends ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
 		assertNotNull("Null model projection context list", projectionContexts);
@@ -1099,7 +1099,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		PrismAsserts.assertIsAdd(userPrimaryDelta);
 		
 		ObjectDelta<UserType> userSecondaryDelta = focusContext.getSecondaryDelta();
-		assertEffectiveActivationDeltaOnly(userSecondaryDelta, "focus secondary delta", ActivationStatusType.ENABLED);
+		assertSideEffectiveDeltasOnly(userSecondaryDelta, "focus secondary delta", ActivationStatusType.ENABLED);
 		
 		Collection<? extends ModelProjectionContext> projectionContexts = modelContext.getProjectionContexts();
 		assertNotNull("Null model projection context list", projectionContexts);

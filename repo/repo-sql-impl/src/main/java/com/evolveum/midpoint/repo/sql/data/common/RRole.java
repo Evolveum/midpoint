@@ -24,7 +24,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
 
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -38,8 +37,6 @@ import java.util.Collection;
 @Entity
 @ForeignKey(name = "fk_role")
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
-@org.hibernate.annotations.Table(appliesTo = "m_role",
-        indexes = {@Index(name = "iRoleName", columnNames = "name_orig")})
 public class RRole extends RAbstractRole<RoleType> {
 
     private RPolyString name;
@@ -87,15 +84,6 @@ public class RRole extends RAbstractRole<RoleType> {
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (roleType != null ? roleType.hashCode() : 0);
         return result;
-    }
-
-    public static void copyToJAXB(RRole repo, RoleType jaxb, PrismContext prismContext,
-                                  Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-        RAbstractRole.copyToJAXB(repo, jaxb, prismContext, options);
-
-        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-        jaxb.setRoleType(repo.getRoleType());
     }
 
     public static void copyFromJAXB(RoleType jaxb, RRole repo, PrismContext prismContext)

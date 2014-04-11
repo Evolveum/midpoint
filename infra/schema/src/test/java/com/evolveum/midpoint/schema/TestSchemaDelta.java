@@ -103,7 +103,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         assertEquals("Unexpected number of inducement values", 2, assignment.size());
     }
     
-    @Test(enabled=false) // work in progress
+    @Test
     public void testDeleteInducementValidIdSameValueApplyToObject() throws Exception {
     	final String TEST_NAME = "testDeleteInducementValidIdSameValueApplyToObject";
     	displayTestTile(TEST_NAME);
@@ -118,11 +118,9 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		construction.setResourceRef(resourceRef);
 		AssignmentType inducement = new AssignmentType();
 		inducement.setConstruction(construction);
+		inducement.setId(ROLE_CONSTRUCTION_INDUCEMENT_ID);
         ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, ROLE_CONSTRUCTION_OID, 
-        		new ItemPath(
-        				new NameItemPathSegment(RoleType.F_INDUCEMENT),
-        				new IdItemPathSegment(ROLE_CONSTRUCTION_INDUCEMENT_ID)),
-        		PrismTestUtil.getPrismContext(), inducement);
+        		RoleType.F_INDUCEMENT, PrismTestUtil.getPrismContext(), inducement);
 				
 		// WHEN
 		roleDelta.applyTo(role);
@@ -136,24 +134,19 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         assertNull("Unexpected inducement", assignment);
     }
 
-    @Test(enabled=false) // work in progress
-    public void testDeleteInducementValidIdNoValueApplyToObject() throws Exception {
-    	final String TEST_NAME = "testDeleteInducementValidIdNoValueApplyToObject";
+    @Test
+    public void testDeleteInducementValidIdEmptyValueApplyToObject() throws Exception {
+    	final String TEST_NAME = "testDeleteInducementValidIdEmptyValueApplyToObject";
     	displayTestTile(TEST_NAME);
     	
     	// GIVEN
 		PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_CONSTRUCTION_FILE);
 
 		//Delta
-		ConstructionType construction = new ConstructionType();
-        ObjectReferenceType resourceRef = new ObjectReferenceType();
-        resourceRef.setOid(ROLE_CONSTRUCTION_RESOURCE_OID);
-		construction.setResourceRef(resourceRef);
+		AssignmentType inducement = new AssignmentType();
+		inducement.setId(ROLE_CONSTRUCTION_INDUCEMENT_ID);
         ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, ROLE_CONSTRUCTION_OID, 
-        		new ItemPath(
-        				new NameItemPathSegment(RoleType.F_INDUCEMENT),
-        				new IdItemPathSegment(ROLE_CONSTRUCTION_INDUCEMENT_ID)),
-        		PrismTestUtil.getPrismContext());
+        		RoleType.F_INDUCEMENT, PrismTestUtil.getPrismContext(), inducement);
 				
 		// WHEN
 		roleDelta.applyTo(role);
@@ -166,8 +159,36 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         PrismContainer<AssignmentType> assignment = role.findContainer(RoleType.F_INDUCEMENT);
         assertNull("Unexpected inducement", assignment);
     }
+    
+    @Test
+    public void testDeleteInducementValidIdEmptyValueApplyToObjectStatic() throws Exception {
+    	final String TEST_NAME = "testDeleteInducementValidIdEmptyValueApplyToObjectStatic";
+    	displayTestTile(TEST_NAME);
+    	
+    	// GIVEN
+		PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_CONSTRUCTION_FILE);
+		System.out.println("Role before delta application:");
+        System.out.println(role.debugDump());
 
-    @Test(enabled=false) // work in progress
+		//Delta
+		AssignmentType inducement = new AssignmentType();
+		inducement.setId(ROLE_CONSTRUCTION_INDUCEMENT_ID);
+        ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, ROLE_CONSTRUCTION_OID, 
+        		RoleType.F_INDUCEMENT, PrismTestUtil.getPrismContext(), inducement);
+				
+		// WHEN
+        PropertyDelta.applyTo(roleDelta.getModifications(), role);
+        
+        // THEN
+        System.out.println("Role after delta application:");
+        System.out.println(role.debugDump());
+        assertEquals("Wrong OID", ROLE_CONSTRUCTION_OID, role.getOid());
+        PrismAsserts.assertPropertyValue(role, UserType.F_NAME, PrismTestUtil.createPolyString("Construction"));
+        PrismContainer<AssignmentType> assignment = role.findContainer(RoleType.F_INDUCEMENT);
+        assertNull("Unexpected inducement", assignment);
+    }
+
+    @Test
     public void testDeleteInducementConstructionSameNullIdApplyToObject() throws Exception {
     	final String TEST_NAME = "testDeleteInducementConstructionSameNullIdApplyToObject";
     	displayTestTile(TEST_NAME);

@@ -19,8 +19,6 @@ import java.util.Collection;
 
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
-@org.hibernate.annotations.Table(appliesTo = "m_report",
-        indexes = {@Index(name = "iReportName", columnNames = "name_orig")})
 @ForeignKey(name = "fk_report")
 public class RReport extends RObject<ReportType> {
 
@@ -136,26 +134,6 @@ public class RReport extends RObject<ReportType> {
             RDataSource source = new RDataSource();
             RDataSource.copyFromJAXB(jaxb.getDataSource(), source, prismContext);
             repo.setDataSource(source);
-        }
-    }
-
-    public static void copyToJAXB(RReport repo, ReportType jaxb, PrismContext prismContext,
-                                  Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-
-        RObject.copyToJAXB(repo, jaxb, prismContext, options);
-
-        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-        jaxb.setParent(repo.getParent());
-        jaxb.setUseHibernateSession(repo.getUseHibernateSession());
-        if (repo.getDataSource() != null) {
-            jaxb.setDataSource(repo.getDataSource().toJAXB(prismContext));
-        }
-        if (repo.getOrientation() != null) {
-            jaxb.setOrientation(repo.getOrientation().getSchemaValue());
-        }
-        if (repo.getExport() != null) {
-            jaxb.setExport(repo.getExport().getSchemaValue());
         }
     }
 

@@ -235,7 +235,7 @@ public final class PrismForJAXBUtil {
 	        	}
 	            fieldContainer = new PrismContainer<T>(fieldName);
 	            fieldContainer.add(fieldContainerValue);
-	            if (parent.getContainer() == null) {
+	            if (parent.getParent() == null) {
 	                parent.add(fieldContainer);
 	            } else {
                     parent.addReplaceExisting(fieldContainer);

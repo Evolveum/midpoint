@@ -49,21 +49,18 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.ValueSerializationUtil;
 import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
 import com.evolveum.midpoint.repo.sql.data.common.OperationResult;
+import com.evolveum.midpoint.repo.sql.data.common.OperationResultFull;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
-import com.evolveum.midpoint.repo.sql.data.common.RShadow;
 import com.evolveum.midpoint.repo.sql.data.common.RSynchronizationSituationDescription;
-import com.evolveum.midpoint.repo.sql.data.common.any.RAExtClob;
-import com.evolveum.midpoint.repo.sql.data.common.any.RAExtDate;
-import com.evolveum.midpoint.repo.sql.data.common.any.RAExtLong;
-import com.evolveum.midpoint.repo.sql.data.common.any.RAExtPolyString;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
+import com.evolveum.midpoint.repo.sql.data.common.container.RAssignmentReference;
+import com.evolveum.midpoint.repo.sql.data.common.container.RExclusion;
+import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAExtReference;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAExtString;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
@@ -92,13 +89,18 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.LocalizedMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ParamsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationDescriptionType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import org.apache.commons.io.IOUtils;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * @author lazyman
@@ -113,7 +115,7 @@ public final class RUtil {
 	 */
 	public static final String LOB_STRING_TYPE = "org.hibernate.type.StringClobType";
 
-	public static final int COLUMN_LENGTH_QNAME = 200;
+	public static final int COLUMN_LENGTH_QNAME = 157;
 
 	public static final String QNAME_DELIMITER = "#";
 	
@@ -463,45 +465,6 @@ public final class RUtil {
 		return set;
 	}
 
-	public static List<PolyStringType> safeSetPolyToList(Set<RPolyString> set) {
-		if (set == null || set.isEmpty()) {
-			return new ArrayList<PolyStringType>();
-		}
-
-		List<PolyStringType> list = new ArrayList<PolyStringType>();
-		for (RPolyString str : set) {
-			list.add(RPolyString.copyToJAXB(str));
-		}
-		return list;
-	}
-
-	public static Set<RSynchronizationSituationDescription> listSyncSituationToSet(RShadow owner,
-			List<SynchronizationSituationDescriptionType> list) {
-		Set<RSynchronizationSituationDescription> set = new HashSet<RSynchronizationSituationDescription>();
-		if (list != null) {
-			for (SynchronizationSituationDescriptionType str : list) {
-				if (str == null) {
-					continue;
-				}
-				set.add(RSynchronizationSituationDescription.copyFromJAXB(owner, str));
-			}
-		}
-
-		return set;
-	}
-
-	public static List<SynchronizationSituationDescriptionType> safeSetSyncSituationToList(
-			Set<RSynchronizationSituationDescription> set) {
-		List<SynchronizationSituationDescriptionType> list = new ArrayList<SynchronizationSituationDescriptionType>();
-		for (RSynchronizationSituationDescription str : set) {
-			if (str == null) {
-				continue;
-			}
-			list.add(RSynchronizationSituationDescription.copyToJAXB(str));
-		}
-		return list;
-	}
-
 	public static <T> List<T> safeSetToList(Set<T> set) {
 		if (set == null || set.isEmpty()) {
 			return new ArrayList<T>();
@@ -513,8 +476,8 @@ public final class RUtil {
 		return list;
 	}
 
-	public static List<ObjectReferenceType> safeSetReferencesToList(Set<RObjectReference> set,
-			PrismContext prismContext) {
+    public static List<ObjectReferenceType> safeSetReferencesToList(Set<? extends RObjectReference> set, PrismContext prismContext) {
+
 		if (set == null || set.isEmpty()) {
 			return new ArrayList<ObjectReferenceType>();
 		}
@@ -528,8 +491,8 @@ public final class RUtil {
 		return list;
 	}
 	
-	public static Set<RObjectReference> safeListReferenceToSet(List<ObjectReferenceType> list,
-			PrismContext prismContext, RObject owner, RReferenceOwner refOwner) {
+    public static Set safeListReferenceToSet(List<ObjectReferenceType> list, PrismContext prismContext,
+                                             RObject owner, RReferenceOwner refOwner) {
 		Set<RObjectReference> set = new HashSet<RObjectReference>();
 		if (list == null || list.isEmpty()) {
 			return set;
@@ -629,9 +592,7 @@ public final class RUtil {
 	 */
 	public static void fixCompositeIDHandling(SessionFactory sessionFactory) {
 		fixCompositeIdentifierInMetaModel(sessionFactory, RObjectDeltaOperation.class);
-		fixCompositeIdentifierInMetaModel(sessionFactory, RSynchronizationSituationDescription.class);
 
-		fixCompositeIdentifierInMetaModel(sessionFactory, ROExtClob.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, ROExtDate.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, ROExtString.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, ROExtPolyString.class);
@@ -639,7 +600,6 @@ public final class RUtil {
         fixCompositeIdentifierInMetaModel(sessionFactory, ROExtLong.class);
         
         fixCompositeIdentifierInMetaModel(sessionFactory, RAssignmentExtension.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAExtClob.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RAExtDate.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RAExtString.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RAExtPolyString.class);
@@ -657,7 +617,6 @@ public final class RUtil {
         }
 
         fixCompositeIdentifierInMetaModel(sessionFactory, RAssignment.class);
-        fixCompositeIdentifierInMetaModel(sessionFactory, RAuthorization.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RExclusion.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, RTrigger.class);
         for (RObjectType type : ClassMapper.getKnownTypes()) {
@@ -705,89 +664,31 @@ public final class RUtil {
 		}
 	}
 
-	public static void copyResultToJAXB(OperationResult repo, OperationResultType jaxb,
-			PrismContext prismContext) throws DtoTranslationException {
-		Validate.notNull(jaxb, "JAXB object must not be null.");
-		Validate.notNull(repo, "Repo object must not be null.");
 
-		jaxb.setDetails(repo.getDetails());
-		jaxb.setMessage(repo.getMessage());
-		jaxb.setMessageCode(repo.getMessageCode());
-		jaxb.setOperation(repo.getOperation());
-		if (repo.getStatus() != null) {
-			jaxb.setStatus(repo.getStatus().getSchemaValue());
-		}
-		jaxb.setToken(repo.getToken());
 
-		try {
-			jaxb.setLocalizedMessage(RUtil.toJAXB(OperationResultType.class,
-					OperationResultType.F_LOCALIZED_MESSAGE, repo.getLocalizedMessage(),
-					LocalizedMessageType.class, prismContext));
-//			System.out.println("@@@@@@@@@PARAMS " + repo.getParams());
-			jaxb.setParams(RUtil.toJAXB(OperationResultType.class,
-					OperationResultType.F_PARAMS, SchemaConstantsGenerated.C_PARAMS, repo.getParams(), ParamsType.class,
-					prismContext));
-
-			jaxb.setContext(RUtil.toJAXB(OperationResultType.class, 
-					OperationResultType.F_CONTEXT, SchemaConstantsGenerated.C_PARAMS, repo.getContext(), ParamsType.class, prismContext));
-
-			jaxb.setReturns(RUtil.toJAXB(OperationResultType.class, 
-					OperationResultType.F_RETURNS, SchemaConstantsGenerated.C_PARAMS, repo.getReturns(), ParamsType.class, prismContext));
-
-			if (StringUtils.isNotEmpty(repo.getPartialResults())) {
-				System.out.println("PARTIAL RESULTS DESERIALIZATION");
-				List result = RUtil.toJAXB(OperationResultType.class, OperationResultType.F_PARTIAL_RESULTS, SchemaConstantsGenerated.C_OPERATION_RESULT, repo.getPartialResults(), List.class, prismContext);
-				// TODO: this is brutal ugly hack..it will be remove and refactored after new repo implementation..for now, it is only time wasting..
-				if (result.size() == 1){
-					OperationResultType res = (OperationResultType) result.get(0);
-					if (StringUtils.isEmpty(res.getOperation())){
-						jaxb.getPartialResults().addAll(res.getPartialResults());
-					} else{
-						jaxb.getPartialResults().add(res);
-					}
-				} else {
-					jaxb.getPartialResults().addAll(result);
-				}
-			}
-		} catch (Exception ex) {
-			throw new DtoTranslationException(ex.getMessage(), ex);
-		}
-	}
 
 	public static void copyResultFromJAXB(OperationResultType jaxb, OperationResult repo,
 			PrismContext prismContext) throws DtoTranslationException {
-		Validate.notNull(jaxb, "JAXB object must not be null.");
-		Validate.notNull(repo, "Repo object must not be null.");
+	Validate.notNull(repo, "Repo object must not be null.");
 
-		repo.setDetails(jaxb.getDetails());
-		repo.setMessage(jaxb.getMessage());
-		repo.setMessageCode(jaxb.getMessageCode());
-		repo.setOperation(jaxb.getOperation());
-		repo.setStatus(getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
-		repo.setToken(jaxb.getToken());
-		PrismPropertyDefinition def = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstantsGenerated.C_OPERATION_RESULT);
-		
-		
-		
-		try {
-//			String s = ValueSerializationUtil.serializeValue(jaxb, def, OperationResultType.F_PARTIAL_RESULTS, prismContext, PrismContext.LANG_XML);
-//			System.out.println("serialized-===========: " + s);
-			repo.setLocalizedMessage(RUtil.toRepo(def, OperationResultType.F_LOCALIZED_MESSAGE, jaxb.getLocalizedMessage(), prismContext));
-			repo.setParams(RUtil.toRepo(def, OperationResultType.F_PARAMS, jaxb.getParams(), prismContext));
-			repo.setContext(RUtil.toRepo(def, OperationResultType.F_CONTEXT, jaxb.getContext(), prismContext));
-			repo.setReturns(RUtil.toRepo(def, OperationResultType.F_RETURNS, jaxb.getReturns(), prismContext));
+        if (jaxb == null) {
+            return;
+        }
 
-			if (!jaxb.getPartialResults().isEmpty()) {
-				OperationResultType result = new OperationResultType();
-				result.getPartialResults().addAll(jaxb.getPartialResults());
-				String serialized = RUtil.toRepo(def, OperationResultType.F_PARTIAL_RESULTS, jaxb.getPartialResults(), prismContext);
-				System.out.println("serialized operation result: " + serialized);
-				repo.setPartialResults(serialized);
-			}
-		} catch (Exception ex) {
-			throw new DtoTranslationException(ex.getMessage(), ex);
-		}
-	}
+	repo.setStatus(getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
+
+		
+		
+        if (repo instanceof OperationResultFull) {
+            try {
+                ((OperationResultFull) repo).setFullResult(RUtil.toRepo(jaxb, prismContext));
+
+
+            } catch (Exception ex) {
+                throw new DtoTranslationException(ex.getMessage(), ex);
+            }
+        }
+    }
 
 	public static String computeChecksum(Object... objects) {
 		StringBuilder builder = new StringBuilder();
@@ -818,37 +719,7 @@ public final class RUtil {
 				+ "', can't translate to '" + type + "'.");
 	}
 
-	/**
-	 * This method creates full {@link ItemPath} from
-	 * {@link com.evolveum.midpoint.prism.query.ValueFilter} created from main
-	 * item path and last element, which is now definition.
-	 * <p/>
-	 * Will be deleted after query api update
-	 * 
-	 * @param filter
-	 * @return
-	 */
-	@Deprecated
-	public static ItemPath createFullPath(ValueFilter filter) {
-		ItemDefinition def = filter.getDefinition();
-		ItemPath parentPath = filter.getParentPath();
 
-		List<ItemPathSegment> segments = new ArrayList<ItemPathSegment>();
-		if (parentPath != null) {
-			for (ItemPathSegment segment : parentPath.getSegments()) {
-				if (!(segment instanceof NameItemPathSegment)) {
-					continue;
-				}
-
-				NameItemPathSegment named = (NameItemPathSegment) segment;
-				segments.add(new NameItemPathSegment(named.getName()));
-			}
-		}
-		segments.add(new NameItemPathSegment(def.getName()));
-
-		return new ItemPath(segments);
-	}
-	
 	public static String qnameToString(QName qname) {
         StringBuilder sb = new StringBuilder();
         if (qname != null) {
@@ -913,5 +784,52 @@ public final class RUtil {
     public static String getTableName(Class hqlType) {
         MidPointNamingStrategy namingStrategy = new MidPointNamingStrategy();
         return namingStrategy.classToTableName(hqlType.getSimpleName());
+    }
+
+    public static byte[] getByteArrayFromXml(String xml, boolean compress) {
+        byte[] array;
+
+        GZIPOutputStream gzip = null;
+        try {
+            if (compress) {
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                gzip = new GZIPOutputStream(out);
+                gzip.write(xml.getBytes("utf-8"));
+                gzip.close();
+                out.close();
+
+                array = out.toByteArray();
+            } else {
+                array = xml.getBytes("utf-8");
+            }
+        } catch (Exception ex) {
+            throw new SystemException("Couldn't save full xml object, reason: " + ex.getMessage(), ex);
+        } finally {
+            IOUtils.closeQuietly(gzip);
+        }
+
+        return array;
+    }
+
+    public static String getXmlFromByteArray(byte[] array, boolean compressed) {
+        String xml;
+
+        GZIPInputStream gzip = null;
+        try {
+            if (compressed) {
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                gzip = new GZIPInputStream(new ByteArrayInputStream(array));
+                IOUtils.copy(gzip, out);
+                xml = new String(out.toByteArray(), "utf-8");
+            } else {
+                xml = new String(array, "utf-8");
+            }
+        } catch (Exception ex) {
+            throw new SystemException("Couldn't read data from full object column, reason: " + ex.getMessage(), ex);
+        } finally {
+            IOUtils.closeQuietly(gzip);
+        }
+
+        return xml;
     }
 }

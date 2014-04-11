@@ -42,7 +42,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-
+import org.hibernate.Query;
+import org.hibernate.Session;
 import org.hibernate.stat.Statistics;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -52,9 +53,7 @@ import org.testng.annotations.Test;
 import javax.xml.namespace.QName;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -476,49 +475,69 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         repositoryService.searchObjectsIterative(ObjectType.class, null, handler, null, result);
         AssertJUnit.assertTrue(!objects.isEmpty());
     }
-    
+
     @Test
     private void addGetFullAccountShadow() throws Exception {
         LOGGER.info("===[ simpleAddAccountShadowTest ]===");
         OperationResult result = new OperationResult("testAddAccountShadow");
-        File file = new File(FOLDER_BASIC, "account-accountTypeShadow.xml"); 
-        try 
-        {
-        	PrismObject<AccountShadowType> account = prismContext.parseObject(file);
-        	
-        	 // apply appropriate schema
+        File file = new File(FOLDER_BASIC, "account-accountTypeShadow.xml");
+        try {
+            PrismObject<AccountShadowType> account = prismContext.parseObject(file);
+
+            // apply appropriate schema
             PrismObject<ResourceType> resource = prismContext.parseObject(new File(FOLDER_BASIC, "resource-opendj.xml"));
             ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
             ShadowUtil.applyResourceSchema(account, resourceSchema);
-            
-        	repositoryService.addObject(account, null, result);
-        
-        	PrismObject<ShadowType> afterAdd = repositoryService.getObject(ShadowType.class, account.getOid(), null, result);
-        	AssertJUnit.assertNotNull(afterAdd);
-        	        
-        }
-        catch (Exception ex) 
-        {
-        	LOGGER.error("Exception occurred", ex);
+
+            repositoryService.addObject(account, null, result);
+
+            PrismObject<ShadowType> afterAdd = repositoryService.getObject(ShadowType.class, account.getOid(), null, result);
+            AssertJUnit.assertNotNull(afterAdd);
+
+        } catch (Exception ex) {
+            LOGGER.error("Exception occurred", ex);
             throw ex;
         }
     }
 
-    /**
-     * Just a test with dom and jaxb processor and namespaces polution.
-     * JAXB processor is much better.
-     *
-     * @throws Exception
-     */
     @Test
-    public void domVsJaxbProcessor() throws Exception {
-//        PrismDomProcessor domProcessor =prismContext.getPrismDomProcessor();
-        List<PrismObject<? extends Objectable>> elements = prismContext.parseObjects(new File(FOLDER_BASIC, "objects.xml"));
+    public void test100AddUserWithoutAssignmentIds() throws Exception {
+        OperationResult result = new OperationResult("test100AddUserWithoutAssignmentIds");
+        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(FOLDER_BASIC, "user-big.xml"));
 
-        PrismObject obj = elements.get(0);
-        System.out.println(prismContext.serializeObjectToString(obj, PrismContext.LANG_XML));
+        //remove ids from assignment values
+        PrismContainer container = user.findContainer(UserType.F_ASSIGNMENT);
+        for (PrismContainerValue value : (List<PrismContainerValue>) container.getValues()) {
+            value.setId(null);
+        }
+        final String OID = repositoryService.addObject(user, null, result);
+        result.computeStatusIfUnknown();
 
-        System.out.println(getJaxbUtil().marshalToString(obj.asObjectable()));
+        //get user
+        user = repositoryService.getObject(UserType.class, OID, null, result);
+        result.computeStatusIfUnknown();
+
+        container = user.findContainer(UserType.F_ASSIGNMENT);
+        List<Short> xmlShorts = new ArrayList<>();
+        for (PrismContainerValue value : (List<PrismContainerValue>) container.getValues()) {
+            AssertJUnit.assertNotNull(value.getId());
+            xmlShorts.add(value.getId().shortValue());
+        }
+        Collections.sort(xmlShorts);
+
+        Session session = open();
+        try {
+            Query query = session.createSQLQuery("select id from m_assignment where owner_oid=:oid");
+            query.setString("oid", OID);
+            List<Short> dbShorts = query.list();
+            Collections.sort(dbShorts);
+
+            LOGGER.info("assigments ids: expected {} db {}", Arrays.toString(xmlShorts.toArray()),
+                    Arrays.toString(dbShorts.toArray()));
+            AssertJUnit.assertArrayEquals(xmlShorts.toArray(), dbShorts.toArray());
+        } finally {
+            close(session);
+        }
     }
 }
 

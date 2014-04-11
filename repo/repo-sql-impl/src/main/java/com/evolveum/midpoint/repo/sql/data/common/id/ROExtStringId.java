@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common.id;
 
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 
 import java.io.Serializable;
 
@@ -26,10 +27,9 @@ import java.io.Serializable;
 public class ROExtStringId implements Serializable {
 
     private String ownerOid;
-    private RObjectType ownerType;
+    private RObjectExtensionType ownerType;
     private String value;
     private String name;
-    private String type;
 
     public String getOwnerOid() {
         return ownerOid;
@@ -39,11 +39,11 @@ public class ROExtStringId implements Serializable {
         this.ownerOid = ownerOid;
     }
 
-    public RObjectType getOwnerType() {
+    public RObjectExtensionType getOwnerType() {
         return ownerType;
     }
 
-    public void setOwnerType(RObjectType ownerType) {
+    public void setOwnerType(RObjectExtensionType ownerType) {
         this.ownerType = ownerType;
     }
 
@@ -63,14 +63,6 @@ public class ROExtStringId implements Serializable {
         this.name = name;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -81,7 +73,6 @@ public class ROExtStringId implements Serializable {
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (ownerOid != null ? !ownerOid.equals(that.ownerOid) : that.ownerOid != null) return false;
         if (ownerType != that.ownerType) return false;
-        if (type != null ? !type.equals(that.type) : that.type != null) return false;
         if (value != null ? !value.equals(that.value) : that.value != null) return false;
 
         return true;
@@ -93,7 +84,6 @@ public class ROExtStringId implements Serializable {
         result = 31 * result + (ownerType != null ? ownerType.hashCode() : 0);
         result = 31 * result + (value != null ? value.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (type != null ? type.hashCode() : 0);
         return result;
     }
 

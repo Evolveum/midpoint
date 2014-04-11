@@ -111,7 +111,6 @@ public class PageRole extends PageAdminRoles{
                     return createStringResource("PageRoleEditor.title.newRole").getObject();
                 }
 
-                String roleName = model.getObject().asObjectable().getName().getOrig();
                 return createStringResource("PageRoleEditor.title.editingRole").getObject();
             }
         };
@@ -234,6 +233,11 @@ public class PageRole extends PageAdminRoles{
             public List<AssignmentType> getAssignmentTypeList(){
                 return model.getObject().asObjectable().getAssignment();
             }
+
+            @Override
+            public String getExcludeOid(){
+                return model.getObject().asObjectable().getOid();
+            }
         };
         form.add(assignments);
 
@@ -243,6 +247,11 @@ public class PageRole extends PageAdminRoles{
             @Override
             public List<AssignmentType> getAssignmentTypeList(){
                 return model.getObject().asObjectable().getInducement();
+            }
+
+            @Override
+            public String getExcludeOid(){
+                return model.getObject().asObjectable().getOid();
             }
         };
         form.add(inducements);

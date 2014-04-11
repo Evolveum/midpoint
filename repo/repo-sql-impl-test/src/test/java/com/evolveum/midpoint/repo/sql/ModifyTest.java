@@ -59,20 +59,11 @@ import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.sql.data.common.RShadow;
-import com.evolveum.midpoint.repo.sql.data.common.RSynchronizationSituationDescription;
-import com.evolveum.midpoint.repo.sql.data.common.RUser;
-import com.evolveum.midpoint.repo.sql.data.common.any.ROExtClob;
 import com.evolveum.midpoint.repo.sql.data.common.any.ROExtDate;
 import com.evolveum.midpoint.repo.sql.data.common.any.ROExtLong;
 import com.evolveum.midpoint.repo.sql.data.common.any.ROExtString;
 import com.evolveum.midpoint.repo.sql.data.common.any.RValueType;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RSynchronizationSituation;
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
-import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -96,6 +87,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSitu
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -495,143 +489,6 @@ public class ModifyTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void simpleModifyExtensionDateTest() throws Exception {
-        final Timestamp DATE = new Timestamp(new Date().getTime());
-        RUser user = createUser(123L, DATE);
-
-        Session session = null;
-        try {
-            LOGGER.info(">>>SAVE");
-            session = getFactory().openSession();
-            session.beginTransaction();
-            String id = (String) session.save(user);
-            session.getTransaction().commit();
-            session.close();
-
-            LOGGER.info(">>>MERGE");
-            session = getFactory().openSession();
-            session.beginTransaction();
-            user = createUser(456L, DATE);
-
-            user.setOid(id);
-            session.merge(user);
-            session.getTransaction().commit();
-            session.close();
-
-            LOGGER.info(">>>GET");
-            session = getFactory().openSession();
-            session.beginTransaction();
-            user = (RUser) session.createQuery("from RUser as u where u.oid = :oid").setParameter("oid", id).uniqueResult();
-
-            AssertJUnit.assertEquals(1, user.getClobs().size());
-            AssertJUnit.assertEquals(1, user.getDates().size());
-            AssertJUnit.assertEquals(2, user.getStrings().size());
-            AssertJUnit.assertEquals(1, user.getLongs().size());
-            hasLong(user.getLongs(), 456L);
-
-            session.getTransaction().commit();
-            session.close();
-        } finally {
-            if (session != null && session.isOpen()) {
-                session.close();
-            }
-        }
-    }
-
-    private void hasLong(Set<ROExtLong> longs, Long value) {
-        for (ROExtLong any : longs) {
-            Long other = any.getValue();
-
-            if (other == null) {
-                if (value == null) {
-                    return;
-                }
-            } else {
-                if (other.equals(value)) {
-                    return;
-                }
-            }
-        }
-        AssertJUnit.fail("Longs doesn't contain value '" + value + "'");
-    }
-
-    private RUser createUser(Long lootValue, Timestamp dateValue) {
-        RUser user = new RUser();
-        user.setOid(UUID.randomUUID().toString());
-
-        user.setName(new RPolyString("u1", "u1"));
-        user.setFullName(new RPolyString("fu1", "fu1"));
-        user.setFamilyName(new RPolyString("fa1", "fa1"));
-        user.setGivenName(new RPolyString("gi1", "gi1"));
-
-        Set<ROExtDate> dates = new HashSet<ROExtDate>();
-        user.setDates(dates);
-
-        final String namespace = "http://example.com/p";
-
-        ROExtDate date = new ROExtDate();
-        date.setOwner(user);
-        date.setOwnerType(RObjectType.OBJECT);
-        date.setDynamic(false);
-        date.setName(RUtil.qnameToString(new QName(namespace, "funeralDate")));
-        date.setType(RUtil.qnameToString(new QName("http://www.w3.org/2001/XMLSchema", "dateTime")));
-        date.setValue(dateValue);
-        dates.add(date);
-        date.setValueType(RValueType.PROPERTY);
-
-        Set<ROExtLong> longs = new HashSet<ROExtLong>();
-        user.setLongs(longs);
-
-        ROExtLong l = new ROExtLong();
-        l.setOwner(user);
-        l.setOwnerType(RObjectType.OBJECT);
-        longs.add(l);
-        l.setDynamic(false);
-        l.setName(RUtil.qnameToString(new QName(namespace, "loot")));
-        l.setType(RUtil.qnameToString(new QName("http://www.w3.org/2001/XMLSchema", "int")));
-        l.setValue(lootValue);
-        l.setValueType(RValueType.PROPERTY);
-
-        Set<ROExtString> strings = new HashSet<ROExtString>();
-        user.setStrings(strings);
-
-        ROExtString s1 = new ROExtString();
-        s1.setOwner(user);
-        s1.setOwnerType(RObjectType.OBJECT);
-        strings.add(s1);
-        s1.setDynamic(false);
-        s1.setName(RUtil.qnameToString(new QName(namespace, "weapon")));
-        s1.setType(RUtil.qnameToString(new QName("http://www.w3.org/2001/XMLSchema", "string")));
-        s1.setValue("gun");
-        s1.setValueType(RValueType.PROPERTY);
-
-        ROExtString s2 = new ROExtString();
-        s2.setOwner(user);
-        s2.setOwnerType(RObjectType.OBJECT);
-        strings.add(s2);
-        s2.setDynamic(false);
-        s2.setName(RUtil.qnameToString(new QName(namespace, "shipName")));
-        s2.setType(RUtil.qnameToString(new QName("http://www.w3.org/2001/XMLSchema", "string")));
-        s2.setValue("pltka");
-        s2.setValueType(RValueType.PROPERTY);
-
-        Set<ROExtClob> clobs = new HashSet<ROExtClob>();
-        user.setClobs(clobs);
-
-        ROExtClob c1 = new ROExtClob();
-        clobs.add(c1);
-        c1.setOwner(user);
-        c1.setOwnerType(RObjectType.OBJECT);
-        c1.setDynamic(false);
-        c1.setName(RUtil.qnameToString(new QName(namespace, "someContainer")));
-        c1.setType(RUtil.qnameToString(new QName("http://www.w3.org/2001/XMLSchema", "string")));
-        c1.setValue("some container xml as clob or what...");
-        c1.setValueType(RValueType.CONTAINER);
-
-        return user;
-    }
-
-    @Test
     public void testModifyAccountSynchronizationSituation() throws Exception {
         OperationResult result = new OperationResult("testModifyAccountSynchronizationSituation");
 
@@ -689,109 +546,6 @@ public class ModifyTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(1, shadows.size());
 
         System.out.println("shadow: " + shadows.get(0).debugDump());
-    }
-
-    @Test
-    public void testModifyAccountSynchronizationSituationSimplyfied() {
-        //add
-        RShadow s1 = new RShadow();
-        s1.setOid(UUID.randomUUID().toString());
-        s1.setName(new RPolyString("acc", "acc"));
-
-        LOGGER.info("add:\n{}", new Object[]{ReflectionToStringBuilder.reflectionToString(s1, ToStringStyle.MULTI_LINE_STYLE)});
-        Session session = getFactory().openSession();
-        final String ID;
-        try {
-            session.beginTransaction();
-            ID = (String) session.save(s1);
-            session.getTransaction().commit();
-        } finally {
-            session.close();
-        }
-
-        //modify1
-        s1 = new RShadow();
-        s1.setOid(ID);
-        s1.setName(new RPolyString("acc", "acc"));
-        RSynchronizationSituationDescription desc = new RSynchronizationSituationDescription();
-        desc.setShadow(s1);
-        desc.setSituation(RSynchronizationSituation.LINKED);
-        XMLGregorianCalendar date1 = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
-        LOGGER.info("Date is: {}, {} {}", new Object[]{date1, date1, date1.getClass()});
-        desc.setTimestampValue(date1);
-        s1.getSynchronizationSituationDescription().add(desc);
-
-        LOGGER.info("modify1:\n{}", new Object[]{ReflectionToStringBuilder.reflectionToString(s1, ToStringStyle.MULTI_LINE_STYLE)});
-        session = getFactory().openSession();
-        try {
-            session.beginTransaction();
-            session.merge(s1);
-            session.getTransaction().commit();
-        } finally {
-            session.close();
-        }
-
-        //get1
-        session = getFactory().openSession();
-        try {
-            session.beginTransaction();
-            RShadow shadow = (RShadow) session.get(RShadow.class, ID);
-            LOGGER.info("get1:\n{}", new Object[]{ReflectionToStringBuilder.reflectionToString(shadow, ToStringStyle.MULTI_LINE_STYLE)});
-            AssertJUnit.assertEquals(1, shadow.getSynchronizationSituationDescription().size());
-
-            Iterator<RSynchronizationSituationDescription> i = shadow.getSynchronizationSituationDescription().iterator();
-            Date t;
-            while (i.hasNext()) {
-                t = XMLGregorianCalendarType.asDate(i.next().getTimestampValue());
-                LOGGER.info("Date from result: {}, {}", new Object[]{t, t.getTime()});
-            }
-            session.getTransaction().commit();
-        } finally {
-            session.close();
-        }
-
-        //modify2
-        s1 = new RShadow();
-        s1.setOid(ID);
-        s1.setName(new RPolyString("acc", "acc"));
-        desc = new RSynchronizationSituationDescription();
-        desc.setShadow(s1);
-        desc.setSituation(RSynchronizationSituation.LINKED);
-        XMLGregorianCalendar date2 = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
-        LOGGER.info("Date is: {}, {} {}", new Object[]{date2, date2, date2.getClass()});
-        desc.setTimestampValue(date2);
-        s1.getSynchronizationSituationDescription().add(desc);
-        s1.setSynchronizationTimestamp(date2);
-
-        LOGGER.info("modify2:\n{}", new Object[]{ReflectionToStringBuilder.reflectionToString(s1, ToStringStyle.MULTI_LINE_STYLE)});
-        session = getFactory().openSession();
-        try {
-            session.beginTransaction();
-            session.merge(s1);
-            session.getTransaction().commit();
-        } finally {
-            session.close();
-        }
-
-        //get2
-        session = getFactory().openSession();
-        try {
-            session.beginTransaction();
-            RShadow shadow = (RShadow) session.get(RShadow.class, ID);
-            LOGGER.info("get2:\n{}", new Object[]{ReflectionToStringBuilder.reflectionToString(shadow, ToStringStyle.MULTI_LINE_STYLE)});
-
-            Date t;
-            Iterator<RSynchronizationSituationDescription> i = shadow.getSynchronizationSituationDescription().iterator();
-            while (i.hasNext()) {
-                t = XMLGregorianCalendarType.asDate(i.next().getTimestampValue());
-                LOGGER.info("Date from result: {}, {}", new Object[]{t, t.getTime()});
-            }
-
-            AssertJUnit.assertEquals(1, shadow.getSynchronizationSituationDescription().size());
-            session.getTransaction().commit();
-        } finally {
-            session.close();
-        }
     }
 
     @Test

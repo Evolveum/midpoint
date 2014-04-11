@@ -49,11 +49,10 @@ public class PrismUtil {
 		// TODO: switch to Recomputable interface instead of PolyString
 		if (realValue instanceof PolyString && prismContext != null) {
 			PolyString polyStringVal = (PolyString)realValue;
-			if (!polyStringVal.isComputed()) {
-				PolyStringNormalizer polyStringNormalizer = prismContext.getDefaultPolyStringNormalizer();
-				if (polyStringNormalizer != null) {
-					polyStringVal.recompute(polyStringNormalizer);
-				}
+			// Always recompute. Recompute is cheap operation and this avoids a lot of bugs
+			PolyStringNormalizer polyStringNormalizer = prismContext.getDefaultPolyStringNormalizer();
+			if (polyStringNormalizer != null) {
+				polyStringVal.recompute(polyStringNormalizer);
 			}
 		}
 	}

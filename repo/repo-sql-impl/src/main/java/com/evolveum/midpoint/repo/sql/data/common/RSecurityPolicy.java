@@ -1,34 +1,22 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import java.util.Collection;
-import java.util.List;
-
-import javax.persistence.*;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RDataSource;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-import org.apache.commons.lang.StringUtils;
-import org.hibernate.annotations.Columns;
-import org.hibernate.annotations.ForeignKey;
-import org.hibernate.annotations.Index;
-import org.hibernate.annotations.Type;
-
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RExportType;
-import com.evolveum.midpoint.repo.sql.data.common.enums.ROrientationType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SecurityPolicyType;
+import org.hibernate.annotations.ForeignKey;
+
+import javax.persistence.Embedded;
+import javax.persistence.Entity;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
+import java.util.Collection;
 
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = {"name_norm"}))
-@org.hibernate.annotations.Table(appliesTo = "m_security_policy",
-        indexes = {@Index(name = "iSecurityPolicyName", columnNames = "name_orig")})
 @ForeignKey(name = "fk_security_policy")
 public class RSecurityPolicy extends RObject<SecurityPolicyType> {
 
@@ -71,18 +59,9 @@ public class RSecurityPolicy extends RObject<SecurityPolicyType> {
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
     }
 
-    public static void copyToJAXB(RSecurityPolicy repo, SecurityPolicyType jaxb, PrismContext prismContext,
-                                  Collection<SelectorOptions<GetOperationOptions>> options)
-            throws DtoTranslationException {
-
-        RObject.copyToJAXB(repo, jaxb, prismContext, options);
-
-        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-    }
-
     @Override
     public SecurityPolicyType toJAXB(PrismContext prismContext,
-                             Collection<SelectorOptions<GetOperationOptions>> options)
+                                     Collection<SelectorOptions<GetOperationOptions>> options)
             throws DtoTranslationException {
 
         SecurityPolicyType object = new SecurityPolicyType();

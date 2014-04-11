@@ -29,7 +29,8 @@ import java.io.Serializable;
 @Entity
 @Table(name = "m_org_closure")
 @org.hibernate.annotations.Table(appliesTo = "m_org_closure",
-        indexes = {@Index(name = "iAncestorDepth", columnNames = {"ancestor_oid", "depthValue"})})
+        indexes = {@Index(name = "iAncestorDepth", columnNames = {"ancestor_oid", "depthValue"}),
+                @Index(name = "iAncDescDepth", columnNames = {"ancestor_oid", "descendant_oid", "depthValue"})})
 public class ROrgClosure implements Serializable {
 
     private Long id;
@@ -80,6 +81,7 @@ public class ROrgClosure implements Serializable {
         return ancestor;
     }
 
+    @Index(name = "iAncestor")
     @Column(name = "ancestor_oid", length = RUtil.COLUMN_LENGTH_OID, insertable = false, updatable = false)
     public String getAncestorOid() {
         if (ancestorOid == null && ancestor.getOid() != null) {
@@ -99,6 +101,7 @@ public class ROrgClosure implements Serializable {
         return descendant;
     }
 
+    @Index(name = "iDescendant")
     @Column(name = "descendant_oid", length = RUtil.COLUMN_LENGTH_OID, insertable = false, updatable = false)
     public String getDescendantOid() {
         if (descendantOid == null && descendant.getOid() != null) {

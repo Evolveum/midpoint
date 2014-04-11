@@ -27,7 +27,6 @@ public class RAExtLongId implements Serializable {
     private Short ownerId;
     private Long value;
     private String name;
-    private String type;
 
     public String getOwnerOid() {
         return ownerOid;
@@ -61,14 +60,6 @@ public class RAExtLongId implements Serializable {
         this.name = name;
     }
 
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -79,7 +70,6 @@ public class RAExtLongId implements Serializable {
         if (name != null ? !name.equals(raLongId.name) : raLongId.name != null) return false;
         if (ownerId != null ? !ownerId.equals(raLongId.ownerId) : raLongId.ownerId != null) return false;
         if (ownerOid != null ? !ownerOid.equals(raLongId.ownerOid) : raLongId.ownerOid != null) return false;
-        if (type != null ? !type.equals(raLongId.type) : raLongId.type != null) return false;
         if (value != null ? !value.equals(raLongId.value) : raLongId.value != null) return false;
 
         return true;
@@ -91,7 +81,6 @@ public class RAExtLongId implements Serializable {
         result = 31 * result + (ownerId != null ? ownerId.hashCode() : 0);
         result = 31 * result + (value != null ? value.hashCode() : 0);
         result = 31 * result + (name != null ? name.hashCode() : 0);
-        result = 31 * result + (type != null ? type.hashCode() : 0);
         return result;
     }
 

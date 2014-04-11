@@ -102,8 +102,7 @@ public class GreaterFilter<T> extends ComparativeFilter<T>{
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("GREATER: \n");
-		
+		sb.append("GREATER:");
 		return debugDump(indent, sb);
 	}
 	

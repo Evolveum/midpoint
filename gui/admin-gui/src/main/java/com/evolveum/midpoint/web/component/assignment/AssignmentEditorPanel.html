@@ -53,21 +53,50 @@
                     </div>
                 </div>
 
-                <div class="assignmentBlock" wicket:id="activationBlock">
-                	<h4>
-	                    <wicket:message key="ActivationType.title"/>
-	                </h4>
-	                <div class="assignmentContent">
-	                    <span><wicket:message key="ActivationType.administrativeStatus"/></span>
-	                    <div wicket:id="administrativeStatus" style="display: inline;"/> <br /><br />
-	
-	                    <span><wicket:message key="ActivationType.validFrom"/></span>
-	                    <input wicket:id="validFrom" type="text"/>
-	
-	                    <span><wicket:message key="ActivationType.validTo"/></span>
-	                    <input wicket:id="validTo" type="text"/>
+                <div class="row" wicket:id="activationBlock">
+                    <div class="col-xs-12">
+                        <h4>
+                            <wicket:message key="ActivationType.title"/>
+                        </h4>
+                        <div class="row">
+                            <div class="col-xs-4">
+                                <span><wicket:message key="ActivationType.administrativeStatus"/></span>
+                            </div>
+                            <div class="col-xs-8">
+                                <div class="row">
+                                    <div class="col-xs-9">
+                                        <div wicket:id="administrativeStatus"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-4">
+                                <span><wicket:message key="ActivationType.validFrom"/></span>
+                            </div>
+                            <div class="col-xs-8">
+                                <div class="row">
+                                    <div class="col-xs-9">
+                                        <div wicket:id="validFrom" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-4">
+                                <span><wicket:message key="ActivationType.validTo"/></span>
+                            </div>
+                            <div class="col-xs-8">
+                                <div class="row">
+                                    <div class="col-xs-9">
+                                        <div wicket:id="validTo" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
 
                 <div wicket:id="targetContainer" class="assignmentBlock">
                     <h4>

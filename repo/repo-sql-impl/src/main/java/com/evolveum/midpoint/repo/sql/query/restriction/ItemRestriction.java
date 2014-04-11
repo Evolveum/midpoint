@@ -41,6 +41,7 @@ import org.apache.commons.lang.Validate;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.sql.JoinType;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -314,7 +315,7 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
 
         // create new criteria and alias for this relationship
         String alias = getContext().addAlias(path, def);
-        Criteria criteria = pCriteria.createCriteria(realName, alias);
+        Criteria criteria = pCriteria.createCriteria(realName, alias, JoinType.LEFT_OUTER_JOIN);
         getContext().addCriteria(path, criteria);
         //also add virtual path to criteria map
         getContext().addCriteria(virtualPath, criteria);

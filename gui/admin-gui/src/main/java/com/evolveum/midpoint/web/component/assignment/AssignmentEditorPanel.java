@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
@@ -255,21 +256,15 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
         DropDownChoicePanel administrativeStatus = WebMiscUtil.createActivationStatusPanel(ID_ADMINISTRATIVE_STATUS,
                 new PropertyModel<ActivationStatusType>(getModel(), AssignmentEditorDto.F_ACTIVATION + "."
                         + ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart()), this);
-//        enabled.setStyle("margin: 1px 0 0 10px;");
         activationBlock.add(administrativeStatus);
 
-        DateTextField validFrom = DateTextField.forDatePattern(ID_VALID_FROM,
-                createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
-                        AssignmentEditorDto.F_ACTIVATION + ".validFrom")), "dd/MMM/yyyy");
-        validFrom.add(new DatePicker());
+        DateInput validFrom = new DateInput(ID_VALID_FROM, createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
+                AssignmentEditorDto.F_ACTIVATION + ".validFrom")));
         activationBlock.add(validFrom);
 
-        DateTextField validTo = DateTextField.forDatePattern(ID_VALID_TO,
-                createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
-                        AssignmentEditorDto.F_ACTIVATION + ".validTo")), "dd/MMM/yyyy");
-        validTo.add(new DatePicker());
+        DateInput validTo = new DateInput(ID_VALID_TO, createDateModel(new PropertyModel<XMLGregorianCalendar>(getModel(),
+                AssignmentEditorDto.F_ACTIVATION + ".validTo")));
         activationBlock.add(validTo);
-
         WebMarkupContainer targetContainer = new WebMarkupContainer(ID_TARGET_CONTAINER);
         targetContainer.add(new VisibleEnableBehaviour() {
 

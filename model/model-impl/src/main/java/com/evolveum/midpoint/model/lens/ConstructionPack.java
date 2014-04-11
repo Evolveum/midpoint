@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
  * @author semancik
  *
  */
-public class AccountConstructionPack {
+public class ConstructionPack {
 	
 	private Collection<PrismPropertyValue<Construction>> constructions = new ArrayList<PrismPropertyValue<Construction>>();
 	private boolean forceRecon;
@@ -48,7 +48,7 @@ public class AccountConstructionPack {
 
 	@Override
 	public String toString() {
-		return "AccountConstructionPack(" + SchemaDebugUtil.prettyPrint(constructions) + (forceRecon ? ", forceRecon" : "") + ")";
+		return "ConstructionPack(" + SchemaDebugUtil.prettyPrint(constructions) + (forceRecon ? ", forceRecon" : "") + ")";
 	}
 
 }
