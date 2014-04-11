@@ -39,6 +39,8 @@ import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
@@ -68,8 +70,10 @@ import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_2.RawType;
 
 public class PrismBeanConverter {
-	
-	public static final String DEFAULT_NAMESPACE_PLACEHOLDER = "##default";
+
+    private static final Trace LOGGER = TraceManager.getTrace(PrismBeanConverter.class);
+
+    public static final String DEFAULT_NAMESPACE_PLACEHOLDER = "##default";
 
     private PrismBeanInspector inspector = new PrismBeanInspector();
 	
@@ -424,6 +428,17 @@ public class PrismBeanConverter {
 		} else if (paramType.equals(RawType.class)) {
             propValue = new RawType(xsubnode);
         } else {
+            // paramType is what we expect e.g. based on parent definition
+            // but actual type (given by xsi:type/@typeDef) may be different, e.g. more specific
+            if (xsubnode.getTypeQName() != null) {
+                Class explicitParamType = getSchemaRegistry().determineCompileTimeClass(xsubnode.getTypeQName());
+                if (explicitParamType != null) {
+                    paramType = explicitParamType;
+                } else {
+                    // TODO or throw an exception?
+                    LOGGER.warn("Unknown type name: " + xsubnode.getTypeQName() + ", ignoring it.");
+                }
+            }
 			if (xsubnode instanceof PrimitiveXNode<?>) {
 				propValue = unmarshallPrimitive(((PrimitiveXNode<?>)xsubnode), paramType);
 			} else if (xsubnode instanceof MapXNode) {
