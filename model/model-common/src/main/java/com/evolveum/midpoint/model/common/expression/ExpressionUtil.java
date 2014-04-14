@@ -453,7 +453,7 @@ public class ExpressionUtil {
 	}
 
 	private static PrismPropertyValue evaluateExpression(ExpressionVariables variables, PrismContext prismContext,
-			ExpressionType valueExpression, ObjectFilter filter, ExpressionFactory expressionFactory, 
+			ExpressionType expressionType, ObjectFilter filter, ExpressionFactory expressionFactory, 
 			String shortDesc, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		
 		//TODO rafactor after new query engine is implemented
@@ -467,7 +467,7 @@ public class ExpressionUtil {
 					DOMUtil.XSD_STRING, prismContext);
 		}
 		
-		return evaluateExpression(variables, outputDefinition, valueExpression, expressionFactory, shortDesc, task, parentResult);
+		return evaluateExpression(variables, outputDefinition, expressionType, expressionFactory, shortDesc, task, parentResult);
 		
 		
 //		String expressionResult = expressionHandler.evaluateExpression(currentShadow, valueExpression,
@@ -475,11 +475,11 @@ public class ExpressionUtil {
    	}
 	
 	public static PrismPropertyValue evaluateExpression(ExpressionVariables variables,
-			ItemDefinition outputDefinition, ExpressionType valueExpression,
+			ItemDefinition outputDefinition, ExpressionType expressionType,
 			ExpressionFactory expressionFactory,
-			String shortDesc, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException{
+			String shortDesc, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		
-		Expression<PrismPropertyValue> expression = expressionFactory.makeExpression(valueExpression,
+		Expression<PrismPropertyValue> expression = expressionFactory.makeExpression(expressionType,
 				outputDefinition, shortDesc, parentResult);
 
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task, parentResult);
@@ -499,6 +499,14 @@ public class ExpressionUtil {
         }
 
         return nonNegativeValues.iterator().next();
+	}
+	
+	public static PrismPropertyValue<Boolean> evaluateCondition(ExpressionVariables variables, ExpressionType expressionType,
+			ExpressionFactory expressionFactory,
+			String shortDesc, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException{
+		ItemDefinition outputDefinition = new PrismPropertyDefinition<Boolean>(ExpressionConstants.OUTPUT_ELMENT_NAME, 
+				DOMUtil.XSD_BOOLEAN, expressionFactory.getPrismContext());
+		return evaluateExpression(variables, outputDefinition, expressionType, expressionFactory, shortDesc, task, parentResult);
 	}
 	
 	public static Map<QName, Object> compileVariablesAndSources(ExpressionEvaluationContext params) {

@@ -374,26 +374,6 @@ public class ResourceTypeUtil {
 		return null;
 	}
 
-	/**
-	 * Returns appropriate object synchronization settings for the class.
-	 * Assumes single sync setting for now.
-	 */
-	@Deprecated
-	public static ObjectSynchronizationType determineSynchronization(ResourceType resource, Class<UserType> type) {
-		SynchronizationType synchronization = resource.getSynchronization();
-		if (synchronization == null) {
-			return null;
-		}
-		List<ObjectSynchronizationType> objectSynchronizations = synchronization.getObjectSynchronization();
-		if (objectSynchronizations.isEmpty()) {
-			return null;
-		}
-		if (objectSynchronizations.size() == 1) {
-			return objectSynchronizations.get(0);
-		}
-		throw new UnsupportedOperationException("Selecting from multiple synchronization settings is not yet supported");
-	}
-
 	public static PrismContainer<Containerable> getConfigurationContainer(ResourceType resourceType) {
 		return getConfigurationContainer(resourceType.asPrismObject());
 	}

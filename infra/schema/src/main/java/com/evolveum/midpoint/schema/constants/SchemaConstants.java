@@ -171,12 +171,16 @@ public abstract class SchemaConstants {
 	// This constant should not be here. It is used by schema processor to
 	// supply correct import. But the dependency should
 	// be inverted, eventually (MID-356)
-	public static final String NS_ICF_SCHEMA = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
 	public static final String NS_ICF_CONFIGURATION = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2";
 	public static final QName ICF_CONFIGURATION_PROPERTIES = new QName(NS_ICF_CONFIGURATION, "configurationProperties");
 	public static final QName ICF_TIMEOUTS = new QName(NS_ICF_CONFIGURATION, "timeouts");
 	public static final QName ICF_CONNECTOR_POOL_CONFIGURATION = new QName(NS_ICF_CONFIGURATION,
 			"connectorPoolConfiguration");
+	
+	// These are used in script expressions, they should remain here
+	public static final String NS_ICF_SCHEMA = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
+	public static final QName ICFS_NAME = new QName(NS_ICF_SCHEMA, "name");
+	public static final QName ICFS_UID = new QName(NS_ICF_SCHEMA, "uid");
 
     // OTHER (temporary? [mederly])
 

@@ -67,6 +67,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -108,6 +109,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTypeTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
@@ -118,6 +120,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExecutionStatusType;
@@ -2347,5 +2350,47 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
 	}
-
+	
+	/**
+	 * Returns appropriate object synchronization settings for the class.
+	 * Assumes single sync setting for now.
+	 */
+	protected ObjectSynchronizationType determineSynchronization(ResourceType resource, Class<UserType> type, String name) {
+		SynchronizationType synchronization = resource.getSynchronization();
+		if (synchronization == null) {
+			return null;
+		}
+		List<ObjectSynchronizationType> objectSynchronizations = synchronization.getObjectSynchronization();
+		if (objectSynchronizations.isEmpty()) {
+			return null;
+		}
+		for (ObjectSynchronizationType objSyncType: objectSynchronizations) {
+			QName focusTypeQName = objSyncType.getFocusType();
+			if (focusTypeQName == null) {
+				if (type != UserType.class) {
+					continue;
+				}
+			} else {
+				ObjectTypes focusType = ObjectTypes.getObjectTypeFromTypeQName(focusTypeQName);
+				if (type != focusType.getClassDefinition()) {
+					continue;
+				}
+			}
+			if (name == null) {
+				// we got it
+				return objSyncType;
+			} else {
+				if (name.equals(objSyncType.getName())) {
+					return objSyncType;
+				}
+			}
+		}
+		throw new IllegalArgumentException("Synchronization setting for "+type+" and name "+name+" not found in "+resource);
+	}
+	
+	protected void assertShadowKindIntent(PrismObject<ShadowType> shadow, ShadowKindType expectedKind,
+			String expectedIntent) {
+		assertEquals("Wrong kind in "+shadow, expectedKind, shadow.asObjectable().getKind());
+		assertEquals("Wrong intent in "+shadow, expectedIntent, shadow.asObjectable().getIntent());
+	}
 }
