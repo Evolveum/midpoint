@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.parser;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
@@ -470,6 +471,22 @@ public class XNodeProcessor {
             return (T) schemaDefType;
         } else if (prismContext.getBeanConverter().canProcess(typeName)) {
             return prismContext.getBeanConverter().unmarshall(xmap, typeName);
+        } else if (DOMUtil.XSD_STRING.equals(typeName)) {
+            // a bit of hack: trying to get a string but a Map is present
+            // e.g. when reading report templates (embedded XML)
+            // A necessary condition: there may be only one map entry.
+            if (xmap.size() > 1) {
+                throw new SchemaException("Map with more than one item cannot be parsed as a string. "
+                    + (propertyDefinition!=null ? ("Property definition: " + propertyDefinition.getName() + ". ") : "")
+                    + "Map: " + xmap);
+            } else if (xmap.isEmpty()) {
+                return (T) "";
+            } else {
+                Map.Entry<QName,XNode> entry = xmap.entrySet().iterator().next();
+                DomParser domParser = prismContext.getParserDom();
+                String value = domParser.serializeToString(entry.getValue(), entry.getKey());
+                return (T) value;
+            }
         } else {
             if (propertyDefinition != null) {
                 if (propertyDefinition.isRuntimeSchema()) {
