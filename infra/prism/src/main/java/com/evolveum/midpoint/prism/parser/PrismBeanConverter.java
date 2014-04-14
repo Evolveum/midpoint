@@ -41,23 +41,29 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.parser.util.XNodeProcessorUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.xjc.AnyArrayList;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Handler;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
@@ -112,7 +118,11 @@ public class PrismBeanConverter {
 	}
 	
 	public <T> T unmarshall(MapXNode xnode, Class<T> beanClass) throws SchemaException {
-        T bean;
+        
+		if (prismContext.getSchemaRegistry().determineDefinitionFromClass(beanClass) != null){
+			return (T) prismContext.getXnodeProcessor().parseObject(xnode).asObjectable();			
+		}
+		T bean;
         Set<String> keysToParse;          // only these keys will be parsed (null if all)
 		if (SearchFilterType.class.isAssignableFrom(beanClass)) {
             keysToParse = Collections.singleton("condition");       // TODO fix this BRUTAL HACK - it is here because of c:ConditionalSearchFilterType
@@ -128,6 +138,9 @@ public class PrismBeanConverter {
             }
         } 
 
+		
+		
+		
 		if (ProtectedDataType.class.isAssignableFrom(beanClass)){
 			ProtectedDataType protectedDataType = null;
 			if (bean instanceof ProtectedStringType){
@@ -576,10 +589,11 @@ public class PrismBeanConverter {
             return marshalSearchFilterType((SearchFilterType) bean);
         } else if (bean instanceof RawType) {
             return marshalRawValue((RawType) bean);
+        } 
+        else if (prismContext != null && prismContext.getSchemaRegistry().determineDefinitionFromClass(bean.getClass()) != null){
+        	return prismContext.getXnodeProcessor().serializeObject(((Objectable)bean).asPrismObject()).getSubnode();
         }
-        if (bean instanceof ObjectDeltaType){
-		    System.out.println("prism bean marshalling: " + bean);
-		}
+       
 		MapXNode xmap = new MapXNode();
 				
 		Class<? extends Object> beanClass = bean.getClass();
@@ -655,6 +669,13 @@ public class PrismBeanConverter {
 //						xmap.put(elementName, marshallValue(elementToMarshall, fieldTypeName, isAttribute));
 //						isJaxb = true;
 //						continue;
+//					} else if (element instanceof Element && prismContext != null){
+//						RootXNode xroot = prismContext.getParserDom().parseElementAsRoot((Element) element);
+//						xmap.put(xroot.getRootElementName(), xroot.getSubnode());
+//						
+//						continue;
+////						elementName = QNameUtil.getNodeQName((Element) element);
+////						elementToMarshall = element.get
 					} 
 					XNode marshalled = marshallValue(elementToMarshall, fieldTypeName, isAttribute);
 					setExplicitTypeDeclarationIfNeeded(getter, getterResultValue, marshalled, fieldTypeName);
@@ -678,7 +699,6 @@ public class PrismBeanConverter {
 					PrismObjectDefinition def = prismContext.getSchemaRegistry().determineDefinitionFromClass(valueToMarshall.getClass());
 					if (def != null){
 						QName type = def.getTypeName();
-						System.out.println("setting type def: " + type);
 						marshelled.setTypeQName(type);
 						marshelled.setExplicitTypeDeclaration(true);
 					}

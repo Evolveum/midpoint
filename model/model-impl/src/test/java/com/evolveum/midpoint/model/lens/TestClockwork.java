@@ -204,7 +204,7 @@ public class TestClockwork extends AbstractLensTest {
         }
 	}
 
-//	@Test
+	@Test
     public void test031AssignAccountToJackAsyncSerialize() throws Exception {
         TestUtil.displayTestTile(this, "test031AssignAccountToJackAsyncSerialize");
         try {

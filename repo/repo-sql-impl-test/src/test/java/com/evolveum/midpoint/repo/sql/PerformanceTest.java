@@ -25,7 +25,7 @@ public class PerformanceTest extends BaseSQLRepoTest {
     /**
      * time: ~9min (parsers branch)
      */
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testParsing() throws Exception {
         long time = System.currentTimeMillis();
 

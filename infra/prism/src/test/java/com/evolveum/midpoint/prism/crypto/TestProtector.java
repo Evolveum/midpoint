@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.prism.crypto;
 
 import org.apache.xml.security.encryption.XMLCipher;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -48,9 +49,15 @@ public class TestProtector {
 	  pdt.setClearValue(value);
 	  protector256.encrypt(pdt);
 	  
-	  
 	  Protector protector128 = createProtector(XMLCipher.AES_128);
 	  protector128.decrypt(pdt);
+	  
+	  AssertJUnit.assertEquals(value, pdt.getClearValue());
+	  
+	  ProtectedStringType pst = protector256.encryptString(value);
+	  String clear = protector256.decryptString(pst);
+	  
+	  AssertJUnit.assertEquals(value, clear);
 	 
   }
 }

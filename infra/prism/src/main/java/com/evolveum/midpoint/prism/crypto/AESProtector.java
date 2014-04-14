@@ -318,14 +318,6 @@ public class AESProtector extends BaseProtector {
 		return cipher;
 	}
 	
-//	private String translateUriToJCE(String algorithmUri){
-//		String jceAgorithm = null;
-//		if (algorithmUri.startsWith("http://")){
-//			
-//		}
-//		return jceAgorithm;
-//	}
-	// public -> add to some utility method
     public String getSecretKeyDigest(SecretKey key) throws EncryptionException {
         MessageDigest sha1 = null;
         try {
