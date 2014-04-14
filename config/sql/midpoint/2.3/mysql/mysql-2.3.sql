@@ -9,6 +9,8 @@
 # replace "ENGINE=InnoDB" with "DEFAULT CHARACTER SET utf8 COLLATE utf8_bin ENGINE=InnoDB"
 # replace "DATETIME" with "DATETIME(6)"
 
+# remove iAncestor and iDescendant index, they are the same as FK for that fields
+
 CREATE TABLE m_abstract_role (
   approvalProcess VARCHAR(255),
   requestable     BIT,
@@ -639,6 +641,7 @@ CREATE TABLE m_user (
   fullName_orig            VARCHAR(255),
   givenName_norm           VARCHAR(255),
   givenName_orig           VARCHAR(255),
+  hasPhoto                 BIT         NOT NULL,
   honorificPrefix_norm     VARCHAR(255),
   honorificPrefix_orig     VARCHAR(255),
   honorificSuffix_norm     VARCHAR(255),
@@ -685,6 +688,15 @@ CREATE TABLE m_user_organizational_unit (
   user_oid VARCHAR(36) NOT NULL,
   norm     VARCHAR(255),
   orig     VARCHAR(255)
+)
+  DEFAULT CHARACTER SET utf8
+  COLLATE utf8_bin
+  ENGINE =InnoDB;
+
+CREATE TABLE m_user_photo (
+  owner_oid VARCHAR(36) NOT NULL,
+  photo     LONGBLOB,
+  PRIMARY KEY (owner_oid)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
@@ -885,10 +897,6 @@ ADD CONSTRAINT fk_org
 FOREIGN KEY (oid)
 REFERENCES m_abstract_role (oid);
 
-CREATE INDEX iAncestor ON m_org_closure (ancestor_oid);
-
-CREATE INDEX iDescendant ON m_org_closure (descendant_oid);
-
 CREATE INDEX iAncestorDepth ON m_org_closure (ancestor_oid, depthValue);
 
 CREATE INDEX iAncDescDepth ON m_org_closure (ancestor_oid, descendant_oid, depthValue);
@@ -1021,6 +1029,12 @@ ALTER TABLE m_user_organizational_unit
 ADD INDEX fk_user_org_unit (user_oid),
 ADD CONSTRAINT fk_user_org_unit
 FOREIGN KEY (user_oid)
+REFERENCES m_user (oid);
+
+ALTER TABLE m_user_photo
+ADD INDEX fk_user_photo (owner_oid),
+ADD CONSTRAINT fk_user_photo
+FOREIGN KEY (owner_oid)
 REFERENCES m_user (oid);
 
 ALTER TABLE m_value_policy

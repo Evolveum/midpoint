@@ -735,7 +735,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         List<PrismObject<ObjectType>> sOrgClosure = repositoryService.searchObjects(ObjectType.class, objectQuery, null, parentResult);
 
-        AssertJUnit.assertEquals(4, sOrgClosure.size());
+        AssertJUnit.assertEquals(5, sOrgClosure.size());
 
         for (PrismObject<ObjectType> u : sOrgClosure) {
             LOGGER.info("USER000 ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));
@@ -859,7 +859,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         List<PrismObject<ObjectType>> orgClosure = repositoryService.searchObjects(ObjectType.class, query, null, opResult);
 
-        AssertJUnit.assertEquals(4, orgClosure.size());
+        AssertJUnit.assertEquals(5, orgClosure.size());
 
         for (PrismObject<ObjectType> u : orgClosure) {
             LOGGER.info("CHILD ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));

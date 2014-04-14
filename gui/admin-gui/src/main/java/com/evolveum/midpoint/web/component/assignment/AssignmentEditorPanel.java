@@ -29,29 +29,27 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.datetime.markup.html.form.DateTextField;
-import org.apache.wicket.extensions.yui.calendar.DatePicker;
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -59,8 +57,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
-import org.apache.wicket.request.resource.ResourceReference;
-import org.apache.wicket.request.resource.SharedResourceReference;
+import org.apache.wicket.util.visit.IVisit;
+import org.apache.wicket.util.visit.IVisitor;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
@@ -100,9 +98,18 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
     private static final String ID_TARGET_CONTAINER = "targetContainer";
     private static final String ID_CONSTRUCTION_CONTAINER = "constructionContainer";
 
+    private IModel<List<ACAttributeDto>> attributesModel;
+
 
     public AssignmentEditorPanel(String id, IModel<AssignmentEditorDto> model) {
         super(id, model);
+
+        attributesModel = new LoadableModel<List<ACAttributeDto>>(false) {
+            @Override
+            protected List<ACAttributeDto> load() {
+                return loadAttributes();
+            }
+        };
 
         initPanelLayout();
     }
@@ -247,8 +254,8 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
 
             @Override
             public boolean isVisible() {
-                //disabled activation in assignments for now.
-                return false;
+                //enabled activation in assignments for now.
+                return true;
             }
         });
         body.add(activationBlock);
@@ -304,6 +311,30 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
         showEmpty.add(showEmptyLabel);
 
         initAttributesLayout(constructionContainer);
+
+        addAjaxOnUpdateBehavior(body);
+    }
+
+    private void addAjaxOnBlurUpdateBehaviorToComponent(final Component component){
+        component.setOutputMarkupId(true);
+        component.add(new AjaxFormComponentUpdatingBehavior("onBlur") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {}
+        });
+    }
+
+    private void addAjaxOnUpdateBehavior(WebMarkupContainer container){
+        container.visitChildren(new IVisitor<Component, Object>() {
+            @Override
+            public void component(Component component, IVisit<Object> objectIVisit) {
+                if(component instanceof InputPanel){
+                    addAjaxOnBlurUpdateBehaviorToComponent(((InputPanel) component).getBaseFormComponent());
+                } else if(component instanceof FormComponent){
+                    addAjaxOnBlurUpdateBehaviorToComponent(component);
+                }
+            }
+        });
     }
 
     private void initAttributesLayout(WebMarkupContainer constructionContainer) {
@@ -319,14 +350,7 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
         });
         constructionContainer.add(attributes);
 
-        ListView<ACAttributeDto> attribute = new ListView<ACAttributeDto>(ID_ATTRIBUTE,
-                new LoadableModel<List<ACAttributeDto>>(false) {
-
-                    @Override
-                    protected List<ACAttributeDto> load() {
-                        return loadAttributes();
-                    }
-                }) {
+        ListView<ACAttributeDto> attribute = new ListView<ACAttributeDto>(ID_ATTRIBUTE, attributesModel){
 
             @Override
             protected void populateItem(ListItem<ACAttributeDto> listItem) {
@@ -352,7 +376,6 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
             }
         };
         attributes.add(attribute);
-
         //todo extension
     }
 
@@ -385,6 +408,10 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
 
     private List<ACAttributeDto> loadAttributes() {
         AssignmentEditorDto dto = getModel().getObject();
+
+        if(dto.getAttributes() != null && !dto.getAttributes().isEmpty()){
+            return dto.getAttributes();
+        }
 
         OperationResult result = new OperationResult(OPERATION_LOAD_ATTRIBUTES);
         List<ACAttributeDto> attributes = new ArrayList<ACAttributeDto>();
@@ -444,7 +471,7 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
             getPageBase().showResultInSession(result);
         }
 
-        return attributes;
+        return dto.getAttributes();
     }
 
     private PrismObject getReference(ObjectReferenceType ref, OperationResult result) {

@@ -174,6 +174,8 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         jdbcUrl.append(";LOCK_MODE=1");
         //fix for "Timeout trying to lock table [50200-XXX]" in H2 database. Default value is 1000ms.
         jdbcUrl.append(";LOCK_TIMEOUT=10000");
+        //we want to store blob datas (full xml object right in table (it's always only a few kb)
+        jdbcUrl.append(";MAX_LENGTH_INPLACE_LOB=10240");
 
         config.setJdbcUrl(jdbcUrl.toString());
         LOGGER.trace("JDBC url created: {}", new Object[]{config.getJdbcUrl()});

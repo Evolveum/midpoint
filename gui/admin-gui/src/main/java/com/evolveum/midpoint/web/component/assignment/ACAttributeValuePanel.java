@@ -31,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.AjaxFormValidatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.form.Form;
@@ -67,7 +68,10 @@ public class ACAttributeValuePanel extends SimplePanel<ACValueConstructionDto> {
             comp.setLabel(new PropertyModel(dto.getAttribute(), ACAttributeDto.F_NAME));
             comp.setRequired(required);
 
-            comp.add(new AjaxFormValidatingBehavior(form, "onBlur"));
+            comp.add(new AjaxFormComponentUpdatingBehavior("onBlur") {
+                @Override
+                protected void onUpdate(AjaxRequestTarget target) {}
+            });
         }
 
         add(input);
