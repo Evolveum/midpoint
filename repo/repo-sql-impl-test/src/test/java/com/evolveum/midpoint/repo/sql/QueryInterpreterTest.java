@@ -961,40 +961,32 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled=false)    //TODO ENABLE [lazyman]
+    @Test
     public void queryOrgTreeFindOrgs() throws Exception {
         Session session = open();
 
         try {
-            ProjectionList list = Projections.projectionList();
-            addFullObjectProjectionList("o", list, false);
-            addFullObjectProjectionList("o", list, true);
-            list.add(Projections.groupProperty("o.name.orig"));
-            list.add(Projections.groupProperty("closure.descendant"));
+            Query query = session.createQuery(
+                    "select o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount "
+                            + "from ROrg as o left join o.descendants as d "
+                            + "where d.ancestorOid=:aOid and d.depth <=:maxDepth "
+                            + "group by o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount, o.name.orig "
+                            + "order by o.name.orig asc");
+            query.setString("aOid", "1234");
+            query.setInteger("maxDepth", 1);
 
-            Criteria main = session.createCriteria(ROrg.class, "o");
-            main.createCriteria("descendants", "closure").setFetchMode("closure.ancestor", FetchMode.DEFAULT)
-                    .createAlias("closure.ancestor", "anc").setProjection(list);
-            main.addOrder(Order.asc("o.name.orig"));
-
-            Conjunction conjunction = Restrictions.conjunction();
-            conjunction.add(Restrictions.eq("anc.oid", "some oid"));
-            conjunction.add(Restrictions.le("closure.depth", 1));
-            conjunction.add(Restrictions.gt("closure.depth", 0));
-            main.add(conjunction);
-
-            String expected = HibernateToSqlTranslator.toSql(main);
+            String expected = HibernateToSqlTranslator.toSql(factory, query.getQueryString());
 
             OrgFilter orgFilter = OrgFilter.createOrg("some oid", null, 1);
-            ObjectQuery query = ObjectQuery.createObjectQuery(orgFilter);
-            query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
+            ObjectQuery objectQuery = ObjectQuery.createObjectQuery(orgFilter);
+            objectQuery.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
 
-            String real = getInterpretedQuery(session, OrgType.class, query);
+            String real = getInterpretedQuery(session, OrgType.class, objectQuery);
 
             LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
 
             OperationResult result = new OperationResult("query org structure");
-            repositoryService.searchObjects(OrgType.class, query, null, result);
+            repositoryService.searchObjects(OrgType.class, objectQuery, null, result);
 
             AssertJUnit.assertEquals(expected, real);
         } finally {
@@ -1110,26 +1102,4 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             close(session);
         }
     }
-
-//    @Test
-//    public void test300() throws Exception {
-//        Session session = open();
-//        try {
-//            Query query = session.createQuery(
-//                    "select o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount from "
-//                            + ClassMapper.getHQLType(UserType.class) + " as o left join o.descendants as d "
-//                            + "where d.ancestorOid=:aOid and d.depth <=:maxDepth and d.depth>:minDepth "
-//                            + "group by o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount, o.name.orig "
-//                            + "order by o.name.orig asc");
-//            query.setString("aOid", "1234");
-//            query.setInteger("minDepth", 1);
-//            query.setInteger("maxDepth", 1);
-//
-//            LOGGER.info("vilko {}", HibernateToSqlTranslator.toSql(factory, query.getQueryString()));
-//
-//            query.list();
-//        } finally {
-//            close(session);
-//        }
-//    }
 }

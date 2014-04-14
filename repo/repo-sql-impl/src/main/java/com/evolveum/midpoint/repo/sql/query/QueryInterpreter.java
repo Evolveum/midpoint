@@ -17,9 +17,11 @@
 package com.evolveum.midpoint.repo.sql.query;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.query.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query.definition.EntityDefinition;
@@ -31,8 +33,6 @@ import com.evolveum.midpoint.repo.sql.query.restriction.Restriction;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectSelector;
-import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -43,9 +43,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.reflect.ConstructorUtils;
 import org.hibernate.Criteria;
-import org.hibernate.FetchMode;
 import org.hibernate.Session;
-import org.hibernate.criterion.*;
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.ProjectionList;
+import org.hibernate.criterion.Projections;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -155,28 +157,9 @@ public class QueryInterpreter {
     }
 
     private boolean usesOrgFilter(ObjectQuery query) {
-        return query != null && usesOrgFilter(query.getFilter());
-    }
-
-    private boolean usesOrgFilter(ObjectFilter query) {
-        if (query == null) {
-            return false;
-        }
-
-        if (query instanceof OrgFilter) {
-            OrgFilter f = (OrgFilter)query;
-            if (!f.isRoot()) {
-                return true;
-            }
-        }
-
-        if (query instanceof LogicalFilter) {
-            LogicalFilter l = (LogicalFilter) query;
-            for (ObjectFilter f : l.getCondition()) {
-                if (usesOrgFilter(f)) {
-                    return true;
-                }
-            }
+        OrgFilter filter = RUtil.findOrgFilter(query);
+        if (filter != null && !filter.isRoot()) {
+            return true;
         }
 
         return false;
@@ -240,18 +223,18 @@ public class QueryInterpreter {
         }
 
         if (paging.getDirection() != null) {
-        	switch (paging.getDirection()) {
-            	case ASCENDING:
-            		query = query.addOrder(Order.asc(propertyName));
-            		break;
-            	case DESCENDING:
-            		query = query.addOrder(Order.desc(propertyName));
-            		break;
-        	}
-        } else { 
-        	query = query.addOrder(Order.asc(propertyName));
+            switch (paging.getDirection()) {
+                case ASCENDING:
+                    query = query.addOrder(Order.asc(propertyName));
+                    break;
+                case DESCENDING:
+                    query = query.addOrder(Order.desc(propertyName));
+                    break;
+            }
+        } else {
+            query = query.addOrder(Order.asc(propertyName));
         }
-        	
+
 
         return query;
     }
