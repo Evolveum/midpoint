@@ -8,6 +8,8 @@ import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.apache.commons.lang.ObjectUtils;
 import org.hibernate.Criteria;
@@ -21,6 +23,8 @@ import java.util.Collection;
  * @author lazyman
  */
 public class QueryEngine {
+
+    private static final Trace LOGGER = TraceManager.getTrace(QueryEngine.class);
 
     private SqlRepositoryConfiguration repoConfiguration;
     private PrismContext prismContext;
@@ -61,6 +65,8 @@ public class QueryEngine {
         if (filter.isRoot()) {
             return null;
         }
+
+        LOGGER.trace("createOrgQuery {}, counting={}, filter={}", new Object[]{type.getSimpleName(), countingObjects, filter});
 
         StringBuilder sb = new StringBuilder();
         sb.append("select ");

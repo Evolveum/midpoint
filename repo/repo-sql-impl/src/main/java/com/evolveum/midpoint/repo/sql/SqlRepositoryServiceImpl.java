@@ -554,6 +554,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         LOGGER.debug("Updating full object xml column start.");
         savedObject.setVersion(Integer.toString(object.getVersion()));
 
+        if (UserType.class.equals(savedObject.getCompileTimeClass())) {
+            savedObject.removeProperty(UserType.F_JPEG_PHOTO);
+        }
+
         PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
         String xml = domProcessor.serializeObjectToString(savedObject);
         byte[] fullObject = RUtil.getByteArrayFromXml(xml, getConfiguration().isUseZip());
@@ -1004,7 +1008,17 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         String xml = RUtil.getXmlFromByteArray(result.getFullObject(), getConfiguration().isUseZip());
         PrismObject<T> prismObject = domProcessor.parseObject(xml);
 
-        if (ShadowType.class.equals(prismObject.getCompileTimeClass())) {
+        if (UserType.class.equals(prismObject.getCompileTimeClass())) {
+            //todo improve, use user.hasPhoto flag and take options into account [lazyman]
+            //call this only when options contains INCLUDE user/jpegPhoto
+            Query query = session.getNamedQuery("get.userPhoto");
+            query.setString("oid", prismObject.getOid());
+            byte[] photo = (byte[]) query.uniqueResult();
+            if (photo != null) {
+                PrismProperty property = prismObject.findOrCreateProperty(UserType.F_JPEG_PHOTO);
+                property.setRealValue(photo);
+            }
+        } else if (ShadowType.class.equals(prismObject.getCompileTimeClass())) {
             //we store it because provisioning now sends it to repo, but it should be transient
             prismObject.removeContainer(ShadowType.F_ASSOCIATION);
 

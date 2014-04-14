@@ -55,6 +55,7 @@ import java.util.Set;
  * @author lazyman
  */
 @NamedQueries({
+        @NamedQuery(name = "get.userPhoto", query = "select p.photo from RUserPhoto p where p.ownerOid = :oid"),
         @NamedQuery(name = "get.object", query = "select o.fullObject, o.stringsCount, o.longsCount, o.datesCount, o.referencesCount, o.polysCount from RObject as o where o.oid=:oid"),
         @NamedQuery(name = "searchShadowOwner.getShadow", query = "select s.oid from RShadow as s where s.oid = :oid"),
         @NamedQuery(name = "searchShadowOwner.getOwner", query = "select o.fullObject, o.stringsCount, o.longsCount, o.datesCount, o.referencesCount, o.polysCount from RFocus as o left join o.linkRef as ref where ref.targetOid = :oid"),
@@ -140,7 +141,6 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
 
     @Where(clause = RObjectReference.REFERENCE_TYPE + "=" + RParentOrgRef.DISCRIMINATOR)
     @OneToMany(mappedBy = RObjectReference.F_OWNER, orphanRemoval = true)
-    @ForeignKey(name = "none")
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RObjectReference> getParentOrgRef() {
         if (parentOrgRef == null) {

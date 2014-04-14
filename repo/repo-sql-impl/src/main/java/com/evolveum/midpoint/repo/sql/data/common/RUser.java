@@ -31,6 +31,7 @@ import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -69,7 +70,9 @@ public class RUser extends RFocus<UserType> implements OperationResult {
     private Set<RPolyString> organization;
     //operation result
     private ROperationResultStatus status;
-    //end of operation result
+    //user photo
+    private boolean hasPhoto;
+    private Set<RUserPhoto> jpegPhoto;
 
     @ElementCollection
     @ForeignKey(name = "fk_user_organization")
@@ -188,6 +191,27 @@ public class RUser extends RFocus<UserType> implements OperationResult {
     @Enumerated(EnumType.ORDINAL)
     public ROperationResultStatus getStatus() {
         return status;
+    }
+
+    public boolean isHasPhoto() {
+        return hasPhoto;
+    }
+
+    @OneToMany(mappedBy = "owner", orphanRemoval = true)
+    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    public Set<RUserPhoto> getJpegPhoto() {
+        if (jpegPhoto == null) {
+            jpegPhoto = new HashSet<>();
+        }
+        return jpegPhoto;
+    }
+
+    public void setHasPhoto(boolean hasPhoto) {
+        this.hasPhoto = hasPhoto;
+    }
+
+    public void setJpegPhoto(Set<RUserPhoto> jpegPhoto) {
+        this.jpegPhoto = jpegPhoto;
     }
 
     public void setStatus(ROperationResultStatus status) {
@@ -377,6 +401,15 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         repo.setEmployeeType(RUtil.listToSet(jaxb.getEmployeeType()));
         repo.setOrganizationalUnit(RUtil.listPolyToSet(jaxb.getOrganizationalUnit()));
         repo.setOrganization(RUtil.listPolyToSet(jaxb.getOrganization()));
+
+        if (jaxb.getJpegPhoto() != null) {
+            RUserPhoto photo = new RUserPhoto();
+            photo.setOwner(repo);
+            photo.setPhoto(jaxb.getJpegPhoto());
+
+            repo.getJpegPhoto().add(photo);
+            repo.setHasPhoto(true);
+        }
     }
 
     @Override
