@@ -27,6 +27,11 @@
         <groupId>com.evolveum.midpoint</groupId>
         <version>2.3-SNAPSHOT</version>
     </parent>
+    <scm>
+        <connection>https://github.com/Evolveum/midpoint.git</connection>
+        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
+        <url>https://fisheye.evolveum.com/browse/midPoint</url>
+    </scm>
     <build>
         <resources>
             <resource>

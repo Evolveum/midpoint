@@ -36,6 +36,11 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
+    <scm>
+        <connection>https://github.com/Evolveum/midpoint.git</connection>
+        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
+        <url>https://fisheye.evolveum.com/browse/midPoint</url>
+    </scm>
 
     <distributionManagement>
       <repository>
@@ -60,6 +65,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
                 <configuration>
                     <!--<archive>-->
                         <!--<index>false</index>-->

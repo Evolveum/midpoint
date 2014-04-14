@@ -42,9 +42,9 @@
 		<url>http://jira.evolveum.com/</url>
 	</issueManagement>
 	<scm>
-		<connection>scm:git:git://git.evolveum.com/midpoint.git</connection>
-		<developerConnection>scm:git:git://git.evolveum.com/midpoint.git</developerConnection>
-		<url>https://fisheye.evolveum.com/midpoint/</url>
+		<connection>https://github.com/Evolveum/midpoint.git</connection>
+		<developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
+		<url>https://fisheye.evolveum.com/browse/midPoint</url>
 	</scm>
 	<dependencies>
 		<dependency>

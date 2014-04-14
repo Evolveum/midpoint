@@ -555,9 +555,9 @@
     </issueManagement>
 
     <scm>
-        <connection>scm:git:git://git.evolveum.com/midpoint.gittrunk/build-system</connection>
-        <developerConnection>scm:git:git://git.evolveum.com/midpoint.gittrunk/build-system</developerConnection>
-        <url>https://fisheye.evolveum.com/browse/MidPoint/trunk/browse/MidPoint/trunk/build-system</url>
+        <connection>https://github.com/Evolveum/midpoint.git</connection>
+        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
+        <url>https://fisheye.evolveum.com/browse/midPoint</url>
     </scm>
     <ciManagement>
         <system>Atlasian Bamboo</system>
@@ -589,6 +589,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-resources-plugin</artifactId>
+                        <version>2.6</version>
                         <configuration>
                             <encoding>${project.build.sourceEncoding}</encoding>
                         </configuration>
@@ -608,6 +609,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
+                        <version>2.2.1</version>
                         <executions>
                             <execution>
                                 <id>attach-sources</id>
@@ -638,6 +640,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-jar-plugin</artifactId>
+                        <version>2.4</version>
                         <configuration>
                             <archive>
                                 <manifestEntries>
@@ -655,6 +658,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-war-plugin</artifactId>
+                        <version>2.4</version>
                         <configuration>
                             <archive>
                                 <manifestEntries>
@@ -765,6 +769,7 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>aspectj-maven-plugin</artifactId>
+                        <version>1.6</version>
                         <configuration>
                             <encoding>${project.build.sourceEncoding}</encoding>
                             <source>${project.source.version}</source>
@@ -789,6 +794,7 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>aspectj-maven-plugin</artifactId>
+                        <version>1.6</version>
                         <configuration>
                             <verbose>false</verbose>
                             <privateScope>true</privateScope>
