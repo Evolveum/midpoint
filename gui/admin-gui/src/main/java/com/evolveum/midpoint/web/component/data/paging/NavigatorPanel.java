@@ -193,6 +193,11 @@ public class NavigatorPanel extends Panel {
             result = current - half + loopIndex;
         }
 
+        //TODO - this is just quick dirty fix for MID-1808. Fix algorithm later
+        if(count == 4 && current == 3){
+            result++;
+        }
+
         return result;
     }
 
