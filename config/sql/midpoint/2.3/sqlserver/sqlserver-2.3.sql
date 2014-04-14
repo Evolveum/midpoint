@@ -508,6 +508,7 @@ CREATE TABLE m_user (
   fullName_orig            NVARCHAR(255) COLLATE database_default,
   givenName_norm           NVARCHAR(255) COLLATE database_default,
   givenName_orig           NVARCHAR(255) COLLATE database_default,
+  hasPhoto                 BIT                                   NOT NULL,
   honorificPrefix_norm     NVARCHAR(255) COLLATE database_default,
   honorificPrefix_orig     NVARCHAR(255) COLLATE database_default,
   honorificSuffix_norm     NVARCHAR(255) COLLATE database_default,
@@ -545,6 +546,12 @@ CREATE TABLE m_user_organizational_unit (
   user_oid NVARCHAR(36) COLLATE database_default NOT NULL,
   norm     NVARCHAR(255) COLLATE database_default,
   orig     NVARCHAR(255) COLLATE database_default
+);
+
+CREATE TABLE m_user_photo (
+  owner_oid NVARCHAR(36) COLLATE database_default NOT NULL,
+  photo     VARBINARY(MAX),
+  PRIMARY KEY (owner_oid)
 );
 
 CREATE TABLE m_value_policy (
@@ -834,6 +841,11 @@ REFERENCES m_user;
 ALTER TABLE m_user_organizational_unit
 ADD CONSTRAINT fk_user_org_unit
 FOREIGN KEY (user_oid)
+REFERENCES m_user;
+
+ALTER TABLE m_user_photo
+ADD CONSTRAINT fk_user_photo
+FOREIGN KEY (owner_oid)
 REFERENCES m_user;
 
 ALTER TABLE m_value_policy

@@ -508,6 +508,7 @@ CREATE TABLE m_user (
   fullName_orig            VARCHAR(255),
   givenName_norm           VARCHAR(255),
   givenName_orig           VARCHAR(255),
+  hasPhoto                 BOOLEAN     NOT NULL,
   honorificPrefix_norm     VARCHAR(255),
   honorificPrefix_orig     VARCHAR(255),
   honorificSuffix_norm     VARCHAR(255),
@@ -545,6 +546,12 @@ CREATE TABLE m_user_organizational_unit (
   user_oid VARCHAR(36) NOT NULL,
   norm     VARCHAR(255),
   orig     VARCHAR(255)
+);
+
+CREATE TABLE m_user_photo (
+  owner_oid VARCHAR(36) NOT NULL,
+  photo     BYTEA,
+  PRIMARY KEY (owner_oid)
 );
 
 CREATE TABLE m_value_policy (
@@ -834,6 +841,11 @@ REFERENCES m_user;
 ALTER TABLE m_user_organizational_unit
 ADD CONSTRAINT fk_user_org_unit
 FOREIGN KEY (user_oid)
+REFERENCES m_user;
+
+ALTER TABLE m_user_photo
+ADD CONSTRAINT fk_user_photo
+FOREIGN KEY (owner_oid)
 REFERENCES m_user;
 
 ALTER TABLE m_value_policy
