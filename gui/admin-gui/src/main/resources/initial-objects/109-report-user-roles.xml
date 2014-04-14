@@ -21,7 +21,7 @@
         version="0">
 	<name>
 		<orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">User roles subreport</orig>
-		<norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">User roles subreport</norm>
+		<norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">user roles subreport</norm>
 	</name>
 	<description>User roles subreport for midpoint users.</description>
 	<!-- flag if this report is "parent" report, used for gui -->

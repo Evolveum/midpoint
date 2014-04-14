@@ -22,7 +22,7 @@
         version="0">
 	<name>
 		<orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Reconciliation report</orig>
-		<norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Reconciliation report</norm>
+		<norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">reconciliation report</norm>
 	</name>
 	<description>Reconciliation report for selected resource.</description>
 	<!-- flag if this report is "parent" report, used for gui -->
