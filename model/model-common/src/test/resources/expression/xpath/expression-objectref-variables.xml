@@ -29,6 +29,9 @@
     	<objectRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType"/>
     </variable>
 	<code xmlns:x="http://example.com/xxx">
+        declare namespace x="http://example.com/xxx";
+        declare namespace y="http://example.com/yyy";
+        declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 		concat($x:foo,' ',$y:jack/c:description)
 	</code>
 </script>

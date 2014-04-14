@@ -16,8 +16,12 @@
 
 package com.evolveum.midpoint.schema.constants;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -35,11 +39,13 @@ public abstract class SchemaConstants {
 
 	public static final String NS_MIDPOINT_PUBLIC = "http://midpoint.evolveum.com/xml/ns/public";
 	public static final String NS_MIDPOINT_TEST = "http://midpoint.evolveum.com/xml/ns/test";
+	
+	public static final Map<String, String> prefixNsMap = new HashMap<String, String>(); 
 
 	// NAMESPACES
 	
 	public static final String NS_ORG = "http://midpoint.evolveum.com/xml/ns/public/common/org-2";
-	public static final String NS_QUERY = "http://prism.evolveum.com/xml/ns/public/query-2";
+	public static final String NS_QUERY = QueryConvertor.NS_QUERY;
 	public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-2";
     public static final String NS_API_TYPES = "http://midpoint.evolveum.com/xml/ns/public/common/api-types-2";
 	public static final String NS_MIDPOINT_PUBLIC_PREFIX = "http://midpoint.evolveum.com/xml/ns/public/";
@@ -62,6 +68,7 @@ public abstract class SchemaConstants {
 	public static final QName C_OBJECT_TYPE = new QName(NS_C, "ObjectType");
 	public static final QName C_OBJECT_REF = new QName(NS_C, "objectRef");
 	public static final QName C_VALUE = new QName(NS_C, "value");
+	public static final QName C_PARAM_VALUE = new QName(NS_C, "paramValue");
 	public static final QName C_OID_ATTRIBUTE = new QName(NS_C, "oid");
 	public static final QName C_USER_TYPE = new QName(NS_C, "UserType");
 	public static final QName C_TASK_TYPE = new QName(NS_C, "TaskType");
@@ -76,6 +83,7 @@ public abstract class SchemaConstants {
     public static final QName C_REQUESTEE = new QName(NS_C, "requestee");
     public static final QName C_ASSIGNEE = new QName(NS_C, "assignee");
 	public static final QName C_OBJECT_TEMPLATE = new QName(NS_C, "objectTemplate");
+	public static final QName C_OBJECT_TEMPLATE_REF = new QName(NS_C, "objectTemplateRef");
 	public static final QName C_OBJECT_TEMPLATE_TYPE = new QName(NS_C, "ObjectTemplateType");
 	public static final QName C_GENERIC_OBJECT_TYPE = new QName(NS_C, "GenericObjectType");
 	public static final QName C_GENERIC_OBJECT = new QName(NS_C, "genericObject");
@@ -98,9 +106,6 @@ public abstract class SchemaConstants {
 	public static final QName C_SYSTEM_CONFIGURATION = new QName(NS_C, "systemConfiguration");
 	public static final QName C_SYSTEM_CONFIGURATION_GLOBAL_ACCOUNT_SYNCHRONIZATION_SETTINGS = new QName(NS_C,
 			"globalAccountSynchronizationSettings");
-	public static final QName C_PROTECTED_STRING_TYPE = new QName(NS_C, "ProtectedStringType");
-	public static final QName C_PROTECTED_STRING = new QName(NS_C, "protectedString");
-	public static final QName C_PROTECTED_BYTE_ARRAY_TYPE = new QName(NS_C, "ProtectedByteArrayType");
 	
 	public static final QName C_REPORT = new QName(NS_C, "report");
 	public static final QName C_REPORT_OUTPUT = new QName(NS_C, "reportOutput");
@@ -111,6 +116,9 @@ public abstract class SchemaConstants {
 	public static final QName T_POLY_STRING_TYPE = new QName(SchemaConstantsGenerated.NS_TYPES, "PolyStringType");
     public static final QName T_OBJECT_DELTA = new QName(SchemaConstantsGenerated.NS_TYPES, "objectDelta");
     public static final QName T_OBJECT_DELTA_TYPE = new QName(SchemaConstantsGenerated.NS_TYPES, "ObjectDeltaType");
+//    public static final QName T_PROTECTED_STRING_TYPE = new QName(NS_C, "ProtectedStringType");
+//	public static final QName T_PROTECTED_STRING = new QName(NS_C, "protectedString");
+//	public static final QName T_PROTECTED_BYTE_ARRAY_TYPE = new QName(NS_C, "ProtectedByteArrayType");
 
     public static final QName ORG_MANAGER = new QName(NS_ORG, "manager");
 
@@ -202,4 +210,7 @@ public abstract class SchemaConstants {
     public static final QName C_MESSAGE = new QName(NS_C, "message");
     public static final QName C_WORK_ITEM = new QName(NS_C, "workItem");
     public static final QName C_WF_PROCESS_INSTANCE = new QName(NS_C, "wfProcessInstance");
+
+    public static final QName APIT_ITEM_LIST = new QName(SchemaConstants.NS_API_TYPES, "itemList");
+    public static final QName C_ASSIGNMENT = new QName(SchemaConstants.NS_C, "assignment");
 }

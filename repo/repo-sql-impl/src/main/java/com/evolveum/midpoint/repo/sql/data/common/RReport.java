@@ -12,6 +12,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
+import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
 import javax.persistence.*;
 import java.util.Collection;

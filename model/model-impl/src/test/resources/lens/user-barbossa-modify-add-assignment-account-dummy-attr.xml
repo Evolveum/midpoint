@@ -21,12 +21,13 @@
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">
 	<oid>c0c010c0-d34d-b33f-f00d-111111111112</oid>
-	<modification>
+	<itemDelta>
 		<t:modificationType>add</t:modificationType>
+		<t:path>assignment</t:path>
 		<t:value>
-			<c:assignment>
+<!-- 			<c:assignment> -->
 				<c:construction>
 					<c:description>Monkey account construction</c:description>
 					<c:resourceRef oid="10000000-0000-0000-0000-000000000004"/>
@@ -42,15 +43,15 @@
 						<c:ref>ri:weapon</c:ref>
 						<c:outbound>
 							<c:expression>
-								<c:value>
-									<ri:weapon>Dagger</ri:weapon>
-									<ri:weapon>Pistol</ri:weapon>
-								</c:value>
+								<c:value>Dagger</c:value>
+<!-- 									<ri:weapon>Dagger</ri:weapon> -->
+<!-- 									<ri:weapon>Pistol</ri:weapon> -->
+								<c:value>Pistol</c:value>
 							</c:expression>
 						</c:outbound>
 					</c:attribute>
 				</c:construction>
-			</c:assignment>
+<!-- 			</c:assignment> -->
 		</t:value>
-	</modification>
+	</itemDelta>
 </objectModification>

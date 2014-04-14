@@ -16,12 +16,13 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -60,13 +61,13 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
     public void beforeClass() throws Exception {
         super.beforeClass();
 
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+        resetPrismContext(MidPointPrismContextFactory.FACTORY);
         //given
         //no role
 
         //when
-        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
-        PrismObject role = domProcessor.parseObject(FILE_ROLE);
+//        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+        PrismObject role = prismContext.parseObject(FILE_ROLE);
 
         OperationResult result = new OperationResult("add role");
         String oid = repositoryService.addObject(role, null, result);
@@ -90,7 +91,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         //given
 
         //when
-        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
+        ObjectModificationType modification = getJaxbUtil().unmarshalObject(
                 new File(TEST_DIR, "modify-add-assignment.xml"), ObjectModificationType.class);
 
         ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, RoleType.class, prismContext);
@@ -106,6 +107,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         //check role and its assignments and inducements
         result = new OperationResult("get role");
         PrismObject repoRole = repositoryService.getObject(RoleType.class, ROLE_OID, null, result);
+        System.out.println("role: "  + repoRole.debugDump());
         result.recomputeStatus();
         result.recordSuccessIfUnknown();
         AssertJUnit.assertTrue(result.isSuccess());
@@ -132,7 +134,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         //given
 
         //when
-        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
+        ObjectModificationType modification = getJaxbUtil().unmarshalObject(
                 new File(TEST_DIR, "modify-add-inducement.xml"), ObjectModificationType.class);
 
         ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, RoleType.class, prismContext);
@@ -148,6 +150,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         //check role and its assignments and inducements
         result = new OperationResult("get role");
         PrismObject repoRole = repositoryService.getObject(RoleType.class, ROLE_OID, null, result);
+        System.out.println("role: " + repoRole.debugDump());
         result.recomputeStatus();
         result.recordSuccessIfUnknown();
         AssertJUnit.assertTrue(result.isSuccess());
@@ -171,7 +174,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         //given
 
         //when
-        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
+        ObjectModificationType modification = getJaxbUtil().unmarshalObject(
                 new File(TEST_DIR, "modify-assignment.xml"), ObjectModificationType.class);
 
         ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, RoleType.class, prismContext);
@@ -212,7 +215,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         //given
 
         //when
-        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
+        ObjectModificationType modification = getJaxbUtil().unmarshalObject(
                 new File(TEST_DIR, "modify-inducement.xml"), ObjectModificationType.class);
 
         ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, RoleType.class, prismContext);
@@ -307,7 +310,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         //given
 
         //when
-        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
+        ObjectModificationType modification = getJaxbUtil().unmarshalObject(
                 new File(TEST_DIR, "modify-delete-inducement.xml"), ObjectModificationType.class);
 
         ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, RoleType.class, prismContext);
@@ -348,7 +351,7 @@ public class ModifyAssignmentTest extends BaseSQLRepoTest {
         //given
 
         //when
-        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
+        ObjectModificationType modification = getJaxbUtil().unmarshalObject(
                 new File(TEST_DIR, "modify-delete-add-assignment.xml"), ObjectModificationType.class);
 
         ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, RoleType.class, prismContext);

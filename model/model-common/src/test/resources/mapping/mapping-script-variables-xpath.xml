@@ -25,18 +25,19 @@
     </source>
 	<expression>
 		<variable>
-			<name>x:foo</name>
+			<name>foo</name>
 	    	<value>Captain</value>
 	    </variable>
 	    <variable>
-	    	<name>y:sailor</name>
+	    	<name>sailor</name>
 	    	<objectRef oid="c0c010c0-d34d-b33f-f00d-111111111112" type="UserType"/>
 	    </variable>
 		<script>
 			<language>http://www.w3.org/TR/xpath/</language>
 			<returnType>scalar</returnType>
-			<code xmlns:x="http://example.com/xxx">
-				concat($x:foo,' ',$y:sailor/c:description)
+			<code>
+                declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+				concat($foo,' ',$sailor/c:description)
 			</code>
 		</script>
 	</expression>

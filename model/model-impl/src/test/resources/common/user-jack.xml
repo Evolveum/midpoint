@@ -47,7 +47,7 @@
     <credentials>
         <password>
         	<value>
-	            <clearValue>deadmentellnotales</clearValue>
+	            <t:clearValue>deadmentellnotales</t:clearValue>
             </value>
         </password>
     </credentials>

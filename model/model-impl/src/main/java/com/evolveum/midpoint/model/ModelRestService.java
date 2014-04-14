@@ -36,10 +36,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -383,7 +383,7 @@ LOGGER.info("model rest service for add operation start");
 
 		Class clazz = ObjectTypes.getClassFromRestType(type);
 		try {	
-		ObjectQuery query = QueryConvertor.createObjectQuery(clazz, queryType, prismContext);
+		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(clazz, queryType, prismContext);
 		
 //		Collection<SelectorOptions<GetOperationOptions>> options = MiscSchemaUtil.optionsTypeToOptions(optionsType);
 		

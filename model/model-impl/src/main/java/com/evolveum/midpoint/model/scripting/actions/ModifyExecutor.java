@@ -30,12 +30,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ActionExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionType;
 import com.evolveum.prism.xml.ns._public.types_2.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.xml.bind.JAXBElement;
 
 /**
  * @author mederly
@@ -56,7 +56,7 @@ public class ModifyExecutor extends BaseActionExecutor {
     @Override
     public Data execute(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
 
-        ExpressionType deltaExpression = expressionHelper.getArgument(expression.getParameter(), PARAM_DELTA, true, true, NAME);
+        JAXBElement<?> deltaExpression = expressionHelper.getArgument(expression.getParameter(), PARAM_DELTA, true, true, NAME);
         Data deltaData = scriptingExpressionEvaluator.evaluateExpression(deltaExpression, input, context, result);
 
         for (Item item : input.getData()) {

@@ -8,3 +8,4 @@ target
 rebel.xml
 samples/model-client-sample-dotnet/ModelClientSample/ModelClientSample/bin
 samples/model-client-sample-dotnet/ModelClientSample/ModelClientSample/obj
+velocity.log

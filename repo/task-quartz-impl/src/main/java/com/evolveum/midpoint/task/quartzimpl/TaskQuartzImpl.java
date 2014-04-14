@@ -169,7 +169,7 @@ public class TaskQuartzImpl implements Task {
             if (operationName == null) {
                 resultInPrism = new OperationResult(DOT_INTERFACE + "run").createOperationResultType();
             } else {
-                resultInPrism = new OperationResult(operationName).createOperationResultType();
+            	resultInPrism = new OperationResult(operationName).createOperationResultType();
             }
             taskPrism.asObjectable().setResult(resultInPrism);
         }
@@ -642,8 +642,9 @@ public class TaskQuartzImpl implements Task {
     public ItemDelta<?> createExtensionDelta(PrismPropertyDefinition definition, Object realValue) {
         PrismProperty<?> property = (PrismProperty<?>) definition.instantiate();
         property.setRealValue(realValue);
-        PropertyDelta propertyDelta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, property.getElementName()), definition);
-        propertyDelta.setValuesToReplace(PrismValue.cloneCollection(property.getValues()));
+        PropertyDelta propertyDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(TaskType.F_EXTENSION, property.getElementName()), definition, realValue);
+//        PropertyDelta propertyDelta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, property.getElementName()), definition);
+//        propertyDelta.setValuesToReplace(PrismValue.cloneCollection(property.getValues()));
         return propertyDelta;
     }
 

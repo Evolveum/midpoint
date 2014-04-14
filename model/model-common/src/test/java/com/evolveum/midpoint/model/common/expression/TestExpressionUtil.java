@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.common.expression;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 
@@ -42,6 +43,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -49,7 +51,6 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -191,12 +192,12 @@ public class TestExpressionUtil {
     	
     }
 
-    private <T> T resolvePath(String path, final String TEST_NAME) throws SchemaException, ObjectNotFoundException {
+    private <T> T resolvePath(String path, final String TEST_NAME) throws SchemaException, ObjectNotFoundException, IOException {
     	ExpressionVariables variables = createVariables();
     	return resolvePath(path, variables, TEST_NAME);
     }
     
-    private <T> T resolvePathOdo(String path, final String TEST_NAME) throws SchemaException, ObjectNotFoundException {
+    private <T> T resolvePathOdo(String path, final String TEST_NAME) throws SchemaException, ObjectNotFoundException, IOException {
     	ExpressionVariables variables = createVariablesOdo();
     	return resolvePath(path, variables, TEST_NAME);
     }
@@ -215,13 +216,13 @@ public class TestExpressionUtil {
     	return (T) resolved;
     }
 
-	private ExpressionVariables createVariables() throws SchemaException {
+	private ExpressionVariables createVariables() throws SchemaException, IOException {
 		ExpressionVariables variables = new ExpressionVariables();
 		variables.addVariableDefinition(ExpressionConstants.VAR_USER, createUser());
 		return variables;
 	}
 	
-	private ExpressionVariables createVariablesOdo() throws SchemaException {
+	private ExpressionVariables createVariablesOdo() throws SchemaException, IOException {
 		ExpressionVariables variables = new ExpressionVariables();
 		PrismObject<UserType> userOld = createUser();
 		ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class,
@@ -233,7 +234,7 @@ public class TestExpressionUtil {
 		return variables;
 	}
 
-	private PrismObject<UserType> createUser() throws SchemaException {
+	private PrismObject<UserType> createUser() throws SchemaException, IOException {
 		return PrismTestUtil.parseObject(USER_JACK_FILE);
 	}
 

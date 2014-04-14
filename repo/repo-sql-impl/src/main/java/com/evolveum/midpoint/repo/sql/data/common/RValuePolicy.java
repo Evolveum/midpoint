@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -23,12 +24,14 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
+
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+
 import java.util.Collection;
 
 /**
@@ -73,6 +76,9 @@ public class RValuePolicy extends RObject<ValuePolicyType> {
     public static void copyFromJAXB(ValuePolicyType jaxb, RValuePolicy repo, PrismContext prismContext) throws
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
+        
+		PrismContainerDefinition<ValuePolicyType> valuePolicyDefinition = prismContext.getSchemaRegistry()
+				.findContainerDefinitionByCompileTimeClass(ValuePolicyType.class);
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
     }

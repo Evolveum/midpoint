@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.container.RExclusion;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
@@ -32,6 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExclusionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -41,6 +43,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -171,6 +174,8 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
                 repo.getApproverRef().add(ref);
             }
         }
+        
+        PrismObjectDefinition<AbstractRoleType> roleDefinition = jaxb.asPrismObject().getDefinition();
 
         repo.setApprovalProcess(jaxb.getApprovalProcess());
     }

@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.provisioning.test.ucf;
 
-import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -23,11 +22,14 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.*;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
@@ -51,7 +53,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
 
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,8 +69,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -714,16 +721,15 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		ItemDeltaType propMod = new ItemDeltaType();
 		//create modification path
 		Document doc = DOMUtil.getDocument();
-		Element path = doc.createElementNS(SchemaConstants.NS_C, "path");
+		ItemPathType path = new ItemPathType();
 //		PropertyPath propPath = new PropertyPath(new PropertyPath(ResourceObjectShadowType.F_CREDENTIALS), CredentialsType.F_PASSWORD);
-		path.setTextContent("c:credentials/c:password");
+		path.getContent().add("credentials/password/value");
 		propMod.setPath(path);
-		
+
 		//set the replace value
-		ItemDeltaType.Value value = new ItemDeltaType.Value();
-		Element valueElement = PrismTestUtil.marshalObjectToDom(passPs, PasswordType.F_VALUE, doc);
-		value.getAny().add(valueElement);
-		propMod.setValue(value);
+        MapXNode passPsXnode = prismContext.getXnodeProcessor().createSerializer().serializeProtectedDataType(passPs);
+		RawType value = new RawType(passPsXnode);
+		propMod.getValue().add(value);
 		
 		//set the modificaion type
 		propMod.setModificationType(ModificationTypeType.REPLACE);

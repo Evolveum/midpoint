@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schema;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -26,7 +27,10 @@ import java.lang.reflect.Method;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -39,11 +43,11 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType.Definition;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
 /**
  * @author semancik
@@ -99,7 +103,7 @@ public class TestJaxbSanity {
 	}
 
 	@Test
-	public void testUnmarshallAndEqualsUserJaxb() throws JAXBException, SchemaException, FileNotFoundException {
+	public void testUnmarshallAndEqualsUserJaxb() throws Exception {
 		System.out.println("\n\n ===[ testUnmarshallAndEqualsUserJaxb ]===\n");
 		
 		// GIVEN
@@ -133,7 +137,7 @@ public class TestJaxbSanity {
 	}
 	
 	@Test
-	public void testUnmarshallAndEqualsUserPrism() throws SchemaException {
+	public void testUnmarshallAndEqualsUserPrism() throws Exception {
 		System.out.println("\n\n ===[testUnmarshallAndEqualsUserPrism]===\n");
 		
 		// GIVEN
@@ -183,7 +187,7 @@ public class TestJaxbSanity {
 	}
 
 	@Test
-	public void testUnmarshallAndEqualsUserMixed() throws SchemaException, JAXBException, FileNotFoundException {
+	public void testUnmarshallAndEqualsUserMixed() throws Exception {
 		System.out.println("\n\n ===[testUnmarshallAndEqualsUserMixed]===\n");
 		
 		// GIVEN
@@ -199,7 +203,8 @@ public class TestJaxbSanity {
 		ConstructionType ac1 = user1Type.getAssignment().get(0).getConstruction();
 		ConstructionType ac2 = user2Type.getAssignment().get(0).getConstruction();
 		assertTrue("ConstructionType not equals", ac1.equals(ac2));
-		
+		System.out.println(user1.debugDump());
+		System.out.println(user2.debugDump());
 		// WHEN, THEN
 		assertTrue("User not equals (PrismObject)", user1.equals(user2));
 		assertTrue("User not equivalent (PrismObject)", user1.equivalent(user2));
@@ -217,11 +222,11 @@ public class TestJaxbSanity {
 		// GIVEN
 		ResourceType resource1Type = PrismTestUtil.unmarshalObject(new File(RESOURCE_OPENDJ_FILENAME), ResourceType.class);
 		assertNotNull(resource1Type);
-		Definition schemaDefinition1 = resource1Type.getSchema().getDefinition();
+		SchemaDefinitionType schemaDefinition1 = resource1Type.getSchema().getDefinition();
 		
 		ResourceType resource2Type = PrismTestUtil.unmarshalObject(new File(RESOURCE_OPENDJ_FILENAME),ResourceType.class);
 		assertNotNull(resource2Type);
-		Definition schemaDefinition2 = resource2Type.getSchema().getDefinition();
+		SchemaDefinitionType schemaDefinition2 = resource2Type.getSchema().getDefinition();
 		
 		// WHEN
 		boolean equals = schemaDefinition1.equals(schemaDefinition2);
@@ -239,10 +244,12 @@ public class TestJaxbSanity {
 		// GIVEN
 		ResourceType resource1Type = PrismTestUtil.unmarshalObject(new File(RESOURCE_OPENDJ_FILENAME), ResourceType.class);
 		assertNotNull(resource1Type);
+		System.out.println("Resource1 " + resource1Type.asPrismObject().debugDump());
 		PrismObject resource1 = resource1Type.asPrismObject();
 		
 		ResourceType resource2Type = PrismTestUtil.unmarshalObject(new File(RESOURCE_OPENDJ_FILENAME),ResourceType.class);
 		assertNotNull(resource2Type);
+		System.out.println("Resource2 " + resource2Type.asPrismObject().debugDump());
 		PrismObject resource2 = resource2Type.asPrismObject();
 		
 		// WHEN, THEN
@@ -253,6 +260,9 @@ public class TestJaxbSanity {
 		
 		assertTrue("Resource not equal", resource1Type.equals(resource2Type));
 		
+		System.out.println("HASH");
+		System.out.println(resource1Type.hashCode());
+		System.out.println(resource2Type.hashCode());
 		assertTrue("Resource hashcode does not match", resource1Type.hashCode() == resource2Type.hashCode());
 		
 		PrismPropertyValue<Object> pv1 = new PrismPropertyValue<Object>(resource1Type.getConnectorConfiguration());
@@ -280,8 +290,12 @@ public class TestJaxbSanity {
 		ObjectModificationType mod = modEl.getValue();
 		assertNotNull(mod);
 		
-		JAXBElement<AssignmentType> assignmentTypeEl = (JAXBElement<AssignmentType>) mod.getModification().get(0).getValue().getAny().get(0);
-		AssignmentType assignmentType = assignmentTypeEl.getValue();
+		//FIXME : modification value -> rawType...
+        RawType rawType = mod.getItemDelta().get(0).getValue().get(0);
+        ItemDefinition assignmentDefinition = PrismTestUtil.getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(AssignmentType.class);
+        assertNotNull(assignmentDefinition);
+		AssignmentType assignmentType = ((PrismContainerValue<AssignmentType>) rawType.getParsedValue(assignmentDefinition, null)).getValue();
+//                was: (JAXBElement<AssignmentType>) mod.getItemDelta().get(0).getValue().get(0).getContent().get(0);
 		assertNotNull(assignmentType);
 		
 		System.out.println("\n*** assignment");
@@ -310,7 +324,7 @@ public class TestJaxbSanity {
 
         ObjectReferenceType ref = new ObjectReferenceType();
         ref.setOid("1234");
-        ref.setType(ValuePolicyType.F_COMPLEX___TYPE);
+        ref.setType(ValuePolicyType.COMPLEX_TYPE);
 
         configNew.setGlobalPasswordPolicyRef(ref);
         configNew.setGlobalPasswordPolicyRef(null);

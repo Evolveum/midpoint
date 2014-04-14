@@ -1,6 +1,5 @@
 package com.evolveum.midpoint.tools.ninja;
 
-import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStore.Entry;
 import java.security.KeyStore.ProtectionParameter;
@@ -11,18 +10,14 @@ import java.security.Provider;
 import java.security.UnrecoverableEntryException;
 import java.util.Enumeration;
 
-import javax.crypto.Cipher;
-import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.xml.security.encryption.XMLCipher;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import com.evolveum.midpoint.common.crypto.AESProtector;
-import com.evolveum.midpoint.common.crypto.EncryptionException;
-import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.prism.crypto.AESProtector;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 
 public class KeyStoreDumper extends BaseNinjaAction{
 	
@@ -40,7 +35,7 @@ public class KeyStoreDumper extends BaseNinjaAction{
 		if (protector instanceof AESProtector){
 			AESProtector aesProtector = (AESProtector) protector;
 			System.out.println("Using key store from location: " + aesProtector.getKeyStorePath());
-			System.out.println("Cipher: " + aesProtector.getXmlCipher());
+//			System.out.println("Cipher: " + aesProtector.getXmlCipher());
 			
 		}
 		

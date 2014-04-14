@@ -61,41 +61,12 @@
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
             			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"/>
 
-            <xsd:element name="addObject">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="object" type="c:ObjectType">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    Object to be created.
-                                    OID attribute of the object may be empty.
-                                </xsd:documentation>
-                            </xsd:annotation>
-                        </xsd:element>
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="addObjectResponse">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="oid" type="xsd:string">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    OID assigned to the created object.
-                                </xsd:documentation>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element name="result" type="c:OperationResultType" />
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
-
             <xsd:element name="getObject">
                 <xsd:complexType>
                     <xsd:sequence>
-                        <xsd:element name="objectType" type="xsd:anyURI"/>
+                        <xsd:element name="objectType" type="xsd:QName"/>
                         <xsd:element name="oid" type="xsd:string"/>
-                        <xsd:element name="options" type="apit:OperationOptionsType"/>
+                        <xsd:element name="options" type="apit:SelectorQualifiedGetOptionsType"/>
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>
@@ -108,48 +79,36 @@
                 </xsd:complexType>
             </xsd:element>
 
-            <xsd:element name="listObjects">
+            <xsd:element name="executeChanges">
                 <xsd:complexType>
                     <xsd:sequence>
-                        <xsd:element name="objectType" type="xsd:anyURI">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    Object type to list.
-                                </xsd:documentation>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element name="paging" type="q:PagingType">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    Parameters limiting the number of returned entries, offset, etc.
-                                </xsd:documentation>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element name="options" type="apit:OperationOptionsType"/>
+                        <xsd:element name="deltaList" type="apit:ObjectDeltaListType"/>
+                        <xsd:element name="options" type="c:ModelExecuteOptionsType"/>
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>
-            <xsd:element name="listObjectsResponse">
+            <xsd:element name="executeChangesResponse">
                 <xsd:complexType>
                     <xsd:sequence>
-                        <xsd:element name="objectList" type="apit:ObjectListType"/>
                         <xsd:element name="result" type="c:OperationResultType" />
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>
 
+            <!-- TODO recompute -->
+
             <xsd:element name="searchObjects">
                 <xsd:complexType>
                     <xsd:sequence>
-                        <xsd:element name="objectType" type="xsd:anyURI"/>
+                        <xsd:element name="objectType" type="xsd:QName"/>
                         <xsd:element name="query" type="q:QueryType">
                             <xsd:annotation>
                                 <xsd:documentation>
-                                    Search criteria
+                                    Search criteria (may be null).
                                 </xsd:documentation>
                             </xsd:annotation>
                         </xsd:element>
-                        <xsd:element name="options" type="apit:OperationOptionsType"/>
+                        <xsd:element name="options" type="apit:SelectorQualifiedGetOptionsType"/>
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>
@@ -162,66 +121,19 @@
                 </xsd:complexType>
             </xsd:element>
 
-            <xsd:element name="modifyObject">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="objectType" type="xsd:anyURI"/>
-                        <xsd:element name="objectChange" type="apit:ObjectModificationType"/>
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="modifyObjectResponse">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="result" type="c:OperationResultType" />
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
+            <!-- TODO countObjects -->
 
-            <xsd:element name="deleteObject">
+            <xsd:element name="findShadowOwner">
                 <xsd:complexType>
                     <xsd:sequence>
-                        <xsd:element name="objectType" type="xsd:anyURI"/>
-                        <xsd:element name="oid" type="xsd:string"/>
+                        <xsd:element name="shadowOid" type="xsd:string"/>
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>
-            <xsd:element name="deleteObjectResponse">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="result" type="c:OperationResultType" />
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
-
-            <xsd:element name="listAccountShadowOwner">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="accountOid" type="xsd:string"/>
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="listAccountShadowOwnerResponse">
+            <xsd:element name="findShadowOwnerResponse">
                 <xsd:complexType>
                     <xsd:sequence>
                         <xsd:element name="user" type="c:UserType"/>
-                        <xsd:element name="result" type="c:OperationResultType" />
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
-
-            <xsd:element name="listResourceObjectShadows">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="resourceOid" type="xsd:string"/>
-                        <xsd:element name="resourceObjectShadowType" type="xsd:anyURI"/>
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="listResourceObjectShadowsResponse">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="resourceObjectShadowList" type="apit:ResourceObjectShadowListType"/>
                         <xsd:element name="result" type="c:OperationResultType" />
                     </xsd:sequence>
                 </xsd:complexType>
@@ -246,7 +158,7 @@
                 <xsd:complexType>
                     <xsd:sequence>
                         <xsd:element name="resourceOid" type="xsd:string"/>
-                        <xsd:element name="objectClass" type="xsd:QName">
+                        <xsd:element name="objectClass" type="xsd:QName">           <!-- TODO consistent naming with other resource-related object classes (resourceObjectShadowType above) -->
                             <xsd:annotation>
                                 <xsd:documentation>
                                     Object class to import.
@@ -264,8 +176,13 @@
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>
+
+            <!-- TODO importFromResource for single shadow -->
+            <!-- TODO importObjectsFromFile -->
+            <!-- TODO importObjectsFromStream -->
+            <!-- TODO discoverConnectors -->
             
-                 <xsd:element name="notifyChange">
+            <xsd:element name="notifyChange">
                 <xsd:complexType>
                     <xsd:sequence>
                         <xsd:element name="changeDescription" type="c:ResourceObjectShadowChangeDescriptionType"/>
@@ -315,6 +232,10 @@
                 <!--</xsd:complexType>-->
             <!--</xsd:element>-->
 
+
+            <!-- TODO task-related operations (suspend, resume, schedule, ...) -->
+            <!-- TODO wf-related operations -->
+       
         </xsd:schema>
     </types>
 
@@ -325,25 +246,11 @@
          But that does not work on OpenESB. Therefore good old copy&paste
          instead of import -->
 
-	<message name="addObject">
-        <part name="addObject" element="tns:addObject" />
-    </message>
-    <message name="addObjectResponse">
-        <part name="addObjectResponse" element="tns:addObjectResponse" />
-    </message>
-
     <message name="getObject">
         <part name="parameters" element="tns:getObject" />
     </message>
     <message name="getObjectResponse">
         <part name="parameters" element="tns:getObjectResponse" />
-    </message>
-
-    <message name="listObjects">
-        <part name="parameters" element="tns:listObjects" />
-    </message>
-    <message name="listObjectsResponse">
-        <part name="parameters" element="tns:listObjectsResponse" />
     </message>
 
     <message name="searchObjects">
@@ -353,34 +260,20 @@
         <part name="parameters" element="tns:searchObjectsResponse" />
     </message>
 
-    <message name="modifyObject">
-        <part name="parameters" element="tns:modifyObject" />
+    <message name="executeChanges">
+        <part name="parameters" element="tns:executeChanges" />
     </message>
-    <message name="modifyObjectResponse">
-        <part name="parameters" element="tns:modifyObjectResponse" />
-    </message>
-
-    <message name="deleteObject">
-        <part name="parameters" element="tns:deleteObject" />
-    </message>
-    <message name="deleteObjectResponse">
-        <part name="parameters" element="tns:deleteObjectResponse" />
+    <message name="executeChangesResponse">
+        <part name="parameters" element="tns:executeChangesResponse" />
     </message>
 
     <!-- End of common messages -->
 
-    <message name="listAccountShadowOwner">
-        <part name="parameters" element="tns:listAccountShadowOwner" />
+    <message name="findShadowOwner">
+        <part name="parameters" element="tns:findShadowOwner" />
     </message>
-    <message name="listAccountShadowOwnerResponse">
-        <part name="parameters" element="tns:listAccountShadowOwnerResponse" />
-    </message>
-
-    <message name="listResourceObjectShadows">
-        <part name="parameters" element="tns:listResourceObjectShadows" />
-    </message>
-    <message name="listResourceObjectShadowsResponse">
-        <part name="parameters" element="tns:listResourceObjectShadowsResponse" />
+    <message name="findShadowOwnerResponse">
+        <part name="parameters" element="tns:findShadowOwnerResponse" />
     </message>
 
     <message name="testResource">
@@ -422,39 +315,6 @@
 
         <!-- OBJECT operations -->
 
-        <operation name="addObject">
-            <documentation>
-                Add new object.
-
-                The OID provided in the input message may be empty. In that case
-                the OID will be assigned by the implementation of this method
-                and it will be provided as return value.
-
-                This operation should fail if such object already exists (if
-                object with the provided OID already exists).
-
-                The operation may fail if provided OID is in an unusable format
-                for the storage. Generating own OIDs and providing them to this
-                method is not recommended for normal operation.
-
-                Should be atomic. Should not allow creation of two objects with
-                the same OID (even if created in parallel).
-
-                The operation may fail if the object to be created does not
-                comform to the underlying schema of the storage system or the
-                schema enforced by the implementation.
-
-                Faults:
-                  any SystemFaultType
-                  ObjectAlreadyExistsFaultType
-                  IllegalArgumentFaultType: wrong OID format
-                  SchemaViolationFaultType: provided object violates datastore schema
-            </documentation>
-            <input name="addObjectInput" message="tns:addObject"/>
-            <output name="addObjectOutput" message="tns:addObjectResponse"/>
-            <fault name="fault" message="f:FaultMessage"/>
-        </operation>
-
         <operation name="getObject">
             <documentation>
                     Returns object for provided OID.
@@ -469,21 +329,6 @@
             </documentation>
             <input name="getObjectInput" message="tns:getObject"/>
             <output name="getObjectOutput" message="tns:getObjectResponse"/>
-            <fault name="fault" message="f:FaultMessage"/>
-        </operation>
-
-        <operation name="listObjects">
-            <documentation>
-                    Returns all objects of specified type in the repository.
-                    Not very practical, but good for now.
-                    Will be improved later.
-
-                    Faults:
-                      any SystemFaultType
-                      IllegalArgumentFaultType: wrong object type
-            </documentation>
-            <input name="listObjectsInput" message="tns:listObjects"/>
-            <output name="listObjectsOutput" message="tns:listObjectsResponse"/>
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
 
@@ -503,55 +348,69 @@
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
 
-        <operation name="modifyObject">
+        <operation name="executeChanges">
             <documentation>
-                Modifies object using relative change description.
-                Must fail if user with provided OID does not exists.
-                Must fail if any of the described changes cannot be applied.
-                Should be atomic.
-
-                If two or more modify operations are executed in parallel, the
-                operations should be merged. In case that the operations are in
-                conflict (e.g. one operation adding a value and the other
-                removing the same value), the result is not deterministic.
-
-                The operation may fail if the modified object does not
-                comform to the underlying schema of the storage system or the
-                schema enforced by the implementation.
-
-                TODO: optimistic locking
-
+                <p>Execute the provided object deltas.</p>
+                <p>
+                The operation executes the provided object deltas. All deltas must relate to analogous objects (e.g. user
+                and linked accounts). The implementation may throw an error if the objects are not analogous. The implementation
+                also implicitly links the objects (mark them to be analogous) if such a link is part of the data model.
+                E.g. the implementation links all accounts to the user if they are passed in a single delta collection.
+                This is especially useful if the account deltas are ADD deltas without OID and therefore cannot be linked
+                explicitly.
+                </p>
+                <p>
+                There must be no more than one delta for each object.
+                The order of execution is not defined and the implementation is free to determine the correct or most suitable ordering.
+                </p>
+                <p>
+                The OID provided in ADD deltas may be empty. In that case the OID
+                will be assigned by the implementation and the OIDs will be set in the
+                deltas after the operation is completed.
+                </p>
+                <p>
+                Execution of ADD deltas should fail if such object already exists (if object with
+                the provided OID already exists). Execution of MODIFY and DELETE deltas should fail if
+                such objects do not exist.
+                </p>
+                <p>
+                The operation may fail if provided OIDs are in an unusable format for the
+                storage. Generating own OIDs and providing them to this method is not
+                recommended for normal operation.
+                </p>
+                <p>
+                There are no explicit atomicity guarantees for the operations. Some of the operations may pass, some may fail
+                or even fail partially. The consistency of the data and state are not based on operation atomicity but rather
+                a data model that can "repair" inconsistencies.
+                </p>
+                <p>
+                The operation may fail if any of the objects to be created or modified does not conform to
+                the underlying schema of the storage system or the schema enforced by the implementation.
+                </p>
                 Faults:
                       any SystemFaultType
-                      ObjectNotFoundFaultType: object with specified OID does not exists
-                      IllegalArgumentFaultType: wrong OID format
-                      InapplicableOperationFaultType: decribed change is not applicable
-                      SchemaViolationFaultType: resulting object would violate datastore schema
-            </documentation>
-            <input name="modifyObjectInput" message="tns:modifyObject"/>
-            <output name="modifyObjectOutput" message="tns:modifyObjectResponse"/>
-            <fault name="fault" message="f:FaultMessage"/>
-        </operation>
+                TODO reword to FaultTypes
+                      ObjectAlreadyExistsException: object with specified identifiers already exists, cannot add
+                      ObjectNotFoundException: object required to complete the operation was not found (e.g.
+                                               appropriate connector or resource definition)
+                      SchemaException: error dealing with resource schema, e.g. created object does not conform to schema
+                      ExpressionEvaluationException: evaluation of expression associated with the object has failed
+                      CommunicationException: Communication (network) error during retrieval. E.g. error communicating with the resource
+                      ConfigurationException: Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
+                      PolicyViolationException: Policy violation was detected during processing of the object
+                      SecurityViolationException: Security violation during operation execution. May be caused either by midPoint internal
+                                                  security mechanism but also by external mechanism (e.g. on the resource)
+                      IllegalArgumentException: wrong OID format, etc.
 
-        <operation name="deleteObject">
-            <documentation>
-                    Deleted object with provided OID.
-                    Must fail if object with specified OID does not exists.
-                    Should be atomic.
-
-                    Faults:
-                      any SystemFaultType
-                      ObjectNotFoundFaultType: object with specified OID does not exists
-                      IllegalArgumentFaultType: wrong OID format
             </documentation>
-            <input name="deleteObjectInput" message="tns:deleteObject"/>
-            <output name="deleteObjectOutput" message="tns:deleteObjectResponse"/>
+            <input name="executeChangesInput" message="tns:executeChanges"/>
+            <output name="executeChangesOutput" message="tns:executeChangesResponse"/>
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
 
         <!-- Type-specific operations -->
 
-        <operation name="listAccountShadowOwner">
+        <operation name="findShadowOwner">
             <documentation>
                 Returns the User object representing owner of specified account
                 (account shadow).
@@ -567,28 +426,8 @@
                       IllegalArgumentFaultType: wrong OID format
                       ObjectNotFoundFaultType: object with specified OID does not exists
             </documentation>
-            <input name="listAccountShadowOwnerInput" message="tns:listAccountShadowOwner"/>
-            <output name="listAccountShadowOwnerOutput" message="tns:listAccountShadowOwnerResponse"/>
-            <fault name="fault" message="f:FaultMessage"/>
-        </operation>
-
-        <operation name="listResourceObjectShadows">
-            <documentation>
-                Search for resource object shadows of a specified type that
-                belong to the specified resource. Returns a list of such object
-                shadows or empty list if nothing was found.
-
-                Implements the backward "has" association between resource and
-                resource object shadows. Forward association is implemented by
-                property "resource" of resource object shadow.
-
-                Faults:
-                      any SystemFaultType
-                      IllegalArgumentFaultType: wrong OID format
-                      ObjectNotFoundFaultType: object with specified OID does not exists
-            </documentation>
-            <input name="listResourceObjectShadowsInput" message="tns:listResourceObjectShadows"/>
-            <output name="listResourceObjectShadowsOutput" message="tns:listResourceObjectShadowsResponse"/>
+            <input name="findShadowOwnerInput" message="tns:findShadowOwner"/>
+            <output name="findShadowOwnerOutput" message="tns:findShadowOwnerResponse"/>
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
 
@@ -641,7 +480,7 @@
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
 
-<operation name="notifyChange">
+        <operation name="notifyChange">
             <documentation>
             	TODO: update description
             	
@@ -672,36 +511,12 @@
 
     <binding name="modelBinding" type="tns:modelPortType">
         <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
-        <operation name="addObject">
-            <soap:operation/>
-            <input name="addObjectInput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
-            </input>
-            <output name="addObjectOutput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
-            </output>
-            <fault name="fault">
-                <soap:fault name="fault" use="literal"/>
-            </fault>
-        </operation>
         <operation name="getObject">
             <soap:operation/>
             <input name="getObjectInput">
                 <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
             </input>
             <output name="getObjectOutput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
-            </output>
-            <fault name="fault">
-                <soap:fault name="fault" use="literal"/>
-            </fault>
-        </operation>
-        <operation name="listObjects">
-            <soap:operation/>
-            <input name="listObjectsInput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
-            </input>
-            <output name="listObjectsOutput">
                 <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
             </output>
             <fault name="fault">
@@ -720,48 +535,24 @@
                 <soap:fault name="fault" use="literal"/>
             </fault>
         </operation>
-        <operation name="modifyObject">
+        <operation name="executeChanges">
             <soap:operation/>
-            <input name="modifyObjectInput">
+            <input name="executeChangesInput">
                 <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
             </input>
-            <output name="modifyObjectOutput">
+            <output name="executeChangesOutput">
                 <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
             </output>
             <fault name="fault">
                 <soap:fault name="fault" use="literal"/>
             </fault>
         </operation>
-        <operation name="deleteObject">
+        <operation name="findShadowOwner">
             <soap:operation/>
-            <input name="deleteObjectInput">
+            <input name="findShadowOwnerInput">
                 <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
             </input>
-            <output name="deleteObjectOutput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
-            </output>
-            <fault name="fault">
-                <soap:fault name="fault" use="literal"/>
-            </fault>
-        </operation>
-        <operation name="listAccountShadowOwner">
-            <soap:operation/>
-            <input name="listAccountShadowOwnerInput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
-            </input>
-            <output name="listAccountShadowOwnerOutput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
-            </output>
-            <fault name="fault">
-                <soap:fault name="fault" use="literal"/>
-            </fault>
-        </operation>
-        <operation name="listResourceObjectShadows">
-            <soap:operation/>
-            <input name="listResourceObjectShadowsInput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
-            </input>
-            <output name="listResourceObjectShadowsOutput">
+            <output name="findShadowOwnerOutput">
                 <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
             </output>
             <fault name="fault">
@@ -831,6 +622,3 @@
         <!--</operation>-->
     </binding>
 </definitions>
-
-
-

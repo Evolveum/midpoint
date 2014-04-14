@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -43,7 +44,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -806,8 +806,9 @@ public class IntegrationTestTools {
 		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS,"password")));
 	}
 
+	//TODO: add language parameter..for now, use xml serialization
 	public static void displayXml(String message, PrismObject<? extends ObjectType> object) throws SchemaException {
-		String xml = PrismTestUtil.serializeObjectToString(object);
+		String xml = PrismTestUtil.serializeObjectToString(object, PrismContext.LANG_XML);
 		display(message, xml);
 	}
 
@@ -816,6 +817,7 @@ public class IntegrationTestTools {
 		association.setName(associationName);
 		ObjectReferenceType shadowRefType = new ObjectReferenceType();
 		shadowRefType.setOid(groupOid);
+		shadowRefType.setType(ShadowType.COMPLEX_TYPE);
 		association.setShadowRef(shadowRefType);
 		ItemPath entitlementAssociationPath = new ItemPath(ShadowType.F_ASSOCIATION);
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationAddContainer(ShadowType.class, 
@@ -828,6 +830,7 @@ public class IntegrationTestTools {
 		association.setName(associationName);
 		ObjectReferenceType shadowRefType = new ObjectReferenceType();
 		shadowRefType.setOid(groupOid);
+        shadowRefType.setType(ShadowType.COMPLEX_TYPE);
 		association.setShadowRef(shadowRefType);
 		ItemPath entitlementAssociationPath = new ItemPath(ShadowType.F_ASSOCIATION);
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationDeleteContainer(ShadowType.class, 

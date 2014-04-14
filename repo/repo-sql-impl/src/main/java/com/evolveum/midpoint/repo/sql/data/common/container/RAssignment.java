@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.Metadata;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.*;
 

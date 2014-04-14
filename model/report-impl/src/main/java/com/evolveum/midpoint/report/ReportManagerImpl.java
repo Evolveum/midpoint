@@ -218,7 +218,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
          try {
              ReportType reportType = (ReportType) object.asObjectable();
              JasperDesign jasperDesign = null;
-             if (reportType.getTemplate() == null || reportType.getTemplate().getAny() == null)
+             if (reportType.getTemplate() == null)
              {
             	 PrismSchema reportSchema = null;
             	 PrismContainer<Containerable> parameterConfiguration = null;  
@@ -238,7 +238,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
              }
              else
              {
-            	 String reportTemplate = DOMUtil.serializeDOMToString((Node)reportType.getTemplate().getAny());
+            	 String reportTemplate = reportType.getTemplate();
             	 InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate.getBytes());
             	 jasperDesign = JRXmlLoader.load(inputStreamJRXML);
             	 LOGGER.trace("load jasper design : {}", jasperDesign);

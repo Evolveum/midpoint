@@ -20,6 +20,7 @@
 		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
 	<language>http://www.w3.org/TR/xpath/</language>
 	<code>
-		c:locality/t:orig
+        declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+        c:locality
 	</code>
 </script>

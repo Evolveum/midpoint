@@ -32,6 +32,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -131,12 +132,11 @@ public class TestClockwork extends AbstractLensTest {
         System.out.println("Context before serialization = " + context.debugDump());
 
         PrismContainer<LensContextType> lensContextType = context.toPrismContainer();
-        List<Element> lensContextTypeElements = prismContext.getPrismDomProcessor().serializeItemToDom(lensContextType, true);
-        String xml = DOMUtil.serializeDOMToString(lensContextTypeElements.get(0));
+        String xml = prismContext.serializeContainerValueToString(lensContextType.getValue(), lensContextType.getElementName(), PrismContext.LANG_XML);
 
         System.out.println("Serialized form = " + xml);
 
-        PrismContainer<LensContextType> unmarshalledContainer = prismContext.getPrismDomProcessor().parsePrismContainer(xml, lensContextType.getDefinition());
+        PrismContainer<LensContextType> unmarshalledContainer = prismContext.parseContainer(xml, LensContextType.class, PrismContext.LANG_XML);
         LensContext context2 = LensContext.fromLensContextType(unmarshalledContainer.getValue().asContainerable(), context.getPrismContext(), provisioningService, result);
 
         System.out.println("Context after deserialization = " + context.debugDump());
@@ -145,7 +145,7 @@ public class TestClockwork extends AbstractLensTest {
 
         assertEquals("Secondary deltas are not preserved - their number differs", context.getFocusContext().getSecondaryDeltas().size(), context2.getFocusContext().getSecondaryDeltas().size());
         for (int i = 0; i < context.getFocusContext().getSecondaryDeltas().size(); i++) {
-            assertEquals("Secondary delta #" + i + " is not preserved correctly", context.getFocusContext().getSecondaryDelta(i), context2.getFocusContext().getSecondaryDelta(i));
+            assertEquals("Secondary delta #" + i + " is not preserved correctly", context.getFocusContext().getSecondaryDelta(i).debugDump(), context2.getFocusContext().getSecondaryDelta(i).debugDump());
         }
     }
 
@@ -197,7 +197,7 @@ public class TestClockwork extends AbstractLensTest {
         try {
         	
         	assignAccountToJackAsync("test030AssignAccountToJackAsyncNoserialize", false);
-	        
+    
         } finally {
         	mockClockworkHook.reset();
         	unassignJackAccount();
@@ -289,7 +289,7 @@ public class TestClockwork extends AbstractLensTest {
         
         LensContext<UserType> context = createJackAssignAccountContext(result);
 
-        display("Input context", context);
+//        display("Input context", context);
 
         assertFocusModificationSanity(context);
         mockClockworkHook.reset();
@@ -300,8 +300,9 @@ public class TestClockwork extends AbstractLensTest {
         // WHEN
         while(context.getState() != ModelState.FINAL) {
         	
+        	System.out.println("CLICK START");
         	HookOperationMode mode = clockwork.click(context, task, result);
-        	
+        	System.out.println("CLICK END");
         	
         	assertTrue("Unexpected INITIAL state of the context", context.getState() != ModelState.INITIAL);
         	assertEquals("Wrong mode after click in "+context.getState(), HookOperationMode.BACKGROUND, mode);
@@ -312,12 +313,11 @@ public class TestClockwork extends AbstractLensTest {
                 System.out.println("Context before serialization = " + context.debugDump());
 
                 PrismContainer<LensContextType> lensContextType = context.toPrismContainer();
-                List<Element> lensContextTypeElements = prismContext.getPrismDomProcessor().serializeItemToDom(lensContextType, true);
-                String xml = DOMUtil.serializeDOMToString(lensContextTypeElements.get(0));
+                String xml = prismContext.serializeContainerValueToString(lensContextType.getValue(), lensContextType.getElementName(), PrismContext.LANG_XML);
 
                 System.out.println("Serialized form = " + xml);
 
-                PrismContainer<LensContextType> unmarshalledContainer = prismContext.getPrismDomProcessor().parsePrismContainer(xml, lensContextType.getDefinition());
+                PrismContainer<LensContextType> unmarshalledContainer = prismContext.parseContainer(xml, LensContextType.class, PrismContext.LANG_XML);
                 context = LensContext.fromLensContextType(unmarshalledContainer.getValue().asContainerable(), context.getPrismContext(), provisioningService, result);
 
                 System.out.println("Context after deserialization = " + context.debugDump());
@@ -328,8 +328,8 @@ public class TestClockwork extends AbstractLensTest {
         
         // THEN
         mockClockworkHook.setRecord(false);
-        display("Output context", context);
-        display("Hook contexts", mockClockworkHook);
+//        display("Output context", context);
+//        display("Hook contexts", mockClockworkHook);
         assertShadowFetchOperationCountIncrement(0);
         
         assertJackAssignAccountContext(context);

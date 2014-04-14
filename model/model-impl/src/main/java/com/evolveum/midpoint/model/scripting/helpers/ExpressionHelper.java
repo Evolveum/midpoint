@@ -23,10 +23,10 @@ import com.evolveum.midpoint.model.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ActionExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ActionParameterValueType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.xml.bind.JAXBElement;
 import java.util.List;
 
 /**
@@ -38,15 +38,15 @@ public class ExpressionHelper {
     @Autowired
     private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
 
-    public ExpressionType getArgument(ActionExpressionType actionExpression, String parameterName) throws ScriptExecutionException {
+    public JAXBElement<?> getArgument(ActionExpressionType actionExpression, String parameterName) throws ScriptExecutionException {
         return getArgument(actionExpression.getParameter(), parameterName, false, false, actionExpression.getType());
     }
 
-    public ExpressionType getArgument(List<ActionParameterValueType> arguments, String parameterName, boolean required, boolean requiredNonNull, String context) throws ScriptExecutionException {
+    public JAXBElement<?> getArgument(List<ActionParameterValueType> arguments, String parameterName, boolean required, boolean requiredNonNull, String context) throws ScriptExecutionException {
         for (ActionParameterValueType parameterValue : arguments) {
             if (parameterName.equals(parameterValue.getName())) {
                 if (parameterValue.getExpression() != null) {
-                    return parameterValue.getExpression().getValue();
+                    return parameterValue.getExpression();
                 } else {
                     if (requiredNonNull) {
                         throw new ScriptExecutionException("Required parameter " + parameterName + " is null in invocation of \"" + context + "\"");
@@ -64,7 +64,7 @@ public class ExpressionHelper {
     }
 
     public String getArgumentAsString(List<ActionParameterValueType> arguments, String argumentName, Data input, ExecutionContext context, String defaultValue, String contextName, OperationResult parentResult) throws ScriptExecutionException {
-        ExpressionType argumentExpression = getArgument(arguments, argumentName, false, false, contextName);
+        JAXBElement<?> argumentExpression = getArgument(arguments, argumentName, false, false, contextName);
         if (argumentExpression != null) {
             Data level = scriptingExpressionEvaluator.evaluateExpression(argumentExpression, input, context, parentResult);
             if (level != null) {

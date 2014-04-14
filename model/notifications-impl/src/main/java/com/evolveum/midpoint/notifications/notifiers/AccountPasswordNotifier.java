@@ -16,10 +16,10 @@
 
 package com.evolveum.midpoint.notifications.notifiers;
 
-import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.notifications.api.events.AccountEvent;
 import com.evolveum.midpoint.notifications.api.events.Event;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountPasswordNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

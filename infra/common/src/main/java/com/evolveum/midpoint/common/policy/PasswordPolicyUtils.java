@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.common.policy;
 
 import java.util.ArrayList;
-
 import java.util.HashSet;
 import java.util.List;
 
@@ -29,10 +28,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordLifeTimeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringLimitType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 
 /**
  * 

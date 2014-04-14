@@ -56,6 +56,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.LiveSyncCapabilityType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 
 import org.testng.AssertJUnit;
 import org.testng.annotations.AfterMethod;
@@ -219,7 +220,7 @@ public class TestResourceSchema {
 		
 		// WHEN
 		
-		String marshalledResource = prismContext.getPrismDomProcessor().serializeObjectToString(resource);
+		String marshalledResource = prismContext.serializeObjectToString(resource, PrismContext.LANG_XML);
 		
 		System.out.println("Marshalled resource");
 		System.out.println(marshalledResource); 
@@ -255,7 +256,7 @@ public class TestResourceSchema {
 
 		PrismPropertyDefinition passwdDef = objectClassDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE,"password"));
 		assertEquals(new QName(SCHEMA_NAMESPACE,"password"), passwdDef.getName());
-		assertEquals(SchemaConstants.C_PROTECTED_STRING_TYPE, passwdDef.getTypeName());
+		assertEquals(ProtectedStringType.COMPLEX_TYPE, passwdDef.getTypeName());
 
 		PrismContainerDefinition credDef = objectClassDef.findContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
 		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
@@ -289,7 +290,7 @@ public class TestResourceSchema {
 		Element xsdElement = DOMUtil.getFirstChildElement(xsdDocument);
 		
 		PrismObject<ResourceType> resource = wrapInResource(xsdElement);
-		String resourceXmlString = PrismTestUtil.getPrismContext().getPrismDomProcessor().serializeObjectToString(resource);
+		String resourceXmlString = PrismTestUtil.getPrismContext().serializeObjectToString(resource, PrismContext.LANG_XML);
 		
 		System.out.println("Serialized resource");
 		System.out.println(resourceXmlString);
@@ -355,7 +356,7 @@ public class TestResourceSchema {
 		xloginDef.setNativeAttributeName("LOGIN");
 		containerDefinition.setDisplayNameAttribute(xloginDef.getName());
 		// ... and local property with a type from another schema
-		ResourceAttributeDefinition xpasswdDef = containerDefinition.createAttributeDefinition("password", SchemaConstants.C_PROTECTED_STRING_TYPE);
+		ResourceAttributeDefinition xpasswdDef = containerDefinition.createAttributeDefinition("password", ProtectedStringType.COMPLEX_TYPE);
 		xpasswdDef.setNativeAttributeName("PASSWORD");
 		// ... property reference
 		containerDefinition.createAttributeDefinition(SchemaConstants.C_CREDENTIALS, SchemaConstants.C_CREDENTIALS_TYPE);

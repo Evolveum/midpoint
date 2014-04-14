@@ -18,9 +18,10 @@
 
 <query xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 	xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
-
+<filter>
 	<equal>
 		<path>c:activation/c:administrativeStatus</path>
 		<value>enabled</value>
 	</equal>
+	</filter>
 </query>

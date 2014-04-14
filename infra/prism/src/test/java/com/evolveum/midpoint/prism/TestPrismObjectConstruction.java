@@ -62,12 +62,13 @@ public class TestPrismObjectConstruction {
      * All the items in the object should have proper definition.
      */
 	@Test
-	public void testConstructionWithSchema() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testConstructionWithSchema ]===");
+	public void testConstructionWithSchema() throws Exception {
+		final String TEST_NAME = "testConstructionWithSchema";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		PrismContext ctx = constructInitializedPrismContext();
-		PrismObjectDefinition<UserType> userDefinition = ctx.getSchemaRegistry().getObjectSchema().findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
+		PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
 		
 		// WHEN
 		PrismObject<UserType> user = userDefinition.instantiate();
@@ -86,8 +87,9 @@ public class TestPrismObjectConstruction {
 	 * the working downwards. 
 	 */
 	@Test
-	public void testDefinitionlessConstruction() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testDefinitionlessConstruction ]===");
+	public void testDefinitionlessConstruction() throws Exception {
+		final String TEST_NAME = "testDefinitionlessConstruction";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		// No context needed
@@ -109,9 +111,10 @@ public class TestPrismObjectConstruction {
 	 * Construct object without schema. Starts by creating object "out of the blue" and
 	 * the working downwards. Then apply the schema. Check definitions.
 	 */
-	@Test
-	public void testDefinitionlessConstructionAndSchemaApplication() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testDefinitionlessConstructionAndSchemaApplication ]===");
+//	@Test
+	public void testDefinitionlessConstructionAndSchemaApplication() throws Exception {
+		final String TEST_NAME = "testDefinitionlessConstructionAndSchemaApplication";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		// No context needed (yet)
@@ -124,7 +127,7 @@ public class TestPrismObjectConstruction {
 		
 		
 		PrismObjectDefinition<UserType> userDefinition =
-			ctx.getSchemaRegistry().getObjectSchema().findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
+				getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
 		
 		// WHEN
 		user.applyDefinition(userDefinition);
@@ -139,14 +142,17 @@ public class TestPrismObjectConstruction {
 	}
 	
 	@Test
-	public void testClone() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testClone ]===");
+	public void testClone() throws Exception {
+		final String TEST_NAME = "testClone";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		PrismContext ctx = constructInitializedPrismContext();
-		PrismObjectDefinition<UserType> userDefinition = ctx.getSchemaRegistry().getObjectSchema().findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
+		PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
 		PrismObject<UserType> user = userDefinition.instantiate();
 		fillInUserDrake(user, true);
+		// precondition
+		assertUserDrake(user, true, ctx);
 
 		// WHEN
 		PrismObject<UserType> clone = user.clone();
@@ -159,12 +165,13 @@ public class TestPrismObjectConstruction {
 	}
 
 	@Test
-	public void testCloneEquals() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testCloneEquals ]===");
+	public void testCloneEquals() throws Exception {
+		final String TEST_NAME = "testCloneEquals";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		PrismContext ctx = constructInitializedPrismContext();
-		PrismObjectDefinition<UserType> userDefinition = ctx.getSchemaRegistry().getObjectSchema().findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
+		PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
 		PrismObject<UserType> user = userDefinition.instantiate();
 		fillInUserDrake(user, true);
 		PrismObject<UserType> clone = user.clone();
@@ -331,7 +338,7 @@ public class TestPrismObjectConstruction {
 	}
 		
 	private void serializeAndValidate(PrismObject<UserType> user, PrismContext prismContext) throws SchemaException, SAXException, IOException {
-		String xmlString = prismContext.getPrismDomProcessor().serializeObjectToString(user, true);
+		String xmlString = prismContext.serializeObjectToString(user, PrismContext.LANG_XML);
 		System.out.println("Serialized XML");
 		System.out.println(xmlString);
 		Document xmlDocument = DOMUtil.parseDocument(xmlString);

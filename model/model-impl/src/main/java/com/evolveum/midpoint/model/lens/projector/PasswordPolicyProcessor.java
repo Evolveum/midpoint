@@ -16,11 +16,10 @@
 
 package com.evolveum.midpoint.model.lens.projector;
 
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.crypto.EncryptionException;
-import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.policy.PasswordPolicyUtils;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.lens.LensContext;
@@ -28,6 +27,8 @@ import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -40,7 +41,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
@@ -264,7 +264,7 @@ ObjectDelta accountDelta = projectionContext.getDelta();
 
 		String passwordStr = passValue.getClearValue();
 
-		if (passwordStr == null && passValue.getEncryptedData() != null) {
+		if (passwordStr == null && passValue.getEncryptedDataType () != null) {
 			// TODO: is this appropriate handling???
 			try {
 				passwordStr = protector.decryptString(passValue);

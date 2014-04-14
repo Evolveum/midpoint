@@ -31,6 +31,7 @@ import java.util.Map;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -63,7 +64,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -1301,7 +1301,7 @@ public class TestMappingDynamicSimple {
     	
         System.out.println("Generated excrypted value: "+value1);
         assertNotNull(value1);
-        assertNotNull(value1.getEncryptedData());
+        assertNotNull(value1.getEncryptedDataType());
     }
         
 }

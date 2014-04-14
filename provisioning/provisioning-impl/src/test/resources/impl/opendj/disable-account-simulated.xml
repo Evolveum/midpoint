@@ -25,18 +25,14 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
     <oid>dbb0c37d-9ee6-44a4-8d39-016dbce1aaaa</oid>
-    <modification>
+    <itemDelta>
     	<t:modificationType>replace</t:modificationType>
-        <t:path>c:activation</t:path>
-        <t:value>
-            <c:administrativeStatus>disabled</c:administrativeStatus>
-        </t:value>
-    </modification>
-    <modification>
+        <t:path>c:activation/c:administrativeStatus</t:path>
+        <t:value>disabled</t:value>
+    </itemDelta>
+    <itemDelta>
     	<t:modificationType>replace</t:modificationType>
-        <t:path>c:activation</t:path>
-        <t:value>
-            <c:disableTimestamp>2001-02-03T04:05:06Z</c:disableTimestamp>
-        </t:value>
-    </modification>
+        <t:path>c:activation/c:disableTimestamp</t:path>
+        <t:value>2001-02-03T04:05:06Z</t:value>
+    </itemDelta>
 </objectModification>

@@ -54,7 +54,7 @@ public class DeleteTest extends BaseSQLRepoTest {
             return;
         }
 
-        List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(file);
+        List<PrismObject<? extends Objectable>> elements = prismContext.parseObjects(file);
         List<String> oids = new ArrayList<String>();
 
         OperationResult result = new OperationResult("Delete Test");
@@ -114,8 +114,8 @@ public class DeleteTest extends BaseSQLRepoTest {
 
     @Test
     public void test100DeleteObjects() throws Exception {
-        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
-        List<PrismObject<? extends Objectable>> objects = domProcessor.parseObjects(
+//        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+        List<PrismObject<? extends Objectable>> objects = prismContext.parseObjects(
                 new File(FOLDER_BASIC, "objects.xml"));
         OperationResult result = new OperationResult("add objects");
 

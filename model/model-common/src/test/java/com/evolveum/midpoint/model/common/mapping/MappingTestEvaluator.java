@@ -26,10 +26,9 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.common.crypto.AESProtector;
-import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
@@ -41,6 +40,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.crypto.AESProtector;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -60,7 +61,6 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
@@ -112,32 +112,32 @@ public class MappingTestEvaluator {
 		return protector;
 	}
 
-	public <T> Mapping<PrismPropertyValue<T>> createMapping(String filename, String testName, final StringPolicyType policy, String defaultTargetPropertyName, ObjectDelta<UserType> userDelta) throws SchemaException, FileNotFoundException, JAXBException, EncryptionException  {
+	public <T> Mapping<PrismPropertyValue<T>> createMapping(String filename, String testName, final StringPolicyType policy, String defaultTargetPropertyName, ObjectDelta<UserType> userDelta) throws SchemaException, IOException, JAXBException, EncryptionException  {
 		return createMapping(filename, testName, policy, toPath(defaultTargetPropertyName), userDelta);
 	}
 	
 	public <T> Mapping<PrismPropertyValue<T>> createMapping(String filename, String testName, String defaultTargetPropertyName, 
-			ObjectDelta<UserType> userDelta) throws SchemaException, FileNotFoundException, JAXBException, EncryptionException  {
+			ObjectDelta<UserType> userDelta) throws SchemaException, IOException, JAXBException, EncryptionException  {
 		return createMapping(filename, testName, null, toPath(defaultTargetPropertyName), userDelta);
 	}
 	
 	public <T> Mapping<PrismPropertyValue<T>> createMapping(String filename, String testName, QName defaultTargetPropertyName, 
-			ObjectDelta<UserType> userDelta) throws SchemaException, FileNotFoundException, JAXBException, EncryptionException  {
+			ObjectDelta<UserType> userDelta) throws SchemaException, IOException, JAXBException, EncryptionException  {
 		return createMapping(filename, testName, null, toPath(defaultTargetPropertyName), userDelta);
 	}
 	
 	public <T> Mapping<PrismPropertyValue<T>> createMapping(String filename, String testName, String defaultTargetPropertyName, 
-			ObjectDelta<UserType> userDelta, PrismObject<UserType> userOld) throws SchemaException, FileNotFoundException, JAXBException  {
+			ObjectDelta<UserType> userDelta, PrismObject<UserType> userOld) throws SchemaException, IOException, JAXBException  {
 		return createMapping(filename, testName, null, toPath(defaultTargetPropertyName), userDelta, userOld);
 	}
 	
-	public <T> Mapping<PrismPropertyValue<T>> createMapping(String filename, String testName, ItemPath defaultTargetPropertyName, ObjectDelta<UserType> userDelta) throws SchemaException, FileNotFoundException, JAXBException, EncryptionException  {
+	public <T> Mapping<PrismPropertyValue<T>> createMapping(String filename, String testName, ItemPath defaultTargetPropertyName, ObjectDelta<UserType> userDelta) throws SchemaException, IOException, JAXBException, EncryptionException  {
 		return createMapping(filename, testName, null, defaultTargetPropertyName, userDelta);
 	}
 	
 	public <T> Mapping<PrismPropertyValue<T>> createMapping(String filename, String testName, final StringPolicyType policy, 
-			ItemPath defaultTargetPropertyPath, ObjectDelta<UserType> userDelta) 
-					throws SchemaException, FileNotFoundException, JAXBException, EncryptionException  {
+			ItemPath defaultTargetPropertyPath, ObjectDelta<UserType> userDelta)
+            throws SchemaException, IOException, JAXBException, EncryptionException  {
 		PrismObject<UserType> userOld = null;
         if (userDelta == null || !userDelta.isAdd()) {
         	userOld = getUserOld();
@@ -146,8 +146,8 @@ public class MappingTestEvaluator {
 	}
 	
 	public <T> Mapping<PrismPropertyValue<T>> createMapping(String filename, String testName, final StringPolicyType policy, 
-			ItemPath defaultTargetPropertyPath, ObjectDelta<UserType> userDelta,  PrismObject<UserType> userOld) 
-					throws SchemaException, FileNotFoundException, JAXBException  {
+			ItemPath defaultTargetPropertyPath, ObjectDelta<UserType> userDelta,  PrismObject<UserType> userOld)
+            throws SchemaException, IOException, JAXBException  {
     
         JAXBElement<MappingType> mappingTypeElement = PrismTestUtil.unmarshalElement(
                 new File(TEST_DIR, filename), MappingType.class);
@@ -253,14 +253,14 @@ public class MappingTestEvaluator {
 		return mapping;
 	}
 	
-	protected PrismObject<UserType> getUserOld() throws SchemaException, EncryptionException {
+	protected PrismObject<UserType> getUserOld() throws SchemaException, EncryptionException, IOException {
 		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_OLD_FILE);
 		ProtectedStringType passwordPs = user.asObjectable().getCredentials().getPassword().getValue();
 		protector.encrypt(passwordPs);
 		return user;
 	}
 	
-	protected PrismObject<ShadowType> getAccount() throws SchemaException {
+	protected PrismObject<ShadowType> getAccount() throws SchemaException, IOException {
 		return PrismTestUtil.parseObject(ACCOUNT_FILE);
 	}
 	
@@ -269,8 +269,8 @@ public class MappingTestEvaluator {
 	}
 	
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMapping(String filename, String testName, 
-			ItemPath defaultTargetPropertyPath) 
-			throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException {
+			ItemPath defaultTargetPropertyPath)
+            throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException {
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyPath, null);
 		OperationResult opResult = new OperationResult(testName);
 		mapping.evaluate(null, opResult);
@@ -279,8 +279,8 @@ public class MappingTestEvaluator {
 	}
 	
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMapping(String filename, String testName, 
-			QName defaultTargetPropertyName) 
-			throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException {
+			QName defaultTargetPropertyName)
+            throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException {
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, null);
 		OperationResult opResult = new OperationResult(testName);
 		mapping.evaluate(null, opResult);
@@ -289,8 +289,8 @@ public class MappingTestEvaluator {
 	}
 	
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMapping(String filename, String testName, 
-			String defaultTargetPropertyName) 
-			throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException {
+			String defaultTargetPropertyName)
+            throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException {
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, null);
 		OperationResult opResult = new OperationResult(testName);
 		mapping.evaluate(null, opResult);
@@ -309,13 +309,13 @@ public class MappingTestEvaluator {
 
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicAdd(String filename, String testName, 
 			String defaultTargetPropertyName,
-			String changedPropertyName, I... valuesToAdd) throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException {
+			String changedPropertyName, I... valuesToAdd) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException {
 		return evaluateMappingDynamicAdd(filename, testName, toPath(defaultTargetPropertyName), changedPropertyName, valuesToAdd);
 	}
 	
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicAdd(String filename, String testName, 
 			ItemPath defaultTargetPropertyPath,
-			String changedPropertyName, I... valuesToAdd) throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException {
+			String changedPropertyName, I... valuesToAdd) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException {
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddProperty(UserType.class, USER_OLD_OID, toPath(changedPropertyName), 
 				prismContext, valuesToAdd);
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyPath, userDelta);
@@ -327,7 +327,7 @@ public class MappingTestEvaluator {
 	
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicDelete(String filename, String testName, 
 			String defaultTargetPropertyName,
-			String changedPropertyName, I... valuesToAdd) throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException {
+			String changedPropertyName, I... valuesToAdd) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException {
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationDeleteProperty(UserType.class, USER_OLD_OID, toPath(changedPropertyName), 
 				prismContext, valuesToAdd);
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
@@ -339,7 +339,7 @@ public class MappingTestEvaluator {
 	
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicReplace(String filename, String testName, 
 			String defaultTargetPropertyName,
-			String changedPropertyName, I... valuesToReplace) throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException {
+			String changedPropertyName, I... valuesToReplace) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException {
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_OLD_OID, toPath(changedPropertyName), 
 				prismContext, valuesToReplace);
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
@@ -351,7 +351,7 @@ public class MappingTestEvaluator {
 	
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicReplace(String filename, String testName, 
 			String defaultTargetPropertyName,
-			ItemPath changedPropertyName, I... valuesToReplace) throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException {
+			ItemPath changedPropertyName, I... valuesToReplace) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException {
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_OLD_OID, changedPropertyName, 
 				prismContext, valuesToReplace);
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
@@ -363,7 +363,7 @@ public class MappingTestEvaluator {
 	
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicReplace(String filename, String testName, 
 			ItemPath defaultTargetPropertyName,
-			String changedPropertyName, I... valuesToReplace) throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException {
+			String changedPropertyName, I... valuesToReplace) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException {
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_OLD_OID, toPath(changedPropertyName), 
 				prismContext, valuesToReplace);
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
@@ -375,7 +375,7 @@ public class MappingTestEvaluator {
 	
 	public <T,I> PrismValueDeltaSetTriple<PrismPropertyValue<T>> evaluateMappingDynamicReplace(String filename, String testName, 
 			ItemPath defaultTargetPropertyName,
-			ItemPath changedPropertyName, I... valuesToReplace) throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException {
+			ItemPath changedPropertyName, I... valuesToReplace) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException {
 		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_OLD_OID, changedPropertyName, 
 				prismContext, valuesToReplace);
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
@@ -399,7 +399,7 @@ public class MappingTestEvaluator {
 		return propertyValue.getValue();
 	}
 
-	public StringPolicyType getStringPolicy() throws SchemaException {
+	public StringPolicyType getStringPolicy() throws SchemaException, IOException {
 		PrismObject<ValuePolicyType> passwordPolicy = PrismTestUtil.parseObject(PASSWORD_POLICY_FILE);
 		return passwordPolicy.asObjectable().getStringPolicy();
 	}

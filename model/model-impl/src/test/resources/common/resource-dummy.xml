@@ -20,7 +20,7 @@
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
           xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -49,7 +49,7 @@
 
 	</connectorConfiguration>
 	
-	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004</namespace>
+<!-- 	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004</namespace> -->
 	
 	<schemaHandling>
 		<objectType>
@@ -119,9 +119,8 @@
 					<name>location outbound mapping</name>
 					<strength>strong</strength>
 					<source>
-						<path>
-							$c:user/c:locality
-						</path>
+						<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+							$c:user/c:locality</path>
 					</source>
 				</outbound>
 				<inbound>
@@ -177,7 +176,7 @@
 				<displayName>Weapon</displayName>
 				<outbound>
 					<source>
-						<path>
+						<path>declare namespace piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy";
 							$user/extension/piracy:weapon
 						</path>
 					</source>
@@ -401,9 +400,10 @@ return tmpSuffix
 			<correlation>
 				<q:equal>
 					<q:path>c:name</q:path>
-					<valueExpression>
-						<path>$account/attributes/icfs:name</path>
-					</valueExpression>
+					<expression>
+						<path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
+						$account/attributes/icfs:name</path>
+					</expression>
 				</q:equal>
 			</correlation>
 			<reaction>
@@ -441,9 +441,9 @@ return tmpSuffix
 			<correlation>
 				<q:equal>
 					<q:path>c:name</q:path>
-					<valueExpression>
-						<path>$shadow/attributes/icfs:name</path>
-					</valueExpression>
+					<expression>
+						<path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";$shadow/attributes/icfs:name</path>
+					</expression>
 				</q:equal>
 			</correlation>
 			<reaction>

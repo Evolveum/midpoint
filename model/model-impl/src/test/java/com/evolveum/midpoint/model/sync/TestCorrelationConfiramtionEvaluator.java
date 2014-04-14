@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConditionalSearchFilterType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -40,9 +41,9 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -78,7 +79,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		
+//		super.initSystem(initTask, initResult);
 	}
 	
 	@Test
@@ -97,16 +98,16 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 			
 		ShadowType shadow = parseObjectType(ACCOUNT_SHADOW_JACK_DUMMY_FILE, ShadowType.class);
 		
-		QueryType query = PrismTestUtil.unmarshalObject(new File(CORRELATION_OR_FILTER), QueryType.class);
-		List<QueryType> queries = new ArrayList<QueryType>();
-		queries.add(query);
+		ConditionalSearchFilterType filter = PrismTestUtil.unmarshalObject(new File(CORRELATION_OR_FILTER), ConditionalSearchFilterType.class);
+		List<ConditionalSearchFilterType> filters = new ArrayList<>();
+		filters.add(filter);
 		
 		ResourceType resourceType = parseObjectType(new File(RESOURCE_DUMMY_FILENAME), ResourceType.class);
-		IntegrationTestTools.display("Queries", queries);
+		IntegrationTestTools.display("Queries", filters);
 		
 		// WHEN
 		List<PrismObject<UserType>> matchedUsers = evaluator.findFocusesByCorrelationRule(UserType.class,
-				shadow, queries, resourceType, task, result);
+				shadow, filters, resourceType, task, result);
 		
 		// THEN
 		assertNotNull("Correlation evaluator returned null collection of matched users.", matchedUsers);
@@ -133,16 +134,16 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 			
 		ShadowType shadow = parseObjectType(ACCOUNT_SHADOW_JACK_DUMMY_FILE, ShadowType.class);
 		
-		List<QueryType> queries = new ArrayList<QueryType>();
-		QueryType query = PrismTestUtil.unmarshalObject(new File(CORRELATION_FIRST_FILTER), QueryType.class);		
-		queries.add(query);
+		List<ConditionalSearchFilterType> filters = new ArrayList<>();
+        ConditionalSearchFilterType filter = PrismTestUtil.unmarshalObject(new File(CORRELATION_FIRST_FILTER), ConditionalSearchFilterType.class);
+		filters.add(filter);
 		
-		query = PrismTestUtil.unmarshalObject(new File(CORRELATION_SECOND_FILTER), QueryType.class);		
-		queries.add(query);
+		filter = PrismTestUtil.unmarshalObject(new File(CORRELATION_SECOND_FILTER), ConditionalSearchFilterType.class);
+		filters.add(filter);
 		
 		ResourceType resourceType = parseObjectType(new File(RESOURCE_DUMMY_FILENAME), ResourceType.class);
 		List<PrismObject<UserType>> matchedUsers = evaluator.findFocusesByCorrelationRule(UserType.class,
-				shadow, queries, resourceType, task, result);
+				shadow, filters, resourceType, task, result);
 		
 		assertNotNull("Correlation evaluator returned null collection of matched users.", matchedUsers);
 		assertEquals("Found more than one user.", 1, matchedUsers.size());
@@ -168,11 +169,11 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 			
 		ShadowType shadow = parseObjectType(ACCOUNT_SHADOW_JACK_DUMMY_FILE, ShadowType.class);
 		
-		List<QueryType> queries = new ArrayList<QueryType>();
-		QueryType query = PrismTestUtil.unmarshalObject(new File(CORRELATION_WITH_CONDITION), QueryType.class);		
+		List<ConditionalSearchFilterType> queries = new ArrayList<>();
+        ConditionalSearchFilterType query = PrismTestUtil.unmarshalObject(new File(CORRELATION_WITH_CONDITION), ConditionalSearchFilterType.class);
 		queries.add(query);
 		
-		query = PrismTestUtil.unmarshalObject(new File(CORRELATION_WITH_CONDITION_EMPL_NUMBER), QueryType.class);		
+		query = PrismTestUtil.unmarshalObject(new File(CORRELATION_WITH_CONDITION_EMPL_NUMBER), ConditionalSearchFilterType.class);
 		queries.add(query);
 		
 		ResourceType resourceType = parseObjectType(new File(RESOURCE_DUMMY_FILENAME), ResourceType.class);
@@ -202,8 +203,8 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		assertNotNull(userType);
 			
 		ShadowType shadow = parseObjectType(ACCOUNT_SHADOW_JACK_DUMMY_FILE, ShadowType.class);
-		
-		QueryType query = PrismTestUtil.unmarshalObject(new File(CORRELATION_CASE_INSENSITIVE), QueryType.class);
+
+        ConditionalSearchFilterType query = PrismTestUtil.unmarshalObject(new File(CORRELATION_CASE_INSENSITIVE), ConditionalSearchFilterType.class);
 //		List<QueryType> queries = new ArrayList<QueryType>();
 //		queries.add(query);
 //		
@@ -246,8 +247,8 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		assertNotNull(userType);
 			
 		ShadowType shadow = parseObjectType(ACCOUNT_SHADOW_JACK_DUMMY_FILE, ShadowType.class);
-		
-		QueryType query = PrismTestUtil.unmarshalObject(new File(CORRELATION_CASE_INSENSITIVE_EMPL_NUMBER), QueryType.class);
+
+        ConditionalSearchFilterType query = PrismTestUtil.unmarshalObject(new File(CORRELATION_CASE_INSENSITIVE_EMPL_NUMBER), ConditionalSearchFilterType.class);
 //		ObjectQuery query = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(null, userType.getDefinition().findItemDefinition(UserType.F_EMPLOYEE_NUMBER), "stringIgnoreCase", "ps1234"));
 //		List<QueryType> queries = new ArrayList<QueryType>();
 //		queries.add(query);
@@ -294,9 +295,9 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		assertNotNull(userType);
 			
 		ShadowType shadow = parseObjectType(ACCOUNT_SHADOW_JACK_DUMMY_FILE, ShadowType.class);
-		
-		QueryType query = PrismTestUtil.unmarshalObject(new File(CORRELATION_CASE_INSENSITIVE), QueryType.class);
-		List<QueryType> queries = new ArrayList<QueryType>();
+
+        ConditionalSearchFilterType query = PrismTestUtil.unmarshalObject(new File(CORRELATION_CASE_INSENSITIVE), ConditionalSearchFilterType.class);
+		List<ConditionalSearchFilterType> queries = new ArrayList<>();
 		queries.add(query);
 //		
 		ResourceType resourceType = parseObjectType(new File(RESOURCE_DUMMY_FILENAME), ResourceType.class);

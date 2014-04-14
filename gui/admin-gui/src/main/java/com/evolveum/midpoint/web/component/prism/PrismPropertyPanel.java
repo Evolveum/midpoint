@@ -225,7 +225,7 @@ public class PrismPropertyPanel extends Panel {
         ItemPath path = propertyWrapper.getItem().getPath();
         ObjectDeltaType delta = (ObjectDeltaType) objectChange.getValue().getValue();
         try {
-            for (ItemDeltaType itemDelta : delta.getModification()) {
+            for (ItemDeltaType itemDelta : delta.getItemDelta()) {
                 ItemDelta iDelta = DeltaConvertor.createItemDelta(itemDelta, (Class<? extends Objectable>)
                         prismObject.getCompileTimeClass(), prismObject.getPrismContext());
                 if (iDelta.getPath().equals(path)) {

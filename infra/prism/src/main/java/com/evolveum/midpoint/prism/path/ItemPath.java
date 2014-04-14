@@ -17,22 +17,35 @@ package com.evolveum.midpoint.prism.path;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 
 /**
  * @author semancik
  *
  */
-public class ItemPath implements Serializable {
+public class ItemPath implements Serializable, Cloneable {
 	
+	public static final QName XSD_TYPE = ItemPathType.COMPLEX_TYPE;
 	public static final ItemPath EMPTY_PATH = new ItemPath();
 	
 	private List<ItemPathSegment> segments;
+	private Map<String, String> namespaceMap;
+	
+	public void setNamespaceMap(Map<String, String> namespaceMap) {
+		this.namespaceMap = namespaceMap;
+	}
+	
+	public Map<String, String> getNamespaceMap() {
+		return namespaceMap;
+	}
 
 	public ItemPath() {
 		segments = new ArrayList<ItemPathSegment>(0);
@@ -132,7 +145,7 @@ public class ItemPath implements Serializable {
 	}
 
     public NameItemPathSegment lastNamed() {
-        for (int i = segments.size()-1; i >= 0; i++) {
+        for (int i = segments.size()-1; i >= 0; i--) {
             if (segments.get(i) instanceof NameItemPathSegment) {
                 return (NameItemPathSegment) segments.get(i);
             }
@@ -173,8 +186,34 @@ public class ItemPath implements Serializable {
 		}
 		return new ItemPath(segments.subList(0, segments.size()-1));
 	}
-	
-	public int size() {
+
+    /**
+     * Returns a path containing all segments up to (and not including) the last one.
+     */
+    public ItemPath allUpToLastNamed() {
+        for (int i = segments.size()-1; i >= 0; i--) {
+            if (segments.get(i) instanceof NameItemPathSegment) {
+                return new ItemPath(segments.subList(0, i));
+            }
+        }
+        return EMPTY_PATH;
+    }
+
+    /**
+     * Returns a path containing all segments up to (not including) the specified one;
+     * counted from backwards.
+     * If the segment is not present, returns empty path.
+     */
+    public ItemPath allUpTo(ItemPathSegment segment) {
+        int i = segments.lastIndexOf(segment);
+        if (i < 0) {
+            return EMPTY_PATH;
+        } else {
+            return new ItemPath(segments.subList(0, i-1));
+        }
+    }
+
+    public int size() {
 		return segments.size();
 	}
 
@@ -227,7 +266,7 @@ public class ItemPath implements Serializable {
 		return CompareResult.EQUIVALENT;
 	}
 
-	public enum CompareResult {
+    public enum CompareResult {
 		EQUIVALENT,
 		SUPERPATH,
 		SUBPATH,
@@ -250,8 +289,9 @@ public class ItemPath implements Serializable {
     public boolean equivalent(ItemPath otherPath) {
 		return compareComplex(otherPath) == CompareResult.EQUIVALENT;
 	}
-	
+
 	public ItemPath substract(ItemPath otherPath) {
+//        return remainder(otherPath);                        // the code seems to be equivalent to the one of remainder()
 		ItemPath thisNormalized = this.normalize();
 		ItemPath otherNormalized = otherPath.normalize();
 		if (thisNormalized.size() < otherNormalized.size()) {
@@ -271,12 +311,19 @@ public class ItemPath implements Serializable {
 		return new ItemPath(substractSegments);
 	}
 
-	
+    /**
+     * Returns the remainder of "this" path after passing all segments from the other path.
+     * (I.e. this path must begin with the content of the other path. Throws an exception when
+     * it is not the case.)
+     *
+     * @param otherPath
+     * @return
+     */
 	public ItemPath remainder(ItemPath otherPath) {
 		ItemPath thisNormalized = this.normalize();
 		ItemPath otherNormalized = otherPath.normalize();
 		if (thisNormalized.size() < otherNormalized.size()) {
-			throw new IllegalArgumentException("Cannot compute remaninder of path '"+this+"' after '"+otherPath+"' because this path is not a superset");
+			throw new IllegalArgumentException("Cannot compute remainder of path '"+this+"' after '"+otherPath+"' because this path is not a superset");
 		}
 		int i = 0;
 		while (i < otherNormalized.segments.size()) {
@@ -362,5 +409,16 @@ public class ItemPath implements Serializable {
 			return false;
 		return true;
 	}
+
+    public ItemPath clone() {
+        ItemPath clone = new ItemPath();
+        for (ItemPathSegment segment : segments) {
+            clone.segments.add(segment.clone());
+        }
+        if (namespaceMap != null) {
+            clone.namespaceMap = new HashMap<>(namespaceMap);
+        }
+        return clone;
+    }
 
 }

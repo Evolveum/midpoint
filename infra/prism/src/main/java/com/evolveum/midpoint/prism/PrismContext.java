@@ -16,39 +16,68 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.parser.DomParser;
+import com.evolveum.midpoint.prism.parser.JaxbDomHack;
+import com.evolveum.midpoint.prism.parser.JsonParser;
+import com.evolveum.midpoint.prism.parser.Parser;
+import com.evolveum.midpoint.prism.parser.PrismBeanConverter;
+import com.evolveum.midpoint.prism.parser.XNodeProcessor;
+import com.evolveum.midpoint.prism.parser.YamlParser;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
-import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * @author semancik
  *
  */
 public class PrismContext {
+	
+	public static final String LANG_XML = "xml";
+	public static final String LANG_JSON = "json";
+	public static final String LANG_YAML = "yaml";
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismContext.class);
+    
+    private static boolean allowSchemalessSerialization = true;
+    
 	private SchemaRegistry schemaRegistry;
-	private PrismJaxbProcessor prismJaxbProcessor;
-	private PrismDomProcessor prismDomProcessor;
+	private XNodeProcessor xnodeProcessor;
+	private PrismBeanConverter beanConverter;
 	private SchemaDefinitionFactory definitionFactory;
 	private PolyStringNormalizer defaultPolyStringNormalizer;
+	private Map<String, Parser> parserMap;
+	
+	// We need to keep this because of deprecated methods and various hacks
+	private DomParser parserDom;
+	private JaxbDomHack jaxbDomHack;
 
+    //region Standard overhead
 	private PrismContext() {
 		// empty
 	}
@@ -58,14 +87,20 @@ public class PrismContext {
 		prismContext.schemaRegistry = schemaRegistry;
 		schemaRegistry.setPrismContext(prismContext);
 
-		PrismJaxbProcessor prismJaxbProcessor = new PrismJaxbProcessor(prismContext);
-		prismJaxbProcessor.initialize();
-		prismContext.prismJaxbProcessor = prismJaxbProcessor;
+		prismContext.xnodeProcessor = new XNodeProcessor(prismContext);
+		prismContext.beanConverter = new PrismBeanConverter(prismContext);
 
-		PrismDomProcessor prismDomProcessor = new PrismDomProcessor(schemaRegistry);
-		prismDomProcessor.setPrismContext(prismContext);
-		prismContext.prismDomProcessor = prismDomProcessor;
-
+		prismContext.parserMap = new HashMap<String, Parser>();
+		DomParser parserDom = new DomParser(schemaRegistry);
+		prismContext.parserMap.put(LANG_XML, parserDom);
+		JsonParser parserJson = new JsonParser();
+		prismContext.parserMap.put(LANG_JSON, parserJson);
+		YamlParser parserYaml = new YamlParser();
+		prismContext.parserMap.put(LANG_YAML, parserYaml);
+		prismContext.parserDom = parserDom;
+		
+		prismContext.jaxbDomHack = new JaxbDomHack(parserDom, prismContext);
+		
 		return prismContext;
 	}
 	
@@ -84,6 +119,14 @@ public class PrismContext {
 		}
 	}
 
+	public static boolean isAllowSchemalessSerialization() {
+		return allowSchemalessSerialization;
+	}
+
+	public static void setAllowSchemalessSerialization(boolean allowSchemalessSerialization) {
+		PrismContext.allowSchemalessSerialization = allowSchemalessSerialization;
+	}
+
 	public SchemaRegistry getSchemaRegistry() {
 		return schemaRegistry;
 	}
@@ -92,20 +135,23 @@ public class PrismContext {
 		this.schemaRegistry = schemaRegistry;
 	}
 
-	public PrismJaxbProcessor getPrismJaxbProcessor() {
-		return prismJaxbProcessor;
+	public XNodeProcessor getXnodeProcessor() {
+		return xnodeProcessor;
 	}
 
-	public void setPrismJaxbProcessor(PrismJaxbProcessor prismJaxbProcessor) {
-		this.prismJaxbProcessor = prismJaxbProcessor;
+	/**
+	 * WARNING! This is not really public method. It should NOT not used outside the prism implementation.
+	 */
+	public DomParser getParserDom() {
+		return parserDom;
 	}
 
-	public PrismDomProcessor getPrismDomProcessor() {
-		return prismDomProcessor;
+	public PrismBeanConverter getBeanConverter() {
+		return beanConverter;
 	}
 
-	public void setPrismDomProcessor(PrismDomProcessor prismDomProcessor) {
-		this.prismDomProcessor = prismDomProcessor;
+	public JaxbDomHack getJaxbDomHack() {
+		return jaxbDomHack;
 	}
 
     public SchemaDefinitionFactory getDefinitionFactory() {
@@ -127,30 +173,198 @@ public class PrismContext {
 		this.defaultPolyStringNormalizer = defaultPolyStringNormalizer;
 	}
 
-	/**
-	 * Parses a DOM object and creates a prism from it. It copies data from the original object to the prism.
-	 */
-	public <T extends Objectable> PrismObject<T> parseObject(Element objectElement) throws SchemaException {
-		return prismDomProcessor.parseObject(objectElement);
+	private Parser getParser(String language) {
+		return parserMap.get(language);
 	}
 
+	private Parser getParserNotNull(String language) {
+		Parser parser = getParser(language);		
+		if (parser == null) {
+			throw new SystemException("No parser for language '"+language+"'");
+		}
+		return parser;
+	}
+    //endregion
+
+    //region Parsing Prism objects
+	/**
+	 * Parses a file and creates a prism from it. Autodetect language.
+	 * @throws IOException 
+	 */
+	public <T extends Objectable> PrismObject<T> parseObject(File file) throws SchemaException, IOException {
+		Parser parser = findParser(file);
+		XNode xnode = parser.parse(file);
+		return xnodeProcessor.parseObject(xnode);
+	}
+	
 	/**
 	 * Parses a file and creates a prism from it.
 	 */
-	public <T extends Objectable> PrismObject<T> parseObject(File file) throws SchemaException {
-		// Use DOM now. We will switch to StAX later.
-		return prismDomProcessor.parseObject(file);
+	public <T extends Objectable> PrismObject<T> parseObject(File file, String language) throws SchemaException, IOException {
+        XNode xnode = parseToXNode(file, language);
+		return xnodeProcessor.parseObject(xnode);
 	}
 
-	/**
-	 * Parses a string and creates a prism from it.
+    /**
+     * Parses data from an input stream and creates a prism from it.
+     */
+    public <T extends Objectable> PrismObject<T> parseObject(InputStream stream, String language) throws SchemaException, IOException {
+        XNode xnode = parseToXNode(stream, language);
+        return xnodeProcessor.parseObject(xnode);
+    }
+
+    /**
+	 * Parses a string and creates a prism from it. Autodetect language. 
+	 * Used mostly for testing, but can also be used for built-in editors, etc.
 	 */
-	public <T extends Objectable> PrismObject<T> parseObject(String xmlString) throws SchemaException {
-		// Use DOM now. We will switch to StAX later.
-		return prismDomProcessor.parseObject(xmlString);
+	public <T extends Objectable> PrismObject<T> parseObject(String dataString) throws SchemaException {
+		Parser parser = findParser(dataString);
+		XNode xnode = parser.parse(dataString);
+		return xnodeProcessor.parseObject(xnode);
+	}
+	
+	/**
+	 * Parses a string and creates a prism from it. Used mostly for testing, but can also be used for built-in editors, etc.
+	 */
+	public <T extends Objectable> PrismObject<T> parseObject(String dataString, String language) throws SchemaException {
+		XNode xnode = parseToXNode(dataString, language);
+		return xnodeProcessor.parseObject(xnode);
 	}
 
-	/**
+    /**
+     * Parses a DOM object and creates a prism from it.
+     */
+    @Deprecated
+    public <T extends Objectable> PrismObject<T> parseObject(Element objectElement) throws SchemaException {
+        RootXNode xroot = parserDom.parseElementAsRoot(objectElement);
+        return xnodeProcessor.parseObject(xroot);
+    }
+
+    public List<PrismObject<? extends Objectable>> parseObjects(File file) throws SchemaException, IOException {
+        Parser parser = findParser(file);
+        Collection<XNode> nodes = parser.parseCollection(file);
+        Iterator<XNode> nodesIterator = nodes.iterator();
+        List<PrismObject<? extends Objectable>> objects = new ArrayList<PrismObject<? extends Objectable>>();
+        while (nodesIterator.hasNext()){
+            XNode node = nodesIterator.next();
+            PrismObject object = xnodeProcessor.parseObject(node);
+            objects.add(object);
+        }
+        return objects;
+    }
+    //endregion
+
+    //region Parsing prism containers
+    public <C extends Containerable> PrismContainer<C> parseContainer(File file, Class<C> type, String language) throws SchemaException, IOException {
+        XNode xnode = parseToXNode(file, language);
+		return xnodeProcessor.parseContainer(xnode, type);
+	}
+
+    public <C extends Containerable> PrismContainer<C> parseContainer(File file, PrismContainerDefinition<C> containerDef, String language) throws SchemaException, IOException {
+        XNode xnode = parseToXNode(file, language);
+		return xnodeProcessor.parseContainer(xnode, containerDef);
+	}
+	
+	public <C extends Containerable> PrismContainer<C> parseContainer(String dataString, Class<C> type, String language) throws SchemaException {
+        XNode xnode = parseToXNode(dataString, language);
+		return xnodeProcessor.parseContainer(xnode, type);
+	}
+	
+	public <C extends Containerable> PrismContainer<C> parseContainer(String dataString, PrismContainerDefinition<C> containerDef, String language) throws SchemaException {
+		XNode xnode = parseToXNode(dataString, language);
+		return xnodeProcessor.parseContainer(xnode, containerDef);
+	}
+
+    /**
+     * Parses prism container, trying to autodetect the definition from the root node name (if present) or from node type.
+     * Both single and multivalued containers are supported.
+     *
+     * @param dataString String to be parsed.
+     * @param language Language to be used.
+     * @return
+     * @throws SchemaException
+     */
+    public <C extends Containerable> PrismContainer<C> parseContainer(String dataString, String language) throws SchemaException {
+        XNode xnode = parseToXNode(dataString, language);
+        return xnodeProcessor.parseContainer(xnode);
+    }
+    //endregion
+
+    //region Parsing atomic values (properties values)
+    /**
+     * Parses an atomic value - i.e. something that could present a property value, if such a property would exist.
+     */
+    public <T> T parseAtomicValue(String dataString, QName typeName, String language) throws SchemaException {
+        XNode xnode = parseToXNode(dataString, language);
+        return xnodeProcessor.parseAtomicValue(xnode, typeName);
+    }
+
+    //endregion
+
+    //region Parsing anything (without knowing the definition up-front)
+    /**
+     * Parses (almost) anything: either an item with a definition, or an atomic (i.e. property-like) value.
+     * Does not care for schemaless items!
+     *
+     * @param node
+     * @return either Item or an unmarshalled bean value
+     * @throws SchemaException
+     */
+    public Object parseAnyData(String dataString, String language) throws SchemaException {
+        XNode xnode = parseToXNode(dataString, language);
+        return xnodeProcessor.parseAnyData(xnode);
+    }
+    //endregion
+
+    //region Parsing to XNode
+    private XNode parseToXNode(String dataString, String language) throws SchemaException {
+        Parser parser = getParserNotNull(language);
+        return parser.parse(dataString);
+    }
+
+    private XNode parseToXNode(File file, String language) throws SchemaException, IOException {
+        Parser parser = getParserNotNull(language);
+        return parser.parse(file);
+    }
+
+    private XNode parseToXNode(InputStream stream, String language) throws SchemaException, IOException {
+        Parser parser = getParserNotNull(language);
+        return parser.parse(stream);
+    }
+
+    private Parser findParser(File file) throws IOException{
+        Parser parser = null;
+        for (Entry<String,Parser> entry: parserMap.entrySet()) {
+            Parser aParser = entry.getValue();
+            if (aParser.canParse(file)) {
+                parser = aParser;
+                break;
+            }
+        }
+        if (parser == null) {
+            throw new SystemException("No parser for file '"+file+"' (autodetect)");
+        }
+        return parser;
+    }
+
+    private Parser findParser(String data){
+        Parser parser = null;
+        for (Entry<String,Parser> entry: parserMap.entrySet()) {
+            Parser aParser = entry.getValue();
+            if (aParser.canParse(data)) {
+                parser = aParser;
+                break;
+            }
+        }
+        if (parser == null) {
+            throw new SystemException("No parser for data '"+DebugUtil.excerpt(data,16)+"' (autodetect)");
+        }
+        return parser;
+    }
+    //endregion
+
+    //region adopt(...) methods
+    /**
 	 * Set up the specified object with prism context instance and schema definition.
 	 */
 	public <T extends Objectable> void adopt(PrismObject<T> object, Class<T> declaredType) throws SchemaException {
@@ -185,30 +399,73 @@ public class PrismContext {
 		prismContainerValue.revive(this);
 		getSchemaRegistry().applyDefinition(prismContainerValue, typeName, path, false);
 	}
+    //endregion
+
+    //region Serializing objects, containers, atomic values (properties)
+	public <O extends Objectable> String serializeObjectToString(PrismObject<O> object, String language) throws SchemaException {
+		Parser parser = getParserNotNull(language);
+		RootXNode xroot = xnodeProcessor.serializeObject(object);
+		return parser.serializeToString(xroot);
+	}
+	
+	public <C extends Containerable> String serializeContainerValueToString(PrismContainerValue<C> cval, QName elementName, String language) throws SchemaException {
+		Parser parser = getParserNotNull(language);
+		
+		RootXNode xroot = xnodeProcessor.serializeItemValueAsRoot(cval, elementName);
+		System.out.println("serialized to xnode: " + xroot.debugDump());
+		return parser.serializeToString(xroot);
+	}
+
+    public String serializeAnyData(Object object, String language) throws SchemaException {
+        Parser parser = getParserNotNull(language);
+        RootXNode xnode = xnodeProcessor.serializeAnyData(object);
+        return parser.serializeToString(xnode);
+    }
+
+//    public <T> String serializeAtomicValues(QName elementName, String language, T... values) throws SchemaException {
+//        Parser parser = getParserNotNull(language);
+//        PrismPropertyDefinition<T> definition = schemaRegistry.findPropertyDefinitionByElementName(elementName);
+//        if (definition == null) {
+//            throw new SchemaException("Prism property with name " + elementName + " couldn't be found");
+//        }
+//        PrismProperty property = definition.instantiate();
+//        for (T value : values) {
+//            property.addRealValue(value);
+//        }
+//        RootXNode xroot = xnodeProcessor.serializeItemAsRoot(property);
+//        return parser.serializeToString(xroot);
+//    }
+
+    @Deprecated
+	public <O extends Objectable> Element serializeToDom(PrismObject<O> object) throws SchemaException {
+		RootXNode xroot = xnodeProcessor.serializeObject(object);
+		return parserDom.serializeXRootToElement(xroot);
+	}
+
+    @Deprecated
+    public Element serializeValueToDom(PrismValue pval, QName elementName) throws SchemaException {
+        RootXNode xroot = xnodeProcessor.serializeItemValueAsRoot(pval, elementName);
+        return parserDom.serializeXRootToElement(xroot);
+    }
+
+    @Deprecated
+    public Element serializeValueToDom(PrismValue pval, QName elementName, Document document) throws SchemaException {
+        RootXNode xroot = xnodeProcessor.serializeItemValueAsRoot(pval, elementName);
+        return parserDom.serializeXRootToElement(xroot, document);
+    }
+
+
+    //endregion
 
     /**
-     * Method used to marshal objects to xml in debug messages.
-     * @param object
-     * @return xml as string
+     * A bit of hack: serializes any Item into a RawType.
+     * Currently used for serializing script output, until a better method is devised.
+     * @param value
+     * @return
      */
-    public String silentMarshalObject(Object object, Trace logger) {
-        String xml = null;
-        try {
-            QName fakeQName=new QName(PrismConstants.NS_PREFIX + "debug", "debugPrintObject");
-            if (object instanceof Objectable) {
-                xml = prismDomProcessor.serializeObjectToString(((Objectable) object).asPrismObject());
-            } else if (object instanceof Containerable) {
-                Element fakeParent = DOMUtil.createElement(DOMUtil.getDocument(), fakeQName);
-                xml = prismDomProcessor.serializeObjectToString(((Containerable) object).asPrismContainerValue(),
-                        fakeParent);
-            } else {
-                xml = prismJaxbProcessor.marshalElementToString(new JAXBElement<Object>(fakeQName, Object.class, object));
-            }
-        } catch (Exception ex) {
-            Trace log = logger != null ? logger : LOGGER;
-            LoggingUtils.logException(log, "Couldn't marshal element to string {}", ex, object);
-        }
-        return xml;
+    public RawType toRawType(Item item) throws SchemaException {
+        RootXNode rootXNode = xnodeProcessor.serializeItemAsRoot(item);
+        return new RawType(rootXNode);
     }
 
 }

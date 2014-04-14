@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,21 +36,19 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class RefFilter extends PropertyValueFilter<PrismReferenceValue>{
-	
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
-	RefFilter(ItemPath path, PrismReferenceDefinition definition, QName matchingRule, List<PrismReferenceValue> values) {
-		super(path, definition, matchingRule, values);
+	RefFilter(ItemPath path, PrismReferenceDefinition definition, ExpressionWrapper expression, List<PrismReferenceValue> values) {
+		super(path, definition, expression, values);
 	}
 		
-	RefFilter(ItemPath path, PrismReferenceDefinition definition, Element expression) {
+	RefFilter(ItemPath path, PrismReferenceDefinition definition, ExpressionWrapper expression) {
 		super(path, definition, expression);
 	}
 	
@@ -66,11 +64,11 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue>{
 		return new RefFilter(path, definition, null, Arrays.asList(values));
 	}
 	
-	public static RefFilter createReferenceEqual(ItemPath path, PrismReference item, Element expression){
-		return new RefFilter(path, item.getDefinition(), expression);
+	public static RefFilter createReferenceEqual(ItemPath path, PrismReference item, ExpressionWrapper expression){
+		return new RefFilter(path, item.getDefinition(), expression, item.getValues());
 	}
 	
-	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, Element expression){
+	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, ExpressionWrapper expression){
 		return new RefFilter(path, definition, expression);
 	}
 		
@@ -133,7 +131,7 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue>{
 
 	@Override
 	public RefFilter clone() {
-		RefFilter clone = new RefFilter(getFullPath(), (PrismReferenceDefinition) getDefinition(), getMatchingRule(), (List<PrismReferenceValue>) getValues());
+		RefFilter clone = new RefFilter(getFullPath(), (PrismReferenceDefinition) getDefinition(), getExpression(), (List<PrismReferenceValue>) getValues());
 		cloneValues(clone);
 		return clone;
 	}
@@ -179,6 +177,12 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue>{
 	@Override
 	public ItemPath getPath() {
 		return getFullPath();
+	}
+	
+	@Override
+	public PrismReferenceDefinition getDefinition() {
+		// TODO Auto-generated method stub
+		return (PrismReferenceDefinition) super.getDefinition();
 	}
 
 

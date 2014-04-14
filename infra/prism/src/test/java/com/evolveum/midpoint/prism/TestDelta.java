@@ -987,7 +987,7 @@ public class TestDelta {
     public void testObjectDeltaApplyToAdd() throws Exception {
 		System.out.println("\n\n===[ testObjectDeltaApplyToAdd ]===\n");
 		// GIVEN
-		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
+		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE_XML);
 		//Delta
     	ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddProperty(UserType.class, USER_FOO_OID, 
     			UserType.F_LOCALITY, PrismTestUtil.getPrismContext(), "Caribbean");
@@ -1005,7 +1005,7 @@ public class TestDelta {
     public void testObjectDeltaApplyToDelete() throws Exception {
 		System.out.println("\n\n===[ testObjectDeltaApplyToDelete ]===\n");
 		// GIVEN
-		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
+		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE_XML);
 		//Delta
     	ObjectDelta<UserType> userDelta = ObjectDelta.createModificationDeleteProperty(UserType.class, USER_FOO_OID, 
     			UserType.F_ADDITIONAL_NAMES, PrismTestUtil.getPrismContext(), "Jackie");
@@ -1023,7 +1023,7 @@ public class TestDelta {
     public void testObjectDeltaApplyToReplace() throws Exception {
 		System.out.println("\n\n===[ testObjectDeltaApplyToReplace ]===\n");
 		// GIVEN
-		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
+		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE_XML);
 		//Delta
     	ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_FOO_OID, 
     			UserType.F_ADDITIONAL_NAMES, PrismTestUtil.getPrismContext(), "Cpt");
@@ -1041,7 +1041,7 @@ public class TestDelta {
     public void testObjectDeltaApplyToReplaceEmpty() throws Exception {
 		System.out.println("\n\n===[ testObjectDeltaApplyToReplaceEmpty ]===\n");
 		// GIVEN
-		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
+		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE_XML);
 		//Delta
     	ObjectDelta<UserType> userDelta = ObjectDelta.createModificationReplaceProperty(UserType.class, USER_FOO_OID, 
     			UserType.F_ADDITIONAL_NAMES, PrismTestUtil.getPrismContext());

@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -78,6 +79,8 @@ public class DOMUtil {
 	public static final QName XSI_TYPE = new QName(W3C_XML_SCHEMA_INSTANCE_NS_URI, "type", NS_W3C_XSI_PREFIX);
 	public static final QName XSI_NIL = new QName(W3C_XML_SCHEMA_INSTANCE_NS_URI, "nil", NS_W3C_XSI_PREFIX);
 	public static final QName XML_ID_ATTRIBUTE = new QName(W3C_XML_XML_URI, "id", W3C_XML_XML_PREFIX);
+
+    public static final String HACKED_XSI_TYPE = "xsiType";
 
 	public static final String NS_W3C_XML_SCHEMA_PREFIX = "xsd";
 	public static final QName XSD_SCHEMA_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "schema",
@@ -450,13 +453,19 @@ public class DOMUtil {
 	public static QName resolveXsiType(Element element, String defaultNamespacePrefix) {
 		String xsiType = element.getAttributeNS(XSI_TYPE.getNamespaceURI(), XSI_TYPE.getLocalPart());
 		if (xsiType == null || xsiType.isEmpty()) {
-			return null;
-		}
+			xsiType = element.getAttribute(HACKED_XSI_TYPE);
+        }
+        if (xsiType == null || xsiType.isEmpty()) {
+            return null;
+        }
 		return resolveQName(element, xsiType, defaultNamespacePrefix);
 	}
 
 	public static boolean hasXsiType(Element element) {
 		String xsiType = element.getAttributeNS(XSI_TYPE.getNamespaceURI(), XSI_TYPE.getLocalPart());
+        if (xsiType == null || xsiType.isEmpty()) {
+            xsiType = element.getAttribute(HACKED_XSI_TYPE);
+        }
 		if (xsiType == null || xsiType.isEmpty()) {
 			return false;
 		}
@@ -766,6 +775,46 @@ public class DOMUtil {
 		return attr.getValue();
 	}
 
+	public static Collection<Attr> listApplicationAttributes(Element element) {
+		Collection<Attr> attrs = new ArrayList<Attr>();
+		NamedNodeMap attributes = element.getAttributes();
+		for(int i=0; i<attributes.getLength(); i++) {
+			Attr attr = (Attr)attributes.item(i);
+			if (isApplicationAttribute(attr)) {
+				attrs.add(attr);
+			}
+		}
+		return attrs;
+	}
+
+	
+	public static boolean hasApplicationAttributes(Element element) {
+		NamedNodeMap attributes = element.getAttributes();
+		for(int i=0; i<attributes.getLength(); i++) {
+			Attr attr = (Attr)attributes.item(i);
+			if (isApplicationAttribute(attr)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static boolean isApplicationAttribute(Attr attr) {
+		String namespaceURI = attr.getNamespaceURI();
+		if (namespaceURI == null) {
+			return true;
+		}
+		if (W3C_XML_SCHEMA_XMLNS_URI.equals(namespaceURI)) {
+			return false;
+		}
+		if (W3C_XML_XML_URI.equals(namespaceURI)) {
+			return false;
+		}
+		if (W3C_XML_SCHEMA_INSTANCE_NS_URI.equals(namespaceURI)) {
+			return false;
+		}
+		return true;
+	}
 
 	private static boolean comparePrefix(String prefixA, String prefixB) {
 		if (StringUtils.isBlank(prefixA) && StringUtils.isBlank(prefixB)) {
@@ -794,6 +843,10 @@ public class DOMUtil {
 		}
 		return null;
 	}
+	
+	public static Element getChildElement(Element element, int index) {
+		return listChildElements(element).get(index);
+	}
 
 	public static Element getOrCreateAsFirstElement(Element parentElement, QName elementQName) {
 		Element element = getChildElement(parentElement, elementQName);
@@ -808,7 +861,11 @@ public class DOMUtil {
 
 	public static QName getQName(Node node) {
 		if (node.getLocalName() == null) {
-			return null;
+			if (node.getNodeName() == null) {
+				return null;
+			} else {
+				return new QName(null, node.getNodeName());
+			}
 		}
 		if (node.getPrefix() == null) {
 			return new QName(node.getNamespaceURI(), node.getLocalName());
@@ -834,6 +891,10 @@ public class DOMUtil {
 			return null;
 		}
 		return resolveQName(element, attrContent);
+	}
+	
+	public static QName getQNameValue(Attr attr) {
+		return resolveQName(attr, attr.getTextContent());
 	}
 	
 	public static Integer getIntegerValue(Element element) {
@@ -866,7 +927,13 @@ public class DOMUtil {
     }
 
 	public static Element createElement(Document document, QName qname) {
-		Element element = document.createElementNS(qname.getNamespaceURI(), qname.getLocalPart());
+		Element element;
+		String namespaceURI = qname.getNamespaceURI();
+		if (StringUtils.isBlank(namespaceURI)) {
+			element = document.createElement(qname.getLocalPart());
+		} else {
+			element = document.createElementNS(qname.getNamespaceURI(), qname.getLocalPart());
+		}
 		if (qname.getPrefix() != null) {
 			element.setPrefix(qname.getPrefix());
 		}
@@ -1115,4 +1182,25 @@ public class DOMUtil {
         String restXml = completeXml.replaceFirst("^\\s*<[^>]>", "");
         return restXml.replaceFirst("</[^>]>\\s*$", "");
     }
+
+	public static boolean isEmpty(Element element) {
+		if (element == null) {
+			return true;
+		}
+		if (hasChildElements(element)) {
+			return false;
+		}
+		if (isNil(element)) {
+			return true;
+		}
+		return StringUtils.isBlank(element.getTextContent());
+	}
+
+	public static boolean isEmpty(Attr attr) {
+		if (attr == null) {
+			return true;
+		}
+		return StringUtils.isEmpty(attr.getValue());
+	}
+
 }

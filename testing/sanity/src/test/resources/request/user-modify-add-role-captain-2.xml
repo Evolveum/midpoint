@@ -17,23 +17,24 @@
 
 <!-- Object modification description that is changing user "guybrush" by adding a new role (using assignment) -->
 
-<objectModification
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
+<objectDelta
+	xmlns="http://prism.evolveum.com/xml/ns/public/types-2"
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 		xmlns:my="http://whatever.com/my"
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+		<t:changeType>modify</t:changeType>
+	<objectType>c:UserType</objectType>
 	<oid>c0c010c0-d34d-b33f-f00d-111111111222</oid>
-	<modification>
+	<itemDelta>
 		<t:modificationType>add</t:modificationType>
+		<t:path>c:assignment</t:path>
 		<t:value>
-			<c:assignment>
 				<c:extension>
 					<my:shipName xsi:type="xsd:string">The Dainty Lady</my:shipName>
 				</c:extension>
 				<c:targetRef oid="12345678-d34d-b33f-f00d-987987cccccc" type="c:RoleType"/>
-			</c:assignment>
 		</t:value>
-	</modification>
-</objectModification>
+	</itemDelta>
+</objectDelta>

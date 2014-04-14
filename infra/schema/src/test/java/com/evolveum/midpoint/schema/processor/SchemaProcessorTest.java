@@ -27,6 +27,7 @@ import java.util.Collection;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
+
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Document;
@@ -42,7 +43,10 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 
 public class SchemaProcessorTest {
 
@@ -93,9 +97,9 @@ public class SchemaProcessorTest {
 		// ... in it ordinary property
 		containerDefinition.createPropertyDefinition("login", DOMUtil.XSD_STRING);
 		// ... and local property with a type from another schema
-		containerDefinition.createPropertyDefinition("password", SchemaConstants.C_PROTECTED_STRING_TYPE);
+		containerDefinition.createPropertyDefinition("password", ProtectedStringType.COMPLEX_TYPE);
 		// ... property reference
-		containerDefinition.createPropertyDefinition(SchemaConstants.C_CREDENTIALS, SchemaConstants.C_CREDENTIALS_TYPE);
+		containerDefinition.createPropertyDefinition(SchemaConstants.C_CREDENTIALS, CredentialsType.COMPLEX_TYPE);
 		// ... read-only int property 
 		PrismPropertyDefinition counterProperty = containerDefinition.createPropertyDefinition("counter", DOMUtil.XSD_INT);
 		counterProperty.setReadOnly();
@@ -140,7 +144,7 @@ public class SchemaProcessorTest {
 
 		PrismPropertyDefinition passwdDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"password"));
 		assertEquals(new QName(SCHEMA_NS,"password"), passwdDef.getName());
-		assertEquals(SchemaConstants.C_PROTECTED_STRING_TYPE, passwdDef.getTypeName());
+		assertEquals(ProtectedStringType.COMPLEX_TYPE, passwdDef.getTypeName());
 
 		PrismPropertyDefinition credDef = newContainerDef.findPropertyDefinition(new QName(SchemaConstants.NS_C,"credentials"));
 		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
@@ -171,7 +175,7 @@ public class SchemaProcessorTest {
 		xloginDef.setNativeAttributeName("LOGIN");
 		containerDefinition.setDisplayNameAttribute(xloginDef.getName());
 		// ... and local property with a type from another schema
-		ResourceAttributeDefinition xpasswdDef = containerDefinition.createAttributeDefinition("password", SchemaConstants.C_PROTECTED_STRING_TYPE);
+		ResourceAttributeDefinition xpasswdDef = containerDefinition.createAttributeDefinition("password", ProtectedStringType.COMPLEX_TYPE);
 		xpasswdDef.setNativeAttributeName("PASSWORD");
 		// ... property reference
 		containerDefinition.createAttributeDefinition(SchemaConstants.C_CREDENTIALS, SchemaConstants.C_CREDENTIALS_TYPE);
@@ -215,7 +219,7 @@ public class SchemaProcessorTest {
 
 		PrismPropertyDefinition passwdDef = newObjectClassDef.findPropertyDefinition(new QName(SCHEMA_NS,"password"));
 		assertEquals(new QName(SCHEMA_NS,"password"), passwdDef.getName());
-		assertEquals(SchemaConstants.C_PROTECTED_STRING_TYPE, passwdDef.getTypeName());
+		assertEquals(ProtectedStringType.COMPLEX_TYPE, passwdDef.getTypeName());
 		assertFalse(passwdDef.isIgnored());
 
 		PrismContainerDefinition credDef = newObjectClassDef.findContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));

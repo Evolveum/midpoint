@@ -25,7 +25,8 @@
 		<script>
 			<language>http://www.w3.org/TR/xpath/</language>
 			<code>
-				concat('Captain ',$c:user/c:fullName/t:orig)
+                declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+				concat('Captain ',$user/c:fullName)
 			</code>
 		</script>
 	</expression>

@@ -50,7 +50,6 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.model.ModelObjectResolver;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -70,6 +69,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
@@ -338,6 +338,13 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		OperationResult result = parentResult.createSubresult(EXECUTE_CHANGES);
 		result.addParam(OperationResult.PARAM_OPTIONS, options);
 		
+		if (ModelExecuteOptions.isIsImport(options)){
+			for (ObjectDelta<? extends ObjectType> delta : deltas){
+				if (delta.isAdd()){
+					Utils.resolveReferences(delta.getObjectToAdd(), cacheRepositoryService, false, prismContext, result);
+				}
+			}
+		}
 		// Make sure everything is encrypted as needed before logging anything.
 		// But before that we need to make sure that we have proper definition, otherwise we
 		// might miss some encryptable data in dynamic schemas
@@ -404,7 +411,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				auditService.audit(auditRecord, task);
 				
 			} else {				
-					
+				
 				LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, options, task, result);
 
 				clockwork.run(context, task, result);

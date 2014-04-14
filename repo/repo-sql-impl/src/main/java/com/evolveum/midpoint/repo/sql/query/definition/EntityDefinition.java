@@ -19,9 +19,12 @@ package com.evolveum.midpoint.repo.sql.query.definition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.QNameUtil;
+
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -143,9 +146,13 @@ public class EntityDefinition extends Definition {
         Validate.notNull(type, "Definition type must not be null.");
 
         for (Definition definition : getDefinitions()) {
-            if (!jaxbName.equals(definition.getJaxbName())) {
-                continue;
-            }
+        	//TODO: using match instead of strict equals..is this OK for repository??this is the situation, we have "common" namepsace
+        	if (!QNameUtil.match(jaxbName, definition.getJaxbName())){
+        		continue;
+        	}
+//            if (!jaxbName.equals(definition.getJaxbName())) {
+//                continue;
+//            }
 
             if (type.isAssignableFrom(definition.getClass())) {
                 return (D) definition;

@@ -83,6 +83,7 @@ public class PrismConstants {
 	public static final QName Q_TYPE = new QName(NS_QUERY, "type");
 	public static final QName Q_RELATION = new QName(NS_QUERY, "relation");
 	public static final QName Q_VALUE = new QName(NS_QUERY, "value");
+	public static final QName Q_ORDER_BY = new QName(NS_QUERY, "orderBy");
 
 	
 	// Misc
@@ -92,5 +93,7 @@ public class PrismConstants {
 	public static final QName POLYSTRING_TYPE_QNAME = new QName(NS_TYPES, "PolyStringType");
 	public static final QName POLYSTRING_ELEMENT_ORIG_QNAME = new QName(NS_TYPES, "orig");
 	public static final QName POLYSTRING_ELEMENT_NORM_QNAME = new QName(NS_TYPES, "norm");
-		
+
+    // a bit of hack: by this local name we know if a object is a reference (c:ObjectReferenceType)
+    public static final String REFERENCE_TYPE_NAME = "ObjectReferenceType";
 }

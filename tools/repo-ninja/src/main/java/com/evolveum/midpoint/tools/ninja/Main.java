@@ -42,6 +42,10 @@ public class Main {
             "Export objects to XML file provided by this option.");
     public static final Option keyStore = new Option("k", "keystore", false,
             "Dumping key store entries.");
+    public static final Option trans = new Option("t", "transform", true, "Transformation between xml/json/yaml");
+    public static final Option outputFormat = new Option("f", "format", true, "Output format to which will be file serialized");
+    public static final Option outputDirectory = new Option("out", "outDirectory", true, "Output directory - where the serialized fie will be saved");
+    public static final Option input = new Option("in", "input", true, "Input - file or directory with files that need to be transformed");
 
 
     public static void main(String[] args) {
@@ -58,6 +62,10 @@ public class Main {
         options.addOption(password);
         options.addOption(Password);
         options.addOption(keyStore);
+        options.addOption(trans);
+        options.addOption(outputFormat);
+        options.addOption(outputDirectory);
+        options.addOption(input);
 
         try {
             CommandLineParser parser = new GnuParser();
@@ -100,6 +108,14 @@ public class Main {
             	keyStoreDumper.execute();
             }
             
+            if (line.hasOption(trans.getOpt())){
+            	if (!checkCommand(line)){
+            		return;
+            	}
+            	FileTransformer transformer = new FileTransformer();
+            	configureTransformer(transformer, line);
+            	transformer.execute();
+            }
         } catch (ParseException ex) {
             System.out.println("Error: " + ex.getMessage());
             printHelp(options);
@@ -109,7 +125,30 @@ public class Main {
         }
     }
 
-    private static ImportDDLConfig createDDLConfig(CommandLine line) {
+    private static void configureTransformer(FileTransformer transformer, CommandLine line) {
+		transformer.setOutputDirecorty(line.getOptionValue(outputDirectory.getOpt()));
+		transformer.setOutputFormat(line.getOptionValue(outputFormat.getOpt()));
+		transformer.setInput(line.getOptionValue(input.getOpt()));
+		
+	}
+
+	private static boolean checkCommand(CommandLine line) {
+    	boolean valid = true;
+    	if (!line.hasOption(outputDirectory.getOpt())){
+    		System.out.println("Output direcotory not specified. Files will be saved to the same direcotory where is the original file located.");
+    	}
+        if (!line.hasOption(input.getOpt())) {
+        	System.out.println("Error by transforming file. No files to transform specified.");
+        	valid = false;
+        }
+        if (!line.hasOption(outputFormat.getOpt())){
+        	System.out.println("Error by transforming file. Output format not specified.");
+        	valid = false;
+        }
+        return valid;
+	}
+
+	private static ImportDDLConfig createDDLConfig(CommandLine line) {
         ImportDDLConfig config = new ImportDDLConfig();
         config.setDriver(line.getOptionValue(driver.getOpt()));
         config.setUrl(line.getOptionValue(url.getOpt()));

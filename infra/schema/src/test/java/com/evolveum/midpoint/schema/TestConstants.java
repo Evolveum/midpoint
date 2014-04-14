@@ -27,6 +27,8 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
  */
 public class TestConstants {
 	
+	public static final String COMMON_DIR_PATH = "src/test/resources/common";
+	
 	public static final String NS_EXTENSION = SchemaConstants.NS_MIDPOINT_TEST + "/extension";
 	public static final String NS_FOO = "http://www.example.com/foo";
 
@@ -38,6 +40,7 @@ public class TestConstants {
     
     public static final File COMMON_DIR = new File("src/test/resources/common");
 	
+    public static final String USER_FILE_BASENAME = "user-jack";
 	public static final File USER_FILE = new File(COMMON_DIR, "user-jack.xml");
 	
 	public static final Long USER_ASSIGNMENT_1_ID = 111L;

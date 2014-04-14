@@ -23,18 +23,18 @@
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:my="http://whatever.com/my"
 	xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
-	<modification>
+	<itemDelta>
 		<t:modificationType>add</t:modificationType>
-		<t:value>
-			<c:assignment>
-				<c:extension>
-					<my:shipName xsi:type="xsd:string">The Sea Monkey</my:shipName>
-					<ext:stringType>We can surely avoid scurvy if we all eat an orange</ext:stringType>
-				</c:extension>
-				<c:targetRef oid="12345678-d34d-b33f-f00d-987987987988" type="c:RoleType"/>
-			</c:assignment>
+		<t:path>c:assignment</t:path>
+		<t:value xsiType="c:AssignmentType">
+            <c:extension>
+                <my:shipName xsi:type="xsd:string">The Sea Monkey</my:shipName>
+                <ext:stringType>We can surely avoid scurvy if we all eat an orange</ext:stringType>
+            </c:extension>
+            <c:targetRef oid="12345678-d34d-b33f-f00d-987987987988" type="c:RoleType"/>
 		</t:value>
-	</modification>
+	</itemDelta>
 </objectModification>

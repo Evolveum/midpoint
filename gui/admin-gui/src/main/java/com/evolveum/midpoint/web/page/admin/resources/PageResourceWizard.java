@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.LoggingUtils;

@@ -29,6 +29,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
@@ -36,16 +38,17 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.util.exception.SystemException;
+
 import org.w3c.dom.Element;
 
 
 /**
  * 
  *                 Describes a change of a specific object.
- *                 This is abstract type. It cannot be used directly.
- *                 Use the subtypes instead.
- *             
+ *
  * 
  * <p>Java class for ObjectDeltaType complex type.
  * 
@@ -85,7 +88,7 @@ import org.w3c.dom.Element;
     "objectType",
     "objectToAdd",
     "oid",
-    "modification"
+    "itemDelta"
 })
 public class ObjectDeltaType implements Serializable {
 
@@ -93,10 +96,13 @@ public class ObjectDeltaType implements Serializable {
     protected ChangeTypeType changeType;
     @XmlElement(required = true)
     protected QName objectType;
-    protected ObjectDeltaType.ObjectToAdd objectToAdd;
+    protected ObjectType objectToAdd;
     @XmlElement(required = true)
     protected String oid;
-    protected List<ItemDeltaType> modification;
+    protected List<ItemDeltaType> itemDelta;
+
+    public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_TYPES, "ObjectDeltaType");
+
 
     /**
      * Gets the value of the changeType property.
@@ -154,7 +160,7 @@ public class ObjectDeltaType implements Serializable {
      *     {@link ObjectDeltaType.ObjectToAdd }
      *     
      */
-    public ObjectDeltaType.ObjectToAdd getObjectToAdd() {
+    public ObjectType getObjectToAdd() {
         return objectToAdd;
     }
 
@@ -166,7 +172,7 @@ public class ObjectDeltaType implements Serializable {
      *     {@link ObjectDeltaType.ObjectToAdd }
      *     
      */
-    public void setObjectToAdd(ObjectDeltaType.ObjectToAdd value) {
+    public <T extends ObjectType> void setObjectToAdd(T value) {
         this.objectToAdd = value;
     }
 
@@ -216,11 +222,11 @@ public class ObjectDeltaType implements Serializable {
      * 
      * 
      */
-    public List<ItemDeltaType> getModification() {
-        if (modification == null) {
-            modification = new ArrayList<ItemDeltaType>();
+    public List<ItemDeltaType> getItemDelta() {
+        if (itemDelta == null) {
+            itemDelta = new ArrayList<ItemDeltaType>();
         }
-        return this.modification;
+        return this.itemDelta;
     }
 
 	@Override
@@ -228,7 +234,7 @@ public class ObjectDeltaType implements Serializable {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((changeType == null) ? 0 : changeType.hashCode());
-		result = prime * result + ((modification == null) ? 0 : modification.hashCode());
+		result = prime * result + ((itemDelta == null) ? 0 : itemDelta.hashCode());
 		result = prime * result + ((objectToAdd == null) ? 0 : objectToAdd.hashCode());
 		result = prime * result + ((objectType == null) ? 0 : objectType.hashCode());
 		result = prime * result + ((oid == null) ? 0 : oid.hashCode());
@@ -246,10 +252,10 @@ public class ObjectDeltaType implements Serializable {
 		ObjectDeltaType other = (ObjectDeltaType) obj;
 		if (changeType != other.changeType)
 			return false;
-		if (modification == null) {
-			if (other.modification != null)
+		if (itemDelta == null) {
+			if (other.itemDelta != null)
 				return false;
-		} else if (!modification.equals(other.modification))
+		} else if (!itemDelta.equals(other.itemDelta))
 			return false;
 		if (objectToAdd == null) {
 			if (other.objectToAdd != null)
@@ -272,7 +278,7 @@ public class ObjectDeltaType implements Serializable {
 	@Override
 	public String toString() {
 		return "ObjectDeltaType(changeType=" + changeType + ", objectType=" + objectType + ", objectToAdd="
-				+ objectToAdd + ", oid=" + oid + ", modification=" + modification + ")";
+				+ objectToAdd + ", oid=" + oid + ", modification=" + itemDelta + ")";
 	}
 
     /**
@@ -301,7 +307,7 @@ public class ObjectDeltaType implements Serializable {
     public static class ObjectToAdd implements Serializable {
 
         @XmlAnyElement(lax = true)
-        protected Object any;
+        protected JAXBElement<?> any;
 
         /**
          * Gets the value of the any property.
@@ -312,7 +318,7 @@ public class ObjectDeltaType implements Serializable {
          *     {@link Element }
          *     
          */
-        public Object getAny() {
+        public JAXBElement<?> getAny() {
             return any;
         }
 
@@ -325,7 +331,7 @@ public class ObjectDeltaType implements Serializable {
          *     {@link Element }
          *     
          */
-        public void setAny(Object value) {
+        public void setAny(JAXBElement<?> value) {
             this.any = value;
         }
 
@@ -336,7 +342,7 @@ public class ObjectDeltaType implements Serializable {
                 try {
                     Method clone = any.getClass().getMethod("clone");
                     clone.setAccessible(true);
-                    retval.any = clone.invoke(any);
+                    retval.any = (JAXBElement<?>) clone.invoke(any);
                 } catch (NoSuchMethodException e) {
                     throw new SystemException("Cannot clone objectToAdd: " + any, e);
                 } catch (InvocationTargetException e) {
@@ -363,10 +369,10 @@ public class ObjectDeltaType implements Serializable {
         clone.setChangeType(getChangeType());
         clone.setObjectType(getObjectType());
         if (getObjectToAdd() != null) {
-            clone.setObjectToAdd(getObjectToAdd().clone());
+            clone.setObjectToAdd(getObjectToAdd());
         }
-        for (ItemDeltaType mod : getModification()) {
-            clone.getModification().add(mod.clone());
+        for (ItemDeltaType mod : getItemDelta()) {
+            clone.getItemDelta().add(mod.clone());
         }
         return clone;
     }

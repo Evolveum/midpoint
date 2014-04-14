@@ -16,20 +16,25 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.dom.ElementPrismPropertyImpl;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.parser.XNodeProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
+import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -48,7 +53,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
     // definition.
     // We can't do anything smarter, as we don't have definition nor prism context. So we store the raw
     // elements here and process them later (e.g. during applyDefinition or getting a value with explicit type).
-    private Object rawElement;
+    private XNode rawElement;
 
     public PrismPropertyValue(T value) {
         this(value, null, null);
@@ -74,7 +79,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
     private PrismPropertyValue() {
     }
 
-	public static <T> PrismPropertyValue<T> createRaw(Object rawElement) {
+	public static <T> PrismPropertyValue<T> createRaw(XNode rawElement) {
 		PrismPropertyValue<T> pval = new PrismPropertyValue<T>();
 		pval.setRawElement(rawElement);
 		return pval;
@@ -84,8 +89,6 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
     public void setValue(T value) {
         this.value = value;
         checkValue();
-        // To make sure there is no stale value
-        clearDomElement();
     }
 
     public T getValue() {
@@ -101,14 +104,22 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
         		// throw new IllegalStateException("Attempt to get value withot a type from raw value of property "+getParent());
     			if (parent != null && parent.getPrismContext() != null) {
     				def = SchemaRegistry.createDefaultItemDefinition(parent.getElementName(), parent.getPrismContext());
-    			} else {
+    			} else if (PrismContext.isAllowSchemalessSerialization()) {
     				if (rawElement instanceof Element) {
         				// Do the most stupid thing possible. Assume string value. And there will be no definition.
     					value = (T) ((Element)rawElement).getTextContent();
+    				} else if (rawElement instanceof PrimitiveXNode){
+    					try{
+    					value = (T) ((PrimitiveXNode) rawElement).getParsedValue(DOMUtil.XSD_STRING);
+    					} catch (SchemaException ex){
+    						throw new IllegalStateException("Cannot fetch value from raw element. " + ex.getMessage(), ex);
+    					}
     				} else {
-    					throw new IllegalStateException("No parent or prism context in property value "+this+", cannot create default definition." +
-    							"The element is also not a DOM element but it is "+rawElement.getClass()+". Epic fail.");
+						throw new IllegalStateException("No parent or prism context in property value "+this+", cannot create default definition." +
+							"The element is also not a DOM element but it is "+rawElement.getClass()+". Epic fail.");
     				}
+    			} else {
+    				throw new IllegalStateException("No parent or prism context in property value "+this+" (schemaless serialization is disabled)");
     			}
     		}
     		if (def != null) {
@@ -134,7 +145,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 		return rawElement;
 	}
 
-	public void setRawElement(Object rawElement) {
+	public void setRawElement(XNode rawElement) {
 		this.rawElement = rawElement;
 	}
 
@@ -154,6 +165,18 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 	@Override
 	public void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException {
 		applyDefinition(definition);
+	}
+
+	@Override
+	public void revive(PrismContext prismContext) throws SchemaException {
+		super.revive(prismContext);
+		if (value != null) {
+			if (value instanceof Revivable) {
+				((Revivable)value).revive(prismContext);
+			} else if (prismContext.getBeanConverter().canProcess(value.getClass())) {
+				prismContext.getBeanConverter().revive(value, prismContext);
+			}
+		}
 	}
 
 	@Override
@@ -194,11 +217,6 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 		}
 	}
 
-	@Override
-	protected Element createDomElement() {
-		return new ElementPrismPropertyImpl<T>(this);
-	}
-
 	void checkValue() {
 		if (isRaw()) {
 			// Cannot really check raw values
@@ -222,6 +240,14 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 			// This is OK
 			return;
 		}
+        if (value instanceof SchemaDefinitionType) {
+            return;
+        }
+
+        if (value instanceof RawType) {
+			return;
+		}
+		
 		throw new IllegalArgumentException("Unsupported value "+value+" ("+valueClass+") in "+this);
 	}
 
@@ -322,11 +348,11 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 					" values in a raw parsing state (raw elements) with parsed value that has no definition");
 		}
 	}
-
-	private T parseRawElementToNewRealValue(PrismPropertyValue<T> prismPropertyValue, PrismPropertyDefinition definition)
+	
+	private T parseRawElementToNewRealValue(PrismPropertyValue<T> prismPropertyValue, PrismPropertyDefinition<T> definition) 
 				throws SchemaException {
-		PrismDomProcessor domProcessor = definition.getPrismContext().getPrismDomProcessor();
-		T value = (T) domProcessor.parsePrismPropertyRealValue(prismPropertyValue.rawElement, (PrismPropertyDefinition) definition);
+		XNodeProcessor xnodeProcessor = definition.getPrismContext().getXnodeProcessor();
+		T value = xnodeProcessor.parsePrismPropertyRealValue(prismPropertyValue.rawElement, definition);
 		return value;
 	}
 
@@ -376,6 +402,13 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
 		if (thisRealValue instanceof Element &&
 				otherRealValue instanceof Element) {
 			return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, isLiteral);
+		}
+		
+		if (thisRealValue instanceof SchemaDefinitionType &&
+				otherRealValue instanceof SchemaDefinitionType) {
+			SchemaDefinitionType thisSchema = (SchemaDefinitionType) thisRealValue;
+			return thisSchema.equals(otherRealValue, isLiteral);
+//			return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, isLiteral);
 		}
 
         if (thisRealValue instanceof byte[] && otherRealValue instanceof byte[]) {

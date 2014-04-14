@@ -16,9 +16,6 @@
 package com.evolveum.midpoint.common.crypto;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.Security;
 import java.util.Collection;
@@ -35,6 +32,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -42,9 +41,9 @@ import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MailServerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.NotificationConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SmsConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SmsGatewayConfigurationType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 
 /**
  * @author semancik

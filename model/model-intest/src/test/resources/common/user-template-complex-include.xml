@@ -49,13 +49,11 @@
     <mapping>
     	<expression>
             <value>
-            	<assignment>
-					<construction>
-						<resourceRef oid="10000000-0000-0000-0000-000000000204" type="c:ResourceType"/>
-						<kind>account</kind>
-					</construction>
-				</assignment>
-            </value>    	
+                <construction>
+                    <resourceRef oid="10000000-0000-0000-0000-000000000204" type="c:ResourceType"/>
+                    <kind>account</kind>
+                </construction>
+            </value>
     	</expression>
     	<target>
     		<path>assignment</path>

@@ -17,25 +17,22 @@
 
 <!-- Object modification description that is changing account of "guybrush" -->
 
-<objectModification
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
+<objectDelta
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+	xmlns="http://prism.evolveum.com/xml/ns/public/types-2"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
+	<changeType>modify</changeType>
+	<objectType>c:ShadowType</objectType>
 	<oid>will be replaced by the test code</oid>
-	<modification>
-		<t:modificationType>replace</t:modificationType>
-		<t:path>c:attributes</t:path>
-		<t:value>
-			<ri:roomNumber>cabin</ri:roomNumber>
-		</t:value>
-	</modification>
-	<modification>
-		<t:modificationType>add</t:modificationType>
-		<t:path>c:attributes</t:path>
-		<t:value>
-			<ri:businessCategory>capsize</ri:businessCategory>
-			<ri:businessCategory>fighting</ri:businessCategory>
-		</t:value>
-	</modification>
-</objectModification>
+	<itemDelta>
+		<modificationType>replace</modificationType>
+		<path>declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";attributes/ri:roomNumber</path>
+		<value>cabin</value>
+	</itemDelta>
+	<itemDelta>
+		<modificationType>add</modificationType>
+		<path>declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";attributes/ri:businessCategory</path>
+		<value>capsize</value>
+		<value>fighting</value>
+	</itemDelta>
+</objectDelta>

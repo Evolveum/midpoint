@@ -24,10 +24,10 @@
             <class name="com.evolveum.midpoint.schema.TestDiffEquals"/>
         	<class name="com.evolveum.midpoint.schema.TestSchemaSanity"/>
             <class name="com.evolveum.midpoint.schema.TestParseUser"/>
+            <class name="com.evolveum.midpoint.schema.TestParseUserXml"/>
             <class name="com.evolveum.midpoint.schema.TestParseResource"/>
             <class name="com.evolveum.midpoint.schema.TestParseTask"/>
             <class name="com.evolveum.midpoint.schema.TestParseGenericObject"/>
-            <class name="com.evolveum.midpoint.schema.TestScriptExpressionCodeHolder"/>
             <class name="com.evolveum.midpoint.schema.test.XPathTest"/>
             <class name="com.evolveum.midpoint.schema.processor.TestResourceSchema"/>
             <class name="com.evolveum.midpoint.schema.processor.SchemaProcessorTest"/>
@@ -43,6 +43,7 @@
             <class name="com.evolveum.midpoint.schema.TestDynamicSchema"/>
             <class name="com.evolveum.midpoint.schema.TestJsonParsing"/>
             <class name="com.evolveum.midpoint.schema.TestSchemaDelta"/>
+            <class name="com.evolveum.midpoint.schema.util.SelectorOptionsTest"/>
         </classes>
     </test>
 </suite>

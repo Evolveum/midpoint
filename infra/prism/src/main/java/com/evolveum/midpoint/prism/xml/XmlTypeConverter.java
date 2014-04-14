@@ -16,6 +16,8 @@
 package com.evolveum.midpoint.prism.xml;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.parser.XPathHolder;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -38,6 +40,7 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -97,6 +100,11 @@ public class XmlTypeConverter {
     public static <T> T toJavaValue(String stringContent, Class<T> type) {
     	return toJavaValue(stringContent, type, false);
     }
+    
+    public static <T> T toJavaValue(String stringContent, QName typeQName) {
+    	Class<T> javaClass = XsdTypeMapper.getXsdToJavaMapping(typeQName);
+    	return toJavaValue(stringContent, javaClass, false);
+    }
 
 	@SuppressWarnings("unchecked")
 	public static <T> T toJavaValue(String stringContent, Class<T> type, boolean exceptionOnUnknown) {
@@ -146,6 +154,8 @@ public class XmlTypeConverter {
         	return (T) getDatatypeFactory().newDuration(stringContent);
         } else if (type.equals(PolyString.class)) {
         	return (T) new PolyString(stringContent);
+        } else if (type.equals(ItemPath.class)) {
+        	throw new UnsupportedOperationException("Path conversion not supported yet");
         } else {
         	if (exceptionOnUnknown) {
         		throw new IllegalArgumentException("Unknown conversion type "+type);
@@ -157,7 +167,7 @@ public class XmlTypeConverter {
 
 
     public static Object toJavaValue(Element xmlElement, QName type) throws SchemaException {
-        return toJavaValue(xmlElement, XsdTypeMapper.toJavaType(type));
+        return toJavaValue(xmlElement, XsdTypeMapper.getXsdToJavaMapping(type));
     }
 
     /**
@@ -310,6 +320,9 @@ public class XmlTypeConverter {
         	return ((XMLGregorianCalendar) val).toXMLFormat();
         } else if (Duration.class.isAssignableFrom(type)) {
         	return ((Duration) val).toString();
+        } else if (type.equals(ItemPath.class)){
+        	XPathHolder xpath = new XPathHolder((ItemPath)val);
+        	return xpath.getXPath();
         } else {
             throw new IllegalArgumentException("Unknown type for conversion: " + type + "(element " + elementName + ")");
         }

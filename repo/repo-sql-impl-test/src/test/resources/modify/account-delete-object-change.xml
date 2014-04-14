@@ -29,32 +29,34 @@
     <objectChange>
       <t:changeType>modify</t:changeType>
       <t:oid>5d3d0b7b-d007-4f93-8a13-3ba9669bed1b</t:oid>
-      <t:modification>
+      <t:itemDelta>
          <t:modificationType>add</t:modificationType>
          <t:path xmlns:gen819="http://midpoint.evolveum.com/xml/ns/fake/sqlRepository-1.xsd"
-                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">c:attributes</t:path>
-         <t:value>
-            <ri:employeeNumber xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-                               xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-                               xmlns:gen819="http://midpoint.evolveum.com/xml/ns/fake/sqlRepository-1.xsd"
-                               xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                               xsi:type="xsd:string">emp4321</ri:employeeNumber>
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+                 xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">c:attributes/ri:employeeNumber</t:path>
+         <t:value>emp4321
+<!--             <ri:employeeNumber xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" -->
+<!--                                xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" -->
+<!--                                xmlns:gen819="http://midpoint.evolveum.com/xml/ns/fake/sqlRepository-1.xsd" -->
+<!--                                xmlns:xsd="http://www.w3.org/2001/XMLSchema" -->
+<!--                                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" -->
+<!--                                xsi:type="xsd:string">emp4321</ri:employeeNumber> -->
          </t:value>
-      </t:modification>
-      <t:modification>
+      </t:itemDelta>
+      <t:itemDelta>
          <t:modificationType>replace</t:modificationType>
          <t:path xmlns:gen819="http://midpoint.evolveum.com/xml/ns/fake/sqlRepository-1.xsd"
-                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">c:attributes</t:path>
-         <t:value>
-            <ri:givenName xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-                          xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-                          xmlns:gen819="http://midpoint.evolveum.com/xml/ns/fake/sqlRepository-1.xsd"
-                          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                          xsi:type="xsd:string">Jackkk</ri:givenName>
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">c:attributes/ri:givenName</t:path>
+         <t:value>Jackkk
+<!--             <ri:givenName xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" -->
+<!--                           xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" -->
+<!--                           xmlns:gen819="http://midpoint.evolveum.com/xml/ns/fake/sqlRepository-1.xsd" -->
+<!--                           xmlns:xsd="http://www.w3.org/2001/XMLSchema" -->
+<!--                           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" -->
+<!--                           xsi:type="xsd:string">Jackkk</ri:givenName> -->
          </t:value>
-      </t:modification>
+      </t:itemDelta>
    </objectChange>
     <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:AccountObjectClass</objectClass>
     <kind>account</kind>

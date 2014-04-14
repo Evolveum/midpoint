@@ -9,6 +9,8 @@
 # replace "ENGINE=InnoDB" with "DEFAULT CHARACTER SET utf8 COLLATE utf8_bin ENGINE=InnoDB"
 # replace "DATETIME" with "DATETIME(6)"
 
+# remove iAncestor and iDescendant index, they are the same as FK for that fields
+
 CREATE TABLE m_abstract_role (
   approvalProcess VARCHAR(255),
   requestable     BIT,
@@ -894,10 +896,6 @@ ADD INDEX fk_org (oid),
 ADD CONSTRAINT fk_org
 FOREIGN KEY (oid)
 REFERENCES m_abstract_role (oid);
-
-CREATE INDEX iAncestor ON m_org_closure (ancestor_oid);
-
-CREATE INDEX iDescendant ON m_org_closure (descendant_oid);
 
 CREATE INDEX iAncestorDepth ON m_org_closure (ancestor_oid, depthValue);
 

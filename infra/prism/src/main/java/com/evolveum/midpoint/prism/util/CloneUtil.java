@@ -27,6 +27,10 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author semancik
@@ -44,7 +48,18 @@ public class CloneUtil {
 		}
 		if (orig instanceof PolyString) {
 			// PolyString is immutable
-			return (T)orig;
+			return orig;
+		}
+        if (orig instanceof String) {
+            // ...and so is String
+            return orig;
+        }
+//        if (orig.getClass().equals(QName.class)) {
+//            QName origQN = (QName) orig;
+//            return (T) new QName(origQN.getNamespaceURI(), origQN.getLocalPart(), origQN.getPrefix());
+//        }
+        if (orig instanceof RawType){
+			return (T) ((RawType) orig).clone();
 		}
 		if (orig instanceof Item<?>) {
 			return (T) ((Item<?>)orig).clone();
@@ -54,6 +69,9 @@ public class CloneUtil {
 		}
 		if (orig instanceof ObjectDelta<?>) {
 			return (T) ((ObjectDelta<?>)orig).clone();
+		}
+		if (orig instanceof ObjectDeltaType) {
+			return (T) ((ObjectDeltaType) orig).clone();
 		}
 		if (orig instanceof ItemDelta<?>) {
 			return (T) ((ItemDelta<?>)orig).clone();
@@ -65,7 +83,7 @@ public class CloneUtil {
 			T clone = javaLangClone(orig);
 			if (clone != null) {
 				return clone;
-			}
+			} 
 		}
 		if (orig instanceof Serializable) {
 			// Brute force
@@ -76,7 +94,7 @@ public class CloneUtil {
 	
 	public static <T> T javaLangClone(T orig) {
 		try {
-			Method cloneMethod = Object.class.getMethod("clone");
+			Method cloneMethod = orig.getClass().getMethod("clone");
 			Object clone = cloneMethod.invoke(orig);
 			return (T) clone;
 		} catch (SecurityException e) {

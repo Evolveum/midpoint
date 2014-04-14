@@ -930,7 +930,7 @@ public class OperationResult implements Serializable, DebugDumpable {
 		if (result.getParams() != null) {
 			params = new HashMap<String, Serializable>();
 			for (EntryType entry : result.getParams().getEntry()) {
-				params.put(entry.getKey(), (Serializable) entry.getAny());
+				params.put(entry.getKey(), (Serializable) entry.getEntryValue());
 			}
 		}
 		
@@ -938,7 +938,7 @@ public class OperationResult implements Serializable, DebugDumpable {
 		if (result.getContext() != null) {
 			context = new HashMap<String, Serializable>();
 			for (EntryType entry : result.getContext().getEntry()) {
-				context.put(entry.getKey(), (Serializable) entry.getAny());
+				context.put(entry.getKey(), (Serializable) entry.getEntryValue());
 			}
 		}
 		
@@ -946,7 +946,7 @@ public class OperationResult implements Serializable, DebugDumpable {
 		if (result.getReturns() != null) {
 			returns = new HashMap<String, Serializable>();
 			for (EntryType entry : result.getReturns().getEntry()) {
-				returns.put(entry.getKey(), (Serializable) entry.getAny());
+				returns.put(entry.getKey(), (Serializable) entry.getEntryValue());
 			}
 		}
 
@@ -1080,20 +1080,20 @@ public class OperationResult implements Serializable, DebugDumpable {
 				setObjectReferenceEntry(entryType, ((ObjectType)value));
 			// these values should be put 'as they are', in order to be deserialized into themselves
 			} else if (value instanceof String || value instanceof Integer || value instanceof Long) {
-				entryType.setAny(new JAXBElement<Serializable>(SchemaConstants.C_VALUE, Serializable.class, value));
+				entryType.setEntryValue(new JAXBElement<Serializable>(SchemaConstants.C_PARAM_VALUE, Serializable.class, value));
 			} else if (XmlTypeConverter.canConvert(value.getClass())) {
-				try {
-					entryType.setAny(XmlTypeConverter.toXsdElement(value, SchemaConstants.C_VALUE, doc, true));
-				} catch (SchemaException e) {
-					LOGGER.error("Cannot convert value {} to XML: {}",value,e.getMessage());
-					setUnknownJavaObjectEntry(entryType, value);
-				}
+//				try {
+//					entryType.setEntryValue(new JXmlTypeConverter.toXsdElement(value, SchemaConstants.C_PARAM_VALUE, doc, true));
+//				} catch (SchemaException e) {
+//					LOGGER.error("Cannot convert value {} to XML: {}",value,e.getMessage());
+//					setUnknownJavaObjectEntry(entryType, value);
+//				}
 			} else if (value instanceof Element || value instanceof JAXBElement<?>) {
-				entryType.setAny(value);
+				entryType.setEntryValue((JAXBElement<?>) value);
 			// FIXME: this is really bad code ... it means that 'our' JAXB object should be put as is
 			} else if ("com.evolveum.midpoint.xml.ns._public.common.common_2".equals(value.getClass().getPackage().getName())) {
-				Object o = new JAXBElement<Object>(SchemaConstants.C_VALUE, Object.class, value);
-				entryType.setAny(o);
+				JAXBElement<Object> o = new JAXBElement<Object>(SchemaConstants.C_PARAM_VALUE, Object.class, value);
+				entryType.setEntryValue(o);
 			} else {
 				setUnknownJavaObjectEntry(entryType, value);
 			}
@@ -1110,14 +1110,14 @@ public class OperationResult implements Serializable, DebugDumpable {
 		}
 		JAXBElement<ObjectReferenceType> element = new JAXBElement<ObjectReferenceType>(
 				SchemaConstants.C_OBJECT_REF, ObjectReferenceType.class, objRefType);
-		entryType.setAny(element);
+//		entryType.setAny(element);
 	}
 
 	private void setUnknownJavaObjectEntry(EntryType entryType, Serializable value) {
 		UnknownJavaObjectType ujo = new UnknownJavaObjectType();
 		ujo.setClazz(value.getClass().getName());
 		ujo.setToString(value.toString());
-		entryType.setAny(new ObjectFactory().createUnknownJavaObject(ujo));
+		entryType.setEntryValue(new ObjectFactory().createUnknownJavaObject(ujo));
 	}
 	
 	public void summarize() {

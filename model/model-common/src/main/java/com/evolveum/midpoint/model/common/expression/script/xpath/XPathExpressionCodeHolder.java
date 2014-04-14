@@ -22,7 +22,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.evolveum.midpoint.schema.holder.TrivialXPathParser;
+import com.evolveum.midpoint.prism.parser.TrivialXPathParser;
 
 /**
  * @author Radovan Semancik
@@ -30,34 +30,35 @@ import com.evolveum.midpoint.schema.holder.TrivialXPathParser;
  */
 public class XPathExpressionCodeHolder {
 	
-	private Element dom;
+	private String expression;              // TODO think about this one! (there's a problem with namespaces now)
 	
-	public XPathExpressionCodeHolder(Element domElement) {
-    	if (domElement==null) {
+	public XPathExpressionCodeHolder(String expression) {
+    	if (expression == null) {
     		throw new IllegalArgumentException("Attempt to create "+XPathExpressionCodeHolder.class.getSimpleName()+" with null DOM element");
     	}
-        dom = domElement;
+        this.expression = expression;
     }
 	
-	public NodeList getExpression() {
-        return dom.getChildNodes();
-    }
+//	public NodeList getExpression() {
+//        return dom.getChildNodes();
+//    }
 
 	public String getFullExpressionAsString() {
-        NodeList childNodes = dom.getChildNodes();
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < childNodes.getLength(); i++) {
-            Node childNode = childNodes.item(i);
-            if (childNode.getNodeType() == Node.TEXT_NODE || childNode.getNodeType() == Node.CDATA_SECTION_NODE) {
-                sb.append(childNode.getNodeValue());
-            } else if (childNode.getNodeType() == Node.COMMENT_NODE) {
-                // Silently ignore
-            } else {
-                // TODO: throw exception
-            }
-        }
-        
-        return sb.toString();
+        return expression;
+//        NodeList childNodes = dom.getChildNodes();
+//        StringBuilder sb = new StringBuilder();
+//        for (int i = 0; i < childNodes.getLength(); i++) {
+//            Node childNode = childNodes.item(i);
+//            if (childNode.getNodeType() == Node.TEXT_NODE || childNode.getNodeType() == Node.CDATA_SECTION_NODE) {
+//                sb.append(childNode.getNodeValue());
+//            } else if (childNode.getNodeType() == Node.COMMENT_NODE) {
+//                // Silently ignore
+//            } else {
+//                // TODO: throw exception
+//            }
+//        }
+//
+//        return sb.toString();
     }
 
     public String getExpressionAsString() {
@@ -72,11 +73,13 @@ public class XPathExpressionCodeHolder {
     }
 
     public String lookupNamespaceUri(String prefix) {
-        if (prefix == null || prefix.isEmpty()) {
-            return dom.lookupNamespaceURI(null);
-        } else {
-            return dom.lookupNamespaceURI(prefix);
-        }
+        // not available any more [pm]
+//        if (prefix == null || prefix.isEmpty()) {
+//            return dom.lookupNamespaceURI(null);
+//        } else {
+//            return dom.lookupNamespaceURI(prefix);
+//        }
+        return null;
     }
 
     public Map<String, String> getNamespaceMap() {
@@ -91,28 +94,29 @@ public class XPathExpressionCodeHolder {
         TrivialXPathParser parser = TrivialXPathParser.parse(stringExpression);
         namespaceMap = parser.getNamespaceMap();
 
-        Node node = dom;
-        while (node != null) {
-            NamedNodeMap attributes = node.getAttributes();
-            if (attributes != null) {
-                for (int i = 0; i < attributes.getLength(); i++) {
-                    Node attribute = attributes.item(i);
-                    if (attribute.getNamespaceURI() != null && attribute.getNamespaceURI().equals("http://www.w3.org/2000/xmlns/")) {
-                        String localName = attribute.getLocalName();
-                        if (attribute.getPrefix() == null && localName.equals("xmlns")) {
-                            if (namespaceMap.get("") == null) {
-                                namespaceMap.put("", attribute.getNodeValue());
-                            }
-                        } else {
-                            if (namespaceMap.get(localName) == null) {
-                                namespaceMap.put(localName, attribute.getNodeValue());
-                            }
-                        }
-                    }
-                }
-            }
-            node = node.getParentNode();
-        }
+        // this isn't available any more [pm]
+//        Node node = dom;
+//        while (node != null) {
+//            NamedNodeMap attributes = node.getAttributes();
+//            if (attributes != null) {
+//                for (int i = 0; i < attributes.getLength(); i++) {
+//                    Node attribute = attributes.item(i);
+//                    if (attribute.getNamespaceURI() != null && attribute.getNamespaceURI().equals("http://www.w3.org/2000/xmlns/")) {
+//                        String localName = attribute.getLocalName();
+//                        if (attribute.getPrefix() == null && localName.equals("xmlns")) {
+//                            if (namespaceMap.get("") == null) {
+//                                namespaceMap.put("", attribute.getNodeValue());
+//                            }
+//                        } else {
+//                            if (namespaceMap.get(localName) == null) {
+//                                namespaceMap.put(localName, attribute.getNodeValue());
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//            node = node.getParentNode();
+//        }
         return namespaceMap;
     }
 

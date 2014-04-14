@@ -23,9 +23,8 @@
     <oid>f65963e3-9d47-4b18-aaf3-bfc98bdfa000</oid>
     <modification>
         <t:modificationType>replace</t:modificationType>
-        <t:value>
-            <c:name>existingName</c:name>
-        </t:value>
+        <t:path>c:name</t:path>
+        <t:value>existingName</t:value>
     </modification>
 </objectModification>
 

@@ -226,7 +226,11 @@ public abstract class Definition implements Serializable, DebugDumpable {
 	protected SchemaRegistry getSchemaRegistry() {
 		return prismContext.getSchemaRegistry();
 	}
-	
+
+    public Class getTypeClassIfKnown() {
+        return XsdTypeMapper.toJavaTypeIfKnown(getTypeName());
+    }
+
 	public Class getTypeClass() {
 		return XsdTypeMapper.toJavaType(getTypeName());
 	}

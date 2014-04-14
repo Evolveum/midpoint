@@ -33,7 +33,7 @@
         <connectorRef type="ConnectorType">
             <filter>
                 <q:equal>
-				<q:path>c:connectorType</q:path>
+					<q:path>c:connectorType</q:path>
                     <q:value>org.forgerock.openicf.csvfile.CSVFileConnector</q:value>
                 </q:equal>
             </filter>
@@ -223,7 +223,7 @@
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <executionStatus>runnable</executionStatus>
         <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-2</handlerUri>
-        <objectRef oid="8844dcca-775d-11e2-a0ac-001e8c717e5b"/>
+        <objectRef oid="8844dcca-775d-11e2-a0ac-001e8c717e5b" type="c:ResourceType"/>
         <recurrence>recurring</recurrence>
         <binding>tight</binding>
         <schedule>

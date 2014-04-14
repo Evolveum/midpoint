@@ -22,8 +22,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.Utils;
-import com.evolveum.midpoint.common.crypto.EncryptionException;
-import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.RandomString;

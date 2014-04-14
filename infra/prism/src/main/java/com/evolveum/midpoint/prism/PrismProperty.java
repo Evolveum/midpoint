@@ -66,7 +66,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
         super(name);
     }
 
-    protected PrismProperty(QName name, PrismPropertyDefinition definition, PrismContext prismContext) {
+    protected PrismProperty(QName name, PrismPropertyDefinition<T> definition, PrismContext prismContext) {
         super(name, definition, prismContext);
     }
 
@@ -78,8 +78,8 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
      *
      * @return applicable property definition
      */
-    public PrismPropertyDefinition getDefinition() {
-        return (PrismPropertyDefinition) definition;
+    public PrismPropertyDefinition<T> getDefinition() {
+        return (PrismPropertyDefinition<T>) definition;
     }
 
     /**
@@ -87,7 +87,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
      *
      * @param definition the definition to set
      */
-    public void setDefinition(PrismPropertyDefinition definition) {
+    public void setDefinition(PrismPropertyDefinition<T> definition) {
         this.definition = definition;
     }
 

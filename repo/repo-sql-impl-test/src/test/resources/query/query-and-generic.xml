@@ -18,6 +18,7 @@
 
 <query xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
        xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
+   <filter>
     <and>
         <equal>
         <path>c:name</path>
@@ -29,4 +30,5 @@
             <value>123</value>
         </equal>
     </and>
+    </filter>
 </query>

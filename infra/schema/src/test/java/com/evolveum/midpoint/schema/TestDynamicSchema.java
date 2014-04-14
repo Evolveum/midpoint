@@ -57,7 +57,7 @@ public class TestDynamicSchema {
 	
 	
 	@Test
-	public void testAssignmentExtensionContainerProperty() throws SchemaException {
+	public void testAssignmentExtensionContainerProperty() throws Exception {
 		System.out.println("===[ testAssignmentExtensionContainerProperty ]===");
 
 		// GIVEN
@@ -73,7 +73,7 @@ public class TestDynamicSchema {
 	}
 
 	@Test
-	public void testAssignmentExtensionContainerItem() throws SchemaException {
+	public void testAssignmentExtensionContainerItem() throws Exception {
 		System.out.println("===[ testAssignmentExtensionContainerItem ]===");
 
 		// GIVEN
@@ -90,7 +90,7 @@ public class TestDynamicSchema {
 	}
 
 	@Test
-	public void testAssignmentExtensionValueProperty() throws SchemaException {
+	public void testAssignmentExtensionValueProperty() throws Exception {
 		System.out.println("===[ testAssignmentExtensionValueProperty ]===");
 
 		// GIVEN
@@ -107,7 +107,7 @@ public class TestDynamicSchema {
 	}
 	
 	@Test
-	public void testAssignmentExtensionValueItem() throws SchemaException {
+	public void testAssignmentExtensionValueItem() throws Exception {
 		System.out.println("===[ testAssignmentExtensionValueItem ]===");
 
 		// GIVEN
@@ -127,7 +127,7 @@ public class TestDynamicSchema {
 	
 	
 	
-	private PrismContainer<AssignmentType> parseUserAssignmentContainer() throws SchemaException {
+	private PrismContainer<AssignmentType> parseUserAssignmentContainer() throws SchemaException, IOException {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		PrismObject<UserType> user = prismContext.parseObject(USER_FILE);
 		System.out.println("Parsed user:");

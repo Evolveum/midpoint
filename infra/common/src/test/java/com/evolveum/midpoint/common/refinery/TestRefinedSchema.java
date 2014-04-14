@@ -19,6 +19,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,7 +31,6 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import org.testng.Assert;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
@@ -46,10 +46,9 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
+
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -64,10 +63,10 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 /**
  * @author semancik
@@ -76,7 +75,7 @@ public class TestRefinedSchema {
 
     public static final String TEST_DIR_NAME = "src/test/resources/refinery";
 	private static final File RESOURCE_COMPLEX_FILE = new File(TEST_DIR_NAME, "resource-complex.xml");
-	private static final File RESOURCE_COMPLEX_DEPRECATED_FILE = new File(TEST_DIR_NAME, "resource-complex-deprecated.xml");
+	private static final String RESOURCE_COMPLEX_DEPRECATED_FILENAME = TEST_DIR_NAME + "resource-complex-deprecated.xml";
 	private static final File RESOURCE_SIMPLE_FILE = new File(TEST_DIR_NAME, "resource-simple.xml");
 	
 	private static final String ENTITLEMENT_GROUP_INTENT = "group";
@@ -84,7 +83,7 @@ public class TestRefinedSchema {
     @BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-		PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+		resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
 
     @Test
@@ -92,9 +91,9 @@ public class TestRefinedSchema {
     	System.out.println("\n===[ testParseFromResourceComplexDeprecated ]===\n");
     	
         // GIVEN
-    	PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
+    	PrismContext prismContext = createInitializedPrismContext();
 
-        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_COMPLEX_DEPRECATED_FILE);
+        PrismObject<ResourceType> resource = prismContext.parseObject(new File(RESOURCE_COMPLEX_DEPRECATED_FILENAME));
         ResourceType resourceType = resource.asObjectable();
 
         // WHEN
@@ -122,9 +121,9 @@ public class TestRefinedSchema {
     	System.out.println("\n===[ testParseFromResourceComplex ]===\n");
     	
         // GIVEN
-    	PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
+    	PrismContext prismContext = createInitializedPrismContext();
 
-        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_COMPLEX_FILE);
+        PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_COMPLEX_FILE);
         ResourceType resourceType = resource.asObjectable();
 
         // WHEN
@@ -159,9 +158,9 @@ public class TestRefinedSchema {
     	System.out.println("\n===[ testParseFromResourceSimple ]===\n");
     	
         // GIVEN
-    	PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
+    	PrismContext prismContext = createInitializedPrismContext();
 
-        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_SIMPLE_FILE);
+        PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_SIMPLE_FILE);
         ResourceType resourceType = resource.asObjectable();
 
         // WHEN
@@ -291,16 +290,16 @@ public class TestRefinedSchema {
     	System.out.println("\n===[ testParseAccount ]===\n");
 
         // GIVEN
-    	PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
+    	PrismContext prismContext = createInitializedPrismContext();
 
-        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_COMPLEX_FILE);
+        PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_COMPLEX_FILE);
         ResourceType resourceType = resource.asObjectable();
 
         RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
         RefinedObjectClassDefinition defaultAccountDefinition = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         assertNotNull("No refined default account definition in "+rSchema, defaultAccountDefinition);
 
-        PrismObject<ShadowType> accObject = PrismTestUtil.parseObject(new File(TEST_DIR_NAME, "account-jack.xml"));
+        PrismObject<ShadowType> accObject = prismContext.parseObject(new File(TEST_DIR_NAME, "account-jack.xml"));
 
         // WHEN
 
@@ -324,9 +323,9 @@ public class TestRefinedSchema {
     	System.out.println("\n===[ testApplyAttributeDefinition ]===\n");
 
         // GIVEN
-    	PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
+    	PrismContext prismContext = createInitializedPrismContext();
 
-        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_COMPLEX_FILE);
+        PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_COMPLEX_FILE);
         
         RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resource, prismContext);
         RefinedObjectClassDefinition defaultAccountDefinition = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
@@ -334,7 +333,7 @@ public class TestRefinedSchema {
         System.out.println("Refined account definition:");
         System.out.println(defaultAccountDefinition.debugDump());
 
-        PrismObject<ShadowType> accObject = PrismTestUtil.parseObject(new File(TEST_DIR_NAME, "account-jack.xml"));
+        PrismObject<ShadowType> accObject = prismContext.parseObject(new File(TEST_DIR_NAME, "account-jack.xml"));
         PrismContainer<Containerable> attributesContainer = accObject.findContainer(ShadowType.F_ATTRIBUTES);
         System.out.println("Attributes container:");
         System.out.println(attributesContainer.debugDump());
@@ -352,7 +351,7 @@ public class TestRefinedSchema {
     private void assertAccountShadow(PrismObject<ShadowType> accObject, PrismObject<ResourceType> resource, PrismContext prismContext) throws SchemaException, JAXBException {
     	ResourceType resourceType = resource.asObjectable();
         QName objectClassQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), "AccountObjectClass");
-        PrismAsserts.assertPropertyValue(accObject, ShadowType.F_NAME, PrismTestUtil.createPolyString("jack"));
+        PrismAsserts.assertPropertyValue(accObject, ShadowType.F_NAME, createPolyString("jack"));
         PrismAsserts.assertPropertyValue(accObject, ShadowType.F_OBJECT_CLASS, objectClassQName);
         PrismAsserts.assertPropertyValue(accObject, ShadowType.F_INTENT, SchemaConstants.INTENT_DEFAULT);
 
@@ -372,7 +371,7 @@ public class TestRefinedSchema {
         accObject.checkConsistence();
 
         ShadowType accObjectType = accObject.asObjectable();
-        assertEquals("Wrong JAXB name", PrismTestUtil.createPolyStringType("jack"), accObjectType.getName());
+        assertEquals("Wrong JAXB name", createPolyStringType("jack"), accObjectType.getName());
         assertEquals("Wrong JAXB objectClass", objectClassQName, accObjectType.getObjectClass());
         ShadowAttributesType attributesType = accObjectType.getAttributes();
         assertNotNull("null ResourceObjectShadowAttributesType (JAXB)", attributesType);
@@ -383,7 +382,7 @@ public class TestRefinedSchema {
         TestUtil.assertElement(attributeElements, getAttrQName(resource, "sn"), "Sparrow");
         TestUtil.assertElement(attributeElements, getAttrQName(resource, "uid"), "jack");
         
-        PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+        JaxbTestUtil jaxbProcessor = getJaxbUtil();
         Element accDomElement = jaxbProcessor.marshalObjectToDom(accObjectType, new QName(SchemaConstants.NS_C, "account"), DOMUtil.getDocument());
         System.out.println("Result of JAXB marshalling:\n"+DOMUtil.serializeDOMToString(accDomElement));
         
@@ -399,9 +398,9 @@ public class TestRefinedSchema {
     	System.out.println("\n===[ testCreateShadow ]===\n");
 
         // GIVEN
-    	PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
+    	PrismContext prismContext = createInitializedPrismContext();
 
-        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_COMPLEX_FILE);
+        PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_COMPLEX_FILE);
         ResourceType resourceType = resource.asObjectable();
 
         RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
@@ -428,8 +427,8 @@ public class TestRefinedSchema {
     	System.out.println("\n===[ testProtectedAccount ]===\n");
 
         // GIVEN
-    	PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
-        PrismObject<ResourceType> resource = PrismTestUtil.parseObject(RESOURCE_COMPLEX_FILE);
+    	PrismContext prismContext = createInitializedPrismContext();
+        PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_COMPLEX_FILE);
         ResourceType resourceType = resource.asObjectable();
         RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
         assertNotNull("Refined schema is null", rSchema);
@@ -541,7 +540,7 @@ public class TestRefinedSchema {
 	}
 
 	private ResourceAttribute<String> createStringAttribute(QName attrName, String value) {
-		ResourceAttributeDefinition testAttrDef = new ResourceAttributeDefinition(attrName, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+		ResourceAttributeDefinition testAttrDef = new ResourceAttributeDefinition(attrName, DOMUtil.XSD_STRING, getPrismContext());
 		ResourceAttribute<String> testAttr = testAttrDef.instantiate();
 		testAttr.setRealValue(value);
 		return testAttr;

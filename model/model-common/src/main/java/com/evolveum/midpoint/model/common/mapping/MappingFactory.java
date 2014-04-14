@@ -21,7 +21,6 @@ import java.util.Map;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.filter.Filter;
 import com.evolveum.midpoint.common.filter.FilterManager;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
@@ -34,6 +33,7 @@ import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFact
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AsIsExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;

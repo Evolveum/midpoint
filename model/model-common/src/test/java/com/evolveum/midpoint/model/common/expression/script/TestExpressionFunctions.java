@@ -15,12 +15,12 @@
  */
 package com.evolveum.midpoint.model.common.expression.script;
 
-import com.evolveum.midpoint.common.crypto.AESProtector;
-import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.crypto.AESProtector;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;

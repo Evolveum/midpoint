@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.testing;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Random;
 
@@ -37,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeD
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType.Definition;
+import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
 /**
  * @author semancik
@@ -80,7 +81,7 @@ public class ResourceCarefulAntUtil {
 		});
     	
     	ants.add(new CarefulAnt<ResourceType>() {
-    		Definition xmlSchemaDef;
+    		SchemaDefinitionType xmlSchemaDef;
 			@Override
 			public ItemDelta<?> createDelta(int iteration) throws SchemaException {
 				xmlSchemaDef = createNewXmlSchemaDef(resourceFile, iteration, prismContext);
@@ -99,7 +100,7 @@ public class ResourceCarefulAntUtil {
 	}
 	
     private static SchemaHandlingType createNewSchemaHandling(File resourceFile, int iteration, PrismContext prismContext) throws SchemaException {
-    	PrismObject<ResourceType> resource = prismContext.getPrismDomProcessor().parseObject(resourceFile);
+    	PrismObject<ResourceType> resource = parseResource(resourceFile, prismContext);
     	SchemaHandlingType schemaHandling = resource.asObjectable().getSchemaHandling();
     	ResourceObjectTypeDefinitionType accountType = schemaHandling.getObjectType().iterator().next();
     	List<ResourceAttributeDefinitionType> attrDefs = accountType.getAttribute();
@@ -108,12 +109,12 @@ public class ResourceCarefulAntUtil {
 		return schemaHandling;
 	}
 
-    private static Definition createNewXmlSchemaDef(File resourceFile, int iteration, PrismContext prismContext) throws SchemaException {
-    	PrismObject<ResourceType> resource = prismContext.getPrismDomProcessor().parseObject(resourceFile);
+    private static SchemaDefinitionType createNewXmlSchemaDef(File resourceFile, int iteration, PrismContext prismContext) throws SchemaException {
+    	PrismObject<ResourceType> resource = parseResource(resourceFile, prismContext);
     	XmlSchemaType schema = resource.asObjectable().getSchema();
-    	Definition def;
+    	SchemaDefinitionType def;
     	if (schema == null) {
-    		def = new Definition();
+    		def = new SchemaDefinitionType();
     		def.getAny().add(DOMUtil.createElement(DOMUtil.XSD_SCHEMA_ELEMENT));
     	} else {
     		def = schema.getDefinition();
@@ -121,6 +122,14 @@ public class ResourceCarefulAntUtil {
     	}
     	return def;
 	}
+    
+    private static PrismObject<ResourceType> parseResource(File resourceFile, PrismContext prismContext) throws SchemaException{
+    	try{
+    		return prismContext.parseObject(resourceFile);
+    	} catch (IOException ex){
+    		throw new SchemaException(ex.getMessage(), ex);
+    	}
+    }
 
 
 }

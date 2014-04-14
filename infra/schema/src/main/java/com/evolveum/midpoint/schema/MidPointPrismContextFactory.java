@@ -80,7 +80,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 	
 	private SchemaRegistry createSchemaRegistry() throws SchemaException, FileNotFoundException {
 		SchemaRegistry schemaRegistry = new SchemaRegistry();
-		schemaRegistry.setObjectSchemaNamespace(SchemaConstantsGenerated.NS_COMMON);
+		schemaRegistry.setDefaultNamespace(SchemaConstantsGenerated.NS_COMMON);
 		schemaRegistry.setNamespacePrefixMapper(new GlobalDynamicNamespacePrefixMapper());
 		registerBuiltinSchemas(schemaRegistry);
         registerExtensionSchemas(schemaRegistry);

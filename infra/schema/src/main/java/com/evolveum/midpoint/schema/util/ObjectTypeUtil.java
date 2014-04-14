@@ -23,21 +23,24 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.parser.XPathHolder;
+import com.evolveum.midpoint.prism.parser.XPathSegment;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.ItemPathUtil;
 import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
-import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
+import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
@@ -45,6 +48,7 @@ import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -209,30 +213,38 @@ public class ObjectTypeUtil {
     }
     
     public static Element findXsdElement(PrismContainerValue<XmlSchemaType> xmlSchemaContainerValue) {
-        PrismProperty<Element> definitionProperty = xmlSchemaContainerValue.findProperty(XmlSchemaType.F_DEFINITION);
+        PrismProperty<SchemaDefinitionType> definitionProperty = xmlSchemaContainerValue.findProperty(XmlSchemaType.F_DEFINITION);
         if (definitionProperty == null) {
 			return null;
 		}
-        Element definitionElement = definitionProperty.getValue().getValue();
-        if (definitionElement == null) {
+        SchemaDefinitionType schemaDefinition = definitionProperty.getValue().getValue();
+        if (schemaDefinition == null) {
 			return null;
 		}
-        List<Element> schemaElements = DOMUtil.listChildElements(definitionElement);
-        for (Element e : schemaElements) {
-            if (QNameUtil.compareQName(DOMUtil.XSD_SCHEMA_ELEMENT, e)) {
-            	DOMUtil.fixNamespaceDeclarations(e);
-                return e;
-            }
-        }
-        return null;
+        
+        return schemaDefinition.getSchema();
+        
+//        List<Element> schemaElements = DOMUtil.listChildElements(definitionElement);
+//        for (Element e : schemaElements) {
+//            if (QNameUtil.compareQName(DOMUtil.XSD_SCHEMA_ELEMENT, e)) {
+//            	DOMUtil.fixNamespaceDeclarations(e);
+//                return e;
+//            }
+//        }
+//        return null;
     }
     
-	public static void setXsdSchemaDefinition(PrismProperty<Element> definitionProperty, Element xsdElement) {
-		Document document = xsdElement.getOwnerDocument();
-		Element definitionElement = document.createElementNS(XmlSchemaType.F_DEFINITION.getNamespaceURI(),
-				XmlSchemaType.F_DEFINITION.getLocalPart());
-		definitionElement.appendChild(xsdElement);
-		definitionProperty.setRealValue(definitionElement);
+	public static void setXsdSchemaDefinition(PrismProperty<SchemaDefinitionType> definitionProperty, Element xsdElement) {
+		
+//		Document document = xsdElement.getOwnerDocument();
+//		Element definitionElement = document.createElementNS(XmlSchemaType.F_DEFINITION.getNamespaceURI(),
+//				XmlSchemaType.F_DEFINITION.getLocalPart());
+//		definitionElement.appendChild(xsdElement);
+//		SchemaDefinitionType schemaDefinition = definitionProperty.getValue().getValue();
+//		schemaDefinition.setSchema(definitionElement);
+		SchemaDefinitionType schemaDefinition = new SchemaDefinitionType();
+		schemaDefinition.setSchema(xsdElement);
+		definitionProperty.setRealValue(schemaDefinition);
 	}
 
     public static XPathHolder createXPathHolder(QName property) {
@@ -247,35 +259,48 @@ public class ObjectTypeUtil {
         return isModificationOf(modification, elementName, null);
     }
 
-    public static boolean isModificationOf(ItemDeltaType modification, QName elementName, XPathHolder path) {
+    //TODO: refactor after new schema
+    public static boolean isModificationOf(ItemDeltaType modification, QName elementName, ItemPathType path) {
 
-        if (path == null && XPathHolder.isDefault(modification.getPath())) {
-            return (elementName.equals(ObjectTypeUtil.getElementName(modification)));
-        }
+//        if (path == null && XPathHolder.isDefault(modification.getPath())) {
+//            return (elementName.equals(ObjectTypeUtil.getElementName(modification)));
+//        }
+    	
+    	ItemPathType modificationPath = modification.getPath();
+    	if (ItemPathUtil.isDefault(modificationPath)){
+    		throw new IllegalArgumentException("Path in the delta must not be null");
+    	}
+//    	  if (path == null && ItemPathUtil.isDefault(modificationPath)) {
+//            return (elementName.equals(getElementName(modification)));
+//        }
+    	
         if (path == null) {
             return false;
         }
-        XPathHolder modPath = new XPathHolder(modification.getPath());
-        if (path.equals(modPath)) {
-            return (elementName.equals(ObjectTypeUtil.getElementName(modification)));
-        }
-        return false;
+//        XPathHolder modPath = new XPathHolder(modification.getPath());
+        ItemPath full = new ItemPath(path.getItemPath(), elementName);
+        ItemPathType fullPath = new ItemPathType(full);
+        return fullPath.equals(modificationPath);
+//        if (fullPath.equals(modificationPath)) {
+//            return (elementName.equals(getElementName(modification)));
+//        }
+//        return false;
     }
 
-    public static QName getElementName(ItemDeltaType propertyModification) {
-        if (propertyModification.getValue() == null) {
-            throw new IllegalArgumentException("Modification without value element");
-        }
-        if (propertyModification.getValue().getAny() == null || propertyModification.getValue().getAny().isEmpty()) {
-            throw new IllegalArgumentException("Modification with empty value element");
-        }
-        return JAXBUtil.getElementQName(propertyModification.getValue().getAny().get(0));
-    }
+//    public static QName getElementName(ItemDeltaType propertyModification) {
+//        if (propertyModification.getValue() == null) {
+//            throw new IllegalArgumentException("Modification without value element");
+//        }
+//        if (propertyModification.getValue().getContent() == null || propertyModification.getValue().getContent().isEmpty()) {
+//            throw new IllegalArgumentException("Modification with empty value element");
+//        }
+//        return JAXBUtil.getElementQName(propertyModification.getValue().getContent().get(0));
+//    }
 
-    public static boolean isEmpty(ObjectModificationType objectModification) {
-        return (objectModification.getModification() == null) ||
-                objectModification.getModification().isEmpty();
-    }
+//    public static boolean isEmpty(ObjectModificationType objectModification) {
+//        return (objectModification.getItemDelta() == null) ||
+//                objectModification.getItemDelta().isEmpty();
+//    }
     
     public static void assertConcreteType(Class<? extends Objectable> type) {
     	// The abstract object types are enumerated here. It should be switched to some flag later on

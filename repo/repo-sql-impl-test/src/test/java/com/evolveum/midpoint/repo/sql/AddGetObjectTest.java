@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
+
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -24,11 +26,11 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -48,6 +50,7 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
+
 import java.io.File;
 import java.util.*;
 
@@ -66,7 +69,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         stats.setStatisticsEnabled(true);
 
         final File OBJECTS_FILE = new File("./src/test/resources/10k-users.xml");
-        List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(
+        List<PrismObject<? extends Objectable>> elements = prismContext.parseObjects(
                 OBJECTS_FILE);
 
         long previousCycle = 0;
@@ -128,7 +131,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     }
 
     private void addGetCompare(File file) throws Exception {
-        List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(file);
+        List<PrismObject<? extends Objectable>> elements = prismContext.parseObjects(file);
         List<String> oids = new ArrayList<String>();
 
         OperationResult result = new OperationResult("Simple Add Get Test");
@@ -143,16 +146,24 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                 (System.currentTimeMillis() - time),});
 
         int count = 0;
-        elements = prismContext.getPrismDomProcessor().parseObjects(file);
+        elements = prismContext.parseObjects(file);
         for (int i = 0; i < elements.size(); i++) {
             try {
                 PrismObject object = elements.get(i);
                 object.asObjectable().setOid(oids.get(i));
 
                 Class<? extends ObjectType> clazz = object.getCompileTimeClass();
-                PrismObject<? extends ObjectType> newObject = repositoryService.getObject(clazz, oids.get(i), null, result);
+
+                Collection o = null;
+                if (UserType.class.equals(clazz)) {
+                    o = SelectorOptions.createCollection(UserType.F_JPEG_PHOTO,
+                            GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+                }
+                PrismObject<? extends ObjectType> newObject = repositoryService.getObject(clazz, oids.get(i), o, result);
                 LOGGER.info("Old\n{}\nnew\n{}", new Object[]{object.debugDump(3), newObject.debugDump(3)});
                 checkContainersSize(newObject, object);
+                System.out.println("OLD: " + object.findProperty(ObjectType.F_NAME).getValue());
+                System.out.println("NEW: " + newObject.findProperty(ObjectType.F_NAME).getValue());
 
                 ObjectDelta delta = object.diff(newObject);
                 if (delta == null) {
@@ -171,7 +182,11 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                     }
                     LOGGER.error(">>> {} Found {} changes for {}\n{}", new Object[]{(i + 1),
                             delta.getModifications().size(), newObject.toString(), delta.debugDump(3)});
-                    LOGGER.error("{}", prismContext.getPrismDomProcessor().serializeObjectToString(newObject));
+                    ItemDelta id = (ItemDelta) delta.getModifications().iterator().next();
+                    if (id.isReplace()){
+                    System.out.println(id.getValuesToReplace().iterator().next());
+                    }
+                    LOGGER.error("{}", prismContext.serializeObjectToString(newObject, PrismContext.LANG_XML));
                 }
             } catch (Exception ex) {
                 LOGGER.error("Exception occurred", ex);
@@ -250,12 +265,12 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     public void addUserWithAssignmentExtension() throws Exception {
         LOGGER.info("===[ addUserWithAssignmentExtension ]===");
         File file = new File(FOLDER_BASIC, "user-assignment-extension.xml");
-        List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(file);
+        List<PrismObject<? extends Objectable>> elements = prismContext.parseObjects(file);
 
         OperationResult result = new OperationResult("ADD");
         String oid = repositoryService.addObject((PrismObject) elements.get(0), null, result);
 
-        PrismObject<UserType> fileUser = (PrismObject<UserType>) prismContext.getPrismDomProcessor().parseObjects(file)
+        PrismObject<UserType> fileUser = (PrismObject<UserType>) prismContext.parseObjects(file)
                 .get(0);
         long id = 1;
         for (AssignmentType assignment : fileUser.asObjectable().getAssignment()) {
@@ -422,7 +437,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     @Test(enabled = false)
     public void deltaOperationSerializationPerformanceTest() throws Exception {
         List<PrismObject<? extends Objectable>> elements =
-                prismContext.getPrismDomProcessor().parseObjects(new File(FOLDER_BASIC, "objects.xml"));
+                prismContext.parseObjects(new File(FOLDER_BASIC, "objects.xml"));
 
         //get user from objects.xml
         ObjectDelta delta = ObjectDelta.createAddDelta(elements.get(0));
@@ -472,7 +487,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("testAddAccountShadow");
         File file = new File(FOLDER_BASIC, "account-accountTypeShadow.xml");
         try {
-            PrismObject<AccountShadowType> account = prismContext.getPrismDomProcessor().parseObject(file);
+            PrismObject<AccountShadowType> account = prismContext.parseObject(file);
 
             // apply appropriate schema
             PrismObject<ResourceType> resource = prismContext.parseObject(new File(FOLDER_BASIC, "resource-opendj.xml"));

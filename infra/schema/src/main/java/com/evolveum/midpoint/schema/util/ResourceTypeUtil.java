@@ -22,6 +22,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -58,6 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsC
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.DeleteCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ReadCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.UpdateCapabilityType;
+import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
 /**
  * Methods that would belong to the ResourceType class but cannot go there
@@ -122,7 +124,7 @@ public class ResourceTypeUtil {
 	public static void setResourceXsdSchema(PrismObject<ResourceType> resource, Element xsdElement) {
 		try {
 			PrismContainer<XmlSchemaType> schemaContainer = resource.findOrCreateContainer(ResourceType.F_SCHEMA);
-			PrismProperty<Element> definitionProperty = schemaContainer.findOrCreateProperty(XmlSchemaType.F_DEFINITION);
+			PrismProperty<SchemaDefinitionType> definitionProperty = schemaContainer.findOrCreateProperty(XmlSchemaType.F_DEFINITION);
 			ObjectTypeUtil.setXsdSchemaDefinition(definitionProperty, xsdElement);
 		} catch (SchemaException e) {
 			// Should not happen

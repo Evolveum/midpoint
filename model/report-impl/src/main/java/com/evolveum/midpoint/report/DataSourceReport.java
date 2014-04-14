@@ -14,15 +14,15 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -89,9 +89,10 @@ public class DataSourceReport implements JRDataSource
 	{
     	LinkedHashMap<String, ItemPath> fieldsPair = new LinkedHashMap<String, ItemPath>();
 	    // pair fields in the report with fields in repo
-	    for (ReportFieldConfigurationType fieldRepo : reportType.getField())
-	   	{
-	   		fieldsPair.put(fieldRepo.getNameReport(), new XPathHolder(fieldRepo.getItemPath()).toItemPath());
+	    for (ReportFieldConfigurationType fieldRepo : reportType.getField()) {
+            if (fieldRepo.getItemPath() != null) {
+	   		    fieldsPair.put(fieldRepo.getNameReport(), fieldRepo.getItemPath().getItemPath());
+            }
 	   	}	
 	   	return fieldsPair;
 	}

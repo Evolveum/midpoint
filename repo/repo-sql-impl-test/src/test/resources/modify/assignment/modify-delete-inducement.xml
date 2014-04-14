@@ -21,12 +21,11 @@
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
 	<oid>00000000-8888-6666-0000-100000000005</oid>
-	<modification>
+	<itemDelta>
 		<t:modificationType>delete</t:modificationType>
-		<t:value>
-            <c:inducement id="3">
-                <c:targetRef oid="00000000-76e0-48e2-86d6-3d4f02d3e1a2" type="c:OrgType"/>
-            </c:inducement>
+		<t:path>c:inducement</t:path>
+		<t:value id="3">
+            <c:targetRef oid="00000000-76e0-48e2-86d6-3d4f02d3e1a2" type="c:OrgType"/>
 		</t:value>
-	</modification>
+	</itemDelta>
 </objectModification>

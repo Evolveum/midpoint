@@ -19,6 +19,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.xml.bind.JAXBElement;
+
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
@@ -124,7 +126,7 @@ public abstract class OperationResultFactory {
 		for (Entry<String, Element> entry : set) {
 			entryType = factory.createEntryType();
 			entryType.setKey(entry.getKey());
-			entryType.setAny(entry.getValue());
+			entryType.setEntryValue(new JAXBElement(EntryType.F_ENTRY_VALUE, Element.class, entry.getValue()));
 
 			paramsType.getEntry().add(entryType);
 		}

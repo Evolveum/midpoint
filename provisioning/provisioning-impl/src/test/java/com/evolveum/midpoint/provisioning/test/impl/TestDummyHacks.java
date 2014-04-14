@@ -26,6 +26,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -168,7 +169,7 @@ public class TestDummyHacks extends AbstractIntegrationTest {
 		Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
 		assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 		
-		String resourceXml = prismContext.getPrismDomProcessor().serializeObjectToString(resourceRepoAfter);
+		String resourceXml = prismContext.serializeObjectToString(resourceRepoAfter, PrismContext.LANG_XML);
 		display("Resource XML", resourceXml);
 
 		CachingMetadataType cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();

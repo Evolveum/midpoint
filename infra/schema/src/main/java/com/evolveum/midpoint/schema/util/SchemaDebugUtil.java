@@ -16,35 +16,50 @@
 
 package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
+
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
+
+import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UnknownJavaObjectType;
 import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
-import org.apache.commons.beanutils.PropertyUtils;
-import org.w3c.dom.*;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-import java.beans.PropertyDescriptor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.*;
-import java.util.Map.Entry;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
 
 /**
  * 
@@ -53,15 +68,6 @@ import java.util.Map.Entry;
 public class SchemaDebugUtil {
 
 	private static int SHOW_LIST_MEMBERS = 3;
-	
-	public static String dumpJaxbObject(Object jaxbObject, String elementLocalName, PrismContext prismContext) {
-		QName elementQName = new QName(SchemaConstants.NS_C, elementLocalName);
-		try {
-			return prismContext.getPrismJaxbProcessor().marshalElementToString(jaxbObject, elementQName);
-		} catch (JAXBException e) {
-			throw new IllegalStateException("Error marshalling JAXB object "+jaxbObject+": "+e.getMessage(),e);
-		}
-	}
 	
 	public static String debugDump(Collection<? extends DebugDumpable> dumpables) {
 		return debugDump(dumpables,0);
@@ -327,9 +333,9 @@ public class SchemaDebugUtil {
 			return "null";
 		}
 		StringBuilder sb = new StringBuilder("[");
-		Iterator<Element> iterator = reflist.getProperty().iterator();
+		Iterator<ItemPathType> iterator = reflist.getProperty().iterator();
 		while (iterator.hasNext()) {
-			XPathHolder xpath = new XPathHolder(iterator.next());
+			ItemPathType xpath = iterator.next();
 			sb.append(xpath.toString());
 			if (iterator.hasNext()) {
 				sb.append(",");
@@ -353,7 +359,7 @@ public class SchemaDebugUtil {
 		}
 		StringBuilder sb = new StringBuilder("ProtectedStringType(");
 		
-		if (protectedStringType.getEncryptedData() != null) {
+		if (protectedStringType.getEncryptedDataType() != null) {
 			sb.append("[encrypted data]");
 		}
 
@@ -381,7 +387,6 @@ public class SchemaDebugUtil {
 		return sb.toString();
 	}
 
-
 	public static String prettyPrint(ItemDeltaType change) {
 		if (change == null) {
 			return "null";
@@ -390,16 +395,20 @@ public class SchemaDebugUtil {
 		sb.append(change.getModificationType());
 		sb.append(",");
 		if (change.getPath() != null) {
-			XPathHolder xpath = new XPathHolder(change.getPath());
+			//FIXME : xpath vs itemPath
+			XPathHolder xpath = new XPathHolder(change.getPath().getItemPath());
 			sb.append(xpath.toString());
 		} else {
 			sb.append("xpath=null");
 		}
 		sb.append(",");
 
-		for (Object element : change.getValue().getAny()) {
-			sb.append(prettyPrint(element));
-			sb.append(",");
+		List<RawType> values = change.getValue();
+		for (RawType value : values) {
+			for (Object element : value.getContent()) {
+				sb.append(prettyPrint(element));
+				sb.append(",");
+			}
 		}
 
 		return sb.toString();
@@ -542,7 +551,11 @@ public class SchemaDebugUtil {
 			return "null";
 		}
 
-		Element filter = query.getFilter();
+		SearchFilterType filterType = query.getFilter();
+		Element filter = null;
+		if (filterType != null) {
+			filter = filterType.getFilterClause();
+		}
 
 		StringBuilder sb = new StringBuilder("Query(");
 

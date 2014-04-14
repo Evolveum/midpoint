@@ -18,6 +18,7 @@
 <resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
@@ -26,7 +27,7 @@
 								  
 	<name>Embedded Test OpenDJ</name>
 	<!-- NOTE: The connector OID will get dynamically replaced in the integration tests -->
-	<connectorRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3eedd"/>
+	<connectorRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3eedd" type="c:ConnectorType"/>
 	<connectorConfiguration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector">
 					   
 		<icfc:configurationProperties>
@@ -34,7 +35,8 @@
 			<icfcldap:host>localhost</icfcldap:host>
 			<icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
 			<icfcldap:principal>cn=directory manager</icfcldap:principal>
-			<icfcldap:credentials><clearValue>secret</clearValue></icfcldap:credentials>
+			<icfcldap:credentials><t:clearValue>secret</t:clearValue></icfcldap:credentials>
+<!-- 			<icfcldap:credentials>secret></icfcldap:credentials> -->
 			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
 			<icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
 		</icfc:configurationProperties>

@@ -135,7 +135,7 @@
 				</outbound>
 				<inbound>
 					<target>
-						<path>$c:user/c:name</path>
+						<path>$user/name</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -159,7 +159,7 @@
 				<inbound>
 					<strength>weak</strength>
 					<target>
-						<path>$c:user/c:fullName</path>
+						<path>$user/fullName</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -172,7 +172,7 @@
 				<outbound>
 					<strength>weak</strength>
 					<source>
-						<path>$c:user/c:organizationalUnit</path>
+						<path>$user/organizationalUnit</path>
 					</source>
 				</outbound>
 			</attribute>

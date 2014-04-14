@@ -20,6 +20,7 @@
 package com.evolveum.midpoint.provisioning.test.impl;
 
 import com.evolveum.midpoint.common.InternalsConfig;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -40,12 +41,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.PasswordCapabilityType;
 
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -149,7 +150,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 		
 		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result).asObjectable();
 		display("Resource after test",resource);
-		display("Resource after test (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject()));
+		display("Resource after test (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
 		
 		List<Object> nativeCapabilities = resource.getCapabilities().getNative().getAny();
 		CredentialsCapabilityType credentialsCapabilityType = CapabilityUtil.getCapability(nativeCapabilities, CredentialsCapabilityType.class);

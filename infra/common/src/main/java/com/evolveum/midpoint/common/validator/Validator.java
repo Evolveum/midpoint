@@ -164,24 +164,6 @@ public class Validator {
 		return errors;
 	}
 
-	private Unmarshaller createUnmarshaller(OperationResult validatorResult) {
-		if (unmarshaller != null) {
-			return unmarshaller;
-		}
-		try {
-			JAXBContext jc = prismContext.getPrismJaxbProcessor().getContext();
-			unmarshaller = jc.createUnmarshaller();
-		} catch (JAXBException ex) {
-			validatorResult.recordFatalError("Error initializing JAXB: " + ex.getMessage(), ex);
-			if (handler != null) {
-				handler.handleGlobalError(validatorResult);
-			}
-			// This is a severe error.
-			throw new SystemException("Error initializing JAXB: " + ex.getMessage(), ex);
-		}
-		return unmarshaller;
-	}
-
 	public void validate(InputStream inputStream, OperationResult validatorResult,
 			String objectResultOperationName) {
 

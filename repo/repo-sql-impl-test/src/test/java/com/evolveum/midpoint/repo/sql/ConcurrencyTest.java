@@ -201,7 +201,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         session.close();
 
         final File file = new File("src/test/resources/concurrency/user.xml");
-        PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(file);
+        PrismObject<UserType> user = prismContext.parseObject(file);
         user.asObjectable().setName(new PolyStringType(name));
 
         OperationResult result = new OperationResult("Concurrency Test");
@@ -442,7 +442,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
         final String newFullName = "new-full-name";
 
         final File file = new File("src/test/resources/concurrency/user.xml");
-        PrismObject<UserType> user = prismContext.getPrismDomProcessor().parseObject(file);
+        PrismObject<UserType> user = prismContext.parseObject(file);
         user.asObjectable().setName(new PolyStringType(name));
 
         final OperationResult result = new OperationResult("Concurrency Test10");

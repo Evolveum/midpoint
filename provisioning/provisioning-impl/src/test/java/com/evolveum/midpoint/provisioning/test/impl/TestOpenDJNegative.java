@@ -28,6 +28,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -127,7 +128,7 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		PrismObject<ResourceType> resourceRepoAfter = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
 		display("Resource after testResource (repository)", resourceRepoAfter);
 		ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable();
-		display("Resource after testResource (repository, XML)", PrismTestUtil.serializeObjectToString(resourceTypeRepoAfter.asPrismObject()));
+		display("Resource after testResource (repository, XML)", PrismTestUtil.serializeObjectToString(resourceTypeRepoAfter.asPrismObject(), PrismContext.LANG_XML));
 		
 		XmlSchemaType xmlSchemaTypeAfter = resourceTypeRepoAfter.getSchema();
 		assertNull("The schema was generated after test connection but it should not be",xmlSchemaTypeAfter);

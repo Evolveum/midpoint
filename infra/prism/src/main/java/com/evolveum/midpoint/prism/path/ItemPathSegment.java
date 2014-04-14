@@ -25,7 +25,7 @@ import java.io.Serializable;
  * @author semancik
  *
  */
-public abstract class ItemPathSegment implements Serializable {
+public abstract class ItemPathSegment implements Serializable, Cloneable {
 	
 	private boolean wildcard = false;
 
@@ -58,5 +58,7 @@ public abstract class ItemPathSegment implements Serializable {
 			return false;
 		return true;
 	}
+
+    public abstract ItemPathSegment clone();
 	
 }

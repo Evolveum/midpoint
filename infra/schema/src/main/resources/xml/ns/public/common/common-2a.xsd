@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -20,9 +20,11 @@
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+            xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+            xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
             xmlns:xenc="http://www.w3.org/2001/04/xmlenc#"
@@ -93,12 +95,31 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:import>
+    
+<!--      <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2" -->
+<!--     			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"> -->
+<!--         <xsd:annotation> -->
+<!--             <xsd:documentation> -->
+<!--                 Capabilities -->
+<!--             </xsd:documentation> -->
+<!--         </xsd:annotation> -->
+<!--     </xsd:import> -->
 
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-2" 
     			schemaLocation="http://prism.evolveum.com/xml/ns/public/query-2">
         <xsd:annotation>
             <xsd:documentation>
                 Prism data types.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
+    
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" 
+    			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2">
+        <xsd:annotation>
+            <xsd:documentation>
+                This is a hack. It should not be here. And it will be gone as soon as we remove a deprecated functionality
+                in ResourceObjectPatternType.
             </xsd:documentation>
         </xsd:annotation>
     </xsd:import>
@@ -354,7 +375,8 @@
                 <a:object/>
             </xsd:appinfo>
         </xsd:annotation>
-
+		<xsd:complexContent>
+            <xsd:extension base="t:ObjectType">
         <xsd:sequence>
             <xsd:element name="name" type="t:PolyStringType" minOccurs="0">
                 <xsd:annotation>
@@ -583,7 +605,8 @@
                 </xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
-
+	</xsd:extension>
+	</xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="object" type="tns:ObjectType"/>
     
@@ -599,23 +622,14 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="filter" minOccurs="0" maxOccurs="1">
-	            <xsd:complexType>
-	            	<xsd:sequence>
-			            <xsd:element ref="q:filter" minOccurs="0">
-			                <xsd:annotation>
-			                    <xsd:documentation>
-			                        Filter that can be used to dynamically lookup the reference OID e.g. during imports.
-			                        It must not be used for normal operations and references with the filter must not
-			                        be stored in the repository.
-			                    </xsd:documentation>
-			                    <xsd:appinfo>
-			                    	<jaxb:dom/>
-			                    </xsd:appinfo>
-			                </xsd:annotation>
-			            </xsd:element>            	
-	            	</xsd:sequence>
-	            </xsd:complexType>
+            <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:documentation>
+			            Filter that can be used to dynamically lookup the reference OID e.g. during imports.
+			            It must not be used for normal operations and references with the filter must not
+			            be stored in the repository.
+			        </xsd:documentation>
+			    </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="oid" type="xsd:string" use="optional">
@@ -893,66 +907,6 @@
 
 
     <!-- Property-related types -->
-
-    <xsd:complexType name="ProtectedStringType">
-        <xsd:annotation>
-            <xsd:documentation>
-                This is a general-purpose type to store sensitive values that should be encrypted in
-                the repository. It is using standard XML Encryption schema.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:choice>
-            <!-- <xsd:element name="alias" type="xsd:string" minOccurs="0" /> -->
-            <xsd:element ref="xenc:EncryptedData">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Use of XML Encryption standard EncryptionData element.
-                    </xsd:documentation>
-                    <!-- <xsd:appinfo>
-						<jaxb:dom />
-					</xsd:appinfo> -->
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="clearValue" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Clear text value of the protected data. It is useful for imports and tests.
-                        This element should never appear in repository or any other long-term storage.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:choice>
-    </xsd:complexType>
-
-    <xsd:complexType name="ProtectedByteArrayType">
-        <xsd:annotation>
-            <xsd:documentation>
-                ONLY COPIED AND PASTED FROM ProtectedStringType, please update if needed later
-                TODO
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:choice>
-            <!-- <xsd:element name="alias" type="xsd:string" minOccurs="0" /> -->
-            <xsd:element ref="xenc:EncryptedData">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Use of XML Encryption standard EncryptionData element.
-                    </xsd:documentation>
-                    <!-- <xsd:appinfo>
-						<jaxb:dom />
-					</xsd:appinfo> -->
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="clearValue" type="xsd:string">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Clear text value of the protedted data. It is useful for imports and tests.
-                        This element should never appear in repository or any other long-term storage.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:choice>
-    </xsd:complexType>
 
     <xsd:complexType name="EmptyType">
         <xsd:annotation>
@@ -2553,7 +2507,7 @@
         <xsd:complexContent>
         	<xsd:extension base="tns:AbstractCredentialType">
         		<xsd:sequence>
-            		<xsd:element name="value" type="tns:ProtectedStringType" minOccurs="0"/>
+            		<xsd:element name="value" type="t:ProtectedStringType" minOccurs="0"/>
             	</xsd:sequence>	
         	</xsd:extension>
         </xsd:complexContent>
@@ -3207,6 +3161,8 @@
 
                 Note: xsd:any is here, but maybe a stricter type would be preferable.
                 However xsd:any seems to be a common practice (e.g. SPML, WSDL).
+                
+                TODO: rename to CachedSchemaType
             </xsd:documentation>
             <xsd:appinfo>
             	<a:container/>
@@ -3215,19 +3171,7 @@
         <xsd:sequence>
             <xsd:element ref="tns:cachingMetadata" minOccurs="0"/>
             <xsd:element name="generationConstraints" type="tns:SchemaGenerationConstraintsType" minOccurs="0"/>
-            <xsd:element name="definition" minOccurs="0">
-            	<xsd:complexType>
-            		<xsd:sequence>
-			            <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="strict">
-			                <xsd:annotation>
-			                    <xsd:appinfo>
-			                        <jaxb:dom/>
-			                    </xsd:appinfo>
-			                </xsd:annotation>
-			            </xsd:any>
-		            </xsd:sequence>
-	          	</xsd:complexType>
-            </xsd:element>
+            <xsd:element name="definition" type="t:SchemaDefinitionType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="schema" type="tns:XmlSchemaType"/>
@@ -4065,7 +4009,40 @@
      		</xsd:documentation>
      	</xsd:annotation>
      	<xsd:sequence>
-     		<xsd:any namespace="##any" minOccurs="1" maxOccurs="unbounded"/>
+     		<xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					The filter used to match the object. If the object mathces then it is regarded to be
+     					protected.
+     					
+     					Although this is minOccurs=0 it is a mandatory attribute for all current practical uses.
+     					The minOccurs=0 is here only for compatibility and it will be changed to minOccurs=1
+     					when the deprecated syntax is removed.
+     				</xsd:documentation>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element ref="icfs:name" minOccurs="0" maxOccurs="1">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					ICF name of the protected object. If the object matches this value then it is considered protected.
+     					DEPRECATED. Use filter instead.
+     				</xsd:documentation>
+     				<xsd:appinfo>
+     					<a:deprecated/>
+     				</xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
+     		<xsd:element ref="icfs:uid" minOccurs="0" maxOccurs="1">
+     			<xsd:annotation>
+     				<xsd:documentation>
+     					ICF UID of the protected object. If the object matches this value then it is considered protected.
+     					DEPRECATED. Use filter instead.
+     				</xsd:documentation>
+     				<xsd:appinfo>
+     					<a:deprecated/>
+     				</xsd:appinfo>
+     			</xsd:annotation>
+     		</xsd:element>
      	</xsd:sequence>
      </xsd:complexType>
      
@@ -4133,6 +4110,9 @@
                 This part defines native and configured capabilities. The effective capabilities of the resource
                 are determined by application of configured capabilities to native capabilities.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element ref="tns:cachingMetadata" minOccurs="0">
@@ -4174,6 +4154,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="capabilities" type="tns:CapabilitiesType"/>
     
     <xsd:complexType name="CapabilityCollectionType">
         <xsd:annotation>
@@ -4183,8 +4164,18 @@
                 a closed set. Resource may also specify additional capabilities. If the code that is processing
                 capabilities encounters unknown capability it must ignore it.
             </xsd:documentation>
+            <xsd:appinfo>
+            	<a:container/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
+<!--          <xsd:element name="cap" type="cap:CapabilityType" minOccurs="0" maxOccurs="unbounded"> -->
+<!--                 <xsd:annotation> -->
+<!--                     <xsd:documentation> -->
+<!--                         Elements defining individual capabilities. -->
+<!--                     </xsd:documentation> -->
+<!--                 </xsd:annotation> -->
+<!--             </xsd:element> -->
             <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -4587,7 +4578,7 @@
         <xsd:sequence>
             <xsd:element name="name" type="xsd:QName" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
-           	<xsd:element name="path" type="t:XPathType"/>
+           	<xsd:element name="path" type="t:ItemPathType"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -4599,7 +4590,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
-           	<xsd:element name="path" type="t:XPathType"/>
+           	<xsd:element name="path" type="t:ItemPathType"/>
         </xsd:sequence>
     </xsd:complexType>
     
@@ -4670,27 +4661,18 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="returnMultiplicity" type="tns:ExpressionReturnMultiplicityType" minOccurs="0"></xsd:element>
-            <xsd:choice>
-                <xsd:element ref="tns:expressionEvaluator" minOccurs="1" maxOccurs="unbounded">
-                	<xsd:annotation>
-                		<xsd:documentation>
-                			A single expression evaluator.
-                			Although this element is formally multi-value it may be used only for multiple
-                			instances of the same evaluator that in fact form a single group.
-                			E.g. it may be used to define several "value" elements of literal evaluator that
-                			define multiple values. But it must not be used to define multiple scripts or any
-                			other combination of evaluators.
-                		</xsd:documentation>
-                	</xsd:annotation>
-                </xsd:element>
-                <xsd:element name="sequence">
-                    <xsd:complexType>
-                        <xsd:sequence>
-                            <xsd:element ref="tns:expressionEvaluator" maxOccurs="unbounded"/>
-                        </xsd:sequence>
-                    </xsd:complexType>
-                </xsd:element>
-            </xsd:choice>
+            <xsd:element ref="tns:expressionEvaluator" minOccurs="1" maxOccurs="unbounded">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			A single expression evaluator.
+            			Although this element is formally multi-value it may be used only for multiple
+            			instances of the same evaluator that in fact form a single group.
+            			E.g. it may be used to define several "value" elements of literal evaluator that
+            			define multiple values. But it must not be used to define multiple scripts or any
+            			other combination of evaluators.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="expression" type="tns:ExpressionType">
@@ -4776,7 +4758,7 @@
             </xsd:element>
             <xsd:element ref="tns:description" minOccurs="0"/>
             <!-- This needs to be a sequence of optional elements instead of choice due to a JAXB "feature" that generates XML not valid with the schema. -->
-           	<xsd:element name="path" type="t:XPathType" minOccurs="0"/>
+           	<xsd:element name="path" type="t:ItemPathType" minOccurs="0"/>
                <xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0">
                    <xsd:annotation>
                        <xsd:documentation>
@@ -4796,7 +4778,7 @@
 
     <xsd:element name="expressionEvaluator" abstract="true"/>
 
-    <xsd:element name="value" type="xsd:anyType" substitutionGroup="tns:expressionEvaluator" nillable="true">
+    <xsd:element name="value" type="t:RawType" substitutionGroup="tns:expressionEvaluator" nillable="true">
         <xsd:annotation>
             <xsd:documentation>
                 Static value for the attribute or property.
@@ -4857,7 +4839,7 @@
 
     <xsd:element name="script" type="tns:ScriptExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
-	<xsd:element name="path" type="xsd:anyType" substitutionGroup="tns:expressionEvaluator"/>
+	<xsd:element name="path" type="t:ItemPathType" substitutionGroup="tns:expressionEvaluator"/>
 
     <xsd:complexType name="TransformExpressionEvaluatorType" abstract="true">
         <xsd:annotation>
@@ -4959,32 +4941,16 @@
 		                    </xsd:documentation>
 		                </xsd:annotation>
 		            </xsd:element>
-		            <xsd:element name="code" type="tns:ScriptExpressionCodeType">
+		            <xsd:element name="code" type="xsd:string">
 		                <xsd:annotation>
 		                    <xsd:documentation>
-		                        TODO
+		                        Script code in the native format of the scripting language.
 		                    </xsd:documentation>
 		                </xsd:annotation>
 		            </xsd:element>
 		        </xsd:sequence>
         	</xsd:extension>
         </xsd:complexContent>
-    </xsd:complexType>
-
-    <xsd:complexType name="ScriptExpressionCodeType" mixed="true">
-        <xsd:annotation>
-            <xsd:documentation>
-                The expression code is supposed to be in the content of this type. The content ix "mixed"
-                which allows both XML and non-XML languages.
-
-                The expression may use variables or arguments. However, such variables or arguments passed
-                to the expression will be different for each invocation. It should be documented in each
-                case this type is used.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <jaxb:dom/>
-            </xsd:appinfo>
-        </xsd:annotation>
     </xsd:complexType>
 
     <xsd:simpleType name="ScriptExpressionReturnTypeType">
@@ -5033,7 +4999,7 @@
 		        	</xsd:element>
 		        	<xsd:element name="oid" type="xsd:string" minOccurs="0" maxOccurs="1">
 		        	</xsd:element>
-		        	<xsd:element name="query" type="q:QueryType" minOccurs="0" maxOccurs="1">
+		        	<xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
 		        	</xsd:element>
 		        	<xsd:element name="searchOnResource" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
 		        	</xsd:element>
@@ -5201,16 +5167,19 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="correlation" type="q:QueryType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="correlation" type="tns:ConditionalSearchFilterType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                    	<p>Correlation query expression. Running the query should return a list of candidate focus
+                    	<p>Correlation filter expression. Running the query should return a list of candidate focus
                     	entries that may be owners of a particular shadow.</p>
 
                         <p>Correlation is an rough but an efficient way how to relate the shadow (e.g. an account)
-                        to a focus (e.g. an user). The correlation expression is in fact just a search query that can
-                        contain expressions inside it. If correlation search returns more that one entries,
+                        to a focus (e.g. an user). The correlation expression is in fact just a search filter that can
+                        contain expressions inside it. If correlation search returns more that one entry,
                         confirmation expression will be executed for each of them.</p>
+
+                        <p>The filter in this case is conditional, i.e. there can be specified an expression
+                        that denotes a necessary condition for the filter to be applied.</p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -5279,6 +5248,27 @@
             </xsd:element>
             <xsd:element name="reaction" type="tns:SynchronizationReactionType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ConditionalSearchFilterType">
+        <xsd:annotation>
+            <xsd:documentation>
+                A filter with an expression that denotes a necessary condition for the filter to be applied.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="q:SearchFilterType">
+                <xsd:sequence>
+                    <xsd:element name="condition" type="tns:ExpressionType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                A condition that must be true in order to evaluate the filter.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:simpleType name="SynchronizationSituationType">
@@ -5646,7 +5636,7 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="sharedSecret" type="tns:ProtectedStringType" minOccurs="0">
+                    <xsd:element name="sharedSecret" type="t:ProtectedStringType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Shared secret used to authenticate client to the host.
@@ -6011,13 +6001,19 @@
             </xsd:appinfo>
         </xsd:annotation>
 	    <xsd:sequence>
-	        <xsd:element name="name" type="xsd:QName"/>
-	        <xsd:element name="shadowRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1"/>
+	        <xsd:element name="name" type="xsd:QName" minOccurs="0"/>
+	        <xsd:element name="shadowRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
 	        <xsd:element name="identifiers" type="tns:ShadowIdentifiersType" minOccurs="0" maxOccurs="1"/>
 	    </xsd:sequence>
 	    <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
-    
+
     <xsd:complexType name="ShadowIdentifiersType">
     	<xsd:annotation>
             <xsd:documentation>
@@ -6258,7 +6254,7 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-        	<xsd:element name="item" type="t:XPathType"  minOccurs="0" maxOccurs="unbounded">
+        	<xsd:element name="item" type="t:ItemPathType"  minOccurs="0" maxOccurs="unbounded">
         		<xsd:annotation>
         			<xsd:documentation>
         				Specification of items that form a scope of this authorization. This autorization will
@@ -6335,7 +6331,7 @@
             		</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-        	<xsd:element name="filter" type="q:QueryType" minOccurs="0" maxOccurs="1">
+        	<xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
         		<xsd:annotation>
         			<xsd:documentation>
         				Filter that an object must match to be considered selected by this statement.
@@ -6932,6 +6928,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="passwordLifeTime" type="tns:PasswordLifeTimeType"/>
 
     <xsd:complexType name="StringPolicyType">
         <xsd:sequence>
@@ -7028,21 +7025,52 @@
             <xsd:element name="entry" type="tns:EntryType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="params" type="tns:ParamsType"/>
 
     <xsd:complexType name="EntryType">
         <xsd:sequence>
-            <xsd:any processContents="lax" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Value of the entry. If there is a object that can native XML representation, such representation
-                        should
-                        be used. Otherwise the UnknownJavaObject can be used.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:any>
+        	<xsd:element ref="tns:entryValue" minOccurs="0" />
+<!--             <xsd:any processContents="lax" minOccurs="0"> -->
+<!--                 <xsd:annotation> -->
+<!--                     <xsd:documentation> -->
+<!--                         Value of the entry. If there is a object that can native XML representation, such representation -->
+<!--                         should -->
+<!--                         be used. Otherwise the UnknownJavaObject can be used. -->
+<!--                     </xsd:documentation> -->
+<!--                 </xsd:annotation> -->
+<!--             </xsd:any> -->
         </xsd:sequence>
         <xsd:attribute name="key" type="xsd:string" use="required"/>
     </xsd:complexType>
+    
+    <xsd:element name="entryValue" abstract="true"/>
+    
+    <xsd:element name="paramValue" type="t:RawType" substitutionGroup="tns:entryValue" nillable="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                Static value for the attribute or property.
+
+                Static attribute values. The values in this element should be
+                assigned to the account as-is.
+
+                List of values for the attribute provided in an appropriate XML elements
+                that specify attribute name. (as is usual for properties)
+
+                Only one attribute may be specified here, although it may have multiple
+                values. Multi-valued attributes are expressed by repeating the same XML
+                element multiple times.
+                Hence all the XML elements that match this xsd:any must have the same
+                element names (may have different values of course).
+
+
+                Please note that this is nillable and therefore it may be
+                explicitly set to "nil" value. Doing this means that empty
+                set of values should be constructed. E.g. setting
+                this to "nil" and also setting "authoritative" flag
+                may enforce removal of all attribute values (if used properly).
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
 
     <xsd:simpleType name="OperationResultStatusType">
         <xsd:annotation>
@@ -7127,7 +7155,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:element name="unknownJavaObject" type="tns:UnknownJavaObjectType"/>
+    <xsd:element name="unknownJavaObject" type="tns:UnknownJavaObjectType" substitutionGroup="tns:entryValue"/>
 
     <!-- Configuration types -->
 
@@ -8137,7 +8165,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="password" type="tns:ProtectedStringType" minOccurs="0">
+            <xsd:element name="password" type="t:ProtectedStringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         How to authenticate to the mail server.
@@ -8272,7 +8300,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="password" type="tns:ProtectedStringType" minOccurs="0">
+            <xsd:element name="password" type="t:ProtectedStringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         How to authenticate to the SMS gateway.
@@ -8423,6 +8451,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Option to user overwrite flag. It can be used from web service, if we want to re-import some object
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="isImport" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Option to simulate import operation. E.g. search filters will be resolved.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -8609,13 +8644,12 @@
             <!--</xsd:appinfo>-->
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element ref="tns:handler" minOccurs="0" maxOccurs="unbounded"/>       <!-- implicit fork -->
+            <xsd:element name="handler" type="tns:EventHandlerType" minOccurs="0" maxOccurs="unbounded"/>       <!-- implicit fork -->
             <xsd:element name="mail" type="tns:MailConfigurationType" minOccurs="0"/>
             <xsd:element name="sms" type="tns:SmsConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="notificationConfiguration" type="tns:NotificationConfigurationType"/>
-
 
     <xsd:complexType name="EventHandlerType">
         <xsd:annotation>
@@ -8624,6 +8658,13 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Symbolic name, used either as a comment or (in the future) maybe to reference the filter.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="description" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -8631,59 +8672,95 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="category" type="tns:EventCategoryType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Event categories supported by this handler. (Default: all)
+                        Categories not listed are filtered out: not handled by this handler nor any of its successors.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="operation" type="tns:EventOperationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Operations supported by this handler. (Default: all)
+                        Operations not listed are filtered out: not handled by this handler nor any of its successors.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="status" type="tns:EventStatusType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Result statuses supported by this handler. (Default: all)
+                        Statuses not listed are filtered out: not handled by this handler nor any of its successors.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="expressionFilter" type="tns:ExpressionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expression that returns true (if the event is to be processed and passed further) or false (if it has to be thrown off).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="chained" type="tns:EventHandlerType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A chain of handlers (usually filters and notifiers) to be evaluated, one after another.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="forked" type="tns:EventHandlerType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A set of handlers to be evaluated without any relation among them (like a fork prongs).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="simpleUserNotifier" type="tns:SimpleUserNotifierType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="simpleAccountNotifier" type="tns:SimpleAccountNotifierType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="simpleWorkflowNotifier" type="tns:SimpleWorkflowNotifierType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="userPasswordNotifier" type="tns:UserPasswordNotifierType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="accountPasswordNotifier" type="tns:AccountPasswordNotifierType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="generalNotifier" type="tns:GeneralNotifierType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Here can go any notifiers (that extend GeneralNotifierType).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
-        <xsd:attribute name="name" type="xsd:string">
-            <xsd:annotation>
-                <xsd:documentation>
-                    Symbolic name, used either as a comment or (in the future) maybe to reference the filter.
-                </xsd:documentation>
-            </xsd:annotation>
-        </xsd:attribute>
     </xsd:complexType>
-    <xsd:element name="handler" type="tns:EventHandlerType" abstract="true" />
-
-    <xsd:complexType name="EventHandlerChainType">
-        <xsd:annotation>
-            <xsd:documentation>
-                A chain of event handlers, usually filters and notifiers.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:EventHandlerType">
-                <xsd:sequence>
-                    <xsd:element ref="tns:handler" minOccurs="0" maxOccurs="unbounded" />
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="handlerChain" type="tns:EventHandlerChainType" substitutionGroup="tns:handler" />
-
-    <xsd:complexType name="EventHandlerForkType">
-        <xsd:annotation>
-            <xsd:documentation>
-                ...
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:EventHandlerType">
-                <xsd:sequence>
-                    <xsd:element ref="tns:handler" minOccurs="0" maxOccurs="unbounded" />
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="fork" type="tns:EventHandlerForkType" substitutionGroup="tns:handler" />
-
-    <xsd:complexType name="EventCategoryFilterType">
-        <xsd:complexContent>
-            <xsd:extension base="tns:EventHandlerType">
-                <xsd:sequence>
-                    <xsd:element name="category" type="tns:EventCategoryType" minOccurs="0" maxOccurs="unbounded"/>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="categoryFilter" type="tns:EventCategoryFilterType" substitutionGroup="tns:handler" />
 
     <xsd:simpleType name="EventCategoryType">
         <xsd:annotation>
@@ -8733,17 +8810,6 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="EventStatusFilterType">
-        <xsd:complexContent>
-            <xsd:extension base="tns:EventHandlerType">
-                <xsd:sequence>
-                    <xsd:element name="status" type="tns:EventStatusType" minOccurs="0" maxOccurs="unbounded"/>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="statusFilter" type="tns:EventStatusFilterType" substitutionGroup="tns:handler" />
-
     <xsd:simpleType name="EventStatusType">
         <xsd:annotation>
             <xsd:documentation>
@@ -8792,17 +8858,6 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="EventOperationFilterType">
-        <xsd:complexContent>
-            <xsd:extension base="tns:EventHandlerType">
-                <xsd:sequence>
-                    <xsd:element name="operation" type="tns:EventOperationType" minOccurs="0" maxOccurs="unbounded"/>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="operationFilter" type="tns:EventOperationFilterType" substitutionGroup="tns:handler" />
-
     <xsd:simpleType name="EventOperationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -8837,22 +8892,6 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="EventExpressionFilterType">
-        <xsd:complexContent>
-            <xsd:extension base="tns:EventHandlerType">
-                <xsd:sequence>
-                    <xsd:element name="expression" type="c:ExpressionType">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Expression that returns true (if the event is to be passed further) or false (if it has to be thrown off).
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-    <xsd:element name="expressionFilter" type="tns:EventExpressionFilterType" substitutionGroup="tns:handler" />
 
     <!-- notifiers -->
 
@@ -8860,14 +8899,6 @@
         <xsd:complexContent>
             <xsd:extension base="tns:EventHandlerType">
                 <xsd:sequence>
-                    <xsd:element ref="tns:handler" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                For convenience, filtering can be placed also here (it influences only this notifier,
-                                not any components on the chain after it).
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="recipientExpression" type="c:ExpressionType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -8950,7 +8981,6 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="simpleAccountNotifier" type="tns:SimpleAccountNotifierType" substitutionGroup="tns:handler" />
 
     <xsd:complexType name="SimpleUserNotifierType">
         <xsd:annotation>
@@ -8963,7 +8993,6 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="simpleUserNotifier" type="tns:SimpleUserNotifierType" substitutionGroup="tns:handler" />
 
     <xsd:complexType name="SimpleWorkflowNotifierType">
         <xsd:annotation>
@@ -8976,7 +9005,6 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="simpleWorkflowNotifier" type="tns:SimpleWorkflowNotifierType" substitutionGroup="tns:handler" />
 
     <xsd:complexType name="UserPasswordNotifierType">
         <xsd:annotation>
@@ -8989,7 +9017,6 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="userPasswordNotifier" type="tns:UserPasswordNotifierType" substitutionGroup="tns:handler" />
 
     <xsd:complexType name="AccountPasswordNotifierType">
         <xsd:annotation>
@@ -9002,7 +9029,6 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="accountPasswordNotifier" type="tns:AccountPasswordNotifierType" substitutionGroup="tns:handler" />
 
     <xsd:complexType name="DummyNotifierType">
         <xsd:annotation>
@@ -9015,7 +9041,6 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="dummyNotifier" type="tns:DummyNotifierType" substitutionGroup="tns:handler" />
 
     <xsd:complexType name="GeneralChangeProcessorConfigurationType">
         <xsd:annotation>
@@ -9223,7 +9248,7 @@
         <xsd:sequence>
             <xsd:element name="nameReport" type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="nameHeader" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="itemPath" type="t:XPathType" minOccurs="0"/>
+            <xsd:element name="itemPath" type="t:ItemPathType" minOccurs="0"/>
             <xsd:element name="sortOrderNumber" type="xsd:int" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="sortOrder" type="q:OrderDirectionType" minOccurs="0" maxOccurs="1"/>  
             <xsd:element name="width" type="xsd:int" minOccurs="0" maxOccurs="1" />
@@ -9281,8 +9306,8 @@
                 <xsd:sequence>
                     <xsd:element name="parent" type="xsd:boolean" default="true" minOccurs="0"/>
                     <xsd:element name="subreport" type="tns:SubreportType" minOccurs="0" maxOccurs="unbounded"/>
-                   	<xsd:element name="template" type="tns:ReportTemplateType" minOccurs="0"/>
-                	<xsd:element name="templateStyle" type="tns:ReportTemplateStyleType" minOccurs="0"/>
+                   	<xsd:element name="template" type="xsd:string" minOccurs="0"/>
+                	<xsd:element name="templateStyle" type="xsd:string" minOccurs="0"/>
                     <xsd:element name="orientation" type="tns:OrientationType" minOccurs="0">
     				    <xsd:annotation>
                             <xsd:documentation>

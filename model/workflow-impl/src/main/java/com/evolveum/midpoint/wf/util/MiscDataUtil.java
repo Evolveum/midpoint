@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -50,8 +51,6 @@ import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 import org.activiti.engine.form.FormProperty;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBException;
@@ -123,31 +122,93 @@ public class MiscDataUtil {
         return repositoryService.getObject(UserType.class, oid, null, result);
     }
 
+    public PrismObject<? extends ObjectType> getObjectBefore(Map<String, Object> variables, PrismContext prismContext, OperationResult result) throws SchemaException, ObjectNotFoundException, JAXBException {
+        String objectXml = (String) variables.get(PcpProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED);
+        PrismObject<? extends ObjectType> object;
+        if (objectXml != null) {
+            object = prismContext.parseObject(objectXml, PrismContext.LANG_XML);
+        } else {
+            String oid = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID);
+            if (oid == null) {
+                return null;
+            }
+            //Validate.notNull(oid, "Object OID in process variables is null");
+            object = repositoryService.getObject(ObjectType.class, oid, null, result);
+        }
+
+        if (object.asObjectable() instanceof UserType) {
+            resolveAssignmentTargetReferences((PrismObject) object, result);
+        }
+        return object;
+    }
+
+    public ObjectDelta getObjectDelta(Map<String, Object> variables) throws JAXBException, SchemaException {
+        return getObjectDelta(variables, false);
+    }
+
+    public ObjectDelta getObjectDelta(Map<String, Object> variables, boolean mayBeNull) throws JAXBException, SchemaException {
+        ObjectDeltaType objectDeltaType = getObjectDeltaType(variables, mayBeNull);
+        return objectDeltaType != null ? DeltaConvertor.createObjectDelta(objectDeltaType, prismContext) : null;
+    }
+
+    public ObjectDeltaType getObjectDeltaType(Map<String, Object> variables, boolean mayBeNull) throws JAXBException, SchemaException {
+        StringHolder deltaXml = (StringHolder) variables.get(PcpProcessVariableNames.VARIABLE_MIDPOINT_DELTA);
+        if (deltaXml == null) {
+            if (mayBeNull) {
+                return null;
+            } else {
+                throw new IllegalStateException("There's no delta in process variables");
+            }
+        }
+        return prismContext.parseAtomicValue(deltaXml.getValue(), ObjectDeltaType.COMPLEX_TYPE, PrismContext.LANG_XML);
+    }
+
+    public PrismObject<? extends ObjectType> getObjectAfter(Map<String, Object> variables, ObjectDeltaType deltaType, PrismObject<? extends ObjectType> objectBefore, PrismContext prismContext, OperationResult result) throws JAXBException, SchemaException {
+
+        ObjectDelta delta;
+        if (deltaType != null) {
+            delta = DeltaConvertor.createObjectDelta(deltaType, prismContext);
+        } else {
+            delta = getObjectDelta(variables, true);
+        }
+
+        if (delta == null) {
+            return null;
+        }
+
+        PrismObject<? extends ObjectType> objectAfter = objectBefore.clone();
+        delta.applyTo(objectAfter);
+
+        if (objectAfter.asObjectable() instanceof UserType) {
+            resolveAssignmentTargetReferences((PrismObject) objectAfter, result);
+        }
+        return objectAfter;
+    }
+
     public static String serializeObjectToXml(PrismObject<? extends ObjectType> object) {
         return serializeObjectToXml(object, object.getPrismContext());
     }
 
     public static String serializeObjectToXml(PrismObject<? extends ObjectType> object, PrismContext prismContext) {
         try {
-            return prismContext.getPrismJaxbProcessor().marshalToString(object.asObjectable());
-        } catch (JAXBException e) {
+            return prismContext.serializeObjectToString(object, PrismContext.LANG_XML);
+        } catch (SchemaException e) {
             throw new SystemException("Couldn't serialize a PrismObject " + object + " into XML", e);
         }
     }
 
     public static String serializeContainerableToXml(Containerable containerable, PrismContext prismContext) {
         try {
-            return prismContext.getPrismJaxbProcessor().marshalContainerableToString(containerable);
-        } catch (JAXBException e) {
+            PrismContainerValue value = containerable.asPrismContainerValue();
+            return prismContext.serializeContainerValueToString(value, value.getContainer().getElementName(), PrismContext.LANG_XML);
+        } catch (SchemaException e) {
             throw new SystemException("Couldn't serialize a Containerable " + containerable + " into XML", e);
         }
     }
 
     public static ObjectType deserializeObjectFromXml(String xml, PrismContext prismContext) {
         try {
-            return prismContext.getPrismJaxbProcessor().unmarshalObject(xml, ObjectType.class);
-        } catch (JAXBException e) {
-            throw new SystemException("Couldn't deserialize a PrismObject from XML", e);
+            return (ObjectType) prismContext.parseObject(xml, PrismContext.LANG_XML).asObjectable();
         } catch (SchemaException e) {
             throw new SystemException("Couldn't deserialize a PrismObject from XML", e);
         }
@@ -155,9 +216,7 @@ public class MiscDataUtil {
 
     public static PrismContainer deserializeContainerFromXml(String xml, PrismContext prismContext) {
         try {
-            return prismContext.getPrismJaxbProcessor().unmarshalSingleValueContainer(xml, Containerable.class);
-        } catch (JAXBException e) {
-            throw new SystemException("Couldn't deserialize a Containerable from XML", e);
+            return prismContext.parseContainer(xml, (Class) null, PrismContext.LANG_XML);
         } catch (SchemaException e) {
             throw new SystemException("Couldn't deserialize a Containerable from XML", e);
         }

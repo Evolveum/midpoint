@@ -30,11 +30,11 @@
 	<name>Testing cycle task (test 009)</name>
 	
     <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d30009</taskIdentifier>
-    <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
+    <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="c:UserType"/>
     <executionStatus>runnable</executionStatus>
 
 	<handlerUri>http://midpoint.evolveum.com/test/cycle-task-handler</handlerUri>
-	<objectRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
+	<objectRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" type="c:ResourceType"/>
 	<recurrence>recurring</recurrence>
 	<binding>loose</binding>
 	<schedule>

@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -83,10 +84,9 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	private List<SchemaDescription> schemaDescriptions;
 	private Map<String,SchemaDescription> parsedSchemas;
 	private Map<QName,ComplexTypeDefinition> extensionSchemas;
-	private PrismSchema objectSchema = null;
 	private boolean initialized = false;
-	private String objectSchemaNamespace;
 	private DynamicNamespacePrefixMapper namespacePrefixMapper;
+	private String defaultNamespace;
     @Autowired(required = true)
 	private PrismContext prismContext;
 	
@@ -97,14 +97,6 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		this.schemaDescriptions = new ArrayList<SchemaDescription>();
 		this.parsedSchemas = new HashMap<String, SchemaDescription>();
 		this.extensionSchemas = new HashMap<QName, ComplexTypeDefinition>();
-	}
-	
-	public String getObjectSchemaNamespace() {
-		return objectSchemaNamespace;
-	}
-
-	public void setObjectSchemaNamespace(String objectSchemaNamespace) {
-		this.objectSchemaNamespace = objectSchemaNamespace;
 	}
 	
 	public DynamicNamespacePrefixMapper getNamespacePrefixMapper() {
@@ -129,6 +121,14 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 
 	public void setBuiltinSchemaResolver(EntityResolver builtinSchemaResolver) {
 		this.builtinSchemaResolver = builtinSchemaResolver;
+	}
+
+	public String getDefaultNamespace() {
+		return defaultNamespace;
+	}
+
+	public void setDefaultNamespace(String defaultNamespace) {
+		this.defaultNamespace = defaultNamespace;
 	}
 
 	/**
@@ -415,33 +415,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
     public Collection<SchemaDescription> getSchemaDescriptions() {
         return parsedSchemas.values();
     }
-	
-	/**
-	 * Returns a schema that contains all the object definitions augmented with
-	 * extension definitions as appropriate. This is the method intended for common
-	 * usage in the code.
-	 * 
-	 * The returned schema is considered to be immutable. Any attempt to change it
-	 * may lead to unexpected results. 
-	 */
-	@Deprecated
-	public PrismSchema getObjectSchema() {
-		if (!initialized) {
-			throw new IllegalStateException("Attempt to get common schema from uninitialized Schema Registry");
-		}
-		if (objectSchema == null) {
-			initializeObjectSchema();
-		}
-		return objectSchema;
-	}
-	
-	private void initializeObjectSchema() {
-		if (objectSchemaNamespace == null) {
-			throw new IllegalArgumentException("Object schema namespace is not set");
-		}
-		objectSchema = parsedSchemas.get(objectSchemaNamespace).getSchema();
-	}
-	
+		
 	public Collection<Package> getCompileTimePackages() {
 		Collection<Package> compileTimePackages = new ArrayList<Package>(schemaDescriptions.size());
 		for (SchemaDescription desc : schemaDescriptions) {
@@ -573,8 +547,28 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		}		
 		return inputSource;
 	}
-	
-	class Input implements LSInput {
+
+    // TODO fix this temporary and inefficient implementation
+    public QName resolveUnqualifiedTypeName(QName type) throws SchemaException {
+        QName typeFound = null;
+        for (SchemaDescription desc: schemaDescriptions) {
+            QName typeInSchema = new QName(desc.getNamespace(), type.getLocalPart());
+            if (desc.getSchema() != null && desc.getSchema().findComplexTypeDefinition(typeInSchema) != null) {
+                if (typeFound != null) {
+                    throw new SchemaException("Ambiguous type name: " + type);
+                } else {
+                    typeFound = typeInSchema;
+                }
+            }
+        }
+        if (typeFound == null) {
+            throw new SchemaException("Unknown type: " + type);
+        } else {
+            return typeFound;
+        }
+    }
+
+    class Input implements LSInput {
 
 		private String publicId;
 		private String systemId;
@@ -693,7 +687,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		return determineCompileTimeClass(complexTypeDefinition.getTypeName());
 	}
 		
-	public Class<?> determineCompileTimeClass(QName typeName) {
+	public <T> Class<T> determineCompileTimeClass(QName typeName) {
 		if (typeName.getNamespaceURI() == null) {
 			throw new IllegalArgumentException("XSD type "+typeName+" has no namespace, cannot determine schema");
 		}
@@ -705,18 +699,28 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		if (pkg == null) {
 			return null;
 		}
-		Class<?> compileTimeClass = JAXBUtil.findClassForType(typeName, pkg);
+		Class<T> compileTimeClass = JAXBUtil.findClassForType(typeName, pkg);
 		return compileTimeClass;
 	}
 
-	public PrismSchema findSchemaByCompileTimeClass(Class<? extends Objectable> compileTimeClass) {
+    // TODO: which one is better (this one or the above)?
+    public <T> Class<T> getCompileTimeClass(QName xsdType) {
+        SchemaDescription desc = findSchemaDescriptionByNamespace(xsdType.getNamespaceURI());
+        if (desc == null) {
+            return null;
+        }
+        Map<QName, Class<?>> map = desc.getXsdTypeTocompileTimeClassMap();
+        if (map == null) {
+            return null;
+        }
+        return (Class<T>) map.get(xsdType);
+    }
+
+    public PrismSchema findSchemaByCompileTimeClass(Class<?> compileTimeClass) {
 		Package compileTimePackage = compileTimeClass.getPackage();
 		for (SchemaDescription desc: schemaDescriptions) {
 			if (compileTimePackage.equals(desc.getCompileTimeClassesPackage())) {
 				PrismSchema schema = desc.getSchema();
-				if (schema.getNamespace().equals(objectSchemaNamespace)) {
-					return getObjectSchema();
-				}
 				return schema;
 			}
 		}
@@ -783,7 +787,20 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	
 	public <T extends Objectable> PrismObjectDefinition<T> findObjectDefinitionByType(QName typeName) {
 		PrismSchema schema = findSchemaByNamespace(typeName.getNamespaceURI());
-		if (schema == null) {
+		if (schema == null){
+			//TODO: check for confilicted objects
+//			Iterator<PrismSchema> schemaIterator = getSchemas().iterator();
+//			while (schemaIterator.hasNext()){
+//				schema = schemaIterator.next();
+//				if (schema == null){
+//					continue;
+//				}
+//				PrismObjectDefinition<T> def = schema.findObjectDefinitionByTypeAssumeNs(typeName);
+//				if (def != null){
+//					return def;
+//				}
+//				
+//			}
 			return null;
 		}
 		return schema.findObjectDefinitionByType(typeName);
@@ -797,7 +814,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		return schema.findObjectDefinitionByElementName(elementName);
 	}
 	
-	public PrismContainerDefinition findContainerDefinitionByType(QName typeName) {
+	public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinitionByType(QName typeName) {
 		PrismSchema schema = findSchemaByNamespace(typeName.getNamespaceURI());
 		if (schema == null) {
 			return null;
@@ -805,12 +822,20 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		return schema.findContainerDefinitionByType(typeName);
 	}
 	
-	public PrismContainerDefinition findContainerDefinitionByElementName(QName elementName) {
+	public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinitionByElementName(QName elementName) {
 		PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());
 		if (schema == null) {
 			return null;
 		}
 		return schema.findContainerDefinitionByElementName(elementName);
+	}
+	
+	public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinitionByCompileTimeClass(Class<C> compileTimeClass) {
+		PrismSchema schema = findSchemaByCompileTimeClass(compileTimeClass);
+		if (schema == null) {
+			return null;
+		}
+		return schema.findContainerDefinitionByCompileTimeClass(compileTimeClass);
 	}
 
     public ItemDefinition findItemDefinitionByElementName(QName elementName) {
@@ -821,7 +846,16 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
         return schema.findItemDefinition(elementName, ItemDefinition.class);
     }
 
-	public PrismPropertyDefinition findPropertyDefinitionByElementName(QName elementName) {
+    public ItemDefinition findItemDefinitionByType(QName typeName) {
+        PrismSchema schema = findSchemaByNamespace(typeName.getNamespaceURI());
+        if (schema == null) {
+            return null;
+        }
+        return schema.findItemDefinitionByType(typeName, ItemDefinition.class);
+    }
+
+
+    public PrismPropertyDefinition findPropertyDefinitionByElementName(QName elementName) {
 		PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());
 		if (schema == null) {
 			return null;
@@ -864,6 +898,23 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		return null;
 	}
 	
+	public PrismSchema findSchemaByPrefix(String prefix) {
+		SchemaDescription desc = findSchemaDescriptionByPrefix(prefix);
+		if (desc == null) {
+			return null;
+		}
+		return desc.getSchema();
+	}
+		
+	public SchemaDescription findSchemaDescriptionByPrefix(String prefix) {
+		for (SchemaDescription desc: schemaDescriptions) {
+			if (prefix.equals(desc.getUsualPrefix())) {
+				return desc;
+			}
+		}
+		return null;
+	}
+	
 	public PrismObjectDefinition determineDefinitionFromClass(Class type) {
 		PrismObjectDefinition def = findObjectDefinitionByCompileTimeClass(type);
 		if (def != null) {
@@ -882,6 +933,9 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	 */
 	public boolean hasImplicitTypeDefinition(QName elementName, QName typeName) {
 		PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());
+		if (schema == null) {
+			return false;
+		}
 		ItemDefinition itemDefinition = schema.findItemDefinition(elementName, ItemDefinition.class);
 		if (itemDefinition == null) {
 			return false;
@@ -911,7 +965,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		}
 		ItemDefinition itemDefinition = schema.findItemDefinition(elementQName, ItemDefinition.class);
 		if (itemDefinition == null) {
-				throw new SchemaException("No definition for item "+elementQName+" (schema for the namespace is present)");
+            throw new SchemaException("No definition for item "+elementQName+" (schema for the namespace is present)");
 		}
 		return itemDefinition;
 	}
@@ -923,5 +977,4 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		}
 		return objDef.instantiate();
 	}
-
 }

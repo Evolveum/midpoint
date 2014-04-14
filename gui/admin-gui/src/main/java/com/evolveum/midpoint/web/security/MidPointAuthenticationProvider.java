@@ -16,8 +16,8 @@
 
 package com.evolveum.midpoint.web.security;
 
-import com.evolveum.midpoint.common.crypto.EncryptionException;
-import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.UserProfileService;
@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.http.WebRequest;
@@ -41,6 +42,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.datatype.XMLGregorianCalendar;
+
 
 import java.sql.Date;
 import java.util.ArrayList;
@@ -202,7 +204,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 
 		try {
 			String decoded;
-			if (protectedString.getEncryptedData() != null) {
+			if (protectedString.getEncryptedDataType() != null) {
 				decoded = protector.decryptString(protectedString);
 			} else {
 				LOGGER.warn("Authenticating user based on clear value. Please check objects, "

@@ -36,7 +36,7 @@
             classpath:ctx-model.xml,
             classpath*:ctx-workflow.xml,
             classpath*:ctx-notifications.xml,
-            classpath:ctx-camel-imports.xml,
+<!--             classpath:ctx-camel-imports.xml, -->
             /WEB-INF/ctx-webapp.xml,
             /WEB-INF/ctx-web-security.xml,
             /WEB-INF/ctx-init.xml

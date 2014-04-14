@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RObjectTemplateType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
@@ -25,12 +26,14 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -108,6 +111,9 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
 
     public static void copyFromJAXB(ObjectTemplateType jaxb, RObjectTemplate repo, PrismContext prismContext) throws
             DtoTranslationException {
+    	
+    	PrismObjectDefinition<ObjectTemplateType> templateDefinition = jaxb.asPrismObject().getDefinition();
+    	
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setType(RUtil.getRepoEnumValue(jaxb.asPrismObject().getElementName(), RObjectTemplateType.class));

@@ -176,7 +176,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 				if (FailedOperationTypeType.ADD == shadow.getFailedOperationType()) {
 					if (shadow.getObjectChange() != null && shadow.getOid() != null) {
 						Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(shadow
-								.getObjectChange().getModification(), shadow.asPrismObject().getDefinition());
+								.getObjectChange().getItemDelta(), shadow.asPrismObject().getDefinition());
 
 						cacheRepositoryService.modifyObject(ShadowType.class, shadow.getOid(), deltas,
 								operationResult);

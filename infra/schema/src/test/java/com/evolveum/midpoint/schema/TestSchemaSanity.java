@@ -63,6 +63,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
 /**
  * @author semancik
@@ -207,7 +208,7 @@ public class TestSchemaSanity {
 		assertEquals("Unexpected number of definitions in <schema>", 3, schemaContainerDef.getDefinitions().size());
 		PrismAsserts.assertPropertyDefinition(schemaContainerDef, XmlSchemaType.F_CACHING_METADATA, 
 				CachingMetadataType.COMPLEX_TYPE, 0, 1);		
-		PrismAsserts.assertPropertyDefinition(schemaContainerDef, XmlSchemaType.F_DEFINITION, DOMUtil.XSD_ANY, 0, 1);
+		PrismAsserts.assertPropertyDefinition(schemaContainerDef, XmlSchemaType.F_DEFINITION, SchemaDefinitionType.COMPLEX_TYPE, 0, 1);
 		PrismPropertyDefinition definitionPropertyDef = schemaContainerDef.findPropertyDefinition(XmlSchemaType.F_DEFINITION);
 		assertNotNull("Null <definition> definition", definitionPropertyDef);
 //		assertFalse("schema/definition is NOT runtime", definitionPropertyDef.isRuntimeSchema());
@@ -228,9 +229,11 @@ public class TestSchemaSanity {
 		System.out.println("configurationProperties definition:");
 		System.out.println(configurationPropertiesDefinition.debugDump());
 		
-//		assertTrue("configurationProperties definition is NOT marked as runtime", configurationPropertiesDefinition.isRuntimeSchema());
+		assertTrue("configurationProperties definition is NOT marked as runtime", configurationPropertiesDefinition.isRuntimeSchema());
 //		assertNull("Unexpected compile-time class in configurationProperties definition", configurationPropertiesDefinition.getCompileTimeClass());
 
+//		assertTrue("configurationProperties definition is NOT marked as wildcard", configurationPropertiesDefinition.isWildcard());
+		
 		// TODO
 	}
 	

@@ -22,6 +22,11 @@ import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -251,33 +256,33 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
         });
     }
 
-    @Test(enabled = false)
-    public void test028CurrentRepo() throws Exception {
-        TestUtil.displayTestTile(this, "test029NewRepo");
+//    @Test(enabled = false)
+//    public void test028CurrentRepo() throws Exception {
+//        TestUtil.displayTestTile(this, "test029NewRepo");
+//
+//        //old repo
+//        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+//        //"extension" value
+//        String xml = IOUtils.toString(new FileInputStream("./src/test/resources/model-context.xml"), "utf-8");
+//        Element root = DOMUtil.parseDocument(xml).getDocumentElement();
+//
+//        QName name = new QName("http://midpoint.evolveum.com/xml/ns/public/model/model-context-2", "modelContext");
+//
+//        PrismObjectDefinition oDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class);
+//        PrismContainerDefinition def = oDef.findContainerDefinition(new ItemPath(ObjectType.F_EXTENSION, name));
+//        Item parsedItem = domProcessor.parseItem(DOMUtil.listChildElements(root), name, def);
+//        LOGGER.debug("Parser:\n{}", parsedItem.debugDump());
+//    }
 
-        //old repo
-        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
-        //"extension" value
-        String xml = IOUtils.toString(new FileInputStream("./src/test/resources/model-context.xml"), "utf-8");
-        Element root = DOMUtil.parseDocument(xml).getDocumentElement();
-
-        QName name = new QName("http://midpoint.evolveum.com/xml/ns/public/model/model-context-2", "modelContext");
-
-        PrismObjectDefinition oDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class);
-        PrismContainerDefinition def = oDef.findContainerDefinition(new ItemPath(ObjectType.F_EXTENSION, name));
-        Item parsedItem = domProcessor.parseItem(DOMUtil.listChildElements(root), name, def);
-        LOGGER.debug("Parser:\n{}", parsedItem.debugDump());
-    }
-
-    @Test(enabled = false)
-    public void test029NewRepo() throws Exception {
-        TestUtil.displayTestTile(this, "test029NewRepo");
-
-        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
-        String xml = IOUtils.toString(new FileInputStream("./src/test/resources/task.xml"), "utf-8");
-        PrismObject o = domProcessor.parseObject(xml);
-        LOGGER.info("Parsed:\n{}", o.debugDump());
-    }
+//    @Test(enabled = false)
+//    public void test029NewRepo() throws Exception {
+//        TestUtil.displayTestTile(this, "test029NewRepo");
+//
+//        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+//        String xml = IOUtils.toString(new FileInputStream("./src/test/resources/task.xml"), "utf-8");
+//        PrismObject o = domProcessor.parseObject(xml);
+//        LOGGER.info("Parsed:\n{}", o.debugDump());
+//    }
 
     @Test(enabled = false)
     public void test030AddAccountApproved() throws Exception {
@@ -346,7 +351,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
         OperationResult result = new OperationResult("test000LoadContext");
 
-        LensContextType lensContextType = prismContext.getPrismJaxbProcessor().unmarshalObject(new File("src/test/resources/model-contexts/context-dummy-resource.xml"), LensContextType.class);
+        LensContextType lensContextType = (LensContextType) prismContext.parseObject(new File("src/test/resources/model-contexts/context-dummy-resource.xml")).asObjectable();
         display("LensContextType", lensContextType);
         LensContext<?> lensContext = LensContext.fromLensContextType(lensContextType, prismContext, provisioningService, result);
         display("LensContext", lensContext);

@@ -33,10 +33,8 @@
     	</source>
     	<expression>
             <value>
-            	<assignment>
-					<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>
-				</assignment>
-            </value>    	
+                <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>
+            </value>
     	</expression>
     	<target>
     		<path>assignment</path>
@@ -57,10 +55,8 @@
     	</source>
     	<expression>
             <value>
-            	<assignment>
-					<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>
-				</assignment>
-            </value>    	
+                <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>
+            </value>
     	</expression>
     	<target>
     		<path>assignment</path>
@@ -83,10 +79,8 @@
     	</source>
     	<expression>
             <value>
-            	<assignment>
-					<targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>
-				</assignment>
-            </value>    	
+                <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="c:RoleType"/>
+            </value>
     	</expression>
     	<target>
     		<path>assignment</path>
@@ -114,14 +108,14 @@
     	<expression>
             <assignmentTargetSearch>
             	<targetType>c:OrgType</targetType>
-        		<query>
+        		<filter>
 					<q:equal>
 						<q:path>c:name</q:path>
 						<valueExpression>
 							<path>$organizationalUnit</path>
 						</valueExpression>
 					</q:equal>
-				</query>
+				</filter>
 				<createOnDemand>true</createOnDemand>
 				<populateObject>
 					<populateItem>

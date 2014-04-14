@@ -31,7 +31,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType.Filter;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import org.testng.annotations.BeforeSuite;
@@ -64,18 +63,18 @@ public class TestParseObjectTemplate {
 	
 	
 	@Test
-	public void testParseObjectTemplateFile() throws SchemaException {
+	public void testParseObjectTemplateFile() throws Exception {
 		roundTrip("testParseObjectTemplateFile", OBJECT_TEMPLATE_FILE, 
 				new QName(SchemaConstantsGenerated.NS_COMMON, "objectTemplate"));
 	}
 	
 	@Test
-	public void testParseUserTemplateFile() throws SchemaException {
+	public void testParseUserTemplateFile() throws Exception {
 		roundTrip("testParseUserTemplateFile", USER_TEMPLATE_FILE, 
 				new QName(SchemaConstantsGenerated.NS_COMMON, "userTemplate"));
 	}
 	
-	private void roundTrip(final String TEST_NAME, File file, QName elementName) throws SchemaException {
+	private void roundTrip(final String TEST_NAME, File file, QName elementName) throws Exception {
 		System.out.println("===[ "+TEST_NAME+" ]===");
 
 		// GIVEN
@@ -91,16 +90,16 @@ public class TestParseObjectTemplate {
 		assertObjectTemplate(object, elementName);
 		
 		// WHEN
-		Element domObject = prismContext.getPrismDomProcessor().serializeToDom(object);
+		String xml = prismContext.serializeObjectToString(object, PrismContext.LANG_XML);
 		
 		// THEN
 		System.out.println("Serialized object:");
-		System.out.println(DOMUtil.serializeDOMToString(domObject));
+		System.out.println(xml);
 		
-		assertSerializedObject(domObject, elementName);
+		assertSerializedObject(xml, elementName);
 		
 		// WHEN
-		PrismObject<ObjectTemplateType> reparsedObject = prismContext.parseObject(domObject);
+		PrismObject<ObjectTemplateType> reparsedObject = prismContext.parseObject(xml);
 		
 		// THEN
 		System.out.println("Re-parsed object:");
@@ -134,8 +133,7 @@ public class TestParseObjectTemplate {
 	}
 	
 	
-	private void assertSerializedObject(Element domObject, QName elementName) {
-		assertEquals("Wrong top-level element name", elementName, DOMUtil.getQName(domObject));
+	private void assertSerializedObject(String xml, QName elementName) {
 		// TODO
 	}
 

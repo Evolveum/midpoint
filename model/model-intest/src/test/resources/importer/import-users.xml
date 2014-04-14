@@ -20,6 +20,7 @@
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 	xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
 
 	<user oid="c0c010c0-d34d-b33f-f00d-111111111111">
@@ -36,7 +37,7 @@
         <credentials>
         	<password>
         		<value>
-        			<clearValue>dead men tell no tales</clearValue>
+        			<t:clearValue>dead men tell no tales</t:clearValue>
         		</value>
         	</password>
         </credentials>

@@ -381,8 +381,12 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     public ReferenceDelta findReferenceModification(QName itemName) {
     	return findModification(itemName, ReferenceDelta.class);
     }
-    
-	/**
+
+    public ReferenceDelta findReferenceModification(ItemPath itemPath) {
+        return findModification(itemPath, ReferenceDelta.class);
+    }
+
+    /**
 	 * Returns all item deltas at or below a specified path.
 	 */
 	public Collection<? extends ItemDelta<?>> findItemDeltasSubPath(ItemPath itemPath) {
@@ -1227,7 +1231,7 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     	}
     }
     
-    public void revive(PrismContext prismContext) {
+    public void revive(PrismContext prismContext) throws SchemaException {
     	if (objectToAdd != null) {
     		objectToAdd.revive(prismContext);
     	}

@@ -16,19 +16,22 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.dom.ElementPrismReferenceImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 
 import java.io.Serializable;
 
 import javax.xml.namespace.QName;
+
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 
 import org.w3c.dom.Element;
 
@@ -45,7 +48,10 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
     private QName targetType = null;
     private QName relation = null;
     private String description = null;
-    private Element filter = null;
+    private SearchFilterType filter = null;
+    
+    
+    private Referencable referencable;
     
     public PrismReferenceValue() {
         this(null,null,null);
@@ -53,6 +59,11 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 
     public PrismReferenceValue(String oid) {
         this(oid, null, null);
+    }
+    
+    public PrismReferenceValue(String oid, QName targetType) {
+        this(oid, null, null);
+        this.targetType = targetType;
     }
 
     public PrismReferenceValue(String oid, OriginType type, Objectable source) {
@@ -143,11 +154,11 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		this.description = description;
 	}
 
-	public Element getFilter() {
+	public SearchFilterType getFilter() {
 		return filter;
 	}
 
-	public void setFilter(Element filter) {
+	public void setFilter(SearchFilterType filter) {
 		this.filter = filter;
 	}
 	
@@ -237,11 +248,6 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 	}
 
 	@Override
-	protected Element createDomElement() {
-		return new ElementPrismReferenceImpl(this);
-	}
-	
-	@Override
 	public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw) {
 		ItemPath myPath = getPath();
 
@@ -302,10 +308,10 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		if (!super.equalsComplex(other, ignoreMetadata, isLiteral)) {
 			return false;
 		}
-		if (this.oid == null) {
-			if (other.oid != null)
+		if (this.getOid() == null) {
+			if (other.getOid() != null)
 				return false;
-		} else if (!this.oid.equals(other.oid))
+		} else if (!this.getOid().equals(other.getOid()))
 			return false;
 		// Special handling: if both oids are null we need to compare embedded objects
 		if (this.oid == null && other.oid == null) {
@@ -319,10 +325,10 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 				}
 			}
 		}
-		if (this.targetType == null) {
-			if (other.targetType != null)
+		if (this.getTargetType() == null) {
+			if (other.getTargetType() != null)
 				return false;
-		} else if (!this.targetType.equals(other.targetType))
+		} else if (!this.getTargetType().equals(other.getTargetType()))
 			return false;
 		if (this.relation == null) {
 			if (other.relation != null)
@@ -378,7 +384,7 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		}
 		return refVal;
 	}
-
+	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -405,6 +411,24 @@ public class PrismReferenceValue extends PrismValue implements DebugDumpable, Se
 		return sb.toString();
 	}
 
+	public Referencable asReferencable(){
+		if (referencable == null){
+			Itemable parent = getParent();
+			QName xsdType = parent.getDefinition().getTypeName();
+			Class clazz = getPrismContext().getSchemaRegistry().getCompileTimeClass(xsdType);
+			if (clazz != null){
+				try {
+					referencable = (Referencable) clazz.newInstance();
+				} catch (InstantiationException | IllegalAccessException e) {
+					throw new SystemException("Couldn't create jaxb object instance of '" + clazz + "': "+e.getMessage(), e);
+				}
+			}
+			referencable.setupReferenceValue(this);
+		}
+		return referencable;
+		
+	}
+	
 	@Override
     public String debugDump() {
         return toString();

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.*;
@@ -25,12 +26,14 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
+
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
+
 import java.util.Collection;
 import java.util.Set;
 
@@ -305,6 +308,8 @@ public class RTask extends RObject<TaskType> implements OperationResult {
     public static void copyFromJAXB(TaskType jaxb, RTask repo, PrismContext prismContext) throws
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
+        
+        PrismObjectDefinition<TaskType> taskDefinition = jaxb.asPrismObject().getDefinition();
 
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setTaskIdentifier(jaxb.getTaskIdentifier());
@@ -326,7 +331,7 @@ public class RTask extends RObject<TaskType> implements OperationResult {
         repo.setWaitingReason(RUtil.getRepoEnumValue(jaxb.getWaitingReason(), RTaskWaitingReason.class));
         repo.setDependent(RUtil.listToSet(jaxb.getDependent()));
 
-        RUtil.copyResultFromJAXB(jaxb.getResult(), repo, prismContext);
+        RUtil.copyResultFromJAXB(taskDefinition, jaxb.F_RESULT, jaxb.getResult(), repo, prismContext);
     }
 
     @Override

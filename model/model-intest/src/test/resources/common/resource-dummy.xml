@@ -82,7 +82,7 @@
 					<!-- This avoids "kickback" of a name from account to a user. -->
 					<strength>weak</strength>
 					<target>
-						<path>$c:user/c:name</path>
+						<path>$user/name</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -119,7 +119,7 @@
 					<strength>strong</strength>
 					<source>
 						<path>
-							$c:user/c:locality
+							$user/locality
 						</path>
 					</source>
 				</outbound>
@@ -177,6 +177,7 @@
 					<strength>weak</strength>
 					<source>
 						<path>
+                            declare namespace piracy = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
 							$user/extension/piracy:weapon
 						</path>
 					</source>
@@ -237,7 +238,7 @@
             	<associationAttribute>ri:members</associationAttribute>
             	<valueAttribute>icfs:name</valueAttribute>
             </association>
-            
+
             <association>
             	<ref>ri:priv</ref>
             	<kind>entitlement</kind>
@@ -340,7 +341,7 @@
 					<strength>strong</strength>
 					<source>
 						<path>
-							$c:user/c:locality
+							$user/locality
 						</path>
 					</source>
 				</outbound>
@@ -351,10 +352,8 @@
             	<outbound>
             		<expression>
             			<value>
-            				<association>
-            					<!-- "testers" group -->
-            					<shadowRef oid="20000000-0000-0000-3333-000000000002"/>
-            				</association>
+                            <!-- "testers" group -->
+                            <shadowRef oid="20000000-0000-0000-3333-000000000002" type="ShadowType"/>
             			</value>
             		</expression>
             	</outbound>
@@ -364,7 +363,7 @@
             	<associationAttribute>ri:members</associationAttribute>
             	<valueAttribute>icfs:name</valueAttribute>
             </association>
-            
+
             <association>
             	<ref>ri:priv</ref>
             	<kind>entitlement</kind>
@@ -408,7 +407,8 @@
 				    	<path>$focus/name</path>
 				    </source>
                     <expression>
-                        <path>t:norm</path>
+                        <path>declare namespace t="http://prism.evolveum.com/xml/ns/public/types-2";
+                            t:norm</path>
                     </expression>
 				</outbound>
 			</attribute>
@@ -425,12 +425,16 @@
                 <outbound>
                     <strength>weak</strength>
                     <source>
-                        <path>$focus/extension/piracy:costCenter</path>
+                        <path>
+                            declare namespace piracy = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
+                            $focus/extension/piracy:costCenter
+                        </path>
                     </source>
                 </outbound>
                 <inbound>
                     <target>
-                        <path>$focus/extension/piracy:costCenter</path>
+                        <path>declare namespace piracy = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
+                            $focus/extension/piracy:costCenter</path>
                     </target>
                 </inbound>
             </attribute>
@@ -558,7 +562,8 @@ end
 				<q:equal>
 					<q:path>c:name</q:path>
 					<valueExpression>
-						<path>$account/attributes/icfs:name</path>
+						<path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
+                            $account/attributes/icfs:name</path>
 					</valueExpression>
 				</q:equal>
 			</correlation>

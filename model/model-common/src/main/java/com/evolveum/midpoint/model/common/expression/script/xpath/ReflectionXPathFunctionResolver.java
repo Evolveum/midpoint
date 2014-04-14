@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * @author semancik
@@ -58,7 +59,7 @@ public class ReflectionXPathFunctionResolver implements XPathFunctionResolver {
 	public XPathFunction resolveFunction(QName functionQName, int arity) {
 		boolean enableDebug = false;
 		String namespace = functionQName.getNamespaceURI();
-		if (namespace == null) {
+		if (StringUtils.isEmpty(namespace)) {
 			namespace = MidPointConstants.NS_FUNC_BASIC;
 			enableDebug = true;
 		} else if (namespace.equals(MidPointConstants.NS_FUNC_BASIC)) {

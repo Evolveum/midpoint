@@ -31,7 +31,11 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedByteArrayType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
+
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
 import org.identityconnectors.common.security.GuardedByteArray;
@@ -73,8 +77,6 @@ import org.identityconnectors.framework.common.objects.SyncToken;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 
-import com.evolveum.midpoint.common.crypto.EncryptionException;
-import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -86,6 +88,8 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -124,6 +128,7 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -138,7 +143,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.BeforeAfterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
@@ -401,7 +405,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// implementing Potemkin-like security. Use a temporary
 			// "nonsense" type for now, so this will fail in tests and
 			// will be fixed later
-			propXsdType = SchemaConstants.C_PROTECTED_STRING_TYPE;
+//			propXsdType = SchemaConstants.T_PROTECTED_STRING_TYPE;
+			propXsdType = ProtectedStringType.COMPLEX_TYPE;
 		} else if (GuardedByteArray.class.equals(type) || 
 				(Byte.class.equals(type) && isConfidential)) {
 			// GuardedString is a special case. It is a ICF-specific
@@ -409,7 +414,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// implementing Potemkin-like security. Use a temporary
 			// "nonsense" type for now, so this will fail in tests and
 			// will be fixed later
-			propXsdType = SchemaConstants.C_PROTECTED_BYTE_ARRAY_TYPE;
+//			propXsdType = SchemaConstants.T_PROTECTED_BYTE_ARRAY_TYPE;
+			propXsdType = ProtectedByteArrayType.COMPLEX_TYPE;
 		} else {
 			propXsdType = XsdTypeMapper.toXsdType(type);
 		}
@@ -2159,15 +2165,21 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throw new IllegalArgumentException("No password was provided");
 		}
 
-		if (passwordDelta.getElementName().equals(PasswordType.F_VALUE)) {
-			PrismProperty<ProtectedStringType> newPassword = passwordDelta.getPropertyNew();
-			if (newPassword == null || newPassword.isEmpty()){
-				LOGGER.trace("Skipping processing password delta. Password delta does not contain new value.");
+		QName elementName = passwordDelta.getElementName();
+		if (StringUtils.isBlank(elementName.getNamespaceURI())) {
+			if (!QNameUtil.match(elementName, PasswordType.F_VALUE)) {
 				return;
 			}
-			GuardedString guardedPassword = toGuardedString(newPassword.getValue().getValue(), "new password");
-			attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME, guardedPassword));
+		} else if (!passwordDelta.getElementName().equals(PasswordType.F_VALUE)) {
+			return;
 		}
+		PrismProperty<ProtectedStringType> newPassword = passwordDelta.getPropertyNew();
+		if (newPassword == null || newPassword.isEmpty()) {
+			LOGGER.trace("Skipping processing password delta. Password delta does not contain new value.");
+			return;
+		}
+		GuardedString guardedPassword = toGuardedString(newPassword.getValue().getValue(), "new password");
+		attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME, guardedPassword));
 
 	}
 

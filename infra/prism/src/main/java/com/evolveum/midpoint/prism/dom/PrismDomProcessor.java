@@ -27,6 +27,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
@@ -53,11 +54,13 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.parser.DomSerializer;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -93,8 +96,8 @@ public class PrismDomProcessor {
 		this.prismContext = prismContext;
 	}
 
-	private PrismJaxbProcessor getJaxbProcessor() {
-		return getPrismContext().getPrismJaxbProcessor();
+	private JaxbTestUtil getJaxbProcessor() {
+		return null;
 	}
 
 	public <T extends Objectable> PrismObject<T> parseObject(File file, Class<T> type) throws SchemaException {
@@ -503,8 +506,8 @@ public class PrismDomProcessor {
 		QName propertyName = JAXBUtil.getElementQName(firstElement);
 		PrismProperty<T> property = new PrismProperty<T>(itemName);
 		for (Object valueElement : valueElements) {
-			PrismPropertyValue<T> pval = PrismPropertyValue.createRaw(valueElement);
-			property.add(pval);
+//			PrismPropertyValue<T> pval = PrismPropertyValue.createRaw(valueElement);
+//			property.add(pval);
 		}
 		return property;
 	}
@@ -532,7 +535,7 @@ public class PrismDomProcessor {
 	public <T> T parsePrismPropertyRealValue(Object valueElement, PrismPropertyDefinition<T> propertyDefinition)
 			throws SchemaException {
 		QName typeName = propertyDefinition.getTypeName();
-		PrismJaxbProcessor jaxbProcessor = getJaxbProcessor();
+		JaxbTestUtil jaxbProcessor = getJaxbProcessor();
 		Object realValue = null;
 		if (valueElement instanceof JAXBElement<?>) {
 			Object jaxbElementValue = ((JAXBElement<?>)valueElement).getValue();
@@ -836,30 +839,33 @@ public class PrismDomProcessor {
 
 
 	public PrismReferenceValue parseReferenceValue(Element element) {
-		String oid = getOid(element);
-		QName type = DOMUtil.getQNameAttribute(element, PrismConstants.ATTRIBUTE_REF_TYPE_LOCAL_NAME);
-		if (type != null) {
-			DOMUtil.validateNonEmptyQName(type, " in reference type in " + DOMUtil.getQName(element));
-		}
-		PrismReferenceValue refVal = new PrismReferenceValue(oid);
-		refVal.setTargetType(type);
 
-		QName relationAttribute = DOMUtil.getQNameAttribute(element, PrismConstants.ATTRIBUTE_RELATION_LOCAL_NAME);
-		if (relationAttribute != null) {
-			DOMUtil.validateNonEmptyQName(relationAttribute, " in reference type in " + DOMUtil.getQName(element));
-		}
-		refVal.setRelation(relationAttribute);
+        throw new UnsupportedOperationException();
 
-		Element descriptionElement = DOMUtil.getChildElement(element, PrismConstants.ELEMENT_DESCRIPTION_LOCAL_NAME);
-		if (descriptionElement != null) {
-			refVal.setDescription(descriptionElement.getTextContent());
-		}
-		Element filterElement = DOMUtil.getChildElement(element, PrismConstants.ELEMENT_FILTER_LOCAL_NAME);
-		if (filterElement != null) {
-			refVal.setFilter(DOMUtil.getFirstChildElement(filterElement));
-		}
-
-		return refVal;
+//		String oid = getOid(element);
+//		QName type = DOMUtil.getQNameAttribute(element, PrismConstants.ATTRIBUTE_REF_TYPE_LOCAL_NAME);
+//		if (type != null) {
+//			DOMUtil.validateNonEmptyQName(type, " in reference type in " + DOMUtil.getQName(element));
+//		}
+//		PrismReferenceValue refVal = new PrismReferenceValue(oid);
+//		refVal.setTargetType(type);
+//
+//		QName relationAttribute = DOMUtil.getQNameAttribute(element, PrismConstants.ATTRIBUTE_RELATION_LOCAL_NAME);
+//		if (relationAttribute != null) {
+//			DOMUtil.validateNonEmptyQName(relationAttribute, " in reference type in " + DOMUtil.getQName(element));
+//		}
+//		refVal.setRelation(relationAttribute);
+//
+//		Element descriptionElement = DOMUtil.getChildElement(element, PrismConstants.ELEMENT_DESCRIPTION_LOCAL_NAME);
+//		if (descriptionElement != null) {
+//			refVal.setDescription(descriptionElement.getTextContent());
+//		}
+//		Element filterElement = DOMUtil.getChildElement(element, PrismConstants.ELEMENT_FILTER_LOCAL_NAME);
+//		if (filterElement != null) {
+//			refVal.setFilter((SearchFilterType) DOMUtil.getFirstChildElement(filterElement));       // will throw ClassCastException for now
+//		}
+//
+//		return refVal;
 	}
 
 	private PrismReference parseReference(List<? extends Object> elements, ItemDefinition definition) throws SchemaException{
@@ -923,34 +929,37 @@ public class PrismDomProcessor {
 	 * before raising an error.
 	 */
 	private PrismReferenceValue parseReferenceValueFromObject(Object referenceObject) throws SchemaException {
-		String oid = ReflectionUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_OID, String.class);
-		QName type = ReflectionUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_TYPE, QName.class);
-		PrismReferenceValue refVal = new PrismReferenceValue(oid);
-		refVal.setTargetType(type);
-		String description = ReflectionUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_DESCRIPTION, String.class);
-		refVal.setDescription(description);
-		Object filterType = ReflectionUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_FILTER, Object.class);
-		if (filterType != null) {
-			if (ReflectionUtil.hasJavaProperty(filterType, JAVA_JAXB_PROPERTY_ANY)) {
-				List filterElementList = ReflectionUtil.getJavaProperty(filterType, JAVA_JAXB_PROPERTY_ANY, List.class);
-				if (filterElementList != null) {
-					Object firstElement = filterElementList.get(0);
-					if (firstElement instanceof Element) {
-						refVal.setFilter((Element) firstElement);
-					} else {
-						throw new SchemaException("Unknown type of filter element " + firstElement.getClass());
-					}
-				}
-			} else if (ReflectionUtil.hasJavaProperty(filterType, JAVA_PROPERTY_FILTER)) {
-				Element filterElement = ReflectionUtil.getJavaProperty(filterType, JAVA_PROPERTY_FILTER, Element.class);
-				refVal.setFilter(filterElement);
-			} else {
-				throw new SchemaException("JAXB bean of type " + referenceObject.getClass().getName()
-						+ " representing prism reference" + " does not contain '" + JAVA_JAXB_PROPERTY_ANY
-						+ "' property nor '" + JAVA_PROPERTY_FILTER + "' property");
-			}
-		}
-		return refVal;
+
+        throw new UnsupportedOperationException();
+
+//		String oid = ReflectionUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_OID, String.class);
+//		QName type = ReflectionUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_TYPE, QName.class);
+//		PrismReferenceValue refVal = new PrismReferenceValue(oid);
+//		refVal.setTargetType(type);
+//		String description = ReflectionUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_DESCRIPTION, String.class);
+//		refVal.setDescription(description);
+//		Object filterType = ReflectionUtil.getJavaProperty(referenceObject, JAVA_PROPERTY_FILTER, Object.class);
+//		if (filterType != null) {
+//			if (ReflectionUtil.hasJavaProperty(filterType, JAVA_JAXB_PROPERTY_ANY)) {
+//				List filterElementList = ReflectionUtil.getJavaProperty(filterType, JAVA_JAXB_PROPERTY_ANY, List.class);
+//				if (filterElementList != null) {
+//					Object firstElement = filterElementList.get(0);
+//					if (firstElement instanceof Element) {
+//						refVal.setFilter((ObjectFilter) firstElement);
+//					} else {
+//						throw new SchemaException("Unknown type of filter element " + firstElement.getClass());
+//					}
+//				}
+//			} else if (ReflectionUtil.hasJavaProperty(filterType, JAVA_PROPERTY_FILTER)) {
+//				Element filterElement = ReflectionUtil.getJavaProperty(filterType, JAVA_PROPERTY_FILTER, Element.class);
+//				refVal.setFilter((ObjectFilter) filterElement);
+//			} else {
+//				throw new SchemaException("JAXB bean of type " + referenceObject.getClass().getName()
+//						+ " representing prism reference" + " does not contain '" + JAVA_JAXB_PROPERTY_ANY
+//						+ "' property nor '" + JAVA_PROPERTY_FILTER + "' property");
+//			}
+//		}
+//		return refVal;
 	}
 
 	/**
@@ -1067,38 +1076,40 @@ public class PrismDomProcessor {
 	 * is a copy of the object and does not change with the object. But the
 	 * representation is fully DOM-compliant.
 	 */
-	public Element serializeToDom(PrismObject<?> object) throws SchemaException {
-		return serializeToDom(object, false);
-	}
+//	public Element serializeToDom(PrismObject<?> object) throws SchemaException {
+//		return serializeToDom(object, false);
+//	}
 
-	public Element serializeToDom(PrismObject<?> object, boolean serializeCompositeObjects) throws SchemaException {
-		DomSerializer domSerializer = new DomSerializer(getPrismContext());
-		domSerializer.setSerializeCompositeObjects(serializeCompositeObjects);
-		return domSerializer.serialize(object);
-	}
+//	public Element serializeToDom(PrismObject<?> object, boolean serializeCompositeObjects) throws SchemaException {
+//		DomSerializer domSerializer = null;
+//		domSerializer.setSerializeCompositeObjects(serializeCompositeObjects);
+////		return domSerializer.serialize(object);
+//		return null;
+//	}
 
-	public <T extends Containerable> Element serializeToDom(PrismContainerValue<T> object, Element parentElement)
-			throws SchemaException {
+//	public <T extends Containerable> Element serializeToDom(PrismContainerValue<T> object, Element parentElement)
+//			throws SchemaException {
+//
+//		DomSerializer domSerializer = null;
+////		return domSerializer.serializeContainerValue(object, parentElement);
+//		return null;
+//	}
 
-		DomSerializer domSerializer = new DomSerializer(getPrismContext());
-		return domSerializer.serializeContainerValue(object, parentElement);
-	}
+//	public <T extends Objectable> String serializeObjectToString(PrismObject<T> object) throws SchemaException {
+//		return serializeObjectToString(object, false);
+//	}
 
-	public <T extends Objectable> String serializeObjectToString(PrismObject<T> object) throws SchemaException {
-		return serializeObjectToString(object, false);
-	}
+//	public <T extends Objectable> String serializeObjectToString(PrismObject<T> object,
+//			boolean serializeCompositeObjects) throws SchemaException {
+//		Element element = serializeToDom(object, serializeCompositeObjects);
+//		return DOMUtil.serializeDOMToString(element);
+//	}
 
-	public <T extends Objectable> String serializeObjectToString(PrismObject<T> object,
-			boolean serializeCompositeObjects) throws SchemaException {
-		Element element = serializeToDom(object, serializeCompositeObjects);
-		return DOMUtil.serializeDOMToString(element);
-	}
-
-	public <T extends Containerable> String serializeObjectToString(PrismContainerValue<T> object, Element parentElement)
-			throws SchemaException {
-		Element element = serializeToDom(object, parentElement);
-		return DOMUtil.serializeDOMToString(element);
-	}
+//	public <T extends Containerable> String serializeObjectToString(PrismContainerValue<T> object, Element parentElement)
+//			throws SchemaException {
+//		Element element = serializeToDom(object, parentElement);
+//		return DOMUtil.serializeDOMToString(element);
+//	}
 
 	public Element serializeValueToDom(PrismValue pval, QName elementName) throws SchemaException {
 		return serializeValueToDom(pval, elementName, DOMUtil.getDocument());
@@ -1116,8 +1127,8 @@ public class PrismDomProcessor {
 	}
 
 	public void serializeValueToDom(PrismValue pval, Element parentElement) throws SchemaException {
-		DomSerializer domSerializer = new DomSerializer(getPrismContext());
-		domSerializer.serialize(pval, parentElement);
+		DomSerializer domSerializer = null;
+//		domSerializer.serialize(pval, parentElement);
 	}
 
 	public List<Element> serializeItemToDom(Item<?> item) throws SchemaException {
@@ -1156,9 +1167,9 @@ public class PrismDomProcessor {
     }
 
     public void serializeItemToDom(Item<?> item, Element parentElement, boolean serializeCompositeObjects) throws SchemaException {
-		DomSerializer domSerializer = new DomSerializer(getPrismContext());
-        domSerializer.setSerializeCompositeObjects(serializeCompositeObjects);
-		domSerializer.serialize(item, parentElement);
+//		DomSerializer domSerializer = new DomSerializer(getPrismContext());
+//        domSerializer.setSerializeCompositeObjects(serializeCompositeObjects);
+//		domSerializer.serialize(item, parentElement);
 	}
 
 	/**

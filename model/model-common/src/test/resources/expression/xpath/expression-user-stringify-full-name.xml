@@ -21,6 +21,7 @@
 		xmlns:basic="http://midpoint.evolveum.com/xml/ns/public/function/basic-2">
 	<language>http://www.w3.org/TR/xpath/</language>
 	<code>
-		basic:stringify($c:user/c:fullName)
+        declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+        basic:stringify($c:user/c:fullName)
 	</code>
 </script>

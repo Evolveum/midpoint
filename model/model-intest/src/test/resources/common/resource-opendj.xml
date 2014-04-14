@@ -48,7 +48,7 @@
 			<icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
 			<icfcldap:principal>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:principal>
 			<icfcldap:credentials>
-				<c:clearValue>secret</c:clearValue>
+				<t:clearValue>secret</t:clearValue>
 			</icfcldap:credentials>
 			<icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
 			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
@@ -249,7 +249,7 @@
 						<script>
 							<language>http://www.w3.org/TR/xpath/</language>
 							<code>
-								$c:givenName/t:orig
+								$givenName
 							</code>
 						</script>
 					</expression>
@@ -314,7 +314,7 @@
 					<expression>
 						<variable xmlns:my="http://myself.me/schemas/whatever">
 							<name>my:defaultLocation</name>
-							<value xsi:type="xsd:string">middle of nowhere</value>
+							<value>middle of nowhere</value>
 						</variable>
 						<script>
 							<language>http://www.w3.org/TR/xpath/</language>
@@ -380,6 +380,8 @@
 							<script>
 								<language>http://www.w3.org/TR/xpath/</language>
 								<code>
+                                    declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+                                    declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2";
 									$c:account/c:attributes/ri:employeeNumber
 								</code>
 							</script>

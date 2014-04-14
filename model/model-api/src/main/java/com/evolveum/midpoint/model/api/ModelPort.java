@@ -25,16 +25,10 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 public interface ModelPort {
 
 	String CLASS_NAME_WITH_DOT = ModelPortType.class.getName() + ".";
-	String ADD_OBJECT = CLASS_NAME_WITH_DOT + "addObject";
 	String GET_OBJECT = CLASS_NAME_WITH_DOT + "getObject";
-	String LIST_OBJECTS = CLASS_NAME_WITH_DOT + "listObjects";
 	String SEARCH_OBJECTS = CLASS_NAME_WITH_DOT + "searchObjects";
-	String MODIFY_OBJECT = CLASS_NAME_WITH_DOT + "modifyObject";
-	String DELETE_OBJECT = CLASS_NAME_WITH_DOT + "deleteObject";
-	String GET_PROPERTY_AVAILABLE_VALUES = CLASS_NAME_WITH_DOT + "getPropertyAvailableValues";
+	String EXECUTE_CHANGES = CLASS_NAME_WITH_DOT + "executeChanges";
 	String LIST_ACCOUNT_SHADOW_OWNER = CLASS_NAME_WITH_DOT + "listAccountShadowOwner";
-	String LIST_RESOURCE_OBJECT_SHADOWS = CLASS_NAME_WITH_DOT + "listResourceObjectShadows";
-	String LIST_RESOURCE_OBJECTS = CLASS_NAME_WITH_DOT + "listResourceObjects";
 	String TEST_RESOURCE = CLASS_NAME_WITH_DOT + "testResource";
 	String IMPORT_FROM_RESOURCE = CLASS_NAME_WITH_DOT + "importFromResource";
 	String NOTIFY_CHANGE = CLASS_NAME_WITH_DOT + "notifyChange";

@@ -28,29 +28,33 @@
     	<t:norm>barbossa</t:norm>
     </name>
     
-    <linkRef oid="c0c010c0-d34d-b33f-f00d-222211111112" type="AccountShadowType"/>
-
-    <assignment>
-		<construction>
-			<resourceRef oid="10000000-0000-0000-0000-000000000003"/>
-			<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
-			<attribute>
-				<ref>ri:l</ref>
-				<value>Shipwreck cove</value>
-			</attribute>
-		</construction>
-	</assignment>
-    
     <extension>
 		<foo:bar xsi:type="xsd:string">BAR</foo:bar>
 		<foo:num xsi:type="xsd:int">42</foo:num>
 		<foo:multi xsi:type="xsd:string">raz</foo:multi>
 		<foo:multi xsi:type="xsd:string">dva</foo:multi>
 		<foo:multi xsi:type="xsd:string">tri</foo:multi>
-		<foo:password xsi:type="ProtectedStringType">
-			<clearValue>openS3zam3</clearValue>
+		<foo:password xsi:type="t:ProtectedStringType">
+			<t:clearValue>openS3zam3</t:clearValue>
 		</foo:password>
 	</extension>
+    
+    <linkRef oid="c0c010c0-d34d-b33f-f00d-222211111112" type="ShadowType"/>
+
+    <assignment>
+		<construction>
+			<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+			<attribute>
+				<ref>ri:l</ref>
+                <c:outbound>
+                    <c:expression>
+                        <c:value>Shipwreck cove</c:value>
+                    </c:expression>
+                </c:outbound>
+			</attribute>
+		</construction>
+	</assignment>
+    
     <fullName>
         <t:orig>Hector Barbossa</t:orig>
         <t:norm>hector barbossa</t:norm>
@@ -67,7 +71,7 @@
     <credentials>
         <password>
         	<value>
-	            <clearValue>deadjacktellnotales</clearValue>
+	            <t:clearValue>deadjacktellnotales</t:clearValue>
             </value>
         </password>
     </credentials>

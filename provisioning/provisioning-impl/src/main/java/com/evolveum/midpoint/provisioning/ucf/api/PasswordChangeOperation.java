@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 
 /**
  * @author Radovan Semancik
@@ -74,7 +74,7 @@ public class PasswordChangeOperation extends Operation {
 					sb.append(" and empty");
 				}
 			}
-			if (passwd.getEncryptedData()!=null) {
+			if (passwd.getEncryptedDataType() != null) {
 				sb.append(" encrypted");
 			}
 		} else {

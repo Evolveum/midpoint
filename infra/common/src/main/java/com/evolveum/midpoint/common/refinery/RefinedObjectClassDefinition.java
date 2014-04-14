@@ -39,6 +39,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 
 import javax.xml.namespace.QName;
 
@@ -388,16 +389,27 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 		}
 	}
 	
-	private static ResourceObjectPattern convertToPattern(ResourceObjectPatternType protectedType, RefinedObjectClassDefinition rAccountDef) throws SchemaException {
+	private static ResourceObjectPattern convertToPattern(ResourceObjectPatternType patternType, RefinedObjectClassDefinition rAccountDef) throws SchemaException {
 		ResourceObjectPattern resourceObjectPattern = new ResourceObjectPattern(rAccountDef);
-		Collection<? extends Item<?>> items = rAccountDef.getPrismContext().getPrismDomProcessor().parseContainerItems(
-				rAccountDef.toResourceAttributeContainerDefinition(), protectedType.getAny());
-		for(Item<?> item: items) {
-			if (item instanceof ResourceAttribute<?>) {
-				resourceObjectPattern.addIdentifier((ResourceAttribute<?>)item);
-			} else {
-				throw new SchemaException("Unexpected item in pattern for "+rAccountDef+": "+item);
-			}
+		SearchFilterType filterType = patternType.getFilter();
+		if (filterType != null) {
+			resourceObjectPattern.addFilter(filterType);
+			return resourceObjectPattern;
+		}
+		
+		// Deprecated
+		if (patternType.getName() != null) {
+			RefinedAttributeDefinition attributeDefinition = rAccountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA,"name"));
+			ResourceAttribute<String> attr = attributeDefinition.instantiate();
+			attr.setRealValue(patternType.getName());
+			resourceObjectPattern.addIdentifier(attr);
+		} else if (patternType.getUid() != null) {
+			RefinedAttributeDefinition attributeDefinition = rAccountDef.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA,"uid"));
+			ResourceAttribute<String> attr = attributeDefinition.instantiate();
+			attr.setRealValue(patternType.getName());
+			resourceObjectPattern.addIdentifier(attr);			
+		} else {
+			throw new SchemaException("No filter and no deprecated name/uid in resource object pattern");
 		}
 		return resourceObjectPattern;
 	}

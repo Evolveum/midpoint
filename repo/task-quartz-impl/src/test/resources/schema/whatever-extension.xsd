@@ -40,4 +40,23 @@
 	
 	<xsd:element name="dead" type="xsd:int"/>
 
+    <!-- used for some handlers tests -->
+    <xsd:element name="l1Flag" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:indexed>false</a:indexed>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+    <xsd:element name="wfsFlag" type="xsd:boolean">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:indexed>false</a:indexed>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 </xsd:schema>

@@ -16,7 +16,11 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.ROperationalState;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -36,6 +40,7 @@ import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -146,6 +151,8 @@ public class RResource extends RObject<ResourceType> {
         if (jaxb.getConnector() != null) {
             LOGGER.warn("Connector from resource type won't be saved. It should be translated to connector reference.");
         }
+        PrismObject<ResourceType> resource = jaxb.asPrismObject();
+        PrismContainerDefinition parentDefinition = resource.getDefinition();
 
         try {
             if (jaxb.getBusiness() != null) {

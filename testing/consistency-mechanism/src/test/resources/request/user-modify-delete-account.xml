@@ -15,18 +15,18 @@
   ~ limitations under the License.
   -->
 
-<objectModification
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
+<objectDelta
 		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
-		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+		xmlns="http://prism.evolveum.com/xml/ns/public/types-2"
 		xmlns:my="http://whatever.com/my"
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+		<changeType>modify</changeType>
+		<objectType>c:UserType</objectType>
 	<oid>c0c010c0-d34d-b33f-f00d-111111111222</oid>
-	<modification>
-		<t:modificationType>delete</t:modificationType>
-		<t:value>
-			<c:linkRef oid="a0c010c0-d34d-b33f-f00d-111111111222" type="c:AccountShadowType"/>
-		</t:value>
-	</modification>
-</objectModification>
+	<itemDelta>
+		<modificationType>delete</modificationType>
+		<path>linkRef</path>
+		<value oid="a0c010c0-d34d-b33f-f00d-111111111222" type="c:ShadowType"/>
+	</itemDelta>
+</objectDelta>

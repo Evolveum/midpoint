@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -52,6 +53,10 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 	}
 	
 
+	public static <T> SubstringFilter createSubstring(ItemPath path, PrismProperty<T> item, QName matchingRule) {
+		return createSubstring(path, item.getDefinition(), matchingRule, item.getValue());
+	}
+	
 	public static <T> SubstringFilter createSubstring(QName path, PrismPropertyDefinition itemDefinition, PrismPropertyValue<T> values) {
 		return createSubstring(new ItemPath(path), itemDefinition, null, values);
 	}
@@ -199,6 +204,12 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 	@Override
 	public ItemPath getPath() {
 		return getFullPath();
+	}
+	
+	@Override
+	public PrismPropertyDefinition getDefinition() {
+		// TODO Auto-generated method stub
+		return (PrismPropertyDefinition) super.getDefinition();
 	}
 
 }

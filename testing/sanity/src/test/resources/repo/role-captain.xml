@@ -45,9 +45,7 @@
                 <ref>ri:carLicense</ref>
                 <outbound>
                 	<expression>
-						<value>
-						  <ri:carLicense>C4PT41N</ri:carLicense>
-						</value>
+						<value>C4PT41N</value>
 					</expression>
 				</outbound>
             </attribute> 		
@@ -55,9 +53,7 @@
                 <ref>ri:businessCategory</ref>
                 <outbound>
                 	<expression>
-						<value>
-							<ri:businessCategory>cruise</ri:businessCategory>
-						</value>
+						<value>cruise</value>
 					</expression>
 				</outbound>
             </attribute>    		
@@ -65,7 +61,7 @@
                 <ref>ri:departmentNumber</ref>
                 <outbound>
                 	<source>
-                		<path>$user/givenName</path>
+                		<path>declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-2a";$user/givenName</path>
                 	</source>
                 	<expression>
 						<script>
@@ -78,7 +74,7 @@
                 <ref>ri:destinationIndicator</ref>
                 <outbound>
                 	<source>
-						<path>fullName</path>
+						<path>declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-2a";fullName</path>
 					</source>
 				</outbound>
             </attribute>
@@ -86,7 +82,10 @@
                 <ref>ri:physicalDeliveryOfficeName</ref>
                 <outbound>
                 	<source>
-                		<path xmlns:my="http://whatever.com/my">$c:assignment/c:extension/my:shipName</path>
+                		<path xmlns:my="http://whatever.com/my">
+                		declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+                		declare namespace my="http://whatever.com/my";
+                		$c:assignment/c:extension/my:shipName</path>
                 	</source>
                 </outbound>
             </attribute>

@@ -26,12 +26,14 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.EntityResolver;
 
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -184,6 +186,10 @@ public class PrismSchema implements DebugDumpable {
 		return findContainerDefinitionByType(typeName,PrismObjectDefinition.class);
 	}
 	
+	public <X extends Objectable> PrismObjectDefinition<X> findObjectDefinitionByTypeAssumeNs(QName typeName) {
+		return findContainerDefinitionByTypeAssumeNs(typeName,PrismObjectDefinition.class);
+	}
+	
 	public <X extends Objectable> PrismObjectDefinition<X> findObjectDefinitionByElementName(QName elementName) {
 		return findContainerDefinitionByElementName(elementName, PrismObjectDefinition.class);
 	}
@@ -218,7 +224,21 @@ public class PrismSchema implements DebugDumpable {
 		return null;
 	}
 	
-	public PrismContainerDefinition findContainerDefinitionByElementName(QName elementName) {
+	private <T extends PrismContainerDefinition> T findContainerDefinitionByTypeAssumeNs(QName typeName, Class<T> type) {
+		if (typeName == null) {
+			throw new IllegalArgumentException("typeName must be supplied");
+		}
+		// TODO: check for multiple definition with the same type
+		for (Definition definition : definitions) {
+			if (type.isAssignableFrom(definition.getClass())
+					&& QNameUtil.match(typeName,definition.getTypeName())) {
+				return (T) definition;
+			}
+		}
+		return null;
+	}
+	
+	public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinitionByElementName(QName elementName) {
 		return findContainerDefinitionByElementName(elementName, PrismContainerDefinition.class);
 	}
 
@@ -231,6 +251,18 @@ public class PrismSchema implements DebugDumpable {
 			if (type.isAssignableFrom(definition.getClass())
 					&& elementName.equals(((PrismContainerDefinition)definition).getName())) {
 				return (T) definition;
+			}
+		}
+		return null;
+	}
+	
+	public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinitionByCompileTimeClass(Class<C> type) {
+		for (Definition def: getDefinitions()) {
+			if (def instanceof PrismContainerDefinition<?>) {
+				PrismContainerDefinition<C> contDef = (PrismContainerDefinition<C>)def;
+				if (type.equals(contDef.getCompileTimeClass())) {
+					return contDef;
+				}
 			}
 		}
 		return null;

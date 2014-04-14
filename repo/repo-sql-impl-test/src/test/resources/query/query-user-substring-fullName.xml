@@ -18,7 +18,7 @@
 
 <query xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 	xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
-
+<filter>
 	<!-- <or xmlns="http://prism.evolveum.com/xml/ns/public/query-2"> -->
 	<substring>
         <matching>normIgnoreCase</matching>
@@ -26,4 +26,5 @@
 		<value>cpt jack sparrow</value>
 	</substring>
 	<!-- </or> -->
+	</filter>
 </query>

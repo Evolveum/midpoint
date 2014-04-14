@@ -20,22 +20,21 @@
         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
     <oid>00000000-d34d-b33f-f00d-100000000001</oid>
-    <modification>
+    <itemDelta>
         <t:modificationType>add</t:modificationType>
+        <t:path xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'>c:inducement</t:path>
         <t:value>
-            <c:inducement>
-                <c:construction>
-                    <c:resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee" type="c:ResourceType"/>
-                    <c:kind>account</c:kind>
-                </c:construction>
-            </c:inducement>
-            <c:inducement>
-                <c:construction>
-                    <c:resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe" type="c:ResourceType"/>
-                    <c:kind>account</c:kind>
-                </c:construction>
-            </c:inducement>
+            <c:construction>
+                <c:resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee" type="c:ResourceType"/>
+                <c:kind>account</c:kind>
+            </c:construction>
         </t:value>
-    </modification>
+        <t:value>
+            <c:construction>
+                <c:resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe" type="c:ResourceType"/>
+                <c:kind>account</c:kind>
+            </c:construction>
+        </t:value>
+    </itemDelta>
 </objectModification>
 

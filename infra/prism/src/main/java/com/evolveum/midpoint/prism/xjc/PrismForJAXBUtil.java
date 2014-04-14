@@ -17,10 +17,18 @@
 package com.evolveum.midpoint.prism.xjc;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.parser.DomParser;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-
 import com.evolveum.midpoint.util.exception.SystemException;
+
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
@@ -31,6 +39,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map.Entry;
 
 /**
  * @author lazyman
@@ -406,5 +415,54 @@ public final class PrismForJAXBUtil {
 			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
 		}
 	}
+	
+	public static void setReferenceFilterElement(PrismReferenceValue rval, Element filterElement) {
+		DomParser parser = getDomParser(rval);
+		try {
+			if (filterElement == null || DOMUtil.isEmpty(filterElement)){
+				return;
+			}
+			MapXNode filterXNode = parser.parseElementAsMap(filterElement);
+			SearchFilterType filter = new SearchFilterType();
+            filter.parseFromXNode(filterXNode);
+			rval.setFilter(filter);
+		} catch (SchemaException e) {
+			throw new SystemException("Error parsing filter: "+e.getMessage(),e);
+		}
+	}
 
+	public static Element getReferenceFilterElement(PrismReferenceValue rval) {
+		SearchFilterType filter = rval.getFilter();
+		if (filter == null) {
+			return null;
+		}
+		Element filterElement;
+		PrismContext prismContext = rval.getPrismContext();
+		// We have to work even if prismContext is null. This is needed for
+		// equals and hashcode and similar methods.
+		DomParser parser = getDomParser(rval);
+		try {
+			MapXNode filterXmap = filter.serializeToXNode(prismContext);
+			if (filterXmap.size() != 1) {
+				// This is supposed to be a map with just a single entry. This is an internal error
+				throw new IllegalArgumentException("Unexpected map in filter processing, it has "+filterXmap.size()+" entries");
+			}
+			Entry<QName, XNode> entry = filterXmap.entrySet().iterator().next();
+			filterElement = parser.serializeXMapToElement((MapXNode) entry.getValue(), entry.getKey());
+		} catch (SchemaException e) {
+			throw new SystemException("Error serializing filter: "+e.getMessage(),e);
+		}
+		return filterElement;
+	}
+
+	private static DomParser getDomParser(PrismValue pval) {
+		PrismContext prismContext = pval.getPrismContext();
+		if (prismContext != null) {
+			return prismContext.getParserDom();
+		} else {
+			DomParser parser = new DomParser(null);
+			return parser;
+		}
+	}
+	
 }

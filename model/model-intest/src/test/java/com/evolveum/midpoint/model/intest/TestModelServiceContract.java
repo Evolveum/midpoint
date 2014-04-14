@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -244,9 +246,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		resource.checkConsistence(true, true);
 		
 		// Try to marshal using pure JAXB as a rough test that it is OK JAXB-wise
-		Element resourceDomElement = prismContext.getPrismJaxbProcessor().marshalObjectToDom(resource.asObjectable(), new QName(SchemaConstants.NS_C, "resource"),
-				DOMUtil.getDocument());
-		display("Resouce DOM element after JAXB marshall", resourceDomElement);
+        // skipped because of parsing changes [pm]
+//		Element resourceDomElement = prismContext.getPrismJaxbProcessor().marshalJaxbObjectToDom(resource.asObjectable(), new QName(SchemaConstants.NS_C, "resource"),
+//				DOMUtil.getDocument());
+//		display("Resouce DOM element after JAXB marshall", resourceDomElement);
 	}
 		
 	@Test
@@ -2358,10 +2361,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         property.add(new PrismPropertyValue<String>("q"));
 
         List evaluators = expression.getExpressionEvaluator();
-        Collection<?> collection = StaticExpressionUtil.serializeValueElements(property, null);
+        Collection<JAXBElement<RawType>> collection = StaticExpressionUtil.serializeValueElements(property, null);
         ObjectFactory of = new ObjectFactory();
-        for (Object obj : collection) {
-            evaluators.add(of.createValue(obj));
+        for (JAXBElement<RawType> obj : collection) {
+            evaluators.add(of.createValue(obj.getValue()));
         }
 
         value.setExpression(expression);

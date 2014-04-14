@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -36,12 +37,16 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_2.EncryptedDataType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
+
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.w3._2001._04.xmlenc.EncryptedDataType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -52,6 +57,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.GregorianCalendar;
@@ -166,7 +172,7 @@ public class TestJaxbParsing {
         PrismAsserts.assertEquals("Wrong number of approver expressions", 1, role.asObjectable().getApproverExpression().size());
         Object o = role.asObjectable().getApproverExpression().get(0).getExpressionEvaluator().get(0).getValue();
         PrismAsserts.assertEquals("Invalid evaluator type", ScriptExpressionEvaluatorType.class, o.getClass());
-        String code = ((ScriptExpressionEvaluatorType) o).getCode().getTextContent();
+        String code = ((ScriptExpressionEvaluatorType) o).getCode();
         PrismAsserts.assertEquals("Incorrect code parsed", "midpoint.oid2ort(user.getOid())", code);
     }
 
@@ -207,23 +213,24 @@ public class TestJaxbParsing {
         delta.setChangeType(ChangeTypeType.MODIFY);
 
         ItemDeltaType item1 = new ItemDeltaType();
-        delta.getModification().add(item1);
+        delta.getItemDelta().add(item1);
         item1.setModificationType(ModificationTypeType.REPLACE);
         Document document = DOMUtil.getDocument();
-        Element path = document.createElementNS(SchemaConstantsGenerated.NS_TYPES, "path");
-        path.setTextContent("c:credentials/c:password");
-        item1.setPath(path);
+//        Element path = document.createElementNS(SchemaConstantsGenerated.NS_TYPES, "path");
+//        path.setTextContent("c:credentials/c:password");
+        ItemPath path = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD);
+        item1.setPath(new ItemPathType(path));
         ProtectedStringType protectedString = new ProtectedStringType();
         protectedString.setEncryptedData(new EncryptedDataType());
-        ItemDeltaType.Value value = new ItemDeltaType.Value();
-        value.getAny().add(new JAXBElement(new QName(SchemaConstants.NS_C, "protectedString"), ProtectedStringType.class, protectedString));
-        item1.setValue(value);
+        RawType value = new RawType();
+        value.getContent().add(new JAXBElement(new QName(SchemaConstants.NS_C, "protectedString"), ProtectedStringType.class, protectedString));
+        item1.getValue().add(value);
 
         //fix marshalling somehow, or change the way how to create XML from ObjectDeltaType
         PrismContext prismContext = PrismTestUtil.getPrismContext();
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.put(Marshaller.JAXB_FORMATTED_OUTPUT, false);
-        String xml = prismContext.getPrismJaxbProcessor().marshalElementToString(
+        String xml = PrismTestUtil.getJaxbUtil().marshalElementToString(
                 new JAXBElement<Object>(new QName("http://www.example.com", "custom"), Object.class, delta), properties);
         assertNotNull(xml);
     }

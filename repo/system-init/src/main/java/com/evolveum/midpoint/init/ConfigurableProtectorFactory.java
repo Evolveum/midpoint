@@ -17,11 +17,12 @@
 package com.evolveum.midpoint.init;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.common.crypto.AESProtector;
-import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.prism.crypto.AESProtector;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.apache.commons.configuration.Configuration;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -63,7 +64,7 @@ public class ConfigurableProtectorFactory {
         protector.setEncryptionKeyAlias(protectorConfig.getEncryptionKeyAlias());
         protector.setKeyStorePassword(protectorConfig.getKeyStorePassword());
         protector.setKeyStorePath(protectorConfig.getKeyStorePath());
-        protector.setXmlCipher(protectorConfig.getXmlCipher());
+        protector.setEncryptionAlgorithm(protectorConfig.getXmlCipher());
         protector.init();
 
         return protector;

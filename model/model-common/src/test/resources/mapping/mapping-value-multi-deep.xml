@@ -17,9 +17,12 @@
 
 <mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
 	<expression>
-		<value>
-			<employeeType>12345</employeeType>
-			<employeeType>67890</employeeType>
-		</value>
+		<ref>employeeType</ref>
+		<value>12345</value>
+		<value>67890</value>
+<!-- 		<value> -->
+<!-- 			<employeeType>12345</employeeType> -->
+<!-- 			<employeeType>67890</employeeType> -->
+<!-- 		</value> -->
 	</expression>
 </mapping>

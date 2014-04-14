@@ -59,8 +59,8 @@ public class SearchTest extends BaseSQLRepoTest {
 
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 
-        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
-        List<PrismObject<? extends Objectable>> objects = domProcessor.parseObjects(
+//        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+        List<PrismObject<? extends Objectable>> objects = prismContext.parseObjects(
                 new File(FOLDER_BASIC, "objects.xml"));
         OperationResult result = new OperationResult("add objects");
         for (PrismObject object : objects) {

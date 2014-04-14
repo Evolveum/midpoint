@@ -34,7 +34,6 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.model.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
@@ -51,6 +50,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
@@ -104,12 +104,11 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		
 		Bindings bindings = convertToBindings(variables, objectResolver, functions, contextDescription, result);
 		
-		Element codeElement = expressionType.getCode();
-		if (codeElement == null) {
+		String codeString = expressionType.getCode();
+		if (codeString == null) {
 			throw new ExpressionEvaluationException("No script code in " + contextDescription);
 		}
-		String codeString = codeElement.getTextContent();
-		
+
 		boolean allowEmptyValues = false;
 		if (expressionType.isAllowEmptyValues() != null) {
 			allowEmptyValues = expressionType.isAllowEmptyValues();
@@ -134,7 +133,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		
 		Class<T> javaReturnType = XsdTypeMapper.toJavaType(xsdReturnType);
 		if (javaReturnType == null) {
-			javaReturnType = prismContext.getPrismJaxbProcessor().getCompileTimeClass(xsdReturnType);
+			javaReturnType = prismContext.getSchemaRegistry().getCompileTimeClass(xsdReturnType);
 		}
         
 		List<PrismPropertyValue<T>> pvals = new ArrayList<PrismPropertyValue<T>>();

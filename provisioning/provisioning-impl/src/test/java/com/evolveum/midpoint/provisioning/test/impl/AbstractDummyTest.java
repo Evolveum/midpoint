@@ -31,6 +31,7 @@ import java.util.Set;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.AssertJUnit;
 import org.w3c.dom.Element;
@@ -472,7 +473,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceType);
 		assertNotNull("No schema XSD element in "+desc, resourceXsdSchemaElementAfter);
 
-		String resourceXml = prismContext.getPrismDomProcessor().serializeObjectToString(resource);
+		String resourceXml = prismContext.serializeObjectToString(resource, PrismContext.LANG_XML);
 //		display("Resource XML", resourceXml);                            
 
 		CachingMetadataType cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();

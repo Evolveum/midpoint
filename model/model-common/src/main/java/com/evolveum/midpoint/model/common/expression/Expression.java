@@ -34,9 +34,9 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -51,6 +51,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionVariableDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
 
 /**
  * @author semancik
@@ -82,34 +83,12 @@ public class Expression<V extends PrismValue> {
 			evaluators.add(createDefaultEvaluator(factory, contextDescription, result));
 			return;
 		}
-		if (expressionType.getExpressionEvaluator() != null && expressionType.getSequence() != null) {
-			throw new SchemaException("Both single evaluator and sequence was specified, ambiguous situation in "+contextDescription);
-		}
-		if (expressionType.getExpressionEvaluator() == null && expressionType.getSequence() == null) {
+		if (expressionType.getExpressionEvaluator() == null /* && expressionType.getSequence() == null */) {
 			throw new SchemaException("No evaluator was specified in "+contextDescription);
 		}
 		if (expressionType.getExpressionEvaluator() != null) {
 			ExpressionEvaluator evaluator = createEvaluator(expressionType.getExpressionEvaluator(), factory, 
 					contextDescription, result);
-			evaluators.add(evaluator);
-		} else if (expressionType.getSequence() != null) {
-			if (expressionType.getSequence().getExpressionEvaluator().isEmpty()) {
-				throw new SchemaException("Empty sequence in "+contextDescription);
-			}
-			QName lastElementName = null;
-			Collection<JAXBElement<?>> elements = new ArrayList<JAXBElement<?>>();
-			for (JAXBElement<?> expresionEvaluatorElement : expressionType.getSequence().getExpressionEvaluator()) {
-				if (lastElementName == null || lastElementName.equals(JAXBUtil.getElementQName(expresionEvaluatorElement))) {
-					elements.add(expresionEvaluatorElement);
-				} else {
-					ExpressionEvaluator evaluator = createEvaluator(elements, factory, contextDescription, result);
-					evaluators.add(evaluator);
-					elements = new ArrayList<JAXBElement<?>>();
-					elements.add(expresionEvaluatorElement);
-				}
-				lastElementName = JAXBUtil.getElementQName(expresionEvaluatorElement);
-			}
-			ExpressionEvaluator evaluator = createEvaluator(elements, factory, contextDescription, result);
 			evaluators.add(evaluator);
 		}
 		if (evaluators.isEmpty()) {
@@ -262,12 +241,13 @@ public class Expression<V extends PrismValue> {
 					newVariables.addVariableDefinition(varName, valueObject);
 				} else if (valueObject instanceof Element) {
 					newVariables.addVariableDefinition(varName, ((Element)valueObject).getTextContent());
+				} else if (valueObject instanceof RawType) {
+					newVariables.addVariableDefinition(varName, ((RawType) valueObject).getParsedValue(null, varName));
 				} else {
 					throw new SchemaException("Unexpected type "+valueObject.getClass()+" in variable definition "+varName+" in "+contextDescription);
 				}
 			} else if (variableDefType.getPath() != null) {
-				XPathHolder xPathHolder = new XPathHolder(variableDefType.getPath());
-				ItemPath itemPath = xPathHolder.toItemPath();
+				ItemPath itemPath = variableDefType.getPath().getItemPath();
 				Object resolvedValue = ExpressionUtil.resolvePath(itemPath, variables, null, objectResolver, contextDescription, result);
 				newVariables.addVariableDefinition(varName, resolvedValue);
 			} else {

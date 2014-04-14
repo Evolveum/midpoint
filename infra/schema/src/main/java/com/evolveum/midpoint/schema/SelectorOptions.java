@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * @author semancik
@@ -135,6 +136,10 @@ public class SelectorOptions<T> implements Serializable {
 
     public static boolean hasToLoadPath(ItemPath path, Collection<SelectorOptions<GetOperationOptions>> options) {
         List<SelectorOptions<GetOperationOptions>> retrieveOptions = filterRetrieveOptions(options);
+        if (retrieveOptions.isEmpty() && new ItemPath(UserType.F_JPEG_PHOTO).equals(path)) {
+            return false;
+        }
+
         if (retrieveOptions.isEmpty()) {
             return true;
         }
@@ -147,6 +152,18 @@ public class SelectorOptions<T> implements Serializable {
             }
 
             RetrieveOption retrieveOption = option.getOptions().getRetrieve();
+            if (new ItemPath(UserType.F_JPEG_PHOTO).equals(path)) {
+                //user photo is not retrieved by default
+                switch (retrieveOption) {
+                    case INCLUDE:
+                        return true;
+                    case EXCLUDE:
+                    case DEFAULT:
+                    default:
+                        return false;
+                }
+            }
+
             switch (retrieveOption) {
                 case EXCLUDE:
                 case DEFAULT:
@@ -193,8 +210,7 @@ public class SelectorOptions<T> implements Serializable {
 
     public static List<SelectorOptions<GetOperationOptions>> filterRetrieveOptions(
             Collection<SelectorOptions<GetOperationOptions>> options) {
-        List<SelectorOptions<GetOperationOptions>> retrieveOptions =
-                new ArrayList<SelectorOptions<GetOperationOptions>>();
+        List<SelectorOptions<GetOperationOptions>> retrieveOptions = new ArrayList<>();
         if (options == null) {
             return retrieveOptions;
         }

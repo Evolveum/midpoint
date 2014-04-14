@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -172,7 +173,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         LOGGER.trace("Transforming data to JAXB type.");
-        PrismObject<T> prismObject = updateLoadedObject(fullObject, type, session);
+        PrismObject<T> prismObject = updateLoadedObject(fullObject, type, options, session);
         validateObjectType(prismObject, type);
 
         return prismObject;
@@ -311,7 +312,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
 
             GetObjectResult focus = focuses.get(0);
-            owner = updateLoadedObject(focus, (Class<F>) FocusType.class, session);
+            owner = updateLoadedObject(focus, (Class<F>) FocusType.class, null, session);
 
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
@@ -375,7 +376,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
 
             GetObjectResult user = users.get(0);
-            userType = updateLoadedObject(user, UserType.class, session);
+            userType = updateLoadedObject(user, UserType.class, null, session);
 
             session.getTransaction().commit();
         } catch (SchemaException | RuntimeException ex) {
@@ -450,7 +451,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         try {
             ObjectType objectType = object.asObjectable();
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Object\n{}", new Object[]{getPrismContext().silentMarshalObject(objectType, LOGGER)});
+                LOGGER.trace("Object\n{}", new Object[]{object.debugDump()});
             }
 
             LOGGER.trace("Translating JAXB to data type.");
@@ -558,8 +559,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             savedObject.removeProperty(UserType.F_JPEG_PHOTO);
         }
 
-        PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
-        String xml = domProcessor.serializeObjectToString(savedObject);
+        //PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
+		String xml = getPrismContext().serializeObjectToString(savedObject, PrismContext.LANG_XML);
         byte[] fullObject = RUtil.getByteArrayFromXml(xml, getConfiguration().isUseZip());
 
         if (LOGGER.isTraceEnabled()) LOGGER.trace("Storing full object\n{}", xml);
@@ -984,7 +985,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             LOGGER.trace("Found {} objects, translating to JAXB.", new Object[]{(objects != null ? objects.size() : 0)});
 
             for (GetObjectResult object : objects) {
-                PrismObject<T> prismObject = updateLoadedObject(object, type, session);
+                PrismObject<T> prismObject = updateLoadedObject(object, type, options, session);
                 list.add(prismObject);
             }
 
@@ -1002,21 +1003,24 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
      * This method provides object parsing from String and validation.
      */
     private <T extends ObjectType> PrismObject<T> updateLoadedObject(GetObjectResult result, Class<T> type,
+                                                                     Collection<SelectorOptions<GetOperationOptions>> options,
                                                                      Session session) throws SchemaException {
 
-        PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
+//        PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
         String xml = RUtil.getXmlFromByteArray(result.getFullObject(), getConfiguration().isUseZip());
-        PrismObject<T> prismObject = domProcessor.parseObject(xml);
+        PrismObject<T> prismObject = getPrismContext().parseObject(xml);
 
         if (UserType.class.equals(prismObject.getCompileTimeClass())) {
-            //todo improve, use user.hasPhoto flag and take options into account [lazyman]
-            //call this only when options contains INCLUDE user/jpegPhoto
-            Query query = session.getNamedQuery("get.userPhoto");
-            query.setString("oid", prismObject.getOid());
-            byte[] photo = (byte[]) query.uniqueResult();
-            if (photo != null) {
-                PrismProperty property = prismObject.findOrCreateProperty(UserType.F_JPEG_PHOTO);
-                property.setRealValue(photo);
+            if (SelectorOptions.hasToLoadPath(UserType.F_JPEG_PHOTO, options)) {
+                //todo improve, use user.hasPhoto flag and take options into account [lazyman]
+                //call this only when options contains INCLUDE user/jpegPhoto
+                Query query = session.getNamedQuery("get.userPhoto");
+                query.setString("oid", prismObject.getOid());
+                byte[] photo = (byte[]) query.uniqueResult();
+                if (photo != null) {
+                    PrismProperty property = prismObject.findOrCreateProperty(UserType.F_JPEG_PHOTO);
+                    property.setRealValue(photo);
+                }
             }
         } else if (ShadowType.class.equals(prismObject.getCompileTimeClass())) {
             //we store it because provisioning now sends it to repo, but it should be transient
@@ -1217,7 +1221,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             throws SchemaException, DtoTranslationException {
 
         for (ItemDelta delta : modifications) {
-            if (!delta.getElementName().equals(OrgType.F_PARENT_ORG_REF)) continue;
+            if (!QNameUtil.match(delta.getElementName(), OrgType.F_PARENT_ORG_REF)) continue;
 
             // if modification is one of the modify or delete, delete old
             // record in org closure table and in the next step fill the
@@ -1385,7 +1389,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
             if (shadows != null) {
                 for (GetObjectResult shadow : shadows) {
-                    PrismObject<T> prismObject = updateLoadedObject(shadow, resourceObjectShadowType, session);
+                    PrismObject<T> prismObject = updateLoadedObject(shadow, resourceObjectShadowType, null, session);
                     list.add(prismObject);
                 }
             }
@@ -1694,7 +1698,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 while (iterator.hasNext()) {
                     GetObjectResult object = iterator.next();
 
-                    PrismObject<T> prismObject = updateLoadedObject(object, type, session);
+                    PrismObject<T> prismObject = updateLoadedObject(object, type, options, session);
                     if (!handler.handle(prismObject, result)) {
                         break;
                     }

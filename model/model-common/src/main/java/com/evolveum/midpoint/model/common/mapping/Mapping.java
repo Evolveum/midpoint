@@ -30,6 +30,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
@@ -63,12 +64,12 @@ import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -747,11 +748,11 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 	}
 
 	private XMLGregorianCalendar parseTimeSource(MappingSourceDeclarationType sourceType, OperationResult result) throws SchemaException, ObjectNotFoundException {
-		Element pathElement = sourceType.getPath();
-		if (pathElement == null) {
+		ItemPathType itemPathType = sourceType.getPath();
+		if (itemPathType == null) {
 			throw new SchemaException("No path in source definition in "+getMappingContextDescription());
 		}
-		ItemPath path = new XPathHolder(pathElement).toItemPath();
+		ItemPath path = itemPathType.getItemPath();
 		if (path.isEmpty()) {
 			throw new SchemaException("Empty source path in "+getMappingContextDescription());
 		}
@@ -802,11 +803,11 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 	}
 
 	private <X extends PrismValue> Source<X> parseSource(MappingSourceDeclarationType sourceType, OperationResult result) throws SchemaException, ObjectNotFoundException {
-		Element pathElement = sourceType.getPath();
-		if (pathElement == null) {
+		ItemPathType itemPathType = sourceType.getPath();
+		if (itemPathType == null) {
 			throw new SchemaException("No path in source definition in "+getMappingContextDescription());
 		}
-		ItemPath path = new XPathHolder(pathElement).toItemPath();
+		ItemPath path = itemPathType.getItemPath();
 		if (path.isEmpty()) {
 			throw new SchemaException("Empty source path in "+getMappingContextDescription());
 		}
@@ -845,11 +846,11 @@ public class Mapping<V extends PrismValue> implements DebugDumpable {
 		if (targetType == null) {
 			outputDefinition = defaultTargetDefinition;
 		} else {
-			Element pathElement = targetType.getPath();
-			if (pathElement == null) {
+			ItemPathType itemPathType = targetType.getPath();
+			if (itemPathType == null) {
 				throw new SchemaException("No path in target definition in "+getMappingContextDescription());
 			}
-			ItemPath path = new XPathHolder(pathElement).toItemPath();
+			ItemPath path = itemPathType.getItemPath();
 			outputDefinition = ExpressionUtil.resolveDefinitionPath(path, variables, targetContext, "target definition in "+getMappingContextDescription());
 			if (outputDefinition == null) {
 				throw new SchemaException("No target item that would conform to the path "+path+" in "+getMappingContextDescription());

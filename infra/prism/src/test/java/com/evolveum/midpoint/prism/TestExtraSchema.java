@@ -63,11 +63,12 @@ public class TestExtraSchema {
 	@Test
 	public void testExtraSchema() throws SAXException, IOException, SchemaException {
 		System.out.println("===[ testExtraSchema ]===");
-		Document extraSchemaDoc = DOMUtil.parseFile(new File(EXTRA_SCHEMA_DIR, "root.xsd"));
+		
 		Document dataDoc = DOMUtil.parseFile(new File(COMMON_DIR_PATH, "root-foo.xml"));
 
 		PrismContext context = constructPrismContext();
 		SchemaRegistry reg = context.getSchemaRegistry();
+		Document extraSchemaDoc = DOMUtil.parseFile(new File(EXTRA_SCHEMA_DIR, "root.xsd"));
 		reg.registerSchema(extraSchemaDoc, "file root.xsd");
 		reg.initialize();
 		Schema javaxSchema = reg.getJavaxSchema();
@@ -114,7 +115,7 @@ public class TestExtraSchema {
 	@Test
 	public void testUserExtensionSchemaParseUser() throws SAXException, IOException, SchemaException {
 		System.out.println("===[ testUserExtensionSchemaParseUser ]===");
-		Document dataDoc = DOMUtil.parseFile(USER_JACK_FILE);
+		Document dataDoc = DOMUtil.parseFile(USER_JACK_FILE_XML);
 		
 		PrismContext context = constructPrismContext();
 		SchemaRegistry reg = context.getSchemaRegistry();
@@ -138,35 +139,6 @@ public class TestExtraSchema {
 		validator.validate(new DOMSource(dataDoc),validationResult);
 //		System.out.println("Validation result:");
 //		System.out.println(DOMUtil.serializeDOMToString(validationResult.getNode()));
-		
-	}
-	
-	@Test
-	public void testUserExtensionSchemaAsObjectSchema() throws SAXException, IOException, SchemaException {
-		System.out.println("===[ testUserExtensionSchemaAsObjectSchema ]===");
-
-		PrismContext context = constructPrismContext();
-		SchemaRegistry reg = context.getSchemaRegistry();
-		reg.registerPrismSchemasFromDirectory(EXTRA_SCHEMA_DIR);
-		context.initialize();
-
-		// Try to fetch object schema, the extension of UserType should be there
-		PrismSchema schema = reg.getObjectSchema();
-		System.out.println("Object schema:");
-		System.out.println(schema.debugDump());
-		
-		PrismObjectDefinition<UserType> userDef = schema.findObjectDefinitionByType(USER_TYPE_QNAME);
-		
-		System.out.println("User definition:");
-		System.out.println(userDef.debugDump());
-		
-		assertUserDefinition(userDef);
-		
-		PrismObjectDefinition<UserType> usedDefByClass = schema.findObjectDefinitionByCompileTimeClass(UserType.class);
-		assertUserDefinition(usedDefByClass);
-		
-		PrismObjectDefinition<UserType> userDefByElement = schema.findObjectDefinitionByElementName(USER_QNAME);
-		assertUserDefinition(userDefByElement);
 		
 	}
 

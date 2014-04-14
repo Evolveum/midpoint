@@ -66,6 +66,7 @@ public class MockClockworkHook implements ChangeHook, DebugDumpable {
 	}
 	
 	public void reset() {
+		System.out.println("RESETING");
 		record = false;
 		asynchronous = false;
 		clear();

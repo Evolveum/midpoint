@@ -68,7 +68,7 @@ public class PcpRepoAccessHelper {
         String objectXml = (String) variables.get(PcpProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED);
         PrismObject<? extends ObjectType> object;
         if (objectXml != null) {
-            object = prismContext.getPrismJaxbProcessor().unmarshalObject(objectXml, ObjectType.class).asPrismObject();
+            object = prismContext.parseObject(objectXml, PrismContext.LANG_XML);
         } else {
             String oid = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID);
             if (oid == null) {
@@ -102,7 +102,7 @@ public class PcpRepoAccessHelper {
                 throw new IllegalStateException("There's no delta in process variables");
             }
         }
-        return prismContext.getPrismJaxbProcessor().unmarshalObject(deltaXml.getValue(), ObjectDeltaType.class);
+        return prismContext.parseAtomicValue(deltaXml.getValue(), ObjectDeltaType.COMPLEX_TYPE, PrismContext.LANG_XML);
     }
 
     public PrismObject<? extends ObjectType> getObjectAfter(Map<String, Object> variables, ObjectDeltaType deltaType, PrismObject<? extends ObjectType> objectBefore, PrismContext prismContext, OperationResult result) throws JAXBException, SchemaException {

@@ -22,8 +22,6 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.common.crypto.EncryptionException;
-import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.monitor.CachingStatistics;
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
@@ -37,6 +35,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -93,6 +93,7 @@ import javax.xml.namespace.QName;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -191,23 +192,23 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	abstract public void initSystem(Task initTask, OperationResult initResult) throws Exception;
 
 	protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(String filePath, Class<T> type,
-			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
+			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
 		return repoAddObjectFromFile(new File(filePath), type, parentResult);
 	}
 	
 	protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(File file, Class<T> type,
-			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
+			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
 		return repoAddObjectFromFile(file, type, false, parentResult);
 	}
 	
 	protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(File file, Class<T> type,
-			boolean metadata, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
+			boolean metadata, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
 			
 		OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
 				+ ".addObjectFromFile");
 		result.addParam("file", file);
 		LOGGER.debug("addObjectFromFile: {}", file);
-		PrismObject<T> object = prismContext.getPrismDomProcessor().parseObject(file, type);
+		PrismObject<T> object = prismContext.parseObject(file);
 		
 		if (metadata) {
 			// Add at least the very basic meta-data
@@ -260,7 +261,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 	
 	protected <T extends ObjectType> List<PrismObject<T>> repoAddObjectsFromFile(String filePath, Class<T> type,
-			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException {
+			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, IOException {
 		OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
 				+ ".addObjectsFromFile");
 		result.addParam("file", filePath);
@@ -281,16 +282,16 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return objects;
 	}
 	
-	protected <T extends ObjectType> T parseObjectTypeFromFile(String fileName, Class<T> clazz) throws SchemaException {
+	protected <T extends ObjectType> T parseObjectTypeFromFile(String fileName, Class<T> clazz) throws SchemaException, IOException {
 		return parseObjectType(new File(fileName), clazz);
 	}
 	
-	protected <T extends ObjectType> T parseObjectType(File file) throws SchemaException {
+	protected <T extends ObjectType> T parseObjectType(File file) throws SchemaException, IOException {
 		PrismObject<T> prismObject = prismContext.parseObject(file);
 		return prismObject.asObjectable();
 	}
 	
-	protected <T extends ObjectType> T parseObjectType(File file, Class<T> clazz) throws SchemaException {
+	protected <T extends ObjectType> T parseObjectType(File file, Class<T> clazz) throws SchemaException, IOException {
 		PrismObject<T> prismObject = prismContext.parseObject(file);
 		return prismObject.asObjectable();
 	}
@@ -311,14 +312,14 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected PrismObject<ResourceType> addResourceFromFile(String filePath, String connectorType, OperationResult result)
-			throws FileNotFoundException, JAXBException, SchemaException, ObjectAlreadyExistsException, EncryptionException {
+			throws JAXBException, SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
 		return addResourceFromFile(filePath, connectorType, false, result);
 	}
 	
 	protected PrismObject<ResourceType> addResourceFromFile(String filePath, String connectorType, boolean overwrite, OperationResult result)
-			throws FileNotFoundException, JAXBException, SchemaException, ObjectAlreadyExistsException, EncryptionException {
+			throws JAXBException, SchemaException, ObjectAlreadyExistsException, EncryptionException, IOException {
 		LOGGER.trace("addObjectFromFile: {}, connector type {}", filePath, connectorType);
-		PrismObject<ResourceType> resource = prismContext.getPrismDomProcessor().parseObject(new File(filePath), ResourceType.class);
+		PrismObject<ResourceType> resource = prismContext.parseObject(new File(filePath));
 		fillInConnectorRef(resource, connectorType, result);
 		CryptoUtil.encryptValues(protector, resource);
 		display("Adding resource ", resource);

@@ -168,6 +168,7 @@
 		            		</xsd:appinfo>
 		            	</xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="password" type="t:ProtectedStringType" minOccurs="0"/>
                     <xsd:element name="account" type="tns:AccountType" minOccurs="0" maxOccurs="unbounded">
                     	<xsd:annotation>
                     		<xsd:appinfo>
@@ -218,6 +219,14 @@
                 	<xsd:sequence>
                 		<xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
                 	</xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="object" minOccurs="0" maxOccurs="1">
+                <xsd:complexType>
+                	<xsd:sequence>
+                		<xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+                	</xsd:sequence>
+                	<xsd:anyAttribute namespace="##any" processContents="lax"/>
                 </xsd:complexType>
             </xsd:element>
         </xsd:sequence>
@@ -278,12 +287,13 @@
     		<xsd:documentation>
     			Account construction type is NOT a container. It is a complex-type property.
     			This tests the ability to deal with complex type properties and also with
-    			dateTime fields in them.
+    			dateTime and RawType fields in them.
     		</xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
         	<xsd:element name="howto" type="xsd:string"/>
         	<xsd:element name="when" type="xsd:dateTime" minOccurs="0"/>
+            <xsd:element name="value" type="t:RawType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -339,6 +349,67 @@
         	<xsd:element name="foo" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:complexType name="ResourceType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ObjectType">
+                <xsd:sequence>
+                	<xsd:element name="schema" type="t:SchemaDefinitionType" minOccurs="0" maxOccurs="1"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="resource" type="tns:ResourceType"/>
+
+    <!-- The following is currently not supported by prism. Keeping it here if needed in the future... -->
+    <xsd:complexType name="EventHandlerType">
+        <xsd:attribute name="name" type="xsd:string"/>
+    </xsd:complexType>
+    <xsd:element name="handler" type="tns:EventHandlerType" abstract="true" />
+
+    <xsd:complexType name="EventHandlerChainType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:EventHandlerType">
+                <xsd:sequence>
+                    <xsd:element ref="tns:handler" minOccurs="0" maxOccurs="unbounded" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="handlerChain" type="tns:EventHandlerChainType" substitutionGroup="tns:handler" />
+
+    <xsd:complexType name="EventCategoryFilterType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:EventHandlerType">
+                <xsd:sequence>
+                    <xsd:element name="category" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="categoryFilter" type="tns:EventCategoryFilterType" substitutionGroup="tns:handler" />
+
+    <xsd:complexType name="EventStatusFilterType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:EventHandlerType">
+                <xsd:sequence>
+                    <xsd:element name="status" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="statusFilter" type="tns:EventStatusFilterType" substitutionGroup="tns:handler" />
+
+    <xsd:complexType name="EventOperationFilterType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:EventHandlerType">
+                <xsd:sequence>
+                    <xsd:element name="operation" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="operationFilter" type="tns:EventOperationFilterType" substitutionGroup="tns:handler" />
 
 </xsd:schema>
 

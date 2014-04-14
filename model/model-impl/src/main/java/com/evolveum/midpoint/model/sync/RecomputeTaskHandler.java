@@ -22,8 +22,8 @@ import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -45,6 +45,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
@@ -124,7 +125,7 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Use
 	protected ObjectQuery createQuery(AbstractSearchIterativeResultHandler<UserType> handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
         QueryType queryFromTask = getObjectQueryTypeFromTask(task);
         if (queryFromTask != null) {
-            ObjectQuery query = QueryConvertor.createObjectQuery(UserType.class, queryFromTask, prismContext);
+            ObjectQuery query = QueryJaxbConvertor.createObjectQuery(UserType.class, queryFromTask, prismContext);
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Using object query from the task: {}", query.debugDump());
             }

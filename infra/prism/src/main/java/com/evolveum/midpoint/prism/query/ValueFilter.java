@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,20 +35,17 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
-	
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	private ItemPath fullPath;
 	private ItemDefinition definition;
 	private QName matchingRule;
 	
 	public ValueFilter() {
-		// TODO Auto-generated constructor stub
+		super();
 	}
 	
 	public ValueFilter(ItemPath parentPath, ItemDefinition definition){
@@ -61,20 +58,7 @@ public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 		this.definition = definition;
 		this.matchingRule = matchingRule;
 	}
-	
-	public ValueFilter(ItemPath parentPath, ItemDefinition definition, QName matchingRule, Element expression){
-		super(expression);
-		this.fullPath = parentPath;
-		this.definition = definition;
-		this.matchingRule = matchingRule;
-	}
-	
-	public ValueFilter(ItemPath parentPath, ItemDefinition definition, Element expression){
-		super(expression);
-		this.fullPath = parentPath;
-		this.definition = definition;
-	}
-	
+		
 	public ItemDefinition getDefinition() {
 		return definition;
 	}

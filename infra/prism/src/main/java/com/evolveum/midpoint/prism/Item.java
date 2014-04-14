@@ -411,15 +411,18 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
     		}
     	}
     }
-
-    public List<Element> asDomElements() {
-    	List<Element> elements = new ArrayList<Element>();
-    	for (PrismValue pval: getValues()) {
-    		elements.add(pval.asDomElement());
-    	}
-    	return elements;
-    }
     
+    /**
+     * Merge all the values of other item to this item.
+     */
+    public void merge(Item<V> otherItem) throws SchemaException {
+    	for (V otherValue: otherItem.getValues()) {
+    		if (!contains(otherValue)) {
+    			add((V) otherValue.clone());
+    		}
+    	}
+    }
+
     public abstract Object find(ItemPath path);
     
     public abstract <X extends PrismValue> PartiallyResolvedValue<X> findPartial(ItemPath path);
@@ -536,7 +539,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
 		}
 	}
     
-    public void revive(PrismContext prismContext) {
+    public void revive(PrismContext prismContext) throws SchemaException {
     	if (this.prismContext != null) {
     		return;
     	}

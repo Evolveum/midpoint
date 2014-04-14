@@ -21,13 +21,13 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.crypto.Protector;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.controller.ModelController;
@@ -159,7 +159,7 @@ public class ModelCrudService {
 							throw new IllegalArgumentException("No object to add specified. Check your delta. Add delta must contain object to add");
 //							return handleTaskResult(task);
 						}
-						Object objToAdd = deltaType.getObjectToAdd().getAny();
+						Object objToAdd = deltaType.getObjectToAdd();
 						if (!(objToAdd instanceof ShadowType)){
 							LOGGER.trace("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
 							throw new IllegalArgumentException("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
@@ -171,7 +171,7 @@ public class ModelCrudService {
 						LOGGER.trace("object to add: {}", shadowToAdd.debugDump());
 						delta.setObjectToAdd(shadowToAdd);
 					} else {
-						Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(deltaType.getModification(), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class));
+						Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(deltaType.getItemDelta(), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class));
 						delta.getModifications().addAll(modifications);
 					} 
 				}
@@ -365,7 +365,7 @@ public class ModelCrudService {
 			LOGGER.trace("Deleting object with oid {}.", new Object[] { oid });
 			
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-			modelController.executeChanges(deltas, null, task, result);
+			modelController.executeChanges(deltas, options, task, result);
 
 			result.recordSuccess();
 

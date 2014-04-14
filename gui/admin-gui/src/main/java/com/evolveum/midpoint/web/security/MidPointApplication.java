@@ -17,11 +17,11 @@
 package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskListener;
@@ -43,6 +43,7 @@ import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.atmosphere.EventBus;

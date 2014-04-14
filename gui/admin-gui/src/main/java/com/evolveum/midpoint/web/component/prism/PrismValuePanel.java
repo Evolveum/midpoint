@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.RoleApprovalFormType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import org.apache.commons.lang.ClassUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;

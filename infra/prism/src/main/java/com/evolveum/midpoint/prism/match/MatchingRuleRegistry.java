@@ -22,6 +22,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -51,7 +52,14 @@ public class MatchingRuleRegistry {
 		}
 		MatchingRule<T> matchingRule = (MatchingRule<T>) matchingRules.get(ruleName);
 		if (matchingRule == null) {
-			throw new SchemaException("Unknown matching rule for name "+ruleName);
+			//try match according to the localPart
+			if (QNameUtil.matchAny(ruleName, matchingRules.keySet())){
+				ruleName = QNameUtil.resolveNs(ruleName, matchingRules.keySet());
+				matchingRule = (MatchingRule<T>) matchingRules.get(ruleName); 
+			}
+			if (matchingRule == null) {
+				throw new SchemaException("Unknown matching rule for name " + ruleName);
+			}
 		}
 		if (!matchingRule.isSupported(typeQName)) {
 			throw new SchemaException("Matching rule "+ruleName+" does not support type "+typeQName);

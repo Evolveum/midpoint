@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.query.*;
@@ -493,9 +494,7 @@ public class PageAccounts extends PageAdminConfiguration {
                 protected boolean handleObject(PrismObject object, OperationResult parentResult) {
                     OperationResult result = parentResult.createMinorSubresult(OPERATION_EXPORT_ACCOUNT);
                     try {
-                        PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
-
-                        String xml = domProcessor.serializeObjectToString(object);
+                        String xml = getPrismContext().serializeObjectToString(object, PrismContext.LANG_XML);
                         handlerWriter.write(xml);
 
                         result.computeStatus();

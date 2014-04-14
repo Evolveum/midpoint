@@ -111,6 +111,10 @@ public class GenericErrorHandler extends ErrorHandler{
 						LOGGER.trace("Postponed operation was finished successfully while getting shadow. Getting new object.");
 						PrismObject prismShadow = provisioningService.getObject(shadow.getClass(),
 								shadow.getOid(), null, task, result);
+						if (!prismShadow.hasCompleteDefinition()){
+							LOGGER.trace("applying definitions to shadow");
+							provisioningService.applyDefinition(prismShadow, result);
+						}
 					if (LOGGER.isTraceEnabled()) {
 						LOGGER.trace("Got {} after finishing postponed operation.", prismShadow.debugDump());
 					}
@@ -137,7 +141,7 @@ public class GenericErrorHandler extends ErrorHandler{
 			Collection<? extends ItemDelta> modifications = null;
 			if (shadow.getObjectChange() != null) {
 				ObjectDeltaType deltaType = shadow.getObjectChange();
-				modifications = DeltaConvertor.toModifications(deltaType.getModification(), shadow
+				modifications = DeltaConvertor.toModifications(deltaType.getItemDelta(), shadow
 							.asPrismObject().getDefinition());
 			}
 			PropertyDelta.applyTo(modifications, shadow.asPrismObject());

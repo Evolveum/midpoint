@@ -44,9 +44,8 @@ object.
         <connectorRef type="ConnectorType" oid="123">
             <filter>
                 <q:equal>
-                    <q:value>
-                        <connectorType>org.forgerock.openicf.csvfile.CSVFileConnector</connectorType>
-                    </q:value>
+                	<q:path>connectorType</q:path>
+                    <q:value>org.forgerock.openicf.csvfile.CSVFileConnector</q:value>
                 </q:equal>
             </filter>
         </connectorRef>
@@ -129,12 +128,15 @@ object.
                     <access>read</access>
                     <outbound>
                         <strength>weak</strength>
-                        <path>$user/name</path>
+                        <source>
+                        	<path>$user/name</path>
+                        </source>
                     </outbound>
                     <inbound>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+                        	<path>declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
                             $user/i:name
+                            </path>
                         </target>
                     </inbound>
                 </attribute>
@@ -145,12 +147,15 @@ object.
                     <description>Definition of Firstname attribute handling.</description>
                     <outbound>
                         <strength>weak</strength>
-                        <path>$user/givenName</path>
+                        <source>
+                        	<path>$user/givenName</path>
+                        </source>
                     </outbound>
                     <inbound>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+                            <path>declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
                             $user/i:givenName
+                            </path>
                         </target>
                     </inbound>
 
@@ -161,12 +166,15 @@ object.
                     <description>Definition of Lastname attribute handling.</description>
                     <outbound>
                         <strength>weak</strength>
-                        <path>$user/familyName</path>
+                        <source>
+                        	<path>$user/familyName</path>
+                        </source>
                     </outbound>
                     <inbound>
                         <target>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+                            <path>declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
                             $user/i:familyName
+                            </path>
                         </target>
                     </inbound>
                 </attribute>
@@ -182,44 +190,50 @@ object.
                 <credentials>
                     <password>
                         <outbound>
-                            <asIs/>
+                        	<expression>
+                            	<asIs/>
+                            </expression>
                         </outbound>
                         <inbound>
-                            <source>
-                                <strength>weak</strength>
+                        	<strength>weak</strength>
+                            <expression>
                                 <generate/>
-                            </source>
+                            </expression>
                         </inbound>
                     </password>
                 </credentials>
                 <activation>
                     <administrativeStatus>
                         <outbound>
-                            <asIs/>
+	                        <expression>
+	                            <asIs/>
+                            </expression>
                         </outbound>
                         <inbound>
-                            <source>
-				<strength>weak</strength>
+                        	<strength>weak</strength>
+                            <expression>
                                 <asIs/>
-                            </source>
+                            </expression>
                         </inbound>
                     </administrativeStatus>
                 </activation>
             </accountType>
         </schemaHandling>
         <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
-            <cap:activation>
-                <cap:status>
-                    <cap:attribute>ri:disabled</cap:attribute>
-                    <cap:enableValue>false</cap:enableValue>
-                    <cap:disableValue>true</cap:disableValue>
-                </cap:status>
-            </cap:activation>
-            <cap:credentials>
-                <cap:password/>
-            </cap:credentials>
-            <cap:liveSync/>
-            <cap:testConnection/>
+        	<configured>
+	            <cap:activation>
+	                <cap:status>
+	                    <cap:attribute>ri:disabled</cap:attribute>
+	                    <cap:enableValue>false</cap:enableValue>
+	                    <cap:disableValue>true</cap:disableValue>
+	                </cap:status>
+	            </cap:activation>
+	            <cap:credentials>
+	                <cap:password/>
+	            </cap:credentials>
+	            <cap:liveSync/>
+	            <cap:testConnection/>
+            </configured>
         </capabilities>
         <synchronization>
         	<objectSynchronization>
@@ -238,15 +252,17 @@ object.
 	                    The correlation rule always looks for users, so it will not match
 	                    any other object type.
 	                </q:description>
-	                <q:equal>
-	                    <q:path>.</q:path>
-	                    <valueExpression>
-	                        <ref>name</ref>
-	                        <code>
-	                            $c:account/c:attributes/icfs:name
-	                        </code>
-	                    </valueExpression>
-	                </q:equal>
+	                <filter>
+	                	<q:equal>
+		                    <q:path>name</q:path>
+		                    <valueExpression>
+		                        <ref>name</ref>
+		                        <code>
+		                            $c:account/c:attributes/icfs:name
+		                        </code>
+		                    </valueExpression>
+	                	</q:equal>
+	                </filter>
 	            </correlation>
 	
 	            <!-- Confirmation rule may be here, but as the search above will

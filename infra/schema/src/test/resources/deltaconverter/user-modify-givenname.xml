@@ -21,10 +21,11 @@
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
-	<modification>
+	<itemDelta>
 		<t:modificationType>replace</t:modificationType>
+		<t:path>c:givenName</t:path>
 		<t:value>
-			<c:givenName xsi:nil="true"/>
+<!-- 			<c:givenName xsi:nil="true"/> -->
 		</t:value>
-	</modification>
+	</itemDelta>
 </objectModification>

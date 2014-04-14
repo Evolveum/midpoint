@@ -31,12 +31,13 @@
             	<outbound>
             		<expression>
             			<associationTargetSearch>
-            				<query>
+            				<filter>
 								<q:equal>
-									<q:path>attributes/icfs:name</q:path>
+									<q:path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
+                                        attributes/icfs:name</q:path>
 									<q:value>landlubers</q:value>
 								</q:equal>
-            				</query>
+            				</filter>
             			</associationTargetSearch>
             		</expression>
             	</outbound>

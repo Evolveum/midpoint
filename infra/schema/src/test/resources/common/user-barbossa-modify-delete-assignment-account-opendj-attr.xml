@@ -23,17 +23,19 @@
 		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003">
 	<oid>c0c010c0-d34d-b33f-f00d-111111111112</oid>
-	<modification modificationType="delete">
-		<t:value>
-			<c:assignment>
-				<c:construction>
-					<c:resourceRef oid="10000000-0000-0000-0000-000000000003"/>
-					<c:attribute>
-						<c:ref>ri:l</c:ref>
-						<c:value>Shipwreck cove</c:value>
-					</c:attribute>
-				</c:construction>
-			</c:assignment>
+	<itemDelta modificationType="delete">
+		<t:value xsiType="c:AssignmentType">
+            <c:construction>
+                <c:resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+                <c:attribute>
+                    <c:ref>ri:l</c:ref>
+                    <c:outbound>
+                        <c:expression>
+                            <c:value>Shipwreck cove</c:value>
+                        </c:expression>
+                    </c:outbound>
+                </c:attribute>
+            </c:construction>
 		</t:value>
-	</modification>
+	</itemDelta>
 </objectModification>

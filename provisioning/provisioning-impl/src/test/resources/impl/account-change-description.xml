@@ -23,11 +23,10 @@
 	xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2">
 	<oid>c0c010c0-d34d-b44f-f11d-333222444555</oid>
-	<modification>
+	<itemDelta>
 		<t:modificationType>replace</t:modificationType>
-		<t:path>c:attributes</t:path>
-		<t:value>
-			<dj:sn>First</dj:sn>
-		</t:value>
-	</modification>
+		<t:path>declare namespace dj='http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff';c:attributes/dj:sn</t:path>
+		<t:value>First</t:value>
+<!-- 			<dj:sn>First</dj:sn> -->
+	</itemDelta>
 </objectModification>

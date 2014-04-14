@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,10 @@ import javax.xml.bind.annotation.XmlElementDecl;
 import javax.xml.bind.annotation.XmlRegistry;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemPath;
+
 
 /**
  * This object contains factory methods for each 
@@ -50,6 +54,11 @@ import javax.xml.namespace.QName;
 public class ObjectFactory implements Serializable {
 
     private final static QName _ObjectDelta_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "objectDelta");
+    private final static QName _PolyStringTypeNorm_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "norm");
+    private final static QName _PolyStringTypeOrig_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "orig");
+    private final static QName _ProtectedDataTypeEncryptedData_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "encryptedData");
+    private final static QName _ItemPathType_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "path");
+    private final static QName _Object_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-2a", "object");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: com.evolveum.prism.xml.ns._public.types_2
@@ -83,6 +92,67 @@ public class ObjectFactory implements Serializable {
     }
 
     /**
+     * Create an instance of {@link KeyInfoType }
+     * 
+     */
+    public KeyInfoType createKeyInfoType() {
+        return new KeyInfoType();
+    }
+
+    /**
+     * Create an instance of {@link ProtectedByteArrayType }
+     * 
+     */
+    public ProtectedByteArrayType createProtectedByteArrayType() {
+        return new ProtectedByteArrayType();
+    }
+    
+    /**
+     * Create an instance of {@link EncryptedDataType }
+     * 
+     */
+    public EncryptedDataType createEncryptedDataType() {
+        return new EncryptedDataType();
+    }
+
+    /**
+     * Create an instance of {@link CipherDataType }
+     * 
+     */
+    public CipherDataType createCipherDataType() {
+        return new CipherDataType();
+    }
+
+    /**
+     * Create an instance of {@link ProtectedStringType }
+     * 
+     */
+    public ProtectedStringType createProtectedStringType() {
+        return new ProtectedStringType();
+    }
+    
+//    public ObjectType createObjectType() {
+//        return new ObjectType();
+//    }
+
+    /**
+     * Create an instance of {@link EncryptionMethodType }
+     * 
+     */
+    public EncryptionMethodType createEncryptionMethodType() {
+        return new EncryptionMethodType();
+    }
+
+    /**
+     * Create an instance of {@link ItemPathType }
+     * 
+     */
+    public ItemPathType createItemPathType() {
+        return new ItemPathType();
+    }
+
+    
+    /**
      * Create an instance of {@link Extension }
      * 
      */
@@ -98,13 +168,14 @@ public class ObjectFactory implements Serializable {
         return new PolyStringType();
     }
 
-    /**
-     * Create an instance of {@link XPathType }
-     * 
-     */
-    public XPathType createXPathType() {
-        return new XPathType();
-    }
+//    /**
+//     * Create an instance of {@link XPathType }
+//     *
+//     */
+//    public XPathType createXPathType() {
+//        return new XPathType();
+//    }
+    
 
     /**
      * Create an instance of {@link ObjectReferenceType.Filter }
@@ -129,6 +200,7 @@ public class ObjectFactory implements Serializable {
     public ObjectDeltaType.ObjectToAdd createObjectDeltaTypeObjectToAdd() {
         return new ObjectDeltaType.ObjectToAdd();
     }
+    
 
     /**
      * Create an instance of {@link JAXBElement }{@code <}{@link ObjectDeltaType }{@code >}}
@@ -137,6 +209,60 @@ public class ObjectFactory implements Serializable {
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-2", name = "objectDelta")
     public JAXBElement<ObjectDeltaType> createObjectDelta(ObjectDeltaType value) {
         return new JAXBElement<ObjectDeltaType>(_ObjectDelta_QNAME, ObjectDeltaType.class, null, value);
+    }
+    
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-2", name = "norm", scope = PolyStringType.class)
+    public JAXBElement<String> createPolyStringTypeNorm(String value) {
+        return new JAXBElement<String>(_PolyStringTypeNorm_QNAME, String.class, PolyStringType.class, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-2", name = "orig", scope = PolyStringType.class)
+    public JAXBElement<String> createPolyStringTypeOrig(String value) {
+        return new JAXBElement<String>(_PolyStringTypeOrig_QNAME, String.class, PolyStringType.class, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link EncryptedDataType }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-2", name = "encryptedData", scope = ProtectedDataType.class)
+    public JAXBElement<EncryptedDataType> createProtectedDataTypeEncryptedData(EncryptedDataType value) {
+        return new JAXBElement<EncryptedDataType>(_ProtectedDataTypeEncryptedData_QNAME, EncryptedDataType.class, ProtectedDataType.class, value);
+    }
+    
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-2", name = "encryptedData", scope = ProtectedStringType.class)
+    public JAXBElement<EncryptedDataType> createProtectedStringTypeEncryptedData(EncryptedDataType value) {
+        return new JAXBElement<EncryptedDataType>(_ProtectedDataTypeEncryptedData_QNAME, EncryptedDataType.class, ProtectedStringType.class, value);
+    }
+    
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-2", name = "path", scope = ItemPathType.class)
+    public JAXBElement<ItemPath> createItemPathType(ItemPath value) {
+        return new JAXBElement<ItemPath>(_ItemPathType_QNAME, ItemPath.class, ItemPathType.class, value);
+    }
+    
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link ObjectType }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-2a", name = "object")
+    public JAXBElement<ObjectType> createObject(ObjectType value) {
+        return new JAXBElement<ObjectType>(_Object_QNAME, ObjectType.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link SchemaDefinitionType }
+     * 
+     */
+    public SchemaDefinitionType createSchemaDefinitionType() {
+        return new SchemaDefinitionType();
     }
 
 }

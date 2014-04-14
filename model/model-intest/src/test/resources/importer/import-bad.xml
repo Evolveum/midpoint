@@ -52,6 +52,7 @@
     <account>
     	<name>Wrong Ref Account</name>
     	<resourceRef oid="d0e5707e-8157-3333-4444-555511111111"/>
+    	<objectClass>AccountObjectClass</objectClass>
     	<attributes>
     		<piracy:bar>foobar</piracy:bar>
     	</attributes>

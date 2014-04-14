@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.prism.util;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -27,6 +28,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
@@ -58,8 +60,16 @@ import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xnode.ListXNode;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -607,7 +617,7 @@ public class PrismAsserts {
 		assertEquals(elementToPrism(expected), elementToPrism(actual));
     }
 	
-	public static void assertEquals(File fileNewXml, String objectString) throws SchemaException {
+	public static void assertEquals(File fileNewXml, String objectString) throws SchemaException, IOException {
 		assertEquals(toPrism(fileNewXml), toPrism(objectString));
     }
 	
@@ -615,11 +625,11 @@ public class PrismAsserts {
 		assertEquals(actual.asPrismObject(), actual.asPrismObject());
     }
 	
-	public static void assertEquals(File fileNewXml, Objectable objectable) throws SchemaException {
+	public static void assertEquals(File fileNewXml, Objectable objectable) throws SchemaException, IOException {
 		assertEquals(toPrism(fileNewXml), objectable.asPrismObject());
     }
 	
-	public static <O extends Objectable> void assertEquals(File fileNewXml, PrismObject<O> actual) throws SchemaException {
+	public static <O extends Objectable> void assertEquals(File fileNewXml, PrismObject<O> actual) throws SchemaException, IOException {
 		PrismObject<O> expected = toPrism(fileNewXml);
 		assertEquals(expected, actual);
     }
@@ -655,11 +665,11 @@ public class PrismAsserts {
 		assert false: message + ": " + suffix;
 	}
 	
-	public static <O extends Objectable> void assertEquivalent(File expectedFile, PrismObject<O> actual) throws SchemaException {
+	public static <O extends Objectable> void assertEquivalent(File expectedFile, PrismObject<O> actual) throws SchemaException, IOException {
 		assertEquivalent("Object "+actual+" not equivalent to that from file "+expectedFile,expectedFile,actual);
 	}
 	
-	public static <O extends Objectable> void assertEquivalent(String message, File expectedFile, PrismObject<O> actual) throws SchemaException {
+	public static <O extends Objectable> void assertEquivalent(String message, File expectedFile, PrismObject<O> actual) throws SchemaException, IOException {
 		PrismObject<O> expected = toPrism(expectedFile);
 		assertEquivalent(message, expected, actual);
 	}
@@ -740,21 +750,20 @@ public class PrismAsserts {
 	}
 	
 	private static <O extends Objectable> PrismObject<O> toPrism(String objectString) throws SchemaException {
-		return getDomProcessor().parseObject(objectString);
+		return PrismTestUtil.parseObject(objectString);
 	}
 
-	private static <O extends Objectable> PrismObject<O> toPrism(File objectFile) throws SchemaException {
-		return getDomProcessor().parseObject(objectFile);
+	private static <O extends Objectable> PrismObject<O> toPrism(File objectFile) throws SchemaException, IOException {
+		return PrismTestUtil.parseObject(objectFile);
 	}
 	
-	private static <O extends Objectable> PrismObject<O> toPrism(Node domNode) throws SchemaException {
-		return getDomProcessor().parseObject(domNode);
+	private static <O extends Objectable> PrismObject<O> toPrism(Element domNode) throws SchemaException {
+		return PrismTestUtil.parseObject(domNode);
 	}
 
-
 	private static <O extends Objectable> PrismObject<O> elementToPrism(Object element) throws SchemaException {
-		if (element instanceof Node) {
-			return toPrism((Node)element);
+		if (element instanceof Element) {
+			return toPrism((Element)element);
 		} else if (element instanceof JAXBElement<?>) {
 			JAXBElement<?> jaxbElement = (JAXBElement)element;
 			Object value = jaxbElement.getValue();
@@ -767,13 +776,72 @@ public class PrismAsserts {
 			throw new IllegalArgumentException("Unknown element type "+element);
 		}
 	}
-
-	private static PrismDomProcessor getDomProcessor() {
-		return PrismTestUtil.getPrismContext().getPrismDomProcessor();
+	
+	// XNode asserts
+	
+	public static void assertSize(MapXNode xmap, int expectedSize) {
+		assertEquals("Wrong size of "+xmap, expectedSize, xmap.size());
+	}
+	
+	public static void assertSize(ListXNode xlist, int expectedSize) {
+		assertEquals("Wrong size of "+xlist, expectedSize, xlist.size());
+	}
+	
+	public static void assertSubnode(MapXNode xmap, QName key, Class expectedClass) {
+		XNode xsubnode = xmap.get(key);
+		assert xsubnode != null : "No subnode "+key+" in "+xmap;
+		assert expectedClass.isAssignableFrom(xsubnode.getClass()) : "Wrong class of subnode "+key+" in "+xmap+"; expected "+expectedClass+", got "+xsubnode.getClass();
+	}
+	
+	public static void assertAllParsedNodes(XNode xnode) {
+		Visitor visitor = new Visitor() {
+			@Override
+			public void visit(Visitable visitable) {
+				if ((visitable instanceof PrimitiveXNode<?>)) {
+					assert ((PrimitiveXNode<?>)visitable).isParsed() : "Xnode "+visitable+" is not parsed";
+				}
+			}
+		};
+		xnode.accept(visitor);
+	}
+	
+	// Query asserts
+	
+	public static void assertOrFilter(ObjectFilter filter, int conditions) {
+		assertEquals("Wrong filter class", OrFilter.class, filter.getClass());
+		assertEquals("Wrong number of filter conditions", conditions, ((OrFilter) filter).getCondition().size());
 	}
 
-	private static PrismJaxbProcessor getJaxbProcessor() {
-		return PrismTestUtil.getPrismContext().getPrismJaxbProcessor();
+	public static void assertAndFilter(ObjectFilter filter, int conditions) {
+		assertEquals("Wrong filter class", AndFilter.class, filter.getClass());
+		assertEquals("Wrong number of filter conditions", conditions, ((AndFilter) filter).getCondition().size());
+	}
+	
+	public static void assertEqualsFilter(ObjectFilter objectFilter, QName expectedFilterDef,
+			QName expectedTypeName, ItemPath path) {
+		assertEquals("Wrong filter class", EqualsFilter.class, objectFilter.getClass());
+		EqualsFilter filter = (EqualsFilter) objectFilter;
+		assertEquals("Wrong filter definition element name", expectedFilterDef, filter.getDefinition().getName());
+		assertEquals("Wrong filter definition type", expectedTypeName, filter.getDefinition().getTypeName());
+		assertEquals("Wrong filter path", path, filter.getFullPath());
+	}
+	
+	public static <T> void assertEqualsFilterValue(EqualsFilter filter, T value) {
+		List<? extends PrismValue> values = filter.getValues();
+		assertEquals("Wrong number of filter values", 1, values.size());
+		assertEquals("Wrong filter value class", PrismPropertyValue.class, values.get(0).getClass());
+		PrismPropertyValue val = (PrismPropertyValue) values.get(0);
+		assertEquals("Wrong filter value", value, val.getValue());
+	}
+
+	
+	public static void assertRefFilter(ObjectFilter objectFilter, QName expectedFilterDef, QName expectedTypeName,
+			ItemPath path) {
+		assertEquals("Wrong filter class", RefFilter.class, objectFilter.getClass());
+		RefFilter filter = (RefFilter) objectFilter;
+		assertEquals("Wrong filter definition element name", expectedFilterDef, filter.getDefinition().getName());
+		assertEquals("Wrong filter definition type", expectedTypeName, filter.getDefinition().getTypeName());
+		assertEquals("Wrong filter path", path, filter.getFullPath());
 	}
 	
 	// Local version of JUnit assers to avoid pulling JUnit dependecy to main
@@ -832,6 +900,14 @@ public class PrismAsserts {
 		List<T> expectedCollection = Arrays.asList(expectedValues);
 		assert MiscUtil.unorderedCollectionEquals(actualCollection, expectedCollection) : message + ": expected "+expectedCollection+
 			"; was "+actualCollection;
+	}
+
+	public static void assertAssignableFrom(Class<?> expected, Class<?> actual) {
+		assert expected.isAssignableFrom(actual) : "Expected "+expected+" but got "+actual;
+	}
+
+	public static void assertAssignableFrom(Class<?> expected, Object actualObject) {
+		assert expected.isAssignableFrom(actualObject.getClass()) : "Expected "+expected+" but got "+actualObject.getClass();
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,21 @@ package com.evolveum.midpoint.schema;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.parser.DomParser;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.parser.XNodeProcessor;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ExpressionWrapper;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -31,16 +40,20 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConditionalSearchFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SchemaHandlingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType.Definition;
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -51,6 +64,7 @@ import org.xml.sax.SAXException;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -65,8 +79,8 @@ import static org.testng.AssertJUnit.assertNotNull;
  */
 public class TestParseResource {
 	
-	public static final File RESOURCE_FILE = new File("src/test/resources/common/resource-opendj.xml");
-	public static final File RESOURCE_SIMPLE_FILE = new File("src/test/resources/common/resource-opendj-simple.xml");
+	public static final File RESOURCE_FILE = new File(TestConstants.COMMON_DIR, "resource-opendj.xml");
+	public static final File RESOURCE_SIMPLE_FILE = new File(TestConstants.COMMON_DIR, "resource-opendj-simple.xml");
 	private static final String RESOURCE_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	private static final String RESOURCE_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	
@@ -113,16 +127,16 @@ public class TestParseResource {
 
 	@Test
 	public void testParseResourceDom() throws Exception {
-		System.out.println("===[ testParseResourceDom ]===");
+		final String TEST_NAME = "testParseResourceDom";
+		PrismTestUtil.displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		
-		Document document = DOMUtil.parseFile(RESOURCE_FILE);
-		Element resourceElement = DOMUtil.getFirstChildElement(document);
-		
 		// WHEN
-		PrismObject<ResourceType> resource = prismContext.parseObject(resourceElement);
+		DomParser parserDom = prismContext.getParserDom();
+		XNode xnode = parserDom.parse(RESOURCE_FILE);
+		PrismObject<ResourceType> resource = prismContext.getXnodeProcessor().parseObject(xnode);
 		
 		// THEN
 		System.out.println("Parsed resource:");
@@ -152,12 +166,12 @@ public class TestParseResource {
 	}
 
 	@Test
-	public void testPrismParseJaxb() throws JAXBException, SchemaException, SAXException, IOException {
+	public void testPrismParseJaxb() throws Exception {
 		System.out.println("===[ testPrismParseJaxb ]===");
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
 		
 		// WHEN
 		ResourceType resourceType = jaxbProcessor.unmarshalObject(RESOURCE_FILE, ResourceType.class);
@@ -168,12 +182,12 @@ public class TestParseResource {
 	}
 	
 	@Test
-	public void testPrismParseJaxbSimple() throws JAXBException, SchemaException, SAXException, IOException {
+	public void testPrismParseJaxbSimple() throws Exception {
 		System.out.println("===[ testPrismParseJaxbSimple ]===");
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
 		
 		// WHEN
 		ResourceType resourceType = jaxbProcessor.unmarshalObject(RESOURCE_SIMPLE_FILE, ResourceType.class);
@@ -193,7 +207,7 @@ public class TestParseResource {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
 		
 		// WHEN
 		ObjectType resourceType = jaxbProcessor.unmarshalObject(RESOURCE_FILE, ObjectType.class);
@@ -212,7 +226,7 @@ public class TestParseResource {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
 		
 		// WHEN
 		JAXBElement<ResourceType> jaxbElement = jaxbProcessor.unmarshalElement(RESOURCE_FILE, ResourceType.class);
@@ -232,7 +246,7 @@ public class TestParseResource {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
 		
 		// WHEN
 		JAXBElement<ObjectType> jaxbElement = jaxbProcessor.unmarshalElement(RESOURCE_FILE, ObjectType.class);
@@ -260,7 +274,7 @@ public class TestParseResource {
 		
 		// SERIALIZE
 		
-		String serializedResource = prismContext.getPrismDomProcessor().serializeObjectToString(resource);
+		String serializedResource = prismContext.serializeObjectToString(resource, PrismContext.LANG_XML);
 		
 		System.out.println("serialized resource:");
 		System.out.println(serializedResource);
@@ -275,10 +289,10 @@ public class TestParseResource {
 		// Cannot assert here. It will cause parsing of some of the raw values and diff will fail
 		assertResource(resource, true, false, false);
 		
-		PrismProperty<Element> definitionProperty = reparsedResource.findContainer(ResourceType.F_SCHEMA).findProperty(XmlSchemaType.F_DEFINITION);
-		Element definitionElement = definitionProperty.getValue().getValue();
+		PrismProperty<SchemaDefinitionType> definitionProperty = reparsedResource.findContainer(ResourceType.F_SCHEMA).findProperty(XmlSchemaType.F_DEFINITION);
+		SchemaDefinitionType definitionElement = definitionProperty.getValue().getValue();
 		System.out.println("Re-parsed definition element:");
-		System.out.println(DOMUtil.serializeDOMToString(definitionElement));
+		System.out.println(DOMUtil.serializeDOMToString(definitionElement.getSchema()));
 		
 		ObjectDelta<ResourceType> objectDelta = resource.diff(reparsedResource);
 		System.out.println("Delta:");
@@ -313,25 +327,30 @@ public class TestParseResource {
 		System.out.println("Parsed schema:");
 		System.out.println(schemaContainer.debugDump());
 
-		Element parentElement = DOMUtil.createElement(DOMUtil.getDocument(), new QName("fakeNs", "fake"));
-		
 		// SERIALIZE
 		
-		String serializesSchema = prismContext.getPrismDomProcessor().serializeObjectToString(schemaContainer.getValue(), parentElement);
+		String serializesSchema = prismContext.serializeContainerValueToString(schemaContainer.getValue(), new QName("fakeNs", "fake"), PrismContext.LANG_XML);
 		
 		System.out.println("serialized schema:");
 		System.out.println(serializesSchema);
 		
 		// RE-PARSE
-		Document reparsedDocument = DOMUtil.parseDocument(serializesSchema);
-		Element reparsedSchemaElement = DOMUtil.getFirstChildElement(DOMUtil.getFirstChildElement(reparsedDocument));
-		PrismContainer<Containerable> reparsedSchemaContainer = prismContext.getPrismDomProcessor().parsePrismContainer(reparsedSchemaElement);
+		PrismContainer<Containerable> reparsedSchemaContainer = prismContext.parseContainer(serializesSchema, schemaContainer.getDefinition(), PrismContext.LANG_XML);
 		
 		System.out.println("Re-parsed schema container:");
 		System.out.println(reparsedSchemaContainer.debugDump());
 		
-		Element reparsedXsdSchemaElement = DOMUtil.getChildElement(DOMUtil.getFirstChildElement(reparsedSchemaElement), DOMUtil.XSD_SCHEMA_ELEMENT);
+//		String reserializesSchema = prismContext.serializeContainerValueToString(reparsedSchemaContainer.getValue(), new QName("fakeNs", "fake"), PrismContext.LANG_XML);
+//		
+//		System.out.println("re-serialized schema:");
+//		System.out.println(reserializesSchema);
 		
+//		Document reparsedDocument = DOMUtil.parseDocument(serializesSchema);
+//		Element reparsedSchemaElement = DOMUtil.getFirstChildElement(DOMUtil.getFirstChildElement(reparsedDocument));
+//		Element reparsedXsdSchemaElement = DOMUtil.getChildElement(DOMUtil.getFirstChildElement(reparsedSchemaElement), DOMUtil.XSD_SCHEMA_ELEMENT);
+		
+		XmlSchemaType defType = (XmlSchemaType) reparsedSchemaContainer.getValue().asContainerable();
+		Element reparsedXsdSchemaElement = defType.getDefinition().getSchema();
 		ResourceSchema reparsedSchema = ResourceSchema.parse(reparsedXsdSchemaElement, "reparsed schema", prismContext);
 		
 	}
@@ -350,7 +369,7 @@ public class TestParseResource {
 		}
 	}
 
-	private void assertResourcePrism(PrismObject<ResourceType> resource, boolean isSimple) {
+	private void assertResourcePrism(PrismObject<ResourceType> resource, boolean isSimple) throws SchemaException {
 		assertEquals("Wrong oid (prism)", RESOURCE_OID, resource.getOid());
 //		assertEquals("Wrong version", "42", resource.getVersion());
 		PrismObjectDefinition<ResourceType> resourceDefinition = resource.getDefinition();
@@ -374,7 +393,7 @@ public class TestParseResource {
     	PrismReferenceValue connectorRefVal = connectorRef.getValue();
     	assertNotNull("No connectorRef value", connectorRefVal);
     	assertEquals("Wrong type in connectorRef value", ConnectorType.COMPLEX_TYPE, connectorRefVal.getTargetType());
-    	Element filter = connectorRefVal.getFilter();
+    	SearchFilterType filter = connectorRefVal.getFilter();
     	assertNotNull("No filter in connectorRef value", filter);
 				
 		PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
@@ -404,6 +423,30 @@ public class TestParseResource {
 		} else {
 			assertNotNull("No schemaHandling property", schemaHandlingProperty);
 		}
+
+		if (!isSimple) {
+			PrismProperty<SynchronizationType> synchronizationProp = resource.findProperty(ResourceType.F_SYNCHRONIZATION);
+			SynchronizationType synchronizationType = synchronizationProp.getRealValue();
+			ObjectSynchronizationType objectSynchronizationType = synchronizationType.getObjectSynchronization().get(0);
+			List<ConditionalSearchFilterType> correlations = objectSynchronizationType.getCorrelation();
+			assertEquals("Wrong number of correlation expressions", 1, correlations.size());
+			ConditionalSearchFilterType correlationFilterType = correlations.get(0);
+			System.out.println("\nCorrelation filter");
+			System.out.println(correlationFilterType.debugDump());
+
+            PrismContext prismContext = PrismTestUtil.getPrismContext();
+
+			ObjectFilter objectFilter = QueryConvertor.parseFilter(correlationFilterType.serializeToXNode(prismContext), prismContext);
+			PrismAsserts.assertAssignableFrom(EqualsFilter.class, objectFilter);
+			EqualsFilter equalsFilter = (EqualsFilter)objectFilter;
+			equalsFilter.getFullPath();
+			assertNull("Unexpected values in correlation expression", equalsFilter.getValues());
+			ExpressionWrapper expression = equalsFilter.getExpression();
+			assertNotNull("No expressions in correlation expression", expression);
+			//PrismAsserts.assertAllParsedNodes(expression);
+			// TODO
+		}
+
 	}
 	
 	private void assertResourceJaxb(ResourceType resourceType, boolean isSimple) {
@@ -418,9 +461,9 @@ public class TestParseResource {
 		ObjectReferenceType connectorRef = resourceType.getConnectorRef();
 		assertNotNull("No connectorRef (JAXB)", connectorRef);
 		assertEquals("Wrong type in connectorRef (JAXB)", ConnectorType.COMPLEX_TYPE, connectorRef.getType());
-		ObjectReferenceType.Filter filter = connectorRef.getFilter();
+		SearchFilterType filter = connectorRef.getFilter();
     	assertNotNull("No filter in connectorRef (JAXB)", filter);
-    	Element filterElement = filter.getFilter();
+    	Element filterElement = filter.getFilterClause();
     	assertNotNull("No filter element in connectorRef (JAXB)", filterElement);
     	
     	XmlSchemaType xmlSchemaType = resourceType.getSchema();
@@ -430,7 +473,7 @@ public class TestParseResource {
     		assertNull("SchemaHandling sneaked in", schemaHandling);
     	} else {
 	    	assertNotNull("No schema element (JAXB)", xmlSchemaType);
-	    	XmlSchemaType.Definition definition = xmlSchemaType.getDefinition();
+	    	SchemaDefinitionType definition = xmlSchemaType.getDefinition();
 	    	assertNotNull("No definition element in schema (JAXB)", definition);
 	    	List<Element> anyElements = definition.getAny();
 	    	assertNotNull("Null element list in definition element in schema (JAXB)", anyElements);
@@ -447,14 +490,16 @@ public class TestParseResource {
 	
 	// Try to serialize it to DOM using just DOM processor. See if it does not fail.
 	private void serializeDom(PrismObject<ResourceType> resource) throws SchemaException {
-		PrismDomProcessor domProcessor = PrismTestUtil.getPrismContext().getPrismDomProcessor();
-		Element domElement = domProcessor.serializeToDom(resource);
+		DomParser domParser = PrismTestUtil.getPrismContext().getParserDom();
+		XNodeProcessor xnodeProcessor = PrismTestUtil.getPrismContext().getXnodeProcessor();
+		RootXNode xnode = xnodeProcessor.serializeObject(resource);
+		Element domElement = domParser.serializeXRootToElement(xnode);
 		assertNotNull("Null resulting DOM element after DOM serialization", domElement);
 	}
 
 	// Try to serialize it to DOM using JAXB processor. See if it does not fail.
 	private void serializeJaxb(PrismObject<ResourceType> resource) throws SchemaException, JAXBException {
-		PrismJaxbProcessor jaxbProcessor = PrismTestUtil.getPrismContext().getPrismJaxbProcessor();
+		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
 		Document document = DOMUtil.getDocument();
 		Element element = jaxbProcessor.marshalObjectToDom(resource.asObjectable(), new QName(SchemaConstants.NS_C, "resorce"), document);
 		System.out.println("JAXB serialization result:\n"+DOMUtil.serializeDOMToString(element));

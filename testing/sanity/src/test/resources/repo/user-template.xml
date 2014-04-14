@@ -34,10 +34,10 @@
 		<mapping>
 			<strength>weak</strength>
 			<source>
-				<path>$user/givenName</path>
+				<path>declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-2a";$user/givenName</path>
 			</source>
 			<source>
-				<path>$user/familyName</path>
+				<path>declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-2a";$user/familyName</path>
 			</source>
 			<expression>
 				<script>
@@ -45,7 +45,7 @@
 				</script>
 			</expression>
 			<target>
-				<path>fullName</path>
+				<path>declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-2a";fullName</path>
 			</target>
 		</mapping>
 

@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -27,15 +28,21 @@ import java.util.Random;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
+import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.sql.testing.CarefulAnt;
 import com.evolveum.midpoint.repo.sql.testing.ResourceCarefulAntUtil;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -76,7 +83,7 @@ public class ResourceModifyTest extends BaseSQLRepoTest {
     	
     	// GIVEN
         OperationResult result = new OperationResult(ResourceModifyTest.class.getName()+"."+TEST_NAME);
-        PrismObject<ResourceType> resource = prismContext.getPrismDomProcessor().parseObject(RESOURCE_OPENDJ_FILE);
+        PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_OPENDJ_FILE);
         
         // WHEN
         String addOid = repositoryService.addObject(resource, null, result);
@@ -135,6 +142,8 @@ public class ResourceModifyTest extends BaseSQLRepoTest {
     	// GIVEN
     	ItemDelta<?> itemDelta = ant.createDelta(iteration);
 		Collection<? extends ItemDelta<?>> modifications = MiscSchemaUtil.createCollection(itemDelta);
+		
+		System.out.println("itemDelta: " + itemDelta.debugDump());
 		
 		// WHEN
 		repositoryService.modifyObject(ResourceType.class, RESOURCE_OPENDJ_OID, modifications, result);

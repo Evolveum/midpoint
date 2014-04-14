@@ -215,6 +215,10 @@
                                         </extraarg>
                                         <extraarg>-nexclude</extraarg>
                                         <extraarg>http://prism.evolveum.com/xml/ns/public/types-2</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-2</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-2</extraarg>
                                         <!-- 										<extraargs>-version</extraargs> -->
 
                                         <extraarg>-xjc-Xmidpoint</extraarg>
@@ -241,6 +245,10 @@
                                         </extraarg>
                                         <extraarg>-nexclude</extraarg>
                                         <extraarg>http://prism.evolveum.com/xml/ns/public/types-2</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-2</extraarg>
+                                        <extraarg>-nexclude</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-2</extraarg>
                                         <!-- 										<extraargs>-version</extraargs> -->
 
                                         <extraarg>-xjc-Xmidpoint</extraarg>
@@ -346,6 +354,7 @@
                     <schemaFiles>
                         <schemaFile>src/main/resources/xml/ns/public/common/common-2a.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/common/api-types-2.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-2.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/model/scripting/scripting-2.xsd</schemaFile>
                     </schemaFiles>
                     <templateDir>src/main/schemadoc/templates</templateDir>

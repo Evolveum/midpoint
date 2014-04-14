@@ -23,9 +23,9 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -61,6 +61,7 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -895,12 +896,12 @@ public class TreeTablePanel extends SimplePanel<String> {
         PrismPropertyDefinition propertyDef = getPageBase().getPrismContext().getSchemaRegistry()
                 .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
 
-        ObjectQuery query = new ObjectQuery();
         ObjectFilter refFilter = RefFilter.createReferenceEqual(UserType.F_PARENT_ORG_REF,
                 UserType.class, getPageBase().getPrismContext(), org.getOid());
-        query.setFilter(refFilter);
 
-        QueryType queryType = QueryConvertor.createQueryType(query, getPageBase().getPrismContext());
+        SearchFilterType filterType = QueryConvertor.createSearchFilterType(refFilter, getPageBase().getPrismContext());
+        QueryType queryType = new QueryType();
+        queryType.setFilter(filterType);
 
         PrismProperty<QueryType> property = propertyDef.instantiate();
         property.setRealValue(queryType);

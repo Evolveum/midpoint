@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,55 +22,38 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 
 
-public abstract class ObjectFilter implements DebugDumpable, Serializable{
-
-//	private ItemPath fullPath;
-	private Element expression;
-
-	ObjectFilter(Element expression) {
-		this.expression = expression;
-	}
+public abstract class ObjectFilter implements DebugDumpable, Serializable, Revivable {
 	
 	ObjectFilter() {
+		// Nothing to do
 	}
-	
-	public Element getExpression() {
-		return expression;
-	}
-
-	public void setExpression(Element expression) {
-		this.expression = expression;
-	}
-	
+		
 	public abstract ObjectFilter clone();
 	
 	public abstract <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry);
 	
 	protected void cloneValues(ObjectFilter clone) {
-		clone.expression = this.expression;
 	}
 	
 	public void accept(Visitor visitor) {
 		visitor.visit(this);
 	}
-	
-//	public ItemPath getFullPath() {
-//		return fullPath;
-//	}
-//	
-//	public ItemPath getParentPath(){
-//		if (fullPath == null){
-//			return null;
-//		}
-//		
-//		return fullPath.allExceptLast();
-//	}
-	
+
+	@Override
+	public void revive(final PrismContext prismContext) throws SchemaException {
+		QueryConvertor.revive(this, prismContext);
+	}
+		
 }

@@ -18,6 +18,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Link.Builder;
 import javax.ws.rs.core.Response.StatusType;
 
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.apache.cxf.jaxrs.ext.RequestHandler;
 import org.apache.cxf.jaxrs.model.ClassResourceInfo;
@@ -25,13 +26,12 @@ import org.apache.cxf.jaxrs.model.OperationResourceInfo;
 import org.apache.cxf.message.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.evolveum.midpoint.common.crypto.EncryptionException;
-import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 public class MidpointRestAuthenticationHandler implements RequestHandler {
@@ -91,7 +91,7 @@ public class MidpointRestAuthenticationHandler implements RequestHandler {
         	if (!password.equals(protectedPass.getClearValue())){
                	return Response.status(401).header("WWW-Authenticate", "Basic").build();
             }
-        } else if (protectedPass.getEncryptedData() != null){
+        } else if (protectedPass.getEncryptedDataType() != null){
         	try{
         		String decrypted = protector.decryptString(protectedPass);
         		if (!password.equals(decrypted)){

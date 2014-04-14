@@ -45,6 +45,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.core.internal.runtime.FindSupport;
 import org.springframework.test.annotation.DirtiesContext;
@@ -249,7 +250,7 @@ public class TestDummy extends AbstractDummyTest {
 			ConnectorType conn = connPrism.asObjectable();
 			display("Found connector " + conn, conn);
 
-			display("XML " + conn, PrismTestUtil.serializeObjectToString(connPrism));
+			display("XML " + conn, PrismTestUtil.serializeObjectToString(connPrism, PrismContext.LANG_XML));
 
 			XmlSchemaType xmlSchemaType = conn.getSchema();
 			assertNotNull("xmlSchemaType is null", xmlSchemaType);
@@ -349,7 +350,7 @@ public class TestDummy extends AbstractDummyTest {
 		Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
 		assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 
-		String resourceXml = prismContext.getPrismDomProcessor().serializeObjectToString(resourceRepoAfter);
+		String resourceXml = prismContext.serializeObjectToString(resourceRepoAfter, PrismContext.LANG_XML);
 		display("Resource XML", resourceXml);
 
 		CachingMetadataType cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();

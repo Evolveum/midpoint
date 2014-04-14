@@ -30,6 +30,9 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -154,10 +157,9 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         assertNotNull("Definition for weapon attribute not found in "+rolePirate);
         PrismPropertyValue<ResourceAttributeDefinitionType> newAttrPVal = oldAttrPVal.clone();
         JAXBElement<?> cutlassExpressionEvalJaxbElement = newAttrPVal.getValue().getOutbound().getExpression().getExpressionEvaluator().get(0);
-        Element cutlassValueEvaluator = (Element) cutlassExpressionEvalJaxbElement.getValue();
-        Element daggerValueEvaluator = DOMUtil.createElement(cutlassValueEvaluator.getOwnerDocument(), DOMUtil.getQName(cutlassValueEvaluator));
-        daggerValueEvaluator.setTextContent("dagger");
-        JAXBElement<?> daggerExpressionEvalJaxbElement = new JAXBElement<Object>(DOMUtil.getQName(daggerValueEvaluator), Object.class, daggerValueEvaluator);
+        RawType cutlassValueEvaluator = (RawType) cutlassExpressionEvalJaxbElement.getValue();
+        RawType daggerValueEvaluator = new RawType(new PrimitiveXNode<String>("dagger"));
+        JAXBElement<?> daggerExpressionEvalJaxbElement = new JAXBElement<Object>(SchemaConstants.C_VALUE, Object.class, daggerValueEvaluator);
         newAttrPVal.getValue().getOutbound().getExpression().getExpressionEvaluator().add(daggerExpressionEvalJaxbElement);
         newAttrPVal.getValue().getOutbound().setStrength(MappingStrengthType.STRONG);
         

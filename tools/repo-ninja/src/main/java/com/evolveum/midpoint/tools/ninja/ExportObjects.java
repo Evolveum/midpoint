@@ -3,8 +3,8 @@ package com.evolveum.midpoint.tools.ninja;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.dom.DomSerializer;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.parser.DomSerializer;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -82,7 +82,7 @@ public class ExportObjects extends BaseNinjaAction {
                     OperationResult resultExport = new OperationResult("Export " + displayName);
                     try 
                     {
-                    	String stringObject = prismContext.getPrismDomProcessor().serializeObjectToString(object);
+                    	String stringObject = prismContext.serializeObjectToString(object, PrismContext.LANG_XML);
                         stream.write("\t" + stringObject + "\n");
                     } 
                     catch (Exception ex) 

@@ -21,10 +21,11 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import org.apache.commons.lang.BooleanUtils;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.common.expression.Expression;
@@ -37,19 +38,20 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -140,11 +142,11 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 			resultValues.add(createPrismValue(getExpressionEvaluatorType().getOid(), targetTypeQName, params));
 		} else {
 		
-			QueryType queryType = getExpressionEvaluatorType().getQuery();
-			if (queryType == null) {
-				throw new SchemaException("No query in "+shortDebugDump());
+			SearchFilterType filterType = getExpressionEvaluatorType().getFilter();
+			if (filterType == null) {
+				throw new SchemaException("No filter in "+shortDebugDump());
 			}
-			query = QueryConvertor.createObjectQuery(targetTypeClass, queryType, prismContext);
+			query = QueryJaxbConvertor.createObjectQuery(targetTypeClass, filterType, prismContext);
 			query = ExpressionUtil.evaluateQueryExpressions(query, variables, params.getExpressionFactory(), 
 					prismContext, params.getContextDescription(), task, result);
 			query = extendQuery(query, params);
@@ -268,11 +270,11 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 					+ "skipping. Subsequent operations will most likely fail", contextDescription);
 			return null;
 		}
-		Element pathElement = targetType.getPath();
-		if (pathElement == null) {
+        ItemPathType itemPathType = targetType.getPath();
+		if (itemPathType == null) {
 			throw new SchemaException("No path in target definition in "+contextDescription);
 		}
-		ItemPath targetPath = new XPathHolder(pathElement).toItemPath();
+		ItemPath targetPath = itemPathType.getItemPath();
 		ItemDefinition propOutputDefinition = ExpressionUtil.resolveDefinitionPath(targetPath, variables, 
 				objectDefinition, "target definition in "+contextDescription);
 		if (propOutputDefinition == null) {

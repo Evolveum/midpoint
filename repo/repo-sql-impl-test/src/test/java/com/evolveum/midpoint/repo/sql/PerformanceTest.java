@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -22,18 +23,17 @@ public class PerformanceTest extends BaseSQLRepoTest {
     private static final Trace LOGGER = TraceManager.getTrace(PerformanceTest.class);
 
     /**
-     * time: ~25s
+     * time: ~9min (parsers branch)
      */
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void testParsing() throws Exception {
         long time = System.currentTimeMillis();
 
-        PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
         int COUNT = 1000;
         for (int i = 0; i < COUNT; i++) {
-            List<PrismObject<? extends Objectable>> elements = domProcessor.parseObjects(new File(FOLDER_BASIC, "objects.xml"));
+            List<PrismObject<? extends Objectable>> elements = prismContext.parseObjects(new File(FOLDER_BASIC, "objects.xml"));
             for (PrismObject obj : elements) {
-                domProcessor.serializeObjectToString(obj);
+                prismContext.serializeObjectToString(obj, PrismContext.LANG_XML);
             }
         }
         LOGGER.info("xxx>> time: {}", (System.currentTimeMillis() - time));

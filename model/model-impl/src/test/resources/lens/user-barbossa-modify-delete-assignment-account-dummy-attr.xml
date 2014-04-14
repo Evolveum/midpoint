@@ -20,15 +20,16 @@
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">
 	<apit:oid>c0c010c0-d34d-b33f-f00d-111111111112</apit:oid>
-	<apit:modification>
+	<apit:itemDelta>
 		<t:modificationType>delete</t:modificationType>
-		<t:value>
-			<assignment>
+		<t:path>assignment</t:path>
+		<t:value id="1">
+<!-- 			<assignment id="1"> -->
 				<construction>
 					<description>Undead monkey account construction</description>
-					<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+					<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
 					<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
 					<attribute>
 						<ref>ri:weapon</ref>
@@ -39,7 +40,7 @@
 						</outbound>
 					</attribute>
 				</construction>
-			</assignment>
+<!-- 			</assignment> -->
 		</t:value>
-	</apit:modification>
+	</apit:itemDelta>
 </apit:objectModification>

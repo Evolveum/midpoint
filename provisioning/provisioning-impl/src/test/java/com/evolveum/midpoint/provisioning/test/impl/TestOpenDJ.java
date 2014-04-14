@@ -35,6 +35,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +64,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -76,7 +78,6 @@ import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -212,7 +213,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		display("Resource after testResource (repository)",resourceTypeRepoAfter);
 		
-		display("Resource after testResource (repository, XML)", PrismTestUtil.serializeObjectToString(resourceTypeRepoAfter.asPrismObject()));
+		display("Resource after testResource (repository, XML)", PrismTestUtil.serializeObjectToString(resourceTypeRepoAfter.asPrismObject(), PrismContext.LANG_XML));
 		
 		XmlSchemaType xmlSchemaTypeAfter = resourceTypeRepoAfter.getSchema();
 		assertNotNull("No schema after test connection",xmlSchemaTypeAfter);
@@ -287,7 +288,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		// THEN
 		display("Resource from provisioninig", resource);
-		display("Resource from provisioninig (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject()));
+		display("Resource from provisioninig (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
 		
 		CapabilityCollectionType nativeCapabilities = resource.getCapabilities().getNative();
 		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
@@ -627,7 +628,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
 				new File("src/test/resources/impl/account-change-description.xml"), ObjectModificationType.class);
-		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class, PrismTestUtil.getPrismContext());
+		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, object.asPrismObject().getDefinition());
 		
 		ItemPath icfNamePath = new ItemPath(
 				ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME);
@@ -722,7 +723,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
 				new File("src/test/resources/impl/account-change-password.xml"), ObjectModificationType.class);
-		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class, PrismTestUtil.getPrismContext());
+		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, accountType.asPrismObject().getDefinition());
 		display("Object change",delta);
 
 		// WHEN
@@ -869,7 +870,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
 				new File(REQUEST_DISABLE_ACCOUNT_SIMULATED_FILENAME), ObjectModificationType.class);
-		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class, PrismTestUtil.getPrismContext());
+		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, object.asPrismObject().getDefinition());
 		display("Object change",delta);
 
 		// WHEN
@@ -977,7 +978,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		QueryType queryType = PrismTestUtil.unmarshalObject(new File(
 				"src/test/resources/impl/query-filter-all-accounts.xml"), QueryType.class);
-		ObjectQuery query = QueryConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 		
 		provisioningService.searchObjectsIterative(ShadowType.class, query, null, new ResultHandler<ShadowType>() {
 
@@ -1017,7 +1018,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		QueryType queryType = PrismTestUtil.unmarshalObject(new File("src/test/resources/impl/query-filter-all-accounts.xml"), 
 				QueryType.class);
-		ObjectQuery query = QueryConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 
 		List<PrismObject<ShadowType>> objListType = 
 			provisioningService.searchObjects(ShadowType.class, query, null, result);
@@ -1040,7 +1041,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		QueryType queryType = PrismTestUtil.unmarshalObject(new File("src/test/resources/impl/query-complex-filter.xml"), 
 				QueryType.class);
-		ObjectQuery query = QueryConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 
 		List<PrismObject<ShadowType>> objListType = 
 			provisioningService.searchObjects(ShadowType.class, query, null, result);

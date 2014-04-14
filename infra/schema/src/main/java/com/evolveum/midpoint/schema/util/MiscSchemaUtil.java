@@ -23,27 +23,28 @@ import java.util.Random;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.GetOperationOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.SelectorQualifiedGetOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.SelectorQualifiedGetOptionsType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.ObjectSelector;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectOperationOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectOperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectSelectorType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProjectionPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
@@ -52,8 +53,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 
 /**
  * @author Radovan Semancik
@@ -115,7 +116,7 @@ public class MiscSchemaUtil {
 	}
 
 	public static boolean isNullOrEmpty(ProtectedStringType ps) {
-		return (ps == null || (ps.getClearValue() == null && ps.getEncryptedData() == null));
+		return (ps == null || ps.isEmpty());
 	}
 
 	public static void setPassword(CredentialsType credentials, ProtectedStringType password) {
@@ -135,50 +136,44 @@ public class MiscSchemaUtil {
 
 	public static Collection<ItemPath> itemReferenceListTypeToItemPathList(PropertyReferenceListType resolve) {
 		Collection<ItemPath> itemPathList = new ArrayList<ItemPath>(resolve.getProperty().size());
-		for (Element itemXPathElement: resolve.getProperty()) {
-			XPathHolder itemXPath = new XPathHolder(itemXPathElement);
-			itemPathList.add(itemXPath.toItemPath());
+		for (ItemPathType itemXPathElement: resolve.getProperty()) {
+			itemPathList.add(itemXPathElement.getItemPath());
 		}
 		return itemPathList;
 	}
 
-	public static Collection<SelectorOptions<GetOperationOptions>> optionsTypeToOptions(OperationOptionsType optionsType) {
-		if (optionsType == null) {
-			return null;
-		}
-		List<ObjectOperationOptionsType> objectOptionsTypeList = optionsType.getObjectOption();
-		Collection<SelectorOptions<GetOperationOptions>> optionsList = new ArrayList<SelectorOptions<GetOperationOptions>>(objectOptionsTypeList.size());
-		for (ObjectOperationOptionsType objectOptionsType: objectOptionsTypeList) {
-			optionsList.add(objectOptionsTypeToOptions(objectOptionsType));
-		}
-		return optionsList;
-	}
+    public static List<SelectorOptions<GetOperationOptions>> optionsTypeToOptions(SelectorQualifiedGetOptionsType objectOptionsType) {
+        if (objectOptionsType == null) {
+            return null;
+        }
+        List<SelectorOptions<GetOperationOptions>> retval = new ArrayList<>();
+        for (SelectorQualifiedGetOptionType optionType : objectOptionsType.getOption()) {
+            retval.add(selectorQualifiedGetOptionTypeToSelectorOption(optionType));
+        }
+        return retval;
+    }
 
-	private static SelectorOptions<GetOperationOptions> objectOptionsTypeToOptions(ObjectOperationOptionsType objectOptionsType) {
+	private static SelectorOptions<GetOperationOptions> selectorQualifiedGetOptionTypeToSelectorOption(SelectorQualifiedGetOptionType objectOptionsType) {
 		ObjectSelector selector = selectorTypeToSelector(objectOptionsType.getSelector());
-		GetOperationOptions options = optionsTypeToOptions(objectOptionsType.getOption());
-		return new SelectorOptions<GetOperationOptions>(selector, options );
+		GetOperationOptions options = getOptionsTypeToOptions(objectOptionsType.getOptions());
+		return new SelectorOptions<>(selector, options);
 	}
 
-	private static GetOperationOptions optionsTypeToOptions(List<ObjectOperationOptionType> optionTypeList) {
+	private static GetOperationOptions getOptionsTypeToOptions(GetOperationOptionsType optionsType) {
 		GetOperationOptions options = new GetOperationOptions();
-		for (ObjectOperationOptionType optionType: optionTypeList) {
-			if (optionType == ObjectOperationOptionType.RESOLVE) {
-				options.setResolve(true);
-			}
-			if (optionType == ObjectOperationOptionType.NO_FETCH) {
-				options.setNoFetch(true);
-			}			
-		}
+        options.setRetrieve(RetrieveOption.fromRetrieveOptionType(optionsType.getRetrieve()));
+        options.setResolve(optionsType.isResolve());
+        options.setNoFetch(optionsType.isNoFetch());
+        options.setRaw(optionsType.isRaw());
+        options.setDoNotDiscovery(optionsType.isNoDiscovery());
 		return options;
 	}
 
-	private static ObjectSelector selectorTypeToSelector(ObjectSelectorType selectorType) {
+    private static ObjectSelector selectorTypeToSelector(ObjectSelectorType selectorType) {
 		if (selectorType == null) {
 			return null;
 		}
-		XPathHolder itemXPath = new XPathHolder(selectorType.getPath());
-		return new ObjectSelector(itemXPath.toItemPath());
+		return new ObjectSelector(selectorType.getPath().getItemPath());
 	}
 	
     /**

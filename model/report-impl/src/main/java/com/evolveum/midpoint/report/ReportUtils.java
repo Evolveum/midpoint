@@ -14,6 +14,8 @@ import java.util.Map;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRExpression;
 import net.sf.jasperreports.engine.JRStyle;
@@ -59,7 +61,6 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -227,14 +228,14 @@ public class ReportUtils {
 	 JasperReport jasperReport;
 	 try
 	 {
-		 if (reportType.getTemplate() == null || reportType.getTemplate().getAny() == null)
+		 if (reportType.getTemplate() == null)
 		 {
 			jasperDesign = createJasperDesign(reportType, parameterConfiguration, reportSchema);
     	 	LOGGER.trace("create jasper design : {}", jasperDesign);
 		 }
 		 else
 		 {
-    	 	String reportTemplate = DOMUtil.serializeDOMToString((Node)reportType.getTemplate().getAny());
+    	 	String reportTemplate = reportType.getTemplate();
     	 	InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate.getBytes());
     	 	jasperDesign = JRXmlLoader.load(inputStreamJRXML);
     	 	LOGGER.trace("load jasper design : {}", jasperDesign);
@@ -266,11 +267,9 @@ public class ReportUtils {
     public static Map<String, Object> getReportParameters(ReportType reportType, PrismContainer<Containerable> parameterConfiguration, PrismSchema reportSchema, OperationResult parentResult)
 	{
 		Map<String, Object> params = new HashMap<String, Object>();
-		ReportTemplateStyleType styleType = reportType.getTemplateStyle();
-		
 		if (reportType.getTemplateStyle() != null)
 		{	 
-			String reportTemplateStyle = DOMUtil.serializeDOMToString((Node)reportType.getTemplateStyle().getAny());
+			String reportTemplateStyle = reportType.getTemplateStyle();
 			//TODO must be changed
 			//without replace strings, without xmlns namespace, with insert into schema special xml element DOCTYPE
 			int first = reportTemplateStyle.indexOf(">");
@@ -849,21 +848,22 @@ public class ReportUtils {
     	return output;
     }
     
-    public static String getDeltaAudit(String delta)
-    {
-    	String deltaAudit = null;
-    	try
-    	{
-    		SchemaRegistry schemaRegistry = new SchemaRegistry();
-    		PrismContext prismContext = PrismContext.createEmptyContext(schemaRegistry);
-    		ObjectDeltaType xmlDelta = prismContext.getPrismJaxbProcessor().unmarshalObject(delta, ObjectDeltaType.class);
-    		deltaAudit = xmlDelta.getChangeType().toString() + " - " + xmlDelta.getObjectType().getLocalPart().toString();
-    	} catch (Exception ex) {
-    		return ex.getMessage();
-    	}
-    	
-    	return deltaAudit;
-    }
+    // TODO is this used? 
+//    public static String getDeltaAudit(String delta)
+//    {
+//    	String deltaAudit = null;
+//    	try
+//    	{
+//    		SchemaRegistry schemaRegistry = new SchemaRegistry();
+//    		PrismContext prismContext = PrismContext.createEmptyContext(schemaRegistry);
+//    		ObjectDeltaType xmlDelta = prismContext.getPrismJaxbProcessor().unmarshalObject(delta, ObjectDeltaType.class);
+//    		deltaAudit = xmlDelta.getChangeType().toString() + " - " + xmlDelta.getObjectType().getLocalPart().toString();
+//    	} catch (Exception ex) {
+//    		return ex.getMessage();
+//    	}
+//
+//    	return deltaAudit;
+//    }
    /* 
     public static ObjectQuery getObjectQuery(PrismContainer<Containerable> parameterConfiguration, String namespace, PrismContext prismContext)
     {/*
@@ -904,9 +904,12 @@ public class ReportUtils {
 		ObjectQuery objectQuery = new ObjectQuery();
     	try
         {
-        	QueryType queryType = (QueryType)params.get(PARAMETER_QUERY_FILTER);
-    		LOGGER.info("DataSource Query type : {}", queryType);
-    		objectQuery = queryType != null ? QueryConvertor.createObjectQuery(clazz, queryType, prismContext) : objectQuery;
+            // TODO is this ok?
+        	SearchFilterType filterType = (SearchFilterType) params.get(PARAMETER_QUERY_FILTER);
+    		LOGGER.info("DataSource Query type : {}", filterType);
+            if (filterType != null) {
+                objectQuery.setFilter(QueryConvertor.parseFilter(filterType, (Class) clazz, prismContext));
+            }
         } catch(Exception ex){
         	LOGGER.error("Couldn't create object query : {}", ex.getMessage());
         }

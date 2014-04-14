@@ -65,7 +65,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
-import com.evolveum.prism.xml.ns._public.types_2.ObjectReferenceType;
+
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import org.quartz.JobKey;

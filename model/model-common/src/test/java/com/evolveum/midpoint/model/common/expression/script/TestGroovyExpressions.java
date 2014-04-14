@@ -15,12 +15,12 @@
  */
 package com.evolveum.midpoint.model.common.expression.script;
 
-import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.model.common.expression.script.ScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.xpath.XPathScriptEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;

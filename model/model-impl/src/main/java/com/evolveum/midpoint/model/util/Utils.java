@@ -24,8 +24,6 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.common.crypto.EncryptionException;
-import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
@@ -44,13 +42,16 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -67,6 +68,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
@@ -166,14 +168,14 @@ public final class Utils {
 	        }
 	        Class<? extends ObjectType> type = ObjectType.class;
 	        if (typeQName != null) {
-	        	type = (Class<? extends ObjectType>) prismContext.getSchemaRegistry().determineCompileTimeClass(typeQName);
+	        	type = (Class) prismContext.getSchemaRegistry().determineCompileTimeClass(typeQName);
 	            if (type == null) {
 	                result.recordWarning("Unknown type specified in reference or definition of reference " + refName + ": "
 	                        + typeQName);
 	                type = ObjectType.class;
 	            }
 	        }
-	        Element filter = refVal.getFilter();
+	        SearchFilterType filter = refVal.getFilter();
 	        
 	        if (!StringUtils.isBlank(refVal.getOid())) {
 	            // We have OID
@@ -227,9 +229,9 @@ public final class Utils {
 	        ObjectFilter objFilter =  null;
 	        try{
 	        	PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-	        	objFilter = QueryConvertor.parseFilter(objDef, filter);
+	        	objFilter = QueryConvertor.parseFilter(filter, objDef);
 	        } catch (SchemaException ex){
-	        	LOGGER.error("Failed to convert object filter from filter: "+ DOMUtil.printDom(filter) + " Reason: "+ ex.getMessage(), ex);
+	        	LOGGER.error("Failed to convert object filter from filter because of: "+ ex.getMessage() + "; filter: " + filter.debugDump(), ex);
 	        	throw new SystemException("Failed to convert object filter from filter. Reason: " + ex.getMessage(), ex);
 	        }
 	        

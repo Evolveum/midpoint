@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.prism.delta;
 
 import java.io.File;
+import java.io.IOException;
 
 import javax.xml.bind.JAXBElement;
 
@@ -81,14 +82,14 @@ public class DiffUtil {
 		return diff(oldObject, newObject);
 	}
 
-	public static <T extends Objectable> ObjectDelta<T> diff(File oldXmlFile, File newXmlFile, Class<T> type, PrismContext prismContext) throws SchemaException {
+	public static <T extends Objectable> ObjectDelta<T> diff(File oldXmlFile, File newXmlFile, Class<T> type, PrismContext prismContext) throws SchemaException, IOException {
 		PrismObject<T> oldObject = null;
 		if (oldXmlFile != null) {
-			oldObject = prismContext.getPrismDomProcessor().parseObject(oldXmlFile);
+			oldObject = prismContext.parseObject(oldXmlFile);
 		}
 		PrismObject<T> newObject = null;
 		if (newXmlFile != null) {
-			newObject = prismContext.getPrismDomProcessor().parseObject(newXmlFile);
+			newObject = prismContext.parseObject(newXmlFile);
 		}
 		return diff(oldObject, newObject);
 	}

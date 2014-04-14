@@ -86,6 +86,10 @@ public class DebugUtil {
 	}
 	
 	public static void debugDump(StringBuilder sb, Collection<?> dumpables, int indent, boolean openCloseSymbols) {
+		debugDump(sb, dumpables, indent, openCloseSymbols, null);
+	}
+	
+	public static void debugDump(StringBuilder sb, Collection<?> dumpables, int indent, boolean openCloseSymbols, String dumpSuffix) {
         if (dumpables == null) {
             return;
         }
@@ -93,6 +97,9 @@ public class DebugUtil {
 		if (openCloseSymbols) {
 			indentDebugDump(sb, indent);
 			sb.append(getCollectionOpeningSymbol(dumpables));
+			if (dumpSuffix != null) {
+				sb.append(dumpSuffix);
+			}
 			sb.append("\n");
 		}
 		Iterator<?> iterator = dumpables.iterator();
@@ -276,10 +283,28 @@ public class DebugUtil {
 	}
 
 	public static <K, V> void debugDumpMapMultiLine(StringBuilder sb, Map<K, V> map, int indent) {
+		debugDumpMapMultiLine(sb, map, indent, false);
+	}
+	
+	public static <K, V> void debugDumpMapMultiLine(StringBuilder sb, Map<K, V> map, int indent, boolean openCloseSymbols) {
+		debugDumpMapMultiLine(sb, map, indent, openCloseSymbols, null);
+	}
+	
+	public static <K, V> void debugDumpMapMultiLine(StringBuilder sb, Map<K, V> map, int indent, boolean openCloseSymbols, String dumpSuffix) {
+		int inindent = indent;
+		if (openCloseSymbols) {
+			indentDebugDump(sb,indent);
+			sb.append("(");
+			if (dumpSuffix != null) {
+				sb.append(dumpSuffix);
+			}
+			sb.append("\n");
+			inindent++;
+		}
 		Iterator<Entry<K, V>> i = map.entrySet().iterator();
 		while (i.hasNext()) {
 			Entry<K,V> entry = i.next();
-			indentDebugDump(sb,indent);
+			indentDebugDump(sb,inindent);
 			sb.append(PrettyPrinter.prettyPrint(entry.getKey()));
 			sb.append(" => ");
 			V value = entry.getValue();
@@ -287,13 +312,18 @@ public class DebugUtil {
 				sb.append("null");
 			} else if (value instanceof DebugDumpable) {
 				sb.append("\n");
-				sb.append(((DebugDumpable)value).debugDump(indent+1));
+				sb.append(((DebugDumpable)value).debugDump(inindent+1));
 			} else {
 				sb.append(value);
 			}
 			if (i.hasNext()) {
 				sb.append("\n");
 			}
+		}
+		if (openCloseSymbols) {
+			sb.append("\n");
+			indentDebugDump(sb,indent);
+			sb.append(")");
 		}
 	}
 
@@ -329,5 +359,19 @@ public class DebugUtil {
 		}
 		Date date = new Date(millis);
 		return PrettyPrinter.prettyPrint(date);
+	}
+
+	public static String excerpt(String input, int maxChars) {
+		if (input == null) {
+			return null;
+		}
+		int eolIndex = input.indexOf('\n');
+		if (eolIndex >= 0) {
+			maxChars = eolIndex;
+		}
+		if (input.length() <= maxChars) {
+			return input;
+		}
+		return input.substring(0, maxChars)+"...";
 	}
 }

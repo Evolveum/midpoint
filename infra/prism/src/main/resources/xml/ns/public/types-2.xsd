@@ -80,6 +80,8 @@
 				child element is present then the text entire text content of this element is
 				considered as if it was present in the "orig" element. That's the reason for making
 				this type "mixed".
+				
+				This is considered to be primitive built-in type for prism objects.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -114,6 +116,148 @@
 				</xsd:annotation>
 			</xsd:any>
 		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="ProtectedStringType" mixed="true">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specific subtype for protected STRING data.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:ProtectedDataType">
+				<xsd:sequence>
+					<xsd:element name="clearValue" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Clear unprotected value.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:complexType name="ProtectedByteArrayType" mixed="true">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specific subtype for protected binary byte array data.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:ProtectedDataType">
+				<xsd:sequence>
+					<xsd:element name="clearValue" type="xsd:base64Binary" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Clear unprotected value.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:complexType name="ProtectedDataType" mixed="true" abstract="true">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				May be either encrypted or hashed or provided in the clear (e.g. for debugging).
+				
+				This type is marked as "mixed" because it may have alternative representation where
+				just the plaintext value is presented as the only value.
+				
+				This is considered to be primitive built-in type for prism objects.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="encryptedData" type="tns:EncryptedDataType" minOccurs="0"/>
+			<!-- TODO: hashing -->
+			
+			<xsd:any namespace="##other" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						DEPRECATED. Only for compatibility with older versions.
+						Used to match legacy xenc:EncryptedData
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:any>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="EncryptedDataType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				Contains data protected by (reversible) encryption.
+				
+				Loosely based on XML encryption standard. But we cannot use full
+				standard as we are not bound to XML. We need this to work also for
+				JSON and YAML and other languages.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="encryptionMethod" type="tns:EncryptionMethodType" minOccurs="0"/>
+			<xsd:element name="keyInfo" type="tns:KeyInfoType" minOccurs="0"/>
+			<xsd:element name="cipherData" type="tns:CipherDataType" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="EncryptionMethodType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				
+				Loosely based on XML encryption standard. But we cannot use full
+				standard as we are not bound to XML. We need this to work also for
+				JSON and YAML and other languages.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="algorithm" type="xsd:anyURI" minOccurs="1"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="KeyInfoType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				
+				Loosely based on XML digital signature standard. But we cannot use full
+				standard as we are not bound to XML. We need this to work also for
+				JSON and YAML and other languages.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="keyName" type="xsd:string" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="CipherDataType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				
+				Loosely based on XML encryption standard. But we cannot use full
+				standard as we are not bound to XML. We need this to work also for
+				JSON and YAML and other languages.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="cipherValue" type="xsd:base64Binary" minOccurs="1"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="ObjectType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				
+			</xsd:documentation>
+		</xsd:annotation>
+		
 	</xsd:complexType>
 
     <!-- ########################################### -->
@@ -191,34 +335,79 @@
         </xsd:attribute>
     </xsd:complexType>
     
-    <xsd:complexType name="XPathType" mixed="true">
-        <xsd:annotation>
-            <xsd:appinfo>
-                <jaxb:dom/>
-            </xsd:appinfo>
-            <xsd:documentation>
-                Defines a type for XPath pointer. It points to a specific part
-                of the XML tree. Only a path expressions should be used in
-                this type, as it is used as an l-value, i.e. pointing to a
-                part of XML where an value can be assigned.
-                
-                XPath expression selecting the property container.
-                It must select exactly one XML element. It must not be used to
-                select XML constructs inside a property, unless such property is
-                in itself an object.
+    <!--<xsd:complexType name="XPathType" mixed="true">-->
+        <!--<xsd:annotation>-->
+            <!--<xsd:appinfo>-->
+                <!--<jaxb:dom/>-->
+                <!--<a:deprecated/>-->
+            <!--</xsd:appinfo>-->
+            <!--<xsd:documentation>-->
+                <!--Defines a type for XPath pointer. It points to a specific part-->
+                <!--of the XML tree. Only a path expressions should be used in-->
+                <!--this type, as it is used as an l-value, i.e. pointing to a-->
+                <!--part of XML where an value can be assigned.-->
+                <!---->
+                <!--XPath expression selecting the property container.-->
+                <!--It must select exactly one XML element. It must not be used to-->
+                <!--select XML constructs inside a property, unless such property is-->
+                <!--in itself an object.-->
 
-                The root of the path is assumed to be the element of the
-                top-most ObjectType. Path attribute may be omitted. In that
-                case it is assumed to be "/". The path should be absolute,
-                starting with leading slash ("/"). If the leading slash is
-                not present, it should be assumed, but warning message
-                should be logged in such case.
-                
-                cf. ExpressionType
+                <!--The root of the path is assumed to be the element of the-->
+                <!--top-most ObjectType. Path attribute may be omitted. In that-->
+                <!--case it is assumed to be "/". The path should be absolute,-->
+                <!--starting with leading slash ("/"). If the leading slash is-->
+                <!--not present, it should be assumed, but warning message-->
+                <!--should be logged in such case.-->
+                <!---->
+                <!--DEPRECATED. use ItemPathType instead-->
+                <!---->
+                <!--cf. ExpressionType-->
+            <!--</xsd:documentation>-->
+        <!--</xsd:annotation>-->
+    <!--</xsd:complexType>-->
+
+    <xsd:complexType name="ItemPathType" mixed="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines a type for XPath-like item pointer. It points to a specific part
+                of the prism object.
             </xsd:documentation>
         </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:any minOccurs="0"/>
+        </xsd:sequence>
     </xsd:complexType>
     
+    <xsd:complexType name="SchemaDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type for prism schema definition. It currently contains
+                XSD schema definition. But other languages may be supported
+                later.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+			<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="strict">
+				<xsd:annotation>
+				    <xsd:appinfo>
+				        <jaxb:dom/>
+				    </xsd:appinfo>
+				</xsd:annotation>
+			</xsd:any>
+		</xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="RawType" mixed="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+        </xsd:sequence>
+        <xsd:anyAttribute processContents="lax"/>
+    </xsd:complexType>
     
     <!-- ########################################### -->
     <!-- ##                DELTAS                 ## -->
@@ -237,32 +426,33 @@
 
         <xsd:sequence>
         	<xsd:element name="modificationType" type="tns:ModificationTypeType"/>
-        	<xsd:element name="path" type="tns:XPathType" minOccurs="0">
+        	<xsd:element name="path" type="tns:ItemPathType" minOccurs="0">
         		<xsd:annotation>
         			<xsd:documentation>
         				Path to the CONTAINER.
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-            <xsd:element name="value">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    The elements and values of changed properties.
-                                    Multi-valued properties are expressed as usual,
-                                    that means by repeating the element containing
-                                    the property value.
-                                    All the elements must have the same QName and be 
-                                    of the same type.
-                                    If more than one property is changed, the entire
-                                    PropertyChangeType element must be repeated.
-                                </xsd:documentation>
-                            </xsd:annotation>
-                        </xsd:any>
-                    </xsd:sequence>
-                </xsd:complexType>
+            <!--<xsd:element name="value" type="tns:RawType">-->
+            <xsd:element name="value" type="xsd:anyType">
+<!--                 <xsd:complexType> -->
+<!--                     <xsd:sequence> -->
+<!--                         <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"> -->
+<!--                             <xsd:annotation> -->
+<!--                                 <xsd:documentation> -->
+<!--                                     The elements and values of changed properties. -->
+<!--                                     Multi-valued properties are expressed as usual, -->
+<!--                                     that means by repeating the element containing -->
+<!--                                     the property value. -->
+<!--                                     All the elements must have the same QName and be  -->
+<!--                                     of the same type. -->
+<!--                                     If more than one property is changed, the entire -->
+<!--                                     PropertyChangeType element must be repeated. -->
+<!--                                 </xsd:documentation> -->
+<!--                             </xsd:annotation> -->
+<!--                         </xsd:any> -->
+<!--                     </xsd:sequence> -->
+<!--                 </xsd:complexType> -->
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
@@ -340,7 +530,7 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-        	<xsd:element name="modification" type="tns:ItemDeltaType" minOccurs="0" maxOccurs="unbounded">
+        	<xsd:element name="itemDelta" type="tns:ItemDeltaType" minOccurs="0" maxOccurs="unbounded">
         		<xsd:annotation>
         			<xsd:documentation>
         				Valid only if the changeType is "modify".

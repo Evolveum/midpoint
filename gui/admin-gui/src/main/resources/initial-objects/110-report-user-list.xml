@@ -21,7 +21,7 @@
         version="0">
 	<name>
 		<orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Users in MidPoint</orig>
-		<norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Users in MidPoint</norm>
+		<norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">users in midpoint</norm>
 	</name>
 	<description>Users listed in MidPoint.</description>
 	<!-- flag if this report is "parent" report, used for gui -->

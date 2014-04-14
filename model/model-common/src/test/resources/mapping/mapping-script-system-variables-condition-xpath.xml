@@ -27,7 +27,7 @@
 	<expression>
 		<script>
 			<language>http://www.w3.org/TR/xpath/</language>
-			<code>concat('Captain ',$c:name/t:orig)</code>
+			<code>concat('Captain ',$name)</code>
 		</script>
 	</expression>
 	<condition>

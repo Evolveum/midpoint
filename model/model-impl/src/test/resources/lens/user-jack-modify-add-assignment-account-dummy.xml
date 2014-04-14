@@ -22,14 +22,15 @@
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
 	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
-	<modification>
+	<itemDelta>
 		<t:modificationType>add</t:modificationType>
+		<t:path>c:assignment</t:path>
 		<t:value>
-			<c:assignment>
+<!-- 			<c:assignment> -->
 				<c:construction>
 					<c:resourceRef oid="10000000-0000-0000-0000-000000000004"/>
 				</c:construction>
-			</c:assignment>
+<!-- 			</c:assignment> -->
 		</t:value>
-	</modification>
+	</itemDelta>
 </objectModification>

@@ -16,23 +16,9 @@
 
 package com.evolveum.midpoint.notifications.api.transports;
 
-import com.evolveum.midpoint.common.crypto.EncryptionException;
-import com.evolveum.midpoint.common.crypto.Protector;
-import com.evolveum.midpoint.notifications.api.NotificationManager;
-import com.evolveum.midpoint.notifications.NotificationsUtil;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
+import java.io.IOException;
+import java.util.Date;
+import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 import javax.mail.MessagingException;
@@ -40,9 +26,28 @@ import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-import java.io.IOException;
-import java.util.Date;
-import java.util.Properties;
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.notifications.NotificationsUtil;
+import com.evolveum.midpoint.notifications.api.NotificationManager;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MailConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MailServerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MailTransportSecurityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 
 /**
  * @author mederly

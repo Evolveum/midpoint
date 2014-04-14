@@ -50,8 +50,6 @@
     <xsd:element name="dateType" type="xsd:dateTime"/>
     
     <xsd:element name="durationType" type="xsd:duration"/>
-
-    <xsd:element name="locations" type="tns:LocationsType"/>
     
     <xsd:element name="ignoredType" type="xsd:string">
 	    <xsd:annotation>
@@ -70,17 +68,27 @@
     </xsd:element>
 
     <xsd:complexType name="LocationsType">
+    	<xsd:annotation>
+    		<xsd:appinfo>
+    			<a:container/>
+    		</xsd:appinfo>
+    	</xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="location" type="tns:LocationType"/>
+            <xsd:element name="location" type="tns:LocationType" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="locations" type="tns:LocationsType"/>
 
     <xsd:complexType name="LocationType">
-        <xsd:simpleContent>
-            <xsd:extension base="xsd:string">
-                <xsd:attribute name="key" type="xsd:string"/>
-            </xsd:extension>
-        </xsd:simpleContent>
+    	<xsd:annotation>
+    		<xsd:appinfo>
+    			<a:container/>
+    		</xsd:appinfo>
+    	</xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="key" type="xsd:string"/>
+            <xsd:element name="value" type="xsd:string"/>
+        </xsd:sequence>
     </xsd:complexType>
     
     <xsd:complexType name="BladeType">

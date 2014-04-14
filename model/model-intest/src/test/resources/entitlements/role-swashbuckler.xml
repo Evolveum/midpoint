@@ -38,9 +38,7 @@
             	<outbound>
             		<expression>
             			<value>
-            				<association>
-            					<shadowRef oid="20000000-0000-0000-3333-000000000001"/>
-            				</association>
+                            <shadowRef oid="20000000-0000-0000-3333-000000000001" type="ShadowType"/>
             			</value>
             		</expression>
             	</outbound>

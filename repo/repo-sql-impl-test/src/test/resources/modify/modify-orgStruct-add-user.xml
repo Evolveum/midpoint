@@ -20,10 +20,11 @@
         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
     <oid>will be replaced by source code</oid>
-    <modification>
+    <itemDelta>
         <t:modificationType>add</t:modificationType>
+        <t:path>c:orgRef</t:path>
         <t:value>
             <c:orgRef oid="00000000-8888-6666-0000-100000000006"/>
         </t:value>
-    </modification>
+    </itemDelta>
 </objectModification>

@@ -32,6 +32,9 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -192,7 +195,7 @@ public class TestCsvFile extends AbstractIntegrationTest {
 		Element resourceXsdSchemaElementAfter = ResourceTypeUtil.getResourceXsdSchema(resourceTypeRepoAfter);
 		assertNotNull("No schema after test connection", resourceXsdSchemaElementAfter);
 		
-		String resourceXml = prismContext.getPrismDomProcessor().serializeObjectToString(resourceRepoAfter);
+		String resourceXml = prismContext.serializeObjectToString(resourceRepoAfter, PrismContext.LANG_XML);
 		display("Resource XML", resourceXml);
 
 		CachingMetadataType cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
@@ -268,7 +271,7 @@ public class TestCsvFile extends AbstractIntegrationTest {
 		
 		// THEN
 		display("Resource from provisioninig", resource);
-		display("Resource from provisioninig (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject()));
+		display("Resource from provisioninig (XML)", PrismTestUtil.serializeObjectToString(resource.asPrismObject(), PrismContext.LANG_XML));
 		
 		CapabilityCollectionType nativeCapabilities = resource.getCapabilities().getNative();
 		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
@@ -321,14 +324,13 @@ public class TestCsvFile extends AbstractIntegrationTest {
 		script.setHost(ProvisioningScriptHostType.RESOURCE);
 		script.setLanguage("exec");
 		script.setCode("src/test/script/csvscript.sh");
-		ProvisioningScriptArgumentType argName = new ProvisioningScriptArgumentType();
-		argName.setName("NAME");
-		JAXBElement<Object> valueEvaluator = new ObjectFactory().createValue(null);
-		Element domElement = DOMUtil.createElement(valueEvaluator.getName());
-		domElement.setTextContent("World");
-		valueEvaluator.setValue(domElement);
-		argName.getExpressionEvaluator().add(valueEvaluator);
-		script.getArgument().add(argName);
+		ProvisioningScriptArgumentType argument = new ProvisioningScriptArgumentType();
+		argument.setName("NAME");
+		JAXBElement<RawType> valueEvaluator = new ObjectFactory().createValue(null);
+        RawType value = new RawType(new PrimitiveXNode<String>("World"));
+		valueEvaluator.setValue(value);
+		argument.getExpressionEvaluator().add(valueEvaluator);
+		script.getArgument().add(argument);
 
 		// WHEN
 		provisioningService.executeScript(RESOURCE_CSV_OID, script, task, result);

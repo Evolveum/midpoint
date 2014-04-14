@@ -25,8 +25,6 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.crypto.EncryptionException;
-import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.policy.ValuePolicyGenerator;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluator;
@@ -39,6 +37,8 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -55,6 +55,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenerateExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 
 /**
  * @author semancik
@@ -127,7 +128,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue> implements Expres
         QName outputType = outputDefinition.getTypeName();
         if (outputType.equals(DOMUtil.XSD_STRING)) {
         	value  = stringValue;
-        } else if (outputType.equals(SchemaConstants.C_PROTECTED_STRING_TYPE)) {
+        } else if (outputType.equals(ProtectedStringType.COMPLEX_TYPE)) {
         	try {
 				value = protector.encryptString(stringValue);
 			} catch (EncryptionException e) {

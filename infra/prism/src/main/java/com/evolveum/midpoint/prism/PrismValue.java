@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.w3c.dom.Element;
 
 import java.io.Serializable;
@@ -97,6 +98,14 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 		return null;
 	}
 	
+	protected ItemDefinition getDefinition() {
+		Itemable parent = getParent();
+    	if (parent == null) {
+    		return null;
+    	}
+    	return parent.getDefinition();
+    }
+	
 	public void applyDefinition(ItemDefinition definition) throws SchemaException {
 		applyDefinition(definition, true);
 	}
@@ -105,7 +114,7 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 		// Do nothing by default
 	}
 	
-	public void revive(PrismContext prismContext) {
+	public void revive(PrismContext prismContext) throws SchemaException {
 		recompute(prismContext);
 	}
 	
@@ -133,19 +142,6 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 		} else {
 			visitor.visit(this);
 		}
-	}
-
-	public Element asDomElement() {
-		if (domElement == null) {
-			domElement = createDomElement();
-		}
-		return domElement;
-	}
-
-	protected abstract Element createDomElement();
-	
-	protected void clearDomElement() {
-		domElement = null;
 	}
 	
 	public abstract void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw);

@@ -23,13 +23,14 @@
          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
          xmlns:my="http://myself.me/schemas/whatever"
          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
 
     <user version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 
             xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
-        <name>atestuserX00002</name>
+        <c:name>atestuserX00002</c:name>
         
         <trigger id="2">
             <handlerUri>http://triggerUri</handlerUri>
@@ -158,8 +159,8 @@
         <iterationToken>stringtoken</iterationToken>
     </object>
 
-    <resource>
-        <name>Localhost OpenDJ</name>
+    <c:resource>
+        <c:name>Localhost OpenDJ</c:name>
         <description>LDAP resource using an Identity Connector Framework LDAP connector.</description>
         <connectorRef type="ConnectorType" oid="123">
             <description>Reference to the ICF LDAP connector.</description>
@@ -508,18 +509,29 @@
             </configured>
         </capabilities>
         <synchronization>
+        <objectSynchronization>
+            <!--
+                The synchronization for this resource is enabled.
+                It means that the synchronization will react to changes detected by
+                the system (live sync task, discovery or reconciliation) -->
             <enabled>true</enabled>
             <correlation>
-                <description>Correlation expression is a search query.</description>
-                <equal>
-                    <path>.</path>
-                    <valueExpression>
-                        <ref>name</ref>
-                        <code>
+                <q:description>
+                    Correlation expression is a search query.
+                    Following search queury will look for users that have "name"
+                    equal to the "uid" attribute of the account. Simply speaking,
+                    it will look for match in usernames in the IDM and the resource.
+                    The correlation rule always looks for users, so it will not match
+                    any other object type.
+                </q:description>
+                <q:equal>
+                    <q:path>name</q:path>
+                    <c:valueExpression>
+                        <c:code>
                             $c:account/c:attributes/ri:uid
-                        </code>
-                    </valueExpression>
-                </equal>
+                        </c:code>
+                    </c:valueExpression>
+                </q:equal>
             </correlation>
             <reaction>
                 <situation>linked</situation>
@@ -531,18 +543,19 @@
                     <userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
                 </action>
             </reaction>
+</objectSynchronization>
         </synchronization>
         <projection>
             <assignmentPolicyEnforcement>positive</assignmentPolicyEnforcement>
         </projection>
-    </resource>
+    </c:resource>
 
     <objectTemplate>
         <name>Default User Template</name>
         <description>User Template Object.
         </description>
-        <includeRef oid="1234" type="c:UserType"/>
-        <includeRef oid="12345" type="c:ResourceType"/>
+        <includeRef oid="1234" type="c:ObjectTemplateType"/>
+        <includeRef oid="12345" type="c:ObjectTemplateType"/>
         <mapping>
             <description>Property construction.</description>
             <strength>weak</strength>
@@ -566,7 +579,7 @@
     <objectTemplate>
         <name>Default User Template2</name>
         <description>Alternative User Template Object.</description>
-        <includeRef oid="12346" type="c:UserType"/>
+        <includeRef oid="12346" type="c:ObjectTemplateType"/>
 		<mapping>
             <description>Property construction.</description>
             <strength>weak</strength>
@@ -597,11 +610,12 @@
             <p:longType>567890</p:longType>
             <p:dateType>2002-05-30T09:10:11.000+02:00</p:dateType>
             <p:decimalType>1234</p:decimalType>
-            <p:locations>
-                <p:location key="home">Here</p:location>
-                <p:location key="work">There</p:location>
-                <p:location key="somewhere">There there over the corner</p:location>
-            </p:locations>
+            <!-- custom run-time properties are not supported -->
+<!--             <p:locations> -->
+<!--                 <p:location key="home">Here</p:location> -->
+<!--                 <p:location key="work">There</p:location> -->
+<!--                 <p:location key="somewhere">There there over the corner</p:location> -->
+<!--             </p:locations> -->
             <p:referenceType oid="12345678-1234-1234-1234-123456789012" type="c:UserType" relation="c:ObjectType">
                 <description>this is some description or something like that, which should be also stored in DB</description>
             </p:referenceType>
@@ -620,7 +634,7 @@
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <executionStatus>runnable</executionStatus>
         <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-2</handlerUri>
-        <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
+        <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
         <recurrence>recurring</recurrence>
         <binding>tight</binding>
         <schedule>
@@ -664,21 +678,21 @@
                             </toString>
                         </unknownJavaObject>
                     </entry>
-                    <entry key="resourceOid">
-                        <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-                                 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                 xsi:type="xsd:string">ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff
-                        </c:value>
-                    </entry>
-                    <entry key="objectClass">
-                        <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-                                 xmlns:qn644="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-                                 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                 xsi:type="xsd:QName">qn644:AccountObjectClass
-                        </c:value>
-                    </entry>
+<!--                     <entry key="resourceOid"> -->
+<!--                         <paramValue xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" -->
+<!--                                  xmlns:xsd="http://www.w3.org/2001/XMLSchema" -->
+<!--                                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" -->
+<!--                                  xsi:type="xsd:string">ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff -->
+<!--                         </paramValue> -->
+<!--                     </entry> -->
+<!--                     <entry key="objectClass"> -->
+<!--                         <paramValue xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" -->
+<!--                                  xmlns:qn644="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" -->
+<!--                                  xmlns:xsd="http://www.w3.org/2001/XMLSchema" -->
+<!--                                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" -->
+<!--                                  xsi:type="xsd:QName">qn644:AccountObjectClass -->
+<!--                         </paramValue> -->
+<!--                     </entry> -->
                 </params>
                 <token>1000000000000000611</token>
                 <message>Task running in background</message>
@@ -686,17 +700,17 @@
                     <operation>com.evolveum.midpoint.model.api.ModelService.getObject</operation>
                     <status>success</status>
                     <params>
-                        <entry key="resolve">
-                            <value xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                   xsi:type="PropertyReferenceListType"/>
-                        </entry>
-                        <entry key="oid">
-                            <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-                                     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                     xsi:type="xsd:string">ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff
-                            </c:value>
-                        </entry>
+<!--                         <entry key="resolve"> -->
+<!--                             <paramValue xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" -->
+<!--                                    xsi:type="PropertyReferenceListType"/> -->
+<!--                         </entry> -->
+<!--                         <entry key="oid"> -->
+<!--                             <paramValue xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" -->
+<!--                                      xmlns:xsd="http://www.w3.org/2001/XMLSchema" -->
+<!--                                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" -->
+<!--                                      xsi:type="xsd:string">ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff -->
+<!--                             </paramValue> -->
+<!--                         </entry> -->
                         <entry key="class">
                             <unknownJavaObject>
                                 <class>java.lang.Class</class>
@@ -916,11 +930,11 @@
          </logging>
          <objectTemplate>
              <type>c:UserType</type>
-             <objectTemplateRef oid="1234" type="c:UserType"/>
+             <objectTemplateRef oid="1234" type="c:ObjectTemplateType"/>
          </objectTemplate>
          <objectTemplate>
              <type>c:ResourceType</type>
-             <objectTemplateRef oid="5678" type="c:ResourceType"/>
+             <objectTemplateRef oid="5678" type="c:ObjectTemplateType"/>
          </objectTemplate>
          <cleanupPolicy>
              <auditRecords>
@@ -939,7 +953,7 @@
         <name>ICF Connector server on admachine:8759</name>
         <hostname>admachine.example.com</hostname>
         <port>8759</port>
-        <sharedSecret>secret</sharedSecret>
+<!--         <sharedSecret>secret</sharedSecret> -->
     </object>
 
     <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
@@ -1057,20 +1071,17 @@
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             oid="AUDITLOG-3333-3333-TEST-10000000000"
             version="0">
-        <name>
-            <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Audit logs report</orig>
-            <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Audit logs report</norm>
-        </name>
+        <name>Audit logs report</name>
         <description>Report made from audit records.</description>
         <template>
-            <jasperReport
+            <![CDATA[<jasperReport
                     xmlns="http://jasperreports.sourceforge.net/jasperreports"
                     name="testreport"
                     uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
                 <property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
                 <property name="net.sf.jasperreports.export.pdf.force.linebreak.policy" value="true"/>
                 <import value="com.evolveum.midpoint.report.ReportUtils"/>
-                <template><![CDATA[$P{BaseTemplateStyles}]]></template>
+                <template><![CDATA[$P{BaseTemplateStyles}\]\]></template>
                 <parameter name="BaseTemplateStyles" class="java.lang.String"/>
                 <parameter name="LOGO_PATH" class="java.lang.String"/>
                 <queryString language="hql">
@@ -1087,16 +1098,17 @@
 							from RObjectDeltaOperation as odo
 							join odo.record as aer
 							where aer.timestamp >= '2000-01-01' and aer.timestamp <= '2020-12-31'
-							order by aer.timestamp]]></queryString>
-            </jasperReport>
+							order by aer.timestamp\]\]></queryString>
+            </jasperReport>]]>
         </template>
         <templateStyle>
-        	<jasperTemplate xmlns="http://jasperreports.sourceforge.net/dtds/jaspertemplate.dtd">
-				<style fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="false" name="Base"
-					   pdfEncoding="Cp1252" pdfFontName="Helvetica" vAlign="Middle"/>
-				<style backcolor="#267994" fontSize="26" forecolor="#FFFFFF" isDefault="false"
-                	   mode="Opaque" name="Title" style="Base"/>	
-			</jasperTemplate>
+        <![CDATA[
+         	<jasperTemplate xmlns="http://jasperreports.sourceforge.net/dtds/jaspertemplate.dtd"> 
+ 				<style fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="false" name="Base" 
+					   pdfEncoding="Cp1252" pdfFontName="Helvetica" vAlign="Middle"/> 
+ 				<style backcolor="#267994" fontSize="26" forecolor="#FFFFFF" isDefault="false" 
+                 	   mode="Opaque" name="Title" style="Base"/>	 
+ 			</jasperTemplate>]]> 
         </templateStyle>
         <orientation>landscape</orientation>
         <export>pdf</export>
@@ -1204,8 +1216,8 @@
     <securityPolicy xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
         <name>Security policy</name>
         <description>Security policy example</description>
-        <authentication>
-        </authentication>
+<!--         <authentication> -->
+<!--         </authentication> -->
         <credentials>
         	<password>
         		<passwordPolicyRef oid="SECURITY-0000-0000-0000-000000000003" type="c:ValuePolicyType"/>

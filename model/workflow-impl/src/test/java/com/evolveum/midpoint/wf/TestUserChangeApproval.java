@@ -59,6 +59,7 @@ import com.evolveum.midpoint.wf.processors.primary.PcpTaskExtensionItemsNames;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -605,7 +606,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 LOGGER.trace("password after test = " + afterTestPasswordValue);
 
                 //assertNotNull("password was not set", afterTestPasswordValue.getEncryptedData());
-                assertTrue("password was changed", originalPasswordValue.getEncryptedData().equals(afterTestPasswordValue.getEncryptedData()));
+                assertTrue("password was changed", originalPasswordValue.getEncryptedDataType().equals(afterTestPasswordValue.getEncryptedDataType()));
 
                 checkDummyTransportMessages("simpleUserNotifier", 0);
                 // we don't check for modifyApproverRef because in this test the value was not changed (no change was executed)
@@ -650,7 +651,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                 LOGGER.trace("password after test = " + afterTestPasswordValue);
 
                 //assertNotNull("password was not set", afterTestPasswordValue.getEncryptedData());
-                assertFalse("password was not changed", originalPasswordValue.getEncryptedData().equals(afterTestPasswordValue.getEncryptedData()));
+                assertFalse("password was not changed", originalPasswordValue.getEncryptedDataType().equals(afterTestPasswordValue.getEncryptedDataType()));
 
                 checkDummyTransportMessages("simpleUserNotifier", 1);
             }

@@ -18,18 +18,22 @@
 <!-- Object modification description that is changing user "jack" by adding 
 	a new account -->
 
-<a:objectModification
+<t:objectDelta
 	xmlns:a='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
+	xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-2"
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
-	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
-	<a:modification>
+	<t:changeType>modify</t:changeType>
+	<t:objectType>c:ResourceType</t:objectType>
+	<t:oid>ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</t:oid>
+	<t:itemDelta>
 		<t:modificationType>replace</t:modificationType>
+		<t:path>c:synchronization</t:path>
 		<t:value>
-			<c:synchronization>
+<!-- 			<c:synchronization> -->
         	<objectSynchronization>
 	            <!--
 	                The synchronization for this resource is enabled.
@@ -48,15 +52,21 @@
 	                    The correlation rule always looks for users, so it will not match
 	                    any other object type.
 	                </q:description>
-                        <q:condition>
+                        <condition>
                           <script>
-                            <code>basic.getAttributeValue(account, 'employeeNumber') != null</code>
+                            <code>
+                            	declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+                            	basic.getAttributeValue(account, 'employeeNumber') != null
+                            </code>
                           </script>
-                        </q:condition>
+                        </condition>
 	                <q:equal>
 	                    <q:path>c:employeeNumber</q:path>
                               <expression>
-                                <path>$account/attributes/ri:employeeNumber</path>
+                                <path>
+                                declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+			                    declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+			                    $account/attributes/ri:employeeNumber</path>
                               </expression>
 	                </q:equal>
 	            </correlation>
@@ -86,7 +96,7 @@
 	                <situation>unmatched</situation>
 	            </reaction>
 			</objectSynchronization>
-        </c:synchronization>			
+<!--         </c:synchronization>			 -->
 		</t:value>
-	</a:modification>
-</a:objectModification>
+	</t:itemDelta>
+</t:objectDelta>

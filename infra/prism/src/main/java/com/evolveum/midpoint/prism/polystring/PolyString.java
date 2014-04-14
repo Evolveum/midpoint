@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import java.io.Serializable;
@@ -106,9 +107,16 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 			throw new IllegalArgumentException("Cannot resolve non-name path "+subpath+" on polystring "+this);
 		}
 		QName itemName = ((NameItemPathSegment)subpath.first()).getName();
-		if (F_ORIG.equals(itemName)) {
+//		if (F_ORIG.equals(itemName)) {
+//			return orig;
+//		} else if (F_NORM.equals(itemName)) {
+//			return norm;
+//		} else {
+//			throw new IllegalArgumentException("Unknown path segment "+itemName);
+//		}
+		if (QNameUtil.match(F_ORIG, itemName)) {
 			return orig;
-		} else if (F_NORM.equals(itemName)) {
+		} else if (QNameUtil.match(F_NORM, itemName)) {
 			return norm;
 		} else {
 			throw new IllegalArgumentException("Unknown path segment "+itemName);

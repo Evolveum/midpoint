@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.repo.sql;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getJaxbUtil;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -27,6 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificatio
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.BeforeClass;
@@ -69,7 +72,7 @@ public class ModifyUser extends BaseSQLRepoTest {
 
     @Test
     public void test020ModifyUser() throws Exception {
-        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
+        ObjectModificationType modification = getJaxbUtil().unmarshalObject(
                 new File(FOLDER_BASIC, "t002.xml"), ObjectModificationType.class);
 
         ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
@@ -80,7 +83,7 @@ public class ModifyUser extends BaseSQLRepoTest {
 
     @Test
     public void test030ModifyShadow() throws Exception {
-        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
+        ObjectModificationType modification = getJaxbUtil().unmarshalObject(
                 new File(FOLDER_BASIC, "t003.xml"), ObjectModificationType.class);
 
         ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, ShadowType.class, prismContext);
@@ -116,7 +119,7 @@ public class ModifyUser extends BaseSQLRepoTest {
      */
     @Test(enabled = false)
     public void test070ModifyBigUser() throws Exception {
-        ObjectModificationType modification = prismContext.getPrismJaxbProcessor().unmarshalObject(
+        ObjectModificationType modification = getJaxbUtil().unmarshalObject(
                 new File(FOLDER_BASIC, "t004.xml"), ObjectModificationType.class);
 
         ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);

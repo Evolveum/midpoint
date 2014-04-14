@@ -24,10 +24,10 @@ import java.util.Map.Entry;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.ExpressionWrapper;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.crypto.EncryptionException;
-import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctionsXPath;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
@@ -50,6 +50,8 @@ import com.evolveum.midpoint.prism.Recomputable;
 import com.evolveum.midpoint.prism.Structured;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -82,7 +84,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
@@ -103,7 +104,7 @@ public class ExpressionUtil {
     	}
     	Class<?> expectedJavaType = XsdTypeMapper.toJavaType(outputDefinition.getTypeName());
     	if (expectedJavaType == null) {
-    		expectedJavaType = prismContext.getPrismJaxbProcessor().getCompileTimeClass(outputDefinition.getTypeName());
+    		expectedJavaType = prismContext.getSchemaRegistry().getCompileTimeClass(outputDefinition.getTypeName());
     	}
     	if (resultTripleValueClass == expectedJavaType) {
     		return resultTriple;
@@ -371,75 +372,82 @@ public class ExpressionUtil {
 			return;
 		}
 		
-		if (filter instanceof LogicalFilter){
+		if (filter instanceof LogicalFilter) {
 			List<ObjectFilter> conditions = ((LogicalFilter) filter).getCondition();
-			
-			for (ObjectFilter condition : conditions){
+			for (ObjectFilter condition : conditions) {
 				evaluateFilterExpressionsInternal(condition, variables, expressionFactory, prismContext, shortDesc, task, result);
 			}
-			
 			return;
-		}
-		
-		if (((PropertyValueFilter) filter).getValues() != null && !((PropertyValueFilter) filter).getValues().isEmpty()) {
-			// We have value. Nothing to evaluate.
-			return;
-		}
-		
-		Element valueExpressionElement = filter.getExpression();
-		if (valueExpressionElement == null) {
-			LOGGER.warn("No valueExpression in filter in {}", shortDesc);
-			return;
-		}
-		
-		ExpressionType valueExpression = createExpression(valueExpressionElement, prismContext);			
-		
-		try {
-			PrismPropertyValue expressionResult = evaluateExpression(variables, prismContext,
-					valueExpression, filter, expressionFactory, shortDesc, task, result);
+		} else if (filter instanceof PropertyValueFilter) {
 
-			if (expressionResult == null || expressionResult.isEmpty()) {
-				LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
-						valueExpression);
-				return;
-			}
-			// TODO: log more context
-			LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.", new Object[] {
-					shortDesc, expressionResult });
-			if (filter instanceof EqualsFilter) {
-				((EqualsFilter) filter).setValue(expressionResult);
-				filter.setExpression(null);
-			}
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Transformed filter to:\n{}", filter.debugDump());
-			}
-		} catch (RuntimeException ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't evaluate expression " + valueExpression + ".", ex);
-			throw new SystemException("Couldn't evaluate expression" + valueExpression + ": "
-					+ ex.getMessage(), ex);
+            PropertyValueFilter pvfilter = (PropertyValueFilter) filter;
 
-		} catch (SchemaException ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't evaluate expression " + valueExpression + ".", ex);
-			throw new SchemaException("Couldn't evaluate expression" + valueExpression + ": "
-					+ ex.getMessage(), ex);
-		} catch (ObjectNotFoundException ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't evaluate expression " + valueExpression + ".", ex);
-			throw new ObjectNotFoundException("Couldn't evaluate expression" + valueExpression + ": "
-					+ ex.getMessage(), ex);
-		} catch (ExpressionEvaluationException ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't evaluate expression " + valueExpression + ".", ex);
-			throw new ExpressionEvaluationException("Couldn't evaluate expression" + valueExpression + ": "
-					+ ex.getMessage(), ex);
-		}
+            if (pvfilter.getValues() != null && !pvfilter.getValues().isEmpty()) {
+                // We have value. Nothing to evaluate.
+                return;
+            }
 
+            ExpressionWrapper expressionWrapper = pvfilter.getExpression();
+            if (expressionWrapper == null || expressionWrapper.getExpression() == null) {
+                LOGGER.warn("No valueExpression in filter in {}", shortDesc);
+                return;
+            }
+            if (!(expressionWrapper.getExpression() instanceof ExpressionType)) {
+                throw new SchemaException("Unexpected expression type " + expressionWrapper.getExpression().getClass() + " in filter in " + shortDesc);
+            }
+
+            ExpressionType valueExpression = (ExpressionType) expressionWrapper.getExpression();
+
+            try {
+                PrismPropertyValue expressionResult = evaluateExpression(variables, prismContext,
+                        valueExpression, filter, expressionFactory, shortDesc, task, result);
+
+                if (expressionResult == null || expressionResult.isEmpty()) {
+                    LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
+                            valueExpression);
+                    return;
+                }
+                // TODO: log more context
+                LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.", new Object[] {
+                        shortDesc, expressionResult });
+                if (filter instanceof EqualsFilter) {
+                    ((EqualsFilter) filter).setValue(expressionResult);
+                    pvfilter.setExpression(null);
+                }
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Transformed filter to:\n{}", filter.debugDump());
+                }
+            } catch (RuntimeException ex) {
+                LoggingUtils.logException(LOGGER, "Couldn't evaluate expression " + valueExpression + ".", ex);
+                throw new SystemException("Couldn't evaluate expression" + valueExpression + ": "
+                        + ex.getMessage(), ex);
+
+            } catch (SchemaException ex) {
+                LoggingUtils.logException(LOGGER, "Couldn't evaluate expression " + valueExpression + ".", ex);
+                throw new SchemaException("Couldn't evaluate expression" + valueExpression + ": "
+                        + ex.getMessage(), ex);
+            } catch (ObjectNotFoundException ex) {
+                LoggingUtils.logException(LOGGER, "Couldn't evaluate expression " + valueExpression + ".", ex);
+                throw new ObjectNotFoundException("Couldn't evaluate expression" + valueExpression + ": "
+                        + ex.getMessage(), ex);
+            } catch (ExpressionEvaluationException ex) {
+                LoggingUtils.logException(LOGGER, "Couldn't evaluate expression " + valueExpression + ".", ex);
+                throw new ExpressionEvaluationException("Couldn't evaluate expression" + valueExpression + ": "
+                        + ex.getMessage(), ex);
+            }
+
+        } else {
+            throw new IllegalStateException("Unsupported filter type: " + filter.getClass());
+        }
+		
 	}
 	
 	public static ExpressionType createExpression(Element valueExpressionElement, PrismContext prismContext) throws SchemaException {
 		ExpressionType valueExpression = null;
 		try {
-			valueExpression = prismContext.getPrismJaxbProcessor().toJavaValue(
+			valueExpression = prismContext.getJaxbDomHack().toJavaValue(
 					valueExpressionElement, ExpressionType.class);
-			
+
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Filter transformed to expression\n{}", valueExpression);
 			}
@@ -447,7 +455,7 @@ public class ExpressionUtil {
 			LoggingUtils.logException(LOGGER, "Expression element couldn't be transformed.", ex);
 			throw new SchemaException("Expression element couldn't be transformed: " + ex.getMessage(), ex);
 		}
-		
+
 		return valueExpression;
 
 	}

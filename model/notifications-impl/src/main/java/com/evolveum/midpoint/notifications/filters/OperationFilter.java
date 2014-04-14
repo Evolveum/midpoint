@@ -24,12 +24,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventOperationFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventOperationType;
-
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 
 /**
  * @author mederly
@@ -39,22 +35,19 @@ public class OperationFilter extends BaseHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(OperationFilter.class);
 
-    @PostConstruct
-    public void init() {
-        register(EventOperationFilterType.class);
-    }
-
     @Override
     public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, 
     		Task task, OperationResult result) {
 
-        EventOperationFilterType eventOperationFilterType = (EventOperationFilterType) eventHandlerType;
+        if (eventHandlerType.getOperation().isEmpty()) {
+            return true;
+        }
 
-        logStart(LOGGER, event, eventHandlerType, eventOperationFilterType.getOperation());
+        logStart(LOGGER, event, eventHandlerType, eventHandlerType.getOperation());
 
         boolean retval = false;
 
-        for (EventOperationType eventOperationType : eventOperationFilterType.getOperation()) {
+        for (EventOperationType eventOperationType : eventHandlerType.getOperation()) {
             if (eventOperationType == null) {
                 LOGGER.warn("Filtering on null eventOperationType; filter = " + eventHandlerType);
             } else if (event.isOperationType(eventOperationType)) {

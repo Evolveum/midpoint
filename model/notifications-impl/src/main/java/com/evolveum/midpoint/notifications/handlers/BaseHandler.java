@@ -87,7 +87,15 @@ public abstract class BaseHandler implements EventHandler {
         }
     }
 
-    protected void logEnd(Trace LOGGER, Event event, EventHandlerType eventHandlerType, boolean result) {
+    public static void staticLogStart(Trace LOGGER, Event event, String description, Object additionalData) {
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Starting processing event " + event + " with handler " +
+                    description +
+                    (additionalData != null ? (", parameters: " + additionalData) : ""));
+        }
+    }
+
+    public void logEnd(Trace LOGGER, Event event, EventHandlerType eventHandlerType, boolean result) {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Finishing processing event " + event + " result = " + result);
         }

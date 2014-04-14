@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -159,7 +160,7 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
             @Override
             public boolean handle(PrismObject object, OperationResult parentResult) {
                 try {
-                    String xml = page.getPrismContext().getPrismDomProcessor().serializeObjectToString(object);
+                    String xml = page.getPrismContext().serializeObjectToString(object, PrismContext.LANG_XML);
                     writer.write('\t');
                     writer.write(xml);
                     writer.write('\n');

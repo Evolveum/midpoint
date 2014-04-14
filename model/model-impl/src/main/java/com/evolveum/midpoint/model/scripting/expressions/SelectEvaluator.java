@@ -20,26 +20,11 @@ import com.evolveum.midpoint.model.scripting.Data;
 import com.evolveum.midpoint.model.scripting.ExecutionContext;
 import com.evolveum.midpoint.model.scripting.ScriptExecutionException;
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.QueryConvertor;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_2.SearchExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.SelectExpressionType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import org.apache.commons.lang.Validate;
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 
@@ -52,11 +37,11 @@ public class SelectEvaluator extends BaseExpressionEvaluator {
     public Data evaluate(SelectExpressionType selectExpression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
         Data output = Data.createEmpty();
 
-        Element pathElement = selectExpression.getPath();
-        if (pathElement == null) {
+        ItemPathType itemPathType = selectExpression.getPath();
+        if (itemPathType == null) {
             return input;           // no path specified => select returns original data
         }
-        ItemPath path = new XPathHolder(pathElement).toItemPath();
+        ItemPath path = itemPathType.getItemPath();
 
         for (Item item : input.getData()) {
             Object o = item.find(path);

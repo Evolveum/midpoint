@@ -20,10 +20,9 @@
         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
     <oid>00000000-8888-6666-0000-100000000006</oid>
-    <modification>
+    <itemDelta>
         <t:modificationType>delete</t:modificationType>
-        <t:value>
-            <c:orgRef oid="00000000-8888-6666-0000-100000000003"/>
-        </t:value>
-    </modification>
+        <t:path>c:orgRef</t:path>
+        <t:value oid="00000000-8888-6666-0000-100000000003" type="OrgType"/>
+    </itemDelta>
 </objectModification>
