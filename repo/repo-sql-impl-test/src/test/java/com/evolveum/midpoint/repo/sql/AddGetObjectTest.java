@@ -27,8 +27,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -150,7 +149,13 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                 object.asObjectable().setOid(oids.get(i));
 
                 Class<? extends ObjectType> clazz = object.getCompileTimeClass();
-                PrismObject<? extends ObjectType> newObject = repositoryService.getObject(clazz, oids.get(i), null, result);
+
+                Collection o = null;
+                if (UserType.class.equals(clazz)) {
+                    o = SelectorOptions.createCollection(UserType.F_JPEG_PHOTO,
+                            GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
+                }
+                PrismObject<? extends ObjectType> newObject = repositoryService.getObject(clazz, oids.get(i), o, result);
                 LOGGER.info("Old\n{}\nnew\n{}", new Object[]{object.debugDump(3), newObject.debugDump(3)});
                 checkContainersSize(newObject, object);
 
