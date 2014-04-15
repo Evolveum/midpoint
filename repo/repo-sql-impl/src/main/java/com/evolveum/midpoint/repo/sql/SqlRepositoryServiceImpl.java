@@ -1011,7 +1011,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                                                                      Collection<SelectorOptions<GetOperationOptions>> options,
                                                                      Session session) throws SchemaException {
 
-//        PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
         String xml = RUtil.getXmlFromByteArray(result.getFullObject(), getConfiguration().isUseZip());
         PrismObject<T> prismObject = getPrismContext().parseObject(xml);
 
@@ -1306,10 +1305,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         List<ROrgClosure> orgClosure = cOrgClosure.list();
 
         for (ROrgClosure o : orgClosure) {
-//            LOGGER.trace("deleting from hierarchy: A: {} D:{} depth:{}",
-//                    new Object[]{o.getAncestor().toJAXB(getPrismContext(), null),
-//                            o.getDescendant().toJAXB(getPrismContext(), null),
-//                            o.getDepth()});
             if (LOGGER.isTraceEnabled()) {
                 RObject ancestor = o.getAncestor();
                 RObject descendant = o.getDescendant();

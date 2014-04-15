@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
-import com.evolveum.midpoint.repo.sql.data.common.ROwnable;
 import com.evolveum.midpoint.repo.sql.data.common.container.Container;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -47,11 +46,6 @@ public class ContainerIdGenerator implements IdentifierGenerator {
         if (container.getId() != null && container.getId() != 0) {
             LOGGER.trace("Created id='{}' for '{}'.", new Object[]{container.getId(), toString(container)});
             return container.getId();
-        }
-
-        if (!(container instanceof ROwnable)) {
-            throw new HibernateException("Couldn't create id for '"
-                    + container.getClass().getSimpleName() + "' (should not happen).");
         }
 
         throw new RuntimeException("Unknown id, should not happen.");

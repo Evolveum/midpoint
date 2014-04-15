@@ -16,18 +16,13 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.*;
-
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
-import com.evolveum.midpoint.prism.query.LessFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.util.ValueSerializationUtil;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.*;
@@ -35,7 +30,9 @@ import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
@@ -49,8 +46,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
-
 import java.io.File;
 import java.util.*;
 
@@ -183,8 +180,8 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                     LOGGER.error(">>> {} Found {} changes for {}\n{}", new Object[]{(i + 1),
                             delta.getModifications().size(), newObject.toString(), delta.debugDump(3)});
                     ItemDelta id = (ItemDelta) delta.getModifications().iterator().next();
-                    if (id.isReplace()){
-                    System.out.println(id.getValuesToReplace().iterator().next());
+                    if (id.isReplace()) {
+                        System.out.println(id.getValuesToReplace().iterator().next());
                     }
                     LOGGER.error("{}", prismContext.serializeObjectToString(newObject, PrismContext.LANG_XML));
                 }
@@ -446,7 +443,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         //first conversion option
         System.out.println(DeltaConvertor.toObjectDeltaTypeXml(delta));
         //second conversion option
-        System.out.println("\n" + RUtil.toRepo(DeltaConvertor.toObjectDeltaType(delta), prismContext));
+        System.out.println("\n" + toRepo(DeltaConvertor.toObjectDeltaType(delta), prismContext));
 
         long time = System.currentTimeMillis();
         for (int i = 0; i < COUNT; i++) {
@@ -458,10 +455,35 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         time = System.currentTimeMillis();
         for (int i = 0; i < COUNT; i++) {
             ObjectDeltaType type = DeltaConvertor.toObjectDeltaType(delta);
-            String xml = RUtil.toRepo(type, prismContext);
+            String xml = toRepo(type, prismContext);
         }
         time = System.currentTimeMillis() - time;
         System.out.println(">>> " + time);
+    }
+
+    private <T> String toRepo(T value, PrismContext prismContext)
+            throws SchemaException, JAXBException {
+        if (value == null) {
+            return null;
+        }
+
+        // PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+        if (value instanceof Objectable) {
+            return prismContext.serializeObjectToString(((Objectable) value).asPrismObject(),
+                    PrismContext.LANG_XML);
+        }
+
+        if (value instanceof Containerable) {
+            // TODO: createFakeParentElement??? why we don't use the real
+            // name???
+            return prismContext.serializeContainerValueToString(
+                    ((Containerable) value).asPrismContainerValue(),
+                    QNameUtil.getNodeQName(RUtil.createFakeParentElement()), prismContext.LANG_XML);
+        }
+
+
+        return ValueSerializationUtil.serializeValue(value, new QName("fake"), prismContext, PrismContext.LANG_XML);
+
     }
 
     @Test
