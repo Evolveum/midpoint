@@ -26,6 +26,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.LogicalFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.ValueSerializationUtil;
 import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
@@ -821,4 +825,31 @@ public final class RUtil {
 
         return xml;
     }
+
+    public static OrgFilter findOrgFilter(ObjectQuery query) {
+        return query != null ? findOrgFilter(query.getFilter()) : null;
+    }
+
+    public static OrgFilter findOrgFilter(ObjectFilter filter) {
+        if (filter == null) {
+            return null;
+        }
+
+        if (filter instanceof OrgFilter) {
+            return (OrgFilter) filter;
+        }
+
+        if (filter instanceof LogicalFilter) {
+            LogicalFilter logical = (LogicalFilter) filter;
+            for (ObjectFilter f : logical.getCondition()) {
+                OrgFilter o = findOrgFilter(f);
+                if (o != null) {
+                    return o;
+                }
+            }
+        }
+
+        return null;
+    }
+
 }

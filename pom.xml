@@ -37,27 +37,27 @@
 	</licenses>
 
     <distributionManagement>
-      <repository>
-	<id>evolveum-nexus</id>
-	<name>Internal Releases</name>
-	<url>http://nexus.evolveum.com/nexus/content/repositories/releases/</url>
-      </repository>
-      <snapshotRepository>
-	<id>evolveum-nexus</id>
-	<name>Internal Releases</name>
-	<url>http://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
-      </snapshotRepository>
+        <repository>
+            <id>evolveum-nexus</id>
+            <name>Internal Releases</name>
+            <url>http://nexus.evolveum.com/nexus/content/repositories/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>evolveum-nexus</id>
+            <name>Internal Releases</name>
+            <url>http://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
     </distributionManagement>
 
 	<issueManagement>
 		<system>Atlassian JIRA</system>
 		<url>https://jira.evolveum.com/browse/MID</url>
 	</issueManagement>
-	<scm>
-		<connection>scm:git:git://git.evolveum.com/midpoint.gittrunk/</connection>
-		<developerConnection>scm:git:git://git.evolveum.com/midpoint.gittrunk/</developerConnection>
-		<url>http://fisheye.evolveum.com/browse/MidPoint/trunk</url>
-	</scm>
+    <scm>
+        <connection>https://github.com/Evolveum/midpoint.git</connection>
+        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
+        <url>https://fisheye.evolveum.com/browse/midPoint</url>
+    </scm>
 	<build>
 		<plugins>
 			<plugin>

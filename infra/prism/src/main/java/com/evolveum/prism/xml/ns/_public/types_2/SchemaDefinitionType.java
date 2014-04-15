@@ -56,7 +56,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 @XmlType(name = "SchemaDefinitionType", propOrder = {
     "any"
 })
-public class SchemaDefinitionType implements Cloneable {
+public class SchemaDefinitionType implements Cloneable, Serializable {
 
 	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "SchemaDefinitionType");
 	

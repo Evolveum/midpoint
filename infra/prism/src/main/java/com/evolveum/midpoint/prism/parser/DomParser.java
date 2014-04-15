@@ -250,7 +250,7 @@ public class DomParser implements Parser {
 	}
 
     // changed from anonymous to be able to make it static (serializable independently of DomParser)
-    private static class PrimitiveValueParser<T> implements ValueParser<T> {
+    private static class PrimitiveValueParser<T> implements ValueParser<T>, Serializable {
 
         private Element element;
 

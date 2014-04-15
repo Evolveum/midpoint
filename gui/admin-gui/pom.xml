@@ -26,6 +26,11 @@
         <groupId>com.evolveum.midpoint</groupId>
         <version>2.3-SNAPSHOT</version>
     </parent>
+    <scm>
+        <connection>https://github.com/Evolveum/midpoint.git</connection>
+        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
+        <url>https://fisheye.evolveum.com/browse/midPoint</url>
+    </scm>
     <properties>
         <wro4j.version>1.6.2</wro4j.version>
     </properties>
@@ -477,6 +482,7 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>aspectj-maven-plugin</artifactId>
+                        <version>1.6</version>
                         <configuration>
                             <aspectLibraries>
                                 <aspectLibrary>

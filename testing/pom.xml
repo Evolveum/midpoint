@@ -27,6 +27,11 @@
         <version>2.3-SNAPSHOT</version>
         <relativePath>../build-system/pom.xml</relativePath>
     </parent>
+    <scm>
+        <connection>https://github.com/Evolveum/midpoint.git</connection>
+        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
+        <url>https://fisheye.evolveum.com/browse/midPoint</url>
+    </scm>
     <modules>
         <module>sanity</module>
         <module>consistency-mechanism</module>

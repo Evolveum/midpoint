@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.*;
@@ -402,7 +403,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         validateName(object);
         Validate.notNull(result, "Operation result must not be null.");
 
-        LOGGER.debug("Adding object type '{}'", new Object[]{object.getCompileTimeClass().getSimpleName()});
+        if (options == null) {
+            options = new RepoAddOptions();
+        }
+
+        LOGGER.debug("Adding object type '{}', overwrite={}, allowUnencryptedValues={}",
+                new Object[]{object.getCompileTimeClass().getSimpleName(), options.isOverwrite(),
+                        options.isAllowUnencryptedValues()}
+        );
 
         if (InternalsConfig.encryptionChecks && !RepoAddOptions.isAllowUnencryptedValues(options)) {
             CryptoUtil.checkEncrypted(object);
@@ -416,10 +424,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             // Explicitly log name
             PolyStringType namePolyType = object.asObjectable().getName();
             LOGGER.trace("NAME: {} - {}", namePolyType.getOrig(), namePolyType.getNorm());
-        }
-
-        if (options == null) {
-            options = new RepoAddOptions();
         }
 
         OperationResult subResult = result.createSubresult(ADD_OBJECT);
@@ -954,7 +958,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         ObjectPaging paging = query != null ? query.getPaging() : null;
         LOGGER.debug("Searching objects of type '{}', query (on trace level), offset {}, count {}, iterative {}.",
                 new Object[]{type.getSimpleName(), (paging != null ? paging.getOffset() : "undefined"),
-                        (paging != null ? paging.getMaxSize() : "undefined"), iterative});
+                        (paging != null ? paging.getMaxSize() : "undefined"), iterative}
+        );
 
         if (!LOGGER.isTraceEnabled()) {
             return;
@@ -1251,7 +1256,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     if (!(orgRefDValue instanceof PrismReferenceValue)) {
                         throw new SchemaException(
                                 "Couldn't modify organization structure hierarchy (adding new records). Expected " +
-                                        "instance of prism reference value but got " + orgRefDValue);
+                                        "instance of prism reference value but got " + orgRefDValue
+                        );
                     }
 
                     PrismReferenceValue value = (PrismReferenceValue) orgRefDValue;
@@ -1809,7 +1815,40 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     @Override
     public <T extends ObjectType> boolean matchObject(PrismObject<T> object, ObjectQuery query) throws SchemaException {
+        Validate.notNull(object, "Object must not be null.");
+        Validate.notNull(query, "Query must not be null.");
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Matching object\n{} with query\n{}", new Object[]{object, query});
+        }
+
         boolean applicable = ObjectQuery.match(object, query.getFilter(), getMatchingRuleRegistry());
-        return applicable;
+        OrgFilter orgFilter = RUtil.findOrgFilter(query);
+        if (orgFilter == null) {
+            return applicable;
+        }
+
+        final String operation = "matching";
+        int attempt = 1;
+
+        SqlPerformanceMonitor pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart("matchObject");
+
+        try {
+            while (true) {
+                try {
+                    matchObject(object, orgFilter);
+                } catch (RuntimeException ex) {
+                    attempt = logOperationAttempt(object.getOid(), operation, attempt, ex, null);
+                    pm.registerOperationNewTrial(opHandle, attempt);
+                }
+            }
+        } finally {
+            pm.registerOperationFinish(opHandle, attempt);
+        }
+    }
+
+    private <T extends ObjectType> boolean matchObject(PrismObject<T> object, OrgFilter filter) throws SchemaException {
+        return false;
     }
 }

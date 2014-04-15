@@ -24,6 +24,11 @@
 		<name>Evolveum</name>
 		<url>http://www.evolveum.com</url>
 	</organization>
+    <scm>
+        <connection>https://github.com/Evolveum/midpoint.git</connection>
+        <developerConnection>git@github.com:Evolveum/midpoint.git</developerConnection>
+        <url>https://fisheye.evolveum.com/browse/midPoint</url>
+    </scm>
 	<repositories>
                 <repository>
                         <id>evolveum</id>
