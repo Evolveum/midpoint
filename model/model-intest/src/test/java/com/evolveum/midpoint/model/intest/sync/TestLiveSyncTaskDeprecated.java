@@ -53,4 +53,9 @@ public class TestLiveSyncTaskDeprecated extends TestLiveSyncTask {
 		return RESOURCE_DUMMY_BLUE_DEPRECATED_FILE;
 	}
 
+	@Override
+	public void test700AddDummyGreenAccountXjojo() throws Exception {
+		// Skip this test. It does not make sense in deprecated syntax
+	}
+
 }
