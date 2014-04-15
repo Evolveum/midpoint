@@ -97,6 +97,22 @@
 					</target>
 				</inbound>
 			</attribute>
+			<attribute>
+				<ref>ri:loc</ref>
+				<inbound>
+					<target>
+						<path>locality</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>ri:org</ref>
+				<inbound>
+					<target>
+						<path>organization</path>
+					</target>
+				</inbound>
+			</attribute>
 
 			<activation>
             	<administrativeStatus>

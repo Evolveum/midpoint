@@ -148,6 +148,8 @@ public class TestVillage extends AbstractStoryTest {
 	private static final String DUMMY_ACCOUNT_ATTRIBUTE_SRC_FIRST_NAME = "firstname";
 	private static final String DUMMY_ACCOUNT_ATTRIBUTE_SRC_LAST_NAME = "lastname";
 	private static final String DUMMY_ACCOUNT_ATTRIBUTE_SRC_TYPE = "type";
+	private static final String DUMMY_ACCOUNT_ATTRIBUTE_SRC_LOC = "loc";
+	private static final String DUMMY_ACCOUNT_ATTRIBUTE_SRC_ORG = "org";
 	
 	public static final File ROLE_BASIC_FILE = new File(TEST_DIR, "role-basic.xml");
 	public static final String ROLE_BASIC_OID = "10000000-0000-0000-0000-000000000601";
@@ -159,11 +161,15 @@ public class TestVillage extends AbstractStoryTest {
 	private static final String ACCOUNT_HERMAN_USERNAME = "ht";
 	private static final String ACCOUNT_HERMAN_FIST_NAME = "Herman";
 	private static final String ACCOUNT_HERMAN_LAST_NAME = "Toothrot";
+	private static final String ACCOUNT_HERMAN_LOC = "Monkey Island";
+	private static final String ACCOUNT_HERMAN_ORG = "Gov";
 	private static final String USER_HERMAN_NAME = ACCOUNT_HERMAN_FIST_NAME+"."+ACCOUNT_HERMAN_LAST_NAME;
 	
 	private static final String ACCOUNT_LEMONHEAD_USERNAME = "lemonhead";
 	private static final String ACCOUNT_LEMONHEAD_FIST_NAME = "Lemonhead";
 	private static final String ACCOUNT_LEMONHEAD_LAST_NAME = "Canibal";
+	private static final String ACCOUNT_LEMONHEAD_LOC = "Monkey Island";
+	private static final String ACCOUNT_LEMONHEAD_ORG = "Exec";
 	private static final String USER_LEMONHEAD_NAME = ACCOUNT_LEMONHEAD_FIST_NAME+"."+ACCOUNT_LEMONHEAD_LAST_NAME;
 
 	private static final String ACCOUNT_SHARPTOOTH_USERNAME = "sharptooth";
@@ -238,6 +244,8 @@ public class TestVillage extends AbstractStoryTest {
 		dummyResourceCtlSrc.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SRC_FIRST_NAME, String.class, false, false);
 		dummyResourceCtlSrc.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SRC_LAST_NAME, String.class, false, false);
 		dummyResourceCtlSrc.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SRC_TYPE, String.class, false, false);
+		dummyResourceCtlSrc.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SRC_LOC, String.class, false, false);
+		dummyResourceCtlSrc.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SRC_ORG, String.class, false, false);
 		dummyResourceSrc = dummyResourceCtlSrc.getDummyResource();
 		resourceDummySrc = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_SOURCE_FILE, RESOURCE_DUMMY_SOURCE_OID, initTask, initResult);
 		resourceDummySrcType = resourceDummySrc.asObjectable();
@@ -286,6 +294,8 @@ public class TestVillage extends AbstractStoryTest {
         DummyAccount newAccount = new DummyAccount(ACCOUNT_HERMAN_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_FIRST_NAME, ACCOUNT_HERMAN_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LAST_NAME, ACCOUNT_HERMAN_LAST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LOC, ACCOUNT_HERMAN_LOC);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_ORG, ACCOUNT_HERMAN_ORG);
 		
         // WHEN
         dummyResourceSrc.addAccount(newAccount);
@@ -297,11 +307,21 @@ public class TestVillage extends AbstractStoryTest {
         display("User", user);
    		assertUser(user, user.getOid(), USER_HERMAN_NAME, ACCOUNT_HERMAN_FIST_NAME+" "+ACCOUNT_HERMAN_LAST_NAME,
    				ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME);
+   		assertLocGov(user, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
         assertLinks(user, 1);
         assertAccount(user, RESOURCE_DUMMY_SOURCE_OID);
         assertAssignments(user, 0);
 	}
 	
+	private void assertLocGov(PrismObject<UserType> user, String expLoc, String expOrg) {
+		UserType userType = user.asObjectable();
+		PrismAsserts.assertEqualsPolyString("Wrong locality in "+user, expLoc, userType.getLocality());
+		PrismAsserts.assertEqualsCollectionUnordered("Wrong organization in "+user, userType.getOrganization(), 
+				PrismTestUtil.createPolyStringType(expOrg));
+		PrismAsserts.assertEqualsCollectionUnordered("Wrong organizationalUnit in "+user, userType.getOrganizationalUnit(), 
+				PrismTestUtil.createPolyStringType(expOrg+":"+expLoc));
+	}
+
 	@Test
     public void test102HermanAssignBasicRole() throws Exception {
 		final String TEST_NAME = "test102HermanAssignBasicRole";
@@ -316,6 +336,7 @@ public class TestVillage extends AbstractStoryTest {
         // THEN
         PrismObject<UserType> userAfter = getUser(user.getOid());
         assertUserLdap(userAfter, ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME);
+        assertLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
 	}
 	
 	@Test
@@ -328,6 +349,8 @@ public class TestVillage extends AbstractStoryTest {
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_FIRST_NAME, ACCOUNT_LEMONHEAD_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LAST_NAME, ACCOUNT_LEMONHEAD_LAST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_TYPE, ROLE_BASIC_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LOC, ACCOUNT_LEMONHEAD_LOC);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_ORG, ACCOUNT_LEMONHEAD_ORG);
 		
         // WHEN
         dummyResourceSrc.addAccount(newAccount);
@@ -336,6 +359,7 @@ public class TestVillage extends AbstractStoryTest {
         // THEN
         PrismObject<UserType> userAfter = findUserByUsername(USER_LEMONHEAD_NAME);
         assertUserLdap(userAfter, ACCOUNT_LEMONHEAD_FIST_NAME, ACCOUNT_LEMONHEAD_LAST_NAME);
+        assertLocGov(userAfter, ACCOUNT_LEMONHEAD_LOC, ACCOUNT_LEMONHEAD_ORG);
 	}
 
 	private void assertUserLdap(PrismObject<UserType> userAfter, String firstName, String lastName) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {

@@ -273,11 +273,11 @@ public class QueryConvertor {
 //		}
 		
 		XNode valueXnode = xmap.get(KEY_FILTER_EQUALS_VALUE);
-		
-		ItemDefinition itemDefinition = locateItemDefinition(valueXnode, itemPath, pcd, prismContext);
 
+		ItemDefinition itemDefinition = locateItemDefinition(valueXnode, itemPath, pcd, prismContext);
+		
 		if (valueXnode != null) {
-			
+		
 			Item item = parseItem(valueXnode, itemName, itemDefinition, prismContext);
 			return EqualsFilter.createEqual(itemPath, (PrismProperty) item, matchingRule);
 			

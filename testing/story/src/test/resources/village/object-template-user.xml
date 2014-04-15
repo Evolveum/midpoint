@@ -48,6 +48,7 @@
     </mapping>
     
     <mapping>
+    	<name>full name</name>
     	<source>
     		<path>$user/givenName</path>
     	</source>
@@ -95,4 +96,29 @@
     	</target>
     </mapping>
         
+        
+    <mapping>
+    	<name>OU</name>
+    	<source>
+    		<path>locality</path>
+    	</source>
+    	<source>
+    		<path>organization</path>
+    	</source>
+    	<expression>
+			<script>
+				<code>
+					organization + ':' + locality
+				</code>
+         	</script>
+		</expression>
+    	<target>
+    		<path>organizationalUnit</path>
+    	</target>
+    	<condition>
+     		<script>
+    			<code>organization != null &amp;&amp; locality != null</code>
+    		</script>  
+    	</condition>
+    </mapping>
 </objectTemplate>
