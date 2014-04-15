@@ -14,9 +14,6 @@
   ~ limitations under the License.
   -->
 
-<!-- This is a meta-role. A Role indented to be assigned to other roles.
-     I really mean assigned, not included or induced. -->
-
 <role oid="10000000-0000-0000-0000-000000000601"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"

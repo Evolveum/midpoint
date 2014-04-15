@@ -318,7 +318,7 @@ public class TestVillage extends AbstractStoryTest {
         assertUserLdap(userAfter, ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME);
 	}
 	
-	@Test(enabled=false) // MID-1829
+	@Test
     public void test110AddSrcAccountLemonhead() throws Exception {
 		final String TEST_NAME = "test110AddSrcAccountLemonhead";
         TestUtil.displayTestTile(this, TEST_NAME);

@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -113,7 +114,7 @@ public class OutboundProcessor {
         ObjectDeltaObject<F> focusOdo = context.getFocusContext().getObjectDeltaObject();
         ObjectDeltaObject<ShadowType> projectionOdo = projCtx.getObjectDeltaObject();
         
-        Construction outboundConstruction = new Construction(null, projCtx.getResource());
+        Construction<F> outboundConstruction = new Construction<>(null, projCtx.getResource());
         
         String operation = projCtx.getOperation().getValue();
 
@@ -160,9 +161,9 @@ public class OutboundProcessor {
 			        + " in " + rOcDef.getResourceType());
 
 			PrismContainerDefinition<ShadowAssociationType> outputDefinition = getAssociationContainerDefinition();
-			Mapping<? extends PrismPropertyValue<?>> evaluatedMapping = evaluateMapping(mapping, assocName, outputDefinition, 
-					focusOdo, projectionOdo, operation, rOcDef, associationDefinition.getAssociationTarget(),
-					context, projCtx, task, result);
+			Mapping<PrismContainerValue<ShadowAssociationType>> evaluatedMapping = (Mapping) evaluateMapping(mapping, 
+					assocName, outputDefinition, focusOdo, projectionOdo, operation, rOcDef, 
+					associationDefinition.getAssociationTarget(), context, projCtx, task, result);
 			
 			if (evaluatedMapping != null) {
 				outboundConstruction.addAssociationMapping(evaluatedMapping);
