@@ -375,8 +375,6 @@ CREATE TABLE m_reference (
 ) INITRANS 30;
 
 CREATE TABLE m_report (
-  dataSource_providerClass VARCHAR2(255 CHAR),
-  dataSource_springBean    NUMBER(1, 0),
   export                   NUMBER(10, 0),
   name_norm                VARCHAR2(255 CHAR),
   name_orig                VARCHAR2(255 CHAR),
@@ -502,7 +500,6 @@ CREATE TABLE m_user (
   additionalName_norm      VARCHAR2(255 CHAR),
   additionalName_orig      VARCHAR2(255 CHAR),
   costCenter               VARCHAR2(255 CHAR),
-  allowedIdmAdminGuiAccess NUMBER(1, 0),
   emailAddress             VARCHAR2(255 CHAR),
   employeeNumber           VARCHAR2(255 CHAR),
   familyName_norm          VARCHAR2(255 CHAR),

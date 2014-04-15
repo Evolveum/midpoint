@@ -372,8 +372,6 @@ CREATE TABLE m_reference (
 );
 
 CREATE TABLE m_report (
-  dataSource_providerClass NVARCHAR(255) COLLATE database_default,
-  dataSource_springBean    BIT,
   export                   INT,
   name_norm                NVARCHAR(255) COLLATE database_default,
   name_orig                NVARCHAR(255) COLLATE database_default,
@@ -499,7 +497,6 @@ CREATE TABLE m_user (
   additionalName_norm      NVARCHAR(255) COLLATE database_default,
   additionalName_orig      NVARCHAR(255) COLLATE database_default,
   costCenter               NVARCHAR(255) COLLATE database_default,
-  allowedIdmAdminGuiAccess BIT,
   emailAddress             NVARCHAR(255) COLLATE database_default,
   employeeNumber           NVARCHAR(255) COLLATE database_default,
   familyName_norm          NVARCHAR(255) COLLATE database_default,

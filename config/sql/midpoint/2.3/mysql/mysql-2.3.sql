@@ -475,8 +475,6 @@ CREATE TABLE m_reference (
   ENGINE =InnoDB;
 
 CREATE TABLE m_report (
-  dataSource_providerClass VARCHAR(255),
-  dataSource_springBean    BIT,
   export                   INTEGER,
   name_norm                VARCHAR(255),
   name_orig                VARCHAR(255),
@@ -632,7 +630,6 @@ CREATE TABLE m_user (
   additionalName_norm      VARCHAR(255),
   additionalName_orig      VARCHAR(255),
   costCenter               VARCHAR(255),
-  allowedIdmAdminGuiAccess BIT,
   emailAddress             VARCHAR(255),
   employeeNumber           VARCHAR(255),
   familyName_norm          VARCHAR(255),
