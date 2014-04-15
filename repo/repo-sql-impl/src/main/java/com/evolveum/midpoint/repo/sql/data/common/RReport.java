@@ -1,7 +1,6 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RDataSource;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RExportType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROrientationType;
@@ -12,7 +11,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
-import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
 import javax.persistence.*;
 import java.util.Collection;
@@ -27,7 +25,6 @@ public class RReport extends RObject<ReportType> {
     private RExportType export;
     private Boolean parent;
     private Boolean useHibernateSession;
-    private RDataSource dataSource;
 
     @Embedded
     public RPolyString getName() {
@@ -67,21 +64,12 @@ public class RReport extends RObject<ReportType> {
         return useHibernateSession;
     }
 
-    @Embedded
-    public RDataSource getDataSource() {
-        return dataSource;
-    }
-
     public void setParent(Boolean parent) {
         this.parent = parent;
     }
 
     public void setUseHibernateSession(Boolean useHibernateSession) {
         this.useHibernateSession = useHibernateSession;
-    }
-
-    public void setDataSource(RDataSource dataSource) {
-        this.dataSource = dataSource;
     }
 
     @Override
@@ -98,8 +86,6 @@ public class RReport extends RObject<ReportType> {
             return false;
         if (export != null ? !export.equals(rReport.export) : rReport.export != null)
             return false;
-        if (dataSource != null ? !dataSource.equals(rReport.dataSource) : rReport.dataSource != null)
-            return false;
         if (parent != null ? !parent.equals(rReport.parent) : rReport.parent != null)
             return false;
         if (useHibernateSession != null ? !useHibernateSession.equals(rReport.useHibernateSession) : rReport.useHibernateSession != null)
@@ -113,7 +99,6 @@ public class RReport extends RObject<ReportType> {
         result = 31 * result + (name != null ? name.hashCode() : 0);
         result = 31 * result + (orientation != null ? orientation.hashCode() : 0);
         result = 31 * result + (export != null ? export.hashCode() : 0);
-        result = 31 * result + (dataSource != null ? dataSource.hashCode() : 0);
         result = 31 * result + (parent != null ? parent.hashCode() : 0);
         result = 31 * result + (useHibernateSession != null ? useHibernateSession.hashCode() : 0);
 
@@ -130,11 +115,6 @@ public class RReport extends RObject<ReportType> {
         repo.setExport(RUtil.getRepoEnumValue(jaxb.getExport(), RExportType.class));
         repo.setParent(jaxb.isParent());
         repo.setUseHibernateSession(jaxb.isUseHibernateSession());
-        if (jaxb.getDataSource() != null) {
-            RDataSource source = new RDataSource();
-            RDataSource.copyFromJAXB(jaxb.getDataSource(), source, prismContext);
-            repo.setDataSource(source);
-        }
     }
 
     @Override

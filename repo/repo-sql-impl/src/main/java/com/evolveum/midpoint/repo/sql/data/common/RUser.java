@@ -18,7 +18,6 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RCredentials;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -26,13 +25,11 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -63,7 +60,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
     private Set<String> employeeType;
     private Set<RPolyString> organizationalUnit;
     private RPolyString locality;
-    private RCredentials credentials;
     private String costCenter;
     private String locale;
     private String timezone;
@@ -90,11 +86,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
     @Embedded
     public RPolyString getAdditionalName() {
         return additionalName;
-    }
-
-    @Embedded
-    public RCredentials getCredentials() {
-        return credentials;
     }
 
     public String getEmailAddress() {
@@ -257,10 +248,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         this.additionalName = additionalName;
     }
 
-    public void setCredentials(RCredentials credentials) {
-        this.credentials = credentials;
-    }
-
     public void setEmailAddress(String emailAddress) {
         this.emailAddress = emailAddress;
     }
@@ -316,7 +303,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         if (name != null ? !name.equals(rUser.name) : rUser.name != null) return false;
         if (additionalName != null ? !additionalName.equals(rUser.additionalName) : rUser.additionalName != null)
             return false;
-        if (credentials != null ? !credentials.equals(rUser.credentials) : rUser.credentials != null) return false;
         if (emailAddress != null ? !emailAddress.equals(rUser.emailAddress) : rUser.emailAddress != null) return false;
         if (employeeNumber != null ? !employeeNumber.equals(rUser.employeeNumber) : rUser.employeeNumber != null)
             return false;
@@ -357,7 +343,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         result = 31 * result + (honorificSuffix != null ? honorificSuffix.hashCode() : 0);
         result = 31 * result + (employeeNumber != null ? employeeNumber.hashCode() : 0);
         result = 31 * result + (locality != null ? locality.hashCode() : 0);
-        result = 31 * result + (credentials != null ? credentials.hashCode() : 0);
         result = 31 * result + (costCenter != null ? costCenter.hashCode() : 0);
         result = 31 * result + (locale != null ? locale.hashCode() : 0);
         result = 31 * result + (title != null ? title.hashCode() : 0);
@@ -391,12 +376,6 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         repo.setPreferredLanguage(jaxb.getPreferredLanguage());
         repo.setTitle(RPolyString.copyFromJAXB(jaxb.getTitle()));
         repo.setNickName(RPolyString.copyFromJAXB(jaxb.getNickName()));
-
-        if (jaxb.getCredentials() != null) {
-            RCredentials credentials = new RCredentials();
-            RCredentials.copyFromJAXB(jaxb.getCredentials(), credentials, prismContext);
-            repo.setCredentials(credentials);
-        }
 
         ItemDefinition def = jaxb.asPrismObject().getDefinition();
         RUtil.copyResultFromJAXB(def, jaxb.F_RESULT, jaxb.getResult(), repo, prismContext);

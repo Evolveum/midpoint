@@ -1816,6 +1816,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         boolean applicable = ObjectQuery.match(object, query.getFilter(), getMatchingRuleRegistry());
+        if (!applicable) {
+            return false;
+        }
+
         OrgFilter orgFilter = RUtil.findOrgFilter(query);
         if (orgFilter == null) {
             return applicable;
@@ -1830,7 +1834,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         try {
             while (true) {
                 try {
-                    matchObject(object, orgFilter);
+                    return matchObject(object, orgFilter);
                 } catch (RuntimeException ex) {
                     attempt = logOperationAttempt(object.getOid(), operation, attempt, ex, null);
                     pm.registerOperationNewTrial(opHandle, attempt);
