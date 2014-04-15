@@ -87,6 +87,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
 	public static final File ROLE_WIMP_FILE = new File(TEST_DIR, "role-wimp.xml");
 	public static final String ROLE_WIMP_OID = "10000000-0000-0000-0000-000000001604";
+	
+	public static final File ROLE_MAPMAKER_FILE = new File(TEST_DIR, "role-mapmaker.xml");
+	public static final String ROLE_MAPMAKER_OID = "10000000-0000-0000-0000-000000001605";
 
 	public static final File SHADOW_GROUP_DUMMY_SWASHBUCKLERS_FILE = new File(TEST_DIR, "group-swashbucklers.xml");
 	public static final String SHADOW_GROUP_DUMMY_SWASHBUCKLERS_OID = "20000000-0000-0000-3333-000000000001";
@@ -97,8 +100,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 	public static final String SHADOW_GROUP_DUMMY_LANDLUBERS_OID = "20000000-0000-0000-3333-000000000003";
 	public static final String GROUP_DUMMY_LANDLUBERS_NAME = "landlubers";
 	public static final String GROUP_DUMMY_LANDLUBERS_DESCRIPTION = "Earthworms";
-	
 	public static final String GROUP_DUMMY_WIMPS_NAME = "wimps";
+	public static final String GROUP_DUMMY_MAPMAKERS_NAME = "mapmakers";
 
 	private static final QName RESOURCE_DUMMY_GROUP_OBJECTCLASS = new QName(RESOURCE_DUMMY_NAMESPACE, "GroupObjectClass");
 
@@ -111,6 +114,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 
         importObjectFromFile(ROLE_SWASHBUCKLER_FILE);
         importObjectFromFile(ROLE_LANDLUBER_FILE);
+        importObjectFromFile(ROLE_MAPMAKER_FILE);
     }
     
     /**
@@ -221,6 +225,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assertGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
 	}
     
+    /**
+     * Create the group from midPoint. Therefore the shadow exists.
+     */
     @Test
     public void test220AssignRoleLandluberToWally() throws Exception {
 		final String TEST_NAME = "test220AssignRoleLandluberToWally";
@@ -248,6 +255,36 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertGroupMember(dummyGroup, USER_WALLY_NAME);
 	}
+
+    /**
+     * Create the group directly on resource. Therefore the shadow does NOT exists.
+     */
+    @Test
+    public void test222AssignRoleMapmakerToWally() throws Exception {
+		final String TEST_NAME = "test222AssignRoleMapmakerToWally";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        DummyGroup mapmakers = new DummyGroup(GROUP_DUMMY_MAPMAKERS_NAME);
+		dummyResource.addGroup(mapmakers);
+        
+        PrismObject<UserType> user = findUserByUsername(USER_WALLY_NAME);
+        
+		// WHEN
+        assignRole(user.getOid(), ROLE_MAPMAKER_OID, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+                
+        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_MAPMAKERS_NAME);
+        assertNotNull("No group on dummy resource", dummyGroup);
+        display("Group", dummyGroup);
+        assertGroupMember(dummyGroup, USER_WALLY_NAME);
+	}
+
     
     @Test
     public void test300AddRoleWimp() throws Exception {
