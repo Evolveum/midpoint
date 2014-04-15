@@ -31,6 +31,9 @@
     		<association>
             	<ref>ri:group</ref>
 	            <outbound>
+	            	<source>
+	            		<path>organizationalUnit</path>
+	            	</source>
 	                <expression>
 	                    <associationTargetSearch>
 	                        <filter>
@@ -41,7 +44,7 @@
 	                                </q:path>
 	                                <expression>
 	                                    <script>
-	                                        <code>'cn='+user.getOrganizationalUnit()+',ou=groups,dc=example,dc=com'</code>
+	                                        <code>'cn='+organizationalUnit+',ou=groups,dc=example,dc=com'</code>
 	                                    </script>
 	                                </expression>
 	                            </q:equal>

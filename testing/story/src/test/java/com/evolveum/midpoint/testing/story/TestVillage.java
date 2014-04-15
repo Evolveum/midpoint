@@ -215,6 +215,9 @@ public class TestVillage extends AbstractStoryTest {
 	private static final String ACCOUNT_TELEKE_USERNAME = "tőlőkë";
 	private static final String ACCOUNT_TELEKE_FIST_NAME = "Félix";
 	private static final String ACCOUNT_TELEKE_LAST_NAME = "Tőlőkë";
+	
+	private static final File GROUP_GOV_MONKEY_ISLAND_LDIF_FILE = new File(TEST_DIR, "group-gov-monkey-island.ldif");
+	private static final File GROUP_EXEC_MONKEY_ISLAND_LDIF_FILE = new File(TEST_DIR, "group-exec-monkey-island.ldif");
 
 	protected static DummyResource dummyResourceSrc;
 	protected static DummyResourceContoller dummyResourceCtlSrc;
@@ -263,6 +266,10 @@ public class TestVillage extends AbstractStoryTest {
 		// Role
 		importObjectFromFile(ROLE_BASIC_FILE, initResult);
 		
+		// LDAP content
+		openDJController.addEntryFromLdifFile(GROUP_GOV_MONKEY_ISLAND_LDIF_FILE);
+		openDJController.addEntryFromLdifFile(GROUP_EXEC_MONKEY_ISLAND_LDIF_FILE);
+
 		// Tasks
 		importObjectFromFile(TASK_LIVE_SYNC_DUMMY_SOURCE_FILE, initResult);
 		
@@ -312,15 +319,6 @@ public class TestVillage extends AbstractStoryTest {
         assertAccount(user, RESOURCE_DUMMY_SOURCE_OID);
         assertAssignments(user, 0);
 	}
-	
-	private void assertLocGov(PrismObject<UserType> user, String expLoc, String expOrg) {
-		UserType userType = user.asObjectable();
-		PrismAsserts.assertEqualsPolyString("Wrong locality in "+user, expLoc, userType.getLocality());
-		PrismAsserts.assertEqualsCollectionUnordered("Wrong organization in "+user, userType.getOrganization(), 
-				PrismTestUtil.createPolyStringType(expOrg));
-		PrismAsserts.assertEqualsCollectionUnordered("Wrong organizationalUnit in "+user, userType.getOrganizationalUnit(), 
-				PrismTestUtil.createPolyStringType(expOrg+":"+expLoc));
-	}
 
 	@Test
     public void test102HermanAssignBasicRole() throws Exception {
@@ -337,6 +335,7 @@ public class TestVillage extends AbstractStoryTest {
         PrismObject<UserType> userAfter = getUser(user.getOid());
         assertUserLdap(userAfter, ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME);
         assertLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
+        assertLdapLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
 	}
 	
 	@Test
@@ -360,6 +359,16 @@ public class TestVillage extends AbstractStoryTest {
         PrismObject<UserType> userAfter = findUserByUsername(USER_LEMONHEAD_NAME);
         assertUserLdap(userAfter, ACCOUNT_LEMONHEAD_FIST_NAME, ACCOUNT_LEMONHEAD_LAST_NAME);
         assertLocGov(userAfter, ACCOUNT_LEMONHEAD_LOC, ACCOUNT_LEMONHEAD_ORG);
+        assertLdapLocGov(userAfter, ACCOUNT_LEMONHEAD_LOC, ACCOUNT_LEMONHEAD_ORG);
+	}
+	
+	private void assertLocGov(PrismObject<UserType> user, String expLoc, String expOrg) {
+		UserType userType = user.asObjectable();
+		PrismAsserts.assertEqualsPolyString("Wrong locality in "+user, expLoc, userType.getLocality());
+		PrismAsserts.assertEqualsCollectionUnordered("Wrong organization in "+user, userType.getOrganization(), 
+				PrismTestUtil.createPolyStringType(expOrg));
+		PrismAsserts.assertEqualsCollectionUnordered("Wrong organizationalUnit in "+user, userType.getOrganizationalUnit(), 
+				PrismTestUtil.createPolyStringType(expOrg+":"+expLoc));
 	}
 
 	private void assertUserLdap(PrismObject<UserType> userAfter, String firstName, String lastName) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
@@ -379,6 +388,20 @@ public class TestVillage extends AbstractStoryTest {
         PrismObject<ShadowType> shadow = getShadowModel(linkRef.getOid());
 		display("OpenDJ shadow linked to "+userAfter, shadow);
 		IntegrationTestTools.assertIcfsNameAttribute(shadow, "uid="+username+",ou=people,dc=example,dc=com");
+	}
+	
+	private void assertLdapLocGov(PrismObject<UserType> user, String expLoc, String expOrg) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
+		UserType userType = user.asObjectable();
+		
+		String groupCn = expOrg+":"+expLoc;
+		String groupDn = "cn="+groupCn+",ou=groups,"+openDJController.getSuffix();
+		SearchResultEntry groupEntry = openDJController.fetchAndAssertEntry(groupDn, "groupOfUniqueNames");
+		display("Group entry", groupEntry);
+		
+		PrismReferenceValue accountLinkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
+		PrismObject<ShadowType> accountShadow = getShadowModel(accountLinkRef.getOid());
+		String accountDn = IntegrationTestTools.getIcfsNameAttribute(accountShadow);
+		openDJController.assertUniqueMember(groupEntry, accountDn);
 	}
 	
 }

@@ -1,0 +1,4 @@
+dn: cn=Exec:Monkey Island,ou=groups,dc=example,dc=com
+cn: Gov:Monkey Island
+objectclass: top
+objectclass: groupOfUniqueNames
