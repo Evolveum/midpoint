@@ -53,31 +53,7 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         }
 
         LOGGER.info("Overriding loaded configuration with values read from system properties.");
-        updateConfigurationBooleanProperty(configuration, PROPERTY_EMBEDDED);
-        updateConfigurationBooleanProperty(configuration, PROPERTY_DROP_IF_EXISTS);
-        updateConfigurationBooleanProperty(configuration, PROPERTY_AS_SERVER);
-        updateConfigurationBooleanProperty(configuration, PROPERTY_TCP_SSL);
-
-        updateConfigurationIntegerProperty(configuration, PROPERTY_PORT);
-
-        updateConfigurationStringProperty(configuration, PROPERTY_BASE_DIR);
-        updateConfigurationStringProperty(configuration, PROPERTY_FILE_NAME);
-        updateConfigurationStringProperty(configuration, PROPERTY_DRIVER_CLASS_NAME);
-        updateConfigurationStringProperty(configuration, PROPERTY_HIBERNATE_DIALECT);
-        updateConfigurationStringProperty(configuration, PROPERTY_HIBERNATE_HBM2DDL);
-        updateConfigurationStringProperty(configuration, PROPERTY_JDBC_PASSWORD);
-        updateConfigurationStringProperty(configuration, PROPERTY_JDBC_URL);
-        updateConfigurationStringProperty(configuration, PROPERTY_JDBC_USERNAME);
-
-        updateConfigurationStringProperty(configuration, PROPERTY_TRANSACTION_ISOLATION);
-        updateConfigurationBooleanProperty(configuration, PROPERTY_LOCK_FOR_UPDATE_VIA_HIBERNATE);
-        updateConfigurationBooleanProperty(configuration, PROPERTY_LOCK_FOR_UPDATE_VIA_SQL);
-        updateConfigurationBooleanProperty(configuration, PROPERTY_USE_READ_ONLY_TRANSACTIONS);
-        updateConfigurationStringProperty(configuration, PROPERTY_PERFORMANCE_STATISTICS_FILE);
-        updateConfigurationStringProperty(configuration, PROPERTY_PERFORMANCE_STATISTICS_LEVEL);
-
-        updateConfigurationBooleanProperty(configuration, PROPERTY_ITERATIVE_SEARCH_BY_PAGING);
-        updateConfigurationStringProperty(configuration, PROPERTY_ITERATIVE_SEARCH_BY_PAGING_BATCH_SIZE);
+        updateConfiguration(configuration, null);
 
         super.init(configuration);
     }
@@ -100,6 +76,10 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         }
 
         //override loaded configuration based on properties file...
+        updateConfiguration(configuration, properties);
+    }
+
+    private void updateConfiguration(Configuration configuration, Properties properties) {
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_EMBEDDED);
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_DROP_IF_EXISTS);
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_AS_SERVER);
@@ -125,10 +105,10 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
 
         updateConfigurationBooleanProperty(configuration, properties, PROPERTY_ITERATIVE_SEARCH_BY_PAGING);
         updateConfigurationStringProperty(configuration, properties, PROPERTY_ITERATIVE_SEARCH_BY_PAGING_BATCH_SIZE);
-    }
 
-    private void updateConfigurationIntegerProperty(Configuration configuration, String propertyName) {
-        updateConfigurationIntegerProperty(configuration, null, propertyName);
+        updateConfigurationBooleanProperty(configuration, properties, PROPERTY_USE_ZIP);
+        updateConfigurationIntegerProperty(configuration, properties, PROPERTY_MIN_POOL_SIZE);
+        updateConfigurationIntegerProperty(configuration, properties, PROPERTY_MAX_POOL_SIZE);
     }
 
     private void updateConfigurationIntegerProperty(Configuration configuration, Properties properties, String propertyName) {
@@ -140,10 +120,6 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         configuration.setProperty(propertyName, Integer.parseInt(value));
     }
 
-    private void updateConfigurationBooleanProperty(Configuration configuration, String propertyName) {
-        updateConfigurationBooleanProperty(configuration, null, propertyName);
-    }
-
     private void updateConfigurationBooleanProperty(Configuration configuration, Properties properties, String propertyName) {
         String value = properties != null ? properties.getProperty(propertyName) : System.getProperty(propertyName);
         if (value == null) {
@@ -151,10 +127,6 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         }
 
         configuration.setProperty(propertyName, new Boolean(value).booleanValue());
-    }
-
-    private void updateConfigurationStringProperty(Configuration configuration, String propertyName) {
-        updateConfigurationStringProperty(configuration, null, propertyName);
     }
 
     private void updateConfigurationStringProperty(Configuration configuration, Properties properties, String propertyName) {

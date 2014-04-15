@@ -16,28 +16,28 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.prism.query.OrgFilter;
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
-import org.hibernate.Query;
-import org.hibernate.Session;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 import java.io.File;
-import java.util.List;
+import java.util.Date;
 
 /**
  * @author lazyman
@@ -52,26 +52,26 @@ public class OrgClosureTest extends BaseSQLRepoTest {
     private static final String ORG_STRUCT_OBJECTS = TEST_DIR + "/org-monkey-island.xml";
     private static final String ORG_SIMPLE_TEST = TEST_DIR + "/org-simple-test.xml";
 
+    //50531 org. units, 810155 users
+//    private static final int[] TREE_LEVELS = {1, 5, 5, 20, 20, 4};
+//    private static final int[] TREE_LEVELS_USERS = {5, 10, 4, 20, 20, 15};
+
+    //9 OU, 23 U
+    private static final int[] TREE_LEVELS = {1, 2, 3};
+    private static final int[] TREE_LEVELS_USERS = {1, 2, 3};
+
     private int count = 0;
 
     @Test(enabled = false)
     public void loadOrgStructure() throws Exception {
         OperationResult opResult = new OperationResult("===[ addOrgStruct ]===");
 
-        //109100 users and 5455 org. units
-//        final int[] TREE_SIZE = {1, 5, 5, 7, 3, 3, 2};
-//        loadOrgStructure(null, TREE_SIZE, 20, "", opResult);
-
-        //4120 users and 206 org. units
-        final int[] TREE_SIZE = {1, 5, 5, 7};
-        loadOrgStructure(null, TREE_SIZE, 20, "", opResult);
-
-        //total 44 objects
-//        final int[] TREE_SIZE = {1, 2, 2, 2};
-//        loadOrgStructure(null, TREE_SIZE, 2, "", opResult);
+        LOGGER.info("Start.");
+        loadOrgStructure(null, TREE_LEVELS, TREE_LEVELS_USERS, "", opResult);
+        LOGGER.info("Finish.");
     }
 
-    private void loadOrgStructure(String parentOid, int[] TREE_SIZE, int USER_COUNT, String oidPrefix,
+    private void loadOrgStructure(String parentOid, int[] TREE_SIZE, int[] USER_SIZE, String oidPrefix,
                                   OperationResult result) throws Exception {
         if (TREE_SIZE.length == 0) {
             return;
@@ -84,14 +84,14 @@ public class OrgClosureTest extends BaseSQLRepoTest {
             String oid = repositoryService.addObject(org, null, result);
             count++;
 
-            for (int u = 0; u < USER_COUNT; u++) {
+            for (int u = 0; u < USER_SIZE[0]; u++) {
                 PrismObject<UserType> user = createUser(oid, i, u, newOidPrefix);
-                LOGGER.info("Creating {}, total {}", user, count);
                 repositoryService.addObject(user, null, result);
                 count++;
             }
 
-            loadOrgStructure(oid, ArrayUtils.remove(TREE_SIZE, 0), USER_COUNT, newOidPrefix + i, result);
+            loadOrgStructure(oid, ArrayUtils.remove(TREE_SIZE, 0), ArrayUtils.remove(USER_SIZE, 0),
+                    newOidPrefix + i, result);
         }
     }
 
@@ -110,8 +110,21 @@ public class OrgClosureTest extends BaseSQLRepoTest {
             user.getParentOrgRef().add(ref);
         }
 
+        PrismObject<UserType> object = user.asPrismObject();
         prismContext.adopt(user);
-        return user.asPrismContainer();
+
+        addExtensionProperty(object, "shipName", "Ship " + i + "-" + u);
+        addExtensionProperty(object, "weapon", "weapon " + i + "-" + u);
+        addExtensionProperty(object, "loot", i + u);
+        addExtensionProperty(object, "funeralDate", XMLGregorianCalendarType.asXMLGregorianCalendar(new Date()));
+
+        return object;
+    }
+
+    private void addExtensionProperty(PrismObject object, String name, Object value) throws SchemaException {
+        String NS = "http://example.com/p";
+        PrismProperty p = object.findOrCreateProperty(new ItemPath(UserType.F_EXTENSION, new QName(NS, name)));
+        p.setRealValue(value);
     }
 
     private PrismObject<OrgType> createOrg(String parentOid, int i, String oidPrefix)
@@ -152,99 +165,5 @@ public class OrgClosureTest extends BaseSQLRepoTest {
         PolyStringType poly = new PolyStringType();
         poly.setOrig(orig);
         return poly;
-    }
-
-    @Test(enabled = false)
-    public void testSelectChildren() throws Exception {
-        OperationResult opResult = new OperationResult("===[ addOrgStruct ]===");
-
-        LOGGER.info("Starting import.");
-        List<PrismObject<? extends Objectable>> orgStruct = prismContext.parseObjects(
-                new File(ORG_STRUCT_OBJECTS));
-
-        for (PrismObject<? extends Objectable> o : orgStruct) {
-            repositoryService.addObject((PrismObject<ObjectType>) o, null, opResult);
-        }
-
-        orgStruct = prismContext.parseObjects(new File(ORG_SIMPLE_TEST));
-        for (PrismObject<? extends Objectable> o : orgStruct) {
-            repositoryService.addObject((PrismObject<ObjectType>) o, null, opResult);
-        }
-        LOGGER.info("Import finished.");
-
-        String parentOid = "00000000-8888-6666-0000-100000000001";
-
-        OrgFilter orgFilter = OrgFilter.createOrg(parentOid, null, 1);
-        ObjectQuery query = ObjectQuery.createObjectQuery(orgFilter);
-        query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
-
-//        SELECT closure1_.descendant_id  AS y0_,
-//                closure1_.descendant_oid AS y1_,
-//        this_.name_orig          AS y2_
-//        FROM   m_org this_
-//        inner join m_org_closure closure1_
-//        ON this_.id = closure1_.descendant_id
-//        AND this_.oid = closure1_.descendant_oid
-//        inner join m_object anc2_
-//        ON closure1_.ancestor_id = anc2_.id
-//        AND closure1_.ancestor_oid = anc2_.oid
-//        WHERE  ( anc2_.id=0 and anc2_.oid = '00000000-8888-6666-0000-100000000006'
-//                AND closure1_.depthvalue <= 1
-//                AND closure1_.depthvalue > 0 )
-//        GROUP  BY closure1_.descendant_id,
-//                closure1_.descendant_oid,
-//                this_.name_orig
-//        ORDER  BY this_.name_orig ASC;
-
-//        from Item i
-//        where (
-//                i.id in (select i2.id from AbcItem i2 where i2.abc = 5)
-//                or i.id in (select id2.id from XyzItem i2 where i2.xyz = 7)
-//        )
-//        and ...
-//        order by ...
-
-        Session session = open();
-        try {
-//            Query q = session.createQuery("from ROrg as o " +
-//                    "inner join ROrgClosure as oc on o.id=oc.descendandId and o.oid=oc.descendandOid");
-
-            LOGGER.info("QUERY:");
-            Query q = session.createQuery("select oc.descendant from ROrgClosure as oc " +
-                    "inner join oc.descendant where oc.ancestorOid = :oid and oc.ancestorId = :id " +
-                    "and oc.depth > :minDepth and oc.depth <= :maxDepth");
-            q.setParameter("oid", parentOid);
-            q.setParameter("id", 0L);
-            q.setParameter("minDepth", 0);
-            q.setParameter("maxDepth", 1);
-            List l = q.list();
-            for (Object o : l) {
-                System.out.println(((RObject) o).getName());
-            }
-            LOGGER.info("QUERY:");
-
-            q = session.createQuery("from ROrg o where (o.id = :id and o.oid in (" +
-                    "select oc.descendantOid from ROrgClosure oc " +
-                    "where oc.ancestorOid = :oid and oc.ancestorId = :id " +
-                    "and oc.depth > :minDepth and oc.depth <= :maxDepth))");
-
-            q.setParameter("oid", parentOid);
-            q.setParameter("id", 0L);
-            q.setParameter("minDepth", 0);
-            q.setParameter("maxDepth", 1);
-
-            l = q.list();
-            for (Object o : l) {
-                System.out.println(((RObject) o).getName());
-            }
-
-            LOGGER.info("QUERY:");
-            repositoryService.searchObjects(OrgType.class, query, null, opResult);
-
-//            String sql = getInterpretedQuery(session, OrgType.class, query);
-//            LOGGER.info(sql);
-        } finally {
-            close(session);
-        }
     }
 }
