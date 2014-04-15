@@ -190,8 +190,14 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		
 		if (hasDeltas(sources) || hasDelas(variables)) {
 		
-			Collection<V> outputSetOld = evaluateScriptExpression(sources, variables, contextDescription, false, params, task, result);
-			Collection<V> outputSetNew = evaluateScriptExpression(sources, variables, contextDescription, true, params, task, result);
+			Collection<V> outputSetOld = null;
+			if (!params.isSkipEvaluationMinus()) {
+				outputSetOld = evaluateScriptExpression(sources, variables, contextDescription, false, params, task, result);
+			}
+			Collection<V> outputSetNew = null;
+			if (!params.isSkipEvaluationPlus()) {
+				outputSetNew = evaluateScriptExpression(sources, variables, contextDescription, true, params, task, result);
+			}
 			
 			outputTriple = PrismValueDeltaSetTriple.diffPrismValueDeltaSetTriple(outputSetOld, outputSetNew);
 			

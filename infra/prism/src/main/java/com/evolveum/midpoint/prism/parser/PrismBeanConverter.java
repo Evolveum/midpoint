@@ -658,7 +658,6 @@ public class PrismBeanConverter {
 				QName fieldTypeName = inspector.findFieldTypeName(field, getterResultValue.getClass(), namespace);
 								
 				ListXNode xlist = new ListXNode();
-				boolean isJaxb = false;
 				for (Object element: col) {
 					Object elementToMarshall = element;
 					if (element instanceof JAXBElement){
@@ -666,24 +665,12 @@ public class PrismBeanConverter {
 							elementName = ((JAXBElement) element).getName(); 
 						}
 						elementToMarshall = ((JAXBElement) element).getValue();
-//						xmap.put(elementName, marshallValue(elementToMarshall, fieldTypeName, isAttribute));
-//						isJaxb = true;
-//						continue;
-//					} else if (element instanceof Element && prismContext != null){
-//						RootXNode xroot = prismContext.getParserDom().parseElementAsRoot((Element) element);
-//						xmap.put(xroot.getRootElementName(), xroot.getSubnode());
-//						
-//						continue;
-////						elementName = QNameUtil.getNodeQName((Element) element);
-////						elementToMarshall = element.get
 					} 
 					XNode marshalled = marshallValue(elementToMarshall, fieldTypeName, isAttribute);
 					setExplicitTypeDeclarationIfNeeded(getter, getterResultValue, marshalled, fieldTypeName);
 					xlist.add(marshalled);
 				}
-//				if (!isJaxb){
 					xmap.put(elementName, xlist);
-//				}
 			} else {
 				QName fieldTypeName = inspector.findFieldTypeName(field, getterResult.getClass(), namespace);
 				Object valueToMarshall = null;

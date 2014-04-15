@@ -18,6 +18,8 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Basic</name>
     
@@ -26,6 +28,32 @@
     		<!-- OpenDJ resource -->
     		<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
     		<kind>account</kind>
+    		<association>
+            	<ref>ri:group</ref>
+	            <outbound>
+	            	<source>
+	            		<path>organizationalUnit</path>
+	            	</source>
+	                <expression>
+	                    <associationTargetSearch>
+	                        <filter>
+	                            <q:equal>
+	                                <q:path>
+	                                	declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
+	                                	attributes/icfs:name
+	                                </q:path>
+	                                <expression>
+	                                    <script>
+	                                        <code>'cn='+organizationalUnit+',ou=groups,dc=example,dc=com'</code>
+	                                    </script>
+	                                </expression>
+	                            </q:equal>
+	                        </filter>
+	                    	<searchOnResource>true</searchOnResource>
+	                    </associationTargetSearch>
+	                </expression>
+	            </outbound>
+	        </association>
     	</construction>
     </inducement>
     

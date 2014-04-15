@@ -436,7 +436,11 @@ public class PrismBeanInspector {
         String[] myPropOrder = xmlType.propOrder();
         if (myPropOrder != null) {
             for (String myProp: myPropOrder) {
-                if (!StringUtils.isBlank(myProp)) {
+                if (StringUtils.isNotBlank(myProp)) {
+                	// some properties starts with underscore..we don't want to serialize them with underscore, so remove it..
+                	if (myProp.startsWith("_")){
+                		myProp = myProp.replace("_", "");
+                	}
                     propOrder.add(myProp);
                 }
             }

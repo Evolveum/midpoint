@@ -144,13 +144,13 @@ public class AssignmentProcessor {
     		// We can do this only for FocusType.
     		return;
     	}
-    	processAssignmentsAccounts((LensContext<? extends FocusType>)context, now, task, result);
+    	processAssignmentsProjectionsWithFocus((LensContext<? extends FocusType>)context, now, task, result);
     }
     
     /**
      * Processing user-account assignments (including roles). Specific user-account method.
      */
-    public <F extends FocusType> void processAssignmentsAccounts(LensContext<F> context, XMLGregorianCalendar now, 
+    private <F extends FocusType> void processAssignmentsProjectionsWithFocus(LensContext<F> context, XMLGregorianCalendar now, 
     		Task task, OperationResult result) throws SchemaException,
     		ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -109,7 +109,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         context.recompute();
 
         // WHEN
-        assignmentProcessor.processAssignmentsAccounts(context, getNow(), task, result);
+        assignmentProcessor.processAssignmentsProjections(context, getNow(), task, result);
 
         // THEN
         display("outbound processor result", result);
@@ -140,7 +140,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignmentsAccounts(context, getNow(), task, result);
+        assignmentProcessor.processAssignmentsProjections(context, getNow(), task, result);
 
         // THEN
         display("Output context", context);
@@ -201,7 +201,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignmentsAccounts(context, getNow(), task, result);
+        assignmentProcessor.processAssignmentsProjections(context, getNow(), task, result);
 
         // THEN
         display("Output context", context);
@@ -243,7 +243,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignmentsAccounts(context, getNow(), task, result);
+        assignmentProcessor.processAssignmentsProjections(context, getNow(), task, result);
 
         // THEN
         display("Output context", context);
@@ -312,7 +312,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignmentsAccounts(context, getNow(), task, result);
+        assignmentProcessor.processAssignmentsProjections(context, getNow(), task, result);
 
         // THEN
         display("Output context", context);
@@ -412,7 +412,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignmentsAccounts(context, getNow(), task, result);
+        assignmentProcessor.processAssignmentsProjections(context, getNow(), task, result);
 
         // THEN
         display("Output context", context.dump(true));
@@ -501,7 +501,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 	        assertFocusModificationSanity(context);
 
 	        // WHEN
-	        assignmentProcessor.processAssignmentsAccounts(context, getNow(), task, result);
+	        assignmentProcessor.processAssignmentsProjections(context, getNow(), task, result);
 	        
 	        context.recompute();
 	        // THEN

@@ -124,6 +124,11 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 			ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result) 
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
+//		if (LOGGER.isTraceEnabled()) {
+//			LOGGER.trace("transformSingleValue in {}\nvariables:\n{}\nvalueDestination: {}\nuseNew: {}",
+//					new Object[]{contextDescription, variables.debugDump(1), valueDestination, useNew});
+//		}
+		
 		QName targetTypeQName = getExpressionEvaluatorType().getTargetType();
 		if (targetTypeQName == null) {
 			targetTypeQName = getDefaultTargetType();

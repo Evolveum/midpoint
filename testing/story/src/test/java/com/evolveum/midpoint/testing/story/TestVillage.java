@@ -148,6 +148,8 @@ public class TestVillage extends AbstractStoryTest {
 	private static final String DUMMY_ACCOUNT_ATTRIBUTE_SRC_FIRST_NAME = "firstname";
 	private static final String DUMMY_ACCOUNT_ATTRIBUTE_SRC_LAST_NAME = "lastname";
 	private static final String DUMMY_ACCOUNT_ATTRIBUTE_SRC_TYPE = "type";
+	private static final String DUMMY_ACCOUNT_ATTRIBUTE_SRC_LOC = "loc";
+	private static final String DUMMY_ACCOUNT_ATTRIBUTE_SRC_ORG = "org";
 	
 	public static final File ROLE_BASIC_FILE = new File(TEST_DIR, "role-basic.xml");
 	public static final String ROLE_BASIC_OID = "10000000-0000-0000-0000-000000000601";
@@ -159,11 +161,15 @@ public class TestVillage extends AbstractStoryTest {
 	private static final String ACCOUNT_HERMAN_USERNAME = "ht";
 	private static final String ACCOUNT_HERMAN_FIST_NAME = "Herman";
 	private static final String ACCOUNT_HERMAN_LAST_NAME = "Toothrot";
+	private static final String ACCOUNT_HERMAN_LOC = "Monkey Island";
+	private static final String ACCOUNT_HERMAN_ORG = "Gov";
 	private static final String USER_HERMAN_NAME = ACCOUNT_HERMAN_FIST_NAME+"."+ACCOUNT_HERMAN_LAST_NAME;
 	
 	private static final String ACCOUNT_LEMONHEAD_USERNAME = "lemonhead";
 	private static final String ACCOUNT_LEMONHEAD_FIST_NAME = "Lemonhead";
 	private static final String ACCOUNT_LEMONHEAD_LAST_NAME = "Canibal";
+	private static final String ACCOUNT_LEMONHEAD_LOC = "Monkey Island";
+	private static final String ACCOUNT_LEMONHEAD_ORG = "Exec";
 	private static final String USER_LEMONHEAD_NAME = ACCOUNT_LEMONHEAD_FIST_NAME+"."+ACCOUNT_LEMONHEAD_LAST_NAME;
 
 	private static final String ACCOUNT_SHARPTOOTH_USERNAME = "sharptooth";
@@ -209,6 +215,9 @@ public class TestVillage extends AbstractStoryTest {
 	private static final String ACCOUNT_TELEKE_USERNAME = "tőlőkë";
 	private static final String ACCOUNT_TELEKE_FIST_NAME = "Félix";
 	private static final String ACCOUNT_TELEKE_LAST_NAME = "Tőlőkë";
+	
+	private static final File GROUP_GOV_MONKEY_ISLAND_LDIF_FILE = new File(TEST_DIR, "group-gov-monkey-island.ldif");
+	private static final File GROUP_EXEC_MONKEY_ISLAND_LDIF_FILE = new File(TEST_DIR, "group-exec-monkey-island.ldif");
 
 	protected static DummyResource dummyResourceSrc;
 	protected static DummyResourceContoller dummyResourceCtlSrc;
@@ -238,6 +247,8 @@ public class TestVillage extends AbstractStoryTest {
 		dummyResourceCtlSrc.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SRC_FIRST_NAME, String.class, false, false);
 		dummyResourceCtlSrc.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SRC_LAST_NAME, String.class, false, false);
 		dummyResourceCtlSrc.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SRC_TYPE, String.class, false, false);
+		dummyResourceCtlSrc.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SRC_LOC, String.class, false, false);
+		dummyResourceCtlSrc.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SRC_ORG, String.class, false, false);
 		dummyResourceSrc = dummyResourceCtlSrc.getDummyResource();
 		resourceDummySrc = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_SOURCE_FILE, RESOURCE_DUMMY_SOURCE_OID, initTask, initResult);
 		resourceDummySrcType = resourceDummySrc.asObjectable();
@@ -255,6 +266,10 @@ public class TestVillage extends AbstractStoryTest {
 		// Role
 		importObjectFromFile(ROLE_BASIC_FILE, initResult);
 		
+		// LDAP content
+		openDJController.addEntryFromLdifFile(GROUP_GOV_MONKEY_ISLAND_LDIF_FILE);
+		openDJController.addEntryFromLdifFile(GROUP_EXEC_MONKEY_ISLAND_LDIF_FILE);
+
 		// Tasks
 		importObjectFromFile(TASK_LIVE_SYNC_DUMMY_SOURCE_FILE, initResult);
 		
@@ -286,6 +301,8 @@ public class TestVillage extends AbstractStoryTest {
         DummyAccount newAccount = new DummyAccount(ACCOUNT_HERMAN_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_FIRST_NAME, ACCOUNT_HERMAN_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LAST_NAME, ACCOUNT_HERMAN_LAST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LOC, ACCOUNT_HERMAN_LOC);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_ORG, ACCOUNT_HERMAN_ORG);
 		
         // WHEN
         dummyResourceSrc.addAccount(newAccount);
@@ -297,11 +314,12 @@ public class TestVillage extends AbstractStoryTest {
         display("User", user);
    		assertUser(user, user.getOid(), USER_HERMAN_NAME, ACCOUNT_HERMAN_FIST_NAME+" "+ACCOUNT_HERMAN_LAST_NAME,
    				ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME);
+   		assertLocGov(user, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
         assertLinks(user, 1);
         assertAccount(user, RESOURCE_DUMMY_SOURCE_OID);
         assertAssignments(user, 0);
 	}
-	
+
 	@Test
     public void test102HermanAssignBasicRole() throws Exception {
 		final String TEST_NAME = "test102HermanAssignBasicRole";
@@ -316,6 +334,8 @@ public class TestVillage extends AbstractStoryTest {
         // THEN
         PrismObject<UserType> userAfter = getUser(user.getOid());
         assertUserLdap(userAfter, ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME);
+        assertLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
+        assertLdapLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
 	}
 	
 	@Test
@@ -328,6 +348,8 @@ public class TestVillage extends AbstractStoryTest {
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_FIRST_NAME, ACCOUNT_LEMONHEAD_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LAST_NAME, ACCOUNT_LEMONHEAD_LAST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_TYPE, ROLE_BASIC_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_LOC, ACCOUNT_LEMONHEAD_LOC);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_SRC_ORG, ACCOUNT_LEMONHEAD_ORG);
 		
         // WHEN
         dummyResourceSrc.addAccount(newAccount);
@@ -336,6 +358,17 @@ public class TestVillage extends AbstractStoryTest {
         // THEN
         PrismObject<UserType> userAfter = findUserByUsername(USER_LEMONHEAD_NAME);
         assertUserLdap(userAfter, ACCOUNT_LEMONHEAD_FIST_NAME, ACCOUNT_LEMONHEAD_LAST_NAME);
+        assertLocGov(userAfter, ACCOUNT_LEMONHEAD_LOC, ACCOUNT_LEMONHEAD_ORG);
+        assertLdapLocGov(userAfter, ACCOUNT_LEMONHEAD_LOC, ACCOUNT_LEMONHEAD_ORG);
+	}
+	
+	private void assertLocGov(PrismObject<UserType> user, String expLoc, String expOrg) {
+		UserType userType = user.asObjectable();
+		PrismAsserts.assertEqualsPolyString("Wrong locality in "+user, expLoc, userType.getLocality());
+		PrismAsserts.assertEqualsCollectionUnordered("Wrong organization in "+user, userType.getOrganization(), 
+				PrismTestUtil.createPolyStringType(expOrg));
+		PrismAsserts.assertEqualsCollectionUnordered("Wrong organizationalUnit in "+user, userType.getOrganizationalUnit(), 
+				PrismTestUtil.createPolyStringType(expOrg+":"+expLoc));
 	}
 
 	private void assertUserLdap(PrismObject<UserType> userAfter, String firstName, String lastName) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
@@ -355,6 +388,20 @@ public class TestVillage extends AbstractStoryTest {
         PrismObject<ShadowType> shadow = getShadowModel(linkRef.getOid());
 		display("OpenDJ shadow linked to "+userAfter, shadow);
 		IntegrationTestTools.assertIcfsNameAttribute(shadow, "uid="+username+",ou=people,dc=example,dc=com");
+	}
+	
+	private void assertLdapLocGov(PrismObject<UserType> user, String expLoc, String expOrg) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
+		UserType userType = user.asObjectable();
+		
+		String groupCn = expOrg+":"+expLoc;
+		String groupDn = "cn="+groupCn+",ou=groups,"+openDJController.getSuffix();
+		SearchResultEntry groupEntry = openDJController.fetchAndAssertEntry(groupDn, "groupOfUniqueNames");
+		display("Group entry", groupEntry);
+		
+		PrismReferenceValue accountLinkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
+		PrismObject<ShadowType> accountShadow = getShadowModel(accountLinkRef.getOid());
+		String accountDn = IntegrationTestTools.getIcfsNameAttribute(accountShadow);
+		openDJController.assertUniqueMember(groupEntry, accountDn);
 	}
 	
 }

@@ -886,6 +886,9 @@ public class XNodeProcessor {
 	
 	private ItemDefinition resolveDynamicItemDefinition(ItemDefinition parentDefinition, QName elementName,
 			XNode xnode) throws SchemaException {
+		if (xnode == null) {
+			return null;
+		}
 		QName typeName = xnode.getTypeQName();
 		if (typeName == null) {
 			if (xnode instanceof ListXNode) {
