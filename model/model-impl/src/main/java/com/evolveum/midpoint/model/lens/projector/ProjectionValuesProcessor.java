@@ -144,12 +144,12 @@ public class ProjectionValuesProcessor {
     	}
     	OperationResult processorResult = result.createSubresult(ProjectionValuesProcessor.class.getName()+".processAccountsValues");
     	processorResult.recordSuccessIfUnknown();
-    	processAccounts((LensContext<? extends FocusType>) context, projectionContext,
+    	processProjections((LensContext<? extends FocusType>) context, projectionContext,
     			activityDescription, task, processorResult);
     	
 	}
 	
-	public <F extends FocusType> void processAccounts(LensContext<F> context, 
+	private <F extends FocusType> void processProjections(LensContext<F> context, 
 			LensProjectionContext projContext, String activityDescription, Task task, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException,
 			CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {

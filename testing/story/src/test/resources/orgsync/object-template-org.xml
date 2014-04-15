@@ -35,7 +35,7 @@
     	<expression>
             <assignmentTargetSearch>
             	<targetType>c:OrgType</targetType>
-        		<query>
+        		<filter>
 					<q:equal>
 						<q:path>c:name</q:path>
 						<valueExpression>
@@ -51,7 +51,7 @@
 							</script>
 						</valueExpression>
 					</q:equal>
-				</query>
+				</filter>
 				<createOnDemand>true</createOnDemand>
 				<populateObject>
 					<populateItem>
