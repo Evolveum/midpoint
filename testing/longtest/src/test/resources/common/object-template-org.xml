@@ -27,7 +27,7 @@
     	<name>Org-org mapping</name>
     	<authoritative>true</authoritative>
     	<source>
-    		<path>extension/ext:orgpath</path>
+    		<path>declare namespace ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext";extension/ext:orgpath</path>
     	</source>
     	<source>
     		<path>orgType</path>
@@ -35,7 +35,7 @@
     	<expression>
             <assignmentTargetSearch>
             	<targetType>c:OrgType</targetType>
-        		<query>
+        		<filter>
 					<q:equal>
 						<q:path>c:name</q:path>
 						<valueExpression>
@@ -51,7 +51,7 @@
 							</script>
 						</valueExpression>
 					</q:equal>
-				</query>
+				</filter>
 				<createOnDemand>true</createOnDemand>
 				<populateObject>
 					<populateItem>
@@ -83,7 +83,7 @@
 							</script>
 						</expression>
 						<target>
-							<path>extension/ext:orgpath</path>
+							<path>declare namespace ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext";extension/ext:orgpath</path>
 						</target>
 					</populateItem>
 				</populateObject>

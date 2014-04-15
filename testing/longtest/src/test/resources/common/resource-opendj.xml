@@ -330,14 +330,15 @@
 				<q:and>
 					<q:equal>
 						<q:path>c:employeeNumber</q:path>
-						<valueExpression>
-							<path>$account/attributes/ri:employeeNumber</path>
-						</valueExpression>
+						<expression>
+						<path>declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003";
+                            $account/attributes/ri:employeeNumber</path>
+						</expression>
 					</q:equal>
 					<q:not>
 						<q:equal>
 							<q:path>c:employeeNumber</q:path>
-							<value/>
+							<q:value/>
 						</q:equal>
 					</q:not>
 				</q:and>

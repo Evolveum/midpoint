@@ -263,7 +263,7 @@
 				<q:equal>
 					<q:path>c:name</q:path>
 					<expression>
-						<path>$account/attributes/ri:uid</path>
+						<path>declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003";$account/attributes/ri:uid</path>
 					</expression>
 				</q:equal>
 			</correlation>
@@ -298,7 +298,7 @@
 				<q:equal>
 					<q:path>c:name</q:path>
 					<valueExpression>
-						<path>$shadow/attributes/ri:ou</path>
+						<path>declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003";$shadow/attributes/ri:ou</path>
 					</valueExpression>
 				</q:equal>
 			</correlation>
