@@ -359,7 +359,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	}
 
 	private void mergeExtension(PrismContainer<Containerable> magicExtension, PrismContainer<Containerable> segmentExtension) throws SchemaException {
-		if (segmentExtension != null) {
+		if (segmentExtension != null && !segmentExtension.getValue().isEmpty()) {
 			for (Item<?> segmentItem: segmentExtension.getValue().getItems()) {
 				Item<?> magicItem = magicExtension.findItem(segmentItem.getElementName());
 				if (magicItem == null) {
