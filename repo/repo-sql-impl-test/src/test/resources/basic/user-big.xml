@@ -156,6 +156,5 @@
                 <c:from>127.0.0.1</c:from>
             </c:lastSuccessfulLogin>
         </password>
-        <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
     </credentials>
 </user>

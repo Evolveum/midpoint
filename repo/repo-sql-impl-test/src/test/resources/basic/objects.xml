@@ -106,7 +106,6 @@
                     </enc:EncryptedData>
                 </value>
             </password>
-            <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
         </credentials>
         <activation>
             <administrativeStatus>archived</administrativeStatus>
@@ -148,7 +147,6 @@
                     </enc:EncryptedData>
                 </value>
             </password>
-            <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
         </credentials>
         <activation>
             <administrativeStatus>archived</administrativeStatus>
