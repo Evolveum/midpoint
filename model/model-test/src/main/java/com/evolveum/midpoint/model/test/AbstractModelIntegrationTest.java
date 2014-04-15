@@ -2267,7 +2267,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		IntegrationTestTools.assertNoGroupMembers(group);
 	}
 	
-	protected void login(String principalName) {
+	protected void login(String principalName) throws ObjectNotFoundException {
 		MidPointPrincipal principal = userProfileService.getPrincipal(principalName);
 		login(principal);
 	}
@@ -2283,7 +2283,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		securityContext.setAuthentication(authentication);
 	}
 	
-	protected void loginSuperUser(String principalName) throws SchemaException {
+	protected void loginSuperUser(String principalName) throws SchemaException, ObjectNotFoundException {
 		MidPointPrincipal principal = userProfileService.getPrincipal(principalName);
 		loginSuperUser(principal);
 	}

@@ -19,13 +19,13 @@ import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.UnsupportedCallbackException;
 
-
 import java.io.IOException;
 
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.UserProfileService;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -48,7 +48,12 @@ public class PasswordCallback implements CallbackHandler {
     public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
         WSPasswordCallback pc = (WSPasswordCallback) callbacks[0];
 
-        MidPointPrincipal user = userDetailsService.getPrincipal(pc.getIdentifier());
+        MidPointPrincipal user;
+		try {
+			user = userDetailsService.getPrincipal(pc.getIdentifier());
+		} catch (ObjectNotFoundException e) {
+			throw new SecurityException("unknown user", e);
+		}
         UserType userType = user.getUser();
         CredentialsType credentials = userType.getCredentials();
         if (user != null && credentials != null && credentials.getPassword() != null 

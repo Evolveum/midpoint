@@ -424,14 +424,6 @@ public final class WebMiscUtil {
         UserType user = object.asObjectable();
         CredentialsType credentials = user.getCredentials();
 
-        //if allowedIdmAdminGuiAccess is true, it's superuser
-        if (credentials != null) {
-            Boolean allowedAdmin = credentials.isAllowedIdmAdminGuiAccess();
-            if (allowedAdmin != null && allowedAdmin) {
-                return "silk-user_red";
-            }
-        }
-
         //if user has superuser role assigned, it's superuser
         for (AssignmentType assignment : user.getAssignment()) {
             ObjectReferenceType targetRef = assignment.getTargetRef();

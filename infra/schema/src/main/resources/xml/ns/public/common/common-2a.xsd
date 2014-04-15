@@ -2429,26 +2429,6 @@
             </xsd:element>
             <!-- More credentail types may be here, such as OTP seeds, X.509 credentials, 
 				etc. -->
-            <xsd:element name="allowedIdmAdminGuiAccess" type="xsd:boolean" minOccurs="0" default="false">
-                <xsd:annotation>
-                    <xsd:documentation>
-                    	DEPRECATED. DO NO USE.
-                    	Use the authorization mechanism instead.
-                    	This option will be removed in the next version.
-                    	
-                        If true, the user will have access to the IDM ADMIN GUI. The
-                        access will provide access to all functions, therefore
-                        this is kind of "superuser" flag.
-
-                        This is a temporary solution until we implement
-                        fully-featured authorization mechanism.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>Admin Gui Access</a:displayName>
-                        <a:deprecated/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>

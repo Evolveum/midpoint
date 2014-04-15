@@ -193,24 +193,7 @@ public class Migrator {
 		
 		PrismObject<UserType> migrated = orig.clone();
 
-		
 		UserType migratedUserType = migrated.asObjectable();
-		
-		//Credentials
-		if (origUserType.getCredentials() != null && origUserType.getCredentials().isAllowedIdmAdminGuiAccess() != null && origUserType.getCredentials().isAllowedIdmAdminGuiAccess()){
-			AssignmentType superUserRole = new AssignmentType();
-			superUserRole.setTargetRef(ObjectTypeUtil.createObjectRef(SystemObjectsType.ROLE_SUPERUSER.value(), ObjectTypes.ROLE));
-			migratedUserType.getAssignment().add(superUserRole);
-			
-			if (origUserType.getCredentials().getPassword() == null){
-				migratedUserType.setCredentials(null);
-			} else{
-				CredentialsType migratedCredentials = origUserType.getCredentials().clone();
-				migratedCredentials.setAllowedIdmAdminGuiAccess(null);
-				
-				migratedUserType.setCredentials(migratedCredentials);
-			}
-		}
 		
 		// Activation
 		ActivationType origActivation = origUserType.getActivation();

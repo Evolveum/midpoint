@@ -40,6 +40,7 @@ import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
@@ -80,13 +81,18 @@ public class UserProfileServiceImpl implements UserProfileService {
     private PrismContext prismContext;
 
     @Override
-    public MidPointPrincipal getPrincipal(String username) {
+    public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException {
     	PrismObject<UserType> user = null;
         try {
             user = findByUsername(username);
+        } catch (ObjectNotFoundException ex) {
+        	LOGGER.trace("Couldn't find user with name '{}', reason: {}.",
+                    new Object[]{username, ex.getMessage(), ex});
+        	throw ex;
         } catch (Exception ex) {
-            LOGGER.warn("Couldn't find user with name '{}', reason: {}.",
-                    new Object[]{username, ex.getMessage()});
+            LOGGER.warn("Error getting user with name '{}', reason: {}.",
+                    new Object[]{username, ex.getMessage(), ex});
+            throw new SystemException(ex.getMessage(), ex);
         }
 
         return getPrincipal(user);
@@ -136,13 +142,6 @@ public class UserProfileServiceImpl implements UserProfileService {
 
 		Collection<Authorization> authorizations = principal.getAuthorities();
         CredentialsType credentials = userType.getCredentials();
-        if (credentials != null && credentials.isAllowedIdmAdminGuiAccess() != null
-                && credentials.isAllowedIdmAdminGuiAccess()) {
-            AuthorizationType authorization = new AuthorizationType();
-            authorization.getAction().add(AuthorizationConstants.AUTZ_ALL_URL);
-
-            authorizations.add(new Authorization(authorization));
-        }
 
         if (userType.getAssignment().isEmpty()) {
             return;

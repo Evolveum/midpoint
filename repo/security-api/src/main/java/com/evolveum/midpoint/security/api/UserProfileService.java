@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.security.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 
@@ -33,7 +34,7 @@ public interface UserProfileService {
     String OPERATION_GET_USER = DOT_CLASS + "getUser";
     String OPERATION_UPDATE_USER = DOT_CLASS + "updateUser";
 
-    public MidPointPrincipal getPrincipal(String username);
+    public MidPointPrincipal getPrincipal(String username) throws ObjectNotFoundException;
     
     public MidPointPrincipal getPrincipal(PrismObject<UserType> user);
 

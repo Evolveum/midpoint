@@ -431,8 +431,6 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         //user
         names.add(UserType.F_RESULT);
 
-        names.add(CredentialsType.F_ALLOWED_IDM_ADMIN_GUI_ACCESS);
-
         for (QName name : names) {
             if (name.equals(def.getName())) {
                 return true;

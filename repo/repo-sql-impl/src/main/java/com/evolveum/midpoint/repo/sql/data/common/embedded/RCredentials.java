@@ -75,16 +75,12 @@ public class RCredentials {
                                   PrismContext prismContext) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
-
-        jaxb.setAllowedIdmAdminGuiAccess(repo.isAllowedIdmAdminGuiAccess());
     }
 
     public static void copyFromJAXB(CredentialsType jaxb, RCredentials repo, PrismContext prismContext) throws
             DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
-
-        repo.setAllowedIdmAdminGuiAccess(jaxb.isAllowedIdmAdminGuiAccess());
     }
 
     public CredentialsType toJAXB(ObjectType parent, ItemPath path, PrismContext prismContext) throws

@@ -55,7 +55,11 @@ http://www.springframework.org/schema/security/spring-security-3.1.xsd">
             <concurrency-control max-sessions="1" error-if-maximum-exceeded="true"/>
         </session-management>
 
+		<!-- For SSO integration use the following: -->
+        <!-- <custom-filter position="PRE_AUTH_FILTER" ref="requestHeaderAuthenticationFilter" />  -->
+
         <form-login login-page="/login" default-target-url="/home" />
+         
     </http>
 
     <beans:bean id="accessDecisionManager" class="com.evolveum.midpoint.web.security.MidPointGuiAuthorizationEvaluator">
@@ -73,6 +77,12 @@ http://www.springframework.org/schema/security/spring-security-3.1.xsd">
             <beans:value type="java.lang.Integer">3</beans:value>
         </beans:property>
     </beans:bean>
+    
+    <!-- Following bean is used with pre-authentication based on HTTP headers (e.g. for SSO integration) -->
+    <beans:bean id="requestHeaderAuthenticationFilter" class="org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter">
+	    <beans:property name="principalRequestHeader" value="SM_USER"/>
+	    <beans:property name="authenticationManager" ref="authenticationManager" />
+	</beans:bean>
 
     <authentication-manager alias="authenticationManager">
         <authentication-provider ref="midPointAuthenticationProvider"/>

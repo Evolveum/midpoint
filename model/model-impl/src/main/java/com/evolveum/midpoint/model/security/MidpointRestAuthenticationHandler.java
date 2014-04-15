@@ -19,6 +19,7 @@ import javax.ws.rs.core.Link.Builder;
 import javax.ws.rs.core.Response.StatusType;
 
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
+
 import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.apache.cxf.jaxrs.ext.RequestHandler;
 import org.apache.cxf.jaxrs.model.ClassResourceInfo;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.security.api.UserProfileService;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -62,7 +64,12 @@ public class MidpointRestAuthenticationHandler implements RequestHandler {
         }
         
         
-        MidPointPrincipal principal = userDetails.getPrincipal(username);
+        MidPointPrincipal principal;
+		try {
+			principal = userDetails.getPrincipal(username);
+		} catch (ObjectNotFoundException e) {
+			return Response.status(401).header("WWW-Authenticate", "Basic authentication failed. Cannot authenticate user.").build();
+		}
         
         if (principal == null ){
         	return Response.status(401).header("WWW-Authenticate", "Basic").build();

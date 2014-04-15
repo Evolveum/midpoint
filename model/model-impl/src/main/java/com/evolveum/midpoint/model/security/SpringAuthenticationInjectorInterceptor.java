@@ -28,6 +28,7 @@ import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -134,50 +135,46 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
                 Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
                 
-                UserType userType = principal.getUser();
-                if (userType.getCredentials() != null && userType.getCredentials().isAllowedIdmAdminGuiAccess() != null) {
-                	// Legacy authorization mechanism. DEPRECATED. TODO: remove
-                	if (userType.getActivation() == null || userType.getActivation().getEffectiveStatus() == null || 
-                			userType.getActivation().getEffectiveStatus() != ActivationStatusType.ENABLED) {
-                		auditLoginFailure(username);
-                		throw new Fault(
-                				new WSSecurityException("User is disabled (LEGACY)"));
-                	}
-                	if (!userType.getCredentials().isAllowedIdmAdminGuiAccess()) {
-                		auditLoginFailure(username);
-                		throw new Fault(
-                				new WSSecurityException("User has LEGACY administration privilege set to false, cannot access web service"));
-                	}
-                } else {
-
-                	// New authorization mechanism
-	                String operationName;
-					try {
-						operationName = DOMUtil.getFirstChildElement(doc.getSOAPBody()).getLocalName();
-					} catch (SOAPException e) {
-						auditLoginFailure(username);
-						throw new Fault(e);
-					}
-	                String action = QNameUtil.qNameToUri(new QName(AuthorizationConstants.NS_AUTHORIZATION_WS, operationName));
-	                LOGGER.trace("Determining authorization for web service operation {} (action: {})", operationName, action);
-	                boolean isAuthorized;
-					try {
-						isAuthorized = securityEnforcer.isAuthorized(action, null, null, null);
-					} catch (SchemaException e) {
-						auditLoginFailure(username);
-						throw new Fault(e);
-					}
-	                if (!isAuthorized) {
-	                	auditLoginFailure(username);
-	                	throw new Fault(new WSSecurityException("Unauthorized"));
-	                }
+                String operationName;
+				try {
+					operationName = DOMUtil.getFirstChildElement(doc.getSOAPBody()).getLocalName();
+				} catch (SOAPException e) {
+					LOGGER.debug("Access to web service denied for user '{}': SOAP error: {}", 
+		        			new Object[]{username, e.getMessage(), e});
+					auditLoginFailure(username);
+					throw new Fault(e);
+				}
+                String action = QNameUtil.qNameToUri(new QName(AuthorizationConstants.NS_AUTHORIZATION_WS, operationName));
+                LOGGER.trace("Determining authorization for web service operation {} (action: {})", operationName, action);
+                boolean isAuthorized;
+				try {
+					isAuthorized = securityEnforcer.isAuthorized(action, null, null, null);
+				} catch (SchemaException e) {
+					LOGGER.debug("Access to web service denied for user '{}': schema error: {}", 
+		        			new Object[]{username, e.getMessage(), e});
+					auditLoginFailure(username);
+					throw new Fault(e);
+				}
+                if (!isAuthorized) {
+                	LOGGER.debug("Access to web service denied for user '{}': not authorized", 
+                			new Object[]{username});
+                	auditLoginFailure(username);
+                	throw new Fault(new WSSecurityException("Unauthorized"));
                 }
             }
         } catch (WSSecurityException e) {
+        	LOGGER.debug("Access to web service denied for user '{}': security exception: {}", 
+        			new Object[]{username, e.getMessage(), e});
         	auditLoginFailure(username);
             throw new Fault(e);
-        }
+        } catch (ObjectNotFoundException e) {
+        	LOGGER.debug("Access to web service denied for user '{}': object not found: {}", 
+        			new Object[]{username, e.getMessage(), e});
+        	auditLoginFailure(username);
+            throw new Fault(new WSSecurityException("Unauthorized"));
+		}
 
+        LOGGER.debug("Access to web service allowed for user '{}'", username);
     }
 
     private String getUsernameFromSecurityHeader(Element securityHeader) {
