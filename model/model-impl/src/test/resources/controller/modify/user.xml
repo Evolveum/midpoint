@@ -31,7 +31,6 @@
 		<password>
 			<c:base64 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" />
 		</password>
-		<allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
 	</credentials>
 	<activation>
 		<administrativeStatus>enabled</administrativeStatus>

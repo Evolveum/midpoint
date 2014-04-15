@@ -23,7 +23,6 @@
     <givenName>Jack</givenName>
 
     <c:credentials xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
-        <c:allowedIdmAdminGuiAccess>true</c:allowedIdmAdminGuiAccess>
         <c:password>
             <c:value
                     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"

@@ -35,6 +35,5 @@
 				</enc:EncryptedData>
 			</value>
 		</password>
-		<allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
 	</credentials>
 </user>

@@ -59,7 +59,6 @@
                 <clearValue>d3adM3nT3llN0Tal3s</clearValue>
             </value>
         </password>
-        <allowedIdmAdminGuiAccess>false</allowedIdmAdminGuiAccess>
     </credentials>
     <activation>
         <administrativeStatus>enabled</administrativeStatus>

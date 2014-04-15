@@ -27,6 +27,5 @@
 				<clearValue>5ecr3t</clearValue>
 			</c:value>
 		</c:password>
-		<c:allowedIdmAdminGuiAccess>true</c:allowedIdmAdminGuiAccess>
 	</c:credentials>
 </c:user>

@@ -134,7 +134,6 @@
             </t:encryptedData>
             </value>
         </password>
-        <allowedIdmAdminGuiAccess>false</allowedIdmAdminGuiAccess>
     </credentials>
     
 </object>

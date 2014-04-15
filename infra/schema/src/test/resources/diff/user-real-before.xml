@@ -44,7 +44,6 @@
                 </enc:EncryptedData>
             </value>
         </password>
-        <allowedIdmAdminGuiAccess>false</allowedIdmAdminGuiAccess>
     </credentials>
     <activation>
         <administrativeStatus>enabled</administrativeStatus>
