@@ -22,11 +22,8 @@ public class PerformanceTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(PerformanceTest.class);
 
-    /**
-     * time: ~9min (parsers branch)
-     */
-    @Test(enabled = true)
-    public void testParsing() throws Exception {
+    @Test(enabled = false)
+    public void test100Parsing() throws Exception {
         long time = System.currentTimeMillis();
 
         int COUNT = 1000;
