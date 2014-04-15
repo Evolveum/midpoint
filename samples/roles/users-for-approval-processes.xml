@@ -96,7 +96,6 @@
             </enc:EncryptedData>
          </c:value>
       </password>
-      <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
    </credentials>
 </user>
 	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
@@ -137,7 +136,6 @@
             </enc:EncryptedData>
          </c:value>
       </password>
-      <allowedIdmAdminGuiAccess>true</allowedIdmAdminGuiAccess>
    </credentials>
 </user>
 </objects>
