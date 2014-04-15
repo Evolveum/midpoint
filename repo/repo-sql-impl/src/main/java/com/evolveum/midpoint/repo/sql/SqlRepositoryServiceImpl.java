@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -53,7 +52,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.*;
@@ -65,7 +64,6 @@ import org.hibernate.jdbc.Work;
 import org.springframework.stereotype.Repository;
 
 import javax.xml.namespace.QName;
-
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.Driver;
@@ -564,7 +562,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         //PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
-		String xml = getPrismContext().serializeObjectToString(savedObject, PrismContext.LANG_XML);
+        String xml = getPrismContext().seria        zeObjectToString(savedObject, PrismContext.LANG_XML);
         byte[] fullObject = RUtil.getByteArrayFromXml(xml, getConfiguration().isUseZip());
 
         if (LOGGER.isTraceEnabled()) LOGGER.trace("Storing full object\n{}", xml);
@@ -1844,6 +1842,51 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     private <T extends ObjectType> boolean matchObject(PrismObject<T> object, OrgFilter filter) throws SchemaException {
+        Session session = null;
+        try {
+            session = beginTransaction();
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("select count(*) from ROrgClosure o where o.ancestorOid=:aOid and o.descendantOid=:dOid ");
+            if (filter.getMinDepth() != null || filter.getMaxDepth() != null) {
+                if (ObjectUtils.equals(filter.getMinDepth(), filter.getMaxDepth())) {
+                    sb.append("and o.depth = :depth ");
+                } else {
+                    if (filter.getMinDepth() != null) {
+                        sb.append("and o.depth > :minDepth ");
+                    }
+                    if (filter.getMaxDepth() != null) {
+                        sb.append("and o.depth <= :maxDepth ");
+                    }
+                }
+            }
+
+            Query query = session.createQuery(sb.toString());
+            query.setString("aOid", filter.getOrgRef().getOid());
+            query.setString("dOid", object.getOid());
+            if (filter.getMinDepth() != null || filter.getMaxDepth() != null) {
+                if (ObjectUtils.equals(filter.getMinDepth(), filter.getMaxDepth())) {
+                    query.setInteger("depth", filter.getMinDepth());
+                } else {
+                    if (filter.getMinDepth() != null) {
+                        query.setInteger("minDepth", filter.getMinDepth());
+                    }
+                    if (filter.getMaxDepth() != null) {
+                        query.setInteger("maxDepth", filter.getMaxDepth());
+                    }
+                }
+            }
+
+            Number number = (Number) query.uniqueResult();
+            if (number.longValue() != 0L) {
+                return true;
+            }
+        } catch (RuntimeException ex) {
+            handleGeneralException(ex, session, null);
+        } finally {
+            cleanupSessionAndResult(session, null);
+        }
+
         return false;
     }
 }
