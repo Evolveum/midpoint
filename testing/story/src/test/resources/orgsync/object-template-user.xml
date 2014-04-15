@@ -64,7 +64,7 @@
     	<expression>
             <assignmentTargetSearch>
             	<targetType>c:OrgType</targetType>
-        		<query>
+        		<filter>
 					<q:equal>
 						<q:path>c:name</q:path>
 						<valueExpression>
@@ -75,7 +75,7 @@
 							</script>
 						</valueExpression>
 					</q:equal>
-				</query>
+				</filter>
 				<createOnDemand>true</createOnDemand>
 				<populateObject>
 					<populateItem>
@@ -136,14 +136,14 @@
     	<expression>
             <assignmentTargetSearch>
             	<targetType>c:RoleType</targetType>
-        		<query>
+        		<filter>
 					<q:equal>
 						<q:path>c:extension/ext:responsibility</q:path>
 						<valueExpression>
 							<path>$ext:responsibility</path>
 						</valueExpression>
 					</q:equal>
-				</query>
+				</filter>
 				<createOnDemand>true</createOnDemand>
 				<populateObject>
 					<populateItem>

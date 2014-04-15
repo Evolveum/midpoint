@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2014 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resource oid="10000000-0000-0000-0000-000000000001"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
+          xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext"
+          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<name>Dummy Source Resource</name>
+	<description>Authoritative HR-like resource</description>
+	<connectorRef type="c:ConnectorType">
+		<filter>
+			<q:and>
+				<q:equal>
+					<q:path>connectorType</q:path>
+					<q:value>com.evolveum.icf.dummy.connector.DummyConnector</q:value>
+				</q:equal>
+				<q:equal>
+					<q:path>connectorVersion</q:path>
+					<q:value>2.0</q:value>
+				</q:equal>
+			</q:and>
+		</filter>
+	</connectorRef>
+	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
+					   
+		<icfc:configurationProperties>
+			<icfi:instanceId>SRC</icfi:instanceId>
+		</icfc:configurationProperties>
+
+	</connectorConfiguration>
+	
+	<schemaHandling>
+		<objectType>
+			<name>default</name>
+			<displayName>Default Account</displayName>
+			<default>true</default>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<attribute>
+				<ref>icfs:name</ref>
+				<displayName>Username</displayName>
+				<!-- No real inbound here. The following inbound is only for
+				     debuging -->
+				<inbound>
+					<strength>weak</strength>
+					<expression>
+						<script>
+							<code>'Created from source account '+input</code>
+						</script>
+					</expression>
+					<target>
+						<path>description</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>ri:firstname</ref>
+				<inbound>
+					<target>
+						<path>givenName</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>ri:lastname</ref>
+				<inbound>
+					<target>
+						<path>familyName</path>
+					</target>
+				</inbound>
+			</attribute>
+			<attribute>
+				<ref>ri:type</ref>
+				<inbound>
+					<target>
+						<path>employeeType</path>
+					</target>
+				</inbound>
+			</attribute>
+
+			<activation>
+            	<administrativeStatus>
+            		<inbound/>
+            	</administrativeStatus>
+            </activation>
+			
+			<credentials>
+                <password>
+                    <inbound>
+                    	<strength>weak</strength>
+                        <expression>
+                            <generate/>
+                        </expression>
+                    </inbound>
+                </password>
+            </credentials>
+            
+		</objectType>
+		
+	</schemaHandling>
+	
+	<projection>
+		<assignmentPolicyEnforcement>none</assignmentPolicyEnforcement>
+	</projection>
+	
+	<synchronization>
+		<objectSynchronization>
+			<enabled>true</enabled>
+			<reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#deleteFocus</handlerUri>
+	            </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#link</handlerUri>
+	            </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#addFocus</handlerUri>
+	            </action>
+	        </reaction>
+        </objectSynchronization>
+	</synchronization>
+
+</resource>
