@@ -499,32 +499,33 @@ return midpoint.isUniqueAccountValue(resource, shadow, 'sAMAccountName', login)
 	            <enabled>true</enabled>
 	
 	            <correlation>
-			<q:condition>
-				<script>
-					<code>
-sAMAccountNameRegExp = /(?i)^ps\d\d\d\d$/
-tmpContainer = basic.getResourceIcfConfigurationPropertyValue(resource, 'Container')
-
-tmpContainer = '(?i)^CN=.*?,(OU=.*,)O=Trafo'
-dnRegExp2 = ~tmpContainer
-
-tmpName = basic.getAttributeValue(account, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2', 'name')
-tmpLogin = basic.getAttributeValue(account, 'sAMAccountName')
-
-loginMatcher = (tmpLogin =~ sAMAccountNameRegExp)
-nameMatcher = (tmpName =~ dnRegExp2)
-return loginMatcher.matches() | nameMatcher.matches()
-					</code>
-				</script>
-			</q:condition>
-			<q:equal>
-				<q:matching>polyStringNorm</q:matching>
-				<q:path>c:name</q:path>
-				<expression>
-					<description>Matches using sAMAccountName for R|T users (sAMAccountName =~ ps\d\d\d\d) or sAMAccountNAme for E users (sAMAccountName =~ jsmith)</description>
-					<path>$account/attributes/ri:sAMAccountName</path>
-				</expression>
-			</q:equal>
+		            <q:equal>
+					<q:matching>polyStringNorm</q:matching>
+					<q:path>c:name</q:path>
+					<expression>
+						<description>Matches using sAMAccountName for R|T users (sAMAccountName =~ ps\d\d\d\d) or sAMAccountNAme for E users (sAMAccountName =~ jsmith)</description>
+						<path>$account/attributes/ri:sAMAccountName</path>
+					</expression>
+					</q:equal>
+					<condition>
+						<script>
+							<code>
+		sAMAccountNameRegExp = /(?i)^ps\d\d\d\d$/
+		tmpContainer = basic.getResourceIcfConfigurationPropertyValue(resource, 'Container')
+		
+		tmpContainer = '(?i)^CN=.*?,(OU=.*,)O=Trafo'
+		dnRegExp2 = ~tmpContainer
+		
+		tmpName = basic.getAttributeValue(account, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2', 'name')
+		tmpLogin = basic.getAttributeValue(account, 'sAMAccountName')
+		
+		loginMatcher = (tmpLogin =~ sAMAccountNameRegExp)
+		nameMatcher = (tmpName =~ dnRegExp2)
+		return loginMatcher.matches() | nameMatcher.matches()
+							</code>
+						</script>
+					</condition>
+			
                     </correlation>
 	
 	            <reaction>
