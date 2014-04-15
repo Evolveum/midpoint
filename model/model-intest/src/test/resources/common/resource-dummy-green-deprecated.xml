@@ -325,6 +325,7 @@
 	
 	<synchronization>
 		<objectSynchronization>
+			<name>default account type</name>
 			<enabled>true</enabled>
 			<correlation>
 				<q:equal>
