@@ -351,6 +351,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		return SYSTEM_CONFIGURATION_FILE;
 	}
 
+	@Override
 	protected Task createTask(String operationName) {
 		Task task = taskManager.createTaskInstance(operationName);
 		task.setOwner(userAdministrator);

@@ -127,8 +127,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
-
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
+
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.SearchResultEntry;
@@ -2395,5 +2395,71 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			String expectedIntent) {
 		assertEquals("Wrong kind in "+shadow, expectedKind, shadow.asObjectable().getKind());
 		assertEquals("Wrong intent in "+shadow, expectedIntent, shadow.asObjectable().getIntent());
+	}
+	
+	protected Task createTask(String operationName) {
+		Task task = taskManager.createTaskInstance(operationName);
+		return task;
+	}
+	
+	protected void modifyRoleAddConstruction(String roleOid, long inducementId, String resourceOid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		Task task = createTask(AbstractModelIntegrationTest.class.getName() + ".modifyRoleAddConstruction");
+        OperationResult result = task.getResult();
+		ConstructionType construction = new ConstructionType();
+        ObjectReferenceType resourceRedRef = new ObjectReferenceType();
+        resourceRedRef.setOid(resourceOid);
+		construction.setResourceRef(resourceRedRef);
+        ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid, 
+        		new ItemPath(
+        				new NameItemPathSegment(RoleType.F_INDUCEMENT),
+        				new IdItemPathSegment(inducementId),
+        				new NameItemPathSegment(AssignmentType.F_CONSTRUCTION)),
+        		prismContext, construction);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+	}
+	
+	protected void modifyRoleAddInducementTarget(String roleOid, String targetOid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		Task task = createTask(AbstractModelIntegrationTest.class.getName() + ".modifyRoleAddInducementTarget");
+        OperationResult result = task.getResult();
+        AssignmentType inducement = new AssignmentType();
+        ObjectReferenceType targetRef = new ObjectReferenceType();
+        targetRef.setOid(targetOid);
+        inducement.setTargetRef(targetRef);
+        ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid, 
+        		new ItemPath(new NameItemPathSegment(RoleType.F_INDUCEMENT)),
+        		prismContext, inducement);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+	}
+	
+	protected void modifyRoleDeleteInducementTarget(String roleOid, String targetOid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		Task task = createTask(AbstractModelIntegrationTest.class.getName() + ".modifyRoleDeleteInducementTarget");
+        OperationResult result = task.getResult();
+        AssignmentType inducement = new AssignmentType();
+        ObjectReferenceType targetRef = new ObjectReferenceType();
+        targetRef.setOid(targetOid);
+        inducement.setTargetRef(targetRef);
+        ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid, 
+        		new ItemPath(new NameItemPathSegment(RoleType.F_INDUCEMENT)),
+        		prismContext, inducement);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+	}
+	
+	protected void modifyRoleDeleteInducement(String roleOid, long inducementId) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		Task task = createTask(AbstractModelIntegrationTest.class.getName() + ".modifyRoleDeleteInducement");
+        OperationResult result = task.getResult();
+        
+		AssignmentType inducement = new AssignmentType();
+		inducement.setId(inducementId);
+        ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid, 
+        		RoleType.F_INDUCEMENT, prismContext, inducement);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
 	}
 }
