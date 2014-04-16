@@ -1020,6 +1020,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         userDelta.addModification(createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true));
         
         // WHEN
+        TestUtil.displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
         
         // THEN
@@ -1052,6 +1053,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
         // WHEN
+        TestUtil.displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
         // THEN
@@ -1075,6 +1077,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         display("User jack before", userBefore);
         
         // WHEN
+        TestUtil.displayWhen(TEST_NAME);
         assignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
         
         // THEN
@@ -1103,6 +1106,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         modifyRoleDeleteInducement(ROLE_JUDGE_OID, 1111L);
         
         // WHEN
+        TestUtil.displayWhen(TEST_NAME);
         recomputeUser(USER_JACK_OID, task, result);
         
         // THEN
@@ -1129,6 +1133,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         modifyRoleAddInducementTarget(ROLE_JUDGE_OID, ROLE_HONORABILITY_OID);
         
         // WHEN
+        TestUtil.displayWhen(TEST_NAME);
         recomputeUser(USER_JACK_OID, task, result);
         
         // THEN
@@ -1140,6 +1145,35 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Honorable");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "mouth", "pistol");
+	}
+	
+	@Test
+    public void test703JackModifyJudgeDeleteInducementHonorabilityRecompute() throws Exception {
+		final String TEST_NAME = "test703JackModifyJudgeDeleteInducementHonorabilityRecompute";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        modifyRoleDeleteInducementTarget(ROLE_JUDGE_OID, ROLE_HONORABILITY_OID);
+        PrismObject<RoleType> roleJudge = modelService.getObject(RoleType.class, ROLE_JUDGE_OID, null, task, result);
+        display("Role judge", roleJudge);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        recomputeUser(USER_JACK_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertAssignedRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 
 }
