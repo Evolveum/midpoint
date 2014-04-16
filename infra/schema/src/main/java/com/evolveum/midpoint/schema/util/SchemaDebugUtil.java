@@ -29,6 +29,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -53,6 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UnknownJavaObjectType;
 import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
@@ -661,7 +663,26 @@ public class SchemaDebugUtil {
 		sb.append(")");
 
 		return sb.toString();
-	}	
+	}
+	
+	public static String prettyPrint(SynchronizationSituationDescriptionType syncDescType) {
+		if (syncDescType == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("SyncDesc(");
+		sb.append(syncDescType.getSituation());
+		sb.append(",");
+		sb.append(syncDescType.getTimestamp());
+		if (syncDescType.getChannel() != null) {
+			sb.append(",");
+			sb.append(syncDescType.getChannel());
+		}
+		if (syncDescType.isFull() != null && syncDescType.isFull()) {
+			sb.append(",full");
+		}
+		sb.append(")");
+		return sb.toString();
+	}
 		
 	public static String prettyPrint(JAXBElement<?> element) {
 		return "JAXBElement("+PrettyPrinter.prettyPrint(element.getName())+"): "+element.getValue();
