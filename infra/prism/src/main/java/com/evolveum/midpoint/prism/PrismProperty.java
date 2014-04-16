@@ -470,7 +470,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
         		if (DebugUtil.isDetailedDebugDump() && firstVal.getValue() instanceof DebugDumpable) {
         			multiline = true;
         		} else {
-        			if (firstVal.getValue().toString().length() > MAX_SINGLELINE_LEN) {
+        			if (PrettyPrinter.prettyPrint(firstVal.getValue()).length() > MAX_SINGLELINE_LEN) {
         				multiline = true;
         			}
         		}
@@ -491,7 +491,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
 			            	if (DebugUtil.isDetailedDebugDump()) {
 			            		sb.append(PrettyPrinter.prettyPrint(value));
 			            	} else {
-			            		sb.append(value.getValue());
+			            		sb.append(PrettyPrinter.prettyPrint(value.getValue()));
 			            	}
 		            	}
 	            	}
