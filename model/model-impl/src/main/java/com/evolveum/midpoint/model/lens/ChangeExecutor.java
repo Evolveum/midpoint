@@ -356,16 +356,17 @@ public class ChangeExecutor {
         		|| projCtx.isDelete()) {
             // Link should NOT exist
         	
-        	PrismObject<F> objectCurrent = focusContext.getObjectCurrent();
-        	PrismReference linkRef = objectCurrent.findReference(FocusType.F_LINK_REF);
-        	if (linkRef != null) {
-        		for (PrismReferenceValue linkRefVal: linkRef.getValues()) {
-        			if (linkRefVal.getOid().equals(projOid)) {
-                        // Linked, need to unlink
-                        unlinkShadow(focusContext.getOid(), linkRefVal, focusObjectContext, task, result);
-                    }
-        		}
-        		
+        	if (!focusContext.isDelete()) {
+	        	PrismObject<F> objectCurrent = focusContext.getObjectCurrent();
+	        	PrismReference linkRef = objectCurrent.findReference(FocusType.F_LINK_REF);
+	        	if (linkRef != null) {
+	        		for (PrismReferenceValue linkRefVal: linkRef.getValues()) {
+	        			if (linkRefVal.getOid().equals(projOid)) {
+	                        // Linked, need to unlink
+	                        unlinkShadow(focusContext.getOid(), linkRefVal, focusObjectContext, task, result);
+	                    }
+	        		}
+	        	}
         	}
             
     		if (projCtx.isDelete() || projCtx.isThombstone()) {
@@ -450,7 +451,7 @@ public class ChangeExecutor {
             return;
         }
 
-        LOGGER.debug("Unlinnking shadow " + accountRef.getOid() + " from focus " + focusOid);
+        LOGGER.debug("Unlinking shadow " + accountRef.getOid() + " from focus " + focusOid);
         OperationResult result = parentResult.createSubresult(OPERATION_UNLINK_ACCOUNT);
         Collection<? extends ItemDelta> accountRefDeltas = ReferenceDelta.createModificationDeleteCollection(
         		FocusType.F_LINK_REF, getUserDefinition(), accountRef.clone());
