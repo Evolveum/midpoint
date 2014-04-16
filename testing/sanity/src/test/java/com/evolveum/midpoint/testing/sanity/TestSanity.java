@@ -210,6 +210,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     private static final String SYSTEM_CONFIGURATION_FILENAME = REPO_DIR_NAME + "system-configuration.xml";
     private static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000001";
+    
+    private static final String ROLE_SUPERUSER_FILENAME = REPO_DIR_NAME + "role-superuser.xml";
+    private static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 
     private static final String RESOURCE_OPENDJ_FILENAME = REPO_DIR_NAME + "resource-opendj.xml";
     private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
@@ -353,6 +356,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         try{
         super.initSystem(initTask, initResult);
         
+        repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, RoleType.class, initResult);
         repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
 
         // This should discover the connectors

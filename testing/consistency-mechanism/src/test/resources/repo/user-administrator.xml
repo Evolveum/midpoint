@@ -36,4 +36,7 @@
 			</c:value>
 		</c:password>
 	</c:credentials>
+	<c:assignment>
+        <c:targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"/>
+    </c:assignment>
 </c:user>

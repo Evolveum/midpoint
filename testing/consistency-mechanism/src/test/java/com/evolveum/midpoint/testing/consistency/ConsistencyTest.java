@@ -128,6 +128,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
@@ -155,6 +156,9 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 	private static final String SYSTEM_CONFIGURATION_FILENAME = REPO_DIR_NAME + "system-configuration.xml";
 //	private static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000001";
+	
+	private static final String ROLE_SUPERUSER_FILENAME = REPO_DIR_NAME + "role-superuser.xml";
+    private static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
 
 	private static final String SAMPLE_CONFIGURATION_OBJECT_FILENAME = REPO_DIR_NAME + "sample-configuration-object.xml";
     private static final String SAMPLE_CONFIGURATION_OBJECT_OID = "c0c010c0-d34d-b33f-f00d-999111111111";
@@ -164,23 +168,15 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 	private static final String CONNECTOR_LDAP_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector";
 
-//	private static final String TASK_OPENDJ_SYNC_FILENAME = REPO_DIR_NAME + "task-opendj-sync.xml";
-//	private static final String TASK_OPENDJ_SYNC_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
-
-
 	private static final String USER_TEMPLATE_FILENAME = REPO_DIR_NAME + "user-template.xml";
-//	private static final String USER_TEMPLATE_OID = "c0c010c0-d34d-b33f-f00d-777111111111";
 
 	private static final String USER_ADMINISTRATOR_FILENAME = REPO_DIR_NAME + "user-administrator.xml";
 	private static final String USER_ADMINISTRATOR_NAME = "administrator";
-//	private static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
 
 	private static final String USER_JACK_FILENAME = REPO_DIR_NAME + "user-jack.xml";
-	// private static final File USER_JACK_FILE = new File(USER_JACK_FILENAME);
 	private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 
 	private static final String USER_DENIELS_FILENAME = REPO_DIR_NAME + "user-deniels.xml";
-	// private static final File USER_JACK_FILE = new File(USER_JACK_FILENAME);
 	private static final String USER_DENIELS_OID = "c0c010c0-d34d-b33f-f00d-222111111111";
 
 	private static final String USER_JACK2_FILENAME = REPO_DIR_NAME + "user-jack2.xml";
@@ -253,33 +249,13 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	private static final String ACCOUNT_DENIELS_OID = "a0c010c0-d34d-b33f-f00d-111111111555";
 	
 	private static final String ACCOUNT_CHUCK_FILENAME = REPO_DIR_NAME + "account-chuck.xml";
-//	private static final String ACCOUNT_CHUCK_OID = "a0c010c0-d34d-b33f-f00d-111111111666";
 	
 	private static final String ACCOUNT_HERMAN_FILENAME = REPO_DIR_NAME + "account-herman.xml";
 	private static final String ACCOUNT_HERMAN_OID = "22220000-2200-0000-0000-333300003333";
 
-//	private static final String ROLE_CAPTAIN_FILENAME = REPO_DIR_NAME + "role-captain.xml";
-//	private static final String ROLE_CAPTAIN_OID = "12345678-d34d-b33f-f00d-987987cccccc";
-
-//	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account.xml";
-//	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_DENIELS_FILENAME = "src/test/resources/request/user-modify-add-account-deniels.xml";
 	private static final String REQUEST_USER_MODIFY_ASSIGNE_ACCOUNT = "src/test/resources/request/user-modify-assign-account.xml";
-	
-//	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM = "src/test/resources/request/user-modify-add-account-communication-problem.xml";
-	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_COMMUNICATION_PROBLEM_OID = "c0c010c0-d34d-b33f-f00d-111111111100";
-	
 	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_DIRECTLY = "src/test/resources/request/user-modify-add-account-directly.xml";
-	
-//	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_LINKED_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account-already-exist-linked.xml";
-	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_LINKED_OPENDJ_OID = "c0c010c0-d34d-b33f-f00d-111111114444";
-	
-//	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_UNLINKED_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account-already-exist-unlinked.xml";
-	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_UNLINKED_OPENDJ_OID = "c0c010c0-d34d-b33f-f00d-111111115555";
-	
-//	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_COMMUNICATION_PROBLEM_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account-already-exist-communication-problem.xml";
-	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_COMMUNICATION_PROBLEM_OPENDJ_OID = "c0c010c0-d34d-b33f-f00d-111111116666";
-	
-	private static final String REQUEST_USER_MODIFY_DELETE_ACCOUNT = "src/test/resources/request/user-modify-delete-account.xml";
+		private static final String REQUEST_USER_MODIFY_DELETE_ACCOUNT = "src/test/resources/request/user-modify-delete-account.xml";
 	private static final String REQUEST_USER_MODIFY_DELETE_ACCOUNT_COMMUNICATION_PROBLEM = "src/test/resources/request/user-modify-delete-account-communication-problem.xml";
 	
 	
@@ -326,6 +302,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		LOGGER.trace("initSystem");
 		super.initSystem(initTask, initResult);
 		
+		repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, RoleType.class, initResult);
 		repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
 
 		// This should discover the connectors
@@ -354,9 +331,6 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 
 		repoAddObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, GenericObjectType.class, initResult);
 		repoAddObjectFromFile(USER_TEMPLATE_FILENAME, ObjectTemplateType.class, initResult);
-		// addObjectFromFile(ROLE_SAILOR_FILENAME, initResult);
-		// addObjectFromFile(ROLE_PIRATE_FILENAME, initResult);
-//		repoAddObjectFromFile(ROLE_CAPTAIN_FILENAME, RoleType.class, initResult);
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
 	}
