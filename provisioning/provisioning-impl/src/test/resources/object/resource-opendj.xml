@@ -65,6 +65,10 @@
 				<icfc:sync>-1</icfc:sync>
 				<icfc:schema>-1</icfc:schema>
 			</icfc:timeouts>
+			
+			<icfc:resultsHandlerConfiguration>
+				<icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>
+			</icfc:resultsHandlerConfiguration>
 
 	</connectorConfiguration>
 	
@@ -92,6 +96,7 @@
             	<direction>objectToSubject</direction>
             	<associationAttribute>ri:uniqueMember</associationAttribute>
             	<valueAttribute>icfs:name</valueAttribute>
+            	<explicitReferentialIntegrity>true</explicitReferentialIntegrity>
             </association>
        		<protected>
        			<!-- WilDCapiTaLIzaTioN makes sure that this is matched case-insensitive -->

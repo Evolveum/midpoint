@@ -4047,6 +4047,7 @@
 		     		<xsd:element name="direction" type="tns:ResourceObjectAssociationDirectionType"  minOccurs="0"></xsd:element>
 		     		<xsd:element name="associationAttribute" type="xsd:QName"  minOccurs="0"></xsd:element>
 		     		<xsd:element name="valueAttribute" type="xsd:QName"  minOccurs="0"></xsd:element>
+		     		<xsd:element name="explicitReferentialIntegrity" type="xsd:boolean"  minOccurs="0" default="true"></xsd:element>
 		     	</xsd:sequence>
 		     </xsd:extension>
 	     </xsd:complexContent>

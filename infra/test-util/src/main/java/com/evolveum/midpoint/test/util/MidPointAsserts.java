@@ -171,4 +171,15 @@ public class MidPointAsserts {
 		}
 		AssertJUnit.fail(message+", expected "+expectedValue+", got "+actualValues);
 	}
+	
+	public static void assertNotContainsCaseIgnore(String message, Collection<String> actualValues, String expectedValue) {
+		if (actualValues == null) {
+			return;
+		}
+		for (String actualValue: actualValues) {
+			if (StringUtils.equalsIgnoreCase(actualValue, expectedValue)) {
+				AssertJUnit.fail(message+", expected that value "+expectedValue+" will not be present but it is");
+			}
+		}
+	}
 }
