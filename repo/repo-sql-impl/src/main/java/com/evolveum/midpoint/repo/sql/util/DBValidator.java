@@ -18,6 +18,8 @@ package com.evolveum.midpoint.repo.sql.util;
 
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -33,7 +35,9 @@ import java.util.List;
  */
 public class DBValidator {
 
-    public static void validateOwners(SqlRepositoryConfiguration config, SessionFactory factory) {
+    public static <T extends ObjectType> void validateOwners(Class<T> type, SqlRepositoryConfiguration config,
+                                                             SessionFactory factory) {
+
         if (!config.isUsingH2() || !config.isDropIfExists()) {
             return;
         }
@@ -41,9 +45,6 @@ public class DBValidator {
         Session session = factory.openSession();
         try {
             session.beginTransaction();
-
-            validate("select a.owner_oid, a.id from m_assignment a where a.assignmentOwner is null",
-                    "assignment owners are null", session);
 
             validate("select e.owner_oid, e.eName from m_object_ext_string e where e.ownerType is null",
                     "extension string are null", session);
@@ -56,16 +57,21 @@ public class DBValidator {
             validate("select e.owner_oid, e.eName from m_object_ext_reference e where e.ownerType is null",
                     "extension reference are null", session);
 
-            validate("select e.anyContainer_owner_owner_oid, e.anyContainer_owner_id, e.eName from m_assignment_ext_string e where e.extensionType is null",
-                    "extension string are null", session);
-            validate("select e.anyContainer_owner_owner_oid, e.anyContainer_owner_id, e.eName from m_assignment_ext_poly e where e.extensionType is null",
-                    "extension poly are null", session);
-            validate("select e.anyContainer_owner_owner_oid, e.anyContainer_owner_id, e.eName from m_assignment_ext_long e where e.extensionType is null",
-                    "extension long are null", session);
-            validate("select e.anyContainer_owner_owner_oid, e.anyContainer_owner_id, e.eName from m_assignment_ext_date e where e.extensionType is null",
-                    "extension date are null", session);
-            validate("select e.anyContainer_owner_owner_oid, e.anyContainer_owner_id, e.eName from m_assignment_ext_reference e where e.extensionType is null",
-                    "extension reference are null", session);
+            if (type.isAssignableFrom(FocusType.class)) {
+                validate("select a.owner_oid, a.id from m_assignment a where a.assignmentOwner is null",
+                        "assignment owners are null", session);
+
+                validate("select e.anyContainer_owner_owner_oid, e.anyContainer_owner_id, e.eName from m_assignment_ext_string e where e.extensionType is null",
+                        "assignment extension string are null", session);
+                validate("select e.anyContainer_owner_owner_oid, e.anyContainer_owner_id, e.eName from m_assignment_ext_poly e where e.extensionType is null",
+                        "assignment extension poly are null", session);
+                validate("select e.anyContainer_owner_owner_oid, e.anyContainer_owner_id, e.eName from m_assignment_ext_long e where e.extensionType is null",
+                        "assignment extension long are null", session);
+                validate("select e.anyContainer_owner_owner_oid, e.anyContainer_owner_id, e.eName from m_assignment_ext_date e where e.extensionType is null",
+                        "assignment extension date are null", session);
+                validate("select e.anyContainer_owner_owner_oid, e.anyContainer_owner_id, e.eName from m_assignment_ext_reference e where e.extensionType is null",
+                        "assignment extension reference are null", session);
+            }
         } finally {
             if (session != null) {
                 session.close();

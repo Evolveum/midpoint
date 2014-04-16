@@ -498,7 +498,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } finally {
             cleanupSessionAndResult(session, result);
 
-            DBValidator.validateOwners(getConfiguration(), getSessionFactory());
+            DBValidator.validateOwners(object.getCompileTimeClass(), getConfiguration(), getSessionFactory());
         }
 
         return oid;
@@ -816,7 +816,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             handleGeneralException(ex, session, result);
         } finally {
             cleanupSessionAndResult(session, result);
-            DBValidator.validateOwners(getConfiguration(), getSessionFactory());
+            DBValidator.validateOwners(type, getConfiguration(), getSessionFactory());
         }
     }
 
@@ -1216,7 +1216,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             cleanupSessionAndResult(session, result);
             LOGGER.trace("Session cleaned up.");
 
-            DBValidator.validateOwners(getConfiguration(), getSessionFactory());
+            DBValidator.validateOwners(type, getConfiguration(), getSessionFactory());
         }
     }
 
