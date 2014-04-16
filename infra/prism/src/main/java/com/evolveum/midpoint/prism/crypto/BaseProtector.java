@@ -30,10 +30,11 @@ public abstract class BaseProtector implements Protector {
         if (!protectedData.isEncrypted()) {
             return;
             //TODO: is this exception really needed?? isn't it better just return the same protected data??
-            //throw new IllegalArgumentException("Attempt to decrypt protected data that are not encrypted");
+//            throw new IllegalArgumentException("Attempt to decrypt protected data that are not encrypted");
         } else {
             byte[] decryptedData = decryptBytes(protectedData);
             protectedData.setClearBytes(decryptedData);
+            protectedData.setEncryptedData(null);
         }
     }
 

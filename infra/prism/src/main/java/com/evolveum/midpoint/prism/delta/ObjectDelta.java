@@ -1338,10 +1338,24 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     }
     
     protected String debugIdentifiers() {
-    	return "oid=" + getOid();
+    	return toDebugType()+":" + getOid();
     }
+    
+    /**
+	 * Returns short string identification of object type. It should be in a form
+	 * suitable for log messages. There is no requirement for the type name to be unique,
+	 * but it rather has to be compact. E.g. short element names are preferred to long
+	 * QNames or URIs.
+	 * @return
+	 */
+	public String toDebugType() {
+		if (objectTypeClass == null) {
+			return "(unknown)";
+		}
+		return objectTypeClass.getSimpleName();
+	}
 
-    @Override
+	@Override
     public String debugDump() {
         return debugDump(0);
     }

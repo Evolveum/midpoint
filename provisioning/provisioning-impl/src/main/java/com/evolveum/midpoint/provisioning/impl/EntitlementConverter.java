@@ -58,6 +58,8 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.TunnelException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectAssociationDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -75,6 +77,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
  */
 @Component
 class EntitlementConverter {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(EntitlementConverter.class);
 	
 	@Autowired(required=true)
 	private PrismContext prismContext;
@@ -307,6 +311,7 @@ class EntitlementConverter {
 		Collection<RefinedAssociationDefinition> entitlementAssociationDefs = objectClassDefinition.getEntitlementAssociations();
 		if (entitlementAssociationDefs == null || entitlementAssociationDefs.isEmpty()) {
 			// Nothing to do
+			LOGGER.trace("No associations in deleted shadow");
 			return;
 		}
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
@@ -314,6 +319,13 @@ class EntitlementConverter {
 		for (RefinedAssociationDefinition assocDefType: objectClassDefinition.getEntitlementAssociations()) {
 			if (assocDefType.getResourceObjectAssociationType().getDirection() != ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
 				// We can ignore these. They will die together with the object. No need to explicitly delete them.
+				LOGGER.trace("Ignoring object-to-subject association in deleted shadow");
+				continue;
+			}
+			if (assocDefType.getResourceObjectAssociationType().isExplicitReferentialIntegrity() != null
+					&& !assocDefType.getResourceObjectAssociationType().isExplicitReferentialIntegrity()) {
+				// Referential integrity not required for this one
+				LOGGER.trace("Ignoring association in deleted shadow because it has explicity referential integrity turned off");
 				continue;
 			}
 			QName associationName = assocDefType.getName();
@@ -347,6 +359,7 @@ class EntitlementConverter {
 			}
 			
 //			ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), assocAttrDef, valueAttr.getValue());
+//			ObjectFilter filter = InFilter.createIn(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef, valueAttr.getValue());
 			ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef, valueAttr.getValue());
 			ObjectQuery query = ObjectQuery.createObjectQuery(filter); 
 //					new ObjectQuery();
@@ -381,11 +394,13 @@ class EntitlementConverter {
 					}
 					
 					attributeDelta.addValuesToDelete(valueAttr.getClonedValues());
+					LOGGER.trace("Association in deleted shadow delta: {}", attributeDelta);
 
 					return true;
 				}
 			};
 			try {
+				LOGGER.trace("Searching for associations in deleted shadow, query: {}", filter);
 				connector.search(entitlementOcDef, query, handler, attributesToReturn, parentResult);
 			} catch (TunnelException e) {
 				throw (SchemaException)e.getCause();

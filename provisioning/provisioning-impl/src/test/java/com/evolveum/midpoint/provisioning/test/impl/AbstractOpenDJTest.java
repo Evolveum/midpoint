@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
+import java.io.File;
+
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	
 	protected static final String TEST_DIR_NAME = "src/test/resources/impl/opendj";
+	protected static final File TEST_DIR = new File(TEST_DIR_NAME);
 	
 	protected static final String RESOURCE_OPENDJ_FILENAME = ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "resource-opendj.xml";
 	protected static final String RESOURCE_OPENDJ_INITIALIZED_FILENAME = ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "resource-opendj-initialized.xml";
@@ -87,6 +90,14 @@ public abstract class AbstractOpenDJTest extends AbstractIntegrationTest {
 	
 	protected static final String ACCOUNT_NO_SN_FILENAME = TEST_DIR_NAME + "/account-opendj-no-sn.xml";
 	protected static final String ACCOUNT_NO_SN_OID = "c0c010c0-d34d-beef-f33d-113222123444";
+	
+	protected static final File ACCOUNT_MORGAN_FILE = new File(TEST_DIR, "account-morgan.xml");
+	protected static final String ACCOUNT_MORGAN_OID = "8dfcf05e-c571-11e3-abbd-001e8c717e5b";
+	protected static final String ACCOUNT_MORGAN_DN = "uid=morgan,ou=People,dc=example,dc=com";
+	
+	protected static final File GROUP_SWASHBUCKLERS_FILE = new File(TEST_DIR, "group-swashbucklers.xml");
+	protected static final String GROUP_SWASHBUCKLERS_OID = "3d96846e-c570-11e3-a80f-001e8c717e5b";
+	protected static final String GROUP_SWASHBUCKLERS_DN = "cn=swashbucklers,ou=Groups,dc=example,dc=com";
 	
 	protected static final String NON_EXISTENT_OID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 	
