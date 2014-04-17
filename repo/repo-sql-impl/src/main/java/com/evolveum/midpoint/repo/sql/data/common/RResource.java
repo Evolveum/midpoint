@@ -151,8 +151,6 @@ public class RResource extends RObject<ResourceType> {
         if (jaxb.getConnector() != null) {
             LOGGER.warn("Connector from resource type won't be saved. It should be translated to connector reference.");
         }
-        PrismObject<ResourceType> resource = jaxb.asPrismObject();
-        PrismContainerDefinition parentDefinition = resource.getDefinition();
 
         try {
             if (jaxb.getBusiness() != null) {

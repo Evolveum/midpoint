@@ -86,7 +86,7 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RExclusion> getExclusion() {
         if (exclusion == null) {
-            exclusion = new HashSet<RExclusion>();
+            exclusion = new HashSet<>();
         }
         return exclusion;
     }
@@ -97,7 +97,7 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public Set<RObjectReference> getApproverRef() {
         if (approverRef == null) {
-            approverRef = new HashSet<RObjectReference>();
+            approverRef = new HashSet<>();
         }
         return approverRef;
     }

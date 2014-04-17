@@ -1213,7 +1213,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             cleanupSessionAndResult(session, result);
             LOGGER.trace("Session cleaned up.");
         }
-
     }
 
     private <T extends ObjectType> void recomputeHierarchy(
@@ -1878,7 +1877,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             boolean c1Result = ObjectQuery.match(object, c1, getMatchingRuleRegistry());
 
             if (logical instanceof AndFilter) {
-                return  c1Result && matchObject(object.getOid(), c2, session);
+                return c1Result && matchObject(object.getOid(), c2, session);
             }
 
             return c1Result || matchObject(object.getOid(), c2, session);

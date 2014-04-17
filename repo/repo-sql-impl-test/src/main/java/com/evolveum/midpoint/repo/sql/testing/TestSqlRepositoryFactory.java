@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.repo.sql.testing;
 
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -56,6 +57,11 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         updateConfiguration(configuration, null);
 
         super.init(configuration);
+    }
+
+    @Override
+    public RepositoryService getRepositoryService() throws RepositoryServiceFactoryException {
+        return new TestSqlRepositoryServiceImpl(this);
     }
 
     private void updateConfigurationFromFile(Configuration configuration, String filePath) throws RepositoryServiceFactoryException {

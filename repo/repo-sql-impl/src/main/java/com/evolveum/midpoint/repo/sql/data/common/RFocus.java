@@ -28,8 +28,6 @@ import com.evolveum.midpoint.repo.sql.query.definition.VirtualCollection;
 import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import org.hibernate.annotations.Cascade;
@@ -41,7 +39,6 @@ import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
 import javax.persistence.Transient;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -170,14 +167,5 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
             repo.setActivation(activation);
 
         }
-    }
-
-    @Deprecated
-    public static <T extends FocusType> void copyToJAXB(RFocus<T> repo, FocusType jaxb, PrismContext prismContext,
-                                                        Collection<SelectorOptions<GetOperationOptions>> options) throws
-            DtoTranslationException {
-        RObject.copyToJAXB(repo, jaxb, prismContext, options);
-
-
     }
 }
