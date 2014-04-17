@@ -299,7 +299,7 @@ public class TestQueryConvertor {
 		ObjectFilter second = getFilterCondition(filter, 1);
 		PrismAsserts.assertEqualsFilter(second, intExtensionDefinition, DOMUtil.XSD_INT, new ItemPath(
 				ObjectType.F_EXTENSION, new QName(NS_EXTENSION, "intType")));
-		PrismAsserts.assertEqualsFilterValue((EqualsFilter) second, 123);
+		PrismAsserts.assertEqualsFilterValue((EqualsFilter) second, "123");
 
 		QueryType convertedQueryType = toQueryType(query);
 		assertNotNull("Re-serialized query is null ", convertedQueryType);
