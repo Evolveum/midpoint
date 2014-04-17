@@ -45,7 +45,7 @@ public class TestSqlRepositoryServiceImpl extends SqlRepositoryServiceImpl {
         try {
             return super.addObject(object, options, result);
         } finally {
-            DBValidator.validateOwners(object.getCompileTimeClass(), getConfiguration(), getSessionFactory());
+//            DBValidator.validateOwners(object.getCompileTimeClass(), getConfiguration(), getSessionFactory());
         }
     }
 
@@ -54,7 +54,7 @@ public class TestSqlRepositoryServiceImpl extends SqlRepositoryServiceImpl {
         try {
             super.deleteObject(type, oid, result);
         } finally {
-            DBValidator.validateOwners(type, getConfiguration(), getSessionFactory());
+//            DBValidator.validateOwners(type, getConfiguration(), getSessionFactory());
         }
     }
 
@@ -63,7 +63,7 @@ public class TestSqlRepositoryServiceImpl extends SqlRepositoryServiceImpl {
         try {
             super.modifyObject(type, oid, modifications, result);
         } finally {
-            DBValidator.validateOwners(type, getConfiguration(), getSessionFactory());
+//            DBValidator.validateOwners(type, getConfiguration(), getSessionFactory());
         }
     }
 }

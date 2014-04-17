@@ -527,10 +527,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
         }
 
+        updateFullObject(rObject, object);
         RObject merged = (RObject) session.merge(rObject);
         //todo finish orgClosureManager
         //orgClosureManager.updateOrgClosure(modifications, session, originalOid, object.getCompileTimeClass(), operation);
-        updateFullObject(session, rObject, object);
 
         //update org. unit hierarchy based on modifications
         if (modifications == null || modifications.isEmpty()) {
@@ -551,7 +551,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         return merged.getOid();
     }
 
-    private <T extends ObjectType> void updateFullObject(Session session, RObject object, PrismObject<T> savedObject)
+    private <T extends ObjectType> void updateFullObject(RObject object, PrismObject<T> savedObject)
             throws DtoTranslationException, SchemaException {
         LOGGER.debug("Updating full object xml column start.");
         savedObject.setVersion(Integer.toString(object.getVersion()));
@@ -566,18 +566,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         if (LOGGER.isTraceEnabled()) LOGGER.trace("Storing full object\n{}", xml);
 
-        LOGGER.debug("Flushing session.");
-        session.flush();
-        LOGGER.debug("Session flushed.");
+        object.setFullObject(fullObject);
 
-        Query query = session.createSQLQuery("update m_object set fullObject = :fullObject where oid=:oid");
-        query.setParameter("fullObject", fullObject);
-        query.setString("oid", savedObject.getOid());
-
-        int result = query.executeUpdate();
-        if (result != 1) {
-            throw new SystemException("Update of fullObject xml column failed for object " + object.toString() + ".");
-        }
         LOGGER.debug("Updating full object xml column finish.");
     }
 
@@ -602,6 +592,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
         }
 
+        updateFullObject(rObject, object);
+
         LOGGER.trace("Saving object (non overwrite).");
         String oid = (String) session.save(rObject);
 
@@ -610,7 +602,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         //orgClosureManager.updateOrgClosure(modifications, session, oid, object.getCompileTimeClass(),
         //        OrgClosureManager.Operation.ADD);
 
-        updateFullObject(session, rObject, object);
+
 
         if (objectType instanceof OrgType || !objectType.getParentOrgRef().isEmpty()) {
             long time = System.currentTimeMillis();
@@ -1181,11 +1173,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             RObject rObject = createDataObjectFromJAXB(prismObject, false);
             rObject.setVersion(rObject.getVersion() + 1);
 
+            updateFullObject(rObject, prismObject);
             session.merge(rObject);
 
             //todo finish orgClosureManager
             //orgClosureManager.updateOrgClosure(modifications, session, oid, type, OrgClosureManager.Operation.MODIFY);
-            updateFullObject(session, rObject, prismObject);
 
             recomputeHierarchy(rObject, session, modifications);
 
