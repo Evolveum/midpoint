@@ -17,13 +17,12 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Honorability</name>
     <inducement>
-    	<construction>
+    	<construction xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
     		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
     		<kind>account</kind>
     		<attribute>
@@ -31,6 +30,20 @@
                 <outbound>
                 	<expression>
 						<value>Honorable</value>
+					</expression>
+				</outbound>
+            </attribute>
+    	</construction>
+    </inducement>
+    <inducement>
+    	<construction xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">
+    		<resourceRef oid="10000000-0000-0000-0000-000000000104" type="c:ResourceType"/> <!-- RED -->
+    		<kind>account</kind>
+    		<attribute>
+                <ref>ri:title</ref>
+                <outbound>
+                	<expression>
+						<value>Bloody Honorable</value>
 					</expression>
 				</outbound>
             </attribute>

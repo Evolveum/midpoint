@@ -13,18 +13,16 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role oid="cc7dd820-b653-11e3-936d-001e8c717e5b"
+<role oid="00000000-0000-0000-0000-00000000aa05"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
-    <name>Construction</name>
-    <inducement id="1001">
-    	<construction id="1002">
-    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
-    	</construction>
-    	<activation>
-    		<administrativeStatus>enabled</administrativeStatus>
-    	</activation>
-    </inducement>
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+    <name>Prop Read All Modify Some</name>    
+    <authorization>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#read</action>
+    </authorization>
+    <authorization>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#modify</action>
+    	<item>fullName</item>
+    	<item>description</item>
+    </authorization>
 </role>

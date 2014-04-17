@@ -27,6 +27,7 @@ import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RACreateApproverRef;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAModifyApproverRef;
+import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -325,7 +326,8 @@ public class RAssignment implements Container, Metadata<RAssignmentReference> {
             extension.setOwner(repo);
 
             repo.setExtension(extension);
-            RAssignmentExtension.copyFromJAXB(jaxb.getExtension(), extension, prismContext);
+            RAssignmentExtension.copyFromJAXB(jaxb.getExtension(), extension, RAssignmentExtensionType.EXTENSION,
+                    prismContext);
         }
 
         if (jaxb.getActivation() != null) {

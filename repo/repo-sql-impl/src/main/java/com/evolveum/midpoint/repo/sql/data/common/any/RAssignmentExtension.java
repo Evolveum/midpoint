@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAssignmentExtensionId;
+import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
@@ -233,25 +234,16 @@ public class RAssignmentExtension implements Serializable {
         return result;
     }
 
-    public static void copyFromJAXB(ShadowAttributesType jaxb, RAssignmentExtension repo,
-                                    PrismContext prismContext) throws
-            DtoTranslationException {
+    public static void copyFromJAXB(ExtensionType jaxb, RAssignmentExtension repo, RAssignmentExtensionType type,
+                                    PrismContext prismContext) throws DtoTranslationException {
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 
-        copyFromJAXB(jaxb.asPrismContainerValue(), repo, prismContext);
-    }
-
-    public static void copyFromJAXB(ExtensionType jaxb, RAssignmentExtension repo, PrismContext prismContext) throws
-            DtoTranslationException {
-        Validate.notNull(repo, "Repo object must not be null.");
-        Validate.notNull(jaxb, "JAXB object must not be null.");
-
-        copyFromJAXB(jaxb.asPrismContainerValue(), repo, prismContext);
+        copyFromJAXB(jaxb.asPrismContainerValue(), repo, type, prismContext);
     }
 
     private static void copyFromJAXB(PrismContainerValue containerValue, RAssignmentExtension repo,
-                                     PrismContext prismContext) throws
+                                     RAssignmentExtensionType type, PrismContext prismContext) throws
             DtoTranslationException {
         RAnyConverter converter = new RAnyConverter(prismContext);
 
@@ -267,6 +259,7 @@ public class RAssignmentExtension implements Serializable {
 
         for (RAnyValue value : values) {
             ((RAExtValue) value).setAnyContainer(repo);
+            ((RAExtValue) value).setExtensionType(type);
 
             if (value instanceof RAExtDate) {
                 repo.getDates().add((RAExtDate) value);

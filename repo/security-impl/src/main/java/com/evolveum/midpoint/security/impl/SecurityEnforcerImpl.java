@@ -22,6 +22,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.aopalliance.intercept.MethodInvocation;
+import org.apache.commons.lang.mutable.MutableBoolean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.access.AccessDeniedException;
@@ -36,11 +37,17 @@ import org.springframework.security.web.FilterInvocation;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.Visitable;
+import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
@@ -127,6 +134,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				MidPointPrincipal midPointPrincipal = (MidPointPrincipal)principal;
 				LOGGER.trace("AUTZ: evaluating authorization principal={}, op={}, object={}, delta={}, target={}",
 						new Object[]{midPointPrincipal, operationUrl, object, delta, target});
+				final Collection<ItemPath> allowedItems = new ArrayList<>();
 				Collection<Authorization> authorities = midPointPrincipal.getAuthorities();
 				if (authorities != null) {
 					for (GrantedAuthority authority: authorities) {
@@ -159,21 +167,21 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								continue;
 							}
 							
-							// item
-							if (isApplicableItem(autz, object, delta)) {
-								LOGGER.trace("  Authorization applicable for items (continuing evaluation)");
-							} else {
-								LOGGER.trace("  Authorization not applicable for items (breaking evaluation)");
-								continue;
-							}
-							
 							// authority is applicable to this situation. now we can process the decision.
 							AuthorizationDecisionType decision = autz.getDecision();
 							if (decision == null || decision == AuthorizationDecisionType.ALLOW) {
+								addItems(allowedItems, autz);
 								LOGGER.trace("  ALLOW operation {} (but continue evaluation)", autz, operationUrl);
 								allow = true;
 								// Do NOT break here. Other authorization statements may still deny the operation
 							} else {
+								// item
+								if (isApplicableItem(autz, object, delta)) {
+									LOGGER.trace("  Deny authorization applicable for items (continuing evaluation)");
+								} else {
+									LOGGER.trace("  Authorization not applicable for items (breaking evaluation)");
+									continue;
+								}
 								LOGGER.trace("  DENY operation {}", autz, operationUrl);
 								allow = false;
 								// Break right here. Deny cannot be overridden by allow. This decision cannot be changed. 
@@ -185,6 +193,49 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 						}
 					}
 				}
+				
+				if (allow) {
+					// Still check allowedItems. We may still deny the operation.
+					if (allowedItems.isEmpty()) {
+						// This means all items are allowed. No need to check anything
+						LOGGER.trace("  Empty list of allowed items, operation allowed");
+					} else {
+						// all items in the object and delta must be allowed
+						final MutableBoolean itemDecision = new MutableBoolean(true);
+						if (delta != null) {
+							// If there is delta then consider only the delta.
+							Visitor visitor = new Visitor() {
+								@Override
+								public void visit(Visitable visitable) {
+									ItemPath itemPath = getPath(visitable);
+									if (itemPath != null) {
+										if (!isInList(itemPath, allowedItems)) {
+											LOGGER.trace("  DENY operation because item {} in the delta is not allowed", itemPath);
+											itemDecision.setValue(false);
+										}
+									}
+								}
+							};
+							delta.accept(visitor);
+						} else if (object != null) {
+							Visitor visitor = new Visitor() {
+								@Override
+								public void visit(Visitable visitable) {
+									ItemPath itemPath = getPath(visitable);
+									if (itemPath != null) {
+										if (!isInList(itemPath, allowedItems)) {
+											LOGGER.trace("  DENY operation because item {} in the object is not allowed", itemPath);
+											itemDecision.setValue(false);
+										}
+									}
+								}
+							};
+							object.accept(visitor);
+						}
+						allow = itemDecision.booleanValue();
+					}
+				}
+
 			} else {
 				if (authentication.getPrincipal() instanceof String && "anonymousUser".equals(principal)){
 					LOGGER.trace("AUTZ: deny because user is not logged in");
@@ -203,6 +254,28 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			LOGGER.trace("AUTZ result: principal={}, operation={}: {}", new Object[]{username, operationUrl, allow});
 		}
 		return allow;
+	}
+	
+	private ItemPath getPath(Visitable visitable) {
+		ItemPath itemPath;
+		if (visitable instanceof ItemDelta) {
+			return ((ItemDelta)visitable).getPath();
+		} else if (visitable instanceof Item) {
+			return ((Item)visitable).getPath();
+		} else {
+			return null;
+		}
+	}
+	
+	private boolean isInList(ItemPath itemPath, Collection<ItemPath> allowedItems) {
+		boolean itemAllowed = false;
+		for (ItemPath allowedPath: allowedItems) {
+			if (allowedPath.equivalent(itemPath)) {
+				itemAllowed = true;
+				break;
+			}
+		}
+		return itemAllowed;
 	}
 
 	@Override
@@ -328,25 +401,36 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			LOGGER.trace("  items empty");
 			return true;
 		}
-		return true;
-//		TODO: this has to wait for merge of "parser" branch
-//		for (Element itemPathElement: itemPaths) {
-//			XPathHolder xholder = new XPathHolder(itemPathElement);
-//			ItemPath itemPath = xholder.toItemPath();
-//			if (object != null) {
-//				Item<?> item = object.findItem(itemPath);
-//				if (item != null && ! item.isEmpty()) {
-//					return true;
-//				}
-//			}
-//			if (delta != null) {
-//				ItemDelta<PrismValue> itemDelta = delta.findItemDelta(itemPath);
-//				if (itemDelta != null && !itemDelta.isEmpty()) {
-//					return true;
-//				}
-//			}
-//		}
-//		return false;
+		for (ItemPathType itemPathType: itemPaths) {
+			ItemPath itemPath = itemPathType.getItemPath();
+			if (object != null) {
+				Item<?> item = object.findItem(itemPath);
+				if (item != null && !item.isEmpty()) {
+					LOGGER.trace("  applicable object item "+itemPath);
+					return true;
+				}
+			}
+			if (delta != null) {
+				ItemDelta<PrismValue> itemDelta = delta.findItemDelta(itemPath);
+				if (itemDelta != null && !itemDelta.isEmpty()) {
+					LOGGER.trace("  applicable delta item "+itemPath);
+					return true;
+				}
+			}
+		}
+		LOGGER.trace("  no applicable item");
+		return false;
+	}
+	
+	private void addItems(Collection<ItemPath> items, Authorization autz) {
+		List<ItemPathType> itemPaths = autz.getItem();
+		if (itemPaths == null) {
+			return;
+		}
+		for (ItemPathType itemPathType: itemPaths) {
+			ItemPath itemPath = itemPathType.getItemPath();
+			items.add(itemPath);
+		}
 	}
 	
 	/**

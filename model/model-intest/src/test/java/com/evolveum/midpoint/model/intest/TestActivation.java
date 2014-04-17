@@ -1269,6 +1269,40 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
+	 * Delete assignment from repo. Model should not notice. The change should be applied after recompute.
+	 */
+	@Test
+    public void test230JackUnassignRepoRecompute() throws Exception {
+		final String TEST_NAME = "test230JackUnassignRepoRecompute";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        long startMillis = clock.currentTimeMillis();
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        addObject(USER_JACK_FILE);
+        assignAccount(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, task, result);
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
+        
+        // Delete the assignment from the repo. Really use the repo directly. We do not want the model to notice.
+        ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_RED_OID, null, false);
+        repositoryService.modifyObject(UserType.class, userDelta.getOid(), userDelta.getModifications(), result);
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        recomputeUser(USER_JACK_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
+	}
+	
+	/**
 	 * Test reading of validity data through shadow
 	 */
 	@Test
@@ -1318,7 +1352,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
         // Preconditions
-        assertUsers(5);
+        assertUsers(6);
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         assertNull("Unexpected user mancomb before import", userMancomb);
         
@@ -1339,7 +1373,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertNotNull("No user mancomb after import", userMancomb);
         userMancombOid = userMancomb.getOid();
         
-        assertUsers(6);
+        assertUsers(7);
         
         assertAdministrativeStatusEnabled(userMancomb);
         assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);

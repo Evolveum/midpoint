@@ -1142,9 +1142,13 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         assertAssignedRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
+        
         assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Honorable");
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "mouth", "pistol");
+        
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Honorable");
 	}
 	
 	@Test
@@ -1173,7 +1177,11 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         assertAssignedRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
+        
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, false);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "title", "Bloody Honorable");
 	}
 
 }
