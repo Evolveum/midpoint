@@ -37,7 +37,7 @@ public class XNodeProcessorUtil {
     }
 	
 	public static <T> void parseProtectedType(ProtectedDataType<T> protectedType, MapXNode xmap, PrismContext prismContext) throws SchemaException {
-        XNode xEncryptedData = xmap.get(ProtectedDataType.F_ENCRYPTED_DATA);
+		XNode xEncryptedData = xmap.get(ProtectedDataType.F_ENCRYPTED_DATA);
         if (xEncryptedData != null) {
             if (!(xEncryptedData instanceof MapXNode)) {
                 throw new SchemaException("Cannot parse encryptedData from "+xEncryptedData);
@@ -71,7 +71,7 @@ public class XNodeProcessorUtil {
                 protectedType.setEncryptedData(encryptedDataType);
        
                 if (protectedType instanceof ProtectedStringType){
-                	transformEncryptedValue((ProtectedStringType) protectedType);
+                	transformEncryptedValue((ProtectedStringType) protectedType, prismContext);
                 }
             }
         }
@@ -97,8 +97,13 @@ public class XNodeProcessorUtil {
 
     }
 	
-	private static void transformEncryptedValue(ProtectedDataType protectedType) throws SchemaException{
-		AESProtector protector = new AESProtector();
+	private static void transformEncryptedValue(ProtectedDataType protectedType, PrismContext prismContext) throws SchemaException{
+		Protector protector = prismContext.getDefaultProtector();
+		if (protector == null){
+			return;
+		}
+//		AESProtector protector = new AESProtector();
+//		protector.init();
         try {
         	protector.decrypt(protectedType);
         	Object clearValue = protectedType.getClearValue();
@@ -113,7 +118,7 @@ public class XNodeProcessorUtil {
         	}
         } catch (EncryptionException ex){
         	System.out.println("failed to encrypt..");
-        	throw new IllegalArgumentException("failed to encrypt.");
+        	throw new IllegalArgumentException("failed to encrypt. " + ex);
         }
 	}
 

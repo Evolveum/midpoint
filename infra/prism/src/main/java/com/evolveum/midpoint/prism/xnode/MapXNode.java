@@ -35,7 +35,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class MapXNode extends XNode implements Map<QName,XNode> {
+public class MapXNode extends XNode implements Map<QName,XNode>, Serializable {
 	
 	// We want to maintain ordering, hence the List
 	private List<Entry> subnodes = new ArrayList<Entry>();

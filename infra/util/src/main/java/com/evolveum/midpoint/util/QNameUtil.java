@@ -102,12 +102,16 @@ public class QNameUtil {
 		if (col == null) {
 			return null;
 		}
+		QName found = null;
 		for (QName b: col) {
 			if (match(a, b)) {
-				return b;
+				if (found != null){
+					throw new IllegalStateException("Found more than one suitable qnames( "+ found + b + ") for attribute: " + a);
+				}
+				found = b;
 			}
 		}
-		return null;
+		return found;
 	}
 	
 	public static boolean matchAny(QName a, Collection<QName> col) {

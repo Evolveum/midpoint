@@ -15,11 +15,12 @@
  */
 package com.evolveum.midpoint.prism.xnode;
 
+import java.io.Serializable;
+
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -28,7 +29,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class PrimitiveXNode<T> extends XNode {
+public class PrimitiveXNode<T> extends XNode implements Serializable {
 	
 	private T value;
 	private ValueParser<T> valueParser;
