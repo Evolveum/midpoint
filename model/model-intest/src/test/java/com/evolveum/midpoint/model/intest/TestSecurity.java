@@ -107,6 +107,11 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	
 	protected static final File ROLE_OBJECT_FILTER_CARIBBEAN_FILE = new File(TEST_DIR, "role-filter-object-caribbean.xml");
 	protected static final String ROLE_OBJECT_FILTER_CARIBBEAN_OID = "00000000-0000-0000-0000-00000000aa04";
+	
+	protected static final File ROLE_PROP_READ_ALL_MODIFY_SOME_FILE = new File(TEST_DIR, "role-prop-read-all-modify-some.xml");
+	protected static final String ROLE_PROP_READ_ALL_MODIFY_SOME_OID = "00000000-0000-0000-0000-00000000aa05";
+
+	private static final String LOG_PREFIX_FAIL = "SSSSS=X ";
 
 	@Autowired(required=true)
 	private UserProfileService userDetailsService;
@@ -122,6 +127,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_READONLY_DEEP_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_SELF_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_OBJECT_FILTER_CARIBBEAN_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_PROP_READ_ALL_MODIFY_SOME_FILE, RoleType.class, initResult);
 	}
 
 	@Test
@@ -440,6 +446,32 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteDeny();
 	}
 	
+	@Test
+    public void test210AutzJackPropReadAllModifySome() throws Exception {
+		final String TEST_NAME = "test210AutzJackPropReadAllModifySome";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_PROP_READ_ALL_MODIFY_SOME_OID);
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assertReadAllow();
+
+        assertAddDeny();
+        
+        assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Captain Jack Sparrow"));
+        assertModifyAllow(UserType.class, USER_GUYBRUSH_OID, UserType.F_DESCRIPTION, "Pirate wannabe");
+        
+        assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
+        assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
+        assertModifyDeny(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Mutinier"));
+        
+        assertDeleteDeny();
+	}
+	
 	private void cleanupAutzTest(String userOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, IOException {
 		login(userAdministrator);
         unassignAllRoles(userOid);
@@ -537,10 +569,12 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		Task task = taskManager.createTaskInstance(TestSecurity.class.getName() + ".assertGetDeny");
         OperationResult result = task.getResult();
 		try {
+			logAttempt("get", type, oid, null);
 			PrismObject<O> object = modelService.getObject(type, oid, options, task, result);
-			AssertJUnit.fail("Expected get of "+object+" to fail. But it was successful");
+			failDeny("get", type, oid, null);
 		} catch (SecurityViolationException e) {
 			// this is expected
+			logDeny("get", type, oid, null);
 			result.computeStatus();
 			TestUtil.assertFailure(result);
 		}
@@ -553,9 +587,11 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	private <O extends ObjectType> void assertGetAllow(Class<O> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(TestSecurity.class.getName() + ".assertGetAllow");
         OperationResult result = task.getResult();
+        logAttempt("get", type, oid, null);
 		PrismObject<O> object = modelService.getObject(type, oid, options, task, result);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
+		logAllow("get", type, oid, null);
 		// TODO: check audit
 	}
 	
@@ -563,16 +599,18 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		assertAddDeny(file, null);
 	}
 	
-	private void assertAddDeny(File file, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
+	private <O extends ObjectType> void assertAddDeny(File file, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
 		Task task = taskManager.createTaskInstance(TestSecurity.class.getName() + ".assertAddDeny");
         OperationResult result = task.getResult();
-        PrismObject<?> object = PrismTestUtil.parseObject(file);
-    	ObjectDelta<?> addDelta = object.createAddDelta();
+        PrismObject<O> object = PrismTestUtil.parseObject(file);
+    	ObjectDelta<O> addDelta = object.createAddDelta();
         try {
+        	logAttempt("add", object.getCompileTimeClass(), object.getOid(), null);
             modelService.executeChanges(MiscSchemaUtil.createCollection(addDelta), options, task, result);
-        	AssertJUnit.fail("Expected add of object from file "+file+" to fail. But it was successful");
+            failDeny("add", object.getCompileTimeClass(), object.getOid(), null);
         } catch (SecurityViolationException e) {
 			// this is expected
+        	logDeny("add", object.getCompileTimeClass(), object.getOid(), null);
 			result.computeStatus();
 			TestUtil.assertFailure(result);
 		}
@@ -582,14 +620,20 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		assertAddAllow(file, null);
 	}
 	
-	private void assertAddAllow(File file, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+	private <O extends ObjectType> void assertAddAllow(File file, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
 		Task task = taskManager.createTaskInstance(TestSecurity.class.getName() + ".assertAddAllow");
         OperationResult result = task.getResult();
-        PrismObject<?> object = PrismTestUtil.parseObject(file);
-    	ObjectDelta<?> addDelta = object.createAddDelta();
-    	modelService.executeChanges(MiscSchemaUtil.createCollection(addDelta), options, task, result);
+        PrismObject<O> object = PrismTestUtil.parseObject(file);
+    	ObjectDelta<O> addDelta = object.createAddDelta();
+    	logAttempt("add", object.getCompileTimeClass(), object.getOid(), null);
+    	try {
+    		modelService.executeChanges(MiscSchemaUtil.createCollection(addDelta), options, task, result);
+    	} catch (SecurityViolationException e) {
+			failAllow("add", object.getCompileTimeClass(), object.getOid(), null, e);
+		}
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
+		logAllow("add", object.getCompileTimeClass(), object.getOid(), null);
 	}
 	
 	private <O extends ObjectType> void assertModifyDeny(Class<O> type, String oid, QName propertyName, Object... newRealValue) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
@@ -602,9 +646,12 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<O> objectDelta = ObjectDelta.createModificationReplaceProperty(type, oid, new ItemPath(propertyName), prismContext, newRealValue);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
         try {
+        	logAttempt("modify", type, oid, propertyName);
         	modelService.executeChanges(deltas, options, task, result);
+        	failDeny("modify", type, oid, propertyName);
         } catch (SecurityViolationException e) {
 			// this is expected
+        	logDeny("modify", type, oid, propertyName);
 			result.computeStatus();
 			TestUtil.assertFailure(result);
 		}
@@ -619,9 +666,15 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         ObjectDelta<O> objectDelta = ObjectDelta.createModificationReplaceProperty(type, oid, new ItemPath(propertyName), prismContext, newRealValue);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-		modelService.executeChanges(deltas, options, task, result);
+		try {
+			logAttempt("modify", type, oid, propertyName);
+			modelService.executeChanges(deltas, options, task, result);
+		} catch (SecurityViolationException e) {
+			failAllow("modify", type, oid, propertyName, e);
+		}
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
+		logAllow("modify", type, oid, propertyName);
 	}
 
 	private <O extends ObjectType> void assertDeleteDeny(Class<O> type, String oid) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
@@ -633,9 +686,12 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         ObjectDelta<O> delta = ObjectDelta.createDeleteDelta(type, oid, prismContext);
         try {
+        	logAttempt("delete", type, oid, null);
     		modelService.executeChanges(MiscSchemaUtil.createCollection(delta), options, task, result);
+    		failDeny("delete", type, oid, null);
 		} catch (SecurityViolationException e) {
 			// this is expected
+			logDeny("delete", type, oid, null);
 			result.computeStatus();
 			TestUtil.assertFailure(result);
 		}
@@ -649,9 +705,15 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		Task task = taskManager.createTaskInstance(TestSecurity.class.getName() + ".assertDeleteAllow");
         OperationResult result = task.getResult();
         ObjectDelta<O> delta = ObjectDelta.createDeleteDelta(type, oid, prismContext);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), options, task, result);
+        logAttempt("delete", type, oid, null);
+        try {
+        	modelService.executeChanges(MiscSchemaUtil.createCollection(delta), options, task, result);
+        } catch (SecurityViolationException e) {
+			failAllow("delete", type, oid, null, e);
+		}
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
+		logAllow("delete", type, oid, null);
 	}
 	
 	private void assertImportDeny(File file) {
@@ -660,7 +722,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         // This does not throw exception, failure is indicated in the result
         modelService.importObjectsFromFile(file, null, task, result);
 		result.computeStatus();
-		TestUtil.assertFailure(result);        	
+		TestUtil.assertFailure(result);
 	}
 
 	private void assertImportAllow(File file) {
@@ -746,5 +808,37 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		Collection<ConfigAttribute> attrs = new ArrayList<ConfigAttribute>();
 		attrs.add(new SecurityConfig(action));
 		return attrs;
+	}
+	
+	private <O extends ObjectType> void failDeny(String action, Class<O> type, String oid, QName propertyName) {
+		String msg = "Failed to deny "+action+" of "+type.getSimpleName()+":"+oid+" prop "+propertyName;
+		System.out.println(LOG_PREFIX_FAIL+msg);
+		LOGGER.error(LOG_PREFIX_FAIL+msg);
+		AssertJUnit.fail(msg);
+	}
+	
+	private <O extends ObjectType> void failAllow(String action, Class<O> type, String oid, QName propertyName, SecurityViolationException e) throws SecurityViolationException {
+		String msg = "Failed to allow "+action+" of "+type.getSimpleName()+":"+oid+" prop "+propertyName;
+		System.out.println(LOG_PREFIX_FAIL+msg);
+		LOGGER.error(LOG_PREFIX_FAIL+msg);
+		throw new SecurityViolationException(msg+": "+e.getMessage(), e);
+	}
+	
+	private <O extends ObjectType> void logAttempt(String action, Class<O> type, String oid, QName propertyName) {
+		String msg = "SSSSS=> Trying "+action+" of "+type.getSimpleName()+":"+oid+" prop "+propertyName;
+		System.out.println(msg);
+		LOGGER.info(msg);
+	}
+	
+	private <O extends ObjectType> void logDeny(String action, Class<O> type, String oid, QName propertyName) {
+		String msg = "SSSSS=- Denied "+action+" of "+type.getSimpleName()+":"+oid+" prop "+propertyName;
+		System.out.println(msg);
+		LOGGER.info(msg);
+	}
+	
+	private <O extends ObjectType> void logAllow(String action, Class<O> type, String oid, QName propertyName) {
+		String msg = "SSSSS=+ Allowed "+action+" of "+type.getSimpleName()+":"+oid+" prop "+propertyName;
+		System.out.println(msg);
+		LOGGER.info(msg);
 	}
 }
