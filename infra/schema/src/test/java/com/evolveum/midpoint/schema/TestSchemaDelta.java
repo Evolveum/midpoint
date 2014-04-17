@@ -21,6 +21,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -32,6 +33,9 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
@@ -77,7 +81,7 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 
     @Test
     public void testAddInducementConstructionSameNullIdApplyToObject() throws Exception {
-    	final String TEST_NAME = "testDeleteInducementConstructionSameNullIdApplyToObject";
+    	final String TEST_NAME = "testAddInducementConstructionSameNullIdApplyToObject";
     	displayTestTile(TEST_NAME);
     	
 		// GIVEN
@@ -201,7 +205,9 @@ public class TestSchemaDelta extends AbstractSchemaTest {
 		ConstructionType construction = new ConstructionType();
         ObjectReferenceType resourceRef = new ObjectReferenceType();
         resourceRef.setOid(ROLE_CONSTRUCTION_RESOURCE_OID);
+        resourceRef.setType(ObjectTypes.RESOURCE.getTypeQName());
 		construction.setResourceRef(resourceRef);
+		// No container ID
         ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, ROLE_CONSTRUCTION_OID, 
         		new ItemPath(
         				new NameItemPathSegment(RoleType.F_INDUCEMENT),
@@ -217,12 +223,93 @@ public class TestSchemaDelta extends AbstractSchemaTest {
         System.out.println(role.debugDump());
         assertEquals("Wrong OID", ROLE_CONSTRUCTION_OID, role.getOid());
         PrismAsserts.assertPropertyValue(role, UserType.F_NAME, PrismTestUtil.createPolyString("Construction"));
-        PrismContainer<AssignmentType> assignment = role.findContainer(RoleType.F_INDUCEMENT);
-        assertNotNull("No inducement", assignment);
-        assertEquals("Unexpected number of inducement values", 1, assignment.size());
+        PrismContainer<AssignmentType> inducementContainer = role.findContainer(RoleType.F_INDUCEMENT);
+        assertNotNull("No inducement", inducementContainer);
+        assertEquals("Unexpected number of inducement values", 1, inducementContainer.size());
+        PrismContainerValue<AssignmentType> inducementValue = inducementContainer.getValues().iterator().next();
+        AssignmentType inducement = inducementValue.asContainerable();
+        ConstructionType constructionAfter = inducement.getConstruction();
+        // construction should be gone (the error is that it is empty and not gone)
+        assertNull("Construction is not gone", constructionAfter);
         
-        // TODO: construction should be gone, check for it 
-        // (the error is that it is empty and not gone)
+    }
+    
+    @Test
+    public void testDeleteInducementActivationSameNullIdApplyToObject() throws Exception {
+    	final String TEST_NAME = "testDeleteInducementActivationSameNullIdApplyToObject";
+    	displayTestTile(TEST_NAME);
+    	
+    	// GIVEN
+		PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_CONSTRUCTION_FILE);
+
+		//Delta
+		ActivationType activationType = new ActivationType();
+		activationType.setAdministrativeStatus(ActivationStatusType.ENABLED);
+		// No container ID
+        ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, ROLE_CONSTRUCTION_OID, 
+        		new ItemPath(
+        				new NameItemPathSegment(RoleType.F_INDUCEMENT),
+        				new IdItemPathSegment(ROLE_CONSTRUCTION_INDUCEMENT_ID),
+        				new NameItemPathSegment(AssignmentType.F_ACTIVATION)),
+        		PrismTestUtil.getPrismContext(), activationType);
+				
+		// WHEN
+		roleDelta.applyTo(role);
+        
+        // THEN
+        System.out.println("Role after delta application:");
+        System.out.println(role.debugDump());
+        assertEquals("Wrong OID", ROLE_CONSTRUCTION_OID, role.getOid());
+        PrismAsserts.assertPropertyValue(role, UserType.F_NAME, PrismTestUtil.createPolyString("Construction"));
+        PrismContainer<AssignmentType> inducementContainer = role.findContainer(RoleType.F_INDUCEMENT);
+        assertNotNull("No inducement", inducementContainer);
+        assertEquals("Unexpected number of inducement values", 1, inducementContainer.size());
+        PrismContainerValue<AssignmentType> inducementValue = inducementContainer.getValues().iterator().next();
+        AssignmentType inducement = inducementValue.asContainerable();
+        ActivationType activation = inducement.getActivation();
+        // activation should be gone (the error is that it is empty and not gone)
+        assertNull("Activation is not gone", activation);
+    }
+    
+    @Test
+    public void testDeleteUserAssignmentActivationSameNullIdApplyToObject() throws Exception {
+    	final String TEST_NAME = "testDeleteUserAssignmentActivationSameNullIdApplyToObject";
+    	displayTestTile(TEST_NAME);
+    	
+    	// GIVEN
+		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
+
+		//Delta
+		ActivationType activationType = new ActivationType();
+		activationType.setAdministrativeStatus(ActivationStatusType.ENABLED);
+		// No container ID
+        ObjectDelta<UserType> userDelta = ObjectDelta.createModificationDeleteContainer(UserType.class, USER_JACK_OID, 
+        		new ItemPath(
+        				new NameItemPathSegment(UserType.F_ASSIGNMENT),
+        				new IdItemPathSegment(USER_JACK_ASSIGNMENT_ID),
+        				new NameItemPathSegment(AssignmentType.F_ACTIVATION)),
+        		PrismTestUtil.getPrismContext(), activationType);
+				
+		// WHEN
+		userDelta.applyTo(user);
+        
+        // THEN
+        System.out.println("User after delta application:");
+        System.out.println(user.debugDump());
+        assertEquals("Wrong OID", USER_JACK_OID, user.getOid());
+        PrismAsserts.assertPropertyValue(user, UserType.F_NAME, PrismTestUtil.createPolyString(USER_JACK_NAME));
+        PrismContainer<AssignmentType> assignmentContainer = user.findContainer(RoleType.F_ASSIGNMENT);
+        assertNotNull("No assignment", assignmentContainer);
+        assertEquals("Unexpected number of assignment values", 1, assignmentContainer.size());
+        PrismContainerValue<AssignmentType> assignmentValue = assignmentContainer.getValues().iterator().next();
+        AssignmentType assignment = assignmentValue.asContainerable();
+        ActivationType assignmentActivation = assignment.getActivation();
+        // activation should be gone (the error is that it is empty and not gone)
+        assertNull("Assignment activation is not gone", assignmentActivation);
+        
+        ActivationType activation = user.asObjectable().getActivation();
+        assertNotNull("Activation missing", activation);
+        assertEquals("Wrong activation administrativeStatus", ActivationStatusType.ENABLED, activation.getAdministrativeStatus());
     }
 
 }

@@ -821,6 +821,7 @@ public class PrismAsserts {
 			QName expectedTypeName, ItemPath path) {
 		assertEquals("Wrong filter class", EqualsFilter.class, objectFilter.getClass());
 		EqualsFilter filter = (EqualsFilter) objectFilter;
+		assertNotNull("No filter definition", filter.getDefinition());
 		assertEquals("Wrong filter definition element name", expectedFilterDef, filter.getDefinition().getName());
 		assertEquals("Wrong filter definition type", expectedTypeName, filter.getDefinition().getTypeName());
 		assertEquals("Wrong filter path", path, filter.getFullPath());
