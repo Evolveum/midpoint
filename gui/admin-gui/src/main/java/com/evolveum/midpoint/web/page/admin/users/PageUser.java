@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -242,8 +243,10 @@ public class PageUser extends PageAdminUsers {
                 Task task = createSimpleTask(OPERATION_LOAD_USER);
 
                 StringValue userOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-                user = getModelService().getObject(UserType.class, userOid.toString(), null, task, result);
+                Collection options = SelectorOptions.createCollection(UserType.F_JPEG_PHOTO,
+                        GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
 
+                user = getModelService().getObject(UserType.class, userOid.toString(), options, task, result);
             }
 
             result.recordSuccess();
