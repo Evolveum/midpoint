@@ -324,9 +324,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        ActivationType activationType = new ActivationType();
-        activationType.setAdministrativeStatus(ActivationStatusType.ENABLED);
-        assignRole(USER_HERMAN_OID, ROLE_JUDGE_OID, activationType, task, result);
         assertDummyAccount(null, USER_HERMAN_USERNAME);
         AssignmentType judgeAssignment = getJudgeAssignment(USER_HERMAN_OID);
         
@@ -385,7 +382,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        assertNoDummyAccount(null, USER_HERMAN_USERNAME);
+        assertDummyAccount(null, USER_HERMAN_USERNAME);
         AssignmentType judgeAssignment = getJudgeAssignment(USER_HERMAN_OID);
         
         // WHEN
