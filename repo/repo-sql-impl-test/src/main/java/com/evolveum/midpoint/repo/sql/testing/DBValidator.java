@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.repo.sql.util;
+package com.evolveum.midpoint.repo.sql.testing;
 
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -29,7 +29,7 @@ import java.util.List;
 
 /**
  * This class provides simple validation for data stored in database. It does various selects and asserts data quality.
- * Validation occurs only when H2 is used and dropIfExists=true -> therefore only during tests.
+ * Validation occurs only when H2 is used and dropIfExists=true, only during tests.
  *
  * @author lazyman
  */
@@ -57,7 +57,7 @@ public class DBValidator {
             validate("select e.owner_oid, e.eName from m_object_ext_reference e where e.ownerType is null",
                     "extension reference are null", session);
 
-            if (type.isAssignableFrom(FocusType.class)) {
+            if (FocusType.class.isAssignableFrom(type)) {
                 validate("select a.owner_oid, a.id from m_assignment a where a.assignmentOwner is null",
                         "assignment owners are null", session);
 
