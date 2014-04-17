@@ -26,21 +26,14 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
@@ -52,10 +45,7 @@ import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_2.RawType;
 
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -84,11 +74,11 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 		new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE);
 
     @Test
-    public void testRefWithObject() throws SchemaException, FileNotFoundException, JAXBException {
+    public void testRefWithObject() throws SchemaException, IOException, JAXBException {
     	System.out.println("===[ testRefWithObject ]====");
     	
-    	ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(new File(TEST_DIR, "user-modify-add-account.xml"),
-    			ObjectModificationType.class);
+    	ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(new File(TEST_DIR, "user-modify-add-account.xml"),
+                ObjectModificationType.COMPLEX_TYPE);
     	
     	ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class, 
     			PrismTestUtil.getPrismContext());
@@ -112,8 +102,8 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     public void testPasswordChange() throws Exception {
     	System.out.println("===[ testPasswordChange ]====");
     	
-    	ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(new File(TEST_DIR, "user-modify-password.xml"),
-    			ObjectModificationType.class);
+    	ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(new File(TEST_DIR, "user-modify-password.xml"),
+                ObjectModificationType.COMPLEX_TYPE);
     	
     	// WHEN
     	ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class, 
@@ -145,8 +135,8 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     public void testModifyGivenName() throws Exception {
     	System.out.println("===[ testModifyGivenName ]====");
     	
-    	ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(new File(TEST_DIR, "user-modify-givenname.xml"),
-    			ObjectModificationType.class);
+    	ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(new File(TEST_DIR, "user-modify-givenname.xml"),
+                ObjectModificationType.COMPLEX_TYPE);
     	
     	// WHEN
     	ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class, 
@@ -159,7 +149,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	PropertyDelta<String> givenNameDelta = objectDelta.findPropertyDelta(UserType.F_GIVEN_NAME);
     	assertNotNull("No givenName delta", givenNameDelta);
     	Collection<PrismPropertyValue<String>> valuesToReplace = givenNameDelta.getValuesToReplace();
-    	assertEquals("Wrong number of values to add", 0, valuesToReplace.size());
+    	assertEquals("Wrong number of values to replace", 0, valuesToReplace.size());
     	
     	PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
     	// apply to user
@@ -176,8 +166,8 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     public void testAddAssignment() throws Exception {
     	System.out.println("===[ testAddAssignment ]====");
     	
-    	ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(new File(TEST_DIR, "user-modify-add-role-pirate.xml"),
-    			ObjectModificationType.class);
+    	ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(new File(TEST_DIR, "user-modify-add-role-pirate.xml"),
+                ObjectModificationType.COMPLEX_TYPE);
     	
     	// WHEN
     	ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class, 
@@ -268,7 +258,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 
     	// THEN
     	System.out.println("ObjectDeltaType (XML)");
-    	System.out.println(PrismTestUtil.marshalWrap(objectDeltaType));
+    	System.out.println(JaxbTestUtil.marshalWrap(objectDeltaType));
     	
     	assertEquals("Wrong changetype", ChangeTypeType.MODIFY, objectDeltaType.getChangeType());
     	assertEquals("Wrong OID", "12345", objectDeltaType.getOid());
@@ -355,10 +345,10 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	System.out.println("===[ testTaskExtensionDeleteDelta ]====");
 
     	// GIVEN
-        PrismObject oldTask = PrismTestUtil.unmarshalObject(
-                new File(TEST_DIR, "task-old.xml"), TaskType.class).asPrismObject();
-        PrismObject newTask = PrismTestUtil.unmarshalObject(
-                new File(TEST_DIR, "task-new.xml"), TaskType.class).asPrismObject();
+        PrismObject oldTask = PrismTestUtil.parseObject(
+                new File(TEST_DIR, "task-old.xml"));
+        PrismObject newTask = PrismTestUtil.parseObject(
+                new File(TEST_DIR, "task-new.xml"));
 
         ObjectDelta<TaskType> delta = oldTask.diff(newTask, true, true);
         System.out.println("Delta:");
@@ -367,7 +357,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
         final QName CUSTOM_OBJECT = new QName("http://delta.example.com", "object");
 
         PrismContext context = PrismTestUtil.getPrismContext();
-        JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
+        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 
         // WHEN
         ObjectDeltaType xmlDelta = DeltaConvertor.toObjectDeltaType(delta);
@@ -448,7 +438,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	System.out.println("Serialized");
     	System.out.println(itemDeltaTypes);
     	ItemDeltaType itemDeltaType = itemDeltaTypes.iterator().next();
-    	String xml = PrismTestUtil.getJaxbUtil().marshalObjectToString(itemDeltaType, new QName("wherever","whatever"));
+    	String xml = JaxbTestUtil.getInstance().marshalObjectToString(itemDeltaType, new QName("wherever","whatever"));
     	System.out.println(xml);
     	
     	// WHEN
@@ -465,8 +455,8 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     public void testModifyInducement() throws Exception {
         System.out.println("===[ testModifyInducement ]====");
 
-        ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(new File(TEST_DIR, "role-modify-inducement.xml"),
-                ObjectModificationType.class);
+        ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(new File(TEST_DIR, "role-modify-inducement.xml"),
+                ObjectModificationType.COMPLEX_TYPE);
 
         // WHEN
         ObjectDelta<RoleType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, RoleType.class,

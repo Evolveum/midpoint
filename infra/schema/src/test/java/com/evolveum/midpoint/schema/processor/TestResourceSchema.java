@@ -21,24 +21,16 @@
 package com.evolveum.midpoint.schema.processor;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -58,16 +50,12 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsC
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.LiveSyncCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 
-import org.testng.AssertJUnit;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
@@ -177,13 +165,14 @@ public class TestResourceSchema {
 		
 		// WHEN
 		
-		JAXBElement<ResourceType> resourceElement = new JAXBElement<ResourceType>(SchemaConstants.C_RESOURCE, ResourceType.class, resource);
-		String marshalledResource = PrismTestUtil.marshalElementToString(resourceElement);
-		
-		System.out.println("Marshalled resource");
+//		JAXBElement<ResourceType> resourceElement = new JAXBElement<ResourceType>(SchemaConstants.C_RESOURCE, ResourceType.class, resource);
+//		String marshalledResource = PrismTestUtil.marshalElementToString(resourceElement);
+        String marshalledResource = PrismTestUtil.marshalObjectToString(resource.asPrismObject());
+
+        System.out.println("Marshalled resource");
 		System.out.println(marshalledResource); 
 		
-		ResourceType unmarshalledResource = PrismTestUtil.unmarshalObject(marshalledResource, ResourceType.class);
+		ResourceType unmarshalledResource = (ResourceType) PrismTestUtil.parseObject(marshalledResource).asObjectable();
 		
 		System.out.println("unmarshalled resource");
 		System.out.println(ObjectTypeUtil.dump(unmarshalledResource));
@@ -382,7 +371,7 @@ public class TestResourceSchema {
 	public void testUnmarshallResource() throws Exception {
 		System.out.println("===[ testUnmarshallResource ]===");
 		// WHEN
-		ResourceType resourceType = PrismTestUtil.unmarshalObject(new File("src/test/resources/common/resource-opendj.xml"), ResourceType.class);
+		ResourceType resourceType = (ResourceType) PrismTestUtil.parseObject(new File("src/test/resources/common/resource-opendj.xml")).asObjectable();
 		
 		// THEN
 		assertCapabilities(resourceType);

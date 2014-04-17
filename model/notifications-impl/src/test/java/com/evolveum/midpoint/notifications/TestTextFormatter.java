@@ -229,8 +229,8 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
     }
 
 
-    private ObjectDelta<UserType> parseDelta(String filename) throws JAXBException, SchemaException, FileNotFoundException {
-        ObjectModificationType modElement = PrismTestUtil.unmarshalObject(new File(filename), ObjectModificationType.class);
+    private ObjectDelta<UserType> parseDelta(String filename) throws JAXBException, SchemaException, IOException {
+        ObjectModificationType modElement = PrismTestUtil.parseAtomicValue(new File(filename), ObjectModificationType.COMPLEX_TYPE);
         return DeltaConvertor.createObjectDelta(modElement, UserType.class, prismContext);
     }
 

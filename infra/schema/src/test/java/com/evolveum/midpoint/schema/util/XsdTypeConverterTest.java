@@ -30,6 +30,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -96,9 +97,8 @@ public class XsdTypeConverterTest {
 	@Test(enabled=false)
 	public void testAccountMarshall() throws JAXBException, SchemaException, FileNotFoundException {
 		System.out.println("===[ testAccountMarshall ]===");
-		JAXBElement<ShadowType> jaxbElement = 
-				PrismTestUtil.unmarshalElement(new File("src/test/resources/converter/account-jack.xml"), 
-						ShadowType.class);
+		JAXBElement<ShadowType> jaxbElement =
+                JaxbTestUtil.getInstance().unmarshalElement(new File("src/test/resources/converter/account-jack.xml"),                        ShadowType.class);
 		System.out.println("Object: "+jaxbElement.getValue());
 		ShadowType shadow = jaxbElement.getValue();
 		
@@ -113,7 +113,7 @@ public class XsdTypeConverterTest {
 		JAXBElement<ShadowType> accountElement = 
 				new JAXBElement<ShadowType>(ObjectTypes.SHADOW.getQName(),
 						ShadowType.class,shadow);
-		PrismTestUtil.marshalElementToDom(accountElement, doc);
+		JaxbTestUtil.getInstance().marshalElementToDom(accountElement, doc);
 		
 		System.out.println("marshalled shadow: "+DOMUtil.serializeDOMToString(doc));
 		Element rootElement = DOMUtil.getFirstChildElement(doc);

@@ -150,7 +150,7 @@ public class TestScriptCaching {
 		assertEquals("Unexpected number of script executions after "+desc, expExecutions, InternalMonitor.getScriptExecutionCount());
 	}
 
-	private long executeScript(String filname, String expectedResult, String desc) throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
+	private long executeScript(String filname, String expectedResult, String desc) throws SchemaException, IOException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
         // GIVEN
     	OperationResult result = new OperationResult(desc);
     	ScriptExpressionEvaluatorType scriptType = parseScriptType(filname);
@@ -178,10 +178,10 @@ public class TestScriptCaching {
     	return (endTime - startTime);
     }
     
-    private ScriptExpressionEvaluatorType parseScriptType(String fileName) throws SchemaException, FileNotFoundException, JAXBException {
-		JAXBElement<ScriptExpressionEvaluatorType> expressionTypeElement = PrismTestUtil.unmarshalElement(
-                new File(TEST_DIR, fileName), ScriptExpressionEvaluatorType.class);
-		return expressionTypeElement.getValue();
+    private ScriptExpressionEvaluatorType parseScriptType(String fileName) throws SchemaException, IOException, JAXBException {
+		ScriptExpressionEvaluatorType expressionType = PrismTestUtil.parseAtomicValue(
+                new File(TEST_DIR, fileName), ScriptExpressionEvaluatorType.COMPLEX_TYPE);
+		return expressionType;
 	}
     
     private String asScalarString(List<PrismPropertyValue<String>> expressionResultList) {

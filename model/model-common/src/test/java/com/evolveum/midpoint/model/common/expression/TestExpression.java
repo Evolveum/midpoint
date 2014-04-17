@@ -86,10 +86,9 @@ public class TestExpression {
     	
     	rememberScriptExecutionCount();
     	
-    	JAXBElement<ExpressionType> expressionTypeElement = PrismTestUtil.unmarshalElement(
-                new File(TEST_DIR, filename), ExpressionType.class);
-    	ExpressionType expressionType = expressionTypeElement.getValue();
-    	
+    	ExpressionType expressionType = PrismTestUtil.parseAtomicValue(
+                new File(TEST_DIR, filename), ExpressionType.COMPLEX_TYPE);
+
     	PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinition<Boolean>(ExpressionConstants.OUTPUT_ELMENT_NAME,
 				DOMUtil.XSD_BOOLEAN, prismContext);
 		Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition , TEST_NAME, result);

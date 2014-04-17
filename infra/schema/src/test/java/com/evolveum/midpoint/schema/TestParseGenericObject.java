@@ -113,9 +113,9 @@ public class TestParseGenericObject {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
-		
-		// WHEN
+        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
+
+        // WHEN
 		GenericObjectType genericType = jaxbProcessor.unmarshalObject(GENERIC_FILE, GenericObjectType.class);
 		
 		// THEN
@@ -133,7 +133,7 @@ public class TestParseGenericObject {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
+        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 		
 		// WHEN
 		ObjectType genericType = jaxbProcessor.unmarshalObject(GENERIC_FILE, ObjectType.class);
@@ -152,7 +152,7 @@ public class TestParseGenericObject {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
+        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 		
 		// WHEN
 		JAXBElement<GenericObjectType> jaxbElement = jaxbProcessor.unmarshalElement(GENERIC_FILE, GenericObjectType.class);
@@ -172,7 +172,7 @@ public class TestParseGenericObject {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
+        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 		
 		// WHEN
 		JAXBElement<ObjectType> jaxbElement = jaxbProcessor.unmarshalElement(GENERIC_FILE, ObjectType.class);

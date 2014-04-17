@@ -28,6 +28,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
 import com.evolveum.prism.xml.ns._public.types_2.RawType;
@@ -107,12 +108,12 @@ public class TestJaxbSanity {
 		System.out.println("\n\n ===[ testUnmarshallAndEqualsUserJaxb ]===\n");
 		
 		// GIVEN
-		JAXBElement<UserType> userEl1 = PrismTestUtil.unmarshalElement(new File(USER_BARBOSSA_FILENAME),UserType.class);
+		JAXBElement<UserType> userEl1 = JaxbTestUtil.getInstance().unmarshalElement(new File(USER_BARBOSSA_FILENAME),UserType.class);
 		UserType user1Type = userEl1.getValue();
 		assertNotNull(user1Type);
 		PrismObject<UserType> user1 = user1Type.asPrismObject();
 		
-		JAXBElement<UserType> userEl2 = PrismTestUtil.unmarshalElement(new File(USER_BARBOSSA_FILENAME),UserType.class);
+		JAXBElement<UserType> userEl2 = JaxbTestUtil.getInstance().unmarshalElement(new File(USER_BARBOSSA_FILENAME),UserType.class);
 		UserType user2Type = userEl2.getValue();
 		assertNotNull(user2Type);
 		PrismObject<UserType> user2 = user2Type.asPrismObject();
@@ -194,7 +195,7 @@ public class TestJaxbSanity {
 		PrismObject<UserType> user1 = PrismTestUtil.parseObject(new File(USER_BARBOSSA_FILENAME));
 		UserType user1Type = user1.asObjectable();
 		
-		JAXBElement<UserType> userEl2 = PrismTestUtil.unmarshalElement(new File(USER_BARBOSSA_FILENAME),UserType.class);
+		JAXBElement<UserType> userEl2 = JaxbTestUtil.getInstance().unmarshalElement(new File(USER_BARBOSSA_FILENAME),UserType.class);
 		UserType user2Type = userEl2.getValue();
 		assertNotNull(user2Type);
 		PrismObject<UserType> user2 = user2Type.asPrismObject();
@@ -220,11 +221,11 @@ public class TestJaxbSanity {
 		System.out.println("\n\n ===[testUnmarshallAndEqualsResourceSchema]===\n");
 		
 		// GIVEN
-		ResourceType resource1Type = PrismTestUtil.unmarshalObject(new File(RESOURCE_OPENDJ_FILENAME), ResourceType.class);
+		ResourceType resource1Type = JaxbTestUtil.getInstance().unmarshalObject(new File(RESOURCE_OPENDJ_FILENAME), ResourceType.class);
 		assertNotNull(resource1Type);
 		SchemaDefinitionType schemaDefinition1 = resource1Type.getSchema().getDefinition();
 		
-		ResourceType resource2Type = PrismTestUtil.unmarshalObject(new File(RESOURCE_OPENDJ_FILENAME),ResourceType.class);
+		ResourceType resource2Type = JaxbTestUtil.getInstance().unmarshalObject(new File(RESOURCE_OPENDJ_FILENAME), ResourceType.class);
 		assertNotNull(resource2Type);
 		SchemaDefinitionType schemaDefinition2 = resource2Type.getSchema().getDefinition();
 		
@@ -242,12 +243,12 @@ public class TestJaxbSanity {
 		System.out.println("\n\n ===[testUnmarshallAndEqualsResource]===\n");
 		
 		// GIVEN
-		ResourceType resource1Type = PrismTestUtil.unmarshalObject(new File(RESOURCE_OPENDJ_FILENAME), ResourceType.class);
+		ResourceType resource1Type = JaxbTestUtil.getInstance().unmarshalObject(new File(RESOURCE_OPENDJ_FILENAME), ResourceType.class);
 		assertNotNull(resource1Type);
 		System.out.println("Resource1 " + resource1Type.asPrismObject().debugDump());
 		PrismObject resource1 = resource1Type.asPrismObject();
 		
-		ResourceType resource2Type = PrismTestUtil.unmarshalObject(new File(RESOURCE_OPENDJ_FILENAME),ResourceType.class);
+		ResourceType resource2Type = JaxbTestUtil.getInstance().unmarshalObject(new File(RESOURCE_OPENDJ_FILENAME), ResourceType.class);
 		assertNotNull(resource2Type);
 		System.out.println("Resource2 " + resource2Type.asPrismObject().debugDump());
 		PrismObject resource2 = resource2Type.asPrismObject();
@@ -276,7 +277,7 @@ public class TestJaxbSanity {
 		System.out.println("\n\n ===[testAssnignmentEquals]===\n");
 		
 		// GIVEN
-		JAXBElement<UserType> userEl1 = PrismTestUtil.unmarshalElement(new File(USER_BARBOSSA_FILENAME),UserType.class);
+		JAXBElement<UserType> userEl1 = JaxbTestUtil.getInstance().unmarshalElement(new File(USER_BARBOSSA_FILENAME), UserType.class);
 		UserType user = userEl1.getValue();
 		assertNotNull(user);
 		
@@ -284,9 +285,9 @@ public class TestJaxbSanity {
 		assertNotNull(userAssignmentType);
 
 		System.out.println("\n*** user assignment");
-		System.out.println(PrismTestUtil.marshalWrap(userAssignmentType));
+		System.out.println(JaxbTestUtil.marshalWrap(userAssignmentType));
 
-		JAXBElement<ObjectModificationType> modEl = PrismTestUtil.unmarshalElement(new File(TEST_DIR, "user-barbossa-modify-delete-assignment-account-opendj-attr.xml"),ObjectModificationType.class);
+		JAXBElement<ObjectModificationType> modEl = JaxbTestUtil.getInstance().unmarshalElement(new File(TEST_DIR, "user-barbossa-modify-delete-assignment-account-opendj-attr.xml"),ObjectModificationType.class);
 		ObjectModificationType mod = modEl.getValue();
 		assertNotNull(mod);
 		
@@ -299,7 +300,7 @@ public class TestJaxbSanity {
 		assertNotNull(assignmentType);
 		
 		System.out.println("\n*** assignment");
-		System.out.println(PrismTestUtil.marshalWrap(assignmentType));
+		System.out.println(JaxbTestUtil.marshalWrap(assignmentType));
 		
 		// WHEN, THEN
 		

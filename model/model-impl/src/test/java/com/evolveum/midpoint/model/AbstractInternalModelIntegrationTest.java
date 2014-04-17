@@ -69,7 +69,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
@@ -318,9 +317,9 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 
 	protected <O extends ObjectType> ObjectDelta<O> addFocusModificationToContext(
 			LensContext<O> context, File file)
-			throws JAXBException, SchemaException, FileNotFoundException {
-		ObjectModificationType modElement = PrismTestUtil.unmarshalObject(
-				file, ObjectModificationType.class);
+            throws JAXBException, SchemaException, IOException {
+		ObjectModificationType modElement = PrismTestUtil.parseAtomicValue(
+                file, ObjectModificationType.COMPLEX_TYPE);
 		ObjectDelta<O> focusDelta = DeltaConvertor.createObjectDelta(
 				modElement, context.getFocusClass(), prismContext);
 		return addFocusDeltaToContext(context, focusDelta);

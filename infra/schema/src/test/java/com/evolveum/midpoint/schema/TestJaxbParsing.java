@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -48,7 +49,6 @@ import com.evolveum.prism.xml.ns._public.types_2.RawType;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBElement;
@@ -60,7 +60,6 @@ import javax.xml.namespace.QName;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -87,7 +86,7 @@ public class TestJaxbParsing {
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // Try to use the schema to validate Jack
-        UserType userType = PrismTestUtil.unmarshalObject(new File(TEST_COMMON_DIR, "user-jack.xml"), UserType.class);
+        UserType userType = JaxbTestUtil.getInstance().unmarshalObject(new File(TEST_COMMON_DIR, "user-jack.xml"), UserType.class);
 
         // WHEN
 
@@ -134,7 +133,7 @@ public class TestJaxbParsing {
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // Try to use the schema to validate Jack
-        ShadowType accType = PrismTestUtil.unmarshalObject(new File(TEST_COMMON_DIR, "account-jack.xml"), ShadowType.class);
+        ShadowType accType = JaxbTestUtil.getInstance().unmarshalObject(new File(TEST_COMMON_DIR, "account-jack.xml"), ShadowType.class);
 
         PrismObject<ShadowType> account = accType.asPrismObject();
         account.revive(prismContext);
@@ -156,7 +155,7 @@ public class TestJaxbParsing {
 
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
-        RoleType roleType = PrismTestUtil.unmarshalObject(new File(TEST_COMMON_DIR, "role.xml"), RoleType.class);
+        RoleType roleType = JaxbTestUtil.getInstance().unmarshalObject(new File(TEST_COMMON_DIR, "role.xml"), RoleType.class);
 
         // WHEN
 
@@ -182,7 +181,7 @@ public class TestJaxbParsing {
 
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
-        GenericObjectType object = PrismTestUtil.unmarshalObject(new File(TEST_COMMON_DIR, "generic-sample-configuration.xml"),
+        GenericObjectType object = JaxbTestUtil.getInstance().unmarshalObject(new File(TEST_COMMON_DIR, "generic-sample-configuration.xml"),
                 GenericObjectType.class);
 
         PrismObject<GenericObjectType> prism = object.asPrismObject();
@@ -230,7 +229,7 @@ public class TestJaxbParsing {
         PrismContext prismContext = PrismTestUtil.getPrismContext();
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.put(Marshaller.JAXB_FORMATTED_OUTPUT, false);
-        String xml = PrismTestUtil.getJaxbUtil().marshalElementToString(
+        String xml = JaxbTestUtil.getInstance().marshalElementToString(
                 new JAXBElement<Object>(new QName("http://www.example.com", "custom"), Object.class, delta), properties);
         assertNotNull(xml);
     }

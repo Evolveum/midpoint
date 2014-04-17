@@ -47,7 +47,7 @@
 						<script>
 							<language>http://www.w3.org/TR/xpath/</language>
 							<code>
-								$c:locality/t:orig
+								$c:locality
 							</code>
 						</script>
 					</expression>
@@ -80,7 +80,7 @@
 		</construction>
 	</assignment>
     
-    <linkRef oid="c0c010c0-d34d-b33f-f00d-222211111112" type="AccountShadowType"/>
+    <linkRef oid="c0c010c0-d34d-b33f-f00d-222211111112" type="ShadowType"/>
 
     <fullName>Hector Barbossa</fullName>
     <givenName>Hector</givenName>

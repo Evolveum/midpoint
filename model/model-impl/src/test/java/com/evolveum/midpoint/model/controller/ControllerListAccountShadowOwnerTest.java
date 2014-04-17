@@ -26,8 +26,8 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
 import org.mockito.Mockito;
@@ -43,7 +43,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -108,10 +107,10 @@ public class ControllerListAccountShadowOwnerTest extends AbstractTestNGSpringCo
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void correctListAccountShadowOwner() throws FaultMessage, JAXBException, ObjectNotFoundException, SchemaException, FileNotFoundException {
+	public void correctListAccountShadowOwner() throws FaultMessage, JAXBException, ObjectNotFoundException, SchemaException, IOException {
 		final String accountOid = "acc11111-76e0-48e2-86d6-3d4f02d3e1a2";
-		UserType expected = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER,
-				"list-account-shadow-owner.xml"), UserType.class);
+		UserType expected = (UserType) PrismTestUtil.parseObject(new File(TEST_FOLDER,
+                "list-account-shadow-owner.xml")).asObjectable();
 
 		when(repository.listAccountShadowOwner(eq(accountOid), any(OperationResult.class))).thenReturn(
 				expected.asPrismObject());

@@ -625,9 +625,8 @@ public class TestMappingDynamicSimple {
     			TEST_NAME, "employeeType", null);
     	
     	Map<QName, Object> vars = new HashMap<QName, Object>();
-    	JAXBElement<UserType> userTypeElement = PrismTestUtil.unmarshalElement(
-                new File(MidPointTestConstants.OBJECTS_DIR, "c0c010c0-d34d-b33f-f00d-111111111112.xml"), UserType.class);
-        UserType userType = userTypeElement.getValue();
+    	UserType userType = (UserType) PrismTestUtil.parseObject(
+                new File(MidPointTestConstants.OBJECTS_DIR, "c0c010c0-d34d-b33f-f00d-111111111112.xml")).asObjectable();
         vars.put(new QName(SchemaConstants.NS_C, "sailor"), userType);
         mapping.addVariableDefinitions(vars);
         

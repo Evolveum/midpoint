@@ -33,7 +33,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -80,17 +79,17 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_FOLDER, "user-new.xml"));
 
 		//TODO:  "$c:user/c:givenName/t:orig replaced with "$c:user/c:givenName
-		ExpressionType expression = PrismTestUtil.unmarshalObject(
-						"<object xsi:type=\"ExpressionType\" xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/common-2a\" "
-								+ "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
-								+ "<script>\n"
-								+ "<language>http://www.w3.org/TR/xpath/</language>\n"
-								+ "<code>declare namespace c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-2a\";\n"
-								+ "declare namespace t=\"http://prism.evolveum.com/xml/ns/public/types-2\";\n"
-								+ "declare namespace dj=\"http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ\";\n"
-								+ "$c:user/c:givenName = $c:account/c:attributes/dj:givenName</code>"
-								+ "</script>"
-								+ "</object>", ExpressionType.class);
+		ExpressionType expression = PrismTestUtil.parseAtomicValue(
+                "<object xsi:type=\"ExpressionType\" xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/common-2a\" "
+                        + "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
+                        + "<script>\n"
+                        + "<language>http://www.w3.org/TR/xpath/</language>\n"
+                        + "<code>declare namespace c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-2a\";\n"
+                        + "declare namespace t=\"http://prism.evolveum.com/xml/ns/public/types-2\";\n"
+                        + "declare namespace dj=\"http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ\";\n"
+                        + "$c:user/c:givenName = $c:account/c:attributes/dj:givenName</code>"
+                        + "</script>"
+                        + "</object>", ExpressionType.COMPLEX_TYPE);
 
 		OperationResult result = new OperationResult("testConfirmUser");
 		boolean confirmed = expressionHandler.evaluateConfirmationExpression(user.asObjectable(), account.asObjectable(), expression,

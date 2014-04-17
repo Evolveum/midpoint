@@ -24,6 +24,7 @@ import java.io.IOException;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -53,7 +54,7 @@ public class JAXBUtilTest {
 	public void testUnmarshallerUtf() throws JAXBException, SchemaException, FileNotFoundException {
 		// GIVEN
 		
-		UserType user = PrismTestUtil.unmarshalElement(new File("src/test/resources/util/user-utf8.xml"), UserType.class)
+		UserType user = JaxbTestUtil.getInstance().unmarshalElement(new File("src/test/resources/util/user-utf8.xml"), UserType.class)
 				.getValue();
 		
 		// WHEN
@@ -69,7 +70,7 @@ public class JAXBUtilTest {
 	public void testUnmarshallerIso88592() throws JAXBException, SchemaException, FileNotFoundException {
 		// GIVEN
 		
-		UserType user = PrismTestUtil.unmarshalElement(new File("src/test/resources/util/user-8859-2.xml"),UserType.class)
+		UserType user = JaxbTestUtil.getInstance().unmarshalElement(new File("src/test/resources/util/user-8859-2.xml"),UserType.class)
 				.getValue();
 		
 		// WHEN
@@ -92,7 +93,7 @@ public class JAXBUtilTest {
 				"	<fullName><t:orig>Jožko Nováčik</t:orig><t:norm>jozko novacik</t:norm></fullName>" +
 				"</user>";
 
-		UserType user = PrismTestUtil.unmarshalElement(s, UserType.class).getValue();
+		UserType user = JaxbTestUtil.getInstance().unmarshalElement(s, UserType.class).getValue();
 		
 		// WHEN
 
@@ -114,7 +115,7 @@ public class JAXBUtilTest {
 				"	<fullName><t:orig>Jožko Nováčik</t:orig><t:norm>jozko novacik</t:norm></fullName>" +
 				"</user>";
 
-		UserType user = PrismTestUtil.unmarshalElement(s,UserType.class).getValue();
+		UserType user = JaxbTestUtil.getInstance().unmarshalElement(s, UserType.class).getValue();
 		
 		// WHEN
 

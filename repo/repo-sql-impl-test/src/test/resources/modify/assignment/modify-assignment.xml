@@ -16,17 +16,17 @@
   ~ limitations under the License.
   -->
 
-<objectModification
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
+<apit:objectModification
+	xmlns:apit='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
-	<oid>00000000-8888-6666-0000-100000000005</oid>
-	<itemDelta>
+	<apit:oid>00000000-8888-6666-0000-100000000005</apit:oid>
+	<apit:itemDelta>
 		<t:modificationType>replace</t:modificationType>
-        <t:path>c:assignment[4]/targetRef</t:path>
+        <t:path>c:assignment[4]/c:targetRef</t:path>
 		<t:value>
             <oid>12345678-d34d-b33f-f00d-987987987989</oid>
             <type>c:RoleType</type>
 		</t:value>
-	</itemDelta>
-</objectModification>
+	</apit:itemDelta>
+</apit:objectModification>
