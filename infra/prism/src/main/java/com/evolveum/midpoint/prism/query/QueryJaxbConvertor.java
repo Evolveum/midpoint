@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.prism.query;
 
+import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Objectable;
@@ -39,19 +40,34 @@ import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
  */
 public class QueryJaxbConvertor {
 
-	public static <O extends Objectable> ObjectQuery createObjectQuery(Class<O> clazz, QueryType queryType, PrismContext prismContext)
+    public static <O extends Objectable> ObjectQuery createObjectQuery(Class<O> clazz, QueryType queryType, PrismContext prismContext)
+            throws SchemaException {
+        if (queryType == null) {
+            return null;
+        }
+        return createObjectQueryInternal(clazz, queryType.getFilter(), queryType.getPaging(), prismContext);
+    }
+
+    public static <O extends Objectable> ObjectQuery createObjectQuery(Class<O> clazz, SearchFilterType filterType, PrismContext prismContext)
+            throws SchemaException {
+        return createObjectQueryInternal(clazz, filterType, null, prismContext);
+    }
+
+    public static <O extends Objectable> ObjectFilter createObjectFilter(Class<O> clazz, SearchFilterType filterType, PrismContext prismContext)
+            throws SchemaException {
+        ObjectQuery query = createObjectQueryInternal(clazz, filterType, null, prismContext);
+        if (query == null) {
+            return null;
+        } else {
+            return query.getFilter();
+        }
+    }
+
+    public static <O extends Objectable> ObjectQuery createObjectQueryInternal(Class<O> clazz, SearchFilterType filterType, PagingType pagingType, PrismContext prismContext)
 			throws SchemaException {
 
-		if (queryType == null){
-			return null;
-		}
-		
-		Element filterDom = null;
-		SearchFilterType filterType = queryType.getFilter();
-		if (filterType != null) {
-			filterDom = filterType.getFilterClause();
-		}
-		if (filterDom == null && queryType.getPaging() == null){
+        boolean filterNotEmpty = filterType != null && filterType.containsFilterClause();
+		if (!filterNotEmpty && pagingType == null) {
 			return null;
 		}
 		
@@ -64,16 +80,14 @@ public class QueryJaxbConvertor {
 		try {
 			ObjectQuery query = new ObjectQuery();
 			
-			if (filterDom != null) {
-				XNode filterXNode = prismContext.getParserDom().parseElementContent(filterDom);
-				MapXNode rootFilter = new MapXNode();
-				rootFilter.put(QNameUtil.getNodeQName(filterDom), filterXNode);
+			if (filterNotEmpty) {
+				MapXNode rootFilter = filterType.getFilterClauseXNode(prismContext);
 				ObjectFilter filter = QueryConvertor.parseFilter(rootFilter, objDef);
 				query.setFilter(filter);
 			}
 
-			if (queryType.getPaging() != null) {
-				ObjectPaging paging = PagingConvertor.createObjectPaging(queryType.getPaging());
+			if (pagingType != null) {
+				ObjectPaging paging = PagingConvertor.createObjectPaging(pagingType);
 				query.setPaging(paging);
 			}
 			return query;
@@ -83,79 +97,6 @@ public class QueryJaxbConvertor {
 
 	}
 	
-	public static <O extends Objectable> ObjectQuery createObjectQuery(Class<O> clazz, SearchFilterType filterType, PrismContext prismContext)
-			throws SchemaException {
-
-		if (filterType == null){
-			return null;
-		}
-		
-		Element filterDom = null;
-		if (filterType != null) {
-			filterDom = filterType.getFilterClause();
-		}
-		if (filterDom == null){
-			return null;
-		}
-		
-		PrismObjectDefinition<O> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
-
-		if (objDef == null) {
-			throw new SchemaException("cannot find obj definition for class "+clazz);
-		}
-
-		try {
-			ObjectQuery query = new ObjectQuery();
-						
-			if (filterDom != null) {
-				XNode filterXNode = prismContext.getParserDom().parseElementContent(filterDom);
-				MapXNode rootFilter = new MapXNode();
-				rootFilter.put(QNameUtil.getNodeQName(filterDom), filterXNode);
-				ObjectFilter filter = QueryConvertor.parseFilter(rootFilter, objDef);
-				query.setFilter(filter);
-			}
-
-			return query;
-		} catch (SchemaException ex) {
-			throw new SchemaException("Failed to convert query. Reason: " + ex.getMessage(), ex);
-		}
-
-	}
-	
-	public static <O extends Objectable> ObjectFilter createObjectFilter(Class<O> clazz, SearchFilterType filterType, PrismContext prismContext)
-			throws SchemaException {
-
-		if (filterType == null){
-			return null;
-		}
-		
-		Element filterDom = null;
-		if (filterType != null) {
-			filterDom = filterType.getFilterClause();
-		}
-		if (filterDom == null){
-			return null;
-		}
-		
-		PrismObjectDefinition<O> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
-
-		if (objDef == null) {
-			throw new SchemaException("cannot find obj definition for class "+clazz);
-		}
-
-		try {
-			XNode filterXNode = prismContext.getParserDom().parseElementContent(filterDom);
-			MapXNode rootFilter = new MapXNode();
-			rootFilter.put(QNameUtil.getNodeQName(filterDom), filterXNode);
-			ObjectFilter filter = QueryConvertor.parseFilter(rootFilter, objDef);
-			return filter;
-				
-		} catch (SchemaException ex) {
-			throw new SchemaException("Failed to convert query. Reason: " + ex.getMessage(), ex);
-		}
-
-	}
-
     public static QueryType createQueryType(ObjectQuery query, PrismContext prismContext) throws SchemaException{
 
 		ObjectFilter filter = query.getFilter();
