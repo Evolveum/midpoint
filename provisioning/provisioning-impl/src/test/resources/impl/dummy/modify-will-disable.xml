@@ -25,11 +25,11 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
     <oid>c0c010c0-d34d-b44f-f11d-33322212dddd</oid>
-    <modification>
+    <itemDelta>
     	<t:modificationType>replace</t:modificationType>
         <t:path>c:activation</t:path>
         <t:value>
             <c:administrativeStatus>disabled</c:administrativeStatus>
         </t:value>
-    </modification>
+    </itemDelta>
 </objectModification>

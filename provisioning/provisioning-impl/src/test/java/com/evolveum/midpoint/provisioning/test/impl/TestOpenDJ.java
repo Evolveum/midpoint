@@ -1102,7 +1102,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			if (objType == null) {
 				System.out.println("Object not found in repo");
 			} else {
-				System.out.println("obj name: " + objType.getName());
+				//System.out.println("obj name: " + objType.getName());
+                System.out.println(object.asPrismObject().debugDump());
 			}
 		}
 	}

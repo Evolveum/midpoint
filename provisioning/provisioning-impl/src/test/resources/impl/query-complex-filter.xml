@@ -39,19 +39,27 @@
 			<q:value>ri:AccountObjectClass</q:value>
 		</q:equal>
 		<q:equal>
-			<q:path>c:attributes/icfs:name</q:path>
+			<q:path>
+                declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
+                c:attributes/icfs:name</q:path>
 			<q:value>uid=will123,ou=People,dc=example,dc=com</q:value>
 		</q:equal>
 		<q:equal>
-			<q:path>c:attributes/ri:cn</q:path>
+			<q:path>
+                declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+                c:attributes/ri:cn</q:path>
 			<q:value xsi:type="xsd:string">Will Turner</q:value>
 		</q:equal>
 		<q:equal>
-			<q:path>c:attributes/ri:givenNam</q:path>
+			<q:path>
+                declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+                c:attributes/ri:givenNam</q:path>
 			<q:value xsi:type="xsd:string">Will</q:value>
 		</q:equal>
 		<q:equal>
-			<q:path>c:attributes/ri:sn</q:path>
+			<q:path>
+                declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+                c:attributes/ri:sn</q:path>
 			<q:value xsi:type="xsd:string">Turner</q:value>
 		</q:equal>
 	</q:and>
