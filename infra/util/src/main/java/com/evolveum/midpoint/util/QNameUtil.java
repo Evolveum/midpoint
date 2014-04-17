@@ -111,7 +111,7 @@ public class QNameUtil {
 				found = b;
 			}
 		}
-		return null;
+		return found;
 	}
 	
 	public static boolean matchAny(QName a, Collection<QName> col) {
