@@ -400,6 +400,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
                 Collections.addAll(choices, ObjectTypes.values());
                 choices.remove(ObjectTypes.OBJECT);
+                choices.remove(ObjectTypes.ACCOUNT);
 
                 Collections.sort(choices, new Comparator<ObjectTypes>() {
 
