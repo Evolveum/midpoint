@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -14,9 +14,6 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
-<!-- BLUE dummy resource for testing. It is used in multi-resource tests. It also
-     has mostly WEAK mappings, therefore it is used in weak mapping tests. -->
 
 <resource oid="10000000-0000-0000-0000-000000000305"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
