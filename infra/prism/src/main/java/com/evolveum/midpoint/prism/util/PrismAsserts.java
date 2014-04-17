@@ -821,17 +821,11 @@ public class PrismAsserts {
 			QName expectedTypeName, ItemPath path) {
 		assertEquals("Wrong filter class", EqualsFilter.class, objectFilter.getClass());
 		EqualsFilter filter = (EqualsFilter) objectFilter;
-<<<<<<< HEAD
-		assertNotNull("No filter definition", filter.getDefinition());
-		assertEquals("Wrong filter definition element name", expectedFilterDef, filter.getDefinition().getName());
-		assertEquals("Wrong filter definition type", expectedTypeName, filter.getDefinition().getTypeName());
-=======
 		//we don't have definition in all situation..this is almost OK..it will be computed dynamicaly
 		if (filter.getDefinition() != null){
 			assertEquals("Wrong filter definition element name", expectedFilterDef, filter.getDefinition().getName());
 			assertEquals("Wrong filter definition type", expectedTypeName, filter.getDefinition().getTypeName());
 		}
->>>>>>> ebf829a3e1b6a0c50dcacf08dec272621877afc8
 		assertEquals("Wrong filter path", path, filter.getFullPath());
 	}
 	
