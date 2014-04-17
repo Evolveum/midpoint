@@ -20,7 +20,6 @@
 
 <resource oid="10000000-0000-0000-0000-000000000104"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
@@ -29,7 +28,7 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 								  
 	<name>Dummy Resource Red</name>
-	<connectorRef type="c:ConnectorType">
+	<connectorRef type="ConnectorType">
 		<filter>
 			<q:and>
 				<q:equal>
@@ -140,7 +139,7 @@
 				<inbound>
 					<strength>weak</strength>
 					<target>
-						<path>$c:user/c:name</path>
+						<path>$user/name</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -192,7 +191,7 @@
 				<outbound>
 					<strength>strong</strength>
 					<source>
-						<path>$c:user/c:organizationalUnit</path>
+						<path>$user/organizationalUnit</path>
 					</source>
 				</outbound>
 			</attribute>

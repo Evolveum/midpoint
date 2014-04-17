@@ -898,8 +898,25 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Debug
 			throw new IllegalStateException("Cannot apply delta because cannot find item "+itemPath+" in "+propertyContainer);
 		}
 		applyTo(item);
+		cleanupAllTheWayUp(item);
+	}
+	
+	private void cleanupAllTheWayUp(Item<?> item) {
 		if (item.isEmpty()) {
-			propertyContainer.remove(item);
+			PrismValue itemParent = item.getParent();
+			if (itemParent != null) {
+				if (itemParent instanceof PrismContainerValue<?>) {
+					((PrismContainerValue<?>)itemParent).remove(item);
+					if (itemParent.isEmpty()) {
+						Itemable itemGrandparent = itemParent.getParent();
+						if (itemGrandparent != null) {
+							if (itemGrandparent instanceof Item<?>) {
+								cleanupAllTheWayUp((Item<?>)itemGrandparent);
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 

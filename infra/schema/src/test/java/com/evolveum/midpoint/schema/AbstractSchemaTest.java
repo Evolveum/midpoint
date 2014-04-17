@@ -38,6 +38,8 @@ public abstract class AbstractSchemaTest {
 	
 	public static final File USER_JACK_FILE = new File(COMMON_DIR, "user-jack.xml");
 	public static final String USER_JACK_OID = "2f9b9299-6f45-498f-bc8e-8d17c6b93b20";
+	public static final String USER_JACK_NAME = "jack";
+	public static final long USER_JACK_ASSIGNMENT_ID = 111L;
 
 	public static final File ROLE_CONSTRUCTION_FILE = new File(COMMON_DIR, "role-construction.xml");
 	public static final String ROLE_CONSTRUCTION_OID = "cc7dd820-b653-11e3-936d-001e8c717e5b";

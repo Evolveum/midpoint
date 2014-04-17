@@ -72,6 +72,7 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -82,6 +83,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.*;
 import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
@@ -532,23 +534,46 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             protected void populateItem(final ListItem<UserAccountDto> item) {
-                PrismObjectPanel account = new PrismObjectPanel("account", new PropertyModel<ObjectWrapper>(
-                        item.getModel(), "object"), new PackageResourceReference(ImgResources.class,
-                        ImgResources.HDD_PRISM), (Form) PageUser.this.get(ID_MAIN_FORM)) {
+                PackageResourceReference packageRef;
+                UserAccountDto dto = item.getModelObject();
 
-                    @Override
-                    protected Component createHeader(String id, IModel<ObjectWrapper> model) {
-                        return new CheckTableHeader(id, model) {
+                Panel panel;
 
-                            @Override
-                            protected List<InlineMenuItem> createMenuItems() {
-                                return createDefaultMenuItems(getModel());
-                            }
-                        };
-                    }
-                };
-                account.setOutputMarkupId(true);
-                item.add(account);
+                if(dto.isLoadedOK()){
+                    packageRef = new PackageResourceReference(ImgResources.class,
+                            ImgResources.HDD_PRISM);
+
+                    panel = new PrismObjectPanel("account", new PropertyModel<ObjectWrapper>(
+                            item.getModel(), "object"), packageRef, (Form) PageUser.this.get(ID_MAIN_FORM)) {
+
+                        @Override
+                        protected Component createHeader(String id, IModel<ObjectWrapper> model) {
+                            return new CheckTableHeader(id, model) {
+
+                                @Override
+                                protected List<InlineMenuItem> createMenuItems() {
+                                    return createDefaultMenuItems(getModel());
+                                }
+                            };
+                        }
+                    };
+                } else{
+                    packageRef = new PackageResourceReference(ImgResources.class,
+                            ImgResources.ERROR);
+
+                    panel = new SimpleErrorPanel("account", item.getModel()){
+
+                        @Override
+                        public void onShowMorePerformed(AjaxRequestTarget target){
+                            showResult(getModelObject().getResult());
+                            target.add(getFeedbackPanel());
+                        }
+                    };
+                }
+
+
+                panel.setOutputMarkupId(true);
+                item.add(panel);
             }
         };
 
@@ -621,6 +646,7 @@ public class PageUser extends PageAdminUsers {
             } catch (Exception ex) {
                 subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
                 LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
+                list.add(new UserAccountDto(false, reference.getDescription(), result));
             } finally {
                 subResult.computeStatus();
             }
