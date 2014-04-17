@@ -275,6 +275,36 @@ public class DomParser implements Parser {
             return "ValueParser(DOMe, "+PrettyPrinter.prettyPrint(DOMUtil.getQName(element))+": "+element.getTextContent()+")";
         }
     };
+    
+    private static class PrimitiveAttributeParser<T> implements ValueParser<T>, Serializable {
+   			
+    	private Attr attr;
+    	
+    	public PrimitiveAttributeParser(Attr attr) {
+			this.attr = attr;
+		}
+		@Override
+		public T parse(QName typeName) throws SchemaException {
+			return parsePrimitiveAttrValue(attr, typeName);
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return DOMUtil.isEmpty(attr);
+		}
+
+		@Override
+		public String getStringValue() {
+			return attr.getValue();
+		}
+
+		@Override
+		public String toString() {
+			return "ValueParser(DOMa, " + PrettyPrinter.prettyPrint(DOMUtil.getQName(attr)) + ": "
+					+ attr.getTextContent() + ")";
+		}
+	
+    }
 
 	private <T> PrimitiveXNode<T> parsePrimitiveElement(final Element element) throws SchemaException {
 		PrimitiveXNode<T> xnode = new PrimitiveXNode<T>();
@@ -297,30 +327,12 @@ public class DomParser implements Parser {
 
 	private <T> PrimitiveXNode<T> parseAttributeValue(final Attr attr) {
 		PrimitiveXNode<T> xnode = new PrimitiveXNode<T>();
-		ValueParser<T> valueParser = new ValueParser<T>() {
-			@Override
-			public T parse(QName typeName) throws SchemaException {
-				return parsePrimitiveAttrValue(attr, typeName);
-			}
-			@Override
-			public boolean isEmpty() {
-				return DOMUtil.isEmpty(attr);
-			}
-			@Override
-			public String getStringValue() {
-				return attr.getValue();
-			}
-			@Override
-			public String toString() {
-				return "ValueParser(DOMa, "+PrettyPrinter.prettyPrint(DOMUtil.getQName(attr))+": "+attr.getTextContent()+")";
-			}
-		};
-		xnode.setValueParser(valueParser);
+		xnode.setValueParser(new PrimitiveAttributeParser<T>(attr));
 		xnode.setAttribute(true);
 		return xnode;
 	}
 
-	private <T> T parsePrimitiveAttrValue(Attr attr, QName typeName) throws SchemaException {
+	private static <T> T parsePrimitiveAttrValue(Attr attr, QName typeName) throws SchemaException {
 		if (DOMUtil.XSD_QNAME.equals(typeName)) {
 			return (T) DOMUtil.getQNameValue(attr);
 		}
