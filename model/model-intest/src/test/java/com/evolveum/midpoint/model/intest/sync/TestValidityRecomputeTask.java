@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2013-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -287,8 +287,69 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 	}
 	
 	@Test
-    public void test122HermanEnableAssignmentJudge() throws Exception {
-		final String TEST_NAME = "test122HermanEnableAssignmentJudge";
+    public void test122HermanReplaceNullAdministrativeStatusAssignmentJudge() throws Exception {
+		final String TEST_NAME = "test122HermanReplaceNullAdministrativeStatusAssignmentJudge";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        assertNoDummyAccount(null, USER_HERMAN_USERNAME);
+        AssignmentType judgeAssignment = getJudgeAssignment(USER_HERMAN_OID);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyObjectReplaceProperty(UserType.class, USER_HERMAN_OID, 
+        		new ItemPath(
+        				new NameItemPathSegment(UserType.F_ASSIGNMENT),
+        				new IdItemPathSegment(judgeAssignment.getId()),
+        				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
+        				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)), 
+        		task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        PrismObject<UserType> user = getUser(USER_HERMAN_OID);
+        display("User after", user);
+        assertDummyAccount(null, USER_HERMAN_USERNAME);
+	}
+	
+	@Test
+    public void test123HermanDisableAssignmentJudge() throws Exception {
+		final String TEST_NAME = "test123HermanDisableAssignmentJudge";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ActivationType activationType = new ActivationType();
+        activationType.setAdministrativeStatus(ActivationStatusType.ENABLED);
+        assignRole(USER_HERMAN_OID, ROLE_JUDGE_OID, activationType, task, result);
+        assertDummyAccount(null, USER_HERMAN_USERNAME);
+        AssignmentType judgeAssignment = getJudgeAssignment(USER_HERMAN_OID);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyObjectReplaceProperty(UserType.class, USER_HERMAN_OID, 
+        		new ItemPath(
+        				new NameItemPathSegment(UserType.F_ASSIGNMENT),
+        				new IdItemPathSegment(judgeAssignment.getId()),
+        				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
+        				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)), 
+        		task, result, ActivationStatusType.DISABLED);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        PrismObject<UserType> user = getUser(USER_HERMAN_OID);
+        display("User after", user);
+        assertNoDummyAccount(null, USER_HERMAN_USERNAME);
+	}
+	
+	@Test
+    public void test124HermanEnableAssignmentJudge() throws Exception {
+		final String TEST_NAME = "test124HermanEnableAssignmentJudge";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -314,10 +375,39 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("User after", user);
         assertDummyAccount(null, USER_HERMAN_USERNAME);
 	}
-	
+
 	@Test
-    public void test124HermanAssignmentJudgeValidToSetInvalid() throws Exception {
-		final String TEST_NAME = "test124HermanAssignmentJudgeValidToSetInvalid";
+    public void test125HermanDeleteAdministrativeStatusAssignmentJudge() throws Exception {
+		final String TEST_NAME = "test125HermanDeleteAdministrativeStatusAssignmentJudge";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestValidityRecomputeTask.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        assertNoDummyAccount(null, USER_HERMAN_USERNAME);
+        AssignmentType judgeAssignment = getJudgeAssignment(USER_HERMAN_OID);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyObjectDeleteProperty(UserType.class, USER_HERMAN_OID, 
+        		new ItemPath(
+        				new NameItemPathSegment(UserType.F_ASSIGNMENT),
+        				new IdItemPathSegment(judgeAssignment.getId()),
+        				new NameItemPathSegment(AssignmentType.F_ACTIVATION),
+        				new NameItemPathSegment(ActivationType.F_ADMINISTRATIVE_STATUS)), 
+        		task, result, ActivationStatusType.ENABLED);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        PrismObject<UserType> user = getUser(USER_HERMAN_OID);
+        display("User after", user);
+        assertDummyAccount(null, USER_HERMAN_USERNAME);
+	}
+
+	@Test
+    public void test127HermanAssignmentJudgeValidToSetInvalid() throws Exception {
+		final String TEST_NAME = "test127HermanAssignmentJudgeValidToSetInvalid";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
@@ -348,8 +438,8 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 	}
 
 	@Test
-    public void test126HermanAssignmentJudgeValidToSetValid() throws Exception {
-		final String TEST_NAME = "test126HermanAssignmentJudgeValidToSetValid";
+    public void test128HermanAssignmentJudgeValidToSetValid() throws Exception {
+		final String TEST_NAME = "test128HermanAssignmentJudgeValidToSetValid";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN

@@ -50,13 +50,13 @@ public class ActivationComputer {
 		this.clock = clock;
 	}
 	
-	public ActivationStatusType getEffectiveStatus(ActivationType activationType) {
-		return getEffectiveStatus(activationType, getValidityStatus(activationType));
+	public ActivationStatusType getEffectiveStatus(ActivationType activationType, ActivationStatusType defaultStatus) {
+		return getEffectiveStatus(activationType, getValidityStatus(activationType), defaultStatus);
 	}
 	
-	public ActivationStatusType getEffectiveStatus(ActivationType activationType, TimeIntervalStatusType validityStatus) {
+	public ActivationStatusType getEffectiveStatus(ActivationType activationType, TimeIntervalStatusType validityStatus, ActivationStatusType defaultStatus) {
 		if (activationType == null) {
-			return ActivationStatusType.DISABLED;
+			return defaultStatus;
 		}
 		ActivationStatusType administrativeStatus = activationType.getAdministrativeStatus();
 		if (administrativeStatus != null) {
@@ -72,8 +72,8 @@ public class ActivationComputer {
 			}
 		}
 		if (validityStatus == null) {
-			// No administrative status, no validity. Defaults to disabled.
-			return ActivationStatusType.DISABLED;
+			// No administrative status, no validity. Return default.
+			return defaultStatus;
 		}
 		switch (validityStatus) {
 			case AFTER:

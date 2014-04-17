@@ -217,8 +217,8 @@ public class FocusPolicyProcessor {
 			recordValidityDelta(focusContext, validityStatusNew, now);
 		}
 		
-		ActivationStatusType effectiveStatusNew = activationComputer.getEffectiveStatus(activationNew, validityStatusNew);
-		ActivationStatusType effectiveStatusOld = activationComputer.getEffectiveStatus(activationOld, validityStatusOld);
+		ActivationStatusType effectiveStatusNew = activationComputer.getEffectiveStatus(activationNew, validityStatusNew, ActivationStatusType.DISABLED);
+		ActivationStatusType effectiveStatusOld = activationComputer.getEffectiveStatus(activationOld, validityStatusOld, ActivationStatusType.DISABLED);
 		
 		if (effectiveStatusOld == effectiveStatusNew) {
 			// No change, (almost) no work

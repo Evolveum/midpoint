@@ -321,34 +321,4 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         
 	}
 	
-	private void modifyRoleAddConstruction(String roleOid, long inducementId, String resourceOid) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		Task task = createTask(TestRecomputeTask.class.getName() + ".modifyRoleDefinition");
-        OperationResult result = task.getResult();
-		ConstructionType construction = new ConstructionType();
-        ObjectReferenceType resourceRedRef = new ObjectReferenceType();
-        resourceRedRef.setOid(resourceOid);
-		construction.setResourceRef(resourceRedRef);
-        ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationAddContainer(RoleType.class, roleOid, 
-        		new ItemPath(
-        				new NameItemPathSegment(RoleType.F_INDUCEMENT),
-        				new IdItemPathSegment(inducementId),
-        				new NameItemPathSegment(AssignmentType.F_CONSTRUCTION)),
-        		prismContext, construction);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-	}
-	
-	private void modifyRoleDeleteInducement(String roleOid, long inducementId) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
-		Task task = createTask(TestRecomputeTask.class.getName() + ".modifyRoleDefinition");
-        OperationResult result = task.getResult();
-        
-		AssignmentType inducement = new AssignmentType();
-		inducement.setId(inducementId);
-        ObjectDelta<RoleType> roleDelta = ObjectDelta.createModificationDeleteContainer(RoleType.class, roleOid, 
-        		RoleType.F_INDUCEMENT, prismContext, inducement);
-        modelService.executeChanges(MiscSchemaUtil.createCollection(roleDelta), null, task, result);
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
-	}
 }

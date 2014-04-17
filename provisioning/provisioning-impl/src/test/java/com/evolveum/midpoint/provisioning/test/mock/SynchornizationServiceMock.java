@@ -142,9 +142,6 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener,
 					} else {
 						assertNull("Activation sneaked into current shadow", account.getActivation());
 					}
-				} else {
-					// We don't support other types now
-					AssertJUnit.fail("Unexpected kind of shadow " + change.getCurrentShadow().asObjectable().getKind());
 				}
 			}
 		}
