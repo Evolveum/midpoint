@@ -53,7 +53,7 @@
 		<q:equal>
 			<q:path>
                 declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
-                c:attributes/ri:givenNam</q:path>
+                c:attributes/ri:givenName</q:path>
 			<q:value xsi:type="xsd:string">Will</q:value>
 		</q:equal>
 		<q:equal>
