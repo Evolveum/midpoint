@@ -553,6 +553,13 @@ public class OpenDJController extends AbstractResourceController {
 		}
 	}
 	
+	public void assertNoEntry(String dn) throws DirectoryException {
+		SearchResultEntry entry = fetchEntry(dn);
+		if (entry != null) {
+			AssertJUnit.fail("Found entry for dn "+dn+" while not expecting it: "+entry);
+		}
+	}
+	
 	public static void assertObjectClass(SearchResultEntry response, String expected) throws DirectoryException {
 		Collection<String> objectClassValues = getAttributeValues(response, "objectClass");
 		AssertJUnit.assertTrue("Wrong objectclass for entry "+getDn(response)+", expected "+expected+" but got "+objectClassValues,
@@ -562,6 +569,22 @@ public class OpenDJController extends AbstractResourceController {
 	public void assertUniqueMember(SearchResultEntry groupEntry, String accountDn) {
 		Collection<String> members = getAttributeValues(groupEntry, "uniqueMember");
 		MidPointAsserts.assertContainsCaseIgnore("No member "+accountDn+" in group "+getDn(groupEntry),
+				members, accountDn);
+	}
+	
+	public void assertUniqueMember(String groupDn, String accountDn) throws DirectoryException {
+		SearchResultEntry groupEntry = fetchEntry(groupDn);
+		assertUniqueMember(groupEntry, accountDn);
+	}
+	
+	public void assertNoUniqueMember(String groupDn, String accountDn) throws DirectoryException {
+		SearchResultEntry groupEntry = fetchEntry(groupDn);
+		assertNoUniqueMember(groupEntry, accountDn);
+	}
+	
+	public void assertNoUniqueMember(SearchResultEntry groupEntry, String accountDn) {
+		Collection<String> members = getAttributeValues(groupEntry, "uniqueMember");
+		MidPointAsserts.assertNotContainsCaseIgnore("Member "+accountDn+" in group "+getDn(groupEntry),
 				members, accountDn);
 	}
 

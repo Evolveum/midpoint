@@ -210,9 +210,9 @@ public class OrgStructTest extends BaseSQLRepoTest {
 //		PrismAsserts.assertEqualsPolyString("Elaine", "Elaine", elaine.getGivenName());
 //		PrismAsserts.assertEqualsPolyString("Governor", "Governor", elaine.getTitle());
         ELAINE_OID = elaine.getOid();
-        
+
         // MID-1828
-//        testMonkeyMatch();
+        testMonkeyMatch();
 
         LOGGER.info("==>after add<==");
         Session session = getFactory().openSession();
@@ -299,9 +299,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
 		assertMatch(org003, OrgFilter.createOrg(ORG_F002_OID), false);
 		
 		assertMatch(org001, OrgFilter.createOrg(ORG_F001_OID), true);
-		assertMatch(org001, OrgFilter.createOrg(ORG_F002_OID), true);
-		assertMatch(org001, OrgFilter.createOrg(ORG_F003_OID), true);
-		assertMatch(org001, OrgFilter.createOrg(ORG_F005_OID), true);
+		assertMatch(org003, OrgFilter.createOrg(ORG_F001_OID), true);
+		assertMatch(org005, OrgFilter.createOrg(ORG_F001_OID), true);
 		
 		// OR betweens orgs
 		assertMatch(org005, 

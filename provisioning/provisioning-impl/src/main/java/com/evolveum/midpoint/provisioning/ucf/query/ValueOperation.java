@@ -30,6 +30,7 @@ import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.InFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
@@ -78,6 +79,22 @@ public class ValueOperation extends Operation {
 						} else {
 							return FilterBuilder.containsAllValues(attr);
 						}
+					}
+					
+				} else if (objectFilter instanceof InFilter) {
+					InFilter<T> in = (InFilter<T>) objectFilter;
+					
+					Collection<Object> convertedValues = new ArrayList<Object>();
+					for (PrismValue value : in.getValues()) {
+						Object converted = UcfUtil.convertValueToIcf(value, null, propName);
+						convertedValues.add(converted);
+					}
+
+					if (convertedValues.isEmpty()) {
+						throw new IllegalArgumentException("In filter with a null value makes no sense");
+					} else {
+						Attribute attr = AttributeBuilder.build(icfName, convertedValues);
+						return FilterBuilder.equalTo(attr);
 					}
 				
 				} else if (objectFilter instanceof SubstringFilter) {

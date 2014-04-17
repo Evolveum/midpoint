@@ -81,6 +81,9 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 	
 	protected static final File ROLE_INDIAN_OCEAN_PIRATE_FILE = new File(TEST_DIR, "role-indian-ocean-pirate.xml");
 	protected static final String ROLE_INDIAN_OCEAN_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556610";
+	
+	protected static final File ROLE_HONORABILITY_FILE = new File(TEST_DIR, "role-honorability.xml");
+	protected static final String ROLE_HONORABILITY_OID = "12345678-d34d-b33f-f00d-555555557701";
 
 	private final String EXISTING_GOSSIP = "Black spot!"; 
 	
@@ -97,6 +100,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_ADRIATIC_PIRATE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_BLACK_SEA_PIRATE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_INDIAN_OCEAN_PIRATE_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_HONORABILITY_FILE, RoleType.class, initResult);
 	}
 	
 	@Test
@@ -1016,6 +1020,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         userDelta.addModification(createAssignmentModification(ROLE_PIRATE_OID, RoleType.COMPLEX_TYPE, null, null, null, true));
         
         // WHEN
+        TestUtil.displayWhen(TEST_NAME);
         modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
         
         // THEN
@@ -1048,6 +1053,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         
         // WHEN
+        TestUtil.displayWhen(TEST_NAME);
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
         // THEN
@@ -1055,6 +1061,118 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         TestUtil.assertSuccess(result);
         
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+	
+	@Test
+    public void test700JackAssignRoleJudge() throws Exception {
+		final String TEST_NAME = "test700JackModifyJudgeRecompute";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        assignRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertAssignedRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Honorable Justice");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "mouth", "pistol");
+	}
+	
+	@Test
+    public void test701JackModifyJudgeDeleteConstructionRecompute() throws Exception {
+		final String TEST_NAME = "test701JackModifyJudgeDeleteConstructionRecompute";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        modifyRoleDeleteInducement(ROLE_JUDGE_OID, 1111L);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        recomputeUser(USER_JACK_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertAssignedRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+	
+	@Test
+    public void test702JackModifyJudgeAddInducementHonorabilityRecompute() throws Exception {
+		final String TEST_NAME = "test702JackModifyJudgeAddInducementHonorabilityRecompute";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        modifyRoleAddInducementTarget(ROLE_JUDGE_OID, ROLE_HONORABILITY_OID);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        recomputeUser(USER_JACK_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertAssignedRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "Honorable");
+        assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "weapon", "mouth", "pistol");
+	}
+	
+	@Test
+    public void test703JackModifyJudgeDeleteInducementHonorabilityRecompute() throws Exception {
+		final String TEST_NAME = "test703JackModifyJudgeDeleteInducementHonorabilityRecompute";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = getUser(USER_JACK_OID);
+        display("User jack before", userBefore);
+        
+        modifyRoleDeleteInducementTarget(ROLE_JUDGE_OID, ROLE_HONORABILITY_OID);
+        PrismObject<RoleType> roleJudge = modelService.getObject(RoleType.class, ROLE_JUDGE_OID, null, task, result);
+        display("Role judge", roleJudge);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        recomputeUser(USER_JACK_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertAssignedRole(USER_JACK_OID, ROLE_JUDGE_OID, task, result);
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 

@@ -63,7 +63,7 @@ public class TestActivationComputer {
     	ActivationType activationType = createActivationType(ActivationStatusType.ENABLED, SPRING_EQUINOX, AUTUMN_EQUINOX);
     	
     	// WHEN
-    	ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType);
+    	ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType, ActivationStatusType.DISABLED);
     	
     	// THEN
     	assertEquals("Unexpected effective status", ActivationStatusType.ENABLED, effectiveStatus);
@@ -79,7 +79,7 @@ public class TestActivationComputer {
     	ActivationType activationType = createActivationType(ActivationStatusType.DISABLED, SPRING_EQUINOX, AUTUMN_EQUINOX);
     	
     	// WHEN
-    	ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType);
+    	ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType, ActivationStatusType.DISABLED);
     	
     	// THEN
     	assertEquals("Unexpected effective status", ActivationStatusType.DISABLED, effectiveStatus);
@@ -95,7 +95,7 @@ public class TestActivationComputer {
     	ActivationType activationType = createActivationType(ActivationStatusType.ARCHIVED, SPRING_EQUINOX, AUTUMN_EQUINOX);
     	
     	// WHEN
-    	ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType);
+    	ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType, ActivationStatusType.DISABLED);
     	
     	// THEN
     	assertEquals("Unexpected effective status", ActivationStatusType.ARCHIVED, effectiveStatus);
@@ -111,7 +111,7 @@ public class TestActivationComputer {
     	ActivationType activationType = createActivationType(null, SPRING_EQUINOX, AUTUMN_EQUINOX);
     	
     	// WHEN
-    	ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType);
+    	ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType, ActivationStatusType.DISABLED);
     	
     	// THEN
     	assertEquals("Unexpected effective status", ActivationStatusType.DISABLED, effectiveStatus);
@@ -127,7 +127,7 @@ public class TestActivationComputer {
     	ActivationType activationType = createActivationType(null, SPRING_EQUINOX, AUTUMN_EQUINOX);
     	
     	// WHEN
-    	ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType);
+    	ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType, ActivationStatusType.DISABLED);
     	
     	// THEN
     	assertEquals("Unexpected effective status", ActivationStatusType.ENABLED, effectiveStatus);
@@ -143,7 +143,7 @@ public class TestActivationComputer {
     	ActivationType activationType = createActivationType(null, SPRING_EQUINOX, AUTUMN_EQUINOX);
     	
     	// WHEN
-    	ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType);
+    	ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType, ActivationStatusType.DISABLED);
     	
     	// THEN
     	assertEquals("Unexpected effective status", ActivationStatusType.DISABLED, effectiveStatus);

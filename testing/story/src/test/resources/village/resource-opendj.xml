@@ -35,7 +35,7 @@
     	<description>Dummy description, just for the test</description>
 		<filter>
             <q:equal>
-            	<q:path>c:connectorType</q:path>
+            	<q:path>connectorType</q:path>
                 <q:value>org.identityconnectors.ldap.LdapConnector</q:value>
             </q:equal>
         </filter>
@@ -55,6 +55,10 @@
             <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
             <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
         </icfc:configurationProperties>
+        
+        <icfc:resultsHandlerConfiguration>
+			<icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>
+		</icfc:resultsHandlerConfiguration>
     </connectorConfiguration>
 
     <schemaHandling>
@@ -73,9 +77,6 @@
                     <!-- Name cannot be weak. Changes in name trigger object rename. -->
 					<source>
 						<path>$user/name</path>
-					</source>
-					<source>
-						<path>$focus/extension/ext:orgpath</path>
 					</source>
                     <expression>
                     	<script>
@@ -226,7 +227,7 @@
 	        <enabled>true</enabled>
 	        <correlation>
 	            <q:equal>
-	                <q:path>c:name</q:path>
+	                <q:path>name</q:path>
 	                <expression>
 	                	<path>$shadow/attributes/ri:uid</path>
 	                </expression>

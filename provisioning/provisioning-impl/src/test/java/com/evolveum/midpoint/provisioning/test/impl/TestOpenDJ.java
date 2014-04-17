@@ -35,6 +35,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
+
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,6 +103,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilityCollectio
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
@@ -941,9 +943,128 @@ public class TestOpenDJ extends AbstractOpenDJTest {
         assertNotNull("No activation disableTimestamp in repo", repoDisableTimestamp);
         assertEquals("Wrong activation disableTimestamp in repo", 
         		XmlTypeConverter.createXMLGregorianCalendar(1999, 8, 7, 6, 5, 4), repoDisableTimestamp);
-			
+	}
+	
+	@Test
+	public void test190AddGroupSwashbucklers() throws Exception {
+		final String TEST_NAME = "test190AddGroupSwashbucklers";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+				+ "." + TEST_NAME);
+		
+		ShadowType object = parseObjectType(GROUP_SWASHBUCKLERS_FILE, ShadowType.class);
+		IntegrationTestTools.display("Adding object", object);
+
+		// WHEN
+		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
+		
+		// THEN
+		assertEquals(GROUP_SWASHBUCKLERS_OID, addedObjectOid);
+
+		ShadowType shadowType =  repositoryService.getObject(ShadowType.class, GROUP_SWASHBUCKLERS_OID,
+				null, result).asObjectable();
+		PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", GROUP_SWASHBUCKLERS_DN, shadowType.getName());
+
+		ShadowType provisioningShadowType = provisioningService.getObject(ShadowType.class, GROUP_SWASHBUCKLERS_OID,
+				null, taskManager.createTaskInstance(), result).asObjectable();
+		PrismAsserts.assertEqualsPolyString("Wrong ICF name (provisioning)", GROUP_SWASHBUCKLERS_DN, provisioningShadowType.getName());
+		
+		String uid = ShadowUtil.getSingleStringAttributeValue(shadowType, ConnectorFactoryIcfImpl.ICFS_UID);		
+		assertNotNull(uid);
+		
+		SearchResultEntry ldapEntry = openDJController.searchAndAssertByEntryUuid(uid);
+		display("LDAP group", ldapEntry);
+		assertNotNull("No LDAP group entry");
+		String groupDn = ldapEntry.getDN().toString();
+		assertEquals("Wrong group DN", GROUP_SWASHBUCKLERS_DN, groupDn);
+	}
+	
+	@Test
+	public void test192AddAccountMorganWithAssociation() throws Exception {
+		final String TEST_NAME = "test192AddAccountMorganWithAssociation";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
+				+ "." + TEST_NAME);
+
+		ShadowType object = parseObjectType(ACCOUNT_MORGAN_FILE, ShadowType.class);
+		IntegrationTestTools.display("Adding object", object);
+
+		// WHEN
+		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
+		
+		// THEN
+		assertEquals(ACCOUNT_MORGAN_OID, addedObjectOid);
+
+		ShadowType shadowType =  repositoryService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID,
+				null, result).asObjectable();
+		PrismAsserts.assertEqualsPolyString("Wrong ICF name (repo)", ACCOUNT_MORGAN_DN, shadowType.getName());
+
+		ShadowType provisioningShadowType = provisioningService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID,
+				null, taskManager.createTaskInstance(), result).asObjectable();
+		PrismAsserts.assertEqualsPolyString("Wrong ICF name (provisioning)", ACCOUNT_MORGAN_DN, provisioningShadowType.getName());
+		
+		String uid = ShadowUtil.getSingleStringAttributeValue(shadowType, ConnectorFactoryIcfImpl.ICFS_UID);		
+		assertNotNull(uid);
+		
+		List<ShadowAssociationType> associations = provisioningShadowType.getAssociation();
+		assertEquals("Unexpected number of associations", 1, associations.size());
+		ShadowAssociationType association = associations.get(0);
+		assertEquals("Wrong group OID in association", GROUP_SWASHBUCKLERS_OID, association.getShadowRef().getOid());
+		
+		SearchResultEntry accountEntry = openDJController.searchAndAssertByEntryUuid(uid);
+		display("LDAP account", accountEntry);
+		assertNotNull("No LDAP account entry");
+		String accountDn = accountEntry.getDN().toString();
+		assertEquals("Wrong account DN", ACCOUNT_MORGAN_DN, accountDn);
+		
+		SearchResultEntry groupEntry = openDJController.fetchEntry(GROUP_SWASHBUCKLERS_DN);
+		display("LDAP group", groupEntry);
+		assertNotNull("No LDAP group entry");
+		openDJController.assertUniqueMember(groupEntry, accountDn);
 	}
 
+	/**
+	 * Morgan has a group association. If the account is gone the group membership should also be gone.
+	 */
+	@Test
+	public void test199DeleteAccountMorgan() throws Exception {
+		final String TEST_NAME = "test199DeleteAccountMorgan";
+		TestUtil.displayTestTile(TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestOpenDJ.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+	
+		// WHEN
+		provisioningService.deleteObject(ShadowType.class, ACCOUNT_MORGAN_OID, null, null, task, result);
+
+		ShadowType objType = null;
+
+		try {
+			objType = provisioningService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID,
+					null, task, result).asObjectable();
+			Assert.fail("Expected exception ObjectNotFoundException, but haven't got one.");
+		} catch (ObjectNotFoundException ex) {
+			System.out.println("Catched ObjectNotFoundException.");
+			assertNull(objType);
+		}
+
+		try {
+			objType = repositoryService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID,
+					null, result).asObjectable();
+			// objType = container.getObject();
+			Assert.fail("Expected exception, but haven't got one.");
+		} catch (Exception ex) {
+			assertNull(objType);
+            assertEquals(ex.getClass(), ObjectNotFoundException.class);
+            assertTrue(ex.getMessage().contains(ACCOUNT_MORGAN_OID));
+		}
+		
+		SearchResultEntry groupEntry = openDJController.fetchEntry(GROUP_SWASHBUCKLERS_DN);
+		display("LDAP group", groupEntry);
+		assertNotNull("No LDAP group entry");
+		openDJController.assertNoUniqueMember(groupEntry, ACCOUNT_MORGAN_DN);
+	}
 	
 	@Test
 	public void test200SearchObjectsIterative() throws Exception {

@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.parser.DomParser;
 import com.evolveum.midpoint.prism.parser.JaxbDomHack;
@@ -36,11 +37,13 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_2.RawType;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import javax.xml.namespace.QName;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -72,6 +75,7 @@ public class PrismContext {
 	private SchemaDefinitionFactory definitionFactory;
 	private PolyStringNormalizer defaultPolyStringNormalizer;
 	private Map<String, Parser> parserMap;
+	private Protector defaultProtector;
 	
 	// We need to keep this because of deprecated methods and various hacks
 	private DomParser parserDom;
@@ -184,6 +188,15 @@ public class PrismContext {
 		}
 		return parser;
 	}
+	
+	public Protector getDefaultProtector() {
+		return defaultProtector;
+	}
+	
+	public void setDefaultProtector(Protector defaultProtector) {
+		this.defaultProtector = defaultProtector;
+	}
+	
     //endregion
 
     //region Parsing Prism objects

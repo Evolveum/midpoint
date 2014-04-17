@@ -25,9 +25,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.*;
@@ -52,6 +50,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -1810,32 +1809,24 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Validate.notNull(object, "Object must not be null.");
         Validate.notNull(query, "Query must not be null.");
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Matching object\n{} with query\n{}", new Object[]{object, query});
+        if (LOGGER.isTraceEnabled()) LOGGER.trace("Matching object {} with query {}", new Object[]{object, query});
+
+        ObjectFilter rootFilter = query.getFilter();
+        if (RUtil.findOrgFilter(rootFilter) == null) {
+            //if query doesn't contain OrgFilter then we can match through ObjectQuery.match() method
+            return ObjectQuery.match(object, query.getFilter(), getMatchingRuleRegistry());
         }
 
-        boolean applicable = ObjectQuery.match(object, query.getFilter(), getMatchingRuleRegistry());
-        if (!applicable) {
-            return false;
-        }
-
-        OrgFilter orgFilter = RUtil.findOrgFilter(query);
-        if (orgFilter == null) {
-            return applicable;
-        }
-
-        final String operation = "matching";
         int attempt = 1;
 
         SqlPerformanceMonitor pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart("matchObject");
-
         try {
             while (true) {
                 try {
-                    return matchObject(object, orgFilter);
+                    return matchObject(object, rootFilter);
                 } catch (RuntimeException ex) {
-                    attempt = logOperationAttempt(object.getOid(), operation, attempt, ex, null);
+                    attempt = logOperationAttempt(object.getOid(), "matching", attempt, ex, null);
                     pm.registerOperationNewTrial(opHandle, attempt);
                 }
             }
@@ -1844,52 +1835,153 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-    private <T extends ObjectType> boolean matchObject(PrismObject<T> object, OrgFilter filter) throws SchemaException {
+    private <T extends ObjectType> boolean matchObject(PrismObject<T> object, ObjectFilter rootFilter) throws SchemaException {
         Session session = null;
         try {
             session = beginTransaction();
 
-            StringBuilder sb = new StringBuilder();
-            sb.append("select count(*) from ROrgClosure o where o.ancestorOid=:aOid and o.descendantOid=:dOid ");
-            if (filter.getMinDepth() != null || filter.getMaxDepth() != null) {
-                if (ObjectUtils.equals(filter.getMinDepth(), filter.getMaxDepth())) {
-                    sb.append("and o.depth = :depth ");
-                } else {
-                    if (filter.getMinDepth() != null) {
-                        sb.append("and o.depth > :minDepth ");
-                    }
-                    if (filter.getMaxDepth() != null) {
-                        sb.append("and o.depth <= :maxDepth ");
-                    }
+            if (rootFilter instanceof OrgFilter) {
+                return matchObject(object.getOid(), rootFilter, session);
+            }
+
+            if (!(rootFilter instanceof NaryLogicalFilter)) {
+                throw new NotImplementedException("Not yet implemented.");
+            }
+
+            //if there are only org. filters then we have to check DB
+            NaryLogicalFilter logical = (NaryLogicalFilter) rootFilter;
+            List<ObjectFilter> conditions = logical.getCondition();
+            boolean onlyOrgs = true;
+            for (ObjectFilter child : conditions) {
+                if (RUtil.findOrgFilter(child) == null) {
+                    onlyOrgs = false;
+                    break;
                 }
             }
 
-            Query query = session.createQuery(sb.toString());
-            query.setString("aOid", filter.getOrgRef().getOid());
-            query.setString("dOid", object.getOid());
-            if (filter.getMinDepth() != null || filter.getMaxDepth() != null) {
-                if (ObjectUtils.equals(filter.getMinDepth(), filter.getMaxDepth())) {
-                    query.setInteger("depth", filter.getMinDepth());
-                } else {
-                    if (filter.getMinDepth() != null) {
-                        query.setInteger("minDepth", filter.getMinDepth());
-                    }
-                    if (filter.getMaxDepth() != null) {
-                        query.setInteger("maxDepth", filter.getMaxDepth());
-                    }
-                }
+            if (onlyOrgs) {
+                return matchObject(object.getOid(), rootFilter, session);
             }
 
-            Number number = (Number) query.uniqueResult();
-            if (number.longValue() != 0L) {
-                return true;
+            //if there is org. filter and "property" filter we have to check property filter first (performance)
+            ObjectFilter c1 = conditions.get(0);
+            ObjectFilter c2 = conditions.get(1);
+
+            //we sort filters, first property filter then "org. filter"
+            if (RUtil.findOrgFilter(c1) != null) {
+                ObjectFilter c3 = c1;
+                c1 = c2;
+                c2 = c3;
             }
+
+            boolean c1Result = ObjectQuery.match(object, c1, getMatchingRuleRegistry());
+
+            if (logical instanceof AndFilter) {
+                return  c1Result && matchObject(object.getOid(), c2, session);
+            }
+
+            return c1Result || matchObject(object.getOid(), c2, session);
         } catch (RuntimeException ex) {
             handleGeneralException(ex, session, null);
         } finally {
             cleanupSessionAndResult(session, null);
         }
 
+        throw new SystemException("Match object failed somehow, this really should not happen.");
+    }
+
+    private boolean matchObject(String dOid, ObjectFilter filter, Session session) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("select count(*) from ROrgClosure o where ");
+        buildMatchObjectQuery(sb, filter, 0);
+
+        Query query = session.createQuery(sb.toString());
+        insertParamsToMatchObjectQuery(query, dOid, filter, 0);
+
+        Number number = (Number) query.uniqueResult();
+        if (number.longValue() != 0L) {
+            return true;
+        }
+
         return false;
+    }
+
+    private void insertParamsToMatchObjectQuery(Query query, String dOid, ObjectFilter filter, int paramIndex) {
+        if (filter instanceof OrgFilter) {
+            OrgFilter orgFilter = (OrgFilter) filter;
+
+            query.setString("aOid" + paramIndex, orgFilter.getOrgRef().getOid());
+            query.setString("dOid" + paramIndex, dOid);
+            if (orgFilter.getMinDepth() == null && orgFilter.getMaxDepth() == null) {
+                return;
+            }
+
+            if (ObjectUtils.equals(orgFilter.getMinDepth(), orgFilter.getMaxDepth())) {
+                query.setInteger("depth" + paramIndex, orgFilter.getMinDepth());
+            } else {
+                if (orgFilter.getMinDepth() != null) {
+                    query.setInteger("minDepth" + paramIndex, orgFilter.getMinDepth());
+                }
+                if (orgFilter.getMaxDepth() != null) {
+                    query.setInteger("maxDepth" + paramIndex, orgFilter.getMaxDepth());
+                }
+            }
+        }
+
+        if (filter instanceof LogicalFilter) {
+            LogicalFilter logical = (LogicalFilter) filter;
+
+            for (ObjectFilter child : logical.getCondition()) {
+                insertParamsToMatchObjectQuery(query, dOid, child, paramIndex++);
+            }
+        }
+    }
+
+    private void buildMatchObjectQuery(StringBuilder sb, ObjectFilter filter, int paramIndex) {
+        if (filter instanceof OrgFilter) {
+            OrgFilter orgFilter = (OrgFilter) filter;
+
+            sb.append("(o.ancestorOid=:aOid").append(paramIndex);
+            sb.append(" and o.descendantOid=:dOid").append(paramIndex).append(' ');
+            if (orgFilter.getMinDepth() == null && orgFilter.getMaxDepth() == null) {
+                sb.append(')');
+                return;
+            }
+
+            if (ObjectUtils.equals(orgFilter.getMinDepth(), orgFilter.getMaxDepth())) {
+                sb.append("and o.depth = :depth").append(paramIndex).append(' ');
+            } else {
+                if (orgFilter.getMinDepth() != null) {
+                    sb.append("and o.depth > :minDepth").append(paramIndex).append(' ');
+                }
+                if (orgFilter.getMaxDepth() != null) {
+                    sb.append("and o.depth <= :maxDepth").append(paramIndex).append(' ');
+                }
+            }
+            sb.append(')');
+        }
+
+        if (filter instanceof NotFilter) {
+            throw new NotImplementedException("Support not yet implemented.");
+        }
+
+        if (filter instanceof LogicalFilter) {
+            LogicalFilter logical = (LogicalFilter) filter;
+            List<ObjectFilter> conditions = logical.getCondition();
+            sb.append('(');
+            for (int i = 0; i < conditions.size(); i++) {
+                ObjectFilter child = conditions.get(i);
+                buildMatchObjectQuery(sb, child, paramIndex++);
+
+                if (i < conditions.size() - 1) {
+                    if (logical instanceof AndFilter) {
+                        sb.append(" and ");
+                    } else {
+                        sb.append(" or ");
+                    }
+                }
+            }
+            sb.append(')');
+        }
     }
 }

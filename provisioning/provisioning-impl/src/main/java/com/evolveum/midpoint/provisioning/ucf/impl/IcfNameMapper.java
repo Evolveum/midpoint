@@ -83,7 +83,7 @@ public class IcfNameMapper {
 		}
 		
 		if (!attrQName.getNamespaceURI().equals(resourceSchemaNamespace)) {
-			throw new SchemaException("No mapping from QName " + attrQName + " to an ICF attribute name");
+			throw new SchemaException("No mapping from QName " + attrQName + " to an ICF attribute in resource schema namespace: " + resourceSchemaNamespace);
 		}
 
 		return attrQName.getLocalPart();
