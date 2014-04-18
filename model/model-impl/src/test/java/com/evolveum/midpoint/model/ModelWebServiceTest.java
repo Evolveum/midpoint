@@ -18,22 +18,20 @@ package com.evolveum.midpoint.model;
 
 import com.evolveum.midpoint.model.util.ModelTUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectDeltaListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.SelectorQualifiedGetOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
@@ -64,7 +62,6 @@ import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
 import java.io.File;
@@ -169,7 +166,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
 
 //    @Test(expectedExceptions = FaultMessage.class)
     public void testGetNullPropertyRef() throws FaultMessage, SchemaException, FileNotFoundException, JAXBException {
-    	final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(
+    	final UserType expectedUser = JaxbTestUtil.getInstance().unmarshalObject(new File(
                 TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
         setSecurityContext(expectedUser);
     	try {
@@ -186,7 +183,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
 
     @Test(expectedExceptions = FaultMessage.class)
     public void getNonexistingObject() throws FaultMessage, ObjectNotFoundException, SchemaException, FileNotFoundException, JAXBException {
-    	final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(
+    	final UserType expectedUser = JaxbTestUtil.getInstance().unmarshalObject(new File(
                 TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
         setSecurityContext(expectedUser);
         try {
@@ -253,7 +250,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
     public void nullQueryType() throws FaultMessage, SchemaException, FileNotFoundException, JAXBException {
     	
         try {
-        	final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(
+        	final UserType expectedUser = JaxbTestUtil.getInstance().unmarshalObject(new File(
                     TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
             setSecurityContext(expectedUser);
             modelService.searchObjects(UserType.COMPLEX_TYPE, null, null,
@@ -271,7 +268,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
 //    @Test(expectedExceptions = FaultMessage.class)
     public void nullQueryTypeAndPaging() throws FaultMessage, SchemaException, FileNotFoundException, JAXBException {
         try {
-        	final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(
+        	final UserType expectedUser = JaxbTestUtil.getInstance().unmarshalObject(new File(
                     TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
             setSecurityContext(expectedUser);
             modelService.searchObjects(UserType.COMPLEX_TYPE, null, null,
@@ -292,7 +289,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
         paging.setMaxSize(-1);
         paging.setOffset(-1);
 
-        final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(
+        final UserType expectedUser = JaxbTestUtil.getInstance().unmarshalObject(new File(
                 TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
         setSecurityContext(expectedUser);
         try {
@@ -338,7 +335,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests {
                        any(Collection.class), any(OperationResult.class))).thenThrow(
                 new ObjectNotFoundException("Oid '" + oid + "' not found."));
 
-        final UserType user = PrismTestUtil.unmarshalObject(new File(
+        final UserType user = JaxbTestUtil.getInstance().unmarshalObject(new File(
                 TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"), UserType.class);
         setSecurityContext(user);
 

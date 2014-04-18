@@ -161,7 +161,7 @@ public class ROrg extends RAbstractRole<OrgType> {
             throws DtoTranslationException {
         OrgType object = new OrgType();
         RUtil.revive(object, prismContext);
-        ROrg.copyToJAXB(this, object, prismContext, options);
+        RObject.copyToJAXB(this, object, prismContext, options);
 
         return object;
     }

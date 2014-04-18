@@ -53,7 +53,6 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.schema.SchemaDescription;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
@@ -75,14 +74,26 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author Radovan Semancik
  */
 public class JaxbTestUtil {
-	
-	private static final Trace LOGGER = TraceManager.getTrace(JaxbTestUtil.class);
+
+    private static final QName DEFAULT_ELEMENT_NAME = new QName("http://midpoint.evolveum.com/xml/ns/test/whatever-1.xsd", "whatever");
+
+    private static final Trace LOGGER = TraceManager.getTrace(JaxbTestUtil.class);
 	
 	private PrismContext prismContext;
 	private JAXBContext context;
 
-	public JaxbTestUtil(PrismContext prismContext) {
-		this.prismContext = prismContext;
+    private static JaxbTestUtil instance;
+
+    public static JaxbTestUtil getInstance() {
+        if (instance == null) {
+            instance = new JaxbTestUtil();
+            instance.prismContext = PrismTestUtil.getPrismContext();
+            instance.initialize();
+        }
+        return instance;
+    }
+
+	private JaxbTestUtil() {
 	}
 	
 	public PrismContext getPrismContext() {
@@ -91,10 +102,6 @@ public class JaxbTestUtil {
 
 	private SchemaRegistry getSchemaRegistry() {
 		return prismContext.getSchemaRegistry();
-	}
-	
-	private PrismDomProcessor getPrismDomProcessor() {
-		return null;
 	}
 	
 	public void initialize() {
@@ -455,7 +462,7 @@ public class JaxbTestUtil {
 		adopt(jaxbElement);
 		return jaxbElement;
 	}
-	
+
 	public <T> T unmarshalObject(File file, Class<T> type) throws JAXBException, SchemaException, FileNotFoundException {
 		JAXBElement<T> element = unmarshalElement(file, type);
 		if (element == null) {
@@ -684,41 +691,6 @@ public class JaxbTestUtil {
 		throw new IllegalArgumentException("Unknown element type "+element.getClass().getName());
 	}
 	
-	public Object toAny(PrismValue value, Document document) throws SchemaException {
-		if (value == null) {
-			return value;
-		}
-		QName elementName = value.getParent().getElementName();
-		Object xmlValue;
-		if (value instanceof PrismPropertyValue) {
-			PrismPropertyValue<Object> pval = (PrismPropertyValue)value;
-			Object realValue = pval.getValue();
-        	xmlValue = realValue;
-        	if (XmlTypeConverter.canConvert(realValue.getClass())) {
-        		// Always record xsi:type. This is FIXME, but should work OK for now (until we put definition into deltas)
-        		xmlValue = XmlTypeConverter.toXsdElement(realValue, elementName, document, true);
-        	}
-		} else if (value instanceof PrismReferenceValue) {
-			PrismReferenceValue rval = (PrismReferenceValue)value;
-			xmlValue =  getPrismDomProcessor().serializeValueToDom(rval, elementName, document);
-		} else if (value instanceof PrismContainerValue<?>) {
-			PrismContainerValue<?> pval = (PrismContainerValue<?>)value;
-			if (pval.getParent().getCompileTimeClass() == null) {
-				// This has to be runtime schema without a compile-time representation.
-				// We need to convert it to DOM
-				xmlValue =  getPrismDomProcessor().serializeValueToDom(pval, elementName, document);
-			} else {
-				xmlValue = pval.asContainerable();
-			}
-		} else {
-			throw new IllegalArgumentException("Unknown type "+value);
-		}
-		if (!(xmlValue instanceof Element) && !(xmlValue instanceof JAXBElement)) {
-    		xmlValue = new JAXBElement(elementName, xmlValue.getClass(), xmlValue);
-    	}
-        return xmlValue;
-	}
-	
 	private QName determineElementQName(Objectable objectable) {
 		PrismObject<?> prismObject = objectable.asPrismObject();
 		if (prismObject.getElementName() != null) {
@@ -760,6 +732,11 @@ public class JaxbTestUtil {
         } else if (object instanceof Objectable) {
             getPrismContext().adopt(((Objectable)(object)));
         }
+    }
+
+    public static String marshalWrap(Object jaxbObject) throws JAXBException {
+        JAXBElement<Object> jaxbElement = new JAXBElement<Object>(DEFAULT_ELEMENT_NAME, (Class) jaxbObject.getClass(), jaxbObject);
+        return getInstance().marshalElementToString(jaxbElement);
     }
 
 }

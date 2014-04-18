@@ -801,6 +801,9 @@ public class DOMUtil {
 
 	private static boolean isApplicationAttribute(Attr attr) {
 		String namespaceURI = attr.getNamespaceURI();
+        if (StringUtils.isEmpty(attr.getNamespaceURI()) && HACKED_XSI_TYPE.equals(attr.getName())) {
+            return false;
+        }
 		if (namespaceURI == null) {
 			return true;
 		}

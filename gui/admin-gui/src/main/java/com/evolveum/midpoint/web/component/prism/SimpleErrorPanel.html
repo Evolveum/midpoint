@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (c) 2010-2013 Evolveum
   ~
@@ -14,14 +13,16 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
-<script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
-	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-    <!--<variable>-->
-    	<!--<name>jack</name>-->
-    	<!--<objectRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType"/>-->
-    <!--</variable>-->
-	<code>
-		jack.getOrganizationalUnit();
-	</code>
-</script>
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div class="col-xs-10">
+        <input type="checkbox" disabled/>
+        <i class="silk-error" wicket:id="icon"></i>
+        <span class="name" wicket:id="description"/>
+        <a wicket:id="link">
+            <span class="name" wicket:id="showMore"/>
+        </a>
+    </div>
+</wicket:panel>
+</html>

@@ -204,7 +204,7 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     protected <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, File file,
                                                                 boolean interpretCount) throws Exception {
 
-        QueryType queryType = PrismTestUtil.getJaxbUtil().unmarshalObject(file, QueryType.class);
+        QueryType queryType = PrismTestUtil.parseAtomicValue(file, QueryType.COMPLEX_TYPE);
 
         LOGGER.info("QUERY TYPE TO CONVERT : {}", ObjectQueryUtil.dump(queryType));
 

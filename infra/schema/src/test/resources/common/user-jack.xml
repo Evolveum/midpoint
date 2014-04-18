@@ -85,6 +85,9 @@
     	<construction>
 			<resourceRef oid="2f9b9299-5555-5555-5555-000000001111" type="c:ResourceType"/>    		
     	</construction>
+    	<activation>
+    		<administrativeStatus>enabled</administrativeStatus>
+    	</activation>
     </assignment>
     
     <activation>

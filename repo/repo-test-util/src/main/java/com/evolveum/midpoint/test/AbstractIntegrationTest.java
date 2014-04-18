@@ -46,6 +46,7 @@ import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -298,12 +299,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected static <T> T unmarshallJaxbFromFile(File file, Class<T> clazz)
 			throws FileNotFoundException, JAXBException, SchemaException {
-		return PrismTestUtil.unmarshalObject(file, clazz);
+		return JaxbTestUtil.getInstance().unmarshalObject(file, clazz);
 	}
 
 	protected static <T> T unmarshallJaxbFromFile(String filePath, Class<T> clazz)
 			throws FileNotFoundException, JAXBException, SchemaException {
-		return PrismTestUtil.unmarshalObject(new File(filePath), clazz);
+		return JaxbTestUtil.getInstance().unmarshalObject(new File(filePath), clazz);
 	}
 
 	protected static ObjectType unmarshallJaxbFromFile(String filePath) throws FileNotFoundException,

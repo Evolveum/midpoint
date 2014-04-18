@@ -24,8 +24,6 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.parser.TrivialXPathParser;
 import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.parser.XPathSegment;
@@ -37,7 +35,6 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectFactory;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 
@@ -53,10 +50,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -65,7 +59,6 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -100,8 +93,8 @@ public class XPathTest {
     @Test
     public void xpathTest() throws JAXBException, FileNotFoundException, IOException, ParserConfigurationException, SchemaException {
 
-    	ObjectModificationType objectModification = PrismTestUtil.unmarshalObject(new File(FILENAME_CHANGETYPE),
-    			ObjectModificationType.class);
+    	ObjectModificationType objectModification = PrismTestUtil.parseAtomicValue(new File(FILENAME_CHANGETYPE),
+                ObjectModificationType.COMPLEX_TYPE);
 
         for (ItemDeltaType change : objectModification.getItemDelta()) {
             ItemPathType pathType = change.getPath();

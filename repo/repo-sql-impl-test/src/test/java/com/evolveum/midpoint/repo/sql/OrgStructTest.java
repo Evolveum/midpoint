@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.repo.sql;
 
 import static org.testng.AssertJUnit.assertEquals;
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getJaxbUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -507,8 +506,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
         OperationResult opResult = new OperationResult("===[ modifyOrgStruct ]===");
         // test modification of org ref in another org type..
 
-        ObjectModificationType modification = getJaxbUtil().unmarshalObject(new File(MODIFY_ORG_ADD_REF_FILENAME),
-                ObjectModificationType.class);
+        ObjectModificationType modification = PrismTestUtil.parseAtomicValue(new File(MODIFY_ORG_ADD_REF_FILENAME),
+                ObjectModificationType.COMPLEX_TYPE);
         ObjectDelta<OrgType> delta = DeltaConvertor.createObjectDelta(modification, OrgType.class, prismContext);
 
         Session session = getFactory().openSession();
@@ -600,8 +599,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
         OperationResult opResult = new OperationResult("===[ modifyOrgStructIncorrect ]===");
         // test modification of org ref in another org type..
 
-        ObjectModificationType modification = getJaxbUtil().unmarshalObject(new File(MODIFY_ORG_INCORRECT_ADD_REF_FILENAME),
-                ObjectModificationType.class);
+        ObjectModificationType modification = PrismTestUtil.parseAtomicValue(new File(MODIFY_ORG_INCORRECT_ADD_REF_FILENAME),
+                ObjectModificationType.COMPLEX_TYPE);
         ObjectDelta<OrgType> delta = DeltaConvertor.createObjectDelta(modification, OrgType.class, prismContext);
 
         repositoryService.modifyObject(OrgType.class, MODIFY_ORG_INCORRECT_ADD_REF_OID, delta.getModifications(), opResult);
@@ -679,8 +678,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
         LOGGER.info("===[ modify delete org ref ]===");
         OperationResult opResult = new OperationResult("===[ modify delete org ref ]===");
         
-        ObjectModificationType modification = getJaxbUtil().unmarshalObject(new File(MODIFY_ORG_DELETE_REF_FILENAME),
-                ObjectModificationType.class);
+        ObjectModificationType modification = PrismTestUtil.parseAtomicValue(new File(MODIFY_ORG_DELETE_REF_FILENAME),
+                ObjectModificationType.COMPLEX_TYPE);
 
         ObjectDelta<OrgType> delta = DeltaConvertor.createObjectDelta(modification, OrgType.class, prismContext);
 
@@ -729,8 +728,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
         // test modification of org ref - delete org ref
         LOGGER.info("===[ modify delete org ref ]===");
         OperationResult opResult = new OperationResult("===[ modify delete org ref ]===");
-        ObjectModificationType modification = getJaxbUtil().unmarshalObject(new File(MODIFY_ORG_INCORRECT_DELETE_REF_FILENAME),
-                ObjectModificationType.class);
+        ObjectModificationType modification = PrismTestUtil.parseAtomicValue(new File(MODIFY_ORG_INCORRECT_DELETE_REF_FILENAME),
+                ObjectModificationType.COMPLEX_TYPE);
 
         ObjectDelta<OrgType> delta = DeltaConvertor.createObjectDelta(modification, OrgType.class, prismContext);
 
@@ -793,8 +792,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
         OperationResult opResult = new OperationResult("===[ modify add user to orgStruct ]===");
 
         //test modification of org ref in another org type..
-        ObjectModificationType modification = getJaxbUtil().unmarshalObject(new File(MODIFY_ORG_ADD_USER_FILENAME),
-                ObjectModificationType.class);
+        ObjectModificationType modification = PrismTestUtil.parseAtomicValue(new File(MODIFY_ORG_ADD_USER_FILENAME),
+                ObjectModificationType.COMPLEX_TYPE);
 
         ObjectDelta<UserType> delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
 

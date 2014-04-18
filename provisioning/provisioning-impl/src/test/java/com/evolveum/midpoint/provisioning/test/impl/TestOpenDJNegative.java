@@ -44,7 +44,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -381,8 +380,8 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
 				+ "." + TEST_NAME);
 
-		ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
-				new File("src/test/resources/impl/account-change-description.xml"), ObjectModificationType.class);
+		ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(
+                new File("src/test/resources/impl/account-change-description.xml"), ObjectModificationType.COMPLEX_TYPE);
 		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class, PrismTestUtil.getPrismContext());
 		display("Object change",delta);
 		
@@ -689,8 +688,8 @@ public class TestOpenDJNegative extends AbstractOpenDJTest {
 		OperationResult result = new OperationResult(TestOpenDJNegative.class.getName()
 				+ "." + TEST_NAME);
 
-		ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(
-				new File("src/test/resources/impl/account-change-description.xml"), ObjectModificationType.class);
+		ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(
+                new File("src/test/resources/impl/account-change-description.xml"), ObjectModificationType.COMPLEX_TYPE);
 		ObjectDelta<ShadowType> delta = DeltaConvertor.createObjectDelta(objectChange, ShadowType.class, PrismTestUtil.getPrismContext());
 		display("Object change",delta);
 		

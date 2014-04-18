@@ -15,15 +15,14 @@
  */
 package com.evolveum.midpoint.prism.parser;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 
 import org.apache.commons.lang.StringUtils;
@@ -135,7 +134,7 @@ public class XNodeProcessor {
 		return parseObject(xmap, objectDefinition);
 	}
 	
-	public <O extends Objectable> PrismObject<O> parseObject(MapXNode xnode, PrismObjectDefinition<O> objectDefinition) throws SchemaException {
+	private <O extends Objectable> PrismObject<O> parseObject(MapXNode xnode, PrismObjectDefinition<O> objectDefinition) throws SchemaException {
 		return parseObject(xnode, new QName(null, "object"), objectDefinition);
 	}
 
@@ -298,7 +297,7 @@ public class XNodeProcessor {
 	//endregion
 
     //region Parsing prism properties
-    public <T> PrismProperty<T> parsePrismProperty(XNode xnode, QName propName,
+    private <T> PrismProperty<T> parsePrismProperty(XNode xnode, QName propName,
                                                    PrismPropertyDefinition<T> propertyDefinition) throws SchemaException {
         Validate.notNull(propertyDefinition);
         if (xnode == null){
@@ -367,7 +366,7 @@ public class XNodeProcessor {
         return prop;
     }
 
-    public <T> PrismPropertyValue<T> parsePrismPropertyValue(XNode xnode, PrismProperty<T> property) throws SchemaException {
+    private <T> PrismPropertyValue<T> parsePrismPropertyValue(XNode xnode, PrismProperty<T> property) throws SchemaException {
         Validate.notNull(xnode);
         Validate.notNull(property);
         T realValue = parsePrismPropertyRealValue(xnode, property.getDefinition());
@@ -379,7 +378,7 @@ public class XNodeProcessor {
 
     public <T> T parsePrismPropertyRealValue(XNode xnode, PrismPropertyDefinition<T> propertyDef) throws SchemaException {
         if (xnode instanceof PrimitiveXNode<?>) {
-            return parsePrismPropertyRealValueFromPrimitive((PrimitiveXNode<T>)xnode, propertyDef.getTypeName());
+            return parseAtomicValueFromPrimitive((PrimitiveXNode<T>) xnode, propertyDef.getTypeName());
         } else if (xnode instanceof MapXNode) {
             return parsePrismPropertyRealValueFromMap((MapXNode)xnode, null, propertyDef);
         } else {
@@ -388,22 +387,21 @@ public class XNodeProcessor {
     }
 
     /**
-     * Does not require existence of a property that corresponds to a given type name.
-     * (The method name is a bit misleading.)
+     * Parses an atomic value - i.e. something that could present a property value, if such a property would exist.
      */
     public <T> T parseAtomicValue(XNode xnode, QName typeName) throws SchemaException {
         if (xnode instanceof RootXNode) {
             return parseAtomicValue(((RootXNode) xnode).getSubnode(), typeName);
         } else if (xnode instanceof PrimitiveXNode<?>) {
-            return parsePrismPropertyRealValueFromPrimitive((PrimitiveXNode<T>)xnode, typeName);
+            return parseAtomicValueFromPrimitive((PrimitiveXNode<T>) xnode, typeName);
         } else if (xnode instanceof MapXNode) {
             return parsePrismPropertyRealValueFromMap((MapXNode)xnode, typeName, null);
         } else {
-            throw new IllegalArgumentException("Cannot parse property real value from "+xnode);
+            throw new IllegalArgumentException("Cannot parse atomic value from "+xnode);
         }
     }
 
-    private <T> T parsePrismPropertyRealValueFromPrimitive(PrimitiveXNode<T> xprim, QName typeName) throws SchemaException {
+    private <T> T parseAtomicValueFromPrimitive(PrimitiveXNode<T> xprim, QName typeName) throws SchemaException {
         T realValue;
         if (ItemPathType.COMPLEX_TYPE.equals(typeName)){
             return (T) parseItemPathType(xprim);
@@ -924,7 +922,7 @@ public class XNodeProcessor {
 	}
     //endregion
 
-    //region Parsing general items
+    //region Parsing general items and beans
 	/**
 	 * This gets definition of an unspecified type. It has to find the right
 	 * method to call. Value elements have the same element name. They may be
@@ -1002,6 +1000,22 @@ public class XNodeProcessor {
         return null;
     }
 
+//    public <T> T parseBean(XNode xnode, Class<T> clazz) throws SchemaException {
+//        MapXNode mapXNode;
+//        if (xnode instanceof RootXNode) {
+//            XNode subnode = ((RootXNode) xnode).getSubnode();
+//            if (!(subnode instanceof MapXNode)) {
+//                throw new SchemaException("Couldn't parse " + clazz + " bean from " + xnode + ", as it does not contain a MapXNode");
+//            }
+//            mapXNode = (MapXNode) subnode;
+//        } else if (xnode instanceof MapXNode) {
+//            mapXNode = (MapXNode) xnode;
+//        } else {
+//            throw new SchemaException("Couldn't parse " + clazz + " bean from " + xnode + ", as it is not a MapXNode");
+//        }
+//        return prismContext.getBeanConverter().unmarshall(mapXNode, clazz);
+//    }
+
     //endregion
 
     //region Serialization
@@ -1060,10 +1074,26 @@ public class XNodeProcessor {
 	}
 
     public RootXNode serializeAnyData(Object object) throws SchemaException {
+        Validate.notNull(object);
         if (object instanceof Item) {
             return serializeItemAsRoot((Item) object);
         } else {
-            return new RootXNode(new QName(null, "value"), prismContext.getBeanConverter().marshall(object));
+            XNode valueXNode = prismContext.getBeanConverter().marshall(object);
+            QName typeQName = JAXBUtil.getTypeQName(object.getClass());
+            if (typeQName != null) {
+                valueXNode.setTypeQName(typeQName);
+            } else {
+                throw new SchemaException("No type QName for class " + object.getClass());
+            }
+            return new RootXNode(new QName(null, "value"), valueXNode);
+        }
+    }
+
+    public boolean canSerialize(Object object) {
+        if (object instanceof Item) {
+            return true;
+        } else {
+            return prismContext.getBeanConverter().canProcess(object.getClass());
         }
     }
     //endregion

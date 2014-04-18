@@ -34,7 +34,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+
 import com.evolveum.midpoint.prism.schema.SchemaDescription;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 
@@ -455,7 +455,6 @@ public class JaxbDomHack {
     }
 
     public String silentMarshalObject(Object object, Trace logger) {
-        PrismDomProcessor prismDomProcessor = new PrismDomProcessor(prismContext.getSchemaRegistry());          // TODO brutal hack
         String xml = null;
         try {
             QName fakeQName=new QName(PrismConstants.NS_PREFIX + "debug", "debugPrintObject");

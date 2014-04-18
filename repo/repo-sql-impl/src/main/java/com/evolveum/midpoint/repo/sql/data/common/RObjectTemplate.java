@@ -111,9 +111,7 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
 
     public static void copyFromJAXB(ObjectTemplateType jaxb, RObjectTemplate repo, PrismContext prismContext) throws
             DtoTranslationException {
-    	
-    	PrismObjectDefinition<ObjectTemplateType> templateDefinition = jaxb.asPrismObject().getDefinition();
-    	
+
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
         repo.setType(RUtil.getRepoEnumValue(jaxb.asPrismObject().getElementName(), RObjectTemplateType.class));

@@ -103,7 +103,7 @@ public class TestParseTask {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
+        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 		
 		// WHEN
 		TaskType taskType = jaxbProcessor.unmarshalObject(TASK_FILE, TaskType.class);
@@ -125,7 +125,7 @@ public class TestParseTask {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
+        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 		
 		// WHEN
 		ObjectType taskType = jaxbProcessor.unmarshalObject(TASK_FILE, ObjectType.class);
@@ -146,7 +146,7 @@ public class TestParseTask {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
+        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 		
 		// WHEN
 		JAXBElement<TaskType> jaxbElement = jaxbProcessor.unmarshalElement(TASK_FILE, TaskType.class);
@@ -168,7 +168,7 @@ public class TestParseTask {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
+        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 		
 		// WHEN
 		JAXBElement<ObjectType> jaxbElement = jaxbProcessor.unmarshalElement(TASK_FILE, ObjectType.class);

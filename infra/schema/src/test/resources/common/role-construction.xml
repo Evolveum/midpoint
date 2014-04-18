@@ -23,5 +23,8 @@
     	<construction id="1002">
     		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
     	</construction>
+    	<activation>
+    		<administrativeStatus>enabled</administrativeStatus>
+    	</activation>
     </inducement>
 </role>

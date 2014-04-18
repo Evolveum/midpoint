@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
@@ -360,7 +361,7 @@ public class IntegrationTestTools {
 
 	public static void displayJaxb(String title, Object o, QName qname) throws JAXBException {
 		Document doc = DOMUtil.getDocument();
-		Element element = PrismTestUtil.marshalObjectToDom(o, qname, doc);
+		Element element = JaxbTestUtil.getInstance().marshalObjectToDom(o, qname, doc);
 		String serialized = DOMUtil.serializeDOMToString(element);
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
 		System.out.println(serialized);

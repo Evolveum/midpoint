@@ -149,10 +149,9 @@ public class MappingTestEvaluator {
 			ItemPath defaultTargetPropertyPath, ObjectDelta<UserType> userDelta,  PrismObject<UserType> userOld)
             throws SchemaException, IOException, JAXBException  {
     
-        JAXBElement<MappingType> mappingTypeElement = PrismTestUtil.unmarshalElement(
-                new File(TEST_DIR, filename), MappingType.class);
-        MappingType mappingType = mappingTypeElement.getValue();
-        
+        MappingType mappingType = PrismTestUtil.parseAtomicValue(
+                new File(TEST_DIR, filename), MappingType.COMPLEX_TYPE);
+
         Mapping<PrismPropertyValue<T>> mapping = mappingFactory.createMapping(mappingType, testName);
         
         // Source context: user
@@ -207,12 +206,11 @@ public class MappingTestEvaluator {
         return mapping;
     }
 	
-	public  <T> Mapping<PrismPropertyValue<T>> createInboudMapping(String filename, String testName, ItemDelta delta, UserType user, ShadowType account, ResourceType resource, final StringPolicyType policy) throws SchemaException, FileNotFoundException, JAXBException{
+	public  <T> Mapping<PrismPropertyValue<T>> createInboudMapping(String filename, String testName, ItemDelta delta, UserType user, ShadowType account, ResourceType resource, final StringPolicyType policy) throws SchemaException, IOException, JAXBException{
 		
-		JAXBElement<MappingType> mappingTypeElement = PrismTestUtil.unmarshalElement(
-                new File(TEST_DIR, filename), MappingType.class);
-        MappingType mappingType = mappingTypeElement.getValue();
-        
+		MappingType mappingType = PrismTestUtil.parseAtomicValue(
+                new File(TEST_DIR, filename), MappingType.COMPLEX_TYPE);
+
 		Mapping<PrismPropertyValue<T>> mapping = mappingFactory.createMapping(mappingType,testName);
     	
     	

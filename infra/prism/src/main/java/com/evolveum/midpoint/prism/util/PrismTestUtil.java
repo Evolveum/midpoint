@@ -19,7 +19,6 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
@@ -33,16 +32,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -59,15 +52,11 @@ import java.util.List;
  */
 public class PrismTestUtil {
 
-    private static final QName DEFAULT_ELEMENT_NAME = new QName("http://midpoint.evolveum.com/xml/ns/test/whatever-1.xsd", "whatever");
-
     private static final Trace LOGGER = TraceManager.getTrace(PrismTestUtil.class);
     
     private static PrismContext prismContext;
     private static PrismContextFactory prismContextFactory;
-    // This is just for testing
-    private static JaxbTestUtil jaxbUtil;
-    
+
     public static void resetPrismContext(PrismContextFactory newPrismContextFactory) throws SchemaException, SAXException, IOException {
     	if (prismContextFactory == newPrismContextFactory) {
     		// Exactly the same factory instance, nothing to do.
@@ -130,12 +119,6 @@ public class PrismTestUtil {
     	return getPrismContext().parseObjects(file);
     }
     
-    public static <T extends Objectable> ObjectDelta<T> parseDelta(File file) throws SchemaException {
-    	// TODO
-//    	return getPrismContext().getPrismDomProcessor().parseObject(file);
-    	return null;
-    }
-
     // ==========================
     // == Serializing
     // ==========================
@@ -143,76 +126,24 @@ public class PrismTestUtil {
     public static String serializeObjectToString(PrismObject<? extends Objectable> object, String language) throws SchemaException {
     	return getPrismContext().serializeObjectToString(object, language);
     }
-    
+
+    public static String serializeObjectToString(PrismObject<? extends Objectable> object) throws SchemaException {
+        return getPrismContext().serializeObjectToString(object, PrismContext.LANG_XML);
+    }
+
     // ==========================
-    // == JAXB
+    // == Here was parsing from JAXB.
+    // == Now, for JAXB-related methods please call JaxbTestUtil.getInstance().<methodName> directly
     // ==========================
-    
-    public static void marshalElementToDom(JAXBElement<?> jaxbElement, Node parentNode) throws JAXBException {
-        getJaxbUtil().marshalElementToDom(jaxbElement, parentNode);
+
+    public static <T> T parseAtomicValue(File file, QName type) throws SchemaException, IOException {
+        return prismContext.parseAtomicValue(file, type);
     }
 
-    public static <T> JAXBElement<T> unmarshalElement(String xmlString, Class<T> type) throws JAXBException, SchemaException {
-        return getJaxbUtil().unmarshalElement(xmlString, type);
-    }
-    
-    public static <T> T unmarshalObject(File file, Class<T> type) throws JAXBException, SchemaException, FileNotFoundException {
-    	return getJaxbUtil().unmarshalObject(file, type);
-    }
-    
-    public static <T> T unmarshalObject(String stringXml, Class<T> type) throws JAXBException, SchemaException {
-    	return getJaxbUtil().unmarshalObject(stringXml, type);
-    }
-    
-    public static <T> JAXBElement<T> unmarshalElement(File xmlFile, Class<T> type) throws JAXBException, SchemaException, FileNotFoundException {
-        return getJaxbUtil().unmarshalElement(xmlFile, type);
-    }
-    
-    public static <T> Element marshalObjectToDom(T jaxbObject, QName elementQName, Document doc) throws JAXBException {
-    	return getJaxbUtil().marshalObjectToDom(jaxbObject, elementQName, doc);
-    }
-    
-    public static Element toDomElement(Object element) throws JAXBException {
-    	return getJaxbUtil().toDomElement(element);
-    }
-    
-    public static Element toDomElement(Object jaxbElement, Document doc) throws JAXBException {
-    	return getJaxbUtil().toDomElement(jaxbElement, doc);
-    }
-    
-    public static Element toDomElement(Object jaxbElement, Document doc, boolean adopt, boolean clone, boolean deep) throws JAXBException {
-    	return getJaxbUtil().toDomElement(jaxbElement, doc, adopt, clone, deep);
+    public static <T> T parseAtomicValue(String data, QName type) throws SchemaException {
+        return prismContext.parseAtomicValue(data, type);
     }
 
-    public static String marshalToString(Objectable objectable) throws JAXBException {
-        return getJaxbUtil().marshalToString(objectable);
-    }
-
-	public static String marshalElementToString(JAXBElement<?> jaxbElement) throws JAXBException {
-        return getJaxbUtil().marshalElementToString(jaxbElement);
-    }
-    
-    // Works both on JAXB and DOM elements
-    public static String marshalElementToString(Object element) throws JAXBException {
-        return getJaxbUtil().marshalElementToString(element);
-    }
-
-    // Compatibility
-    public static String marshalWrap(Object jaxbObject) throws JAXBException {
-        JAXBElement<Object> jaxbElement = new JAXBElement<Object>(DEFAULT_ELEMENT_NAME, (Class) jaxbObject.getClass(), jaxbObject);
-        return marshalElementToString(jaxbElement);
-    }
-
-	public static JaxbTestUtil getJaxbUtil() {
-		if (jaxbUtil == null) {
-			if (prismContext == null) {
-				throw new IllegalStateException("No prism context in Prism test util");
-			}
-			jaxbUtil = new JaxbTestUtil(prismContext);
-			jaxbUtil.initialize();
-		}
-		return jaxbUtil;
-	}
 
 	public static <T extends Objectable> PrismObjectDefinition<T> getObjectDefinition(Class<T> compileTimeClass) {
 		return getSchemaRegistry().findObjectDefinitionByCompileTimeClass(compileTimeClass);
@@ -233,12 +164,8 @@ public class PrismTestUtil {
 		LOGGER.info("===[ {} ]===",testName);
 	}
 	
-	public static QueryType unmarshalQuery(File file) throws Exception {
-		return getJaxbUtil().unmarshalObject(file, QueryType.class);
-	}
-	
 	public static SearchFilterType unmarshalFilter(File file) throws Exception {
-		return getJaxbUtil().unmarshalObject(file, SearchFilterType.class);
+		return prismContext.parseAtomicValue(file, SearchFilterType.COMPLEX_TYPE);
 	}
 	
 	public static ObjectFilter getFilterCondition(ObjectFilter filter, int index) {
@@ -260,4 +187,8 @@ public class PrismTestUtil {
 	public static void displayQueryType(QueryType queryType) {
 		LOGGER.info(DOMUtil.serializeDOMToString(queryType.getFilter().getFilterClause()));
 	}
+
+    public static String marshalObjectToString(PrismObject prismObject) throws SchemaException {
+        return prismObject.getPrismContext().serializeObjectToString(prismObject, PrismContext.LANG_XML);
+    }
 }

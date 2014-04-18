@@ -122,8 +122,8 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 	@SuppressWarnings("unchecked")
 	public void addUserWithoutName() throws Exception {
 		TestUtil.displayTestTile("addUserWithoutName");
-		final UserType expectedUser = PrismTestUtil.unmarshalObject(new File(TEST_FOLDER,
-				"add-user-without-name.xml"), UserType.class);
+		final UserType expectedUser = (UserType) PrismTestUtil.parseObject(new File(TEST_FOLDER,
+                "add-user-without-name.xml")).asObjectable();
 
 		OperationResult result = new OperationResult("Test Operation");
 		try {

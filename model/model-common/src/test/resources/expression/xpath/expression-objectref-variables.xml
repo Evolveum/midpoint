@@ -20,14 +20,14 @@
 		xmlns:x="http://example.com/xxx"
 		xmlns:y="http://example.com/yyy">
     <language>http://www.w3.org/TR/xpath/</language>
-    <variable>
-    	<name>x:foo</name>
-    	<value>Captain</value>
-    </variable>
-    <variable>
-    	<name>y:jack</name>
-    	<objectRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType"/>
-    </variable>
+    <!--<variable>-->
+    	<!--<name>x:foo</name>-->
+    	<!--<value>Captain</value>-->
+    <!--</variable>-->
+    <!--<variable>-->
+    	<!--<name>y:jack</name>-->
+    	<!--<objectRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType"/>-->
+    <!--</variable>-->
 	<code xmlns:x="http://example.com/xxx">
         declare namespace x="http://example.com/xxx";
         declare namespace y="http://example.com/yyy";

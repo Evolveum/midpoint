@@ -431,7 +431,25 @@ public final class PrismForJAXBUtil {
 		}
 	}
 
-	public static Element getReferenceFilterElement(PrismReferenceValue rval) {
+    public static void setReferenceFilterClauseXNode(PrismReferenceValue rval, SearchFilterType filterType) {
+        if (filterType == null) {
+            return;
+        }
+        MapXNode filterClause = null;
+        try {
+            filterClause = filterType.getFilterClauseXNode(rval.getPrismContext());
+        } catch (SchemaException e) {
+            throw new SystemException("Error serializing filter: "+e.getMessage(),e);
+        }
+        if (filterClause == null || filterClause.isEmpty()) {
+            return;
+        }
+        SearchFilterType filter = new SearchFilterType();
+        filter.setFilterClauseXNode((MapXNode) filterClause.clone());
+        rval.setFilter(filter);
+    }
+
+    public static Element getReferenceFilterElement(PrismReferenceValue rval) {
 		SearchFilterType filter = rval.getFilter();
 		if (filter == null) {
 			return null;
@@ -455,7 +473,23 @@ public final class PrismForJAXBUtil {
 		return filterElement;
 	}
 
-	private static DomParser getDomParser(PrismValue pval) {
+    public static MapXNode getReferenceFilterClauseXNode(PrismReferenceValue rval) {
+        SearchFilterType filter = rval.getFilter();
+        PrismContext prismContext = rval.getPrismContext();
+        // We have to work even if prismContext is null. This is needed for
+        // equals and hashcode and similar methods.
+
+        if (filter == null || !filter.containsFilterClause()) {
+            return null;
+        }
+        try {
+            return (MapXNode) filter.getFilterClauseXNode(prismContext).clone();
+        } catch (SchemaException e) {
+            throw new SystemException("Error serializing filter: "+e.getMessage(),e);
+        }
+    }
+
+    private static DomParser getDomParser(PrismValue pval) {
 		PrismContext prismContext = pval.getPrismContext();
 		if (prismContext != null) {
 			return prismContext.getParserDom();
