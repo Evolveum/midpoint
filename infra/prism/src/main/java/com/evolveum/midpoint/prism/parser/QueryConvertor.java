@@ -478,12 +478,21 @@ public class QueryConvertor {
 		ItemDefinition itemDefinition = null;
 		if (pcd != null) {
 			itemDefinition = pcd.findItemDefinition(itemPath);
-//			if (itemDefinition == null) {
-//				itemDefinition = prismContext.getXnodeProcessor().locateItemDefinition(pcd, itemPath, valueXnode);
+			if (itemDefinition == null) {
+				ItemPath rest = itemPath.tail();
+				QName first = ItemPath.getName(itemPath.first());
+				itemDefinition = prismContext.getXnodeProcessor().locateItemDefinition(pcd, first, valueXnode);
+				if (rest.isEmpty()){
+					return itemDefinition;
+				} else{
+					if (itemDefinition != null && itemDefinition instanceof PrismContainerDefinition){
+						return locateItemDefinition(valueXnode, rest, (PrismContainerDefinition) itemDefinition, prismContext);
+					}
+				}
 				// do not throw...it will be saved as raw..
 //				if (itemDefinition == null){
 //				throw new SchemaException("No definition for item "+itemPath+" in "+pcd);
-//			}
+			}
 		}
 		return itemDefinition;
 	}

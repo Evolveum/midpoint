@@ -34,27 +34,40 @@
     </familyName>
     <credentials>
         <password>
-            <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-                     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-                     xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-                     xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
-                     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-                     xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
-                     xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2"
-                     xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
-                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                     xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
-                     xsi:type="c:ProtectedStringType">
-                <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
-                    <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/>
-                    <ds:KeyInfo>
-                        <ds:KeyName>4HXeUejV93Vd3JuIZz7sbs5bVko=</ds:KeyName>
-                    </ds:KeyInfo>
-                    <enc:CipherData>
-                        <enc:CipherValue>Yljd4kJM7UA4iDkgjHM6OXDLAlbNSteliPRjH6KZFEmN1V+ohkHHkUjiDAkXGgld</enc:CipherValue>
-                    </enc:CipherData>
-                </enc:EncryptedData>
-            </c:value>
+         <value> 
+            <t:encryptedData xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+               <t:encryptionMethod>
+                  <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes128-cbc</t:algorithm>
+               </t:encryptionMethod>
+               <t:keyInfo>
+                  <t:keyName>4HXeUejV93Vd3JuIZz7sbs5bVko=</t:keyName>
+               </t:keyInfo>
+               <t:cipherData>
+                  <t:cipherValue>Q27VymuHR348Vb9Ln5p06RT667FqZPSijEMxVDWw7D8=</t:cipherValue>
+               </t:cipherData>
+            </t:encryptedData>
+         </value>
+<!--             <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" -->
+<!--                      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" -->
+<!--                      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2" -->
+<!--                      xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2" -->
+<!--                      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2" -->
+<!--                      xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2" -->
+<!--                      xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2" -->
+<!--                      xmlns:ds="http://www.w3.org/2000/09/xmldsig#" -->
+<!--                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" -->
+<!--                      xmlns:enc="http://www.w3.org/2001/04/xmlenc#" -->
+<!--                      xsi:type="c:ProtectedStringType"> -->
+<!--                 <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element"> -->
+<!--                     <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/> -->
+<!--                     <ds:KeyInfo> -->
+<!--                         <ds:KeyName>4HXeUejV93Vd3JuIZz7sbs5bVko=</ds:KeyName> -->
+<!--                     </ds:KeyInfo> -->
+<!--                     <enc:CipherData> -->
+<!--                         <enc:CipherValue>Yljd4kJM7UA4iDkgjHM6OXDLAlbNSteliPRjH6KZFEmN1V+ohkHHkUjiDAkXGgld</enc:CipherValue> -->
+<!--                     </enc:CipherData> -->
+<!--                 </enc:EncryptedData> -->
+<!--             </c:value> -->
         </password>
     </credentials>
     <activation>
