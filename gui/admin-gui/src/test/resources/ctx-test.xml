@@ -37,7 +37,5 @@
     <import resource="classpath:ctx-model.xml" />
     <import resource="classpath*:ctx-workflow.xml" />
     <import resource="classpath*:ctx-notifications.xml" />
-    <import resource="classpath:ctx-camel-imports.xml" />
-
 
 </beans>

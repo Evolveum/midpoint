@@ -140,10 +140,10 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
 		assertEquals("Unexpected script output", "Hello swashbuckler", scriptOutput.getValue());
 	}
 
-	private ScriptExpressionEvaluatorType parseScriptType(String fileName) throws SchemaException, FileNotFoundException, JAXBException {
-		JAXBElement<ScriptExpressionEvaluatorType> expressionTypeElement = PrismTestUtil.unmarshalElement(
-                new File(TEST_DIR, fileName), ScriptExpressionEvaluatorType.class);
-		return expressionTypeElement.getValue();
+	private ScriptExpressionEvaluatorType parseScriptType(String fileName) throws SchemaException, IOException, JAXBException {
+		ScriptExpressionEvaluatorType expressionType = PrismTestUtil.parseAtomicValue(
+                new File(TEST_DIR, fileName), ScriptExpressionEvaluatorType.COMPLEX_TYPE);
+		return expressionType;
 	}
 
     private boolean imported = false;

@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Collection;
 
 import javax.xml.bind.JAXBException;
@@ -63,8 +64,8 @@ public class ModelTUtil {
 
 	@SuppressWarnings("unchecked")
 	public static void mockGetSystemConfiguration(RepositoryService repository, File file)
-			throws JAXBException, ObjectNotFoundException, SchemaException, FileNotFoundException {
-		SystemConfigurationType systemConfiguration = PrismTestUtil.unmarshalObject(file, SystemConfigurationType.class);
+            throws JAXBException, ObjectNotFoundException, SchemaException, IOException {
+		SystemConfigurationType systemConfiguration = (SystemConfigurationType) PrismTestUtil.parseObject(file).asObjectable();
 
 		when(
 				repository.getObject(eq(SystemConfigurationType.class),
@@ -109,7 +110,7 @@ public class ModelTUtil {
 	@SuppressWarnings("unchecked")
 	public static ObjectType addObjectToRepo(RepositoryService repositoryService, String fileString)
 			throws Exception {
-		ObjectType object = PrismTestUtil.unmarshalObject(new File(fileString), ObjectType.class);
+		ObjectType object = (ObjectType) PrismTestUtil.parseObject(new File(fileString)).asObjectable();
 		repositoryService.addObject(object.asPrismObject(), null, new OperationResult("Add Object"));
 		return object;
 	}
@@ -129,7 +130,7 @@ public class ModelTUtil {
 	public static String mockUser(RepositoryService repository, File file, String userOid) throws Exception {
 		String userOidExpected = userOid;
 		if (file != null) {
-			UserType user = PrismTestUtil.unmarshalObject(file, UserType.class);
+			UserType user = (UserType) PrismTestUtil.parseObject(file).asObjectable();
 			userOidExpected = user.getOid();
 			when(
 					repository.getObject(any(Class.class), eq(user.getOid()),

@@ -21,11 +21,9 @@
         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
     <oid>00000000-8888-6666-0000-100000000005</oid>
-    <modification>
+    <itemDelta>
         <t:modificationType>add</t:modificationType>
-        <t:path>.</t:path>
-        <t:value>
-            <c:employeeNumber>en1234</c:employeeNumber>
-        </t:value>
-    </modification>
+        <t:path>c:employeeNumber</t:path>
+        <t:value>en1234</t:value>
+    </itemDelta>
 </objectModification>

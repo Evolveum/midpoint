@@ -37,7 +37,7 @@ public class TestParseUserXml extends TestParseUser{
 		// GIVEN
 //		PrismTestUtil.resetPrismContext();
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		JaxbTestUtil jaxbUtil = PrismTestUtil.getJaxbUtil();
+		JaxbTestUtil jaxbUtil = JaxbTestUtil.getInstance();
 		
 //		prismContext.getSchemaRegistry().registerPrismSchemaFile(file);
 		
@@ -70,9 +70,9 @@ public class TestParseUserXml extends TestParseUser{
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
-		
-		// WHEN
+        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
+
+        // WHEN
 		ObjectType userType = jaxbProcessor.unmarshalObject(USER_FILE, ObjectType.class);
 		
 		System.out.println("Parsed user (before adopt):");
@@ -97,9 +97,9 @@ public class TestParseUserXml extends TestParseUser{
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
-		
-		// WHEN
+        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
+
+        // WHEN
 		JAXBElement<UserType> jaxbElement = jaxbProcessor.unmarshalElement(USER_FILE, UserType.class);
 		UserType userType = jaxbElement.getValue();
 		
@@ -125,9 +125,9 @@ public class TestParseUserXml extends TestParseUser{
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
-		
-		// WHEN
+        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
+
+        // WHEN
 		JAXBElement<ObjectType> jaxbElement = jaxbProcessor.unmarshalElement(USER_FILE, ObjectType.class);
 		ObjectType userType = jaxbElement.getValue();
 		

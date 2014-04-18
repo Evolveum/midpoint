@@ -25,6 +25,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
@@ -223,7 +224,7 @@ public class TestQueryConvertor {
 	@Test
 	public void testConnectorQuery() throws Exception {
 		displayTestTitle("testConnectorQuery");
-		SearchFilterType filterType = getJaxbUtil().unmarshalObject(FILTER_CONNECTOR_BY_TYPE_FILE, SearchFilterType.class);
+		SearchFilterType filterType = PrismTestUtil.parseAtomicValue(FILTER_CONNECTOR_BY_TYPE_FILE, SearchFilterType.COMPLEX_TYPE);
 		ObjectQuery query = null;
 		try {
 			query = QueryJaxbConvertor.createObjectQuery(ConnectorType.class, filterType, getPrismContext());
@@ -299,7 +300,7 @@ public class TestQueryConvertor {
 		ObjectFilter second = getFilterCondition(filter, 1);
 		PrismAsserts.assertEqualsFilter(second, intExtensionDefinition, DOMUtil.XSD_INT, new ItemPath(
 				ObjectType.F_EXTENSION, new QName(NS_EXTENSION, "intType")));
-		PrismAsserts.assertEqualsFilterValue((EqualsFilter) second, "123");
+		PrismAsserts.assertEqualsFilterValue((EqualsFilter) second, 123);
 
 		QueryType convertedQueryType = toQueryType(query);
 		assertNotNull("Re-serialized query is null ", convertedQueryType);
@@ -317,7 +318,7 @@ public class TestQueryConvertor {
 				new File(TEST_DIR, "filter-user-substring-fullName.xml") };
 		// prismContext.silentMarshalObject(queryTypeNew, LOGGER);
 		for (File file : userQueriesToTest) {
-			SearchFilterType filterType = getJaxbUtil().unmarshalObject(file, SearchFilterType.class);
+			SearchFilterType filterType = PrismTestUtil.parseAtomicValue(file, SearchFilterType.COMPLEX_TYPE);
 			LOGGER.info("===[ query type parsed ]===");
 			ObjectQuery query = null;
 			try {

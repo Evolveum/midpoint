@@ -31,7 +31,10 @@
 			</value>
 		</equal>
 		<equal>
-			<path xmlns:p="http://midpoint.evolveum.com/xml/ns/test/extension">c:extension/p:intType</path>
+			<path>
+                declare namespace p="http://midpoint.evolveum.com/xml/ns/test/extension";
+                c:extension/p:intType
+            </path>
 			<value xsi:type="xsd:int">123</value>
 		</equal>
 	</and>

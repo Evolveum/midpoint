@@ -16,21 +16,20 @@
   -->
 
 <apit:objectModification 
-	xmlns='http://default.com/whatever'
 	xmlns:apit='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 	xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
-	xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+	>
 
 	<apit:oid>123456</apit:oid>
 
-	<apit:modification xmlns:bar="http://bar/">
+	<apit:itemDelta>
 		<t:modificationType>replace</t:modificationType>
-		<t:path xmlns:foo="http://foo/">/c:extension/piracy:ship[2]/c:name</t:path>
-		<t:value>
-			<piracy:name>Black Pearl</piracy:name>
-		</t:value>
-	</apit:modification>
+		<t:path>
+            declare namespace piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy";
+            /c:extension/piracy:ship[2]/c:name</t:path>
+		<t:value>Black Pearl</t:value>
+	</apit:itemDelta>
 
 </apit:objectModification>

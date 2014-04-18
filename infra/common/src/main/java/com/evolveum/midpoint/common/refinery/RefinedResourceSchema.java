@@ -22,6 +22,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.QNameUtil;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
@@ -114,7 +115,8 @@ public class RefinedResourceSchema extends PrismSchema implements DebugDumpable 
 	public RefinedObjectClassDefinition getRefinedDefinition(QName objectClassName) {
 		for (Definition def: definitions) {
 			if ((def instanceof RefinedObjectClassDefinition) 
-					&& (def.getTypeName().equals(objectClassName))) {
+					&& (QNameUtil.match(def.getTypeName(), objectClassName))) {
+                    //&& (def.getTypeName().equals(objectClassName))) {
 				return (RefinedObjectClassDefinition)def;
 			}
 		}

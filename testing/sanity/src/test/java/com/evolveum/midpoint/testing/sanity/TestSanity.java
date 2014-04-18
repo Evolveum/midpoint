@@ -49,6 +49,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.SelectorQualifiedGetOptionsType;
 import com.evolveum.prism.xml.ns._public.types_2.EncryptedDataType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
@@ -3598,7 +3599,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         
         for(ObjectType object: objectListHolder.value.getObject()) {
         	// Marshalling may fail even though the Java object is OK so test for it
-        	String xml = PrismTestUtil.marshalToString(object);
+        	String xml = prismContext.serializeObjectToString(object.asPrismObject(), PrismContext.LANG_XML);
         }
         
     }

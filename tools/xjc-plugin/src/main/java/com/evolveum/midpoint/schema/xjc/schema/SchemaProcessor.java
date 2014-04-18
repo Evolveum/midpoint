@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.xjc.*;
 import com.evolveum.midpoint.schema.xjc.PrefixMapper;
 import com.evolveum.midpoint.schema.xjc.Processor;
-import com.evolveum.midpoint.util.Holder;
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.model.CClassInfo;
@@ -38,7 +37,6 @@ import com.sun.xml.xsom.XSType;
 
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.mutable.MutableBoolean;
 import org.jvnet.jaxb2_commons.lang.HashCode;
 import org.w3c.dom.Element;
 import org.xml.sax.ErrorHandler;
@@ -47,10 +45,7 @@ import org.xml.sax.SAXException;
 import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
 
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.io.Writer;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.Map.Entry;
@@ -110,8 +105,8 @@ public class SchemaProcessor implements Processor {
     private static final String METHOD_PRISM_UTIL_GET_REFERENCE_VALUE = "getReferenceValue";
     private static final String METHOD_PRISM_UTIL_SET_REFERENCE_VALUE_AS_REF = "setReferenceValueAsRef";
     private static final String METHOD_PRISM_UTIL_SET_REFERENCE_VALUE_AS_OBJECT = "setReferenceValueAsObject";
-    private static final String METHOD_PRISM_UTIL_GET_REFERENCE_FILTER_ELEMENT = "getReferenceFilterElement";
-    private static final String METHOD_PRISM_UTIL_SET_REFERENCE_FILTER_ELEMENT = "setReferenceFilterElement";
+    private static final String METHOD_PRISM_UTIL_GET_REFERENCE_FILTER_CLAUSE_XNODE = "getReferenceFilterClauseXNode";
+    private static final String METHOD_PRISM_UTIL_SET_REFERENCE_FILTER_CLAUSE_XNODE = "setReferenceFilterClauseXNode";
     private static final String METHOD_PRISM_UTIL_OBJECTABLE_AS_REFERENCE_VALUE = "objectableAsReferenceValue";
 	private static final String METHOD_PRISM_UTIL_SETUP_CONTAINER_VALUE = "setupContainerValue";
     
@@ -292,17 +287,17 @@ public class SchemaProcessor implements Processor {
         JBlock body = getFilter.body();
         JType innerFilterType = getFilter.type();
         JVar filterClassVar = body.decl(innerFilterType, "filter", JExpr._new(innerFilterType));
-        JInvocation getFilterElementInvocation =CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_GET_REFERENCE_FILTER_ELEMENT);
+        JInvocation getFilterElementInvocation =CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_GET_REFERENCE_FILTER_CLAUSE_XNODE);
         getFilterElementInvocation.arg(JExpr.invoke(asReferenceValue));
-        JInvocation setFilterInvocation = body.invoke(filterClassVar, "setFilterClause");
+        JInvocation setFilterInvocation = body.invoke(filterClassVar, "setFilterClauseXNode");
         setFilterInvocation.arg(getFilterElementInvocation);
         body._return(filterClassVar);
 
         JMethod setFilter = recreateMethod(findMethod(definedClass, "setFilter"), definedClass);
         body = setFilter.body();
-        JInvocation invocation = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_SET_REFERENCE_FILTER_ELEMENT);
+        JInvocation invocation = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_SET_REFERENCE_FILTER_CLAUSE_XNODE);
         invocation.arg(JExpr.invoke(asReferenceValue));
-        invocation.arg(JExpr.invoke(setFilter.listParams()[0],"getFilterClause"));
+        invocation.arg(setFilter.listParams()[0]);
         body.add(invocation);
     }
 

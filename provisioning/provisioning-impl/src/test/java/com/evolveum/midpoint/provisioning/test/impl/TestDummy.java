@@ -33,21 +33,18 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Set;
 
 import javax.xml.bind.JAXBException;
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import org.apache.commons.lang.StringUtils;
-import org.eclipse.core.internal.runtime.FindSupport;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -58,7 +55,6 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyPrivilege;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
-import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -69,7 +65,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -532,7 +527,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// Check native capabilities
 		CapabilityCollectionType nativeCapabilities = resourceType.getCapabilities().getNative();
-		display("Native capabilities", PrismTestUtil.marshalWrap(nativeCapabilities));
+		display("Native capabilities", JaxbTestUtil.marshalWrap(nativeCapabilities));
 		display("Resource", resourceType);
 		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
 		assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
@@ -607,7 +602,7 @@ public class TestDummy extends AbstractDummyTest {
 		CapabilitiesType capabilitiesType = resourceType.getCapabilities();
 		assertNotNull("No capabilities in repo, the capabilities were not cached", capabilitiesType);
 		CapabilityCollectionType nativeCapabilities = capabilitiesType.getNative();
-		System.out.println("Native capabilities: " + PrismTestUtil.marshalWrap(nativeCapabilities));
+		System.out.println("Native capabilities: " + JaxbTestUtil.marshalWrap(nativeCapabilities));
 		System.out.println("resource: " + resourceType.asPrismObject().debugDump());
 		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
 		assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
@@ -1156,8 +1151,8 @@ public class TestDummy extends AbstractDummyTest {
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ ".test105ApplyDefinitionModifyDelta");
 
-		ObjectModificationType changeAddRoleCaptain = PrismTestUtil.unmarshalObject(new File(FILENAME_MODIFY_ACCOUNT),
-				ObjectModificationType.class);
+		ObjectModificationType changeAddRoleCaptain = PrismTestUtil.parseAtomicValue(new File(FILENAME_MODIFY_ACCOUNT),
+                ObjectModificationType.COMPLEX_TYPE);
 		ObjectDelta<ShadowType> accountDelta = DeltaConvertor.createObjectDelta(changeAddRoleCaptain,
 				ShadowType.class, prismContext);
 
@@ -1693,7 +1688,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("Account before add", account);
 
 		OperationProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
-		display("Provisioning scripts", PrismTestUtil.marshalWrap(scriptsType));
+		display("Provisioning scripts", JaxbTestUtil.marshalWrap(scriptsType));
 
 		// WHEN
 		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), scriptsType, null, task, result);
@@ -1746,7 +1741,7 @@ public class TestDummy extends AbstractDummyTest {
 		dummyResource.purgeScriptHistory();
 
 		OperationProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
-		display("Provisioning scripts", PrismTestUtil.marshalWrap(scriptsType));
+		display("Provisioning scripts", JaxbTestUtil.marshalWrap(scriptsType));
 		
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, 
 				ACCOUNT_NEW_SCRIPT_OID, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Will Turner");
@@ -1795,7 +1790,7 @@ public class TestDummy extends AbstractDummyTest {
 		dummyResource.purgeScriptHistory();
 
 		OperationProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
-		display("Provisioning scripts", PrismTestUtil.marshalWrap(scriptsType));
+		display("Provisioning scripts", JaxbTestUtil.marshalWrap(scriptsType));
 		
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, 
 				ACCOUNT_NEW_SCRIPT_OID, ShadowType.F_DESCRIPTION, prismContext, "Blah blah");
@@ -1837,7 +1832,7 @@ public class TestDummy extends AbstractDummyTest {
 		dummyResource.purgeScriptHistory();
 
 		OperationProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
-		display("Provisioning scripts", PrismTestUtil.marshalWrap(scriptsType));
+		display("Provisioning scripts", JaxbTestUtil.marshalWrap(scriptsType));
 		
 		// WHEN
 		provisioningService.deleteObject(ShadowType.class, ACCOUNT_NEW_SCRIPT_OID, null, scriptsType,
@@ -1874,7 +1869,7 @@ public class TestDummy extends AbstractDummyTest {
 		dummyResource.purgeScriptHistory();
 
 		OperationProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
-		display("Provisioning scripts", PrismTestUtil.marshalWrap(scriptsType));
+		display("Provisioning scripts", JaxbTestUtil.marshalWrap(scriptsType));
 		
 		ProvisioningScriptType script = scriptsType.getScript().get(0);
 		

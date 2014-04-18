@@ -66,11 +66,11 @@ public class PasswordPolicyValidatorTest {
 	}
 	
 	@Test
-	public void stringPolicyUtilsMinimalTest() throws JAXBException, SchemaException, FileNotFoundException {
+	public void stringPolicyUtilsMinimalTest() throws JAXBException, SchemaException, IOException {
 		String filename = "password-policy-minimal.xml";
 		String pathname = BASE_PATH + filename;
 		File file = new File(pathname);
-		ValuePolicyType pp = PrismTestUtil.unmarshalObject(file, ValuePolicyType.class);
+		ValuePolicyType pp = (ValuePolicyType) PrismTestUtil.parseObject(file).asObjectable();
 		StringPolicyType sp = pp.getStringPolicy();
 		StringPolicyUtils.normalize(sp);
 		AssertJUnit.assertNotNull(sp.getCharacterClass());
@@ -86,14 +86,13 @@ public class PasswordPolicyValidatorTest {
 		String filename = "password-policy-complex.xml";
 		String pathname = BASE_PATH + filename;
 		File file = new File(pathname);
-		JAXBElement<ValuePolicyType> jbe = null;
+		ValuePolicyType pp = null;
 		try {
-			jbe = PrismTestUtil.unmarshalElement(file, ValuePolicyType.class);
+			pp = (ValuePolicyType) PrismTestUtil.parseObject(file).asObjectable();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
-		ValuePolicyType pp = jbe.getValue();
 		StringPolicyType sp = pp.getStringPolicy();
 		StringPolicyUtils.normalize(sp);
 	}
@@ -103,7 +102,7 @@ public class PasswordPolicyValidatorTest {
 		String filename = "password-policy-complex.xml";
 		String pathname = BASE_PATH + filename;
 		File file = new File(pathname);
-		ValuePolicyType pp = PrismTestUtil.unmarshalObject(file, ValuePolicyType.class);
+		ValuePolicyType pp = (ValuePolicyType) PrismTestUtil.parseObject(file).asObjectable();
 		OperationResult op = new OperationResult("passwordGeneratorComplexTest");
 		
 		op = new OperationResult("passwordGeneratorComplexTest");
@@ -152,7 +151,7 @@ public class PasswordPolicyValidatorTest {
 		String pathname = BASE_PATH + "value-policy-random-pin.xml";
 		File file = new File(pathname);
 		LOGGER.info("Positive testing {}: {}", "testValueGenerateRandomPin", "value-policy-random-pin.xml");
-		ValuePolicyType pp = PrismTestUtil.unmarshalObject(file, ValuePolicyType.class);
+		ValuePolicyType pp = (ValuePolicyType) PrismTestUtil.parseObject(file).asObjectable();
 		OperationResult op = new OperationResult("testValueGenerateRandomPin");
 		
 		String psswd;
@@ -175,7 +174,7 @@ public class PasswordPolicyValidatorTest {
 		String pathname = BASE_PATH + "value-policy-generate.xml";
 		File file = new File(pathname);
 		LOGGER.info("Positive testing {}: {}", "testValueGenerate", "value-policy-generate.xml");
-		ValuePolicyType pp = PrismTestUtil.unmarshalObject(file, ValuePolicyType.class);
+		ValuePolicyType pp = (ValuePolicyType) PrismTestUtil.parseObject(file).asObjectable();
 		OperationResult op = new OperationResult("testValueGenerate");
 		
 		String psswd;
@@ -192,12 +191,12 @@ public class PasswordPolicyValidatorTest {
 	
 	}
 
-	public void passwordGeneratorTest(final String TEST_NAME, String policyFilename) throws JAXBException, SchemaException, FileNotFoundException {
+	public void passwordGeneratorTest(final String TEST_NAME, String policyFilename) throws JAXBException, SchemaException, IOException {
 		LOGGER.info("===[ {} ]===", TEST_NAME);
 		String pathname = BASE_PATH + policyFilename;
 		File file = new File(pathname);
 		LOGGER.info("Positive testing {}: {}", TEST_NAME, policyFilename);
-		ValuePolicyType pp = PrismTestUtil.unmarshalObject(file, ValuePolicyType.class);
+		ValuePolicyType pp = (ValuePolicyType) PrismTestUtil.parseObject(file).asObjectable();
 		OperationResult op = new OperationResult(TEST_NAME);
 		
 		String psswd;
@@ -237,13 +236,13 @@ public class PasswordPolicyValidatorTest {
 	}
 
 	@Test
-	public void passwordValidationTest() throws JAXBException, SchemaException, FileNotFoundException {
+	public void passwordValidationTest() throws JAXBException, SchemaException, IOException {
 		String filename = "password-policy-complex.xml";
 		String pathname = BASE_PATH + filename;
 		File file = new File(pathname);
 
 		LOGGER.error("Positive testing: passwordGeneratorComplexTest");
-		ValuePolicyType pp = PrismTestUtil.unmarshalObject(file, ValuePolicyType.class);
+		ValuePolicyType pp = (ValuePolicyType) PrismTestUtil.parseObject(file).asObjectable();
 
 		// Test on all cases
 		AssertJUnit.assertTrue(pwdValidHelper("582a**A", pp));
@@ -261,13 +260,13 @@ public class PasswordPolicyValidatorTest {
 	}
 
 	@Test
-	public void passwordValidationMultipleTest() throws JAXBException, SchemaException, FileNotFoundException {
+	public void passwordValidationMultipleTest() throws JAXBException, SchemaException, IOException {
 		String filename = "password-policy-complex.xml";
 		String pathname = BASE_PATH + filename;
 		File file = new File(pathname);
 		
 		LOGGER.error("Positive testing: passwordGeneratorComplexTest");
-		ValuePolicyType pp = PrismTestUtil.unmarshalObject(file, ValuePolicyType.class); 
+		ValuePolicyType pp = (ValuePolicyType) PrismTestUtil.parseObject(file).asObjectable();
 
 		String password = "582a**A";
 		
@@ -285,13 +284,13 @@ public class PasswordPolicyValidatorTest {
 	}
 
 	@Test
-	public void XMLPasswordPolicy() throws JAXBException, SchemaException, FileNotFoundException {
+	public void XMLPasswordPolicy() throws JAXBException, SchemaException, IOException {
 
 		String filename = "password-policy-complex.xml";
 		String pathname = BASE_PATH + filename;
 		File file = new File(pathname);
 
-		ValuePolicyType pp = PrismTestUtil.unmarshalObject(file, ValuePolicyType.class); 
+		ValuePolicyType pp = (ValuePolicyType) PrismTestUtil.parseObject(file).asObjectable();
 
 		OperationResult op = new OperationResult("Generator testing");
 

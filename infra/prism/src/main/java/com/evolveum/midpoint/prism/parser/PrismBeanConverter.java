@@ -116,10 +116,10 @@ public class PrismBeanConverter {
 		Class<T> classType = getSchemaRegistry().determineCompileTimeClass(typeQName);
 		return unmarshall(xnode, classType);
 	}
-	
+
 	public <T> T unmarshall(MapXNode xnode, Class<T> beanClass) throws SchemaException {
         
-		if (prismContext.getSchemaRegistry().determineDefinitionFromClass(beanClass) != null){
+		if (prismContext.getSchemaRegistry().determineDefinitionFromClass(beanClass) != null) {
 			return (T) prismContext.getXnodeProcessor().parseObject(xnode).asObjectable();			
 		}
 		T bean;
@@ -310,7 +310,7 @@ public class PrismBeanConverter {
 			String paramNamespace = inspector.determineNamespace(paramType);
 			
 			//check for subclasses???
-			if (xsubnode.getTypeQName()!= null){
+			if (!paramType.equals(RawType.class) && xsubnode.getTypeQName()!= null) {
 				Class explicitParamType = getSchemaRegistry().determineCompileTimeClass(xsubnode.getTypeQName());
 				if (explicitParamType != null && explicitParamType != null){
 					paramType = explicitParamType; 
@@ -479,7 +479,7 @@ public class PrismBeanConverter {
 		return unmarshallPrimitive(xprim, classType);
 	}
 	
-	public <T> T unmarshallPrimitive(PrimitiveXNode<?> xprim, Class<T> classType) throws SchemaException {
+	private <T> T unmarshallPrimitive(PrimitiveXNode<?> xprim, Class<T> classType) throws SchemaException {
 		if (XmlTypeConverter.canConvert(classType)) {
 			// Trivial case, direct conversion
 			QName xsdType = XsdTypeMapper.toXsdType(classType);

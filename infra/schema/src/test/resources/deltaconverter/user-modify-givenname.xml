@@ -24,8 +24,6 @@
 	<itemDelta>
 		<t:modificationType>replace</t:modificationType>
 		<t:path>c:givenName</t:path>
-		<t:value>
-<!-- 			<c:givenName xsi:nil="true"/> -->
-		</t:value>
+        <!-- no value -->
 	</itemDelta>
 </objectModification>

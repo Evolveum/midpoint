@@ -31,6 +31,7 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import org.testng.Assert;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
@@ -382,9 +383,8 @@ public class TestRefinedSchema {
         TestUtil.assertElement(attributeElements, getAttrQName(resource, "sn"), "Sparrow");
         TestUtil.assertElement(attributeElements, getAttrQName(resource, "uid"), "jack");
         
-        JaxbTestUtil jaxbProcessor = getJaxbUtil();
-        Element accDomElement = jaxbProcessor.marshalObjectToDom(accObjectType, new QName(SchemaConstants.NS_C, "account"), DOMUtil.getDocument());
-        System.out.println("Result of JAXB marshalling:\n"+DOMUtil.serializeDOMToString(accDomElement));
+        String accString = PrismTestUtil.serializeObjectToString(accObjectType.asPrismObject());
+        System.out.println("Result of JAXB marshalling:\n"+accString);
         
         accObject.checkConsistence(true, true);
     }

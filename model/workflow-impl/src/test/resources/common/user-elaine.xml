@@ -23,9 +23,9 @@
 		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>elaine</name>
 
-    <linkRef oid="c0c010c0-d34d-b33f-f00d-22220004000e" type="c:AccountShadowType"/>
-    <linkRef oid="c0c010c0-d34d-b33f-f00d-22220104000e" type="c:AccountShadowType"/>
-    <linkRef oid="c0c010c0-d34d-b33f-f00d-22220204000e" type="c:AccountShadowType"/>
+    <linkRef oid="c0c010c0-d34d-b33f-f00d-22220004000e" type="c:ShadowType"/>
+    <linkRef oid="c0c010c0-d34d-b33f-f00d-22220104000e" type="c:ShadowType"/>
+    <linkRef oid="c0c010c0-d34d-b33f-f00d-22220204000e" type="c:ShadowType"/>
 
     <assignment>
 		<construction>

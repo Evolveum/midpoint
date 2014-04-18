@@ -34,6 +34,7 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -362,7 +363,7 @@ public class TestDummySchemaless extends AbstractIntegrationTest {
 
 		// Check native capabilities
 		CapabilityCollectionType nativeCapabilities = resourceType.getCapabilities().getNative();
-		System.out.println("Native capabilities: " + PrismTestUtil.marshalWrap(nativeCapabilities));
+		System.out.println("Native capabilities: " + JaxbTestUtil.marshalWrap(nativeCapabilities));
 		System.out.println("resource: " + resourceType.asPrismObject().debugDump());
 		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
 		assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());

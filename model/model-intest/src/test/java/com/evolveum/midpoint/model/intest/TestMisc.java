@@ -28,7 +28,7 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;

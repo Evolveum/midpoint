@@ -92,19 +92,32 @@
         <employeeNumber>en1234</employeeNumber>
         <credentials>
             <password>
-                <value>
-                    <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element"
-                                       xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
-                        <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"/>
-                        <ds:KeyInfo>
-                            <ds:KeyName>HF6JRsNMeJt6alihT44CXKgpe0c=</ds:KeyName>
-                        </ds:KeyInfo>
-                        <enc:CipherData>
-                            <enc:CipherValue>eL1PVNFxclMxDulnqX6Ip/mxLbr+vyxCXu9auL3EKWoNawdzlqJDwF7WwuxtRZDS
-                            </enc:CipherValue>
-                        </enc:CipherData>
-                    </enc:EncryptedData>
-                </value>
+             <c:value> -->
+            <t:encryptedData xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+               <t:encryptionMethod>
+                  <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes128-cbc</t:algorithm>
+               </t:encryptionMethod>
+               <t:keyInfo>
+                  <t:keyName>4HXeUejV93Vd3JuIZz7sbs5bVko=</t:keyName>
+               </t:keyInfo>
+               <t:cipherData>
+                  <t:cipherValue>Q27VymuHR348Vb9Ln5p06RT667FqZPSijEMxVDWw7D8=</t:cipherValue>
+               </t:cipherData>
+            </t:encryptedData>
+         </c:value>
+<!--                 <value> -->
+<!--                     <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element" -->
+<!--                                        xmlns:enc="http://www.w3.org/2001/04/xmlenc#"> -->
+<!--                         <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"/> -->
+<!--                         <ds:KeyInfo> -->
+<!--                             <ds:KeyName>HF6JRsNMeJt6alihT44CXKgpe0c=</ds:KeyName> -->
+<!--                         </ds:KeyInfo> -->
+<!--                         <enc:CipherData> -->
+<!--                             <enc:CipherValue>eL1PVNFxclMxDulnqX6Ip/mxLbr+vyxCXu9auL3EKWoNawdzlqJDwF7WwuxtRZDS -->
+<!--                             </enc:CipherValue> -->
+<!--                         </enc:CipherData> -->
+<!--                     </enc:EncryptedData> -->
+<!--                 </value> -->
             </password>
         </credentials>
         <activation>
@@ -133,19 +146,32 @@
         <locality>AreaX 00003</locality>
         <credentials>
             <password>
-                <value>
-                    <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element"
-                                       xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
-                        <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"/>
-                        <ds:KeyInfo>
-                            <ds:KeyName>HF6JRsNMeJt6alihT44CXKgpe0c=</ds:KeyName>
-                        </ds:KeyInfo>
-                        <enc:CipherData>
-                            <enc:CipherValue>eL1PVNFxclMxDulnqX6Ip/mxLbr+vyxCXu9auL3EKWoNawdzlqJDwF7WwuxtRZDS
-                            </enc:CipherValue>
-                        </enc:CipherData>
-                    </enc:EncryptedData>
-                </value>
+             <c:value> -->
+            <t:encryptedData xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+               <t:encryptionMethod>
+                  <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes128-cbc</t:algorithm>
+               </t:encryptionMethod>
+               <t:keyInfo>
+                  <t:keyName>4HXeUejV93Vd3JuIZz7sbs5bVko=</t:keyName>
+               </t:keyInfo>
+               <t:cipherData>
+                  <t:cipherValue>Q27VymuHR348Vb9Ln5p06RT667FqZPSijEMxVDWw7D8=</t:cipherValue>
+               </t:cipherData>
+            </t:encryptedData>
+         </c:value>
+<!--                 <value> -->
+<!--                     <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element" -->
+<!--                                        xmlns:enc="http://www.w3.org/2001/04/xmlenc#"> -->
+<!--                         <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"/> -->
+<!--                         <ds:KeyInfo> -->
+<!--                             <ds:KeyName>HF6JRsNMeJt6alihT44CXKgpe0c=</ds:KeyName> -->
+<!--                         </ds:KeyInfo> -->
+<!--                         <enc:CipherData> -->
+<!--                             <enc:CipherValue>eL1PVNFxclMxDulnqX6Ip/mxLbr+vyxCXu9auL3EKWoNawdzlqJDwF7WwuxtRZDS -->
+<!--                             </enc:CipherValue> -->
+<!--                         </enc:CipherData> -->
+<!--                     </enc:EncryptedData> -->
+<!--                 </value> -->
             </password>
         </credentials>
         <activation>

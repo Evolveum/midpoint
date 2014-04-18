@@ -27,11 +27,17 @@
 			<value>some account type</value>
 		</equal>
 		<equal>
-			<path xmlns:f="http://midpoint.evolveum.com/blabla">c:attributes/f:foo</path>
+			<path>
+                declare namespace f="http://midpoint.evolveum.com/blabla";
+                c:attributes/f:foo
+            </path>
 			<value xsi:type="xsd:string">foo value</value>
 		</equal>
 		<equal>
-			<path xmlns:p="http://midpoint.evolveum.com/xml/ns/test/extension">c:extension/p:stringType</path>
+			<path>
+                declare namespace p="http://midpoint.evolveum.com/xml/ns/test/extension";
+                c:extension/p:stringType
+            </path>
 			<value xsi:type="xsd:string">uid=test,dc=example,dc=com</value>
 		</equal>
 		<ref>

@@ -21,7 +21,7 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+
 import com.evolveum.midpoint.prism.parser.DomParser;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.parser.XNodeProcessor;
@@ -171,8 +171,8 @@ public class TestParseResource {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
-		
+		JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
+
 		// WHEN
 		ResourceType resourceType = jaxbProcessor.unmarshalObject(RESOURCE_FILE, ResourceType.class);
 		
@@ -187,7 +187,7 @@ public class TestParseResource {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
+        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 		
 		// WHEN
 		ResourceType resourceType = jaxbProcessor.unmarshalObject(RESOURCE_SIMPLE_FILE, ResourceType.class);
@@ -207,7 +207,7 @@ public class TestParseResource {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
+        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 		
 		// WHEN
 		ObjectType resourceType = jaxbProcessor.unmarshalObject(RESOURCE_FILE, ObjectType.class);
@@ -226,7 +226,7 @@ public class TestParseResource {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
+        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 		
 		// WHEN
 		JAXBElement<ResourceType> jaxbElement = jaxbProcessor.unmarshalElement(RESOURCE_FILE, ResourceType.class);
@@ -246,7 +246,7 @@ public class TestParseResource {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
+        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 		
 		// WHEN
 		JAXBElement<ObjectType> jaxbElement = jaxbProcessor.unmarshalElement(RESOURCE_FILE, ObjectType.class);
@@ -499,7 +499,7 @@ public class TestParseResource {
 
 	// Try to serialize it to DOM using JAXB processor. See if it does not fail.
 	private void serializeJaxb(PrismObject<ResourceType> resource) throws SchemaException, JAXBException {
-		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
+        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 		Document document = DOMUtil.getDocument();
 		Element element = jaxbProcessor.marshalObjectToDom(resource.asObjectable(), new QName(SchemaConstants.NS_C, "resorce"), document);
 		System.out.println("JAXB serialization result:\n"+DOMUtil.serializeDOMToString(element));

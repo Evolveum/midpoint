@@ -28,6 +28,8 @@ import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
+import com.evolveum.midpoint.test.util.TestUtil;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -43,7 +45,6 @@ import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -54,7 +55,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 
 /**
  * 
@@ -104,7 +104,7 @@ public class ControllerListObjectsTest extends AbstractTestNGSpringContextTests 
 	@SuppressWarnings("unchecked")
 	public void userList() throws Exception {
 		final List<PrismObject<UserType>> expectedUserList = MiscSchemaUtil.toList(UserType.class,
-				PrismTestUtil.unmarshalObject(new File(TEST_FOLDER, "user-list.xml"), ObjectListType.class));
+				JaxbTestUtil.getInstance().unmarshalObject(new File(TEST_FOLDER, "user-list.xml"), ObjectListType.class));
 
 		when(repository.searchObjects(eq(UserType.class), any(ObjectQuery.class), 
 				any(Collection.class), any(OperationResult.class)))

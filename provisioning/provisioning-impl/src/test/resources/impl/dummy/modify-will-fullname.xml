@@ -25,11 +25,10 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
     <oid>c0c010c0-d34d-b44f-f11d-33322212dddd</oid>
-    <modification>
+    <itemDelta>
     	<t:modificationType>replace</t:modificationType>
-        <t:path>c:attributes</t:path>
-        <t:value>
-            <ri:fullname>Pirate Will Turner</ri:fullname>
-        </t:value>
-    </modification>
+        <t:path>declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd";
+            c:attributes/ri:fullname</t:path>
+        <t:value>Pirate Will Turner</t:value>
+    </itemDelta>
 </objectModification>

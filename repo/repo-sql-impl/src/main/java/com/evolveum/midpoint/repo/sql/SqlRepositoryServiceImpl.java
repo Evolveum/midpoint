@@ -560,7 +560,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             savedObject.removeProperty(UserType.F_JPEG_PHOTO);
         }
 
-        //PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
         String xml = getPrismContext().serializeObjectToString(savedObject, PrismContext.LANG_XML);
         byte[] fullObject = RUtil.getByteArrayFromXml(xml, getConfiguration().isUseZip());
 

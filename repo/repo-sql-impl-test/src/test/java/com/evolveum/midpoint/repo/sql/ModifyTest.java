@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getJaxbUtil;
-
 import java.io.File;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -125,9 +123,9 @@ public class ModifyTest extends BaseSQLRepoTest {
         String oid = repositoryService.addObject(user, null, result);
 
         //modify second user name to "existingName"
-        ObjectModificationType modification = getJaxbUtil().unmarshalObject(
+        ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(TEST_DIR, "change-name.xml"),
-                ObjectModificationType.class);
+                ObjectModificationType.COMPLEX_TYPE);
         modification.setOid(oid);
         Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(modification,
                 UserType.class, prismContext);
@@ -137,9 +135,9 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     @Test(expectedExceptions = ObjectNotFoundException.class, enabled = false)
     public void test020ModifyNotExistingUser() throws Exception {
-        ObjectModificationType modification = getJaxbUtil().unmarshalObject(
+        ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(TEST_DIR, "change-add.xml"),
-                ObjectModificationType.class);
+                ObjectModificationType.COMPLEX_TYPE);
 
         Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(modification,
                 UserType.class, prismContext);
@@ -162,9 +160,9 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         PrismObject<UserType> userOld = repositoryService.getObject(UserType.class, oid, null, result);
 
-        ObjectModificationType modification = getJaxbUtil().unmarshalObject(
+        ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(TEST_DIR, "change-add-non-existing.xml"),
-                ObjectModificationType.class);
+                ObjectModificationType.COMPLEX_TYPE);
 
         Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(modification,
                 UserType.class, prismContext);
@@ -200,9 +198,9 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         PrismObject<UserType> userOld = repositoryService.getObject(UserType.class, oid, null, result);
 
-        ObjectModificationType modification = getJaxbUtil().unmarshalObject(
+        ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(TEST_DIR, "change-add.xml"),
-                ObjectModificationType.class);
+                ObjectModificationType.COMPLEX_TYPE);
 
         Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(modification,
                 UserType.class, prismContext);
@@ -273,7 +271,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         AssertJUnit.assertNotNull(taskType.getObjectRef());
         objectRef = taskType.getObjectRef();
         AssertJUnit.assertEquals("2", objectRef.getOid());
-        LOGGER.info(getJaxbUtil().marshalObjectToString(taskType, TaskType.COMPLEX_TYPE));
+        LOGGER.info(PrismTestUtil.serializeObjectToString(taskType.asPrismObject()));
         SqlRepoTestUtil.assertVersionProgress(lastVersion, getTask.getVersion());
         lastVersion = getTask.getVersion();
 
@@ -334,8 +332,8 @@ public class ModifyTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals("Expected that the role has one approver.", 1, ldapRole.getApproverRef().size());
         AssertJUnit.assertEquals("Actual approved not equals to expected one.", userToModifyOid, ldapRole.getApproverRef().get(0).getOid());
 
-        ObjectModificationType modification = getJaxbUtil().unmarshalObject(new File(TEST_DIR + "/modify-user-add-roles.xml"),
-                ObjectModificationType.class);
+        ObjectModificationType modification = PrismTestUtil.parseAtomicValue(new File(TEST_DIR + "/modify-user-add-roles.xml"),
+                ObjectModificationType.COMPLEX_TYPE);
 
 
         ObjectDelta delta = DeltaConvertor.createObjectDelta(modification, UserType.class, prismContext);
@@ -558,9 +556,9 @@ public class ModifyTest extends BaseSQLRepoTest {
         String oid = repositoryService.addObject(role, null, result);
 
         //modify second user name to "existingName"
-        ObjectModificationType modification = getJaxbUtil().unmarshalObject(
+        ObjectModificationType modification = PrismTestUtil.parseAtomicValue(
                 new File(TEST_DIR, "role-modify-change.xml"),
-                ObjectModificationType.class);
+                ObjectModificationType.COMPLEX_TYPE);
         modification.setOid(oid);
         Collection<? extends ItemDelta> deltas = DeltaConvertor.toModifications(modification,
                 RoleType.class, prismContext);
