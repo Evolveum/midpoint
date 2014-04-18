@@ -29,8 +29,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
  *
  */
 public interface ModelElementContext<O extends ObjectType> extends Serializable, DebugDumpable {
-	
-	public PrismObject<O> getObjectOld();
+
+    Class<O> getObjectTypeClass();
+
+    public PrismObject<O> getObjectOld();
 
 	public void setObjectOld(PrismObject<O> objectOld);
 	

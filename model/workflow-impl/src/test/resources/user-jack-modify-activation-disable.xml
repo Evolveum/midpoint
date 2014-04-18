@@ -20,12 +20,10 @@
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
 	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
-    <modification>
+    <itemDelta>
         <t:modificationType>replace</t:modificationType>
-        <t:path>c:activation</t:path>
-        <t:value>
-            <c:administrativeStatus>disabled</c:administrativeStatus>
-        </t:value>
-    </modification>
+        <t:path>c:activation/c:administrativeStatus</t:path>
+        <t:value>disabled</t:value>
+    </itemDelta>
 
 </objectModification>

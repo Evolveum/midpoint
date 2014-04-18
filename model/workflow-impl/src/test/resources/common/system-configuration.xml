@@ -32,4 +32,36 @@
             <append>true</append>
         </appender>
     </logging>
+    <notificationConfiguration>
+        <handler>
+            <simpleUserNotifier>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:simpleUserNotifier</transport>
+            </simpleUserNotifier>
+        </handler>
+        <handler>
+            <simpleWorkflowNotifier>
+                <category>workflowProcessEvent</category>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <showTechnicalInformation>true</showTechnicalInformation>
+                <transport>dummy:simpleWorkflowNotifier-Processes</transport>
+            </simpleWorkflowNotifier>
+        </handler>
+        <handler>
+            <simpleWorkflowNotifier>
+                <category>workItemEvent</category>
+                <recipientExpression>
+                    <value>recipient@evolveum.com</value>
+                </recipientExpression>
+                <transport>dummy:simpleWorkflowNotifier-WorkItems</transport>
+            </simpleWorkflowNotifier>
+        </handler>
+        <mail>
+            <redirectToFile>target/mail-notifications.log</redirectToFile>
+        </mail>
+    </notificationConfiguration>
 </systemConfiguration>

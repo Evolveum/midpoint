@@ -24,6 +24,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
+import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
@@ -56,7 +57,6 @@ public class SerializationSafeContainer<T> implements Serializable {
     // if there is (e.g. for PrismObjects) the encoded value is stored in the second attribute
     private T valueForStorageWhenNotEncoded;
     protected String valueForStorageWhenEncoded;
-    protected QName typeName;
 
     // beware, for JAXB, PRISM_OBJECT and PRISM_CONTAINER encoding schemes the value must be XML, as it might be
     // exposed through JaxbValueContainer
@@ -72,41 +72,22 @@ public class SerializationSafeContainer<T> implements Serializable {
 
     public void setValue(T value) {
         this.actualValue = value;
-        Class clazz = value.getClass();
 
         checkPrismContext();
-        if (value instanceof PrismObject) {
-            this.typeName = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz).getTypeName();
-            this.valueForStorageWhenEncoded = MiscDataUtil.serializeObjectToXml((PrismObject) value, prismContext);
+        if (value != null && prismContext.canSerialize(value)) {
+            try {
+                this.valueForStorageWhenEncoded = prismContext.serializeAnyData(value, PrismContext.LANG_XML);
+            } catch (SchemaException e) {
+                throw new SystemException("Couldn't serialize value of type " + value.getClass() + ": " + e.getMessage(), e);
+            }
             this.valueForStorageWhenNotEncoded = null;
-            encodingScheme = EncodingScheme.PRISM_OBJECT;
-            // TODO fix all this
-//        } else if (prismContext.canSerialize(value.getClass())) {
-//            this.typeName = prismContext.getSchemaRegistry().getT
-//            this.valueForStorageWhenEncoded = prismContext((Containerable) value, prismContext);
-//            this.valueForStorageWhenNotEncoded = null;
-//            encodingScheme = EncodingScheme.PRISM_CONTAINER;
-//        } else if (value != null && prismContext.getJaxbDomHack().canConvert(value.getClass())) {
-//            checkPrismContext();
-//            PrismPropertyDefinition propDef = prismContext.getSchemaRegistry().findPropertyDefinitionByCompileTimeClass(value.getClass());
-//            if (propDef == null) {
-//                throw new IllegalStateException("No property definition for class " + value.getClass());
-//            }
-//            this.typeName = propDef.getTypeName();
-//            try {
-//                this.valueForStorageWhenEncoded = prismContext.getJaxbDomHack().marshalElementToString(new JAXBElement<Object>(new QName("value"), Object.class, value));
-//            } catch (JAXBException e) {
-//                throw new SystemException("Couldn't serialize JAXB object of type " + value.getClass(), e);
-//            }
-//            this.valueForStorageWhenNotEncoded = null;
-//            encodingScheme = EncodingScheme.JAXB;
+            encodingScheme = EncodingScheme.PRISM;
         } else if (value == null || value instanceof Serializable) {
             this.valueForStorageWhenNotEncoded = value;
             this.valueForStorageWhenEncoded = null;
             encodingScheme = EncodingScheme.NONE;
-
             if (value instanceof Itemable) {
-                LOGGER.warn("Itemable value is used as not-encoded serializable item; value = " + value);
+                throw new IllegalStateException("Itemable value is used as not-encoded serializable item; value = " + value);
             }
         } else {
             throw new IllegalStateException("Attempt to put non-serializable item " + value.getClass() + " into " + this.getClass().getSimpleName());
@@ -133,21 +114,29 @@ public class SerializationSafeContainer<T> implements Serializable {
                 throw new IllegalStateException("PrismContext not set for SerializationSafeContainer holding " + StringUtils.abbreviate(valueForStorageWhenEncoded, MAX_WIDTH));
             }
 
-            if (encodingScheme == EncodingScheme.PRISM_OBJECT) {
-                actualValue = (T) MiscDataUtil.deserializeObjectFromXml(valueForStorageWhenEncoded, prismContext);
-                return actualValue;
-            } else if (encodingScheme == EncodingScheme.PRISM_CONTAINER) {
-                actualValue = (T) MiscDataUtil.deserializeContainerFromXml(valueForStorageWhenEncoded, prismContext).getValue().asContainerable();
-                return actualValue;
-            } else if (encodingScheme == EncodingScheme.JAXB) {
+            if (encodingScheme == EncodingScheme.PRISM) {
                 try {
-                    LOGGER.trace("Trying to decode JAXB value {}", valueForStorageWhenEncoded);
-                    actualValue = (T) prismContext.parseAtomicValue(valueForStorageWhenEncoded, typeName, PrismContext.LANG_XML);
+                    actualValue = (T) prismContext.parseAnyData(valueForStorageWhenEncoded, PrismContext.LANG_XML);
+                    if (actualValue instanceof Item) {
+                        Item item = (Item) actualValue;
+                        if (item.isEmpty()) {
+                            actualValue = null;
+                        } else if (item.size() == 1) {
+                            PrismValue itemValue = (PrismValue) item.getValues().get(0);
+                            if (itemValue instanceof PrismContainerValue) {
+                                return (T) ((PrismContainerValue) itemValue).asContainerable();
+                            } else if (itemValue instanceof PrismPropertyValue) {
+                                return (T) ((PrismPropertyValue) itemValue).getValue();
+                            } else if (itemValue instanceof PrismReferenceValue) {
+                                return (T) itemValue;   // TODO: ok???
+                            } else {
+                                throw new SchemaException("Unknown itemValue: " + itemValue);
+                            }
+                        } else {
+                            throw new SchemaException("More than one value after deserialization of " + StringUtils.abbreviate(valueForStorageWhenEncoded, MAX_WIDTH) + ": " + item.getValues().size() + " values");
+                        }
+                    }
                 } catch (SchemaException e) {
-                    LOGGER.trace("Problem with JAXB value {}", valueForStorageWhenEncoded);
-                    throw new SystemException("Couldn't deserialize value from JAXB: " + StringUtils.abbreviate(valueForStorageWhenEncoded, MAX_WIDTH), e);
-                } catch (RuntimeException e) {
-                    LOGGER.trace("Problem with JAXB value {}", valueForStorageWhenEncoded);
                     throw new SystemException("Couldn't deserialize value from JAXB: " + StringUtils.abbreviate(valueForStorageWhenEncoded, MAX_WIDTH), e);
                 }
                 return actualValue;
@@ -172,7 +161,7 @@ public class SerializationSafeContainer<T> implements Serializable {
         actualValue = null;
     }
 
-    public enum EncodingScheme {PRISM_OBJECT, JAXB, PRISM_CONTAINER, NONE };
+    public enum EncodingScheme { PRISM, NONE };
 
     @Override
     public String toString() {

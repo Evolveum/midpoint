@@ -84,6 +84,7 @@
                 <a:indexed>false</a:indexed>
                 <a:minOccurs>0</a:minOccurs>
                 <a:maxOccurs>-1</a:maxOccurs>
+                <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>

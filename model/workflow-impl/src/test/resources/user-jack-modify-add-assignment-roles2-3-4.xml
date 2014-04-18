@@ -22,18 +22,17 @@
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
 	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
-	<modification>
+	<itemDelta>
 		<t:modificationType>add</t:modificationType>
+        <t:path>c:assignment</t:path>
 		<t:value>
-			<c:assignment>
-                <c:targetRef oid="00000001-d34d-b33f-f00d-000000000002" type="c:RoleType" />
-			</c:assignment>
-            <c:assignment>
-                <c:targetRef oid="00000001-d34d-b33f-f00d-000000000003" type="c:RoleType" />
-            </c:assignment>
-            <c:assignment>
-                <c:targetRef oid="00000001-d34d-b33f-f00d-000000000004" type="c:RoleType" />
-            </c:assignment>
-		</t:value>
-	</modification>
+            <c:targetRef oid="00000001-d34d-b33f-f00d-000000000002" type="c:RoleType" />
+        </t:value>
+        <t:value>
+            <c:targetRef oid="00000001-d34d-b33f-f00d-000000000003" type="c:RoleType" />
+        </t:value>
+        <t:value>
+            <c:targetRef oid="00000001-d34d-b33f-f00d-000000000004" type="c:RoleType" />
+        </t:value>
+	</itemDelta>
 </objectModification>
