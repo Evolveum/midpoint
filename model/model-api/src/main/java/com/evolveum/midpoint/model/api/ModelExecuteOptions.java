@@ -25,7 +25,7 @@ import java.util.List;
  * @author semancik
  *
  */
-public class ModelExecuteOptions implements Serializable {
+public class ModelExecuteOptions implements Serializable, Cloneable {
 	
 	/**
 	 * Force the operation even if it would otherwise fail due to external failure. E.g. attempt to delete an account
@@ -298,6 +298,11 @@ public class ModelExecuteOptions implements Serializable {
 				+ ",executeImmediatelyAfterApproval="
 				+ executeImmediatelyAfterApproval + ",overwrite=" + overwrite
 				+ "]";
+    }
+
+    public ModelExecuteOptions clone() {
+        // not much efficient, but...
+        return fromModelExecutionOptionsType(toModelExecutionOptionsType());
     }
 
 }
