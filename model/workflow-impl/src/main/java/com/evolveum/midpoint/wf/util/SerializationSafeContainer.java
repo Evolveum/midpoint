@@ -124,11 +124,11 @@ public class SerializationSafeContainer<T> implements Serializable {
                         } else if (item.size() == 1) {
                             PrismValue itemValue = (PrismValue) item.getValues().get(0);
                             if (itemValue instanceof PrismContainerValue) {
-                                return (T) ((PrismContainerValue) itemValue).asContainerable();
+                                actualValue = (T) ((PrismContainerValue) itemValue).asContainerable();
                             } else if (itemValue instanceof PrismPropertyValue) {
-                                return (T) ((PrismPropertyValue) itemValue).getValue();
+                                actualValue = (T) ((PrismPropertyValue) itemValue).getValue();
                             } else if (itemValue instanceof PrismReferenceValue) {
-                                return (T) itemValue;   // TODO: ok???
+                                actualValue = (T) itemValue;   // TODO: ok???
                             } else {
                                 throw new SchemaException("Unknown itemValue: " + itemValue);
                             }

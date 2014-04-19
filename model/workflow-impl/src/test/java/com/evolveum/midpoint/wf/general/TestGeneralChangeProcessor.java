@@ -141,7 +141,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
 	}
 
-	@Test(enabled = true)
+	@Test(enabled = false)
     public void test010AddRole1() throws Exception {
         TestUtil.displayTestTile(this, "test010UserModifyAddRole");
         executeTest("test010UserModifyAddRole", USER_JACK_OID, 1, false, true, new ContextCreator() {
@@ -196,7 +196,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
         });
 	}
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test020AddAccountRejected() throws Exception {
         TestUtil.displayTestTile(this, "test020AddAccountRejected");
 
@@ -351,7 +351,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
         OperationResult result = new OperationResult("test000LoadContext");
 
-        LensContextType lensContextType = (LensContextType) prismContext.parseObject(new File("src/test/resources/model-contexts/context-dummy-resource.xml")).asObjectable();
+        LensContextType lensContextType = prismContext.parseContainer(new File("src/test/resources/model-contexts/context-dummy-resource.xml"), LensContextType.class, PrismContext.LANG_XML).getValues().get(0).asContainerable();
         display("LensContextType", lensContextType);
         LensContext<?> lensContext = LensContext.fromLensContextType(lensContextType, prismContext, provisioningService, result);
         display("LensContext", lensContext);

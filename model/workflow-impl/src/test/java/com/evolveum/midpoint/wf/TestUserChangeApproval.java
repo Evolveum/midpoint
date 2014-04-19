@@ -27,6 +27,7 @@ import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -37,6 +38,8 @@ import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -58,6 +61,7 @@ import com.evolveum.midpoint.wf.processors.general.GeneralChangeProcessor;
 import com.evolveum.midpoint.wf.processors.primary.PcpTaskExtensionItemsNames;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +72,7 @@ import org.testng.annotations.Test;
 
 import javax.xml.bind.JAXBException;
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -588,8 +593,8 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserAccountContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
-                addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD);
-                context.setOptions(ModelExecuteOptions.createNoCrypt());
+                encryptAndAddFocusModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD);
+                //context.setOptions(ModelExecuteOptions.createNoCrypt());
                 return context;
             }
 
@@ -633,8 +638,8 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserAccountContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
-                addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD);
-                context.setOptions(ModelExecuteOptions.createNoCrypt());
+                encryptAndAddFocusModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD);
+                //context.setOptions(ModelExecuteOptions.createNoCrypt());
                 return context;
             }
 
@@ -677,9 +682,9 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserAccountContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
-                addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD_2);
+                encryptAndAddFocusModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD_2);
                 addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
-                context.setOptions(ModelExecuteOptions.createNoCrypt());
+                //context.setOptions(ModelExecuteOptions.createNoCrypt());
                 return context;
             }
 
@@ -778,7 +783,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
         // WHEN
 
-       	HookOperationMode mode = clockwork.run(context, modelTask, result);
+        HookOperationMode mode = clockwork.run(context, modelTask, result);
 
         // THEN
 
@@ -977,5 +982,17 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             LOGGER.info("User " + name + " was deleted");
         }
     }
+
+    <O extends ObjectType> ObjectDelta<O> encryptAndAddFocusModificationToContext(
+            LensContext<O> context, File file)
+            throws JAXBException, SchemaException, IOException {
+        ObjectModificationType modElement = PrismTestUtil.parseAtomicValue(
+                file, ObjectModificationType.COMPLEX_TYPE);
+        ObjectDelta<O> focusDelta = DeltaConvertor.createObjectDelta(
+                modElement, context.getFocusClass(), prismContext);
+        Utils.encrypt((Collection) Arrays.asList(focusDelta), protector, null, new OperationResult("dummy"));
+        return addFocusDeltaToContext(context, focusDelta);
+    }
+
 
 }
