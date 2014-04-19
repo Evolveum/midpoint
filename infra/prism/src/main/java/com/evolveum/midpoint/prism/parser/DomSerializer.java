@@ -116,8 +116,11 @@ public class DomSerializer {
 		QName rootElementName = rootxnode.getRootElementName();
 		Element topElement = createElement(rootElementName);
 		QName typeQName = rootxnode.getTypeQName();
+        if (typeQName == null && rootxnode.getSubnode().getTypeQName() != null) {
+            typeQName = rootxnode.getSubnode().getTypeQName();
+        }
 		if (typeQName != null && !schemaRegistry.hasImplicitTypeDefinition(rootElementName, typeQName)) {
-			DOMUtil.setXsiType(topElement, rootxnode.getTypeQName());
+			DOMUtil.setXsiType(topElement, typeQName);
 		}
 		XNode subnode = rootxnode.getSubnode();
 		if (subnode instanceof PrimitiveXNode){

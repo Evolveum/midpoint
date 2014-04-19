@@ -310,6 +310,8 @@ public class XNodeProcessor {
             return parsePrismPropertyFromPrimitive((PrimitiveXNode)xnode, propName, propertyDefinition);
         } else if (xnode instanceof SchemaXNode){
             return parsePrismPropertyFromSchema((SchemaXNode) xnode, propName, propertyDefinition);
+        } else if (xnode instanceof RootXNode) {
+            return parsePrismProperty(((RootXNode) xnode).getSubnode(), propName, propertyDefinition);      // todo what about possibly lost type name of root node?
         } else {
             throw new IllegalArgumentException("Cannot parse property from " + xnode);
         }
@@ -1087,6 +1089,18 @@ public class XNodeProcessor {
             }
             return new RootXNode(new QName(null, "value"), valueXNode);
         }
+    }
+
+    // TODO: very preliminary implementation - does not care for special cases (e.g. PolyString etc)
+    public RootXNode serializeAtomicValue(Object object, QName elementName) throws SchemaException {
+        XNode valueXNode = prismContext.getBeanConverter().marshall(object);
+        QName typeQName = JAXBUtil.getTypeQName(object.getClass());
+        if (typeQName != null) {
+            valueXNode.setTypeQName(typeQName);
+        } else {
+            throw new SchemaException("No type QName for class " + object.getClass());
+        }
+        return new RootXNode(elementName, valueXNode);
     }
 
     public boolean canSerialize(Object object) {

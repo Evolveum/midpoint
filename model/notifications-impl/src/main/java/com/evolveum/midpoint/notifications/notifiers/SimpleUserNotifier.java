@@ -53,9 +53,13 @@ public class SimpleUserNotifier extends GeneralNotifier {
         if (!(event instanceof ModelEvent)) {
             LOGGER.trace("SimpleUserNotifier is not applicable for this kind of event, continuing in the handler chain; event class = " + event.getClass());
             return false;
-        } else {
-            return true;
         }
+        ModelEvent modelEvent = (ModelEvent) event;
+        if (modelEvent.getFocusContext() == null || !UserType.class.isAssignableFrom(modelEvent.getFocusContext().getObjectTypeClass())) {
+            LOGGER.trace("SimpleUserNotifier is not applicable to non-user related model operations, continuing in the handler chain");
+            return false;
+        }
+        return true;
     }
 
     @Override
