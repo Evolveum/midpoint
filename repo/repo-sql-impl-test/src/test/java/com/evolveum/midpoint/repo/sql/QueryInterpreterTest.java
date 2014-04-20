@@ -966,12 +966,20 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
 
         try {
-            Query query = session.createQuery(
-                    "select o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount "
-                            + "from ROrg as o left join o.descendants as d "
-                            + "where d.ancestorOid=:aOid and d.depth <=:maxDepth "
-                            + "group by o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount, o.name.orig "
-                            + "order by o.name.orig asc");
+            Query query;
+            if (repositoryService.getConfiguration().isUsingOracle()) {
+                query = session.createQuery(
+                        "select o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount " +
+                                "from ROrg as o where o.oid in (select d.descendantOid from ROrgClosure " +
+                                "as d where d.ancestorOid = :aOid and d.depth <= :maxDepth group by d.descendantOid)");
+            } else {
+                query = session.createQuery(
+                        "select o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount "
+                                + "from ROrg as o left join o.descendants as d "
+                                + "where d.ancestorOid=:aOid and d.depth <=:maxDepth "
+                                + "group by o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount, o.name.orig "
+                                + "order by o.name.orig asc");
+            }
             query.setString("aOid", "1234");
             query.setInteger("maxDepth", 1);
 
