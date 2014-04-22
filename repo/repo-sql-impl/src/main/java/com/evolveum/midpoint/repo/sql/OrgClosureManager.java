@@ -38,6 +38,12 @@ public class OrgClosureManager {
 
     private static final Trace LOGGER = TraceManager.getTrace(OrgClosureManager.class);
 
+    private SqlRepositoryConfiguration repoConfiguration;
+
+    public OrgClosureManager(SqlRepositoryConfiguration repoConfiguration) {
+        this.repoConfiguration = repoConfiguration;
+    }
+
     public <T extends ObjectType> void updateOrgClosure(Collection<? extends ItemDelta> modifications, Session session,
                                                         String oid, Class<T> type, Operation operation) {
         LOGGER.debug("Starting update for org. closure for {} {}.", oid, type);
