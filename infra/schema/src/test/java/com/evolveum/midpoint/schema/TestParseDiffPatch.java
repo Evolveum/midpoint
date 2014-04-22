@@ -105,6 +105,99 @@ public class TestParseDiffPatch {
         assertNotNull("Property delta for "+path+" not found",propertyDelta);
         assertEquals(1, propertyDelta.getValuesToAdd().size());
     }
+    
+    //@Test
+    public void testAssignmentActivationDiff() throws Exception {
+        System.out.println("===[ testUserCredentialsDiff ]===");
+
+        PrismObject<UserType> userBefore = PrismTestUtil.parseObject(
+                new File(TEST_DIR, "user-before.xml"));
+        PrismObject<UserType> userAfter = userBefore.clone();
+        AssignmentType assignmentBefore = new AssignmentType();
+        ActivationType activation = new ActivationType();
+        activation.setAdministrativeStatus(ActivationStatusType.DISABLED);
+        assignmentBefore.setActivation(activation);
+        userBefore.asObjectable().getAssignment().add(assignmentBefore);
+        
+        AssignmentType assignmentAfter = new AssignmentType();
+        activation = new ActivationType();
+        activation.setAdministrativeStatus(ActivationStatusType.ENABLED);
+        assignmentAfter.setActivation(activation);
+        userAfter.asObjectable().getAssignment().add(assignmentAfter);
+
+        
+        Collection<? extends ItemDelta> userDelta = assignmentBefore.asPrismContainerValue().diff(assignmentAfter.asPrismContainerValue());
+//        ObjectDelta<UserType> userDelta = userBefore.diff(userAfter);
+        System.out.println("DELTA:");
+//        System.out.println(userDelta.debugDump());
+
+//        userBefore.checkConsistence();
+//        userAfter.checkConsistence();
+//        userDelta.checkConsistence();
+//        userDelta.assertDefinitions();
+        
+        ItemDelta assignmentDelta = userDelta.iterator().next();
+        System.out.println("Assignment delta: " + assignmentDelta);
+        System.out.println("Assignment delta: " + assignmentDelta.debugDump());
+
+        ItemPath path = new ItemPath(SchemaConstantsGenerated.C_ASSIGNMENT,
+                AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
+//        PrismAsserts.assertPropertyAdd(assignmentDelta, path, 1);
+//        path = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
+//        		CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
+        PropertyDelta propertyDelta = ItemDelta.findPropertyDelta(userDelta, path);
+        assertNotNull("Property delta for "+path+" not found",propertyDelta);
+//        assertEquals(1, propertyDelta.getValuesToAdd().size());
+        
+        assignmentAfter = new AssignmentType();
+        activation = new ActivationType();
+        activation.setAdministrativeStatus(null);
+        assignmentAfter.setActivation(activation);
+        userDelta = assignmentBefore.asPrismContainerValue().diff(assignmentAfter.asPrismContainerValue());
+//      ObjectDelta<UserType> userDelta = userBefore.diff(userAfter);
+      System.out.println("DELTA:");
+//      System.out.println(userDelta.debugDump());
+
+//      userBefore.checkConsistence();
+//      userAfter.checkConsistence();
+//      userDelta.checkConsistence();
+//      userDelta.assertDefinitions();
+      
+      assignmentDelta = userDelta.iterator().next();
+      System.out.println("Assignment delta: " + assignmentDelta);
+      System.out.println("Assignment delta: " + assignmentDelta.debugDump());
+
+      path = new ItemPath(SchemaConstantsGenerated.C_ASSIGNMENT,
+              AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
+//      PrismAsserts.assertPropertyAdd(assignmentDelta, path, 1);
+//      path = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
+//      		CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
+      propertyDelta = ItemDelta.findPropertyDelta(userDelta, path);
+
+ 
+     
+      userDelta = assignmentAfter.asPrismContainerValue().diff(assignmentBefore.asPrismContainerValue());
+//    ObjectDelta<UserType> userDelta = userBefore.diff(userAfter);
+    System.out.println("DELTA:");
+//    System.out.println(userDelta.debugDump());
+
+//    userBefore.checkConsistence();
+//    userAfter.checkConsistence();
+//    userDelta.checkConsistence();
+//    userDelta.assertDefinitions();
+    
+    assignmentDelta = userDelta.iterator().next();
+    System.out.println("Assignment delta: " + assignmentDelta);
+    System.out.println("Assignment delta: " + assignmentDelta.debugDump());
+
+    path = new ItemPath(SchemaConstantsGenerated.C_ASSIGNMENT,
+            AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
+//    PrismAsserts.assertPropertyAdd(assignmentDelta, path, 1);
+//    path = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
+//    		CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
+    propertyDelta = ItemDelta.findPropertyDelta(userDelta, path);
+
+    }
 
 	@Test
 	public void testUser() throws SchemaException, SAXException, IOException, JAXBException {

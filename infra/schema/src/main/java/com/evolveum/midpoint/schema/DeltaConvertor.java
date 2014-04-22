@@ -280,7 +280,6 @@ public class DeltaConvertor {
     		parentPath = parentPathType.getItemPath();
     	} else {
     		throw new IllegalStateException("Path argument in the itemDelta HAVE TO BE specified.");
-//    		parentPath = new ItemPath();
     	}
         if (propMod.getValue() == null) {
             throw new IllegalArgumentException("No value in item delta (path: " + parentPath + ") while creating a property delta");
@@ -289,40 +288,13 @@ public class DeltaConvertor {
         ItemDefinition containingPcd = pcDef.findItemDefinition(parentPath);
         PrismContainerDefinition containerDef = null;
         if (containingPcd == null) {
-//        	QName elementName = parentPath.lastNamed().getName();
         	containerDef = pcDef.findContainerDefinition(parentPath.allUpToLastNamed());
         	if (containerDef == null){
         		throw new SchemaException("No definition for " + parentPath.allUpToLastNamed().lastNamed().getName() + " (while creating delta for " + pcDef + ")");
         	} 
-        	
-//        	containingPcd = pcDef.getPrismContext().getXnodeProcessor().locateItemDefinition(containerDef, elementName, propMod.getValue().);
-        	
-//        	if (containingPcd == null){
-//        		throw new SchemaException("No definition for " + parentPath + " (while creating delta for " + pcDef + ")");
-//        	}
-            
         }
-//        System.out.println("DELTA: " + propMod.getValue().getXnode().debugDump());
-//        Collection<Item<V>> items = pcDef.getPrismContext().getJaxbDomHack().fromAny(propMod.getValue().getContent(), 
-//        		containingPcd);
-        
-//        Collection<Item<V>> items = new ArrayList<Item<V>>();
-        
-//        
-//        if (items.size() > 1) {
-//            throw new SchemaException("Expected presence of a single item (path " + propMod.getPath() + ") in a object modification, but found " + items.size() + " instead");
-//        }
-//        if (items.size() < 1) {
-//        	if (propMod.getModificationType() == ModificationTypeType.REPLACE) {
-//        		// Empty replace delta is OK
-//        	} else {
-//        		throw new SchemaException("Expected presence of a value (path " + propMod.getPath() + ") in a object modification, but found nothing");
-//        	}
-//        }
-//        Item<V> item = items.iterator().next();
         QName elementName = parentPath.lastNamed().getName();
         Item item = RawTypeUtil.getParsedItem(containingPcd, propMod.getValue(), elementName, containerDef);//propMod.getValue().getParsedValue(containingPcd);
-//        ItemDelta<V> itemDelta = item.createDelta(parentPath.subPath(item.getElementName()));
         ItemDelta<V> itemDelta = item.createDelta(parentPath);
         if (propMod.getModificationType() == ModificationTypeType.ADD) {
         	itemDelta.addValuesToAdd(PrismValue.resetParentCollection(PrismValue.cloneCollection(item.getValues())));
