@@ -2,6 +2,7 @@ package com.evolveum.midpoint.wf.util;
 
 import com.evolveum.midpoint.prism.PrismContext;
 
+import javax.xml.bind.JAXB;
 import java.io.Serializable;
 
 /**
@@ -23,7 +24,7 @@ public class JaxbValueContainer<T> extends SerializationSafeContainer<T> {
     }
 
     public String getXmlValue() {
-        if (encodingScheme != EncodingScheme.JAXB && encodingScheme != EncodingScheme.PRISM_CONTAINER && encodingScheme != EncodingScheme.PRISM_OBJECT) {
+        if (encodingScheme != EncodingScheme.PRISM) {
             throw new UnsupportedOperationException("Couldn't obtain an XML representation of an object; encodingScheme = " + encodingScheme);
         }
 
@@ -54,7 +55,7 @@ public class JaxbValueContainer<T> extends SerializationSafeContainer<T> {
 
     // prerequisite: the object already contained a value, so the encoding scheme is known
     public void setXmlValue(String newValue) {
-        if (encodingScheme != EncodingScheme.JAXB && encodingScheme != EncodingScheme.PRISM_CONTAINER && encodingScheme != EncodingScheme.PRISM_OBJECT) {
+        if (encodingScheme != EncodingScheme.PRISM) {
             throw new UnsupportedOperationException("Couldn't set new XML value for an object with encodingScheme = " + encodingScheme);
         }
         valueForStorageWhenEncoded = newValue;

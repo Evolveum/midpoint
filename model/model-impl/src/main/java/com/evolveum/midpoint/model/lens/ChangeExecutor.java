@@ -839,7 +839,7 @@ public class ChangeExecutor {
                     if (!existingModifyApproverRefs.isEmpty()) {
                         List<PrismReferenceValue> valuesToDelete = new ArrayList<PrismReferenceValue>();
                         for (ObjectReferenceType approverRef : objectContext.getObjectOld().asObjectable().getMetadata().getModifyApproverRef()) {
-                            valuesToDelete.add(new PrismReferenceValue(approverRef.getOid()));
+                            valuesToDelete.add(approverRef.asReferenceValue().clone());
                         }
                         ReferenceDelta refDelta = ReferenceDelta.createModificationDelete((new ItemPath(ObjectType.F_METADATA,
                                 MetadataType.F_MODIFY_APPROVER_REF)), def, valuesToDelete);

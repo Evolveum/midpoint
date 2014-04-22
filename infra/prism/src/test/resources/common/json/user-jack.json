@@ -72,8 +72,7 @@
         "name" : "jsparrow"
       }
     }, {
-      "oid" : "c0c010c0-d34d-b33f-f00d-aaaaaaaa1111",
-      "type" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd#AccountType"
+      "oid" : "c0c010c0-d34d-b33f-f00d-aaaaaaaa1111"
     }, {
       "oid" : "c0c010c0-d34d-b33f-f00d-aaaaaaaa1112",
       "type" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd#AccountType",

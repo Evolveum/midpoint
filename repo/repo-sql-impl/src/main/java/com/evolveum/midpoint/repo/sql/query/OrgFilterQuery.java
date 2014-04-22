@@ -65,6 +65,10 @@ public class OrgFilterQuery extends CustomQuery {
 
         LOGGER.trace("createOrgQuery {}, counting={}, filter={}", new Object[]{type.getSimpleName(), countingObjects, filter});
 
+        if (getRepoConfiguration().isUsingOracle()) {
+            return createOracleQuery(filter, type, countingObjects, session);
+        }
+
         StringBuilder sb = new StringBuilder();
         sb.append("select ");
         if (countingObjects) {
@@ -94,6 +98,48 @@ public class OrgFilterQuery extends CustomQuery {
         }
 
         Query query = session.createQuery(sb.toString());
+        updateQuery(query, filter, countingObjects);
+
+        return new RQueryImpl(query);
+    }
+
+    /**
+     * This query is probably much faster than the standard one,
+     * but it's using IN clause, we need to check it's performance. [lazyman]
+     */
+    private RQuery createOracleQuery(OrgFilter filter, Class<? extends ObjectType> type, boolean countingObjects,
+                                     Session session) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("select ");
+        if (countingObjects) {
+            sb.append("count(*) ");
+        } else {
+            sb.append("o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount ");
+        }
+        sb.append("from ").append(ClassMapper.getHQLType(type)).append(" as o where o.oid in (");
+        sb.append("select d.descendantOid from ROrgClosure as d ");
+        sb.append("where d.ancestorOid = :aOid ");
+        if (filter.getMinDepth() != null || filter.getMaxDepth() != null) {
+            if (ObjectUtils.equals(filter.getMinDepth(), filter.getMaxDepth())) {
+                sb.append("and d.depth = :depth ");
+            } else {
+                if (filter.getMinDepth() != null) {
+                    sb.append("and d.depth > :minDepth ");
+                }
+                if (filter.getMaxDepth() != null) {
+                    sb.append("and d.depth <= :maxDepth ");
+                }
+            }
+        }
+        sb.append("group by d.descendantOid)");
+
+        Query query = session.createQuery(sb.toString());
+        updateQuery(query, filter, countingObjects);
+
+        return new RQueryImpl(query);
+    }
+
+    private void updateQuery(Query query, OrgFilter filter, boolean countingObjects) {
         query.setString("aOid", filter.getOrgRef().getOid());
         if (filter.getMinDepth() != null || filter.getMaxDepth() != null) {
             if (ObjectUtils.equals(filter.getMinDepth(), filter.getMaxDepth())) {
@@ -111,7 +157,5 @@ public class OrgFilterQuery extends CustomQuery {
         if (!countingObjects) {
             query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
         }
-
-        return new RQueryImpl(query);
     }
 }

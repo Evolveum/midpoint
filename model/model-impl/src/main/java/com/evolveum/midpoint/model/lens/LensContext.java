@@ -668,6 +668,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
     	// User template is de-facto immutable, OK to just pass reference here.
     	clone.focusTemplate = this.focusTemplate;
     	clone.projectionWave = this.projectionWave;
+        if (options != null) {
+            clone.options = this.options.clone();
+        }
     	
     	if (this.focusContext != null) {
     		clone.focusContext = this.focusContext.clone(this);
@@ -739,6 +742,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
         DebugUtil.debugDumpLabel(sb, "Channel", indent + 1);
         sb.append(" ").append(channel).append("\n");
+        DebugUtil.debugDumpLabel(sb, "Options", indent + 1);
+        sb.append(" ").append(options).append("\n");
         DebugUtil.debugDumpLabel(sb, "Settings", indent + 1);
         sb.append(" ");
         if (accountSynchronizationSettings != null) {

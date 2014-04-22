@@ -102,7 +102,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		return getLensContext().getNotNullPrismContext();
 	}
 
-	public Class<O> getObjectTypeClass() {
+	@Override
+    public Class<O> getObjectTypeClass() {
 		return objectTypeClass;
 	}
 	

@@ -563,7 +563,7 @@ class DomToSchemaProcessor {
 					continue;
 					//throw new SchemaException("Found element "+elementName+" with incomplete type name: {"+xsType.getTargetNamespace()+"}"+xsType.getName());
 				}
-				XSAnnotation annotation = xsType.getAnnotation();
+				XSAnnotation annotation = xsElementDecl.getAnnotation();
 				
 				if (isPropertyContainer(xsElementDecl) || isObjectDefinition(xsType)) {
 					

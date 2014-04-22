@@ -102,7 +102,7 @@
     </account>
         
     <!-- Plain reference -->
-    <accountRef oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1111" type="AccountType"/>
+    <accountRef oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1111" />       <!-- deliberately without specifying the type, as it should be taken from the definition -->
     
     <!-- Reference with description and filter -->
     <accountRef oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1112" type="AccountType">

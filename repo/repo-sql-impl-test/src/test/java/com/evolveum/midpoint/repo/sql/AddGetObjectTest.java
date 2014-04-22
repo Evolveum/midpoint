@@ -556,7 +556,10 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         try {
             Query query = session.createSQLQuery("select id from m_assignment where owner_oid=:oid");
             query.setString("oid", OID);
-            List<Short> dbShorts = query.list();
+            List<Short> dbShorts = new ArrayList<>();
+            for (Number n : (List<Number>) query.list()) {
+                dbShorts.add(n.shortValue());
+            }
             Collections.sort(dbShorts);
 
             LOGGER.info("assigments ids: expected {} db {}", Arrays.toString(xmlShorts.toArray()),

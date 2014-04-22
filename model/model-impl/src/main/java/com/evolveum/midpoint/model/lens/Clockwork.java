@@ -196,7 +196,7 @@ public class Clockwork {
 					throw new IllegalStateException(e.getMessage()+" in clockwork, state="+state, e);
 				}
 			}
-			if (InternalsConfig.encryptionChecks) {
+			if (InternalsConfig.encryptionChecks && !ModelExecuteOptions.isNoCrypt(context.getOptions())) {
 				context.checkEncrypted();
 			}
 			

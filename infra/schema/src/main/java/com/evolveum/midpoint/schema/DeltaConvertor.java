@@ -231,8 +231,9 @@ public class DeltaConvertor {
 
     public static String toObjectDeltaTypeXml(ObjectDelta<? extends ObjectType> delta) throws SchemaException, JAXBException {
         ObjectDeltaType objectDeltaType = toObjectDeltaType(delta);
-        Element element = delta.getPrismContext().getJaxbDomHack().marshalJaxbObjectToDom(objectDeltaType, SchemaConstants.T_OBJECT_DELTA);
-        return DOMUtil.serializeDOMToString(element);
+        return delta.getPrismContext().serializeAtomicValue(objectDeltaType, SchemaConstants.T_OBJECT_DELTA, PrismContext.LANG_XML);
+//        Element element = delta.getPrismContext().getJaxbDomHack().marshalJaxbObjectToDom(objectDeltaType, SchemaConstants.T_OBJECT_DELTA);
+//        return DOMUtil.serializeDOMToString(element);
     }
 
 
@@ -372,13 +373,14 @@ public class DeltaConvertor {
 	        for (PrismValue value : values) {
 	        	System.out.println("value: " + value.debugDump());
 	        	//FIXME: serilaize to XNode instead of dom??
-	        	Object xmlValue = toAny(delta, value, document);
-	        	System.out.println("xmlValue " + xmlValue);
-	        	RawType modValue = new RawType();
-	            modValue.getContent().add(xmlValue);
-	            mod.getValue().add(modValue);
-//	        	XNode xnode = toXNode(delta, value);
-//	        	modValue.setXnode(xnode);
+//	        	Object xmlValue = toAny(delta, value, document);
+//	        	System.out.println("xmlValue " + xmlValue);
+//	        	RawType modValue = new RawType();
+//	            modValue.getContent().add(xmlValue);
+//	            mod.getValue().add(modValue);
+	        	XNode xnode = toXNode(delta, value);
+	        	RawType modValue = new RawType(xnode);
+                mod.getValue().add(modValue);
 	        }
         }
     }
