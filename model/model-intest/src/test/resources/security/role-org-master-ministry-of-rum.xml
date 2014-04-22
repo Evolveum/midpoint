@@ -26,4 +26,13 @@
     		<orgRef oid="00000000-8888-6666-0000-100000000004"/>
     	</object>
     </authorization>
+    <authorization>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#read</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#modify</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#add</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#delete</action>
+    	<object>
+    		<type>ShadowType</type>
+    	</object>
+    </authorization>
 </role>

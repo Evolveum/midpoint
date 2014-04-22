@@ -143,6 +143,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_PROP_READ_ALL_MODIFY_SOME_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_MASTER_MINISTRY_OF_RUM_FILE, RoleType.class, initResult);
 		
+		assignOrg(USER_GUYBRUSH_OID, ORG_SWASHBUCKLER_SECTION_OID, initTask, initResult);
+		
 		PrismObject<UserType> userRum = createUser(USER_RUM_ROGERS_NAME, "Rum Rogers");
 		addObject(userRum, initTask, initResult);
 		userRumRogersOid = userRum.getOid();

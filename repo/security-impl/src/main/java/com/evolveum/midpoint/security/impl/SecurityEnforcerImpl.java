@@ -376,7 +376,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				ObjectQueryUtil.assertPropertyOnly(specFilter, "Filter in authorization "+desc+" is not property-only filter");
 			}
 			if (!ObjectQuery.match(object, specFilter, matchingRuleRegistry)) {
-				LOGGER.trace("  filter authorization not applicable for {}, OID {}",
+				LOGGER.trace("  filter authorization not applicable for {}, object OID {}",
 						new Object[]{desc, object.getOid()});
 				return false;
 			}
@@ -393,8 +393,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			
 			boolean anySubordinate = repositoryService.isAnySubordinate(specOrgRef.getOid(), objParentOrgOids);
 			if (!anySubordinate) {
-				LOGGER.trace("  org authorization not applicable for {}, OID {}",
-						new Object[]{desc, object.getOid()});
+				LOGGER.trace("  org authorization not applicable for {}, object OID {} (autz={} parentRefs={})",
+						new Object[]{desc, object.getOid(), specOrgRef.getOid(), objParentOrgOids});
 				return false;
 			}
 			
