@@ -267,6 +267,20 @@ public class PrismContext {
         }
         return objects;
     }
+    
+    public Collection<XNode> parseObjects(InputStream stream, String language) throws SchemaException, IOException {
+        Parser parser = getParserNotNull(language);
+        Collection<XNode> nodes = parser.parseCollection(stream);
+        return nodes;
+//        Iterator<XNode> nodesIterator = nodes.iterator();
+//        List<PrismObject<? extends Objectable>> objects = new ArrayList<PrismObject<? extends Objectable>>();
+//        while (nodesIterator.hasNext()){
+//            XNode node = nodesIterator.next();
+//            PrismObject object = xnodeProcessor.parseObject(node);
+//            objects.add(object);
+//        }
+//        return objects;
+    }
     //endregion
 
     //region Parsing prism containers

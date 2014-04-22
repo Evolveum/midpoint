@@ -68,6 +68,12 @@ public abstract class AbstractParser implements Parser {
 	}
 	
 	@Override
+	public Collection<XNode> parseCollection(InputStream stream) throws SchemaException, IOException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
 	public XNode parse(File file) throws SchemaException, IOException {
 		JsonParser parser = createParser(file);
 		return parseObject(parser);
