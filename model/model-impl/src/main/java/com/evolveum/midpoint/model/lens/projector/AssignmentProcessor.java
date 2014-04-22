@@ -23,6 +23,7 @@ import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.controller.ModelUtils;
@@ -32,6 +33,7 @@ import com.evolveum.midpoint.model.lens.EvaluatedAssignment;
 import com.evolveum.midpoint.model.lens.AssignmentEvaluator;
 import com.evolveum.midpoint.model.lens.AssignmentPath;
 import com.evolveum.midpoint.model.lens.AssignmentPathSegment;
+import com.evolveum.midpoint.model.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
@@ -41,6 +43,7 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
@@ -54,6 +57,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -67,6 +71,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProjectionPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
@@ -84,6 +90,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -126,6 +133,9 @@ public class AssignmentProcessor {
     
     @Autowired(required = true)
 	private ActivationComputer activationComputer;
+    
+    @Autowired(required = true)
+    private FocusPolicyProcessor focusPolicyProcessor;
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
 
@@ -210,8 +220,8 @@ public class AssignmentProcessor {
             source = focusContext.getObjectNew().asObjectable();
         }
         
-        DeltaSetTriple<EvaluatedAssignment> evaluatedAssignmentTriple = new DeltaSetTriple<EvaluatedAssignment>();
-        context.setEvaluatedAssignmentTriple(evaluatedAssignmentTriple);
+        DeltaSetTriple<EvaluatedAssignment<F>> evaluatedAssignmentTriple = new DeltaSetTriple<>();
+        context.setEvaluatedAssignmentTriple((DeltaSetTriple)evaluatedAssignmentTriple);
         
         // Iterate over all the assignments. I mean really all. This is a union of the existing and changed assignments
         // therefore it contains all three types of assignments (plus, minus and zero). As it is an union each assignment
@@ -262,7 +272,7 @@ public class AssignmentProcessor {
             	if (LOGGER.isTraceEnabled()) {
             		LOGGER.trace("Processing focus delete for: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
             	}
-            	EvaluatedAssignment evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+            	EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
                 if (evaluatedAssignment == null) {
                 	continue;
                 }
@@ -285,7 +295,7 @@ public class AssignmentProcessor {
             		boolean willHaveValue = assignmentDelta.isValueToReplace(assignmentCVal, true);
             		if (hadValue && willHaveValue) {
             			// No change
-            			EvaluatedAssignment evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+            			EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
                         if (evaluatedAssignment == null) {
                         	continue;
                         }
@@ -293,7 +303,7 @@ public class AssignmentProcessor {
     	                evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
             		} else if (willHaveValue) {
             			// add
-            			EvaluatedAssignment evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+            			EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
                         if (evaluatedAssignment == null) {
                         	continue;
                         }
@@ -301,7 +311,7 @@ public class AssignmentProcessor {
 	                    evaluatedAssignmentTriple.addToPlusSet(evaluatedAssignment);
             		} else if (hadValue) {
             			// delete
-            			EvaluatedAssignment evaluatedAssignment = evaluateAssignment(assignmentCValOld.asContainerable(), context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+            			EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentCValOld.asContainerable(), context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
                         if (evaluatedAssignment == null) {
                         	continue;
                         }
@@ -328,7 +338,7 @@ public class AssignmentProcessor {
 		                		if (LOGGER.isTraceEnabled()) {
 				            		LOGGER.trace("Processing changed assignment, phantom add: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
 				            	}
-		                		EvaluatedAssignment evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
@@ -338,7 +348,7 @@ public class AssignmentProcessor {
 		                		if (LOGGER.isTraceEnabled()) {
 				            		LOGGER.trace("Processing changed assignment, add: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
 				            	}
-		                		EvaluatedAssignment evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
@@ -351,7 +361,7 @@ public class AssignmentProcessor {
 		                	if (LOGGER.isTraceEnabled()) {
 			            		LOGGER.trace("Processing changed assignment, delete: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
 			            	}
-		                	EvaluatedAssignment evaluatedAssignment = evaluateAssignment(assignmentCValOld.asContainerable(), context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+		                	EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentCValOld.asContainerable(), context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                    if (evaluatedAssignment == null) {
 		                    	continue;
 		                    }
@@ -371,7 +381,7 @@ public class AssignmentProcessor {
 		                		if (LOGGER.isTraceEnabled()) {
 				            		LOGGER.trace("Processing changed assignment, minor change (add={}, delete={}, valid={}): {}", new Object[]{isAdd, isDelete, isValid, SchemaDebugUtil.prettyPrint(assignmentCVal)});
 				            	}
-		                		EvaluatedAssignment evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
@@ -382,7 +392,7 @@ public class AssignmentProcessor {
 		                		if (LOGGER.isTraceEnabled()) {
 				            		LOGGER.trace("Processing changed assignment, assignment becomes valid (add={}, delete={}): {}", new Object[]{isAdd, isDelete, SchemaDebugUtil.prettyPrint(assignmentCVal)});
 				            	}
-		                		EvaluatedAssignment evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
@@ -393,7 +403,7 @@ public class AssignmentProcessor {
 		                		if (LOGGER.isTraceEnabled()) {
 				            		LOGGER.trace("Processing changed assignment, assignment becomes invalid (add={}, delete={}): {}", new Object[]{isAdd, isDelete, SchemaDebugUtil.prettyPrint(assignmentCVal)});
 				            	}
-		                		EvaluatedAssignment evaluatedAssignment = evaluateAssignment(assignmentCValOld.asContainerable(), context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+		                		EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentCValOld.asContainerable(), context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
@@ -408,7 +418,7 @@ public class AssignmentProcessor {
 		            		LOGGER.trace("Processing unchanged assignment {}", new Object[]{SchemaDebugUtil.prettyPrint(assignmentCVal)});
 		            	}
 		            	boolean isValid = LensUtil.isValid(assignmentType, now, activationComputer);
-		            	EvaluatedAssignment evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
+		            	EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
 		                if (evaluatedAssignment == null) {
 		                	continue;
 		                }
@@ -419,17 +429,36 @@ public class AssignmentProcessor {
             }
         }
         
+        
+        // PROCESSING POLICIES
+        
         // Checking for assignment exclusions. This means mostly role exclusions (SoD) 
         checkExclusions(context, evaluatedAssignmentTriple.getZeroSet(), evaluatedAssignmentTriple.getPlusSet());
         checkExclusions(context, evaluatedAssignmentTriple.getPlusSet(), evaluatedAssignmentTriple.getPlusSet());
         
+        
+        // PROCESSING FOCUS
+        
+        Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> focusOutputTripleMap = new HashMap<>();
+        collectFocusTripleFromMappings(evaluatedAssignmentTriple.getPlusSet(), focusOutputTripleMap, PlusMinusZero.PLUS);
+        collectFocusTripleFromMappings(evaluatedAssignmentTriple.getMinusSet(), focusOutputTripleMap, PlusMinusZero.MINUS);
+        collectFocusTripleFromMappings(evaluatedAssignmentTriple.getZeroSet(), focusOutputTripleMap, PlusMinusZero.ZERO);
+        ObjectDeltaObject<F> focusOdo = focusContext.getObjectDeltaObject();
+		Collection<ItemDelta<? extends PrismValue>> focusDeltas = focusPolicyProcessor.computeItemDeltas(focusOutputTripleMap,
+				focusOdo, focusContext.getObjectDefinition(), "focus mappings in assignments of "+focusContext.getHumanReadableName());
+		LOGGER.trace("Computed focus deltas: {}", focusDeltas);
+		focusContext.applyProjectionWaveSecondaryDeltas(focusDeltas);
+
+		
+        // PROCESSING PROJECTIONS
+        
         if (LOGGER.isTraceEnabled()) {
             // Dump the maps
-            LOGGER.trace("Account maps:\nZERO:\n{}\nPLUS:\n{}\nMINUS:\n{}\n", new Object[]{dumpAccountMap(zeroConstructionMap),
+            LOGGER.trace("Projection maps:\nZERO:\n{}\nPLUS:\n{}\nMINUS:\n{}\n", new Object[]{dumpAccountMap(zeroConstructionMap),
                     dumpAccountMap(plusConstructionMap), dumpAccountMap(minusConstructionMap)});
         }
-
-        // Now we are processing account constructions from all the three sets once again. We will create projection contexts
+        
+        // Now we are processing constructions from all the three sets once again. We will create projection contexts
         // for them if not yet created. Now we will do the usual routing for converting the delta triples to deltas. 
         // I.e. zero means unchanged, plus means added, minus means deleted. That will be recorded in the SynchronizationPolicyDecision.
         // We will also collect all the construction triples to projection context. These will be used later for computing
@@ -622,13 +651,13 @@ public class AssignmentProcessor {
 		return all;
 	}
 	
-	private <F extends FocusType> EvaluatedAssignment evaluateAssignment(AssignmentType assignmentType, 
+	private <F extends FocusType> EvaluatedAssignment<F> evaluateAssignment(AssignmentType assignmentType, 
 			LensContext<F> context, ObjectType source, AssignmentEvaluator<F> assignmentEvaluator, 
 			String assignmentPlacementDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
         try{
         	// Evaluate assignment. This follows to the assignment targets, follows to the inducements, 
         	// evaluates all the expressions, etc. 
-        	EvaluatedAssignment evaluatedAssignment = assignmentEvaluator.evaluate(assignmentType, source, assignmentPlacementDesc, task, result);
+        	EvaluatedAssignment<F> evaluatedAssignment = assignmentEvaluator.evaluate(assignmentType, source, assignmentPlacementDesc, task, result);
         	context.rememberResources(evaluatedAssignment.getResources(result));
         	return evaluatedAssignment;
         } catch (ObjectNotFoundException ex){
@@ -934,13 +963,13 @@ public class AssignmentProcessor {
 		
     }
 
-    private <F extends ObjectType> void collectToAccountMap(LensContext<F> context,
-            Map<ResourceShadowDiscriminator, ConstructionPack> accountMap, EvaluatedAssignment evaluatedAssignment, 
+    private <F extends FocusType> void collectToAccountMap(LensContext<F> context,
+            Map<ResourceShadowDiscriminator, ConstructionPack> accountMap, EvaluatedAssignment<F> evaluatedAssignment, 
             boolean forceRecon, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
     	if (LOGGER.isTraceEnabled()) {
     		LOGGER.trace("Collecting evaluated assignment:\n{}", evaluatedAssignment.debugDump());
     	}
-        for (Construction construction : evaluatedAssignment.getConstructions()) {
+        for (Construction<F> construction : evaluatedAssignment.getConstructions()) {
             String resourceOid = construction.getResource(result).getOid();
             String intent = construction.getIntent();
             ShadowKindType kind = construction.getKind();
@@ -996,21 +1025,21 @@ public class AssignmentProcessor {
         }
     }
 
-	private <F extends ObjectType> void checkExclusions(LensContext<F> context, Collection<EvaluatedAssignment> assignmentsA,
-			Collection<EvaluatedAssignment> assignmentsB) throws PolicyViolationException {
-		for (EvaluatedAssignment assignmentA: assignmentsA) {
+	private <F extends FocusType> void checkExclusions(LensContext<F> context, Collection<EvaluatedAssignment<F>> assignmentsA,
+			Collection<EvaluatedAssignment<F>> assignmentsB) throws PolicyViolationException {
+		for (EvaluatedAssignment<F> assignmentA: assignmentsA) {
 			checkExclusion(context, assignmentA, assignmentsB);
 		}
 	}
 
-	private <F extends ObjectType> void checkExclusion(LensContext<F> context, EvaluatedAssignment assignmentA,
-			Collection<EvaluatedAssignment> assignmentsB) throws PolicyViolationException {
-		for (EvaluatedAssignment assignmentB: assignmentsB) {
+	private <F extends FocusType> void checkExclusion(LensContext<F> context, EvaluatedAssignment<F> assignmentA,
+			Collection<EvaluatedAssignment<F>> assignmentsB) throws PolicyViolationException {
+		for (EvaluatedAssignment<F> assignmentB: assignmentsB) {
 			checkExclusion(context, assignmentA, assignmentB);
 		}
 	}
 
-	private <F extends ObjectType> void checkExclusion(LensContext<F> context, EvaluatedAssignment assignmentA, EvaluatedAssignment assignmentB) throws PolicyViolationException {
+	private <F extends FocusType> void checkExclusion(LensContext<F> context, EvaluatedAssignment<F> assignmentA, EvaluatedAssignment<F> assignmentB) throws PolicyViolationException {
 		if (assignmentA == assignmentB) {
 			// Same thing, this cannot exclude itself
 			return;
@@ -1099,6 +1128,43 @@ public class AssignmentProcessor {
     
     private <F extends FocusType> PrismContainerDefinition<AssignmentType> getAssignmentContainerDefinition(LensFocusContext<F> focusContext) {
 		return focusContext.getObjectDefinition().findContainerDefinition(FocusType.F_ASSIGNMENT);
+	}
+    
+    private <V extends PrismValue, F extends FocusType> XMLGregorianCalendar collectFocusTripleFromMappings(
+    		Collection<EvaluatedAssignment<F>> evaluatedAssignmnents, 
+    		Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap,
+    		PlusMinusZero plusMinusZero) throws SchemaException {
+		
+		XMLGregorianCalendar nextRecomputeTime = null;
+		
+		for (EvaluatedAssignment<F> ea: evaluatedAssignmnents) {
+			Collection<Mapping<V>> focusMappings = (Collection)ea.getFocusMappings();
+			for (Mapping<V> mapping: focusMappings) {
+				
+				ItemPath itemPath = mapping.getOutputPath();
+				DeltaSetTriple<ItemValueWithOrigin<V>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping);
+				if (outputTriple == null) {
+					continue;
+				}
+				if (plusMinusZero == PlusMinusZero.PLUS) {
+					outputTriple.addAllToPlusSet(outputTriple.getZeroSet());
+					outputTriple.clearZeroSet();
+					outputTriple.clearMinusSet();
+				} else if (plusMinusZero == PlusMinusZero.MINUS) {
+					outputTriple.addAllToMinusSet(outputTriple.getZeroSet());
+					outputTriple.clearZeroSet();
+					outputTriple.clearPlusSet();
+				}
+				DeltaSetTriple<ItemValueWithOrigin<V>> mapTriple = (DeltaSetTriple<ItemValueWithOrigin<V>>) outputTripleMap.get(itemPath);
+				if (mapTriple == null) {
+					outputTripleMap.put(itemPath, outputTriple);
+				} else {
+					mapTriple.merge(outputTriple);
+				}
+			}
+		}
+		
+		return nextRecomputeTime;
 	}
 
 }

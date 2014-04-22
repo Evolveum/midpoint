@@ -80,6 +80,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
@@ -104,6 +105,7 @@ public class TestProjector extends AbstractLensTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		setDefaultUserTemplate(USER_TEMPLATE_OID);
+		addObject(ORG_BRETHREN_FILE);
 		InternalMonitor.reset();
 //		InternalMonitor.setTraceShadowFetchOperation(true);
 	}
@@ -726,6 +728,102 @@ public class TestProjector extends AbstractLensTest {
         	display("Expected exception",e);
         }
         
+    }
+	
+	@Test
+    public void test270AddUserBarbossaAssignmentBrethren() throws Exception {
+		final String TEST_NAME = "test270AddUserBarbossaAssignmentBrethren";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
+
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        LensContext<UserType> context = createUserAccountContext();
+        fillContextWithUser(context, USER_BARBOSSA_OID, result);
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
+		addFocusDeltaToContext(context, createAssignmentUserDelta(USER_BARBOSSA_OID, ORG_BRETHREN_OID, 
+				OrgType.COMPLEX_TYPE, null, null, true));
+        context.recompute();
+
+        display("Input context", context);
+
+        assertFocusModificationSanity(context);
+
+        // WHEN
+        projector.project(context, "test", task, result);
+        
+        // THEN
+        display("Output context", context);
+        
+        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
+        display("User Secondary Delta", userSecondaryDelta);
+        PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_ORGANIZATION, PrismTestUtil.createPolyString(ORG_BRETHREN_INDUCED_ORGANIZATION));
+
+        Collection<LensProjectionContext> accountContexts = context.getProjectionContexts();
+        assertEquals(1, accountContexts.size());
+        LensProjectionContext accContext = accountContexts.iterator().next();
+        assertNull(accContext.getPrimaryDelta());
+        assertEquals(SynchronizationPolicyDecision.KEEP,accContext.getSynchronizationPolicyDecision());
+
+        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
+        assertNotNull("No account secondary delta", accountSecondaryDelta);
+        assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
+        // iteration & iterationToken
+        assertEquals("Unexpected number of account secondary changes", 2, accountSecondaryDelta.getModifications().size());
+                
+    }
+	
+	@Test
+    public void test275DeleteUserBarbossaAssignmentBrethren() throws Exception {
+		final String TEST_NAME = "test275DeleteUserBarbossaAssignmentBrethren";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestProjector.class.getName() + "." + TEST_NAME);
+
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+
+        modifyUserReplace(USER_BARBOSSA_OID, UserType.F_ORGANIZATION, task, result, PrismTestUtil.createPolyString(ORG_BRETHREN_INDUCED_ORGANIZATION));
+        LensContext<UserType> context = createUserAccountContext();
+        PrismObject<UserType> focus = repositoryService.getObject(UserType.class, USER_BARBOSSA_OID, null, result);
+        ObjectDelta<UserType> addAssignmentDelta = createAssignmentUserDelta(USER_BARBOSSA_OID, ORG_BRETHREN_OID, 
+				OrgType.COMPLEX_TYPE, null, null, true);
+        addAssignmentDelta.applyTo(focus);
+		fillContextWithFocus(context, focus);
+		
+        fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
+		
+        addFocusDeltaToContext(context, createAssignmentUserDelta(USER_BARBOSSA_OID, ORG_BRETHREN_OID, 
+				OrgType.COMPLEX_TYPE, null, null, false));
+        
+        context.recompute();
+
+        display("Input context", context);
+
+        assertFocusModificationSanity(context);
+
+        // WHEN
+        projector.project(context, "test", task, result);
+        
+        // THEN
+        display("Output context", context);
+        
+        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
+        display("User Secondary Delta", userSecondaryDelta);
+        PrismAsserts.assertPropertyDelete(userSecondaryDelta, UserType.F_ORGANIZATION, PrismTestUtil.createPolyString(ORG_BRETHREN_INDUCED_ORGANIZATION));
+
+        Collection<LensProjectionContext> accountContexts = context.getProjectionContexts();
+        assertEquals(1, accountContexts.size());
+        LensProjectionContext accContext = accountContexts.iterator().next();
+        assertNull(accContext.getPrimaryDelta());
+        assertEquals(SynchronizationPolicyDecision.KEEP,accContext.getSynchronizationPolicyDecision());
+                
     }
 	
 	@Test

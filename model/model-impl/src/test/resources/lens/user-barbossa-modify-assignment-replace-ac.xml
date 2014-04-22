@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -24,9 +24,8 @@
 	<apit:oid>c0c010c0-d34d-b33f-f00d-111111111112</apit:oid>
 	<apit:itemDelta>
 		<t:modificationType>replace</t:modificationType>
-		<t:path>c:assignment[1001]/c:construction</t:path>
+		<t:path>assignment[1001]/construction</t:path>
 		<t:value>
-<!-- 			<construction> -->
 				<description>Brethren account construction</description>
 				<resourceRef oid="10000000-0000-0000-0000-000000000004"/>
 				<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
@@ -70,7 +69,6 @@
 						</expression>
 					</outbound>
 				</attribute>
-<!-- 			</construction> -->
 		</t:value>
 	</apit:itemDelta>
 </apit:objectModification>

@@ -18,7 +18,9 @@ package com.evolveum.midpoint.model.lens;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.Authorization;
@@ -26,6 +28,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 
@@ -35,25 +38,27 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
  * 
  * @author Radovan Semancik
  */
-public class EvaluatedAssignment implements DebugDumpable {
+public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
 
-	private Collection<Construction> constructions;
+	private Collection<Construction<F>> constructions;
 	private Collection<PrismReferenceValue> orgRefVals;
 	private Collection<Authorization> authorizations;
+	private Collection<Mapping<? extends PrismPropertyValue<?>>> focusMappings;
 	private boolean isValid;
 
 	public EvaluatedAssignment() {
-		constructions = new ArrayList<Construction>();
-		orgRefVals = new ArrayList<PrismReferenceValue>();
-		authorizations = new ArrayList<Authorization>();
+		constructions = new ArrayList<>();
+		orgRefVals = new ArrayList<>();
+		authorizations = new ArrayList<>();
+		focusMappings = new ArrayList<>();
 	}
 	
-	public Collection<Construction> getConstructions() {
+	public Collection<Construction<F>> getConstructions() {
 		return constructions;
 	}
 
-	public void addConstruction(Construction accpuntContruction) {
-		constructions.add(accpuntContruction);
+	public void addConstruction(Construction<F> contruction) {
+		constructions.add(contruction);
 	}
 	
 	public Collection<PrismReferenceValue> getOrgRefVals() {
@@ -72,6 +77,14 @@ public class EvaluatedAssignment implements DebugDumpable {
 		authorizations.add(authorization);
 	}
 
+	public Collection<Mapping<? extends PrismPropertyValue<?>>> getFocusMappings() {
+		return focusMappings;
+	}
+
+	public void addFocusMapping(Mapping<? extends PrismPropertyValue<?>> focusMapping) {
+		this.focusMappings.add(focusMapping);
+	}
+
 	public boolean isValid() {
 		return isValid;
 	}
@@ -82,7 +95,7 @@ public class EvaluatedAssignment implements DebugDumpable {
 
 	public Collection<ResourceType> getResources(OperationResult result) throws ObjectNotFoundException, SchemaException {
 		Collection<ResourceType> resources = new ArrayList<ResourceType>();
-		for (Construction acctConstr: constructions) {
+		for (Construction<F> acctConstr: constructions) {
 			resources.add(acctConstr.getResource(result));
 		}
 		return resources;
@@ -102,7 +115,7 @@ public class EvaluatedAssignment implements DebugDumpable {
 		if (!constructions.isEmpty()) {
 			sb.append("\n");
 			DebugUtil.debugDumpLabel(sb, "Constructions", indent+1);
-			for (Construction ac: constructions) {
+			for (Construction<F> ac: constructions) {
 				sb.append("\n");
 				sb.append(ac.debugDump(indent+2));
 			}
@@ -125,12 +138,21 @@ public class EvaluatedAssignment implements DebugDumpable {
 				sb.append(autz.toString());
 			}
 		}
+		if (!focusMappings.isEmpty()) {
+			sb.append("\n");
+			DebugUtil.debugDumpLabel(sb, "Focus Mappings", indent+1);
+			for (Mapping<? extends PrismPropertyValue<?>> mapping: focusMappings) {
+				sb.append("\n");
+				DebugUtil.indentDebugDump(sb, indent+2);
+				sb.append(mapping.toString());
+			}
+		}
 		return sb.toString();
 	}
 
 	@Override
 	public String toString() {
-		return "EvaluatedAssignment(acc=" + constructions + "; org="+orgRefVals+"; autz="+authorizations+")";
+		return "EvaluatedAssignment(acc=" + constructions + "; org="+orgRefVals+"; autz="+authorizations+"; "+focusMappings.size()+" focus mappings)";
 	}
 	
 }

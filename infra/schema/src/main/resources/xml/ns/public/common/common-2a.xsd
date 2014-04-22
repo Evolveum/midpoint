@@ -2634,6 +2634,14 @@
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
+                
+                <xsd:element name="focusMappings" type="tns:MappingsType" minOccurs="0">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Set of mappings that are applied to a focus in addition to object template.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:element>
 
             </xsd:choice>
 
@@ -2662,6 +2670,22 @@
     </xsd:complexType>
 
     <xsd:element name="assignment" type="tns:AssignmentType"/>
+    
+    <xsd:complexType name="MappingsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Genric set of mappings.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+       	<xsd:sequence>
+       		<xsd:element ref="tns:description" minOccurs="0"/>
+   			<xsd:element name="mapping" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
+                   </xsd:element>
+       </xsd:sequence>
+	</xsd:complexType>
 
     <xsd:complexType name="ActivationType">
         <xsd:annotation>
@@ -6701,29 +6725,6 @@
                                 they are specified in the XML file for now, as the dependency
                                 mechanism does not work yet. Later, the order should be insignificant.
                             </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="accountConstruction" type="tns:ConstructionType" minOccurs="0"
-                                 maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	. This should no longer be used. It will disappear.
-                            	
-                                Defines an account that the user should have.
-                                It defines the resource and account type. Such
-                                account will be created (if it does not yet
-                                exist) and will be linked to the user.
-                                Usual outbound expressions from the resource
-                                definition are used to set-up the account
-                                parameters.
-
-                                This may be non-systemic short-term solution. We
-                                need a way how "assign" the account to the user
-                                correctly.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-			           			<a:deprecated>true</a:deprecated>
-			           		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>

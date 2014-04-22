@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -38,9 +39,12 @@ import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.expression.Source;
+import com.evolveum.midpoint.model.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.lens.projector.ValueMatcher;
 import com.evolveum.midpoint.model.util.Utils;
@@ -68,6 +72,7 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
@@ -75,18 +80,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenerateExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.IterationSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScriptExpressionReturnTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TimeIntervalStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 
 /**
  * @author semancik
@@ -900,5 +912,105 @@ public class LensUtil {
 		TimeIntervalStatusType validityStatus = activationComputer.getValidityStatus(activationType, now);
 		ActivationStatusType effectiveStatus = activationComputer.getEffectiveStatus(activationType, validityStatus, ActivationStatusType.ENABLED);
 		return effectiveStatus == ActivationStatusType.ENABLED;
+	}
+    
+    public static <V extends PrismValue, F extends FocusType> Mapping<V> createFocusMapping(final MappingFactory mappingFactory,
+    		final LensContext<F> context, final MappingType mappingType, ObjectType originObject, 
+			ObjectDeltaObject<F> focusOdo, XMLGregorianCalendar now, String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+    	Integer iteration = null;
+    	String iterationToken = null;
+    	if (focusOdo.getNewObject() != null) {
+    		F focusNewType = focusOdo.getNewObject().asObjectable();
+    		iteration = focusNewType.getIteration();
+    		iterationToken = focusNewType.getIterationToken();
+    	} else if (focusOdo.getOldObject() != null) {
+    		F focusOldType = focusOdo.getOldObject().asObjectable();
+    		iteration = focusOldType.getIteration();
+    		iterationToken = focusOldType.getIterationToken();
+    	}
+    	return createFocusMapping(mappingFactory, context, mappingType, originObject, focusOdo, iteration, iterationToken, now, contextDesc, result);
+    }
+    
+    public static <V extends PrismValue, F extends FocusType> Mapping<V> createFocusMapping(final MappingFactory mappingFactory,
+    		final LensContext<F> context, final MappingType mappingType, ObjectType originObject, 
+			ObjectDeltaObject<F> focusOdo, Integer iteration, String iterationToken, XMLGregorianCalendar now, String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		Mapping<V> mapping = mappingFactory.createMapping(mappingType, contextDesc);
+		
+		if (!mapping.isApplicableToChannel(context.getChannel())) {
+			return null;
+		}
+		
+		mapping.setSourceContext(focusOdo);
+		mapping.setTargetContext(context.getFocusContext().getObjectDefinition());
+		mapping.setRootNode(focusOdo);
+		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
+		mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
+		mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION, iteration);
+		mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
+		mapping.setOriginType(OriginType.USER_POLICY);
+		mapping.setOriginObject(originObject);
+		mapping.setNow(now);
+
+		ItemDefinition outputDefinition = mapping.getOutputDefinition();
+		ItemPath itemPath = mapping.getOutputPath();
+		
+		Item<V> existingUserItem = (Item<V>) focusOdo.getNewObject().findItem(itemPath);
+		if (existingUserItem != null && !existingUserItem.isEmpty() 
+				&& mapping.getStrength() == MappingStrengthType.WEAK) {
+			// This valueConstruction only applies if the property does not have a value yet.
+			// ... but it does
+			return null;
+		}
+
+		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
+			private ItemPath outputPath;
+			private ItemDefinition outputDefinition;
+			@Override
+			public void setOutputPath(ItemPath outputPath) {
+				this.outputPath = outputPath;
+			}
+			
+			@Override
+			public void setOutputDefinition(ItemDefinition outputDefinition) {
+				this.outputDefinition = outputDefinition;
+			}
+			
+			@Override
+			public StringPolicyType resolve() {
+				if (outputDefinition.getName().equals(PasswordType.F_VALUE)) {
+					ValuePolicyType passwordPolicy = context.getGlobalPasswordPolicy();
+					if (passwordPolicy == null) {
+						return null;
+					}
+					return passwordPolicy.getStringPolicy();
+				}
+				if (mappingType.getExpression() != null){
+					List<JAXBElement<?>> evaluators = mappingType.getExpression().getExpressionEvaluator();
+					if (evaluators != null){
+						for (JAXBElement jaxbEvaluator : evaluators){
+							Object object = jaxbEvaluator.getValue();
+							if (object != null && object instanceof GenerateExpressionEvaluatorType && ((GenerateExpressionEvaluatorType) object).getValuePolicyRef() != null){
+								ObjectReferenceType ref = ((GenerateExpressionEvaluatorType) object).getValuePolicyRef();
+								try{
+								ValuePolicyType valuePolicyType = mappingFactory.getObjectResolver().resolve(ref, ValuePolicyType.class, 
+										null, "resolving value policy for generate attribute "+ outputDefinition.getName()+" value", new OperationResult("Resolving value policy"));
+								if (valuePolicyType != null){
+									return valuePolicyType.getStringPolicy();
+								}
+								} catch (Exception ex){
+									throw new SystemException(ex.getMessage(), ex);
+								}
+							}
+						}
+						
+					}
+				}
+				return null;
+				
+			}
+		};
+		mapping.setStringPolicyResolver(stringPolicyResolver);
+
+		return mapping;
 	}
 }

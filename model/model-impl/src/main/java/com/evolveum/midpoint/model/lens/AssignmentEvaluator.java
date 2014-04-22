@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
@@ -53,6 +54,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
@@ -212,6 +215,13 @@ public class AssignmentEvaluator<F extends FocusType> {
 							assignmentPath, assignmentPathSegment.getOrderOneObject(), task, result);
 				}
 				
+			} else if (assignmentType.getFocusMappings() != null) {
+				
+				if (evaluateConstructions && assignmentPathSegment.isEvaluateConstructions()) {
+					evaluateMappings(evalAssignment, assignmentPathSegment, source, sourceDescription, 
+							assignmentPath, assignmentPathSegment.getOrderOneObject(), task, result);
+				}
+				
 			} else if (assignmentType.getTarget() != null) {
 				
 				evaluateTarget(evalAssignment, assignmentPathSegment, assignmentType.getTarget(), source, null, sourceDescription,
@@ -265,6 +275,28 @@ public class AssignmentEvaluator<F extends FocusType> {
 		construction.evaluate(task, result);
 		
 		evaluatedAssignment.addConstruction(construction);
+	}
+	
+	private void evaluateMappings(EvaluatedAssignment evaluatedAssignment, AssignmentPathSegment assignmentPathSegment, ObjectType source, String sourceDescription,
+			AssignmentPath assignmentPath, ObjectType orderOneObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		assertSource(source, evaluatedAssignment);
+		
+		
+		AssignmentType assignmentType = assignmentPathSegment.getAssignmentType();
+		MappingsType mappingsType = assignmentType.getFocusMappings();
+		
+		LOGGER.trace("Evaluate focus mappings '{}' in {} ({} mappings)", 
+				new Object[]{mappingsType.getDescription(), source, mappingsType.getMapping().size()});
+
+		for (MappingType mappingType: mappingsType.getMapping()) {
+			Mapping mapping = LensUtil.createFocusMapping(mappingFactory, lensContext, mappingType, source, userOdo, now, sourceDescription, result);
+			if (mapping == null) {
+				continue;
+			}
+			// TODO: time constratins?
+			LensUtil.evaluateMapping(mapping, lensContext, task, result);
+			evaluatedAssignment.addFocusMapping(mapping);
+		}
 	}
 
 	private void evaluateTargetRef(EvaluatedAssignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectReferenceType targetRef, ObjectType source,
