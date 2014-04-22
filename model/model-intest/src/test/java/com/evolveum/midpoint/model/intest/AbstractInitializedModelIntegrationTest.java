@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -241,10 +242,16 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		repoAddObjectFromFile(ROLE_JUDGE_FILENAME, RoleType.class, initResult);
 		
 		// Orgstruct
-		repoAddObjectsFromFile(ORG_MONKEY_ISLAND_FILENAME, OrgType.class, initResult);
+		if (doAddOrgstruct()) {
+			repoAddObjectsFromFile(ORG_MONKEY_ISLAND_FILE, OrgType.class, initResult);
+		}
 
 	}
 	
+	protected boolean doAddOrgstruct() {
+		return true;
+	}
+
 	protected File getResourceDummyFile() {
 		return RESOURCE_DUMMY_FILE;
 	}
@@ -371,8 +378,17 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         PrismObject<OrgType> orgScummBar = modelService.getObject(OrgType.class, ORG_SCUMM_BAR_OID, null, task, result);
         List<AssignmentType> scummBarInducements = orgScummBar.asObjectable().getInducement();
         assertEquals("Unexpected number of scumm bar inducements: "+scummBarInducements,  1, scummBarInducements.size());
+        
+        ResultHandler<OrgType> handler = getOrgSanityCheckHandler();
+        if (handler != null) {
+        	modelService.searchObjectsIterative(OrgType.class, null, handler, null, task, result);
+        }
 	}
 	
+	protected ResultHandler<OrgType> getOrgSanityCheckHandler() {
+		return null;
+	}
+
 	protected void assertGroupMember(String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException {
 		DummyGroup group = dummyResource.getGroupByName(dummyGroupName);
 		IntegrationTestTools.assertGroupMember(group, accountId);

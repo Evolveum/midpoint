@@ -1268,7 +1268,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		MidPointAsserts.assertAssignments(user, expectedNumber);
 	}
 	
-	protected void assertAssigned(PrismObject<UserType> user, String targetOid, QName refType) {
+	protected <F extends FocusType> void assertAssigned(PrismObject<F> user, String targetOid, QName refType) {
 		MidPointAsserts.assertAssigned(user, targetOid, refType);
 	}
 	
@@ -1944,6 +1944,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		result.computeStatus();
 		TestUtil.assertSuccess("getObject(Task) result not success", result);
 		return retTask;
+	}
+	
+	protected <O extends ObjectType> PrismObject<O> getObject(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".getObject");
+        OperationResult result = task.getResult();
+		PrismObject<O> object = modelService.getObject(type, oid, null, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		return object;
 	}
 
 	protected <O extends ObjectType> void addObject(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {

@@ -263,20 +263,25 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected <T extends ObjectType> List<PrismObject<T>> repoAddObjectsFromFile(String filePath, Class<T> type,
 			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, IOException {
+		return repoAddObjectsFromFile(new File(filePath), type, parentResult);
+	}
+	
+	protected <T extends ObjectType> List<PrismObject<T>> repoAddObjectsFromFile(File file, Class<T> type,
+			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, IOException {
 		OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
 				+ ".addObjectsFromFile");
-		result.addParam("file", filePath);
-		LOGGER.trace("addObjectsFromFile: {}", filePath);
-		List<PrismObject<T>> objects = (List) PrismTestUtil.parseObjects(new File(filePath));
+		result.addParam("file", file);
+		LOGGER.trace("addObjectsFromFile: {}", file);
+		List<PrismObject<T>> objects = (List) PrismTestUtil.parseObjects(file);
 		for (PrismObject<T> object: objects) {
 			try {
 				repoAddObject(type, object, result);
 			} catch (ObjectAlreadyExistsException e) {
-				throw new ObjectAlreadyExistsException(e.getMessage()+" while adding "+object+" from file "+filePath, e);
+				throw new ObjectAlreadyExistsException(e.getMessage()+" while adding "+object+" from file "+file, e);
 			} catch (SchemaException e) {
-				new SchemaException(e.getMessage()+" while adding "+object+" from file "+filePath, e);
+				new SchemaException(e.getMessage()+" while adding "+object+" from file "+file, e);
 			} catch (EncryptionException e) {
-				new EncryptionException(e.getMessage()+" while adding "+object+" from file "+filePath, e);
+				new EncryptionException(e.getMessage()+" while adding "+object+" from file "+file, e);
 			}
 		}
 		result.recordSuccess();

@@ -75,6 +75,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
@@ -916,7 +917,8 @@ public class LensUtil {
     
     public static <V extends PrismValue, F extends FocusType> Mapping<V> createFocusMapping(final MappingFactory mappingFactory,
     		final LensContext<F> context, final MappingType mappingType, ObjectType originObject, 
-			ObjectDeltaObject<F> focusOdo, XMLGregorianCalendar now, String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			ObjectDeltaObject<F> focusOdo, AssignmentPathVariables assignmentPathVariables,
+			XMLGregorianCalendar now, String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
     	Integer iteration = null;
     	String iterationToken = null;
     	if (focusOdo.getNewObject() != null) {
@@ -928,12 +930,14 @@ public class LensUtil {
     		iteration = focusOldType.getIteration();
     		iterationToken = focusOldType.getIterationToken();
     	}
-    	return createFocusMapping(mappingFactory, context, mappingType, originObject, focusOdo, iteration, iterationToken, now, contextDesc, result);
+    	return createFocusMapping(mappingFactory, context, mappingType, originObject, focusOdo, assignmentPathVariables,
+    			iteration, iterationToken, now, contextDesc, result);
     }
     
     public static <V extends PrismValue, F extends FocusType> Mapping<V> createFocusMapping(final MappingFactory mappingFactory,
     		final LensContext<F> context, final MappingType mappingType, ObjectType originObject, 
-			ObjectDeltaObject<F> focusOdo, Integer iteration, String iterationToken, XMLGregorianCalendar now, String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			ObjectDeltaObject<F> focusOdo, AssignmentPathVariables assignmentPathVariables, 
+			Integer iteration, String iterationToken, XMLGregorianCalendar now, String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		Mapping<V> mapping = mappingFactory.createMapping(mappingType, contextDesc);
 		
 		if (!mapping.isApplicableToChannel(context.getChannel())) {
@@ -947,6 +951,7 @@ public class LensUtil {
 		mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
 		mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION, iteration);
 		mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
+		addAssignmentPathVariables(mapping, assignmentPathVariables);
 		mapping.setOriginType(OriginType.USER_POLICY);
 		mapping.setOriginObject(originObject);
 		mapping.setNow(now);
@@ -1013,4 +1018,78 @@ public class LensUtil {
 
 		return mapping;
 	}
+    
+    public static AssignmentPathVariables computeAssignmentPathVariables(AssignmentPath assignmentPath) throws SchemaException {
+    	if (assignmentPath == null || assignmentPath.isEmpty()) {
+    		return null;
+    	}
+    	AssignmentPathVariables vars = new AssignmentPathVariables();
+    	Iterator<AssignmentPathSegment> iterator = assignmentPath.getSegments().iterator();
+		while (iterator.hasNext()) {
+			AssignmentPathSegment segment = iterator.next();
+			AssignmentType segmentAssignmentType = segment.getAssignmentType();
+			PrismContainerValue<AssignmentType> segmentAssignmentCVal = segmentAssignmentType.asPrismContainerValue();
+			PrismContainerDefinition<AssignmentType> assignmentDef = segmentAssignmentCVal.getParent().getDefinition();
+			
+			// Magic assignment
+			if (vars.getMagicAssignment() == null) {
+				PrismContainerValue<AssignmentType> magicAssignment = segmentAssignmentCVal.clone();
+				// Make sure that the magic assignment has a valid parent so it can be serialized
+				PrismContainer<AssignmentType> assignmentCont = assignmentDef.instantiate();
+				assignmentCont.add(magicAssignment);
+				vars.setMagicAssignment(magicAssignment);
+			} else {
+				// Collect extension values from the assignment extension
+				PrismContainer<Containerable> magicExtension = vars.getMagicAssignment().findOrCreateContainer(AssignmentType.F_EXTENSION);
+				mergeExtension(magicExtension, segmentAssignmentCVal.findContainer(AssignmentType.F_EXTENSION));
+			}
+			
+			// Collect extension values from the source object extension
+			PrismContainer<Containerable> magicExtension = vars.getMagicAssignment().findOrCreateContainer(AssignmentType.F_EXTENSION);
+			ObjectType segmentSource = segment.getSource();
+			if (segmentSource != null) {
+				mergeExtension(magicExtension, segmentSource.asPrismObject().findContainer(AssignmentType.F_EXTENSION));
+			}
+			
+			// immediate assignment (use assignment from previous iteration)
+			vars.setImmediateAssignment(vars.getThisAssignment());
+			
+			// this assignment
+			PrismContainerValue<AssignmentType> thisAssignment = segmentAssignmentCVal.clone();
+			// Make sure that the assignment has a valid parent so it can be serialized
+			PrismContainer<AssignmentType> assignmentCont = assignmentDef.instantiate();
+			assignmentCont.add(thisAssignment);
+			vars.setThisAssignment(thisAssignment);
+			
+			if (iterator.hasNext() && segmentSource instanceof AbstractRoleType) {
+				vars.setImmediateRole(segmentSource.asPrismObject());
+			}
+		}
+		
+		AssignmentType focusAssignment = assignmentPath.getFirstAssignment();
+		vars.setFocusAssignment(focusAssignment.asPrismContainerValue());
+		
+		return vars;
+    }
+    
+    private static void mergeExtension(PrismContainer<Containerable> magicExtension, PrismContainer<Containerable> segmentExtension) throws SchemaException {
+		if (segmentExtension != null && !segmentExtension.getValue().isEmpty()) {
+			for (Item<?> segmentItem: segmentExtension.getValue().getItems()) {
+				Item<?> magicItem = magicExtension.findItem(segmentItem.getElementName());
+				if (magicItem == null) {
+					magicExtension.add(segmentItem.clone());
+				}
+			}
+		}
+	}
+    
+    public static <V extends PrismValue> void addAssignmentPathVariables(Mapping<V> mapping, AssignmentPathVariables assignmentPathVariables) {
+    	if (assignmentPathVariables != null ) {
+			mapping.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, assignmentPathVariables.getMagicAssignment());
+			mapping.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, assignmentPathVariables.getImmediateAssignment());
+			mapping.addVariableDefinition(ExpressionConstants.VAR_THIS_ASSIGNMENT, assignmentPathVariables.getThisAssignment());
+			mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentPathVariables.getFocusAssignment());
+			mapping.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ROLE, assignmentPathVariables.getImmediateRole());
+		}
+    }
 }

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2014 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<objectTemplate oid="3e62558c-ca0f-11e3-ba83-001e8c717e5b"
+   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
+   xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'
+   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+   xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
+    <name>Org Template</name>
+    
+    <mapping>
+    	<name>Org functional metarole assignment</name>
+    	<authoritative>true</authoritative>
+    	<source>
+    		<path>orgType</path>
+    	</source>
+    	<expression>
+            <assignmentTargetSearch>
+            	<targetType>c:RoleType</targetType>
+        		<oid>74aac2c8-ca0f-11e3-bb29-001e8c717e5b</oid>
+            </assignmentTargetSearch>    	
+    	</expression>
+    	<target>
+    		<path>assignment</path>
+    	</target>
+    	<condition>
+    		<script>
+    			<code>orgType == 'functional'</code>
+    		</script>
+    	</condition>
+    </mapping>
+    
+</objectTemplate>

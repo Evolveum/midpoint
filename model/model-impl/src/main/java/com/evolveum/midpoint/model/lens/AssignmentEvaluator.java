@@ -218,7 +218,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			} else if (assignmentType.getFocusMappings() != null) {
 				
 				if (evaluateConstructions && assignmentPathSegment.isEvaluateConstructions()) {
-					evaluateMappings(evalAssignment, assignmentPathSegment, source, sourceDescription, 
+					evaluateFocusMappings(evalAssignment, assignmentPathSegment, source, sourceDescription, 
 							assignmentPath, assignmentPathSegment.getOrderOneObject(), task, result);
 				}
 				
@@ -277,7 +277,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		evaluatedAssignment.addConstruction(construction);
 	}
 	
-	private void evaluateMappings(EvaluatedAssignment evaluatedAssignment, AssignmentPathSegment assignmentPathSegment, ObjectType source, String sourceDescription,
+	private void evaluateFocusMappings(EvaluatedAssignment evaluatedAssignment, AssignmentPathSegment assignmentPathSegment, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, ObjectType orderOneObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		assertSource(source, evaluatedAssignment);
 		
@@ -287,9 +287,11 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		LOGGER.trace("Evaluate focus mappings '{}' in {} ({} mappings)", 
 				new Object[]{mappingsType.getDescription(), source, mappingsType.getMapping().size()});
+		AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
 
 		for (MappingType mappingType: mappingsType.getMapping()) {
-			Mapping mapping = LensUtil.createFocusMapping(mappingFactory, lensContext, mappingType, source, userOdo, now, sourceDescription, result);
+			Mapping mapping = LensUtil.createFocusMapping(mappingFactory, lensContext, mappingType, source, userOdo, 
+					assignmentPathVariables, now, sourceDescription, result);
 			if (mapping == null) {
 				continue;
 			}

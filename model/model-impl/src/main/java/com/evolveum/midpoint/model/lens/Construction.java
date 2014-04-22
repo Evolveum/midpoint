@@ -97,10 +97,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	private Collection<Mapping<? extends PrismPropertyValue<?>>> attributeMappings;
 	private Collection<Mapping<PrismContainerValue<ShadowAssociationType>>> associationMappings;
 	private RefinedObjectClassDefinition refinedObjectClassDefinition;
-	private PrismContainerValue<AssignmentType> magicAssignment;
-	private PrismContainerValue<AssignmentType> immediateAssignment;
-	private PrismContainerValue<AssignmentType> thisAssignment;
-	private PrismObject<? extends AbstractRoleType> immediateRole;
+	private AssignmentPathVariables assignmentPathVariables = null;
 	private PrismContext prismContext;
 	private PrismContainerDefinition<ShadowAssociationType> associationContainerDefinition;
 	
@@ -277,7 +274,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 	
 	public void evaluate(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		evaluateKindIntent(result);
-		computeVariables(result);
+		assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
 		evaluateAttributes(task, result);
 		evaluateAssociations(task, result);
 	}
@@ -312,59 +309,6 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 				throw new SchemaException("No account type '"+constructionType.getIntent()+"' found in "+ObjectTypeUtil.toShortString(getResource(result))+" as specified in account construction in "+ObjectTypeUtil.toShortString(source));
 			} else {
 				throw new SchemaException("No default account type found in " + resource + " as specified in account construction in "+ObjectTypeUtil.toShortString(source));
-			}
-		}
-	}
-	
-	private void computeVariables(OperationResult result) throws SchemaException {
-		Iterator<AssignmentPathSegment> iterator = assignmentPath.getSegments().iterator();
-		while (iterator.hasNext()) {
-			AssignmentPathSegment segment = iterator.next();
-			AssignmentType segmentAssignmentType = segment.getAssignmentType();
-			PrismContainerValue<AssignmentType> segmentAssignmentCVal = segmentAssignmentType.asPrismContainerValue();
-			PrismContainerDefinition<AssignmentType> assignmentDef = segmentAssignmentCVal.getParent().getDefinition();
-			
-			// Magic assignment
-			if (magicAssignment == null) {
-				magicAssignment = segmentAssignmentCVal.clone();
-				// Make sure that the magic assignment has a valid parent so it can be serialized
-				PrismContainer<AssignmentType> assignmentCont = assignmentDef.instantiate();
-				assignmentCont.add(magicAssignment);
-			} else {
-				// Collect extension values from the assignment extension
-				PrismContainer<Containerable> magicExtension = magicAssignment.findOrCreateContainer(AssignmentType.F_EXTENSION);
-				mergeExtension(magicExtension, segmentAssignmentCVal.findContainer(AssignmentType.F_EXTENSION));
-			}
-			
-			// Collect extension values from the source object extension
-			PrismContainer<Containerable> magicExtension = magicAssignment.findOrCreateContainer(AssignmentType.F_EXTENSION);
-			ObjectType segmentSource = segment.getSource();
-			if (segmentSource != null) {
-				mergeExtension(magicExtension, segmentSource.asPrismObject().findContainer(AssignmentType.F_EXTENSION));
-			}
-			
-			// immediate assignment (use assignment from previous iteration)
-			immediateAssignment = thisAssignment;
-			
-			// this assignment
-			thisAssignment = segmentAssignmentCVal.clone();
-			// Make sure that the assignment has a valid parent so it can be serialized
-			PrismContainer<AssignmentType> assignmentCont = assignmentDef.instantiate();
-			assignmentCont.add(thisAssignment);
-			
-			if (iterator.hasNext() && segmentSource instanceof AbstractRoleType) {
-				immediateRole = segmentSource.asPrismObject();
-			}
-		}
-	}
-
-	private void mergeExtension(PrismContainer<Containerable> magicExtension, PrismContainer<Containerable> segmentExtension) throws SchemaException {
-		if (segmentExtension != null && !segmentExtension.getValue().isEmpty()) {
-			for (Item<?> segmentItem: segmentExtension.getValue().getItems()) {
-				Item<?> magicItem = magicExtension.findItem(segmentItem.getElementName());
-				if (magicItem == null) {
-					magicExtension.add(segmentItem.clone());
-				}
 			}
 		}
 	}
@@ -505,14 +449,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		if (assocTargetObjectClassDefinition != null) {
 			mapping.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION, assocTargetObjectClassDefinition);
 		}
-		if (!assignmentPath.isEmpty()) {
-			AssignmentType assignmentType = assignmentPath.getFirstAssignment();
-			mapping.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, magicAssignment);
-			mapping.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, immediateAssignment);
-			mapping.addVariableDefinition(ExpressionConstants.VAR_THIS_ASSIGNMENT, thisAssignment);
-			mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentType.asPrismContainerValue());
-			mapping.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ROLE, immediateRole);
-		}
+		LensUtil.addAssignmentPathVariables(mapping, assignmentPathVariables);
 		// TODO: other variables ?
 		
 		// Set condition masks. There are used as a brakes to avoid evaluating to nonsense values in case user is not present

@@ -570,7 +570,7 @@ public class FocusPolicyProcessor {
 		
 		for (MappingType mappingType : mappings) {
 			Mapping<V> mapping = LensUtil.createFocusMapping(mappingFactory, context, mappingType, objectTemplateType, userOdo, 
-					iteration, iterationToken, now, contextDesc, result);
+					null, iteration, iterationToken, now, contextDesc, result);
 			if (mapping == null) {
 				continue;
 			}

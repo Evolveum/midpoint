@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.intest;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -53,9 +54,24 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	
+	public static final File TEST_DIR = new File("src/test/resources/orgstruct");
+	
 	@Test
-    public void test001OrgStructSanity() throws Exception {
-		final String TEST_NAME = "test001OrgStructSanity";
+    public void test010AddOrgStruct() throws Exception {
+		final String TEST_NAME = "test010AddOrgStruct";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+		// Dummy, just to be overridden in subclasses
+		addOrgStruct();
+	}
+	
+	protected void addOrgStruct() throws Exception {
+		// Dummy, just to be overridden in subclasses
+	}
+
+	@Test
+    public void test051OrgStructSanity() throws Exception {
+		final String TEST_NAME = "test051OrgStructSanity";
         TestUtil.displayTestTile(this, TEST_NAME);
         
         // WHEN
@@ -63,8 +79,8 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test002RootOrgQuery() throws Exception {
-		final String TEST_NAME = "test002RootOrgQuery";
+    public void test052RootOrgQuery() throws Exception {
+		final String TEST_NAME = "test052RootOrgQuery";
         TestUtil.displayTestTile(this, TEST_NAME);
         
         // GIVEN
@@ -103,8 +119,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertAssignedOrg(userJack, ORG_SCUMM_BAR_OID);
-        assertHasOrg(userJack, ORG_SCUMM_BAR_OID);
+        assertUserOrg(userJack, ORG_SCUMM_BAR_OID);
         
         assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
         
@@ -126,8 +141,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertAssignedNoOrg(userJack);
-        assertHasNoOrg(userJack);
+        assertUserNoOrg(userJack);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -157,12 +171,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertAssignedOrg(userJack, ORG_SCUMM_BAR_OID);
-        assertAssignedOrg(userJack, ORG_SAVE_ELAINE_OID);
-        assertAssignments(userJack, 2);
-        assertHasOrg(userJack, ORG_SCUMM_BAR_OID);
-        assertHasOrg(userJack, ORG_SAVE_ELAINE_OID);
-        assertHasOrgs(userJack, 2);
+        assertUserOrg(userJack, ORG_SCUMM_BAR_OID, ORG_SAVE_ELAINE_OID);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -185,14 +194,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertAssignedOrg(userJack, ORG_SCUMM_BAR_OID);
-        assertAssignedOrg(userJack, ORG_SAVE_ELAINE_OID);
-        assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-        assertAssignments(userJack, 3);
-        assertHasOrg(userJack, ORG_SCUMM_BAR_OID);
-        assertHasOrg(userJack, ORG_SAVE_ELAINE_OID);
-        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-        assertHasOrgs(userJack, 3);
+        assertUserOrg(userJack, ORG_SCUMM_BAR_OID, ORG_SAVE_ELAINE_OID, ORG_MINISTRY_OF_OFFENSE_OID);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -212,12 +214,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertAssignedOrg(userJack, ORG_SAVE_ELAINE_OID);
-        assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-        assertAssignments(userJack, 2);
-        assertHasOrg(userJack, ORG_SAVE_ELAINE_OID);
-        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-        assertHasOrgs(userJack, 2);
+        assertUserOrg(userJack, ORG_SAVE_ELAINE_OID, ORG_MINISTRY_OF_OFFENSE_OID);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -237,8 +234,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertAssignments(userJack, 0);
-        assertHasOrgs(userJack, 0);
+        assertUserNoOrg(userJack);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -258,10 +254,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
-        assertAssignments(userJack, 1);
-        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
-        assertHasOrgs(userJack, 1);
+        assertUserOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -281,12 +274,9 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
+        assertUserOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_OFFENSE_OID);
         assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);
-        assertAssignments(userJack, 2);
-        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, null);
         assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);
-        assertHasOrgs(userJack, 2);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -306,10 +296,9 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
+        assertUserOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
         assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);
-        assertAssignments(userJack, 1);
         assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);
-        assertHasOrgs(userJack, 1);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -329,8 +318,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertAssignments(userJack, 0);
-        assertHasOrgs(userJack, 0);
+        assertUserNoOrg(userJack);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -354,10 +342,9 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         // THEN
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User jack after", userJack);
-        assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-        assertAssignments(userJack, 2);
-        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
-        assertHasOrgs(userJack, 2);
+        assertUserOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);
+        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID, SchemaConstants.ORG_MANAGER);
         
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -390,6 +377,23 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         } catch (ObjectNotFoundException e) {
         	// This is expected
         }
+	}
+	
+	protected void assertUserOrg(PrismObject<UserType> user, String... orgOids) throws Exception {
+		for (String orgOid: orgOids) {
+			assertAssignedOrg(user, orgOid);
+	        assertHasOrg(user, orgOid);
+		}
+		assertAssignments(user, orgOids.length);
+		assertHasOrgs(user, orgOids.length);
+	}
+	
+	protected void assertUserNoOrg(PrismObject<UserType> user) throws Exception {
+		assertAssignedNoOrg(user);
+        assertHasNoOrg(user);
+        assertAssignments(user, 0);
+        assertHasOrgs(user, 0);
+
 	}
 
 }
