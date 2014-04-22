@@ -287,7 +287,7 @@ public class TestParseResource {
 		System.out.println(reparsedResource.debugDump());
 		
 		// Cannot assert here. It will cause parsing of some of the raw values and diff will fail
-		assertResource(resource, true, false, false);
+		assertResource(reparsedResource, true, false, false);
 		
 		PrismProperty<SchemaDefinitionType> definitionProperty = reparsedResource.findContainer(ResourceType.F_SCHEMA).findProperty(XmlSchemaType.F_DEFINITION);
 		SchemaDefinitionType definitionElement = definitionProperty.getValue().getValue();
