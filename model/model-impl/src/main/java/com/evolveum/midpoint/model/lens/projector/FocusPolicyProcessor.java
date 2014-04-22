@@ -299,7 +299,7 @@ public class FocusPolicyProcessor {
 
 		ObjectDelta<F> userSecondaryDelta = focusContext.getProjectionWaveSecondaryDelta();
 		ObjectDelta<F> userPrimaryDelta = focusContext.getProjectionWavePrimaryDelta();
-		ObjectDeltaObject<F> userOdo = focusContext.getObjectDeltaObject();
+		ObjectDeltaObject<F> focusOdo = focusContext.getObjectDeltaObject();
 		PrismObjectDefinition<F> focusDefinition = getFocusDefinition(focusContext.getObjectTypeClass());
 		Collection<ItemDelta<? extends PrismValue>> itemDeltas = null;
 		XMLGregorianCalendar nextRecomputeTime = null;
@@ -333,10 +333,9 @@ public class FocusPolicyProcessor {
 						new Object[]{iteration, iterationToken, focusContext.getHumanReadableName()});
 			} else {
 			
-				Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap 
-					= new HashMap<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>>();
+				Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap = new HashMap<>();
 				
-				nextRecomputeTime = collectTripleFromTemplate(context, userTemplate, userOdo, outputTripleMap,
+				nextRecomputeTime = collectTripleFromTemplate(context, userTemplate, focusOdo, outputTripleMap,
 						iteration, iterationToken,
 						now, userTemplate.toString(), task, result);
 				
@@ -353,28 +352,7 @@ public class FocusPolicyProcessor {
 		    		continue;
 		        }
 				
-				itemDeltas = new ArrayList<>();
-				for (Entry<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> entry: outputTripleMap.entrySet()) {
-					ItemPath itemPath = entry.getKey();
-					DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>> outputTriple = entry.getValue();
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Computed triple for {}:\n{}", itemPath, outputTriple.debugDump());
-					}
-					ItemDelta<? extends PrismValue> apropriItemDelta = null;
-//					boolean addUnchangedValues = focusContext.isAdd();
-					// We need to add unchanged values otherwise the unconditional mappings will not be applies
-					boolean addUnchangedValues = true;
-					ItemDelta<? extends PrismValue> itemDelta = LensUtil.consolidateTripleToDelta(itemPath, (DeltaSetTriple)outputTriple,
-							focusDefinition.findItemDefinition(itemPath), apropriItemDelta, userOdo.getNewObject(), null, 
-							addUnchangedValues, true, false, "object template "+userTemplate, true);
-					
-					itemDelta.simplify();
-					itemDelta.validate("object template "+userTemplate);
-					itemDeltas.add(itemDelta);
-					if (LOGGER.isTraceEnabled()) {
-						LOGGER.trace("Computed delta:\n{}", itemDelta.debugDump());
-					}
-				}
+				itemDeltas = computeItemDeltas(outputTripleMap, focusOdo, focusDefinition, "object template "+userTemplate+ " for focus "+focusOdo.getAnyObject());
 				
 				// construct objectNew as the preview how the change will look like
 				// We do NOT want to this in the context because there is a change that this won't be
@@ -466,23 +444,8 @@ public class FocusPolicyProcessor {
 	        	throw new ObjectAlreadyExistsException(sb.toString());
 	        }
 		}
-			
-		// Apply iteration deltas
-		for (ItemDelta<? extends PrismValue> itemDelta: itemDeltas) {
-			
-			if (itemDelta != null && !itemDelta.isEmpty()) {
-				if (userPrimaryDelta == null || !userPrimaryDelta.containsModification(itemDelta)) {
-					if (userSecondaryDelta == null) {
-						userSecondaryDelta = new ObjectDelta<F>(focusContext.getObjectTypeClass(), ChangeType.MODIFY, prismContext);
-						if (focusContext.getObjectNew() != null && focusContext.getObjectNew().getOid() != null){
-							userSecondaryDelta.setOid(focusContext.getObjectNew().getOid());
-						}
-						focusContext.setProjectionWaveSecondaryDelta(userSecondaryDelta);
-					}
-					userSecondaryDelta.mergeModification(itemDelta);
-				}
-			}
-		}
+		
+		focusContext.applyProjectionWaveSecondaryDeltas(itemDeltas);
 		
 		// We have to remember the token and iteration in the context.
 		// The context can be recomputed several times. But we always want
@@ -523,6 +486,33 @@ public class FocusPolicyProcessor {
 			}
 		}
 
+	}
+
+	public <F extends FocusType> Collection<ItemDelta<? extends PrismValue>> computeItemDeltas(Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap,
+			ObjectDeltaObject<F> focusOdo, PrismObjectDefinition<F> focusDefinition, String contextDesc) throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
+		Collection<ItemDelta<? extends PrismValue>> itemDeltas = new ArrayList<>();
+		for (Entry<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> entry: outputTripleMap.entrySet()) {
+			ItemPath itemPath = entry.getKey();
+			DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>> outputTriple = entry.getValue();
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Computed triple for {}:\n{}", itemPath, outputTriple.debugDump());
+			}
+			ItemDelta<? extends PrismValue> apropriItemDelta = null;
+//			boolean addUnchangedValues = focusContext.isAdd();
+			// We need to add unchanged values otherwise the unconditional mappings will not be applies
+			boolean addUnchangedValues = true;
+			ItemDelta<? extends PrismValue> itemDelta = LensUtil.consolidateTripleToDelta(itemPath, (DeltaSetTriple)outputTriple,
+					focusDefinition.findItemDefinition(itemPath), apropriItemDelta, focusOdo.getNewObject(), null, 
+					addUnchangedValues, true, false, contextDesc, true);
+			
+			itemDelta.simplify();
+			itemDelta.validate(contextDesc);
+			itemDeltas.add(itemDelta);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Computed delta:\n{}", itemDelta.debugDump());
+			}
+		}
+		return itemDeltas;
 	}
 
 	private <F extends FocusType> XMLGregorianCalendar collectTripleFromTemplate(LensContext<F> context,
@@ -579,7 +569,7 @@ public class FocusPolicyProcessor {
 		XMLGregorianCalendar nextRecomputeTime = null;
 		
 		for (MappingType mappingType : mappings) {
-			Mapping<V> mapping = createMapping(context, mappingType, objectTemplateType, userOdo, 
+			Mapping<V> mapping = LensUtil.createFocusMapping(mappingFactory, context, mappingType, objectTemplateType, userOdo, 
 					iteration, iterationToken, now, contextDesc, result);
 			if (mapping == null) {
 				continue;
@@ -615,90 +605,6 @@ public class FocusPolicyProcessor {
 		}
 		
 		return nextRecomputeTime;
-	}
-	
-	private <V extends PrismValue, F extends FocusType> Mapping<V> createMapping(final LensContext<F> context, final MappingType mappingType, ObjectTemplateType userTemplate, 
-			ObjectDeltaObject<F> userOdo, int iteration, String iterationToken, XMLGregorianCalendar now, String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		Mapping<V> mapping = mappingFactory.createMapping(mappingType,
-				"object template mapping in " + contextDesc
-				+ " while processing user " + userOdo.getAnyObject());
-		
-		if (!mapping.isApplicableToChannel(context.getChannel())) {
-			return null;
-		}
-		
-		mapping.setSourceContext(userOdo);
-		mapping.setTargetContext(getFocusDefinition(context.getFocusClass()));
-		mapping.setRootNode(userOdo);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, userOdo);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION, iteration);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
-		mapping.setOriginType(OriginType.USER_POLICY);
-		mapping.setOriginObject(userTemplate);
-		mapping.setNow(now);
-
-		ItemDefinition outputDefinition = mapping.getOutputDefinition();
-		ItemPath itemPath = mapping.getOutputPath();
-		
-		Item<V> existingUserItem = (Item<V>) userOdo.getNewObject().findItem(itemPath);
-		if (existingUserItem != null && !existingUserItem.isEmpty() 
-				&& mapping.getStrength() == MappingStrengthType.WEAK) {
-			// This valueConstruction only applies if the property does not have a value yet.
-			// ... but it does
-			return null;
-		}
-
-		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
-			private ItemPath outputPath;
-			private ItemDefinition outputDefinition;
-			@Override
-			public void setOutputPath(ItemPath outputPath) {
-				this.outputPath = outputPath;
-			}
-			
-			@Override
-			public void setOutputDefinition(ItemDefinition outputDefinition) {
-				this.outputDefinition = outputDefinition;
-			}
-			
-			@Override
-			public StringPolicyType resolve() {
-				if (outputDefinition.getName().equals(PasswordType.F_VALUE)) {
-					ValuePolicyType passwordPolicy = context.getGlobalPasswordPolicy();
-					if (passwordPolicy == null) {
-						return null;
-					}
-					return passwordPolicy.getStringPolicy();
-				}
-				if (mappingType.getExpression() != null){
-					List<JAXBElement<?>> evaluators = mappingType.getExpression().getExpressionEvaluator();
-					if (evaluators != null){
-						for (JAXBElement jaxbEvaluator : evaluators){
-							Object object = jaxbEvaluator.getValue();
-							if (object != null && object instanceof GenerateExpressionEvaluatorType && ((GenerateExpressionEvaluatorType) object).getValuePolicyRef() != null){
-								ObjectReferenceType ref = ((GenerateExpressionEvaluatorType) object).getValuePolicyRef();
-								try{
-								ValuePolicyType valuePolicyType = mappingFactory.getObjectResolver().resolve(ref, ValuePolicyType.class, 
-										null, "resolving value policy for generate attribute "+ outputDefinition.getName()+" value", new OperationResult("Resolving value policy"));
-								if (valuePolicyType != null){
-									return valuePolicyType.getStringPolicy();
-								}
-								} catch (Exception ex){
-									throw new SystemException(ex.getMessage(), ex);
-								}
-							}
-						}
-						
-					}
-				}
-				return null;
-				
-			}
-		};
-		mapping.setStringPolicyResolver(stringPolicyResolver);
-
-		return mapping;
 	}
 
 	private <V extends PrismValue> boolean hasValue(Item<V> existingUserItem, V newValue) {

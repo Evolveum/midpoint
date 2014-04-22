@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensFocusContextType;
+
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -214,6 +216,25 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 		super.adopt(prismContext);
 		if (secondaryDeltas != null) {
 			secondaryDeltas.adopt(prismContext);
+		}
+	}
+	
+	public void applyProjectionWaveSecondaryDeltas(Collection<ItemDelta<? extends PrismValue>> itemDeltas) throws SchemaException {
+		ObjectDelta<O> wavePrimaryDelta = getProjectionWavePrimaryDelta();
+		ObjectDelta<O> waveSecondaryDelta = getProjectionWaveSecondaryDelta();
+		for (ItemDelta<? extends PrismValue> itemDelta: itemDeltas) {
+			if (itemDelta != null && !itemDelta.isEmpty()) {
+				if (wavePrimaryDelta == null || !wavePrimaryDelta.containsModification(itemDelta)) {
+					if (waveSecondaryDelta == null) {
+						waveSecondaryDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
+						if (getObjectNew() != null && getObjectNew().getOid() != null){
+							waveSecondaryDelta.setOid(getObjectNew().getOid());
+						}
+						setProjectionWaveSecondaryDelta(waveSecondaryDelta);
+					}
+					waveSecondaryDelta.mergeModification(itemDelta);
+				}
+			}
 		}
 	}
     
