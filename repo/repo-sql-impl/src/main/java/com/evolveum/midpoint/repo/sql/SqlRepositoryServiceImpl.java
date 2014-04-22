@@ -1799,9 +1799,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         query.setParameter("timestamp", XMLGregorianCalendarType.asXMLGregorianCalendar(minValue));
         return query.executeUpdate();
     }
-    
-
-    
 
     @Override
 	public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException {
@@ -1833,34 +1830,38 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 	}
     
-	private boolean isAnySubordinateAttempt(String upperOrgOid, Collection<String> lowerObjectOids)
-			throws SchemaException {
+	private boolean isAnySubordinateAttempt(String upperOrgOid, Collection<String> lowerObjectOids) {
 		Session session = null;
         try {
             session = beginTransaction();
 
-            StringBuilder sb = new StringBuilder();
-            sb.append("select count(*) from ROrgClosure o where ");
-            
-            sb.append('(');
+            Query query;
+            if (lowerObjectOids.size() == 1) {
+                query = session.getNamedQuery("isAnySubordinateAttempt.oneLowerOid");
+            } else {
+                StringBuilder sb = new StringBuilder();
+                sb.append("select count(*) from ROrgClosure o where ");
+
+                sb.append('(');
+                Iterator<String> iterator = lowerObjectOids.iterator();
+                int paramIndex = 0;
+                while (iterator.hasNext()) {
+                    iterator.next();
+                    sb.append("(o.ancestorOid=:aOid").append(paramIndex);
+                    sb.append(" and o.descendantOid=:dOid").append(paramIndex);
+                    sb.append(')');
+                    paramIndex++;
+                    if (iterator.hasNext()) {
+                        sb.append(" or ");
+                    }
+                }
+                sb.append(')');
+
+                query = session.createQuery(sb.toString());
+            }
+
             Iterator<String> iterator = lowerObjectOids.iterator();
             int paramIndex = 0;
-            while (iterator.hasNext()) {
-            	String subOid = iterator.next();
-            	sb.append("(o.ancestorOid=:aOid").append(paramIndex);
-                sb.append(" and o.descendantOid=:dOid").append(paramIndex);
-                sb.append(')');
-                paramIndex++;
-                if (iterator.hasNext()) {
-                	sb.append(" or ");
-                }
-            }
-            sb.append(')');
-            
-            Query query = session.createQuery(sb.toString());
-            
-            iterator = lowerObjectOids.iterator();
-            paramIndex = 0;
             while (iterator.hasNext()) {
             	String subOid = iterator.next();
             	query.setString("aOid" + paramIndex, upperOrgOid);
@@ -1869,12 +1870,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             }
             
             Number number = (Number) query.uniqueResult();
-            if (number.longValue() != 0L) {
-                return true;
-            }
-
-            return false;
-            
+            return (number != null && number.longValue() != 0L) ? true : false;
         } catch (RuntimeException ex) {
             handleGeneralException(ex, session, null);
         } finally {
