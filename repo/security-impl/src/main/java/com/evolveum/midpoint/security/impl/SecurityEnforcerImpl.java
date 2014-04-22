@@ -48,11 +48,14 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -66,6 +69,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SpecialObjectSpecificationType;
@@ -85,6 +89,9 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
+	
+	@Autowired(required = true)
+	private MatchingRuleRegistry matchingRuleRegistry;
 	
 	private UserProfileService userProfileService = null;
 	
@@ -320,18 +327,23 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			LOGGER.trace("  Authorization not applicable for {} because of null object specification");
 			return false;
 		}
-		SearchFilterType specFilter = objectSpecType.getFilter();
+		SearchFilterType specFilterType = objectSpecType.getFilter();
+		ObjectReferenceType specOrgRef = objectSpecType.getOrgRef();
 		QName specTypeQName = objectSpecType.getType();
 		PrismObjectDefinition<O> objectDefinition = object.getDefinition();
+		
+		// Type
 		if (specTypeQName != null && !QNameUtil.match(specTypeQName, objectDefinition.getTypeName())) {
 			LOGGER.trace("  Authorization not applicable for {} because of type mismatch, expected {}, was {}",
 					new Object[]{desc, specTypeQName, objectDefinition.getTypeName()});
 			return false;
 		}
+		
+		// Special
 		List<SpecialObjectSpecificationType> specSpecial = objectSpecType.getSpecial();
 		if (specSpecial != null && !specSpecial.isEmpty()) {
-			if (specFilter != null) {
-				throw new SchemaException("Both filter and special "+desc+" specification specified in authorization");
+			if (specFilterType != null || specOrgRef != null) {
+				throw new SchemaException("Both filter/org and special "+desc+" specification specified in authorization");
 			}
 			for (SpecialObjectSpecificationType special: specSpecial) {
 				if (special == SpecialObjectSpecificationType.SELF) {
@@ -352,45 +364,50 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					throw new SchemaException("Unsupported special "+desc+" specification specified in authorization: "+special);
 				}
 			}
+			return false;
 		} else {
 			LOGGER.trace("  specials empty: {}", specSpecial);
 		}
-		if (specFilter != null) {
-
-//TODO: resolve conflict
 		
-//Original:
-//
-//			ObjectQuery q = QueryConvertor.createObjectQuery(object.getCompileTimeClass(), specFilter, object.getPrismContext());
-//			boolean applicable = ObjectQuery.match(object, q.getFilter(), matchingRuleRegistry);
-//
-//prism:
-//
-//			ObjectFilter filter = QueryConvertor.parseFilter(specFilter, object.getCompileTimeClass(), object.getPrismContext());
-//			boolean applicable = ObjectQuery.match(object, filter, matchingRuleRegistry);
-//
-//
-//master:
-//
-//			// TODO: organizational structure
-			ObjectQuery q = QueryJaxbConvertor.createObjectQuery(object.getCompileTimeClass(), specFilter, object.getPrismContext());
-			boolean applicable = repositoryService.matchObject(object, q);
-
+		// Filter
+		if (specFilterType != null) {
+			ObjectFilter specFilter = QueryJaxbConvertor.createObjectFilter(object.getCompileTimeClass(), specFilterType, object.getPrismContext());
+			if (specFilter != null) {
+				ObjectQueryUtil.assertPropertyOnly(specFilter, "Filter in authorization "+desc+" is not property-only filter");
+			}
+			if (!ObjectQuery.match(object, specFilter, matchingRuleRegistry)) {
+				LOGGER.trace("  filter authorization not applicable for {}, OID {}",
+						new Object[]{desc, object.getOid()});
+				return false;
+			}
+		}
+			
+		// Org	
+		if (specOrgRef != null) {
+			
+			List<ObjectReferenceType> objParentOrgRefs = object.asObjectable().getParentOrgRef();
+			List<String> objParentOrgOids = new ArrayList<>(objParentOrgRefs.size());
+			for (ObjectReferenceType objParentOrgRef: objParentOrgRefs) {
+				objParentOrgOids.add(objParentOrgRef.getOid());
+			}
+			
+			boolean anySubordinate = repositoryService.isAnySubordinate(specOrgRef.getOid(), objParentOrgOids);
+			if (!anySubordinate) {
+				LOGGER.trace("  org authorization not applicable for {}, OID {}",
+						new Object[]{desc, object.getOid()});
+				return false;
+			}
+			
             // this is temporary code
 //            boolean applicable = false;
 //            if (!applicable) {
 //                throw new UnsupportedOperationException("fix this!");
 //            }
             // end of temporary code
-
-            if (applicable) {
-				LOGGER.trace("  Authorization applicable for {} (filter)", desc);
-			} else {
-				LOGGER.trace("  Authorization not applicable for {} (filter)", desc);
-			}
-			return applicable;
 		}
-		return false;
+
+		LOGGER.trace("  Authorization applicable for {} (filter)", desc);
+		return true;
 	}
 	
 	private <O extends ObjectType, T extends ObjectType> boolean isApplicableItem(Authorization autz,
