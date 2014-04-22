@@ -290,7 +290,15 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
             if (!strategy.equals(LocatorUtils.property(thisLocator, "filter", lhsFilter), LocatorUtils.property(thatLocator, "filter", rhsFilter), lhsFilter, rhsFilter)) {
                 return false;
             }
+            
         }
+        
+        if (filterClauseXNode == null) {
+			if (that.filterClauseXNode != null)
+				return false;
+		} else if (!filterClauseXNode.equals(that.filterClauseXNode))
+			return false;
+      
         return true;
     }
 
