@@ -91,9 +91,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     public SqlRepositoryServiceImpl(SqlRepositoryFactory repositoryFactory) {
         super(repositoryFactory);
+    }
 
-        //there maybe different implementations for different RMDBs
-        orgClosureManager = new OrgClosureManager();
+    private OrgClosureManager getOrgClosureManager() {
+        if (orgClosureManager == null) {
+            orgClosureManager = new OrgClosureManager(getConfiguration());
+        }
+        return orgClosureManager;
     }
 
     private <T extends ObjectType> PrismObject<T> getObject(Session session, Class<T> type, String oid,
@@ -530,7 +534,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         updateFullObject(rObject, object);
         RObject merged = (RObject) session.merge(rObject);
         //todo finish orgClosureManager
-        //orgClosureManager.updateOrgClosure(modifications, session, originalOid, object.getCompileTimeClass(), operation);
+//        orgClosureManager.updateOrgClosure(modifications, session, merged.getOid(), object.getCompileTimeClass(),
+//                OrgClosureManager.Operation.ADD);
 
         //update org. unit hierarchy based on modifications
         if (modifications == null || modifications.isEmpty()) {
@@ -600,7 +605,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         //Collection<ReferenceDelta> modifications = createAddParentRefDelta(object);
         //orgClosureManager.updateOrgClosure(modifications, session, oid, object.getCompileTimeClass(),
         //        OrgClosureManager.Operation.ADD);
-
 
 
         if (objectType instanceof OrgType || !objectType.getParentOrgRef().isEmpty()) {
@@ -899,7 +903,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 LOGGER.trace("Selecting total count.");
                 longCount = (Number) rQuery.uniqueResult();
             }
-            count = longCount.intValue();
+            count = longCount != null ? longCount.intValue() : 0;
         } catch (QueryException | RuntimeException ex) {
             handleGeneralException(ex, session, result);
         } finally {
