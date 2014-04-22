@@ -896,13 +896,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                 SQLQuery sqlQuery = session.createSQLQuery("SELECT COUNT(*) FROM " + RUtil.getTableName(hqlType));
                 longCount = (Number) sqlQuery.uniqueResult();
             } else {
-                LOGGER.trace("Updating query criteria.");
                 QueryEngine engine = new QueryEngine(getConfiguration(), getPrismContext());
                 RQuery rQuery = engine.interpret(query, type, null, true, session);
 
-                LOGGER.trace("Selecting total count.");
                 longCount = (Number) rQuery.uniqueResult();
             }
+            LOGGER.trace("Found {} objects.", longCount);
             count = longCount != null ? longCount.intValue() : 0;
         } catch (QueryException | RuntimeException ex) {
             handleGeneralException(ex, session, result);
