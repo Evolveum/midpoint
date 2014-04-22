@@ -23,5 +23,11 @@
 		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>lechuck</name>
     
+    <assignment>
+    	<targetRef oid="00000000-8888-6666-0000-100000000003">
+    		<!-- ministry of offense -->
+    	</targetRef>
+    </assignment>
+    
     <fullName>LeChuck</fullName>
 </user>
