@@ -20,6 +20,8 @@ import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -62,6 +64,7 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -126,6 +129,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
     @SuppressWarnings({"unchecked", "unused"})
     @Test
     public void test001addOrgStructObjects() throws Exception {
+    	final String TEST_NAME = "test001addOrgStructObjects";
+    	TestUtil.displayTestTile(TEST_NAME);
 
         LOGGER.info("===[ addOrgStruct ]===");
         OperationResult opResult = new OperationResult("===[ addOrgStruct ]===");
@@ -213,6 +218,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         // MID-1828
         testMonkeyMatch();
+        testMonkeySubordinate();
 
         LOGGER.info("==>after add<==");
         Session session = getFactory().openSession();
@@ -398,9 +404,79 @@ public class OrgStructTest extends BaseSQLRepoTest {
 							createOrgNameFilter("F0005"),
 							createOrgDisplayNameFilter("landLUBER subSECtion"))),
 				false);
-}
+    }
     
-    private ObjectFilter createOrgNameFilter(String name) throws SchemaException {
+    /**
+     * Tests for repo.matchObject() method
+     */
+    private void testMonkeySubordinate() throws SchemaException, ObjectNotFoundException {
+    	
+    	assertSubordinate(false, ORG_F003_OID, ORG_F001_OID);
+    	assertSubordinate(true, ORG_F003_OID, ORG_F003_OID);
+    	assertSubordinate(true, ORG_F003_OID, ORG_F005_OID);
+    	assertSubordinate(false, ORG_F003_OID, ORG_F002_OID);
+    	assertSubordinate(false, ORG_F003_OID, ORG_F004_OID);
+    	
+    	assertSubordinate(true, ORG_F001_OID, ORG_F001_OID);
+    	assertSubordinate(true, ORG_F001_OID, ORG_F003_OID);
+    	assertSubordinate(true, ORG_F001_OID, ORG_F005_OID);
+    	assertSubordinate(true, ORG_F001_OID, ORG_F002_OID);
+    	assertSubordinate(true, ORG_F001_OID, ORG_F004_OID);
+    	
+    	assertSubordinate(false, ORG_F005_OID, ORG_F001_OID);
+    	assertSubordinate(false, ORG_F005_OID, ORG_F003_OID);
+    	assertSubordinate(true, ORG_F005_OID, ORG_F005_OID);
+    	assertSubordinate(false, ORG_F005_OID, ORG_F002_OID);
+    	assertSubordinate(false, ORG_F005_OID, ORG_F004_OID);
+    	
+    	assertSubordinate(true, ORG_F003_OID, ORG_F005_OID, ORG_F006_OID);
+    	assertSubordinate(true, ORG_F003_OID, ORG_F002_OID, ORG_F006_OID);
+    	assertSubordinate(true, ORG_F003_OID, ORG_F004_OID, ORG_F005_OID);
+    	assertSubordinate(true, ORG_F003_OID, ORG_F005_OID, ORG_F004_OID);
+    	assertSubordinate(true, ORG_F003_OID, ORG_F005_OID, ORG_F001_OID);
+    	assertSubordinate(false, ORG_F003_OID, ORG_F001_OID, ORG_F004_OID);
+    	assertSubordinate(false, ORG_F003_OID, ORG_F002_OID, ORG_F004_OID);
+    	assertSubordinate(false, ORG_F003_OID, ORG_F001_OID, ORG_F002_OID, ORG_F004_OID);
+    	assertSubordinate(true, ORG_F003_OID, ORG_F001_OID, ORG_F005_OID, ORG_F004_OID);
+    	assertSubordinate(true, ORG_F003_OID, ORG_F001_OID, ORG_F003_OID, ORG_F004_OID);
+    	assertSubordinate(true, ORG_F003_OID, ORG_F001_OID, ORG_F005_OID, ORG_F006_OID);
+    	
+    	assertSubordinate(true, ORG_F001_OID, ORG_F005_OID, ORG_F006_OID);
+    	assertSubordinate(true, ORG_F001_OID, ORG_F002_OID, ORG_F006_OID);
+    	assertSubordinate(true, ORG_F001_OID, ORG_F005_OID, ORG_F004_OID);
+    	assertSubordinate(true, ORG_F001_OID, ORG_F005_OID, ORG_F001_OID);
+    	assertSubordinate(true, ORG_F001_OID, ORG_F001_OID, ORG_F004_OID);
+    	assertSubordinate(true, ORG_F001_OID, ORG_F002_OID, ORG_F004_OID);
+    	assertSubordinate(true, ORG_F001_OID, ORG_F001_OID, ORG_F002_OID, ORG_F004_OID);
+    	assertSubordinate(true, ORG_F001_OID, ORG_F001_OID, ORG_F005_OID, ORG_F004_OID);
+    	assertSubordinate(true, ORG_F001_OID, ORG_F001_OID, ORG_F003_OID, ORG_F004_OID);
+    	assertSubordinate(true, ORG_F001_OID, ORG_F001_OID, ORG_F005_OID, ORG_F006_OID);
+    	
+    	assertSubordinate(true, ORG_F006_OID, ORG_F005_OID, ORG_F006_OID);
+    	assertSubordinate(true, ORG_F006_OID, ORG_F002_OID, ORG_F006_OID);
+    	assertSubordinate(false, ORG_F006_OID, ORG_F005_OID, ORG_F004_OID);
+    	assertSubordinate(false, ORG_F006_OID, ORG_F005_OID, ORG_F001_OID);
+    	assertSubordinate(false, ORG_F006_OID, ORG_F001_OID, ORG_F004_OID);
+    	assertSubordinate(false, ORG_F006_OID, ORG_F002_OID, ORG_F004_OID);
+    	assertSubordinate(false, ORG_F006_OID, ORG_F001_OID, ORG_F002_OID, ORG_F004_OID);
+    	assertSubordinate(false, ORG_F006_OID, ORG_F001_OID, ORG_F005_OID, ORG_F004_OID);
+    	assertSubordinate(false, ORG_F006_OID, ORG_F001_OID, ORG_F003_OID, ORG_F004_OID);
+    	assertSubordinate(true, ORG_F006_OID, ORG_F001_OID, ORG_F005_OID, ORG_F006_OID);
+	}
+    
+    private void assertSubordinate(boolean expected, String upperOrgOid, String... lowerObjectOids) throws SchemaException {
+    	Collection<String> lowerObjectOidCol = Arrays.asList(lowerObjectOids);
+    	LOGGER.debug("=======> {}: {}", upperOrgOid, lowerObjectOidCol);
+		boolean actual = repositoryService.isAnySubordinate(upperOrgOid, lowerObjectOidCol);
+		if (expected != actual) {
+			LOGGER.error("=======X {}: {}; expected={}, actual={}", new Object[]{upperOrgOid, lowerObjectOidCol, expected, actual});
+			assertEquals("Wrong subordinate match: "+upperOrgOid+" to "+lowerObjectOidCol, expected, actual);
+		} else {
+			LOGGER.debug("=======O {}: {}; got={}", new Object[]{upperOrgOid, lowerObjectOidCol, expected});
+		}
+	}
+
+	private ObjectFilter createOrgNameFilter(String name) throws SchemaException {
 		return EqualsFilter.createEqual(OrgType.F_NAME, OrgType.class, prismContext, PrismTestUtil.createPolyString(name));
 	}
     

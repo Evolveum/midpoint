@@ -95,6 +95,14 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	
 	protected static final File USER_LECHUCK_FILE = new File(TEST_DIR, "user-lechuck.xml");
 	protected static final String USER_LECHUCK_OID = "c0c010c0-d34d-b33f-f00d-1c1c11cc11c2";
+
+	private static final File USER_MANCOMB_FILE = new File(TEST_DIR, "user-mancomb.xml");
+	private static final String USER_MANCOMB_OID = "00000000-0000-0000-0000-110000000011";
+	
+	private static final File USER_ESTEVAN_FILE = new File(TEST_DIR, "user-estevan.xml");
+	private static final String USER_ESTEVAN_OID = "00000000-0000-0000-0000-110000000012";
+
+	private static final String USER_RUM_ROGERS_NAME = "rum";
 	
 	protected static final File ROLE_READONLY_FILE = new File(TEST_DIR, "role-readonly.xml");
 	protected static final String ROLE_READONLY_OID = "00000000-0000-0000-0000-00000000aa01";
@@ -110,8 +118,13 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	
 	protected static final File ROLE_PROP_READ_ALL_MODIFY_SOME_FILE = new File(TEST_DIR, "role-prop-read-all-modify-some.xml");
 	protected static final String ROLE_PROP_READ_ALL_MODIFY_SOME_OID = "00000000-0000-0000-0000-00000000aa05";
+	
+	protected static final File ROLE_MASTER_MINISTRY_OF_RUM_FILE = new File(TEST_DIR, "role-org-master-ministry-of-rum.xml");
+	protected static final String ROLE_MASTER_MINISTRY_OF_RUM_OID = "00000000-0000-0000-0000-00000000aa06";
 
 	private static final String LOG_PREFIX_FAIL = "SSSSS=X ";
+	
+	String userRumRogersOid;
 
 	@Autowired(required=true)
 	private UserProfileService userDetailsService;
@@ -128,6 +141,14 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_SELF_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_OBJECT_FILTER_CARIBBEAN_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_PROP_READ_ALL_MODIFY_SOME_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_MASTER_MINISTRY_OF_RUM_FILE, RoleType.class, initResult);
+		
+		assignOrg(USER_GUYBRUSH_OID, ORG_SWASHBUCKLER_SECTION_OID, initTask, initResult);
+		
+		PrismObject<UserType> userRum = createUser(USER_RUM_ROGERS_NAME, "Rum Rogers");
+		addObject(userRum, initTask, initResult);
+		userRumRogersOid = userRum.getOid();
+		assignOrg(userRumRogersOid, ORG_MINISTRY_OF_RUM_OID, initTask, initResult);
 	}
 
 	@Test
@@ -472,6 +493,29 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteDeny();
 	}
 	
+	@Test
+    public void test230AutzJackMasterMinistryOfRum() throws Exception {
+		final String TEST_NAME = "test230AutzJackMasterMinistryOfRum";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_MASTER_MINISTRY_OF_RUM_OID);
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assertReadDeny();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+        
+        assertGetAllow(UserType.class, userRumRogersOid);
+        assertModifyAllow(UserType.class, userRumRogersOid, UserType.F_TITLE, PrismTestUtil.createPolyString("drunk"));
+        assertAddAllow(USER_MANCOMB_FILE);
+        assertDeleteAllow(UserType.class, USER_ESTEVAN_OID);
+	}
+	
 	private void cleanupAutzTest(String userOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, IOException {
 		login(userAdministrator);
         unassignAllRoles(userOid);
@@ -482,10 +526,13 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         cleanupDelete(UserType.class, USER_HERMAN_OID, task, result);
         cleanupDelete(UserType.class, USER_DRAKE_OID, task, result);
         cleanupDelete(UserType.class, USER_RAPP_OID, task, result);
+        cleanupDelete(UserType.class, USER_MANCOMB_OID, task, result);
         cleanupAdd(USER_LARGO_FILE, task, result);
         cleanupAdd(USER_LECHUCK_FILE, task, result);
+        cleanupAdd(USER_ESTEVAN_FILE, task, result);
         
         modifyUserReplace(USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, task, result);
+        modifyUserReplace(userRumRogersOid, UserType.F_TITLE, task, result);
         modifyUserReplace(USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, task, result, PrismTestUtil.createPolyString("Wannabe"));
 	}
 	

@@ -34,6 +34,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -339,6 +340,8 @@ public interface RepositoryService {
 	 * 				specified object or search filter contain data that violate the schema
 	 */
 	<T extends ObjectType> boolean matchObject(PrismObject<T> object, ObjectQuery query) throws SchemaException;
+	
+	boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException;
 	
 	/**
 	 * <p>Modifies object using relative change description.</p>

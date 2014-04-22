@@ -92,7 +92,7 @@ public class OrgFilterQuery extends CustomQuery {
         }
 
         if (countingObjects) {
-            sb.append("group by o.oid");
+            sb.append("group by d.ancestorOid");
         } else {
             sb.append("group by o.fullObject, o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount, o.name.orig order by o.name.orig asc");
         }
@@ -131,7 +131,7 @@ public class OrgFilterQuery extends CustomQuery {
                 }
             }
         }
-        sb.append("group by d.descendantOid)");
+        sb.append("group by d.ancestorOid)");
 
         Query query = session.createQuery(sb.toString());
         updateQuery(query, filter, countingObjects);

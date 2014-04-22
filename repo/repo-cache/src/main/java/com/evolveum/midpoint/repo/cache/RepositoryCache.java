@@ -315,6 +315,12 @@ public class RepositoryCache implements RepositoryService {
 			throws SchemaException {
 		return repository.matchObject(object, query);
 	}
+
+	@Override
+	public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids)
+			throws SchemaException {
+		return repository.isAnySubordinate(upperOrgOid, lowerObjectOids);
+	}
 	
 	
 

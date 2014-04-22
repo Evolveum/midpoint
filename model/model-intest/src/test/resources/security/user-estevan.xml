@@ -14,20 +14,20 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<user oid="c0c010c0-d34d-b33f-f00d-1c1c11cc11c2" 
+<user oid="00000000-0000-0000-0000-110000000012" 
 		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
-		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'
 		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
 		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
-    <name>lechuck</name>
+    <name>estevan</name>
     
     <assignment>
-    	<targetRef oid="00000000-8888-6666-0000-100000000003">
-    		<!-- ministry of offense -->
+    	<targetRef oid="00000000-8888-6666-0000-100000000006">
+    		<!-- scumm bar -->
     	</targetRef>
     </assignment>
     
-    <fullName>LeChuck</fullName>
+    <fullName>Estevan</fullName>
+    
 </user>
