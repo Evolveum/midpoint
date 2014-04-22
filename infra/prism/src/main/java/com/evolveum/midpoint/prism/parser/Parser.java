@@ -40,6 +40,8 @@ public interface Parser {
 	
 	Collection<XNode> parseCollection(File file) throws SchemaException, IOException;
 	
+	Collection<XNode> parseCollection(InputStream stream) throws SchemaException, IOException;
+	
 	Collection<XNode> parseCollection(String dataString) throws SchemaException;
 	
 	boolean canParse(File file) throws IOException;

@@ -69,6 +69,16 @@ public class DomParser implements Parser {
 	@Override
 	public Collection<XNode> parseCollection(File file) throws SchemaException, IOException {
 		Document document = DOMUtil.parseFile(file);
+		return parseCollection(document);
+	}
+
+	@Override
+	public Collection<XNode> parseCollection(InputStream stream) throws SchemaException, IOException {
+		Document document = DOMUtil.parse(stream);
+		return parseCollection(document);
+	}
+	
+	private Collection<XNode> parseCollection(Document document) throws SchemaException{
 		Element root = DOMUtil.getFirstChildElement(document);
 		// TODO: maybe some check if this is a collection of other objects???
 		List<Element> children = DOMUtil.listChildElements(root);
@@ -79,7 +89,7 @@ public class DomParser implements Parser {
 		}
 		return nodes;
 	}
-
+	
 	@Override
 	public Collection<XNode> parseCollection(String dataString) throws SchemaException {
 		throw new UnsupportedOperationException();
@@ -451,4 +461,6 @@ public class DomParser implements Parser {
 		Element parent = serializeToElement(xmap, subEntry.getKey());
 		return DOMUtil.getFirstChildElement(parent);
 	}
+
+	
 }
