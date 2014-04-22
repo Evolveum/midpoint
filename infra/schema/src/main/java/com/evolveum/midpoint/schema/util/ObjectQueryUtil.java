@@ -19,6 +19,7 @@ package com.evolveum.midpoint.schema.util;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
+
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.mutable.MutableBoolean;
 
@@ -129,6 +130,22 @@ public class ObjectQueryUtil {
 		};
 		filter.accept(visitor);
 		return hasAllDefinitions.booleanValue();
+	}
+	
+	public static void assertPropertyOnly(ObjectFilter filter, final String message) {
+		Visitor visitor = new Visitor() {
+			@Override
+			public void visit(ObjectFilter filter) {
+				if (filter instanceof OrgFilter) {
+					if (message == null) {
+						throw new IllegalArgumentException(filter.toString());
+					} else {
+						throw new IllegalArgumentException(message+": "+filter);
+					}
+				}
+			}
+		};
+		filter.accept(visitor);
 	}
 
 	public static String dump(QueryType query) {

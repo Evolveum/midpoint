@@ -50,6 +50,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
@@ -63,6 +64,7 @@ import org.hibernate.jdbc.Work;
 import org.springframework.stereotype.Repository;
 
 import javax.xml.namespace.QName;
+
 import java.lang.reflect.Method;
 import java.sql.Connection;
 import java.sql.Driver;
@@ -1797,8 +1799,92 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         query.setParameter("timestamp", XMLGregorianCalendarType.asXMLGregorianCalendar(minValue));
         return query.executeUpdate();
     }
+    
+
+    
 
     @Override
+	public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException {
+		Validate.notNull(upperOrgOid, "upperOrgOid must not be null.");
+        Validate.notNull(lowerObjectOids, "lowerObjectOids must not be null.");
+
+        if (LOGGER.isTraceEnabled()) LOGGER.trace("Querying for subordination upper {}, lower {}", new Object[]{upperOrgOid, lowerObjectOids});
+
+        if (lowerObjectOids.isEmpty()) {
+        	// trivial case
+        	return false;
+        }
+        
+        int attempt = 1;
+
+        SqlPerformanceMonitor pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart("matchObject");
+        try {
+            while (true) {
+                try {
+                    return isAnySubordinateAttempt(upperOrgOid, lowerObjectOids);
+                } catch (RuntimeException ex) {
+                    attempt = logOperationAttempt(upperOrgOid, "isAnySubordinate", attempt, ex, null);
+                    pm.registerOperationNewTrial(opHandle, attempt);
+                }
+            }
+        } finally {
+            pm.registerOperationFinish(opHandle, attempt);
+        }
+	}
+    
+	private boolean isAnySubordinateAttempt(String upperOrgOid, Collection<String> lowerObjectOids)
+			throws SchemaException {
+		Session session = null;
+        try {
+            session = beginTransaction();
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("select count(*) from ROrgClosure o where ");
+            
+            sb.append('(');
+            Iterator<String> iterator = lowerObjectOids.iterator();
+            int paramIndex = 0;
+            while (iterator.hasNext()) {
+            	String subOid = iterator.next();
+            	sb.append("(o.ancestorOid=:aOid").append(paramIndex);
+                sb.append(" and o.descendantOid=:dOid").append(paramIndex);
+                sb.append(')');
+                paramIndex++;
+                if (iterator.hasNext()) {
+                	sb.append(" or ");
+                }
+            }
+            sb.append(')');
+            
+            Query query = session.createQuery(sb.toString());
+            
+            iterator = lowerObjectOids.iterator();
+            paramIndex = 0;
+            while (iterator.hasNext()) {
+            	String subOid = iterator.next();
+            	query.setString("aOid" + paramIndex, upperOrgOid);
+            	query.setString("dOid" + paramIndex, subOid);
+            	paramIndex++;
+            }
+            
+            Number number = (Number) query.uniqueResult();
+            if (number.longValue() != 0L) {
+                return true;
+            }
+
+            return false;
+            
+        } catch (RuntimeException ex) {
+            handleGeneralException(ex, session, null);
+        } finally {
+            cleanupSessionAndResult(session, null);
+        }
+
+        throw new SystemException("isAnySubordinateAttempt failed somehow, this really should not happen.");
+    }
+
+	@Override
     public <T extends ObjectType> boolean matchObject(PrismObject<T> object, ObjectQuery query) throws SchemaException {
         Validate.notNull(object, "Object must not be null.");
         Validate.notNull(query, "Query must not be null.");
