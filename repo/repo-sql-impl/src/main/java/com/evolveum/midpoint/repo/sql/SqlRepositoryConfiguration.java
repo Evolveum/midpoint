@@ -142,8 +142,8 @@ public class SqlRepositoryConfiguration {
             useReadOnlyTransactions = true;
         } else if (isUsingOracle()) {
             transactionIsolation = TransactionIsolation.READ_COMMITTED;
-            lockForUpdateViaHibernate = true;
-            lockForUpdateViaSql = false;
+            lockForUpdateViaHibernate = false;
+            lockForUpdateViaSql = true;
             useReadOnlyTransactions = true;
         } else if (isUsingPostgreSQL()) {
             transactionIsolation = TransactionIsolation.SERIALIZABLE;
