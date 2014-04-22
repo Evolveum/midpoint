@@ -135,15 +135,15 @@ public class OrgClosureManager {
 //                "where o.descendantId=0 and o.descendantOid=:oid and and o.ancestorId=0 o.ancestorOid != :oid";
 
 
-        LOGGER.trace("Deleting org. closure for object {} {}", oid, type.getSimpleName());
-        Query query = session.createQuery("select distinct o.ancestorOid from ROrgClosure as o where o.descendantId=0 and o.descendantOid=:dOid");
-
-        query = session.createQuery("delete from ROrgClosure as o where (o.ancestorId=0 and " +
-                "o.ancestorOid=:aOid) or (o.descendantId=0 and o.descendantOid=:dOid)");
-        query.setString("aOid", oid);
-        query.setString("dOid", oid);
-        int count = query.executeUpdate();
-        LOGGER.trace("Deleted {} records.", count);
+//        LOGGER.trace("Deleting org. closure for object {} {}", oid, type.getSimpleName());
+//        Query query = session.createQuery("select distinct o.ancestorOid from ROrgClosure as o where o.descendantId=0 and o.descendantOid=:dOid");
+//
+//        query = session.createQuery("delete from ROrgClosure as o where (o.ancestorId=0 and " +
+//                "o.ancestorOid=:aOid) or (o.descendantId=0 and o.descendantOid=:dOid)");
+//        query.setString("aOid", oid);
+//        query.setString("dOid", oid);
+//        int count = query.executeUpdate();
+//        LOGGER.trace("Deleted {} records.", count);
     }
 
     private <T extends ObjectType> void handleAdd(Collection<? extends ItemDelta> modifications, Session session,
