@@ -65,40 +65,33 @@ public class OrgFilterQuery extends CustomQuery {
 
         LOGGER.trace("createOrgQuery {}, counting={}, filter={}", new Object[]{type.getSimpleName(), countingObjects, filter});
 
+        if (countingObjects) {
+            return countQuery(filter, type, session);
+        }
+
         if (getRepoConfiguration().isUsingOracle()) {
-            return createOracleQuery(filter, type, countingObjects, session);
+            return createOracleQuery(filter, type, session);
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("select ");
-        if (countingObjects) {
-            sb.append("count(*) ");
-        } else {
-            sb.append("o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount ");
-        }
-        sb.append("from ").append(ClassMapper.getHQLType(type)).append(" as o left join o.descendants as d ");
-        sb.append("where d.ancestorOid = :aOid ");
+        sb.append("select o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount from ");
+        sb.append(ClassMapper.getHQLType(type)).append(" as o left join o.descendants as d where d.ancestorOid = :aOid");
         if (filter.getMinDepth() != null || filter.getMaxDepth() != null) {
             if (ObjectUtils.equals(filter.getMinDepth(), filter.getMaxDepth())) {
-                sb.append("and d.depth = :depth ");
+                sb.append(" and d.depth = :depth");
             } else {
                 if (filter.getMinDepth() != null) {
-                    sb.append("and d.depth > :minDepth ");
+                    sb.append(" and d.depth > :minDepth");
                 }
                 if (filter.getMaxDepth() != null) {
-                    sb.append("and d.depth <= :maxDepth ");
+                    sb.append(" and d.depth <= :maxDepth");
                 }
             }
         }
-
-        if (countingObjects) {
-            sb.append("group by d.ancestorOid");
-        } else {
-            sb.append("group by o.fullObject, o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount, o.name.orig order by o.name.orig asc");
-        }
+        sb.append(" group by o.fullObject, o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount, o.name.orig order by o.name.orig asc");
 
         Query query = session.createQuery(sb.toString());
-        updateQuery(query, filter, countingObjects);
+        updateQueryParameters(query, filter, countingObjects);
 
         return new RQueryImpl(query);
     }
@@ -107,39 +100,32 @@ public class OrgFilterQuery extends CustomQuery {
      * This query is probably much faster than the standard one,
      * but it's using IN clause, we need to check it's performance. [lazyman]
      */
-    private RQuery createOracleQuery(OrgFilter filter, Class<? extends ObjectType> type, boolean countingObjects,
-                                     Session session) {
+    private RQuery createOracleQuery(OrgFilter filter, Class<? extends ObjectType> type, Session session) {
         StringBuilder sb = new StringBuilder();
-        sb.append("select ");
-        if (countingObjects) {
-            sb.append("count(*) ");
-        } else {
-            sb.append("o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount ");
-        }
-        sb.append("from ").append(ClassMapper.getHQLType(type)).append(" as o where o.oid in (");
-        sb.append("select d.descendantOid from ROrgClosure as d ");
-        sb.append("where d.ancestorOid = :aOid ");
+        sb.append("select o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount from ");
+        sb.append(ClassMapper.getHQLType(type)).append(" as o where o.oid in (");
+        sb.append("select distinct d.descendantOid from ROrgClosure as d where d.ancestorOid = :aOid");
         if (filter.getMinDepth() != null || filter.getMaxDepth() != null) {
             if (ObjectUtils.equals(filter.getMinDepth(), filter.getMaxDepth())) {
-                sb.append("and d.depth = :depth ");
+                sb.append(" and d.depth = :depth");
             } else {
                 if (filter.getMinDepth() != null) {
-                    sb.append("and d.depth > :minDepth ");
+                    sb.append(" and d.depth > :minDepth");
                 }
                 if (filter.getMaxDepth() != null) {
-                    sb.append("and d.depth <= :maxDepth ");
+                    sb.append(" and d.depth <= :maxDepth");
                 }
             }
         }
-        sb.append("group by d.ancestorOid)");
+        sb.append(')');
 
         Query query = session.createQuery(sb.toString());
-        updateQuery(query, filter, countingObjects);
+        updateQueryParameters(query, filter, false);
 
         return new RQueryImpl(query);
     }
 
-    private void updateQuery(Query query, OrgFilter filter, boolean countingObjects) {
+    private void updateQueryParameters(Query query, OrgFilter filter, boolean countingObjects) {
         query.setString("aOid", filter.getOrgRef().getOid());
         if (filter.getMinDepth() != null || filter.getMaxDepth() != null) {
             if (ObjectUtils.equals(filter.getMinDepth(), filter.getMaxDepth())) {
@@ -157,5 +143,33 @@ public class OrgFilterQuery extends CustomQuery {
         if (!countingObjects) {
             query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
         }
+    }
+
+    private RQuery countQuery(OrgFilter filter, Class type, Session session) {
+        StringBuilder sb = new StringBuilder();
+        if (ObjectType.class.equals(type)) {
+            sb.append("select count(distinct d.descendantOid) from ROrgClosure d where d.ancestorOid = :aOid");
+        } else {
+            sb.append("select count(distinct d.descendantOid) from ").append(ClassMapper.getHQLType(type));
+            sb.append(" as o left join o.descendants as d where d.ancestorOid = :aOid");
+        }
+
+        if (filter.getMinDepth() != null || filter.getMaxDepth() != null) {
+            if (ObjectUtils.equals(filter.getMinDepth(), filter.getMaxDepth())) {
+                sb.append(" and d.depth = :depth");
+            } else {
+                if (filter.getMinDepth() != null) {
+                    sb.append(" and d.depth > :minDepth");
+                }
+                if (filter.getMaxDepth() != null) {
+                    sb.append(" and d.depth <= :maxDepth");
+                }
+            }
+        }
+
+        Query query = session.createQuery(sb.toString());
+        updateQueryParameters(query, filter, true);
+
+        return new RQueryImpl(query);
     }
 }

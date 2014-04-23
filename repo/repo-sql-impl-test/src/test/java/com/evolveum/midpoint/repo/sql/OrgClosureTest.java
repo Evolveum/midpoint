@@ -52,11 +52,15 @@ public class OrgClosureTest extends BaseSQLRepoTest {
     private static final String ORG_STRUCT_OBJECTS = TEST_DIR + "/org-monkey-island.xml";
     private static final String ORG_SIMPLE_TEST = TEST_DIR + "/org-simple-test.xml";
 
-    //50531 org. units, 810155 users
+    //50531 OU, 810155 U
 //    private static final int[] TREE_LEVELS = {1, 5, 5, 20, 20, 4};
 //    private static final int[] TREE_LEVELS_USERS = {5, 10, 4, 20, 20, 15};
 
-    //9 OU, 23 U
+    //1191 OU, 10943 U  =>  428585 queries ~ 6min, h2
+//    private static final int[] TREE_LEVELS = {1, 5, 3, 3, 5, 4};
+//    private static final int[] TREE_LEVELS_USERS = {3, 4, 5, 6, 7, 10};
+
+    //9 OU, 23 U        =>  773 queries ~ 50s, h2
     private static final int[] TREE_LEVELS = {1, 2, 3};
     private static final int[] TREE_LEVELS_USERS = {1, 2, 3};
 
