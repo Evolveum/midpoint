@@ -21,11 +21,14 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import javax.xml.XMLConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.RQueryImpl;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
@@ -124,7 +127,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
     }
-    
+
     @Test
     public void queryOrganizationNorm() throws Exception {
         Session session = open();
@@ -587,7 +590,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             SchemaRegistry registry = prismContext.getSchemaRegistry();
             PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(ObjectType.class);
             ItemPath triggerPath = new ItemPath(ObjectType.F_TRIGGER, TriggerType.F_TIMESTAMP);
-    //        PrismContainerDefinition triggerContainerDef = objectDef.findContainerDefinition(triggerPath);
+            //        PrismContainerDefinition triggerContainerDef = objectDef.findContainerDefinition(triggerPath);
             ObjectFilter filter = LessFilter.createLess(triggerPath, objectDef, thisScanTimestamp, true);
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
             String real = getInterpretedQuery(session, ObjectType.class, query);
@@ -619,7 +622,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
             ItemPath activationPath = new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 
-    //        PrismContainerDefinition activationDef = objectDef.findContainerDefinition(activationPath);
+            //        PrismContainerDefinition activationDef = objectDef.findContainerDefinition(activationPath);
 
             ObjectFilter filter = EqualsFilter.createEqual(activationPath, objectDef, ActivationStatusType.ENABLED);
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
@@ -652,7 +655,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(RoleType.class);
             ItemPath activationPath = new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 
-        //        PrismContainerDefinition activationDef = objectDef.findContainerDefinition(activationPath);
+            //        PrismContainerDefinition activationDef = objectDef.findContainerDefinition(activationPath);
 
             ObjectFilter filter = EqualsFilter.createEqual(activationPath, objectDef, ActivationStatusType.ENABLED);
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
@@ -694,12 +697,12 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             //filter1
             ItemPath activationPath1 = new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
-    //        PrismContainerDefinition activationDef1 = objectDef.findContainerDefinition(activationPath1);
+            //        PrismContainerDefinition activationDef1 = objectDef.findContainerDefinition(activationPath1);
             ObjectFilter filter1 = EqualsFilter.createEqual(activationPath1, objectDef, ActivationStatusType.ENABLED);
 
             //filter2
             ItemPath activationPath2 = new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
-    //        PrismContainerDefinition activationDef2 = objectDef.findContainerDefinition(activationPath2);
+            //        PrismContainerDefinition activationDef2 = objectDef.findContainerDefinition(activationPath2);
             ObjectFilter filter2 = EqualsFilter.createEqual(activationPath2, objectDef, ActivationStatusType.ENABLED);
 
             ObjectQuery query = ObjectQuery.createObjectQuery(OrFilter.createOr(filter1, filter2));
@@ -731,9 +734,9 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             SchemaRegistry registry = prismContext.getSchemaRegistry();
             PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
-    //        ItemPath triggerPath = new ItemPath(AssignmentType.F_ACTIVATION);
+            //        ItemPath triggerPath = new ItemPath(AssignmentType.F_ACTIVATION);
 
-    //        PrismContainerDefinition triggerContainerDef = objectDef.findContainerDefinition(triggerPath);
+            //        PrismContainerDefinition triggerContainerDef = objectDef.findContainerDefinition(triggerPath);
 
             ObjectFilter filter1 = EqualsFilter.createEqual(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), objectDef,
                     ActivationStatusType.ENABLED);
@@ -775,7 +778,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             SchemaRegistry registry = prismContext.getSchemaRegistry();
             PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(ObjectType.class);
             ItemPath triggerPath = new ItemPath(ObjectType.F_TRIGGER, TriggerType.F_TIMESTAMP);
-    //        PrismContainerDefinition triggerContainerDef = objectDef.findContainerDefinition(triggerPath);
+            //        PrismContainerDefinition triggerContainerDef = objectDef.findContainerDefinition(triggerPath);
             ObjectFilter greater = GreaterFilter.createGreater(triggerPath, objectDef, thisScanTimestamp, false);
             ObjectFilter lesser = LessFilter.createLess(triggerPath, objectDef, thisScanTimestamp, false);
             AndFilter and = AndFilter.createAnd(greater, lesser);
@@ -817,7 +820,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled=false)    //TODO ENABLE [lazyman]
+    @Test(enabled = false)    //TODO ENABLE [lazyman]
     public void queryOrgStructure() throws Exception {
         Session session = open();
 
@@ -970,15 +973,17 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             if (repositoryService.getConfiguration().isUsingOracle()) {
                 query = session.createQuery(
                         "select o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount " +
-                                "from ROrg as o where o.oid in (select d.descendantOid from ROrgClosure " +
-                                "as d where d.ancestorOid = :aOid and d.depth <= :maxDepth group by d.descendantOid)");
+                                "from ROrg as o where o.oid in (select distinct d.descendantOid from ROrgClosure " +
+                                "as d where d.ancestorOid = :aOid and d.depth <= :maxDepth)"
+                );
             } else {
                 query = session.createQuery(
                         "select o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount "
                                 + "from ROrg as o left join o.descendants as d "
                                 + "where d.ancestorOid=:aOid and d.depth <=:maxDepth "
                                 + "group by o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount, o.name.orig "
-                                + "order by o.name.orig asc");
+                                + "order by o.name.orig asc"
+                );
             }
             query.setString("aOid", "1234");
             query.setInteger("maxDepth", 1);
@@ -1027,7 +1032,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             main.setProjection(Projections.property("u.fullObject"));
 
             String expected = HibernateToSqlTranslator.toSql(main);
-            LOGGER.info(">>> >>> {}",expected);
+            LOGGER.info(">>> >>> {}", expected);
         } finally {
             close(session);
         }
@@ -1046,10 +1051,10 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                         thisScanTimestamp, true),
                 LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef,
                         thisScanTimestamp, true),
-						LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
-								focusObjectDef, thisScanTimestamp, true),
-						LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
-								focusObjectDef, thisScanTimestamp, true)
+                LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM),
+                        focusObjectDef, thisScanTimestamp, true),
+                LessFilter.createLess(new ItemPath(FocusType.F_ASSIGNMENT, FocusType.F_ACTIVATION, ActivationType.F_VALID_TO),
+                        focusObjectDef, thisScanTimestamp, true)
         );
 
         Session session = open();
@@ -1109,5 +1114,53 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         } finally {
             close(session);
         }
+    }
+
+    @Test
+    public void test300OrgQuery() throws Exception {
+        File objects = new File("src/test/resources/orgstruct/org-monkey-island.xml");
+        OperationResult opResult = new OperationResult("test300OrgQuery");
+        List<PrismObject<? extends Objectable>> orgStruct = prismContext.parseObjects(objects);
+
+        for (PrismObject<? extends Objectable> o : orgStruct) {
+            repositoryService.addObject((PrismObject<ObjectType>) o, null, opResult);
+        }
+        opResult.computeStatusIfUnknown();
+        AssertJUnit.assertTrue(opResult.isSuccess());
+
+        checkQueryResult(ObjectType.class, "00000000-8888-6666-0000-100000000001", 1, 1, 4);
+        checkQueryResult(UserType.class, "00000000-8888-6666-0000-100000000001", 1, 1, 1);
+        checkQueryResult(OrgType.class, "00000000-8888-6666-0000-100000000001", null, null, 6);
+        checkQueryResult(ObjectType.class, "00000000-8888-6666-0000-100000000001", null, null, 12);
+        checkQueryResult(ObjectType.class, "00000000-8888-6666-0000-100000000006", 1, 1, 4);
+        checkQueryResult(UserType.class, "00000000-8888-6666-0000-100000000006", 1, 1, 4);
+        checkQueryResult(OrgType.class, "00000000-8888-6666-0000-100000000006", 1, 1, 0);
+
+    }
+
+    private <T extends ObjectType> void checkQueryResult(Class<T> type, String oid, Integer min, Integer max, int count)
+            throws Exception {
+        LOGGER.info("checkQueryResult");
+
+        OrgFilter orgFilter = OrgFilter.createOrg(oid, min, max);
+        ObjectQuery query = ObjectQuery.createObjectQuery(orgFilter);
+        query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
+
+        OperationResult result = new OperationResult("checkQueryResult");
+        List<PrismObject<T>> objects = repositoryService.searchObjects(type, query, null, result);
+        for (PrismObject object : objects) {
+            LOGGER.info("{}", object.getOid());
+        }
+        int realCount = objects.size();
+        AssertJUnit.assertEquals("Expected count doesn't match for searchObjects " + orgFilter, count, realCount);
+
+        result.computeStatusIfUnknown();
+        AssertJUnit.assertTrue(result.isSuccess());
+
+        realCount = repositoryService.countObjects(type, query, result);
+        AssertJUnit.assertEquals("Expected count doesn't match for countObjects " + orgFilter, count, realCount);
+
+        result.computeStatusIfUnknown();
+        AssertJUnit.assertTrue(result.isSuccess());
     }
 }
