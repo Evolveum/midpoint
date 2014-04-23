@@ -32,7 +32,7 @@
             	<ref>ri:group</ref>
 	            <outbound>
 	            	<source>
-	            		<path>organizationalUnit</path>
+	            		<path>costCenter</path>
 	            	</source>
 	                <expression>
 	                    <associationTargetSearch>
@@ -44,7 +44,7 @@
 	                                </q:path>
 	                                <expression>
 	                                    <script>
-	                                        <code>'cn='+organizationalUnit+',ou=groups,dc=example,dc=com'</code>
+	                                        <code>'cn='+costCenter+',ou=groups,dc=example,dc=com'</code>
 	                                    </script>
 	                                </expression>
 	                            </q:equal>

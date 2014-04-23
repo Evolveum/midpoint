@@ -165,7 +165,7 @@ public class ObjectTemplateProcessor {
 						
 		Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap = new HashMap<>();
 		
-		XMLGregorianCalendar nextRecomputeTime = collectTripleFromTemplate(context, objectTemplate, focusOdo, outputTripleMap,
+		XMLGregorianCalendar nextRecomputeTime = collectTripleFromTemplate(context, objectTemplate, phase, focusOdo, outputTripleMap,
 				iteration, iterationToken, now, objectTemplate.toString(), task, result);
 								
 		Collection<ItemDelta<? extends PrismValue>> itemDeltas = computeItemDeltas(outputTripleMap, focusOdo, focusDefinition, "object template "+objectTemplate+ " for focus "+focusOdo.getAnyObject());
@@ -230,7 +230,7 @@ public class ObjectTemplateProcessor {
 	}
 
 	private <F extends FocusType> XMLGregorianCalendar collectTripleFromTemplate(LensContext<F> context,
-			ObjectTemplateType objectTemplateType, ObjectDeltaObject<F> userOdo,
+			ObjectTemplateType objectTemplateType, ObjectTemplateMappingEvaluationPhaseType phase, ObjectDeltaObject<F> userOdo,
 			Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap,
 			int iteration, String iterationToken,
 			XMLGregorianCalendar now, String contextDesc, Task task, OperationResult result)
@@ -250,7 +250,7 @@ public class ObjectTemplateProcessor {
 			}
 			LOGGER.trace("Including template {}", includeObject);
 			ObjectTemplateType includeObjectType = includeObject.asObjectable();
-			XMLGregorianCalendar includeNextRecomputeTime = collectTripleFromTemplate(context, includeObjectType, userOdo, 
+			XMLGregorianCalendar includeNextRecomputeTime = collectTripleFromTemplate(context, includeObjectType, phase, userOdo, 
 					outputTripleMap, iteration, iterationToken, 
 					now, "include "+includeObject+" in "+objectTemplateType + " in " + contextDesc, task, result);
 			if (includeNextRecomputeTime != null) {
@@ -262,7 +262,7 @@ public class ObjectTemplateProcessor {
 		
 		// Process own mappings
 		Collection<ObjectTemplateMappingType> mappings = objectTemplateType.getMapping();
-		XMLGregorianCalendar templateNextRecomputeTime = collectTripleFromMappings(mappings, context, objectTemplateType, userOdo, 
+		XMLGregorianCalendar templateNextRecomputeTime = collectTripleFromMappings(mappings, phase, context, objectTemplateType, userOdo, 
 				outputTripleMap, iteration, iterationToken, now, contextDesc, task, result);
 		if (templateNextRecomputeTime != null) {
 			if (nextRecomputeTime == null || nextRecomputeTime.compare(templateNextRecomputeTime) == DatatypeConstants.GREATER) {
@@ -274,7 +274,8 @@ public class ObjectTemplateProcessor {
 	}
 	
 	
-	private <V extends PrismValue, F extends FocusType> XMLGregorianCalendar collectTripleFromMappings(Collection<ObjectTemplateMappingType> mappings, LensContext<F> context,
+	private <V extends PrismValue, F extends FocusType> XMLGregorianCalendar collectTripleFromMappings(
+			Collection<ObjectTemplateMappingType> mappings, ObjectTemplateMappingEvaluationPhaseType phase, LensContext<F> context,
 			ObjectTemplateType objectTemplateType, ObjectDeltaObject<F> userOdo,
 			Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap,
 			int iteration, String iterationToken,
@@ -282,7 +283,14 @@ public class ObjectTemplateProcessor {
 		
 		XMLGregorianCalendar nextRecomputeTime = null;
 		
-		for (MappingType mappingType : mappings) {
+		for (ObjectTemplateMappingType mappingType : mappings) {
+			ObjectTemplateMappingEvaluationPhaseType mappingPhase = mappingType.getEvaluationPhase();
+			if (mappingPhase == null) {
+				mappingPhase = ObjectTemplateMappingEvaluationPhaseType.BEFORE_ASSIGNMENTS;
+			}
+			if (mappingPhase != phase) {
+				continue;
+			}
 			Mapping<V> mapping = LensUtil.createFocusMapping(mappingFactory, context, mappingType, objectTemplateType, userOdo, 
 					null, iteration, iterationToken, now, contextDesc, result);
 			if (mapping == null) {

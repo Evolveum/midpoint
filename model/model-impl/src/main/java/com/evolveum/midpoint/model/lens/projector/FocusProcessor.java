@@ -270,9 +270,9 @@ public class FocusProcessor {
 		        
 		        // OBJECT TEMPLATE (after assignments)
 		        
-//		        objectTemplateProcessor.processTemplate(context, ObjectTemplateMappingEvaluationPhaseType.AFTER_ASSIGNMENTS,
-//		        		now, task, result);
-//		        context.recompute();
+		        objectTemplateProcessor.processTemplate(context, ObjectTemplateMappingEvaluationPhaseType.AFTER_ASSIGNMENTS,
+		        		now, task, result);
+		        context.recompute();
 		        
 		        
 		        // Processing done, check for success
