@@ -59,7 +59,7 @@ public class AddFocusAction implements Action {
 		PrismObject<F> emptyFocus = focusDefinition.instantiate();
 		ObjectDelta<F> delta = emptyFocus.createAddDelta();
         delta.setObjectToAdd(emptyFocus);
-        focusContext.setSecondaryDelta(delta, 0);
+        focusContext.setPrimaryDelta(delta);
 	}
 
 }

@@ -506,7 +506,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         display("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
         
-        assertNull("Unexpected focus primary delta", context.getFocusContext().getPrimaryDelta());
+        assertNotNull("No focus primary delta", context.getFocusContext().getPrimaryDelta());
         assertNotNull("No focus secondary delta", context.getFocusContext().getSecondaryDelta());
         
         ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceDummy.getOid(), 

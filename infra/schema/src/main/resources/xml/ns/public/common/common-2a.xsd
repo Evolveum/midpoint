@@ -6709,7 +6709,7 @@
                 		</xsd:annotation>
                 	</xsd:element>
                 	<xsd:element name="iteration" type="tns:IterationSpecificationType" minOccurs="0"/>
-                    <xsd:element name="mapping" type="tns:MappingType" minOccurs="0"
+                    <xsd:element name="mapping" type="tns:ObjectTemplateMappingType" minOccurs="0"
                                  maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -6733,6 +6733,36 @@
     </xsd:complexType>
     <xsd:element name="userTemplate" type="tns:ObjectTemplateType" substitutionGroup="c:object"/>
     <xsd:element name="objectTemplate" type="tns:ObjectTemplateType" substitutionGroup="c:object"/>
+    
+    <xsd:complexType name="ObjectTemplateMappingType">
+    	<xsd:complexContent>
+    		<xsd:extension base="tns:MappingType">
+    			<xsd:sequence>
+    				<xsd:element name="evaluationPhase" type="tns:ObjectTemplateMappingEvaluationPhaseType" 
+    								minOccurs="0" default="beforeAssignments"/>
+    			</xsd:sequence>
+    		</xsd:extension>
+    	</xsd:complexContent>
+    </xsd:complexType>
+    
+    <xsd:simpleType name="ObjectTemplateMappingEvaluationPhaseType">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="beforeAssignments">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="BEFORE_ASSIGNMENTS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="afterAssignments">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AFTER_ASSIGNMENTS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
     
     <xsd:complexType name="OrgType">
         <xsd:annotation>

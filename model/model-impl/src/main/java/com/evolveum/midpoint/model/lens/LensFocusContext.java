@@ -219,6 +219,10 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 		}
 	}
 	
+	public void clearIntermediateResults() {
+		// Nothing to do
+	}
+	
 	public void applyProjectionWaveSecondaryDeltas(Collection<ItemDelta<? extends PrismValue>> itemDeltas) throws SchemaException {
 		ObjectDelta<O> wavePrimaryDelta = getProjectionWavePrimaryDelta();
 		ObjectDelta<O> waveSecondaryDelta = getProjectionWaveSecondaryDelta();
@@ -278,6 +282,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         if (getIteration() != 0) {
         	sb.append(", iteration=").append(getIteration()).append(" (").append(getIterationToken()).append(")");
         }
+        sb.append(", syncIntent=").append(getSynchronizationIntent());
         
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("old"), getObjectOld(), indent+1);
