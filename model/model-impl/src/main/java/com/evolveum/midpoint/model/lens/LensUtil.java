@@ -956,15 +956,17 @@ public class LensUtil {
 		mapping.setOriginObject(originObject);
 		mapping.setNow(now);
 
-		ItemDefinition outputDefinition = mapping.getOutputDefinition();
 		ItemPath itemPath = mapping.getOutputPath();
 		
-		Item<V> existingUserItem = (Item<V>) focusOdo.getNewObject().findItem(itemPath);
-		if (existingUserItem != null && !existingUserItem.isEmpty() 
-				&& mapping.getStrength() == MappingStrengthType.WEAK) {
-			// This valueConstruction only applies if the property does not have a value yet.
-			// ... but it does
-			return null;
+		PrismObject<F> focusNew = focusOdo.getNewObject();
+		if (focusNew != null) {
+			Item<V> existingUserItem = (Item<V>) focusNew.findItem(itemPath);
+			if (existingUserItem != null && !existingUserItem.isEmpty() 
+					&& mapping.getStrength() == MappingStrengthType.WEAK) {
+				// This valueConstruction only applies if the property does not have a value yet.
+				// ... but it does
+				return null;
+			}
 		}
 
 		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
@@ -1092,4 +1094,17 @@ public class LensUtil {
 			mapping.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ROLE, assignmentPathVariables.getImmediateRole());
 		}
     }
+    
+    public static <F extends ObjectType> void checkContextSanity(LensContext<F> context, String activityDescription, 
+			OperationResult result) throws SchemaException {
+		LensFocusContext<F> focusContext = context.getFocusContext();
+		if (focusContext != null) {
+			PrismObject<F> focusObjectNew = focusContext.getObjectNew();
+			if (focusObjectNew != null) {
+				if (focusObjectNew.asObjectable().getName() == null) {
+					throw new SchemaException("Focus "+focusObjectNew+" does not have a name after "+activityDescription);
+				}
+			}
+		}
+	}
 }

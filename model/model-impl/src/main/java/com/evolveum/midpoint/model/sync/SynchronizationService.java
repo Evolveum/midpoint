@@ -653,35 +653,35 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         boolean thombstone = isThombstone(change);
 		ResourceShadowDiscriminator descr = new ResourceShadowDiscriminator(resource.getOid(), kind, 
 				intent, thombstone);
-		LensProjectionContext accountContext = context.createProjectionContext(descr);
-        accountContext.setResource(resource);
-        accountContext.setOid(getOidFromChange(change));
-        accountContext.setSynchronizationSituationDetected(situation.getSituation());
+		LensProjectionContext projectionContext = context.createProjectionContext(descr);
+        projectionContext.setResource(resource);
+        projectionContext.setOid(getOidFromChange(change));
+        projectionContext.setSynchronizationSituationDetected(situation.getSituation());
 
         //insert object delta if available in change
         ObjectDelta<? extends ShadowType> delta = change.getObjectDelta();
         if (delta != null) {
-            accountContext.setSyncDelta((ObjectDelta<ShadowType>) delta);
+            projectionContext.setSyncDelta((ObjectDelta<ShadowType>) delta);
         } else {
-        	accountContext.setSyncAbsoluteTrigger(true);
+        	projectionContext.setSyncAbsoluteTrigger(true);
         }
 
         //we insert account if available in change
         PrismObject<ShadowType> currentAccount = shadow;
         if (currentAccount != null) {
-        	accountContext.setLoadedObject(currentAccount);
-        	accountContext.setFullShadow(true);
-        	accountContext.setFresh(true);
+        	projectionContext.setLoadedObject(currentAccount);
+        	projectionContext.setFullShadow(true);
+        	projectionContext.setFresh(true);
         }
 
         if (delta != null && delta.isDelete()) {
-        	accountContext.setExists(false);
+        	projectionContext.setExists(false);
         } else {
-        	accountContext.setExists(true);
+        	projectionContext.setExists(true);
         }
                 
         if (doReconciliation != null) {
-        	accountContext.setDoReconciliation(doReconciliation);
+        	projectionContext.setDoReconciliation(doReconciliation);
 		}
         
         // Focus context

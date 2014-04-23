@@ -464,12 +464,12 @@ public class ProjectionValuesProcessor {
 	}
 	
 	
-	private boolean willResetIterationCounter(LensProjectionContext accountContext) throws SchemaException {
-		ObjectDelta<ShadowType> accountDelta = accountContext.getDelta();
+	private boolean willResetIterationCounter(LensProjectionContext projectionContext) throws SchemaException {
+		ObjectDelta<ShadowType> accountDelta = projectionContext.getDelta();
 		if (accountDelta == null) {
 			return false;
 		}
-		RefinedObjectClassDefinition oOcDef = accountContext.getRefinedAccountDefinition();
+		RefinedObjectClassDefinition oOcDef = projectionContext.getRefinedAccountDefinition();
 		for (RefinedAttributeDefinition identifierDef: oOcDef.getIdentifiers()) {
 			ItemPath identifierPath = new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName());
 			if (accountDelta.findPropertyDelta(identifierPath) != null) {

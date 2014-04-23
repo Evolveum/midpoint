@@ -78,13 +78,10 @@ public class Projector {
 	private ContextLoader contextLoader;
 	
 	@Autowired(required = true)
-    private FocusPolicyProcessor focusPolicyProcessor;
+    private FocusProcessor focusProcessor;
 
     @Autowired(required = true)
     private AssignmentProcessor assignmentProcessor;
-
-    @Autowired(required = true)
-    private InboundProcessor inboundProcessor;
     
     @Autowired(required = true)
     private ProjectionValuesProcessor projectionValuesProcessor;
@@ -150,36 +147,22 @@ public class Projector {
 	    
 	        	LOGGER.trace("WAVE {} (maxWaves={}, executionWave={})", new Object[]{
 	        			context.getProjectionWave(), maxWaves, context.getExecutionWave()});
-	        	// Process the user-related aspects of the context. That means inbound, user policy
-	        	// and assignments.
 	        	
-	        	if (consistencyChecks) context.checkConsistence();
-		        // Loop through the account changes, apply inbound expressions
-		        inboundProcessor.processInbound(context, now, task, result);
-		        if (consistencyChecks) context.checkConsistence();
+	        	// Process the focus-related aspects of the context. That means inbound, focus activation,
+	        	// object template and assignments.
+		        focusProcessor.processFocus(context, activityDescription, now, task, result);
 		        context.recomputeFocus();
-		        LensUtil.traceContext(LOGGER, activityDescription, "inbound", false, context, false);
+		        LensUtil.traceContext(LOGGER, activityDescription,"focus processing", false, context, false);
 		        if (consistencyChecks) context.checkConsistence();
 		
-		        focusPolicyProcessor.processUserPolicy(context, now, task, result);
-		        context.recomputeFocus();
-		        LensUtil.traceContext(LOGGER, activityDescription,"user policy", false, context, false);
-		        if (consistencyChecks) context.checkConsistence();
-		        
-		        checkContextSanity(context, "inbound and user policy", result);
-		
-		        assignmentProcessor.processAssignmentsProjections(context, now, task, result);
-		        assignmentProcessor.processOrgAssignments(context, result);
-		        context.recompute();
 		        sortAccountsToWaves(context);
 		        maxWaves = computeMaxWaves(context);
 		        LOGGER.trace("Continuing wave {}, maxWaves={}", context.getProjectionWave(), maxWaves);
 		        LensUtil.traceContext(LOGGER, activityDescription,"assignments", false, context, true);
 		        if (consistencyChecks) context.checkConsistence();
-		        
-		        assignmentProcessor.checkForAssignmentConflicts(context, result);
+		        LensUtil.checkContextSanity(context, "focus processing", result);
 		
-		     // User-related processing is over. Now we will process accounts in a loop.
+		        // Focus-related processing is over. Now we will process projections in a loop.
 		        for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
 
 		        	if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN ||
@@ -214,7 +197,7 @@ public class Projector {
 		        	
 		        	projectionContext.recompute();
 		        	
-		        	LensUtil.traceContext(LOGGER, activityDescription, "activation of "+projectionDesc, false, context, false);
+		        	LensUtil.traceContext(LOGGER, activityDescription, "projection activation of "+projectionDesc, false, context, false);
 		        	
 		        	if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN ||
 		        			projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
@@ -242,12 +225,12 @@ public class Projector {
 		        	if (consistencyChecks) context.checkConsistence();
 			        
 		        	projectionContext.recompute();
-		        	LensUtil.traceContext(LOGGER, activityDescription, "values and credentials of "+projectionDesc, false, context, true);
+		        	LensUtil.traceContext(LOGGER, activityDescription, "projection values and credentials of "+projectionDesc, false, context, true);
 			        if (consistencyChecks) context.checkConsistence();
 			
 			        reconciliationProcessor.processReconciliation(context, projectionContext, result);
 			        projectionContext.recompute();
-			        LensUtil.traceContext(LOGGER, activityDescription, "reconciliation of "+projectionDesc, false, context, false);
+			        LensUtil.traceContext(LOGGER, activityDescription, "projection reconciliation of "+projectionDesc, false, context, false);
 			        if (consistencyChecks) context.checkConsistence();
 			        
 			        
@@ -681,17 +664,6 @@ public class Projector {
 		return false;
 	}
 
-	private <F extends ObjectType> void checkContextSanity(LensContext<F> context, String activityDescription, 
-			OperationResult result) throws SchemaException {
-		LensFocusContext<F> focusContext = context.getFocusContext();
-		if (focusContext != null) {
-			PrismObject<F> focusObjectNew = focusContext.getObjectNew();
-			if (focusObjectNew != null) {
-				if (focusObjectNew.asObjectable().getName() == null) {
-					throw new SchemaException("Focus "+focusObjectNew+" does not have a name after "+activityDescription);
-				}
-			}
-		}
-	}
+	
 
 }

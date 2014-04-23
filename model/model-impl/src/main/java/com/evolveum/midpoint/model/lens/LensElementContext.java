@@ -64,6 +64,15 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	private String oid = null;
 	private int iteration;
     private String iterationToken;
+    
+    /**
+     * Initial intent regarding the account. It indicated what the initiator of the operation WANTS TO DO with the
+     * context. 
+     * If set to null then the decision is left to "the engine". Null is also a typical value
+     * when the context is created. It may be pre-set under some circumstances, e.g. if an account is being unlinked.
+     */
+    private SynchronizationIntent synchronizationIntent;
+    
 	private transient boolean isFresh = false;
 	
 	private LensContext<? extends ObjectType> lensContext;
@@ -92,6 +101,14 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
 	public void setIterationToken(String iterationToken) {
 		this.iterationToken = iterationToken;
+	}
+	
+	public SynchronizationIntent getSynchronizationIntent() {
+		return synchronizationIntent;
+	}
+
+	public void setSynchronizationIntent(SynchronizationIntent synchronizationIntent) {
+		this.synchronizationIntent = synchronizationIntent;
 	}
 
 	public LensContext<? extends ObjectType> getLensContext() {
@@ -519,6 +536,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         lensElementContextType.setOid(oid);
         lensElementContextType.setIteration(iteration);
         lensElementContextType.setIterationToken(iterationToken);
+        lensElementContextType.setSynchronizationIntent(synchronizationIntent != null ? synchronizationIntent.toSynchronizationIntentType() : null);
     }
 
     public void retrieveFromLensElementContextType(LensElementContextType lensElementContextType, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
@@ -553,6 +571,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         
         this.iteration = lensElementContextType.getIteration() != null ? lensElementContextType.getIteration() : 0;
         this.iterationToken = lensElementContextType.getIterationToken();
+        this.synchronizationIntent = SynchronizationIntent.fromSynchronizationIntentType(lensElementContextType.getSynchronizationIntent());
 
         // note: objectTypeClass is already converted (used in the constructor)
     }
