@@ -8636,7 +8636,8 @@
     <xsd:complexType name="EventHandlerType">
         <xsd:annotation>
             <xsd:documentation>
-                An event handler - typically either a filter, a notifier, a fork (fan-out), or a chain of handlers.
+                An event handler. It can contain conditions (general expressions or lists of event categories, operation types,
+                success/failure statuses, and so on), subhandlers (chained or forked), and various kinds of notifiers.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
@@ -8678,6 +8679,33 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="objectKind" type="tns:ShadowKindType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Resource object kinds supported by this handler. (Default: all)
+                        Kinds not listed are filtered out: not handled by this handler nor any of its successors.
+                        (Relevant only for account-related events.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="objectIntent" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Resource object intents supported by this handler. (Default: all)
+                        Intents not listed are filtered out: not handled by this handler nor any of its successors.
+                        (Relevant only for account-related events.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="focusType" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Focus types supported by this handler. (Default: all)
+                        Types not listed are filtered out: not handled by this handler nor any of its successors.
+                        (Relevant only for model-generated events.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="expressionFilter" type="tns:ExpressionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -8706,7 +8734,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="simpleAccountNotifier" type="tns:SimpleAccountNotifierType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="simpleResourceObjectNotifier" type="tns:SimpleResourceObjectNotifierType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
@@ -8754,17 +8782,17 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="accountEvent">
+            <xsd:enumeration value="resourceObjectEvent">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ACCOUNT_EVENT"/>
+                        <jaxb:typesafeEnumMember name="RESOURCE_OBJECT_EVENT"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="userEvent">
+            <xsd:enumeration value="modelEvent">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="USER_EVENT"/>
+                        <jaxb:typesafeEnumMember name="MODEL_EVENT"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -8942,7 +8970,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="SimpleAccountNotifierType">
+    <xsd:complexType name="SimpleResourceObjectNotifierType">
         <xsd:annotation>
             <xsd:documentation>
                 TODO

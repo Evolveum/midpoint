@@ -16,36 +16,32 @@
 
 package com.evolveum.midpoint.notifications.handlers;
 
+import com.evolveum.midpoint.notifications.NotificationManagerImpl;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
-import com.evolveum.midpoint.notifications.filters.CategoryFilter;
-import com.evolveum.midpoint.notifications.filters.ExpressionFilter;
-import com.evolveum.midpoint.notifications.filters.OperationFilter;
-import com.evolveum.midpoint.notifications.filters.StatusFilter;
+import com.evolveum.midpoint.notifications.helpers.CategoryFilterHelper;
+import com.evolveum.midpoint.notifications.helpers.ChainHelper;
+import com.evolveum.midpoint.notifications.helpers.ExpressionFilterHelper;
+import com.evolveum.midpoint.notifications.helpers.ForkHelper;
+import com.evolveum.midpoint.notifications.helpers.OperationFilterHelper;
+import com.evolveum.midpoint.notifications.helpers.StatusFilterHelper;
 import com.evolveum.midpoint.notifications.notifiers.AccountPasswordNotifier;
 import com.evolveum.midpoint.notifications.notifiers.GeneralNotifier;
-import com.evolveum.midpoint.notifications.notifiers.SimpleAccountNotifier;
+import com.evolveum.midpoint.notifications.notifiers.SimpleResourceObjectNotifier;
 import com.evolveum.midpoint.notifications.notifiers.SimpleUserNotifier;
 import com.evolveum.midpoint.notifications.notifiers.SimpleWorkflowNotifier;
 import com.evolveum.midpoint.notifications.notifiers.UserPasswordNotifier;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.Processor;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AccountPasswordNotifierType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SimpleAccountNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SimpleUserNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SimpleWorkflowNotifierType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserPasswordNotifierType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.xml.bind.JAXBElement;
 import java.util.List;
 
 /**
@@ -61,28 +57,28 @@ public class AggregatedEventHandler extends BaseHandler {
     private static final Trace LOGGER = TraceManager.getTrace(AggregatedEventHandler.class);
 
     @Autowired
-    private CategoryFilter categoryFilter;
+    private CategoryFilterHelper categoryFilter;
 
     @Autowired
-    private OperationFilter operationFilter;
+    private OperationFilterHelper operationFilter;
 
     @Autowired
-    private StatusFilter statusFilter;
+    private StatusFilterHelper statusFilter;
 
     @Autowired
-    private ExpressionFilter expressionFilter;
+    private ExpressionFilterHelper expressionFilter;
 
     @Autowired
-    private ChainHandler chainHandler;
+    private ChainHelper chainHelper;
 
     @Autowired
-    private ForkHandler forkHandler;
+    private ForkHelper forkHelper;
 
     @Autowired
     protected SimpleUserNotifier simpleUserNotifier;
 
     @Autowired
-    protected SimpleAccountNotifier simpleAccountNotifier;
+    protected SimpleResourceObjectNotifier simpleResourceObjectNotifier;
 
     @Autowired
     protected SimpleWorkflowNotifier simpleWorkflowNotifier;
@@ -102,7 +98,7 @@ public class AggregatedEventHandler extends BaseHandler {
     }
 
     @Override
-    public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, 
+    public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager,
     		Task task, OperationResult result) throws SchemaException {
 
         logStart(LOGGER, event, eventHandlerType);
@@ -112,11 +108,11 @@ public class AggregatedEventHandler extends BaseHandler {
                 operationFilter.processEvent(event, eventHandlerType, notificationManager, task, result) &&
                 statusFilter.processEvent(event, eventHandlerType, notificationManager, task, result) &&
                 expressionFilter.processEvent(event, eventHandlerType, notificationManager, task, result) &&
-                chainHandler.processEvent(event, eventHandlerType, notificationManager, task, result) &&
-                forkHandler.processEvent(event, eventHandlerType, notificationManager, task, result);
+                chainHelper.processEvent(event, eventHandlerType, notificationManager, task, result) &&
+                forkHelper.processEvent(event, eventHandlerType, notificationManager, task, result);
 
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleUserNotifier(), notificationManager, task, result);
-        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleAccountNotifier(), notificationManager, task, result);
+        shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleResourceObjectNotifier(), notificationManager, task, result);
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getSimpleWorkflowNotifier(), notificationManager, task, result);
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getUserPasswordNotifier(), notificationManager, task, result);
         shouldContinue = shouldContinue && processNotifiers(event, eventHandlerType.getAccountPasswordNotifier(), notificationManager, task, result);
@@ -128,7 +124,7 @@ public class AggregatedEventHandler extends BaseHandler {
 
     private boolean processNotifiers(Event event, List<? extends GeneralNotifierType> notifiers, NotificationManager notificationManager, Task task, OperationResult result) throws SchemaException {
         for (GeneralNotifierType generalNotifierType : notifiers) {
-            boolean shouldContinue = notificationManager.getEventHandler(generalNotifierType).processEvent(event, generalNotifierType, notificationManager, task, result);
+            boolean shouldContinue = ((NotificationManagerImpl) notificationManager).getEventHandler(generalNotifierType).processEvent(event, generalNotifierType, notificationManager, task, result);
             if (!shouldContinue) {
                 return false;
             }

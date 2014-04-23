@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.notifications.handlers;
+package com.evolveum.midpoint.notifications.helpers;
 
 import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.notifications.NotificationManagerImpl;
-import com.evolveum.midpoint.notifications.api.EventHandler;
-import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.NotificationsUtil;
+import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -42,21 +41,25 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author mederly
  */
 @Component
-public abstract class BaseHandler implements EventHandler {
+public abstract class BaseHelper {
 
-    private static final Trace LOGGER = TraceManager.getTrace(BaseHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(BaseHelper.class);
+
+    abstract boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, Task task, OperationResult result) throws SchemaException;
 
     @Autowired
     protected NotificationManagerImpl notificationManager;
@@ -70,10 +73,6 @@ public abstract class BaseHandler implements EventHandler {
     @Autowired
     protected ExpressionFactory expressionFactory;
 
-    protected void register(Class<? extends EventHandlerType> clazz) {
-        notificationManager.registerEventHandler(clazz, this);
-    }
-
     protected void logStart(Trace LOGGER, Event event, EventHandlerType eventHandlerType) {
         logStart(LOGGER, event, eventHandlerType, null);
     }
@@ -85,14 +84,6 @@ public abstract class BaseHandler implements EventHandler {
                     (additionalData != null ? (", parameters: " + additionalData) :
                                              (", configuration: " + eventHandlerType)) +
                     ")");
-        }
-    }
-
-    public static void staticLogStart(Trace LOGGER, Event event, String description, Object additionalData) {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Starting processing event " + event + " with handler " +
-                    description +
-                    (additionalData != null ? (", parameters: " + additionalData) : ""));
         }
     }
 

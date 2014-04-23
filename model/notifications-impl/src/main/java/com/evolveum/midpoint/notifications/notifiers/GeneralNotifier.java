@@ -21,6 +21,7 @@ import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.NotificationsUtil;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.formatters.TextFormatter;
+import com.evolveum.midpoint.notifications.handlers.AggregatedEventHandler;
 import com.evolveum.midpoint.notifications.handlers.BaseHandler;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
@@ -68,6 +69,9 @@ public class GeneralNotifier extends BaseHandler {
     @Autowired
     protected TextFormatter textFormatter;
 
+    @Autowired
+    protected AggregatedEventHandler aggregatedEventHandler;
+
     protected static final List<ItemPath> auxiliaryPaths = Arrays.asList(
             new ItemPath(ShadowType.F_METADATA),
             new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_VALIDITY_STATUS),                // works for user activation as well
@@ -94,73 +98,60 @@ public class GeneralNotifier extends BaseHandler {
 
         logStart(getLogger(), event, eventHandlerType);
 
-        GeneralNotifierType generalNotifierType = (GeneralNotifierType) eventHandlerType;
+        boolean retval = aggregatedEventHandler.processEvent(event, eventHandlerType, notificationManager, task, result);
 
-        boolean retval;
+        if (retval) {
 
-        if (!quickCheckApplicability(event, generalNotifierType, result)) {
+            GeneralNotifierType generalNotifierType = (GeneralNotifierType) eventHandlerType;
 
-            retval = true;      // message has to be logged in quickCheckApplicability method
+            if (!quickCheckApplicability(event, generalNotifierType, result)) {
 
-        } else {
+                // nothing to do -- an appropriate message has to be logged in quickCheckApplicability method
 
-            // executing embedded filters
-            boolean filteredOut = false;
-//            for (EventHandlerType handlerType : generalNotifierType.getHandler()) {
-//                if (!notificationManager.processEvent(event, handlerType.getValue(), task, result)) {
-//                    filteredOut = true;
-//                    break;
-//                }
-//            }
+            } else {
 
-            if (filteredOut) {
-                getLogger().trace("Filtered out by embedded filter");
-                retval = true;
-            } else if (!checkApplicability(event, generalNotifierType, result)) {
-                retval = true;      // message has to be logged in checkApplicability method
-            } else if (generalNotifierType.getTransport().isEmpty()) {
-                getLogger().warn("No transports for this notifier, exiting without sending any notifications.");
-                retval = true;
-            }
-            else {
+                if (!checkApplicability(event, generalNotifierType, result)) {
+                    // nothing to do -- an appropriate message has to be logged in checkApplicability method
+                } else if (generalNotifierType.getTransport().isEmpty()) {
+                    getLogger().warn("No transports for this notifier, exiting without sending any notifications.");
+                } else {
 
-            	ExpressionVariables variables = getDefaultVariables(event, result);
+                    ExpressionVariables variables = getDefaultVariables(event, result);
 
-                for (String transportName : generalNotifierType.getTransport()) {
+                    for (String transportName : generalNotifierType.getTransport()) {
 
-                    variables.addVariableDefinition(SchemaConstants.C_TRANSPORT_NAME, transportName);
-                    Transport transport = notificationManager.getTransport(transportName);
+                        variables.addVariableDefinition(SchemaConstants.C_TRANSPORT_NAME, transportName);
+                        Transport transport = notificationManager.getTransport(transportName);
 
-                    List<String> recipientsAddresses = getRecipientsAddresses(event, generalNotifierType, variables, 
-                    		getDefaultRecipient(event, generalNotifierType, result), transportName, transport, task, result);
+                        List<String> recipientsAddresses = getRecipientsAddresses(event, generalNotifierType, variables,
+                                getDefaultRecipient(event, generalNotifierType, result), transportName, transport, task, result);
 
-                    if (!recipientsAddresses.isEmpty()) {
+                        if (!recipientsAddresses.isEmpty()) {
 
-                        String body = getBodyFromExpression(event, generalNotifierType, variables, task, result);
-                        String subject = getSubjectFromExpression(event, generalNotifierType, variables, task, result);
+                            String body = getBodyFromExpression(event, generalNotifierType, variables, task, result);
+                            String subject = getSubjectFromExpression(event, generalNotifierType, variables, task, result);
 
-                        if (body == null) {
-                            body = getBody(event, generalNotifierType, transportName, result);
+                            if (body == null) {
+                                body = getBody(event, generalNotifierType, transportName, result);
+                            }
+                            if (subject == null) {
+                                subject = generalNotifierType.getSubjectPrefix() != null ? generalNotifierType.getSubjectPrefix() : "";
+                                subject += getSubject(event, generalNotifierType, transportName, result);
+                            }
+
+                            Message message = new Message();
+                            message.setBody(body != null ? body : "");
+                            //message.setContentType("text/plain");           // todo make more flexible
+                            message.setSubject(subject != null ? subject : "");
+                            message.setTo(recipientsAddresses);                      // todo cc/bcc recipients
+
+                            getLogger().trace("Sending notification via transport {}:\n{}", transportName, message);
+                            transport.send(message, transportName, task, result);
+                        } else {
+                            getLogger().info("No recipients addresses for transport " + transportName + ", message corresponding to event " + event.getId() + " will not be send.");
                         }
-                        if (subject == null) {
-                            subject = generalNotifierType.getSubjectPrefix() != null ? generalNotifierType.getSubjectPrefix() : "";
-                            subject += getSubject(event, generalNotifierType, transportName, result);
-                        }
-
-                        Message message = new Message();
-                        message.setBody(body != null ? body : "");
-                        //message.setContentType("text/plain");           // todo make more flexible
-                        message.setSubject(subject != null ? subject : "");
-                        message.setTo(recipientsAddresses);                      // todo cc/bcc recipients
-
-                        getLogger().trace("Sending notification via transport {}:\n{}", transportName, message);
-                        transport.send(message, transportName, task, result);
-                    } else {
-                        getLogger().info("No recipients addresses for transport " + transportName + ", message corresponding to event " + event.getId() + " will not be send.");
                     }
                 }
-
-                retval = true;
             }
         }
         logEnd(getLogger(), event, eventHandlerType, retval);

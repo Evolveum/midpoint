@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.notifications.handlers;
+package com.evolveum.midpoint.notifications.helpers;
 
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
@@ -23,33 +23,38 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
 import org.springframework.stereotype.Component;
 
 /**
  * @author mederly
  */
 @Component
-public class ForkHandler extends BaseHandler {
+public class ExpressionFilterHelper extends BaseHelper {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ForkHandler.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ExpressionFilterHelper.class);
 
     @Override
     public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, 
     		Task task, OperationResult result) {
 
-        if (eventHandlerType.getForked().isEmpty()) {
+        if (eventHandlerType.getExpressionFilter().isEmpty()) {
             return true;
         }
 
-        logStart(LOGGER, event, eventHandlerType);
+        logStart(LOGGER, event, eventHandlerType, eventHandlerType.getExpressionFilter());
 
-        for (EventHandlerType branchHandlerType : eventHandlerType.getForked()) {
-            notificationManager.processEvent(event, branchHandlerType, task, result);
+        boolean retval = true;
+
+        for (ExpressionType expressionType : eventHandlerType.getExpressionFilter()) {
+            if (!evaluateBooleanExpressionChecked(expressionType, getDefaultVariables(event, result),
+                    "event filter expression", task, result)) {
+                retval = false;
+                break;
+            }
         }
 
-        logEnd(LOGGER, event, eventHandlerType, true);
-
-        return true;
+        logEnd(LOGGER, event, eventHandlerType, retval);
+        return retval;
     }
-
 }

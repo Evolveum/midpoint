@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.notifications.filters;
+package com.evolveum.midpoint.notifications.helpers;
 
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
-import com.evolveum.midpoint.notifications.handlers.BaseHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -31,9 +30,9 @@ import org.springframework.stereotype.Component;
  * @author mederly
  */
 @Component
-public class StatusFilter extends BaseHandler {
+public class StatusFilterHelper extends BaseHelper {
 
-    private static final Trace LOGGER = TraceManager.getTrace(StatusFilter.class);
+    private static final Trace LOGGER = TraceManager.getTrace(StatusFilterHelper.class);
 
     @Override
     public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, 

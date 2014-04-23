@@ -833,8 +833,8 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
         contextCreator.assertsAfterClockworkRun(rootTask, result);
 
-//        checkDummyTransportMessages("simpleWorkflowNotifier-Processes", workflowSubtaskCount);
-//        checkDummyTransportMessages("simpleWorkflowNotifier-WorkItems", workflowSubtaskCount);
+        checkDummyTransportMessages("simpleWorkflowNotifier-Processes", workflowSubtaskCount);
+        checkDummyTransportMessages("simpleWorkflowNotifier-WorkItems", workflowSubtaskCount);
 
         if (immediate) {
             waitForTaskClose(task0, 20000);
@@ -886,8 +886,8 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             assertObjectInTaskTree(rootTask, oid, checkObjectOnSubtasks, result);
         }
 
-//        checkDummyTransportMessages("simpleWorkflowNotifier-Processes", workflowSubtaskCount*2);
-//        checkDummyTransportMessages("simpleWorkflowNotifier-WorkItems", workflowSubtaskCount*2);
+        checkDummyTransportMessages("simpleWorkflowNotifier-Processes", workflowSubtaskCount*2);
+        checkDummyTransportMessages("simpleWorkflowNotifier-WorkItems", workflowSubtaskCount*2);
         notificationManager.setDisabled(true);
 
         // Check audit

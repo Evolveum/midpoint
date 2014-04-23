@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.notifications.notifiers;
 
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
-import com.evolveum.midpoint.notifications.api.events.AccountEvent;
+import com.evolveum.midpoint.notifications.api.events.ResourceObjectEvent;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -54,7 +54,7 @@ public class AccountPasswordNotifier extends GeneralNotifier {
 
     @Override
     protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
-        if (!(event instanceof AccountEvent)) {
+        if (!(event instanceof ResourceObjectEvent)) {
             LOGGER.trace("AccountPasswordNotifier is not applicable for this kind of event, continuing in the handler chain; event class = " + event.getClass());
             return false;
         } else {
@@ -69,8 +69,8 @@ public class AccountPasswordNotifier extends GeneralNotifier {
             return false;
         }
 
-        AccountEvent accountEvent = (AccountEvent) event;
-        ObjectDelta<? extends ShadowType> delta = accountEvent.getAccountOperationDescription().getObjectDelta();
+        ResourceObjectEvent resourceObjectEvent = (ResourceObjectEvent) event;
+        ObjectDelta<? extends ShadowType> delta = resourceObjectEvent.getAccountOperationDescription().getObjectDelta();
         if (delta == null) {    // should not occur
             LOGGER.trace("Object delta is null, exiting. Event = " + event);
             return false;
@@ -97,9 +97,9 @@ public class AccountPasswordNotifier extends GeneralNotifier {
 
         StringBuilder body = new StringBuilder();
 
-        AccountEvent accountEvent = (AccountEvent) event;
+        ResourceObjectEvent resourceObjectEvent = (ResourceObjectEvent) event;
 
-        ResourceOperationDescription rod = accountEvent.getAccountOperationDescription();
+        ResourceOperationDescription rod = resourceObjectEvent.getAccountOperationDescription();
         ObjectDelta<ShadowType> delta = (ObjectDelta<ShadowType>) rod.getObjectDelta();
 
         body.append("Password for account ");

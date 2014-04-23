@@ -65,11 +65,11 @@ public abstract class BaseEvent implements Event {
     abstract public boolean isCategoryType(EventCategoryType eventCategoryType);
 
     public boolean isAccountRelated() {
-        return isCategoryType(EventCategoryType.ACCOUNT_EVENT);
+        return isCategoryType(EventCategoryType.RESOURCE_OBJECT_EVENT);
     }
 
     public boolean isUserRelated() {
-        return isCategoryType(EventCategoryType.USER_EVENT);
+        return isCategoryType(EventCategoryType.MODEL_EVENT);
     }
 
     public boolean isWorkItemRelated() {

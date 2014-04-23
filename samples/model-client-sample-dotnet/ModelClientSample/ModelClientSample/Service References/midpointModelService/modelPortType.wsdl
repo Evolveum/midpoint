@@ -1030,7 +1030,7 @@
       <xs:element name="schemaHandling" type="tns:SchemaHandlingType" />
       <xs:element name="script" type="tns:ScriptExpressionEvaluatorType" />
       <xs:element name="shadow" type="tns:ShadowType" />
-      <xs:element name="simpleAccountNotifier" type="tns:SimpleAccountNotifierType" />
+      <xs:element name="simpleAccountNotifier" type="tns:SimpleResourceObjectNotifierType" />
       <xs:element name="simpleUserNotifier" type="tns:SimpleUserNotifierType" />
       <xs:element name="simpleWorkflowNotifier" type="tns:SimpleWorkflowNotifierType" />
       <xs:element name="statusFilter" type="tns:EventStatusFilterType" />
@@ -2247,7 +2247,7 @@
           </xs:extension>
         </xs:complexContent>
       </xs:complexType>
-      <xs:complexType name="SimpleAccountNotifierType">
+      <xs:complexType name="SimpleResourceObjectNotifierType">
         <xs:complexContent mixed="false">
           <xs:extension base="tns:GeneralNotifierType">
             <xs:sequence>
@@ -2598,7 +2598,7 @@
       </xs:simpleType>
       <xs:simpleType name="EventCategoryType">
         <xs:restriction base="xs:string">
-          <xs:enumeration value="accountEvent" />
+          <xs:enumeration value="resourceObjectEvent" />
           <xs:enumeration value="userEvent" />
           <xs:enumeration value="workItemEvent" />
           <xs:enumeration value="workflowProcessEvent" />

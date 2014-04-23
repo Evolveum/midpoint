@@ -31,8 +31,6 @@ import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.Proc
 
 public interface NotificationManager {
 
-    void registerEventHandler(Class<? extends EventHandlerType> clazz, EventHandler handler);
-    EventHandler getEventHandler(EventHandlerType eventHandlerType);
     void registerTransport(String name, Transport transport);
     Transport getTransport(String name);
 

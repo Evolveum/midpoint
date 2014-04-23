@@ -65,13 +65,11 @@ public class NotificationManagerImpl implements NotificationManager {
     private HashMap<String,Transport> transports = new HashMap<String,Transport>();
     private HashMap<Class<? extends ProcessInstanceState>,WorkflowEventCreator> workflowEventCreators = new HashMap<>();        // key = class of type ProcessInstanceState
 
-    @Override
     public void registerEventHandler(Class<? extends EventHandlerType> clazz, EventHandler handler) {
         LOGGER.trace("Registering event handler " + handler + " for " + clazz);
         handlers.put(clazz, handler);
     }
 
-    @Override
     public EventHandler getEventHandler(EventHandlerType eventHandlerType) {
         EventHandler handler = handlers.get(eventHandlerType.getClass());
         if (handler == null) {
