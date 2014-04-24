@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
@@ -37,6 +38,7 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -59,74 +61,26 @@ public class OrgClosureManager {
 
     public <T extends ObjectType> void updateOrgClosure(Collection<? extends ItemDelta> modifications, Session session,
                                                         String oid, Class<T> type, Operation operation) {
+        session.flush();
         LOGGER.debug("Starting update for org. closure for {} {}.", oid, type);
+
         List<ReferenceDelta> deltas = filterParentRefDeltas(modifications);
-        if (deltas.isEmpty()) {
-            return;
-        }
 
         switch (operation) {
             case DELETE:
-                handleDelete(modifications, session, oid, type);
+                handleDelete(deltas, session, oid, type);
                 break;
             case ADD:
-                handleAdd(modifications, session, oid, type);
+                List<String> parents = getOidFromAddDeltas(deltas);
+                handleAdd(oid, parents, type, session);
                 break;
             case MODIFY:
-                handleModify(modifications, session, oid, type);
+                handleModify(deltas, session, oid, type);
         }
 
         LOGGER.debug("Org. closure update finished.");
     }
 
-    /**
-     * 1->2
-     * 1->3
-     * 2->4
-     * 3->4
-     * 3->5
-     * <p/>
-     * a d
-     * 1 1 0
-     * 1 2 1
-     * 1 3 1  -
-     * 1 4 2
-     * 1 5 2  *****
-     * 2 2 0
-     * 2 4 1
-     * 3 3 0  -
-     * 3 4 1  -
-     * 3 5 1  -
-     * 4 4 0
-     * 5 5 0
-     * <p/>
-     * deleting 3
-     * <p/>
-     * 1->2
-     * 2->4
-     * 5
-     * <p/>
-     * a d
-     * 1 1 0
-     * 1 2 1
-     * 1 4 2
-     * 2 2 0
-     * 2 4 1
-     * 4 4 0
-     * 5 5 0
-     * <p/>
-     * <p/>
-     * remove all with ancestor = 3
-     * remove all with descendant = 3
-     * <p/>
-     * deleting 5
-     * remove all with ancestor = 5
-     * remove all with descendant = 5
-     * <p/>
-     * deleting ref 1->3 (parentRef = 1 in object 3)
-     * update depth all children of 3 and new depth = depth - (1->3 depth which is 1 based on 1 3 1)
-     * remove 1 3 1
-     */
     private <T extends ObjectType> void handleDelete(Collection<? extends ItemDelta> modifications, Session session,
                                                      String oid, Class<T> type) {
 
@@ -146,9 +100,21 @@ public class OrgClosureManager {
 //        LOGGER.trace("Deleted {} records.", count);
     }
 
-    private <T extends ObjectType> void handleAdd(Collection<? extends ItemDelta> modifications, Session session,
-                                                  String oid, Class<T> type) {
+    private <T extends ObjectType> void handleAdd(String oid, List<String> parents, Class<T> type, Session session) {
+        Query query = session.createSQLQuery("insert into m_org_closure (ancestor_oid ,descendant_oid ,depthvalue) values (:oid, :oid, 0)");
+        query.setString("oid", oid);
+        query.executeUpdate();
 
+        if (parents.isEmpty()) {
+            return;
+        }
+
+        query = session.createSQLQuery("insert into m_org_closure (ancestor_oid ,descendant_oid ,depthvalue) " +
+                "select ancestor_oid, :oid ,depthvalue+1  from m_org_closure where descendant_oid in (:parents) group by ancestor_oid, depthvalue");
+        query.setParameterList("parents", parents);
+        query.setString("oid", oid);
+
+        query.executeUpdate();
     }
 
     private <T extends ObjectType> void handleModify(Collection<? extends ItemDelta> modifications, Session session,
@@ -167,6 +133,21 @@ public class OrgClosureManager {
         }
 
         return deltas;
+    }
+
+    private List<String> getOidFromAddDeltas(Collection<? extends ItemDelta> modifications) {
+        List<String> oids = new ArrayList<>();
+
+        for (ItemDelta delta : modifications) {
+            if (delta.getValuesToAdd() == null) {
+                continue;
+            }
+            for (PrismReferenceValue val : (Collection<PrismReferenceValue>) delta.getValuesToAdd()) {
+                oids.add(val.getOid());
+            }
+        }
+
+        return oids;
     }
 
     /***********************************************************************/

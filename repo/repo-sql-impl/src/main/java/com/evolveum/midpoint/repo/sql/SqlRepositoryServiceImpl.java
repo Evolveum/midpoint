@@ -627,7 +627,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private <T extends ObjectType> List<ReferenceDelta> createAddParentRefDelta(PrismObject<T> object) {
         PrismReference parentOrgRef = object.findReference(ObjectType.F_PARENT_ORG_REF);
-        if (parentOrgRef == null) {
+        if (parentOrgRef == null || parentOrgRef.isEmpty()) {
             return new ArrayList<>();
         }
 
