@@ -23,7 +23,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 
-public class ObjectPaging implements DebugDumpable, Serializable{
+public class ObjectPaging implements DebugDumpable, Serializable {
 	
 	private Integer offset;
 	private Integer maxSize;

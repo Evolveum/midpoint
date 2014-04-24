@@ -18,9 +18,11 @@ package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -135,4 +137,18 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
             guiConfigAttr.add(new SecurityConfig(action));
         }
     }
+
+    @Override
+	public <O extends ObjectType> ObjectSecurityConstraints compileSecurityContraints(PrismObject<O> object)
+			throws SchemaException {
+		return securityEnforcer.compileSecurityContraints(object);
+	}
+
+    @Override
+	public <O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl,
+			Class<O> objectType, ObjectFilter origFilter) throws SchemaException {
+		return securityEnforcer.preProcessObjectFilter(operationUrl, objectType, origFilter);
+	}
+    
+    
 }

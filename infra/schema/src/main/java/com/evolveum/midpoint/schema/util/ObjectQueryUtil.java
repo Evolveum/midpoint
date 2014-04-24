@@ -29,8 +29,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
@@ -159,5 +161,43 @@ public class ObjectQueryUtil {
 		else
 			sb.append("(no filter)");
 		return sb.toString();
+	}
+
+	/**
+	 * Merges the two provided arguments into one AND filter in the most efficient way. 
+	 */
+	public static ObjectFilter filterAnd(ObjectFilter origFilter, ObjectFilter additionalFilter) {
+		if (origFilter == null) {
+			return additionalFilter;
+		}
+		if (additionalFilter == null) {
+			return origFilter;
+		}
+		if (origFilter instanceof AndFilter) {
+			if (!((AndFilter)origFilter).contains(additionalFilter)) {
+				((AndFilter)origFilter).addCondition(additionalFilter);
+			}
+			return origFilter;
+		}
+		return AndFilter.createAnd(origFilter, additionalFilter);
+	}
+	
+	/**
+	 * Merges the two provided arguments into one OR filter in the most efficient way. 
+	 */
+	public static ObjectFilter filterOr(ObjectFilter origFilter, ObjectFilter additionalFilter) {
+		if (origFilter == null) {
+			return additionalFilter;
+		}
+		if (additionalFilter == null) {
+			return origFilter;
+		}
+		if (origFilter instanceof OrFilter) {
+			if (!((OrFilter)origFilter).contains(additionalFilter)) {
+				((OrFilter)origFilter).addCondition(additionalFilter);
+			}
+			return origFilter;
+		}
+		return OrFilter.createOr(origFilter, additionalFilter);
 	}
 }

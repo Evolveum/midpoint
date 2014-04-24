@@ -148,4 +148,41 @@ public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 		clone.matchingRule = this.matchingRule;
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((definition == null) ? 0 : definition.hashCode());
+		result = prime * result + ((fullPath == null) ? 0 : fullPath.hashCode());
+		result = prime * result + ((matchingRule == null) ? 0 : matchingRule.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ValueFilter other = (ValueFilter) obj;
+		if (definition == null) {
+			if (other.definition != null)
+				return false;
+		} else if (!definition.equals(other.definition))
+			return false;
+		if (fullPath == null) {
+			if (other.fullPath != null)
+				return false;
+		} else if (!fullPath.equals(other.fullPath))
+			return false;
+		if (matchingRule == null) {
+			if (other.matchingRule != null)
+				return false;
+		} else if (!matchingRule.equals(other.matchingRule))
+			return false;
+		return true;
+	}
+	
 }

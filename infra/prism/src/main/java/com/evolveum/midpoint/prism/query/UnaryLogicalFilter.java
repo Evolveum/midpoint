@@ -31,22 +31,22 @@ public abstract class UnaryLogicalFilter extends LogicalFilter {
 	}
 
 	public ObjectFilter getFilter() {
-		if (condition == null) {
+		if (conditions == null) {
 			return null;
 		}
-		if (condition.isEmpty()) {
+		if (conditions.isEmpty()) {
 			return null;
 		}
-		if (condition.size() == 1) {
-			return condition.get(0);
+		if (conditions.size() == 1) {
+			return conditions.get(0);
 		}
 		throw new IllegalStateException("Unary logical filter can contains only one value, but contains "
-				+ condition.size());
+				+ conditions.size());
 	}
 	
 	public void setFilter(ObjectFilter filter){
-		condition = new ArrayList<ObjectFilter>();
-		condition.add(filter);
+		conditions = new ArrayList<ObjectFilter>();
+		conditions.add(filter);
 	}
 
 }

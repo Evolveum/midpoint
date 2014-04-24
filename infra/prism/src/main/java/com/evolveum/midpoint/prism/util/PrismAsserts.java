@@ -809,12 +809,12 @@ public class PrismAsserts {
 	
 	public static void assertOrFilter(ObjectFilter filter, int conditions) {
 		assertEquals("Wrong filter class", OrFilter.class, filter.getClass());
-		assertEquals("Wrong number of filter conditions", conditions, ((OrFilter) filter).getCondition().size());
+		assertEquals("Wrong number of filter conditions", conditions, ((OrFilter) filter).getConditions().size());
 	}
 
 	public static void assertAndFilter(ObjectFilter filter, int conditions) {
 		assertEquals("Wrong filter class", AndFilter.class, filter.getClass());
-		assertEquals("Wrong number of filter conditions", conditions, ((AndFilter) filter).getCondition().size());
+		assertEquals("Wrong number of filter conditions", conditions, ((AndFilter) filter).getConditions().size());
 	}
 	
 	public static void assertEqualsFilter(ObjectFilter objectFilter, QName expectedFilterDef,

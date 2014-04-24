@@ -541,13 +541,13 @@ public class QueryConvertor {
 	
 	private static MapXNode serializeAndFilter(AndFilter filter, XNodeSerializer xnodeSerilizer) throws SchemaException{
 		MapXNode map = new MapXNode();
-		map.put(KEY_FILTER_AND, serializeNaryLogicalSubfilters(filter.getCondition(), xnodeSerilizer));
+		map.put(KEY_FILTER_AND, serializeNaryLogicalSubfilters(filter.getConditions(), xnodeSerilizer));
 		return map;
 	}
 
 	private static MapXNode serializeOrFilter(OrFilter filter, XNodeSerializer xnodeSerilizer) throws SchemaException{
 		MapXNode map = new MapXNode();
-		map.put(KEY_FILTER_OR, serializeNaryLogicalSubfilters(filter.getCondition(), xnodeSerilizer));
+		map.put(KEY_FILTER_OR, serializeNaryLogicalSubfilters(filter.getConditions(), xnodeSerilizer));
 		return map;	
 	}
 	

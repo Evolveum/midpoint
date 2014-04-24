@@ -1156,7 +1156,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		QName objectClass = null;
 
 		if (filter instanceof AndFilter){
-			List<? extends ObjectFilter> conditions = ((AndFilter) filter).getCondition();
+			List<? extends ObjectFilter> conditions = ((AndFilter) filter).getConditions();
 			resourceOid = ProvisioningUtil.getResourceOidFromFilter(conditions);
 			objectClass = ProvisioningUtil.getValueFromFilter(conditions, ShadowType.F_OBJECT_CLASS);
 		}

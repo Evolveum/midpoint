@@ -203,7 +203,7 @@ public class ProvisioningUtil {
 					return values.get(0).getOid();
 				}
 				if (NaryLogicalFilter.class.isAssignableFrom(f.getClass())){
-					return getResourceOidFromFilter(((NaryLogicalFilter) f).getCondition());
+					return getResourceOidFromFilter(((NaryLogicalFilter) f).getConditions());
 				}
 			}
 			
@@ -227,7 +227,7 @@ public class ProvisioningUtil {
 					return (T) ((PrismPropertyValue)values.get(0)).getValue();
 				}
 				if (NaryLogicalFilter.class.isAssignableFrom(f.getClass())){
-					return getValueFromFilter(((NaryLogicalFilter) f).getCondition(), propertyName);
+					return getValueFromFilter(((NaryLogicalFilter) f).getConditions(), propertyName);
 				}
 			}
 			

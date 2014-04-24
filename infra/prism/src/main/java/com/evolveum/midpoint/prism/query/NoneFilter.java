@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum
+ * Copyright (c) 2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,79 +16,54 @@
 
 package com.evolveum.midpoint.prism.query;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
 
-public class OrFilter extends NaryLogicalFilter {
+/**
+ * Filter designed to explicitly match nothing. It is used in some special cases, e.g.
+ * a security component explicitly indicating that no object should be returned. 
+ * 
+ * @author Radovan Semancik
+ */
+public class NoneFilter extends ObjectFilter {
 
-	public OrFilter(List<ObjectFilter> condition) {
-		super(condition);
+	public NoneFilter() {
+		super();
 	}
 
-	
-	public static OrFilter createOr(ObjectFilter... conditions){
-		List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
-		for (ObjectFilter condition : conditions){
-			filters.add(condition);
-		}
-		
-		return new OrFilter(filters);
-	}
-	
-	public static OrFilter createOr(List<ObjectFilter> conditions){	
-		return new OrFilter(conditions);
+	public static NoneFilter createNone() {
+		return new NoneFilter();
 	}
 	
 	@Override
-	public OrFilter clone() {
-		return new OrFilter(getClonedConditions());
+	public NoneFilter clone() {
+		return new NoneFilter();
 	}
 	
 	@Override
 	public String debugDump() {
 		return debugDump(0);
 	}
-	
+
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("OR:");
-		for (ObjectFilter filter : getConditions()){
-			sb.append("\n");
-			sb.append(filter.debugDump(indent + 1));
-		}
+		sb.append("NONE");
 		return sb.toString();
+
 	}
 	
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("OR: ");
-		sb.append("(");
-		for (int i = 0; i < getConditions().size(); i++){
-			sb.append(getConditions().get(i));
-			if (i != getConditions().size() -1){
-				sb.append(", ");
-			}
-		}
-		sb.append(")");
-		return sb.toString();
+		return "NONE";
 	}
-
 
 	@Override
 	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) {
-		for (ObjectFilter filter : getConditions()){
-			if (filter.match(object, matchingRuleRegistry)){
-				return true;
-			}
-		}
 		return false;
+		
 	}
 }
