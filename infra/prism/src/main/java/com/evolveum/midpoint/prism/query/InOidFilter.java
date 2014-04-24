@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.prism.query;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 
@@ -27,7 +28,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
 
-public class InOidFilter extends ObjectFilter{
+public class InOidFilter extends ObjectFilter {
 
 	private Collection<String> oids;
 	
@@ -39,6 +40,9 @@ public class InOidFilter extends ObjectFilter{
 		return new InOidFilter(oids);
 	}
 	
+	public static InOidFilter createInOid(String... oids){
+		return new InOidFilter(Arrays.asList(oids));
+	}
 		
 	public Collection<String> getOids() {
 		return oids;
@@ -106,6 +110,31 @@ public class InOidFilter extends ObjectFilter{
 	public <T extends Objectable> boolean match(PrismObject<T> object,
 			MatchingRuleRegistry matchingRuleRegistry) {
 		return false;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((oids == null) ? 0 : oids.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		InOidFilter other = (InOidFilter) obj;
+		if (oids == null) {
+			if (other.oids != null)
+				return false;
+		} else if (!oids.equals(other.oids))
+			return false;
+		return true;
 	}
 
 }

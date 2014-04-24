@@ -54,7 +54,7 @@ public abstract class NaryLogicalRestriction<T extends NaryLogicalFilter> extend
     }
 
     protected void validateFilter(NaryLogicalFilter filter) throws QueryException {
-        if (filter.getCondition() == null || filter.getCondition().isEmpty()) {
+        if (filter.getConditions() == null || filter.getConditions().isEmpty()) {
             LOGGER.trace("NaryLogicalFilter filter must have at least two conditions in it. " +
                     "Removing logical filter and processing simple condition.");
             throw new QueryException("NaryLogicalFilter filter '" + filter.debugDump()

@@ -55,5 +55,4 @@ public abstract class ObjectFilter implements DebugDumpable, Serializable, Reviv
 	public void revive(final PrismContext prismContext) throws SchemaException {
 		QueryConvertor.revive(this, prismContext);
 	}
-		
 }

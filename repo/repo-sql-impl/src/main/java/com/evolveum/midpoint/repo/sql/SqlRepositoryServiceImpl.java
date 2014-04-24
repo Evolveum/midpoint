@@ -1926,7 +1926,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
             //if there are only org. filters then we have to check DB
             NaryLogicalFilter logical = (NaryLogicalFilter) rootFilter;
-            List<ObjectFilter> conditions = logical.getCondition();
+            List<ObjectFilter> conditions = logical.getConditions();
             boolean onlyOrgs = true;
             for (ObjectFilter child : conditions) {
                 if (RUtil.findOrgFilter(child) == null) {
@@ -2007,7 +2007,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (filter instanceof LogicalFilter) {
             LogicalFilter logical = (LogicalFilter) filter;
 
-            for (ObjectFilter child : logical.getCondition()) {
+            for (ObjectFilter child : logical.getConditions()) {
                 insertParamsToMatchObjectQuery(query, dOid, child, paramIndex++);
             }
         }
@@ -2043,7 +2043,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         if (filter instanceof LogicalFilter) {
             LogicalFilter logical = (LogicalFilter) filter;
-            List<ObjectFilter> conditions = logical.getCondition();
+            List<ObjectFilter> conditions = logical.getConditions();
             sb.append('(');
             for (int i = 0; i < conditions.size(); i++) {
                 ObjectFilter child = conditions.get(i);

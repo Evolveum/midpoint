@@ -27,7 +27,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
 
-public class AndFilter extends NaryLogicalFilter{
+public class AndFilter extends NaryLogicalFilter {
 	
 	public static final QName ELEMENT_NAME = new QName(PrismConstants.NS_QUERY, "and");
 
@@ -64,7 +64,7 @@ public class AndFilter extends NaryLogicalFilter{
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("AND:");
-		for (ObjectFilter filter : getCondition()){
+		for (ObjectFilter filter : getConditions()){
 			sb.append("\n");
 			sb.append(filter.debugDump(indent + 1));
 		}
@@ -78,9 +78,9 @@ public class AndFilter extends NaryLogicalFilter{
 		StringBuilder sb = new StringBuilder();
 		sb.append("AND: ");
 		sb.append("(");
-		for (int i = 0; i < getCondition().size(); i++){
-			sb.append(getCondition().get(i));
-			if (i != getCondition().size() -1){
+		for (int i = 0; i < getConditions().size(); i++){
+			sb.append(getConditions().get(i));
+			if (i != getConditions().size() -1){
 				sb.append(", ");
 			}
 		}
@@ -91,7 +91,7 @@ public class AndFilter extends NaryLogicalFilter{
 
 	@Override
 	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) {
-		for (ObjectFilter filter : getCondition()){
+		for (ObjectFilter filter : getConditions()){
 			if (!filter.match(object, matchingRuleRegistry)){
 				return false;
 			}

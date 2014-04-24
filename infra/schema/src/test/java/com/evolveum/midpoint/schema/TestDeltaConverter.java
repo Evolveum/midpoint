@@ -224,8 +224,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
         modificationValue.getContent().add(accountRefToDeleteElement);
         modificationDeleteAccountRef.getValue().add(modificationValue);
         objectChange.getItemDelta().add(modificationDeleteAccountRef);
-        ItemPathType itemPathType = new ItemPathType();
-        itemPathType.getContent().add(UserType.F_LINK_REF);
+        ItemPathType itemPathType = new ItemPathType(new ItemPath(UserType.F_LINK_REF));
         modificationDeleteAccountRef.setPath(itemPathType);
         
         PrismObjectDefinition<UserType> objDef = PrismTestUtil.getObjectDefinition(UserType.class);

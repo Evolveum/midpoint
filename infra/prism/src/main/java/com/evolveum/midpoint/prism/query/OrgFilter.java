@@ -99,6 +99,46 @@ public class OrgFilter extends ObjectFilter {
 	}
 
 	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((baseOrgRef == null) ? 0 : baseOrgRef.hashCode());
+		result = prime * result + ((maxDepth == null) ? 0 : maxDepth.hashCode());
+		result = prime * result + ((minDepth == null) ? 0 : minDepth.hashCode());
+		result = prime * result + (root ? 1231 : 1237);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		OrgFilter other = (OrgFilter) obj;
+		if (baseOrgRef == null) {
+			if (other.baseOrgRef != null)
+				return false;
+		} else if (!baseOrgRef.equals(other.baseOrgRef))
+			return false;
+		if (maxDepth == null) {
+			if (other.maxDepth != null)
+				return false;
+		} else if (!maxDepth.equals(other.maxDepth))
+			return false;
+		if (minDepth == null) {
+			if (other.minDepth != null)
+				return false;
+		} else if (!minDepth.equals(other.minDepth))
+			return false;
+		if (root != other.root)
+			return false;
+		return true;
+	}
+
+	@Override
 	public String debugDump() {
 		return debugDump(0);
 	}

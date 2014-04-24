@@ -39,7 +39,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class GreaterFilter<T> extends ComparativeFilter<T>{
+public class GreaterFilter<T> extends ComparativeFilter<T> {
 	
 
 	public GreaterFilter() {

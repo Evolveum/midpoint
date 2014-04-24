@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,31 +19,39 @@ package com.evolveum.midpoint.prism.query;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class LogicalFilter extends ObjectFilter{
+public abstract class LogicalFilter extends ObjectFilter {
 	
-	protected List<ObjectFilter> condition;
+	protected List<ObjectFilter> conditions;
 	
 	public LogicalFilter(){
 
 	}
 	
-	public List<ObjectFilter> getCondition() {
-		if (condition == null){
-			condition = new ArrayList<ObjectFilter>();
+	public List<ObjectFilter> getConditions() {
+		if (conditions == null){
+			conditions = new ArrayList<ObjectFilter>();
 		}
-		return condition;
+		return conditions;
 	}
 	
-	public void setCondition(List<ObjectFilter> condition) {
-		this.condition = condition;
+	public void setConditions(List<ObjectFilter> condition) {
+		this.conditions = condition;
+	}
+	
+	public void addCondition(ObjectFilter condition) {
+		this.conditions.add(condition);
+	}
+	
+	public boolean contains(ObjectFilter condition) {
+		return this.conditions.contains(condition);
 	}
 	
 	protected List<ObjectFilter> getClonedConditions() {
-		if (condition == null) {
+		if (conditions == null) {
 			return null;
 		}
-		List<ObjectFilter> clonedConditions = new ArrayList<ObjectFilter>(condition.size());
-		for (ObjectFilter connditio: condition) {
+		List<ObjectFilter> clonedConditions = new ArrayList<ObjectFilter>(conditions.size());
+		for (ObjectFilter connditio: conditions) {
 			clonedConditions.add(connditio.clone());
 		}
 		return clonedConditions;
@@ -52,32 +60,34 @@ public abstract class LogicalFilter extends ObjectFilter{
 	@Override
 	public void accept(Visitor visitor) {
 		super.accept(visitor);
-		for (ObjectFilter condition: getCondition()) {
+		for (ObjectFilter condition: getConditions()) {
 			condition.accept(visitor);
 		}
 	}
-	
 
-//	@Override
-//	public String dump() {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
-//
-//
-//	@Override
-//	public String debugDump() {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
-//
-//
-//	@Override
-//	public String debugDump(int indent) {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
-//	
-	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((conditions == null) ? 0 : conditions.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		LogicalFilter other = (LogicalFilter) obj;
+		if (conditions == null) {
+			if (other.conditions != null)
+				return false;
+		} else if (!conditions.equals(other.conditions))
+			return false;
+		return true;
+	}
 	
 }

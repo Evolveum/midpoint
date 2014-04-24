@@ -71,9 +71,9 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 /**
  * Handles low-level task operations, e.g. handling wf* properties in task extension.
@@ -437,8 +437,7 @@ public class WfTaskUtil {
     public void addApprovedBy(Task task, Collection<ObjectReferenceType> referenceTypes) throws SchemaException {
         PrismReference wfApprovedBy = wfApprovedByReferenceDefinition.instantiate();
         for (ObjectReferenceType referenceType : referenceTypes) {
-            PrismReferenceValue newValue = new PrismReferenceValue(referenceType.getOid());
-            wfApprovedBy.add(newValue);
+            wfApprovedBy.add(referenceType.asReferenceValue().clone());
         }
         task.addExtensionReference(wfApprovedBy);
     }
@@ -454,7 +453,8 @@ public class WfTaskUtil {
     }
 
     public List<? extends ObjectReferenceType> getApprovedByFromTaskTree(Task task, OperationResult result) throws SchemaException {
-        Set<String> approvers = new HashSet<>();
+        // we use a OID-keyed map to (1) keep not only the OID, but whole reference, but (2) eliminate uncertainty in comparing references
+        Map<String,PrismReferenceValue> approvers = new HashMap<>();
 
         List<Task> tasks = task.listSubtasksDeeply(result);
         tasks.add(task);
@@ -462,15 +462,15 @@ public class WfTaskUtil {
             PrismReference approvedBy = getApprovedBy(aTask);
             if (approvedBy != null) {
                 for (PrismReferenceValue referenceValue : approvedBy.getValues()) {
-                    approvers.add(referenceValue.getOid());
+                    approvers.put(referenceValue.getOid(), referenceValue);
                 }
             }
         }
 
         List<ObjectReferenceType> retval = new ArrayList<>(approvers.size());
-        for (String oid : approvers) {
+        for (PrismReferenceValue approverRefValue : approvers.values()) {
             ObjectReferenceType referenceType = new ObjectReferenceType();
-            referenceType.setOid(oid);
+            referenceType.setupReferenceValue(approverRefValue.clone());
             retval.add(referenceType);
         }
         return retval;

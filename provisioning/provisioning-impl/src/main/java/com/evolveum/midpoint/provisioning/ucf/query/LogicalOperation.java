@@ -55,7 +55,7 @@ public class LogicalOperation extends Operation{
 		} else {
 		
 			NaryLogicalFilter nAry = (NaryLogicalFilter) objectFilter;
-			List<? extends ObjectFilter> conditions =  nAry.getCondition();
+			List<? extends ObjectFilter> conditions =  nAry.getConditions();
 			if (conditions == null || conditions.isEmpty()){
 				LOGGER.debug("No conditions sepcified for logical filter. Skipping processing logical filter.");
 				return null;
@@ -66,7 +66,7 @@ public class LogicalOperation extends Operation{
 			}
 			
 			List<Filter> filters = new ArrayList<Filter>();
-			for (ObjectFilter objFilter : nAry.getCondition()){
+			for (ObjectFilter objFilter : nAry.getConditions()){
 				Filter f = getInterpreter().interpret(objFilter, icfNameMapper);
 				filters.add(f);
 			}

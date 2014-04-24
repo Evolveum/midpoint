@@ -142,20 +142,20 @@
                     <t:changeType>modify</t:changeType>
                     <t:objectType>c:UserType</t:objectType>
                     <t:oid>c0c010c0-d34d-b33f-f00d-111111111111</t:oid>
-                    <t:modification>
+                    <t:itemDelta>
                         <t:modificationType>replace</t:modificationType>
                         <t:path>c:activation</t:path>
                         <t:value>
                             <c:effectiveStatus>enabled</c:effectiveStatus>
                         </t:value>
-                    </t:modification>
-                    <t:modification>
+                    </t:itemDelta>
+                    <t:itemDelta>
                         <t:modificationType>replace</t:modificationType>
                         <t:path>c:activation</t:path>
                         <t:value>
                             <c:enableTimestamp xsi:type="xsd:dateTime" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">2014-01-07T17:39:51.444+01:00</c:enableTimestamp>
                         </t:value>
-                    </t:modification>
+                    </t:itemDelta>
                 </m:delta>
             </m:wave>
         </m:secondaryDeltas>

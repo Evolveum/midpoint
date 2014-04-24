@@ -622,7 +622,7 @@ public abstract class ShadowCache {
 		String resourceOid = null;
 		QName objectClassName = null;
 		if (filter instanceof AndFilter){
-			List<? extends ObjectFilter> conditions = ((AndFilter) filter).getCondition();
+			List<? extends ObjectFilter> conditions = ((AndFilter) filter).getConditions();
 			resourceOid = ProvisioningUtil.getResourceOidFromFilter(conditions);
 			objectClassName = ProvisioningUtil.getValueFromFilter(conditions, ShadowType.F_OBJECT_CLASS);
 		}
@@ -807,7 +807,7 @@ public abstract class ShadowCache {
 		List<ObjectFilter> attributeFilter = new ArrayList<ObjectFilter>();
 		
 		if (filter instanceof AndFilter){
-			List<? extends ObjectFilter> conditions = ((AndFilter) filter).getCondition();
+			List<? extends ObjectFilter> conditions = ((AndFilter) filter).getConditions();
 			attributeFilter = getAttributeQuery(conditions, attributeFilter);
 			if (attributeFilter.size() > 1){
 				attributeQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(attributeFilter));
@@ -994,7 +994,7 @@ public abstract class ShadowCache {
 				
 				attributeFilter.add(f);
 			} else if (f instanceof NaryLogicalFilter){
-				attributeFilter = getAttributeQuery(((NaryLogicalFilter) f).getCondition(), attributeFilter);
+				attributeFilter = getAttributeQuery(((NaryLogicalFilter) f).getConditions(), attributeFilter);
 			} else if (f instanceof SubstringFilter){
 				attributeFilter.add(f);
 			}
@@ -1478,7 +1478,7 @@ public abstract class ShadowCache {
 		ShadowKindType kind = null;
 		String intent = null;
 		if (query != null && query.getFilter() != null) {
-			List<? extends ObjectFilter> conditions = ((AndFilter) query.getFilter()).getCondition();
+			List<? extends ObjectFilter> conditions = ((AndFilter) query.getFilter()).getConditions();
 			kind = ProvisioningUtil.getValueFromFilter(conditions, ShadowType.F_KIND);
 			intent = ProvisioningUtil.getValueFromFilter(conditions, ShadowType.F_INTENT);
 		}

@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
 
-public class InFilter<T> extends PropertyValueFilter<PrismPropertyValue>{
+public class InFilter<T> extends PropertyValueFilter<PrismPropertyValue> {
 	
 	InFilter(ItemPath path, PrismPropertyDefinition definition, QName matchingRule, List<PrismPropertyValue> values ) {
 		super(path, definition, matchingRule, values);

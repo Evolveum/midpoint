@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public abstract class ComparativeFilter<T extends Object> extends PropertyValueFilter<PrismPropertyValue<T>>{
+public abstract class ComparativeFilter<T extends Object> extends PropertyValueFilter<PrismPropertyValue<T>> {
 
 	private boolean equals;
 	
@@ -66,5 +66,27 @@ public abstract class ComparativeFilter<T extends Object> extends PropertyValueF
 		
 		return values.iterator().next();
 		
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (equals ? 1231 : 1237);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ComparativeFilter other = (ComparativeFilter) obj;
+		if (equals != other.equals)
+			return false;
+		return true;
 	}
 }

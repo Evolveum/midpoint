@@ -42,7 +42,7 @@ public class AndRestriction extends NaryLogicalRestriction<AndFilter> {
     public Criterion interpret(AndFilter filter) throws QueryException {
         validateFilter(filter);
         Conjunction conjunction = Restrictions.conjunction();
-        updateJunction(filter.getCondition(), conjunction);
+        updateJunction(filter.getConditions(), conjunction);
 
         return conjunction;
     }
