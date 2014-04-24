@@ -343,12 +343,10 @@ CREATE TABLE m_org (
 );
 
 CREATE TABLE m_org_closure (
-  id             BIGINT NOT NULL,
-  ancestor_oid   VARCHAR(36),
-  depthValue     INTEGER,
-  descendant_oid VARCHAR(36),
-  relation       VARCHAR(157),
-  PRIMARY KEY (id)
+  descendant_oid VARCHAR(36) NOT NULL,
+  depthValue     INTEGER     NOT NULL,
+  ancestor_oid   VARCHAR(36) NOT NULL,
+  PRIMARY KEY (descendant_oid, depthValue, ancestor_oid)
 );
 
 CREATE TABLE m_org_incorrect (
@@ -372,13 +370,13 @@ CREATE TABLE m_reference (
 );
 
 CREATE TABLE m_report (
-  export                   INTEGER,
-  name_norm                VARCHAR(255),
-  name_orig                VARCHAR(255),
-  orientation              INTEGER,
-  parent                   BOOLEAN,
-  useHibernateSession      BOOLEAN,
-  oid                      VARCHAR(36) NOT NULL,
+  export              INTEGER,
+  name_norm           VARCHAR(255),
+  name_orig           VARCHAR(255),
+  orientation         INTEGER,
+  parent              BOOLEAN,
+  useHibernateSession BOOLEAN,
+  oid                 VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid),
   UNIQUE (name_norm)
 );
@@ -494,36 +492,36 @@ CREATE TABLE m_trigger (
 );
 
 CREATE TABLE m_user (
-  additionalName_norm      VARCHAR(255),
-  additionalName_orig      VARCHAR(255),
-  costCenter               VARCHAR(255),
-  emailAddress             VARCHAR(255),
-  employeeNumber           VARCHAR(255),
-  familyName_norm          VARCHAR(255),
-  familyName_orig          VARCHAR(255),
-  fullName_norm            VARCHAR(255),
-  fullName_orig            VARCHAR(255),
-  givenName_norm           VARCHAR(255),
-  givenName_orig           VARCHAR(255),
-  hasPhoto                 BOOLEAN     NOT NULL,
-  honorificPrefix_norm     VARCHAR(255),
-  honorificPrefix_orig     VARCHAR(255),
-  honorificSuffix_norm     VARCHAR(255),
-  honorificSuffix_orig     VARCHAR(255),
-  locale                   VARCHAR(255),
-  locality_norm            VARCHAR(255),
-  locality_orig            VARCHAR(255),
-  name_norm                VARCHAR(255),
-  name_orig                VARCHAR(255),
-  nickName_norm            VARCHAR(255),
-  nickName_orig            VARCHAR(255),
-  preferredLanguage        VARCHAR(255),
-  status                   INTEGER,
-  telephoneNumber          VARCHAR(255),
-  timezone                 VARCHAR(255),
-  title_norm               VARCHAR(255),
-  title_orig               VARCHAR(255),
-  oid                      VARCHAR(36) NOT NULL,
+  additionalName_norm  VARCHAR(255),
+  additionalName_orig  VARCHAR(255),
+  costCenter           VARCHAR(255),
+  emailAddress         VARCHAR(255),
+  employeeNumber       VARCHAR(255),
+  familyName_norm      VARCHAR(255),
+  familyName_orig      VARCHAR(255),
+  fullName_norm        VARCHAR(255),
+  fullName_orig        VARCHAR(255),
+  givenName_norm       VARCHAR(255),
+  givenName_orig       VARCHAR(255),
+  hasPhoto             BOOLEAN     NOT NULL,
+  honorificPrefix_norm VARCHAR(255),
+  honorificPrefix_orig VARCHAR(255),
+  honorificSuffix_norm VARCHAR(255),
+  honorificSuffix_orig VARCHAR(255),
+  locale               VARCHAR(255),
+  locality_norm        VARCHAR(255),
+  locality_orig        VARCHAR(255),
+  name_norm            VARCHAR(255),
+  name_orig            VARCHAR(255),
+  nickName_norm        VARCHAR(255),
+  nickName_orig        VARCHAR(255),
+  preferredLanguage    VARCHAR(255),
+  status               INTEGER,
+  telephoneNumber      VARCHAR(255),
+  timezone             VARCHAR(255),
+  title_norm           VARCHAR(255),
+  title_orig           VARCHAR(255),
+  oid                  VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid),
   UNIQUE (name_norm)
 );
@@ -720,9 +718,9 @@ ADD CONSTRAINT fk_org
 FOREIGN KEY (oid)
 REFERENCES m_abstract_role;
 
-CREATE INDEX iAncestor ON m_org_closure (ancestor_oid);
-
 CREATE INDEX iDescendant ON m_org_closure (descendant_oid);
+
+CREATE INDEX iAncestor ON m_org_closure (ancestor_oid);
 
 CREATE INDEX iAncestorDepth ON m_org_closure (ancestor_oid, depthValue);
 

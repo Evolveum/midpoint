@@ -33,15 +33,11 @@ import java.io.Serializable;
                 @Index(name = "iAncDescDepth", columnNames = {"ancestor_oid", "descendant_oid", "depthValue"})})
 public class ROrgClosure implements Serializable {
 
-    private Long id;
-
     private RObject ancestor;
     private String ancestorOid;
 
     private RObject descendant;
     private String descendantOid;
-
-    private String relation;
 
     private int depth;
 
@@ -64,16 +60,6 @@ public class ROrgClosure implements Serializable {
         this.depth = depth;
     }
 
-    @Id
-    @GeneratedValue
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumns({@JoinColumn(name = "ancestor_oid", referencedColumnName = "oid")})
     @ForeignKey(name = "fk_ancestor")
@@ -81,6 +67,7 @@ public class ROrgClosure implements Serializable {
         return ancestor;
     }
 
+    @Id
     @Index(name = "iAncestor")
     @Column(name = "ancestor_oid", length = RUtil.COLUMN_LENGTH_OID, insertable = false, updatable = false)
     public String getAncestorOid() {
@@ -101,6 +88,7 @@ public class ROrgClosure implements Serializable {
         return descendant;
     }
 
+    @Id
     @Index(name = "iDescendant")
     @Column(name = "descendant_oid", length = RUtil.COLUMN_LENGTH_OID, insertable = false, updatable = false)
     public String getDescendantOid() {
@@ -114,18 +102,10 @@ public class ROrgClosure implements Serializable {
         this.descendant = descendant;
     }
 
+    @Id
     @Column(name = "depthValue")
     public int getDepth() {
         return depth;
-    }
-
-    @Column(length = RUtil.COLUMN_LENGTH_QNAME)
-    public String getRelation() {
-        return relation;
-    }
-
-    public void setRelation(String relation) {
-        this.relation = relation;
     }
 
     public void setDepth(int depth) {
