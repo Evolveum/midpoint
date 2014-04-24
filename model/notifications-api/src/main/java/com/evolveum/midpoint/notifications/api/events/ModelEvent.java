@@ -29,7 +29,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 import java.util.ArrayList;
@@ -138,7 +137,7 @@ public class ModelEvent extends BaseEvent {
 
     @Override
     public boolean isCategoryType(EventCategoryType eventCategoryType) {
-        return eventCategoryType == EventCategoryType.USER_EVENT;
+        return eventCategoryType == EventCategoryType.MODEL_EVENT;
     }
 
     public List<ObjectDelta<UserType>> getUserDeltas() {

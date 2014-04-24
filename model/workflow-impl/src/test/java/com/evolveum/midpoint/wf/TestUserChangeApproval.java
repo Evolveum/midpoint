@@ -201,6 +201,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         HashSet<String> realApproversSet = new HashSet<String>();
         for (ObjectReferenceType approver : realApprovers) {
             realApproversSet.add(approver.getOid());
+            assertEquals("Unexpected target type in approverRef", UserType.COMPLEX_TYPE, approver.getType());
         }
         assertEquals("Mismatch in modifyApproverRef in metadata", new HashSet(expectedApprovers), realApproversSet);
     }
@@ -833,8 +834,8 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
         contextCreator.assertsAfterClockworkRun(rootTask, result);
 
-//        checkDummyTransportMessages("simpleWorkflowNotifier-Processes", workflowSubtaskCount);
-//        checkDummyTransportMessages("simpleWorkflowNotifier-WorkItems", workflowSubtaskCount);
+        checkDummyTransportMessages("simpleWorkflowNotifier-Processes", workflowSubtaskCount);
+        checkDummyTransportMessages("simpleWorkflowNotifier-WorkItems", workflowSubtaskCount);
 
         if (immediate) {
             waitForTaskClose(task0, 20000);
@@ -886,8 +887,8 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             assertObjectInTaskTree(rootTask, oid, checkObjectOnSubtasks, result);
         }
 
-//        checkDummyTransportMessages("simpleWorkflowNotifier-Processes", workflowSubtaskCount*2);
-//        checkDummyTransportMessages("simpleWorkflowNotifier-WorkItems", workflowSubtaskCount*2);
+        checkDummyTransportMessages("simpleWorkflowNotifier-Processes", workflowSubtaskCount*2);
+        checkDummyTransportMessages("simpleWorkflowNotifier-WorkItems", workflowSubtaskCount*2);
         notificationManager.setDisabled(true);
 
         // Check audit

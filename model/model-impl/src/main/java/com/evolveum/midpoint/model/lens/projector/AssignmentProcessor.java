@@ -135,7 +135,7 @@ public class AssignmentProcessor {
 	private ActivationComputer activationComputer;
     
     @Autowired(required = true)
-    private FocusPolicyProcessor focusPolicyProcessor;
+    private ObjectTemplateProcessor objectTemplateProcessor;
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
 
@@ -444,7 +444,7 @@ public class AssignmentProcessor {
         collectFocusTripleFromMappings(evaluatedAssignmentTriple.getMinusSet(), focusOutputTripleMap, PlusMinusZero.MINUS);
         collectFocusTripleFromMappings(evaluatedAssignmentTriple.getZeroSet(), focusOutputTripleMap, PlusMinusZero.ZERO);
         ObjectDeltaObject<F> focusOdo = focusContext.getObjectDeltaObject();
-		Collection<ItemDelta<? extends PrismValue>> focusDeltas = focusPolicyProcessor.computeItemDeltas(focusOutputTripleMap,
+		Collection<ItemDelta<? extends PrismValue>> focusDeltas = objectTemplateProcessor.computeItemDeltas(focusOutputTripleMap,
 				focusOdo, focusContext.getObjectDefinition(), "focus mappings in assignments of "+focusContext.getHumanReadableName());
 		LOGGER.trace("Computed focus deltas: {}", focusDeltas);
 		focusContext.applyProjectionWaveSecondaryDeltas(focusDeltas);

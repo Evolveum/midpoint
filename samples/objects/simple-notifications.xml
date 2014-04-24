@@ -24,12 +24,12 @@
 
     <notificationConfiguration>
 		<handler>
-        <simpleAccountNotifier>
+        <simpleResourceObjectNotifier>
             <recipientExpression>
                 <value>somebody@acme.org</value>
             </recipientExpression>
             <transport>mail</transport>
-        </simpleAccountNotifier>
+        </simpleResourceObjectNotifier>
 	</handler>
 	
 	<handler>

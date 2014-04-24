@@ -528,6 +528,10 @@ public class ChangeExecutor {
             throw new IllegalArgumentException("Null change");
         }
         
+        if (objectDelta.getOid() == null) {
+        	objectDelta.setOid(objectContext.getOid());
+        }
+        
         if (alreadyExecuted(objectDelta, objectContext)) {
         	LOGGER.debug("Skipping execution of delta because it was already executed: {}", objectContext);
         	return;

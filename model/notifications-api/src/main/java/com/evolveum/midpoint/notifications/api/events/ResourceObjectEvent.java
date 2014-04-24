@@ -20,21 +20,22 @@ import com.evolveum.midpoint.notifications.api.OperationStatus;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * @author mederly
  */
-public class AccountEvent extends BaseEvent {
+public class ResourceObjectEvent extends BaseEvent {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AccountEvent.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectEvent.class);
 
     private OperationStatus operationStatus;        // status of the operation
 
@@ -46,7 +47,7 @@ public class AccountEvent extends BaseEvent {
     private boolean activationRequested;
     private boolean deactivationRequested;
 
-    public AccountEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator) {
+    public ResourceObjectEvent(LightweightIdentifierGenerator lightweightIdentifierGenerator) {
         super(lightweightIdentifierGenerator);
     }
 
@@ -89,8 +90,24 @@ public class AccountEvent extends BaseEvent {
 
     @Override
     public boolean isCategoryType(EventCategoryType eventCategoryType) {
-        return eventCategoryType == EventCategoryType.ACCOUNT_EVENT
-                && ShadowUtil.isAccount(accountOperationDescription.getCurrentShadow().asObjectable());
+        return eventCategoryType == EventCategoryType.RESOURCE_OBJECT_EVENT;
+    }
+
+    public boolean isShadowKind(ShadowKindType shadowKindType) {
+        ShadowKindType actualKind = accountOperationDescription.getCurrentShadow().asObjectable().getKind();
+        if (actualKind != null) {
+            return actualKind.equals(shadowKindType);
+        } else {
+            return ShadowKindType.ACCOUNT.equals(shadowKindType);
+        }
+    }
+
+    public boolean isShadowIntent(String intent) {
+        if (StringUtils.isNotEmpty(intent)) {
+            return intent.equals(accountOperationDescription.getCurrentShadow().asObjectable().getIntent());
+        } else {
+            return StringUtils.isEmpty(accountOperationDescription.getCurrentShadow().asObjectable().getIntent());
+        }
     }
 
     public ObjectDelta<ShadowType> getShadowDelta() {
@@ -112,10 +129,11 @@ public class AccountEvent extends BaseEvent {
 
     @Override
     public String toString() {
-        return "AccountEvent{" +
+        return "ResourceObjectEvent{" +
                 "base=" + super.toString() +
                 ", changeType=" + changeType +
                 ", operationStatus=" + operationStatus +
                 '}';
     }
+
 }

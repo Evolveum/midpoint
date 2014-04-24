@@ -275,6 +275,15 @@
                    </xsd:documentation>
                </xsd:annotation>
            </xsd:element>
+           <xsd:element name="synchronizationIntent" type="c:SynchronizationIntentType" minOccurs="0">
+               <xsd:annotation>
+                   <xsd:documentation>
+                       Initial intent regarding the account. It indicated what the initiator of the operation WANTS TO DO with the context.
+                       If set to null then the decision is left to "the engine". Null is also a typical value
+                       when the context is created. It may be pre-set under some circumstances, e.g. if an account is being unlinked.
+                   </xsd:documentation>
+               </xsd:annotation>
+           </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -384,15 +393,6 @@
                         <xsd:annotation>
                             <xsd:documentation>
                                 TODO
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="synchronizationIntent" type="c:SynchronizationIntentType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Initial intent regarding the account. It indicated what the initiator of the operation WANTS TO DO with the context.
-                                If set to null then the decision is left to "the engine". Null is also a typical value
-                                when the context is created. It may be pre-set under some circumstances, e.g. if an account is being unlinked.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>

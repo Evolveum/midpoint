@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.notifications.filters;
+package com.evolveum.midpoint.notifications.helpers;
 
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
@@ -23,7 +23,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
 import org.springframework.stereotype.Component;
 
@@ -31,33 +30,27 @@ import org.springframework.stereotype.Component;
  * @author mederly
  */
 @Component
-public class CategoryFilter extends BaseHandler {
+public class ForkHelper extends BaseHelper {
 
-    private static final Trace LOGGER = TraceManager.getTrace(CategoryFilter.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ForkHelper.class);
 
     @Override
     public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, 
     		Task task, OperationResult result) {
 
-        if (eventHandlerType.getCategory().isEmpty()) {
+        if (eventHandlerType.getForked().isEmpty()) {
             return true;
         }
 
-        boolean retval = false;
+        logStart(LOGGER, event, eventHandlerType);
 
-        logStart(LOGGER, event, eventHandlerType, eventHandlerType.getCategory());
-
-        for (EventCategoryType eventCategoryType : eventHandlerType.getCategory()) {
-
-            if (eventCategoryType == null) {
-                LOGGER.warn("Filtering on null EventCategoryType: " + eventHandlerType);
-            } else if (event.isCategoryType(eventCategoryType)) {
-                retval = true;
-                break;
-            }
+        for (EventHandlerType branchHandlerType : eventHandlerType.getForked()) {
+            notificationManager.processEvent(event, branchHandlerType, task, result);
         }
 
-        logEnd(LOGGER, event, eventHandlerType, retval);
-        return retval;
+        logEnd(LOGGER, event, eventHandlerType, true);
+
+        return true;
     }
+
 }

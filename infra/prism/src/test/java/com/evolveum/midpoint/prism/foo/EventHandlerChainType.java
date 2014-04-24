@@ -99,7 +99,7 @@ public class EventHandlerChainType
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link javax.xml.bind.JAXBElement }{@code <}{@link SimpleWorkflowNotifierType }{@code >}
-     * {@link javax.xml.bind.JAXBElement }{@code <}{@link SimpleAccountNotifierType }{@code >}
+     * {@link javax.xml.bind.JAXBElement }{@code <}{@link SimpleResourceObjectNotifierType }{@code >}
      * {@link javax.xml.bind.JAXBElement }{@code <}{@link EventHandlerChainType }{@code >}
      * {@link javax.xml.bind.JAXBElement }{@code <}{@link DummyNotifierType }{@code >}
      * {@link javax.xml.bind.JAXBElement }{@code <}{@link UserPasswordNotifierType }{@code >}

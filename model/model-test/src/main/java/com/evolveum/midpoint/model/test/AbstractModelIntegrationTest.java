@@ -1268,6 +1268,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		MidPointAsserts.assertAssignments(user, expectedNumber);
 	}
 	
+	protected <F extends FocusType> void assertAssignments(PrismObject<F> user, Class expectedType, int expectedNumber) {
+		MidPointAsserts.assertAssignments(user, expectedType, expectedNumber);
+	}
+	
 	protected <F extends FocusType> void assertAssigned(PrismObject<F> user, String targetOid, QName refType) {
 		MidPointAsserts.assertAssigned(user, targetOid, refType);
 	}

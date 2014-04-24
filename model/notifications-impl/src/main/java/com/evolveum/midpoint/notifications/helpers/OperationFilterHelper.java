@@ -14,43 +14,43 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.notifications.filters;
+package com.evolveum.midpoint.notifications.helpers;
 
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
-import com.evolveum.midpoint.notifications.handlers.BaseHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventOperationType;
 import org.springframework.stereotype.Component;
 
 /**
  * @author mederly
  */
 @Component
-public class ExpressionFilter extends BaseHandler {
+public class OperationFilterHelper extends BaseHelper {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ExpressionFilter.class);
+    private static final Trace LOGGER = TraceManager.getTrace(OperationFilterHelper.class);
 
     @Override
     public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, 
     		Task task, OperationResult result) {
 
-        if (eventHandlerType.getExpressionFilter().isEmpty()) {
+        if (eventHandlerType.getOperation().isEmpty()) {
             return true;
         }
 
-        logStart(LOGGER, event, eventHandlerType, eventHandlerType.getExpressionFilter());
+        logStart(LOGGER, event, eventHandlerType, eventHandlerType.getOperation());
 
-        boolean retval = true;
+        boolean retval = false;
 
-        for (ExpressionType expressionType : eventHandlerType.getExpressionFilter()) {
-            if (!evaluateBooleanExpressionChecked(expressionType, getDefaultVariables(event, result),
-                    "event filter expression", task, result)) {
-                retval = false;
+        for (EventOperationType eventOperationType : eventHandlerType.getOperation()) {
+            if (eventOperationType == null) {
+                LOGGER.warn("Filtering on null eventOperationType; filter = " + eventHandlerType);
+            } else if (event.isOperationType(eventOperationType)) {
+                retval = true;
                 break;
             }
         }

@@ -19,6 +19,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -26,6 +27,7 @@ import org.apache.commons.lang.StringUtils;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
@@ -89,6 +91,25 @@ public class MidPointAsserts {
 	public static <F extends FocusType> void assertAssignments(PrismObject<F> user, int expectedNumber) {
 		F userType = user.asObjectable();
 		assertEquals("Unexepected number of assignments in "+user+": "+userType.getAssignment(), expectedNumber, userType.getAssignment().size());
+	}
+	
+	public static <F extends FocusType> void assertAssignments(PrismObject<F> user, Class expectedType, int expectedNumber) {
+		F userType = user.asObjectable();
+		int actualAssignments = 0;
+		List<AssignmentType> assignments = userType.getAssignment();
+		for (AssignmentType assignment: assignments) {
+			ObjectReferenceType targetRef = assignment.getTargetRef();
+			if (targetRef != null) {
+				QName type = targetRef.getType();
+				if (type != null) {
+					Class<? extends ObjectType> assignmentTargetClass = ObjectTypes.getObjectTypeFromTypeQName(type).getClassDefinition();
+					if (expectedType.isAssignableFrom(assignmentTargetClass)) {
+						actualAssignments++;
+					}
+				}
+			}
+		}
+		assertEquals("Unexepected number of assignments of type "+expectedType+" in "+user+": "+userType.getAssignment(), expectedNumber, actualAssignments);
 	}
 	
 	public static <F extends FocusType> void assertAssignedRole(PrismObject<F> user, String roleOid) {

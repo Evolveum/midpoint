@@ -24,6 +24,39 @@
     <name>User Template</name>
     
     <mapping>
+    	<name>name + org</name>
+    	<source>
+    		<path>organizationalUnit</path>
+    	</source>
+    	<source>
+    		<path>givenName</path>
+    	</source>
+    	<source>
+    		<path>familyName</path>
+    	</source>
+    	<expression>
+			<script>
+				<code>
+					organizationalUnit + '.' + givenName + '.' + familyName
+				</code>
+         	</script>
+		</expression>
+    	<target>
+    		<path>name</path>
+    	</target>
+    	<condition>
+     		<script>
+    			<code>givenName != null &amp;&amp; familyName != null &amp;&amp; organizationalUnit != null</code>
+    		</script>  
+    	</condition>
+    	<evaluationPhase>afterAssignments</evaluationPhase>
+    </mapping>
+
+    <mapping>
+    	<name>name - org</name>
+    	<source>
+    		<path>organizationalUnit</path>
+    	</source>
     	<source>
     		<path>givenName</path>
     	</source>
@@ -42,10 +75,12 @@
     	</target>
     	<condition>
      		<script>
-    			<code>givenName != null &amp;&amp; familyName != null</code>
+    			<code>givenName != null &amp;&amp; familyName != null &amp;&amp; organizationalUnit == null</code>
     		</script>  
     	</condition>
+    	<evaluationPhase>afterAssignments</evaluationPhase>
     </mapping>
+
     
     <mapping>
     	<name>full name</name>
@@ -95,10 +130,33 @@
     		<path>assignment</path>
     	</target>
     </mapping>
-        
+    
+    <mapping>
+    	<name>org assignment</name>
+    	<authoritative>true</authoritative>
+    	<source>
+    		<path>organization</path>
+    	</source>
+    	<expression>
+            <assignmentTargetSearch>
+            	<targetType>c:OrgType</targetType>
+        		<filter>
+					<q:equal>
+						<q:path>name</q:path>
+						<expression>
+							<path>$organization</path>
+						</expression>
+					</q:equal>
+				</filter>
+            </assignmentTargetSearch>    	
+    	</expression>
+    	<target>
+    		<path>assignment</path>
+    	</target>
+    </mapping>
         
     <mapping>
-    	<name>OU</name>
+    	<name>cost center</name>
     	<source>
     		<path>locality</path>
     	</source>
@@ -113,7 +171,7 @@
          	</script>
 		</expression>
     	<target>
-    		<path>organizationalUnit</path>
+    		<path>costCenter</path>
     	</target>
     	<condition>
      		<script>
@@ -121,4 +179,28 @@
     		</script>  
     	</condition>
     </mapping>
+    
+    <mapping>
+    	<name>cost center</name>
+    	<source>
+    		<path>organizationalUnit</path>
+    	</source>
+    	<expression>
+			<script>
+				<code>
+					'Member of '+organizationalUnit
+				</code>
+         	</script>
+		</expression>
+    	<target>
+    		<path>title</path>
+    	</target>
+    	<condition>
+     		<script>
+    			<code>organizationalUnit != null</code>
+    		</script>  
+    	</condition>
+    	<evaluationPhase>afterAssignments</evaluationPhase>
+    </mapping>
+    
 </objectTemplate>

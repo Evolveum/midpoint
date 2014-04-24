@@ -42,6 +42,7 @@ import org.jvnet.jaxb2_commons.locator.ObjectLocator;
 import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
+import org.w3c.dom.Element;
 
 
 /**
@@ -83,7 +84,9 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
 	
 	@XmlElementRef(name = "path", namespace = "http://prism.evolveum.com/xml/ns/public/types-2", type = JAXBElement.class)
     @XmlMixed
-    @XmlAnyElement(lax = true)
+    @XmlAnyElement(lax = false)         // to prevent unmarshalling to JAXB (keep things in DOM to be able to resolve namespace prefixes)
+                                        // Actually, there are no XML elements allowed, so the only objects passed to this list
+                                        // would be strings (very probably).
     protected List<Object> content;
 
     public ItemPathType() {
@@ -146,11 +149,11 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
     	ItemPathType clone = new ItemPathType();
         if (itemPath != null) {
     	    clone.setItemPath(itemPath.clone());
+        } else {
+    	    for (Object o : getContent()){
+    		    clone.getContent().add(o);
+    	    }
         }
-    	for (Object o : getContent()){
-    		clone.getContent().add(o);
-    	}
-//    	clone.getContent().addAll(content);
     	return clone;
     }
     
@@ -256,6 +259,7 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
 
 			@Override
 			public boolean add(Object e) {
+//              System.out.println("### ItemPathType.add: " + e.getClass());
 				if (e instanceof String){
 					XPathHolder holder = new XPathHolder((String) e);
 					itemPath = holder.toItemPath();
@@ -263,14 +267,18 @@ public class ItemPathType implements Serializable, Equals, Cloneable {
 				} else if (e instanceof QName){
 					itemPath = new ItemPath((QName) e);
 					return true;
-				} else if (e instanceof JAXBElement){
-					JAXBElement jaxb = (JAXBElement) e;
-					// TODO: after refactoring next method, change to item path type
-					String s = (String)((JAXBElement) e).getValue();
-					XPathHolder holder = new XPathHolder(s);
-					itemPath = holder.toItemPath();
-					return true;
-				}
+				} else if (e instanceof Element) {          // actually not sure if this could ever happen [pm]
+                    XPathHolder holder = new XPathHolder((Element) e);
+                    itemPath = holder.toItemPath();
+                    return true;
+                } else if (e instanceof JAXBElement) {      // actually not sure if this could ever happen - now when lax is set to false [pm]
+                    JAXBElement jaxb = (JAXBElement) e;
+                    // TODO: after refactoring next method, change to item path type
+                    String s = (String)((JAXBElement) e).getValue();
+                    XPathHolder holder = new XPathHolder(s);
+                    itemPath = holder.toItemPath();
+                    return true;
+                }
 				throw new IllegalArgumentException("PATH ADD: "+e+" "+e.getClass());
 			}
 

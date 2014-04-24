@@ -18,7 +18,7 @@ package com.evolveum.midpoint.notifications;
 
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.OperationStatus;
-import com.evolveum.midpoint.notifications.api.events.AccountEvent;
+import com.evolveum.midpoint.notifications.api.events.ResourceObjectEvent;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
@@ -152,16 +152,16 @@ public class AccountOperationListener implements ResourceOperationListener {
             return;
         }
 
-        AccountEvent request = createRequest(status, operationDescription, task, result);
+        ResourceObjectEvent request = createRequest(status, operationDescription, task, result);
         notificationManager.processEvent(request, task, result);
     }
 
-    private AccountEvent createRequest(OperationStatus status,
+    private ResourceObjectEvent createRequest(OperationStatus status,
                                                      ResourceOperationDescription operationDescription,
                                                      Task task,
                                                      OperationResult result) {
 
-        AccountEvent event = new AccountEvent(lightweightIdentifierGenerator);
+        ResourceObjectEvent event = new ResourceObjectEvent(lightweightIdentifierGenerator);
         event.setAccountOperationDescription(operationDescription);
         event.setOperationStatus(status);
         event.setChangeType(operationDescription.getObjectDelta().getChangeType());       // fortunately there's 1:1 mapping
@@ -181,7 +181,7 @@ public class AccountOperationListener implements ResourceOperationListener {
         return event;
     }
 
-//    private boolean isRequestApplicable(AccountEvent request, NotificationConfigurationEntryType entry) {
+//    private boolean isRequestApplicable(ResourceObjectEvent request, NotificationConfigurationEntryType entry) {
 //
 //        ResourceOperationDescription opDescr = request.getAccountOperationDescription();
 //        OperationStatus status = request.getOperationStatus();

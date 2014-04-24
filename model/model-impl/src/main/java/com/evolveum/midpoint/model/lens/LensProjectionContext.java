@@ -122,14 +122,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     private boolean isExists;
 
     /**
-     * Initial intent regarding the account. It indicated what the initiator of the operation WANTS TO DO with the
-     * context. 
-     * If set to null then the decision is left to "the engine". Null is also a typical value
-     * when the context is created. It may be pre-set under some circumstances, e.g. if an account is being unlinked.
-     */
-    private SynchronizationIntent synchronizationIntent;
-    
-    /**
      * Decision regarding the account. It indicated what the engine has DECIDED TO DO with the context.
      * If set to null no decision was made yet. Null is also a typical value when the context is created.
      */
@@ -359,14 +351,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
 	public void setExists(boolean exists) {
 		this.isExists = exists;
-	}
-
-	public SynchronizationIntent getSynchronizationIntent() {
-		return synchronizationIntent;
-	}
-
-	public void setSynchronizationIntent(SynchronizationIntent synchronizationIntent) {
-		this.synchronizationIntent = synchronizationIntent;
 	}
 
 	public SynchronizationPolicyDecision getSynchronizationPolicyDecision() {
@@ -977,7 +961,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         sb.append(", active=").append(isActive);
         sb.append(", legal=").append(isLegalOld).append("->").append(isLegal);
         sb.append(", recon=").append(doReconciliation);
-        sb.append(", syncIntent=").append(synchronizationIntent);
+        sb.append(", syncIntent=").append(getSynchronizationIntent());
         sb.append(", decision=").append(synchronizationPolicyDecision);
         if (!isFresh()) {
         	sb.append(", NOT FRESH");
@@ -1098,7 +1082,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         lensProjectionContextType.setIsLegal(isLegal);
         lensProjectionContextType.setIsLegalOld(isLegalOld);
         lensProjectionContextType.setIsExists(isExists);
-        lensProjectionContextType.setSynchronizationIntent(synchronizationIntent != null ? synchronizationIntent.toSynchronizationIntentType() : null);
         lensProjectionContextType.setSynchronizationPolicyDecision(synchronizationPolicyDecision != null ? synchronizationPolicyDecision.toSynchronizationPolicyDecisionType() : null);
         lensProjectionContextType.setDoReconciliation(doReconciliation);
         lensProjectionContextType.setSynchronizationSituationDetected(synchronizationSituationDetected);
@@ -1129,7 +1112,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         projectionContext.isActive = projectionContextType.isIsActive() != null ? projectionContextType.isIsActive() : false;
         projectionContext.isLegal = projectionContextType.isIsLegal();
         projectionContext.isExists = projectionContextType.isIsExists() != null ? projectionContextType.isIsExists() : false;
-        projectionContext.synchronizationIntent = SynchronizationIntent.fromSynchronizationIntentType(projectionContextType.getSynchronizationIntent());
         projectionContext.synchronizationPolicyDecision = SynchronizationPolicyDecision.fromSynchronizationPolicyDecisionType(projectionContextType.getSynchronizationPolicyDecision());
         projectionContext.doReconciliation = projectionContextType.isDoReconciliation() != null ? projectionContextType.isDoReconciliation() : false;
         projectionContext.synchronizationSituationDetected = projectionContextType.getSynchronizationSituationDetected();

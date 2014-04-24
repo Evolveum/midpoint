@@ -55,41 +55,41 @@
         </handler>
     	<handler>
     		<status>success</status>
-	        <simpleAccountNotifier>
+	        <simpleResourceObjectNotifier>
 	            <recipientExpression>
 	                <value>recipient@evolveum.com</value>
 	            </recipientExpression>
 	            <transport>dummy:simpleAccountNotifier-SUCCESS</transport>
-	        </simpleAccountNotifier>
+	        </simpleResourceObjectNotifier>
         </handler>
     	<handler>
     		<status>failure</status>
-	        <simpleAccountNotifier>
+	        <simpleResourceObjectNotifier>
 	            <recipientExpression>
 	                <value>recipient@evolveum.com</value>
 	            </recipientExpression>
 	            <transport>dummy:simpleAccountNotifier-FAILURE</transport>
-	        </simpleAccountNotifier>
+	        </simpleResourceObjectNotifier>
         </handler>
     	<handler>
     		<operation>add</operation>
     		<status>success</status>
-	        <simpleAccountNotifier>
+	        <simpleResourceObjectNotifier>
 	            <recipientExpression>
 	                <value>recipient@evolveum.com</value>
 	            </recipientExpression>
 	            <transport>dummy:simpleAccountNotifier-ADD-SUCCESS</transport>
-	        </simpleAccountNotifier>
+	        </simpleResourceObjectNotifier>
         </handler>
     	<handler>
     		<operation>delete</operation>
     		<status>success</status>
-	        <simpleAccountNotifier>
+	        <simpleResourceObjectNotifier>
 	            <recipientExpression>
 	                <value>recipient@evolveum.com</value>
 	            </recipientExpression>
 	            <transport>dummy:simpleAccountNotifier-DELETE-SUCCESS</transport>
-	        </simpleAccountNotifier>
+	        </simpleResourceObjectNotifier>
         </handler>
     	<handler>
 	        <simpleUserNotifier>

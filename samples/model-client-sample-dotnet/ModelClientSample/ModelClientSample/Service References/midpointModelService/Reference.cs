@@ -12443,7 +12443,7 @@ namespace ModelClientSample.midpointModelService {
         [System.Xml.Serialization.XmlElementAttribute("handler", typeof(EventHandlerType), Order=0)]
         [System.Xml.Serialization.XmlElementAttribute("handlerChain", typeof(EventHandlerChainType), Order=0)]
         [System.Xml.Serialization.XmlElementAttribute("operationFilter", typeof(EventOperationFilterType), Order=0)]
-        [System.Xml.Serialization.XmlElementAttribute("simpleAccountNotifier", typeof(SimpleAccountNotifierType), Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("simpleAccountNotifier", typeof(SimpleResourceObjectNotifierType), Order=0)]
         [System.Xml.Serialization.XmlElementAttribute("simpleUserNotifier", typeof(SimpleUserNotifierType), Order=0)]
         [System.Xml.Serialization.XmlElementAttribute("simpleWorkflowNotifier", typeof(SimpleWorkflowNotifierType), Order=0)]
         [System.Xml.Serialization.XmlElementAttribute("statusFilter", typeof(EventStatusFilterType), Order=0)]
@@ -12507,7 +12507,7 @@ namespace ModelClientSample.midpointModelService {
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(UserPasswordNotifierType))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(DummyNotifierType))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(SimpleWorkflowNotifierType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SimpleAccountNotifierType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SimpleResourceObjectNotifierType))]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
@@ -12548,7 +12548,7 @@ namespace ModelClientSample.midpointModelService {
         [System.Xml.Serialization.XmlElementAttribute("handler", typeof(EventHandlerType), Order=0)]
         [System.Xml.Serialization.XmlElementAttribute("handlerChain", typeof(EventHandlerChainType), Order=0)]
         [System.Xml.Serialization.XmlElementAttribute("operationFilter", typeof(EventOperationFilterType), Order=0)]
-        [System.Xml.Serialization.XmlElementAttribute("simpleAccountNotifier", typeof(SimpleAccountNotifierType), Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("simpleAccountNotifier", typeof(SimpleResourceObjectNotifierType), Order=0)]
         [System.Xml.Serialization.XmlElementAttribute("simpleUserNotifier", typeof(SimpleUserNotifierType), Order=0)]
         [System.Xml.Serialization.XmlElementAttribute("simpleWorkflowNotifier", typeof(SimpleWorkflowNotifierType), Order=0)]
         [System.Xml.Serialization.XmlElementAttribute("statusFilter", typeof(EventStatusFilterType), Order=0)]
@@ -12753,7 +12753,7 @@ namespace ModelClientSample.midpointModelService {
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(UserPasswordNotifierType))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(DummyNotifierType))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(SimpleWorkflowNotifierType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SimpleAccountNotifierType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(SimpleResourceObjectNotifierType))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(EventHandlerForkType))]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
@@ -12819,7 +12819,7 @@ namespace ModelClientSample.midpointModelService {
         [System.Xml.Serialization.XmlElementAttribute("handler", typeof(EventHandlerType), Order=0)]
         [System.Xml.Serialization.XmlElementAttribute("handlerChain", typeof(EventHandlerChainType), Order=0)]
         [System.Xml.Serialization.XmlElementAttribute("operationFilter", typeof(EventOperationFilterType), Order=0)]
-        [System.Xml.Serialization.XmlElementAttribute("simpleAccountNotifier", typeof(SimpleAccountNotifierType), Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("simpleAccountNotifier", typeof(SimpleResourceObjectNotifierType), Order=0)]
         [System.Xml.Serialization.XmlElementAttribute("simpleUserNotifier", typeof(SimpleUserNotifierType), Order=0)]
         [System.Xml.Serialization.XmlElementAttribute("simpleWorkflowNotifier", typeof(SimpleWorkflowNotifierType), Order=0)]
         [System.Xml.Serialization.XmlElementAttribute("statusFilter", typeof(EventStatusFilterType), Order=0)]
@@ -12886,7 +12886,7 @@ namespace ModelClientSample.midpointModelService {
         [System.Xml.Serialization.XmlElementAttribute("handler", typeof(EventHandlerType), Order=0)]
         [System.Xml.Serialization.XmlElementAttribute("handlerChain", typeof(EventHandlerChainType), Order=0)]
         [System.Xml.Serialization.XmlElementAttribute("operationFilter", typeof(EventOperationFilterType), Order=0)]
-        [System.Xml.Serialization.XmlElementAttribute("simpleAccountNotifier", typeof(SimpleAccountNotifierType), Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("simpleAccountNotifier", typeof(SimpleResourceObjectNotifierType), Order=0)]
         [System.Xml.Serialization.XmlElementAttribute("simpleUserNotifier", typeof(SimpleUserNotifierType), Order=0)]
         [System.Xml.Serialization.XmlElementAttribute("simpleWorkflowNotifier", typeof(SimpleWorkflowNotifierType), Order=0)]
         [System.Xml.Serialization.XmlElementAttribute("statusFilter", typeof(EventStatusFilterType), Order=0)]
@@ -12947,7 +12947,7 @@ namespace ModelClientSample.midpointModelService {
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
-    public partial class SimpleAccountNotifierType : GeneralNotifierType {
+    public partial class SimpleResourceObjectNotifierType : GeneralNotifierType {
         
         private bool watchSynchronizationAttributesField;
         

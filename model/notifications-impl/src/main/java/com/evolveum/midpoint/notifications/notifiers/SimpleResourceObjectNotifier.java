@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.notifications.notifiers;
 
 import com.evolveum.midpoint.notifications.api.OperationStatus;
-import com.evolveum.midpoint.notifications.api.events.AccountEvent;
+import com.evolveum.midpoint.notifications.api.events.ResourceObjectEvent;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -45,14 +45,13 @@ import java.util.List;
  * @author mederly
  */
 @Component
-public class SimpleAccountNotifier extends GeneralNotifier {
+public class SimpleResourceObjectNotifier extends GeneralNotifier {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SimpleAccountNotifier.class);
-    private static final Integer LEVEL_TECH_INFO = 10;
+    private static final Trace LOGGER = TraceManager.getTrace(SimpleResourceObjectNotifier.class);
 
     @PostConstruct
     public void init() {
-        register(SimpleAccountNotifierType.class);
+        register(SimpleResourceObjectNotifierType.class);
     }
 
     private static final List<ItemPath> synchronizationPaths = Arrays.asList(
@@ -64,8 +63,8 @@ public class SimpleAccountNotifier extends GeneralNotifier {
 
     @Override
     protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
-        if (!(event instanceof AccountEvent)) {
-            LOGGER.trace("SimpleAccountNotifier is not applicable for this kind of event, continuing in the handler chain; event class = " + event.getClass());
+        if (!(event instanceof ResourceObjectEvent)) {
+            LOGGER.trace("SimpleResourceObjectNotifier is not applicable for this kind of event, continuing in the handler chain; event class = " + event.getClass());
             return false;
         } else {
             return true;
@@ -75,15 +74,15 @@ public class SimpleAccountNotifier extends GeneralNotifier {
     @Override
     protected boolean checkApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
 
-        AccountEvent accountEvent = (AccountEvent) event;
-        ObjectDelta<ShadowType> delta = accountEvent.getShadowDelta();
+        ResourceObjectEvent resourceObjectEvent = (ResourceObjectEvent) event;
+        ObjectDelta<ShadowType> delta = resourceObjectEvent.getShadowDelta();
         if (!delta.isModify()) {
             return true;
         }
 
         boolean otherThanSyncPresent = deltaContainsOtherPathsThan(delta, synchronizationPaths);
         boolean otherThanAuxPresent = deltaContainsOtherPathsThan(delta, auxiliaryPaths);
-        boolean watchSync = isWatchSynchronizationAttributes((SimpleAccountNotifierType) generalNotifierType);
+        boolean watchSync = isWatchSynchronizationAttributes((SimpleResourceObjectNotifierType) generalNotifierType);
         boolean watchAux = isWatchAuxiliaryAttributes(generalNotifierType);
         if ((watchSync || otherThanSyncPresent) && (watchAux || otherThanAuxPresent)) {
             return true;
@@ -94,26 +93,28 @@ public class SimpleAccountNotifier extends GeneralNotifier {
         return false;
     }
 
-    private boolean isWatchSynchronizationAttributes(SimpleAccountNotifierType generalNotifierType) {
+    private boolean isWatchSynchronizationAttributes(SimpleResourceObjectNotifierType generalNotifierType) {
         return Boolean.TRUE.equals((generalNotifierType).isWatchSynchronizationAttributes());
     }
 
     @Override
     protected String getSubject(Event event, GeneralNotifierType generalNotifierType, String transport, OperationResult result) {
 
-        AccountEvent accountEvent = (AccountEvent) event;
+        ResourceObjectEvent resourceObjectEvent = (ResourceObjectEvent) event;
 
-        ResourceOperationDescription rod = accountEvent.getAccountOperationDescription();
+        ResourceOperationDescription rod = resourceObjectEvent.getAccountOperationDescription();
         ObjectDelta<ShadowType> delta = (ObjectDelta<ShadowType>) rod.getObjectDelta();
 
+        String objectTypeDescription = resourceObjectEvent.isShadowKind(ShadowKindType.ACCOUNT) ? "Account" : "Resource object";
+
         if (delta.isAdd()) {
-            return "Account creation notification";
+            return objectTypeDescription + " creation notification";
         } else if (delta.isModify()) {
-            return "Account modification notification";
+            return objectTypeDescription + " modification notification";
         } else if (delta.isDelete()) {
-            return "Account deletion notification";
+            return objectTypeDescription + " deletion notification";
         } else {
-            return "(unknown account operation)";
+            return "(unknown resource object operation)";
         }
     }
 
@@ -124,31 +125,44 @@ public class SimpleAccountNotifier extends GeneralNotifier {
 
         StringBuilder body = new StringBuilder();
 
-        AccountEvent accountEvent = (AccountEvent) event;
+        ResourceObjectEvent resourceObjectEvent = (ResourceObjectEvent) event;
 
-        UserType owner = (UserType) notificationsUtil.getObjectType(accountEvent.getRequestee(), result);
-        ResourceOperationDescription rod = accountEvent.getAccountOperationDescription();
+        UserType owner = (UserType) notificationsUtil.getObjectType(resourceObjectEvent.getRequestee(), result);
+        ResourceOperationDescription rod = resourceObjectEvent.getAccountOperationDescription();
         ObjectDelta<ShadowType> delta = (ObjectDelta<ShadowType>) rod.getObjectDelta();
 
-        body.append("Notification about account-related operation\n\n");
-        if (owner != null) {
-            body.append("User: " + owner.getFullName() + " (" + owner.getName() + ", oid " + owner.getOid() + ")\n");
-        } else {
-            body.append("User: unknown\n");
+        boolean isAccount = resourceObjectEvent.isShadowKind(ShadowKindType.ACCOUNT);
+        String objectTypeDescription = isAccount ? "account" : "resource object";
+
+        body.append("Notification about ").append(objectTypeDescription).append("-related operation\n\n");
+        if (isAccount) {
+            if (owner != null) {
+                body.append("User: " + owner.getFullName() + " (" + owner.getName() + ", oid " + owner.getOid() + ")\n");
+            } else {
+                body.append("User: unknown\n");
+            }
         }
         body.append("Notification created on: " + new Date() + "\n\n");
         body.append("Resource: " + rod.getResource().asObjectable().getName() + " (oid " + rod.getResource().getOid() + ")\n");
         boolean named;
         if (rod.getCurrentShadow() != null && rod.getCurrentShadow().asObjectable().getName() != null) {
-            body.append("Account: " + rod.getCurrentShadow().asObjectable().getName() + "\n");
+            if (isAccount) {
+                body.append("Account: " + rod.getCurrentShadow().asObjectable().getName() + "\n");
+            } else {
+                body.append("Resource object: " + rod.getCurrentShadow().asObjectable().getName() + " (kind: " + rod.getCurrentShadow().asObjectable().getKind() + ")\n");
+            }
             named = true;
         } else {
             named = false;
         }
         body.append("\n");
 
-        body.append((named ? "The" : "An") + " account ");
-        switch (accountEvent.getOperationStatus()) {
+        if (isAccount) {
+            body.append((named ? "The" : "An") + " account ");
+        } else {
+            body.append((named ? "The" : "A") + " resource object ");
+        }
+        switch (resourceObjectEvent.getOperationStatus()) {
             case SUCCESS: body.append("has been successfully "); break;
             case IN_PROGRESS: body.append("has been ATTEMPTED to be "); break;
             case FAILURE: body.append("FAILED to be "); break;
@@ -161,14 +175,14 @@ public class SimpleAccountNotifier extends GeneralNotifier {
         } else if (delta.isModify()) {
             body.append("modified on the resource. Modified attributes are:\n");
             List<ItemPath> hiddenPaths = new ArrayList<ItemPath>();
-            if (!isWatchSynchronizationAttributes((SimpleAccountNotifierType) generalNotifierType)) {
+            if (!isWatchSynchronizationAttributes((SimpleResourceObjectNotifierType) generalNotifierType)) {
                 hiddenPaths.addAll(synchronizationPaths);
             }
             if (!isWatchAuxiliaryAttributes(generalNotifierType)) {
                 hiddenPaths.addAll(auxiliaryPaths);
             }
 
-            if (accountEvent.getOperationStatus() != OperationStatus.IN_PROGRESS) {
+            if (resourceObjectEvent.getOperationStatus() != OperationStatus.IN_PROGRESS) {
                 body.append(textFormatter.formatObjectModificationDelta(delta, hiddenPaths, isWatchAuxiliaryAttributes(generalNotifierType)));
             } else {
                 // special case - here the attributes are 'result', 'failedOperationType', 'objectChange', 'attemptNumber'
@@ -192,7 +206,7 @@ public class SimpleAccountNotifier extends GeneralNotifier {
                         ObjectDelta<ShadowType> shadowDelta = ObjectDelta.summarize(deltas);
                         body.append(textFormatter.formatObjectModificationDelta(shadowDelta, hiddenPaths, isWatchAuxiliaryAttributes(generalNotifierType)));
                     } catch (SchemaException e) {
-                        LoggingUtils.logException(LOGGER, "Unable to determine the shadow change; account operation = {}", e, accountEvent.getAccountOperationDescription().debugDump());
+                        LoggingUtils.logException(LOGGER, "Unable to determine the shadow change; operation = {}", e, resourceObjectEvent.getAccountOperationDescription().debugDump());
                         body.append("(unable to determine the change because of schema exception: ").append(e.getMessage()).append(")\n");
                     }
                 } else {
@@ -204,10 +218,10 @@ public class SimpleAccountNotifier extends GeneralNotifier {
             body.append("removed from the resource.\n\n");
         }
 
-        if (accountEvent.getOperationStatus() == OperationStatus.IN_PROGRESS) {
+        if (resourceObjectEvent.getOperationStatus() == OperationStatus.IN_PROGRESS) {
             body.append("The operation will be retried.\n\n");
-        } else if (accountEvent.getOperationStatus() == OperationStatus.FAILURE) {
-            body.append("Error: " + accountEvent.getAccountOperationDescription().getResult().getMessage() + "\n\n");
+        } else if (resourceObjectEvent.getOperationStatus() == OperationStatus.FAILURE) {
+            body.append("Error: " + resourceObjectEvent.getAccountOperationDescription().getResult().getMessage() + "\n\n");
         }
 
         if (techInfo) {
