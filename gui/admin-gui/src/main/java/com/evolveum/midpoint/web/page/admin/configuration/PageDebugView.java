@@ -37,6 +37,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -141,6 +142,11 @@ public class PageDebugView extends PageAdminConfiguration {
 
         if (!result.isSuccess()) {
             showResult(result);
+        }
+
+        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+            showResultInSession(result);
+            throw new RestartResponseException(PageDebugList.class);
         }
 
         return dto;

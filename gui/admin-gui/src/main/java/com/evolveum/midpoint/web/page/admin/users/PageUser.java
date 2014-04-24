@@ -96,10 +96,7 @@ import org.apache.wicket.util.string.StringValue;
 import javax.xml.namespace.QName;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -120,6 +117,7 @@ public class PageUser extends PageAdminUsers {
     private static final String OPERATION_LOAD_ACCOUNTS = DOT_CLASS + "loadAccounts";
     private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
     private static final String OPERATION_SAVE = DOT_CLASS + "save";
+    private static final String OPERATION_SEARCH_RESOURCE = DOT_CLASS + "searchAccountResource";
 
     private static final String MODAL_ID_RESOURCE = "resourcePopup";
     private static final String MODAL_ID_ASSIGNABLE = "assignablePopup";
@@ -538,7 +536,7 @@ public class PageUser extends PageAdminUsers {
             @Override
             protected void populateItem(final ListItem<UserAccountDto> item) {
                 PackageResourceReference packageRef;
-                UserAccountDto dto = item.getModelObject();
+                final UserAccountDto dto = item.getModelObject();
 
                 Panel panel;
 
@@ -561,19 +559,14 @@ public class PageUser extends PageAdminUsers {
                         }
                     };
                 } else{
-                    packageRef = new PackageResourceReference(ImgResources.class,
-                            ImgResources.ERROR);
-
                     panel = new SimpleErrorPanel("account", item.getModel()){
 
                         @Override
                         public void onShowMorePerformed(AjaxRequestTarget target){
-                            showResult(getModelObject().getResult());
                             target.add(getFeedbackPanel());
                         }
                     };
                 }
-
 
                 panel.setOutputMarkupId(true);
                 item.add(panel);
@@ -585,8 +578,10 @@ public class PageUser extends PageAdminUsers {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 for(UserAccountDto dto: accountList.getModelObject()){
-                    ObjectWrapper accModel = dto.getObject();
-                    accModel.setSelected(getModelObject());
+                    if(dto.isLoadedOK()){
+                        ObjectWrapper accModel = dto.getObject();
+                        accModel.setSelected(getModelObject());
+                    }
                 }
 
                 target.add(accounts);
@@ -649,7 +644,7 @@ public class PageUser extends PageAdminUsers {
             } catch (Exception ex) {
                 subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
                 LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
-                list.add(new UserAccountDto(false, reference.getDescription(), result));
+                list.add(new UserAccountDto(false, getResourceName(reference.getOid())));
             } finally {
                 subResult.computeStatus();
             }
@@ -661,6 +656,31 @@ public class PageUser extends PageAdminUsers {
         }
 
         return list;
+    }
+
+    private String getResourceName(String oid){
+        OperationResult result = new OperationResult(OPERATION_SEARCH_RESOURCE);
+        Task task = createSimpleTask(OPERATION_SEARCH_RESOURCE);
+
+        try {
+
+            Collection<SelectorOptions<GetOperationOptions>> options =
+                    SelectorOptions.createCollection(GetOperationOptions.createRaw());
+
+            PrismObject<ShadowType> shadow = getModelService().getObject(ShadowType.class, oid, options, task, result);
+            PrismObject<ResourceType> resource = getModelService().getObject(ResourceType.class, shadow.asObjectable().getResourceRef().getOid(), null, task, result);
+
+            if(resource != null){
+                return WebMiscUtil.getOrigStringFromPoly(resource.asObjectable().getName());
+            }
+
+        } catch (Exception e){
+            result.recordFatalError("Account Resource was not found. " + e.getMessage());
+            LoggingUtils.logException(LOGGER, "Account Resource was not found.", e);
+            showResult(result);
+        }
+
+        return "-";
     }
 
     private List<AssignmentEditorDto> loadAssignments() {
@@ -912,6 +932,9 @@ public class PageUser extends PageAdminUsers {
         List<UserAccountDto> accounts = accountsModel.getObject();
         OperationResult subResult = null;
         for (UserAccountDto account : accounts) {
+            if(!account.isLoadedOK())
+                continue;
+
             try {
                 ObjectWrapper accountWrapper = account.getObject();
                 ObjectDelta delta = accountWrapper.getObjectDelta();
@@ -995,6 +1018,10 @@ public class PageUser extends PageAdminUsers {
         // handle added accounts
         List<UserAccountDto> accounts = accountsModel.getObject();
         for (UserAccountDto accDto : accounts) {
+            if(!accDto.isLoadedOK()){
+                continue;
+            }
+
             if (!UserDtoStatus.ADD.equals(accDto.getStatus())) {
                 warn(getString("pageUser.message.illegalAccountState", accDto.getStatus()));
                 continue;
@@ -1054,33 +1081,35 @@ public class PageUser extends PageAdminUsers {
 
         List<UserAccountDto> accounts = accountsModel.getObject();
         for (UserAccountDto accDto : accounts) {
-            ObjectWrapper accountWrapper = accDto.getObject();
-            ObjectDelta delta = accountWrapper.getObjectDelta();
-            PrismReferenceValue refValue = new PrismReferenceValue(null, OriginType.USER_ACTION, null);
+            if(accDto.isLoadedOK()){
+                ObjectWrapper accountWrapper = accDto.getObject();
+                ObjectDelta delta = accountWrapper.getObjectDelta();
+                PrismReferenceValue refValue = new PrismReferenceValue(null, OriginType.USER_ACTION, null);
 
-            PrismObject<ShadowType> account;
-            switch (accDto.getStatus()) {
-                case ADD:
-                    account = delta.getObjectToAdd();
-                    WebMiscUtil.encryptCredentials(account, true, getMidpointApplication());
-                    refValue.setObject(account);
-                    refDelta.addValueToAdd(refValue);
-                    break;
-                case DELETE:
-                    account = accountWrapper.getObject();
-                    refValue.setObject(account);
-                    refDelta.addValueToDelete(refValue);
-                    break;
-                case MODIFY:
-                    // nothing to do, account modifications were applied before
-                    continue;
-                case UNLINK:
-                    refValue.setOid(delta.getOid());
-                    refValue.setTargetType(ShadowType.COMPLEX_TYPE);
-                    refDelta.addValueToDelete(refValue);
-                    break;
-                default:
-                    warn(getString("pageUser.message.illegalAccountState", accDto.getStatus()));
+                PrismObject<ShadowType> account;
+                switch (accDto.getStatus()) {
+                    case ADD:
+                        account = delta.getObjectToAdd();
+                        WebMiscUtil.encryptCredentials(account, true, getMidpointApplication());
+                        refValue.setObject(account);
+                        refDelta.addValueToAdd(refValue);
+                        break;
+                    case DELETE:
+                        account = accountWrapper.getObject();
+                        refValue.setObject(account);
+                        refDelta.addValueToDelete(refValue);
+                        break;
+                    case MODIFY:
+                        // nothing to do, account modifications were applied before
+                        continue;
+                    case UNLINK:
+                        refValue.setOid(delta.getOid());
+                        refValue.setTargetType(ShadowType.COMPLEX_TYPE);
+                        refDelta.addValueToDelete(refValue);
+                        break;
+                    default:
+                        warn(getString("pageUser.message.illegalAccountState", accDto.getStatus()));
+                }
             }
         }
 
@@ -1392,6 +1421,10 @@ public class PageUser extends PageAdminUsers {
         List<ReferenceDelta> refDeltas = new ArrayList<ReferenceDelta>();
         ObjectDelta<UserType> forceDeleteDelta = null;
         for (UserAccountDto accDto : accountDtos) {
+            if(!accDto.isLoadedOK()){
+                continue;
+            }
+
             if (accDto.getStatus() == UserDtoStatus.DELETE) {
                 ObjectWrapper accWrapper = accDto.getObject();
                 ReferenceDelta refDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, userWrapper
@@ -1441,7 +1474,7 @@ public class PageUser extends PageAdminUsers {
 
         List<UserAccountDto> all = accountsModel.getObject();
         for (UserAccountDto account : all) {
-            if (account.getObject().isSelected()) {
+            if (account.isLoadedOK() && account.getObject().isSelected()) {
                 selected.add(account);
             }
         }
@@ -1583,6 +1616,10 @@ public class PageUser extends PageAdminUsers {
         }
 
         for (UserAccountDto account : accounts) {
+            if(!account.isLoadedOK()){
+                continue;
+            }
+
             ObjectWrapper wrapper = account.getObject();
             ContainerWrapper activation = wrapper.findContainerWrapper(new ItemPath(
                     ShadowType.F_ACTIVATION));
