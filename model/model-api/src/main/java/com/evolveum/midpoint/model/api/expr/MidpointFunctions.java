@@ -474,13 +474,15 @@ public interface MidpointFunctions {
 	 * @return owner of the account or null
 	 * @throws ObjectNotFoundException
 	 *             specified account was not found
+	 * @throws SchemaException 
+	 * @throws SecurityViolationException 
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 * @throws SystemException
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	PrismObject<UserType> findShadowOwner(String accountOid) throws ObjectNotFoundException;
+	PrismObject<UserType> findShadowOwner(String accountOid) throws ObjectNotFoundException, SecurityViolationException, SchemaException;
 
 	/**
 	 * <p>

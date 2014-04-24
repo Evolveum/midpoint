@@ -366,6 +366,10 @@ LOGGER.info("model rest service for add operation start");
 			return Response.ok().entity(user).build();
 		} catch (ObjectNotFoundException e) {
 			return Response.status(Status.NOT_FOUND).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (SecurityViolationException e) {
+			return Response.status(Status.FORBIDDEN).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
+		} catch (SchemaException e) {
+			return Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
 		}
 		
 	

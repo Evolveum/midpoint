@@ -37,4 +37,39 @@ public class ObjectSecurityConstraints {
 		return actionDecisionMap;
 	}
 	
+	public AuthorizationDecisionType getActionDecistion(String actionUrl) {
+		AuthorizationDecisionType actionDecision = actionDecisionMap.get(actionUrl);
+		AuthorizationDecisionType allDecision = actionDecisionMap.get(AuthorizationConstants.AUTZ_ALL_URL);
+		if (actionDecision == null && allDecision == null) {
+			return null;
+		}
+		if (actionDecision == AuthorizationDecisionType.DENY || allDecision == AuthorizationDecisionType.DENY) {
+			return AuthorizationDecisionType.DENY;
+		}
+		if (actionDecision != null) {
+			return actionDecision;
+		}
+		return allDecision;
+	}
+	
+	public AuthorizationDecisionType findItemDecision(ItemPath itemPath, String actionUrl) {
+		// TODO: loop to match possible wildcards
+		ItemSecurityConstraints itemSecurityConstraints = itemConstraintMap.get(itemPath);
+		if (itemSecurityConstraints == null) {
+			return null;
+		}
+		AuthorizationDecisionType actionDecision = itemSecurityConstraints.getActionDecisionMap().get(actionUrl);
+		AuthorizationDecisionType allDecision = itemSecurityConstraints.getActionDecisionMap().get(AuthorizationConstants.AUTZ_ALL_URL);
+		if (actionDecision == null && allDecision == null) {
+			return null;
+		}
+		if (actionDecision == AuthorizationDecisionType.DENY || allDecision == AuthorizationDecisionType.DENY) {
+			return AuthorizationDecisionType.DENY;
+		}
+		if (actionDecision != null) {
+			return actionDecision;
+		}
+		return allDecision;
+	}
+	
 }

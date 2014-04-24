@@ -153,7 +153,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
     protected void addInlineMenuToDto(AccountContentDto dto) {
     }
 
-    private PrismObject<UserType> loadOwner(String accountOid, OperationResult result) {
+    private PrismObject<UserType> loadOwner(String accountOid, OperationResult result) throws SecurityViolationException, SchemaException {
         OperationResult ownerResult = result.createSubresult(OPERATION_LOAD_OWNER);
         Task task = getPage().createSimpleTask(OPERATION_LOAD_OWNER);
         try {
