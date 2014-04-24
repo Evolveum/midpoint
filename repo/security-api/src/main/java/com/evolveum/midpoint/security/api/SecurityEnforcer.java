@@ -19,6 +19,7 @@ import org.springframework.security.access.AccessDecisionManager;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -59,4 +60,13 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, 
 			OperationResult result) throws SecurityViolationException, SchemaException;	
 	
+	<O extends ObjectType> ObjectSecurityConstraints compileSecurityContraints(PrismObject<O> object) throws SchemaException;
+	
+	/**
+	 * TODO
+	 * If it returns NoneFilter then no search should be done. The principal is not authorized for this operation at all.
+	 * It may return null in case that the original filter was also null.
+	 */
+	<O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, Class<O> objectType, ObjectFilter origFilter)
+			throws SchemaException; 
 }

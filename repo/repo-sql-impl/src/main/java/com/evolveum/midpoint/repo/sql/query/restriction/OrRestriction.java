@@ -45,7 +45,7 @@ public class OrRestriction extends NaryLogicalRestriction<OrFilter> {
         validateFilter(filter);
 
         Disjunction disjunction = Restrictions.disjunction();
-        updateJunction(filter.getCondition(), disjunction);
+        updateJunction(filter.getConditions(), disjunction);
 
         return disjunction;
     }

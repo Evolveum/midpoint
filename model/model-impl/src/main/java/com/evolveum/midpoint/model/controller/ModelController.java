@@ -73,6 +73,8 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.query.NoneFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -686,6 +688,14 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		result.addParams(new String[] { "query", "paging", "searchProvider" },
                 query, (query != null ? query.getPaging() : "undefined"), searchProvider);
 		
+		query = preProcessQuerySecurity(type, query);
+		if (query != null && query.getFilter() != null && query.getFilter() instanceof NoneFilter) {
+			LOGGER.trace("Security denied the search");
+			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Denied");
+			RepositoryCache.exit();
+			return new ArrayList<>();
+		}
+		
 		List<PrismObject<T>> list = null;
 		try {
 			if (query != null){
@@ -774,6 +784,14 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		final OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
 		result.addParams(new String[] { "query", "paging", "searchProvider" },
                 query, (query != null ? query.getPaging() : "undefined"), searchProvider);
+		
+		query = preProcessQuerySecurity(type, query);
+		if (query != null && query.getFilter() != null && query.getFilter() instanceof NoneFilter) {
+			LOGGER.trace("Security denied the search");
+			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Denied");
+			RepositoryCache.exit();
+			return;
+		}
 		
         ResultHandler<T> internalHandler = new ResultHandler<T>() {
 
@@ -1325,6 +1343,24 @@ public class ModelController implements ModelService, ModelInteractionService, T
     public <F extends ObjectType> ModelContext<F> unwrapModelContext(LensContextType wrappedContext, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
         return LensContext.fromLensContextType(wrappedContext, prismContext, provisioning, result);
     }
+    
+    private <O extends ObjectType> ObjectQuery preProcessQuerySecurity(Class<O> objectType, ObjectQuery origQuery) throws SchemaException {
+    	ObjectFilter origFilter = null;
+    	if (origQuery != null) {
+    		origFilter = origQuery.getFilter();
+    	}
+		ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(ModelService.AUTZ_READ_URL, objectType, origFilter);
+		if (origQuery != null) {
+			origQuery.setFilter(secFilter);
+			return origQuery;
+		} else if (secFilter == null) {
+			return null;
+		} else {
+			ObjectQuery objectQuery = new ObjectQuery();
+			objectQuery.setFilter(secFilter);
+			return objectQuery;
+		}
+	}
 
     //region Task-related operations
 

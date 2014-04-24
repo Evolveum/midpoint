@@ -41,7 +41,7 @@ import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class RefFilter extends PropertyValueFilter<PrismReferenceValue>{
+public class RefFilter extends PropertyValueFilter<PrismReferenceValue> {
 	private static final long serialVersionUID = 1L;
 
 	RefFilter(ItemPath path, PrismReferenceDefinition definition, ExpressionWrapper expression, List<PrismReferenceValue> values) {

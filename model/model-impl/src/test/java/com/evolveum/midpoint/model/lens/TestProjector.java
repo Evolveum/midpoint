@@ -1039,7 +1039,7 @@ public class TestProjector extends AbstractLensTest {
     	PrismObject<ValuePolicyType> passPol = modelService.getObject(ValuePolicyType.class, PASSWORD_POLICY_GLOBAL_OID, null, task, result);
     	assertNotNull(passPol);
     	PrismObject<SystemConfigurationType> sysConfig = modelService.getObject(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, null, task, result);
-    	assertNotNull(sysConfig.asObjectable().getGlobalPasswordPolicyRef());
+    	assertNotNull("No global password policy", sysConfig.asObjectable().getGlobalPasswordPolicyRef());
     	assertEquals(PASSWORD_POLICY_GLOBAL_OID, sysConfig.asObjectable().getGlobalPasswordPolicyRef().getOid());
 
         // GIVEN

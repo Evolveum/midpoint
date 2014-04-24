@@ -2240,7 +2240,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		if (attrFilter != null) {
 			AndFilter filter = (AndFilter) query.getFilter();
-			filter.getCondition().add(attrFilter);
+			filter.getConditions().add(attrFilter);
 		}
 		
 		display("Query", query);

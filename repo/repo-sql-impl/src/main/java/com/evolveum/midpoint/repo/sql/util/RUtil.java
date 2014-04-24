@@ -466,7 +466,7 @@ public final class RUtil {
 
         if (filter instanceof LogicalFilter) {
             LogicalFilter logical = (LogicalFilter) filter;
-            for (ObjectFilter f : logical.getCondition()) {
+            for (ObjectFilter f : logical.getConditions()) {
                 OrgFilter o = findOrgFilter(f);
                 if (o != null) {
                     return o;

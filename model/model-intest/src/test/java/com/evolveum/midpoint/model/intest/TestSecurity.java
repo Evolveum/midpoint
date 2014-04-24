@@ -54,8 +54,10 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -113,16 +115,23 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	protected static final File ROLE_SELF_FILE = new File(TEST_DIR, "role-self.xml");
 	protected static final String ROLE_SELF_OID = "00000000-0000-0000-0000-00000000aa03";
 	
-	protected static final File ROLE_OBJECT_FILTER_CARIBBEAN_FILE = new File(TEST_DIR, "role-filter-object-caribbean.xml");
-	protected static final String ROLE_OBJECT_FILTER_CARIBBEAN_OID = "00000000-0000-0000-0000-00000000aa04";
+	protected static final File ROLE_OBJECT_FILTER_MODIFY_CARIBBEAN_FILE = new File(TEST_DIR, "role-filter-object-modify-caribbean.xml");
+	protected static final String ROLE_OBJECT_FILTER_MODIFY_CARIBBEAN_OID = "00000000-0000-0000-0000-00000000aa04";
 	
 	protected static final File ROLE_PROP_READ_ALL_MODIFY_SOME_FILE = new File(TEST_DIR, "role-prop-read-all-modify-some.xml");
 	protected static final String ROLE_PROP_READ_ALL_MODIFY_SOME_OID = "00000000-0000-0000-0000-00000000aa05";
 	
 	protected static final File ROLE_MASTER_MINISTRY_OF_RUM_FILE = new File(TEST_DIR, "role-org-master-ministry-of-rum.xml");
 	protected static final String ROLE_MASTER_MINISTRY_OF_RUM_OID = "00000000-0000-0000-0000-00000000aa06";
+	
+	protected static final File ROLE_OBJECT_FILTER_CARIBBEAN_FILE = new File(TEST_DIR, "role-filter-object-caribbean.xml");
+	protected static final String ROLE_OBJECT_FILTER_CARIBBEAN_OID = "00000000-0000-0000-0000-00000000aa07";
+
 
 	private static final String LOG_PREFIX_FAIL = "SSSSS=X ";
+	private static final String LOG_PREFIX_ATTEMPT = "SSSSS=> ";
+	private static final String LOG_PREFIX_DENY = "SSSSS=- ";
+	private static final String LOG_PREFIX_ALLOW = "SSSSS=+ ";
 	
 	String userRumRogersOid;
 
@@ -139,9 +148,10 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_READONLY_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_READONLY_DEEP_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_SELF_FILE, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_OBJECT_FILTER_CARIBBEAN_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_OBJECT_FILTER_MODIFY_CARIBBEAN_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_PROP_READ_ALL_MODIFY_SOME_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_MASTER_MINISTRY_OF_RUM_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_OBJECT_FILTER_CARIBBEAN_FILE, RoleType.class, initResult);
 		
 		assignOrg(USER_GUYBRUSH_OID, ORG_SWASHBUCKLER_SECTION_OID, initTask, initResult);
 		
@@ -445,8 +455,31 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test205AutzJackObjectFilterCaribbeanfRole() throws Exception {
-		final String TEST_NAME = "test205AutzJackObjectFilterCaribbeanRole";
+    public void test205AutzJackObjectFilterModifyCaribbeanfRole() throws Exception {
+		final String TEST_NAME = "test205AutzJackObjectFilterModifyCaribbeanfRole";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_OBJECT_FILTER_MODIFY_CARIBBEAN_OID);
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        
+        assertReadAllow();
+
+        assertAddDeny();
+        
+        assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
+        assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
+        assertModifyAllow(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Mutinier"));
+        
+        assertDeleteDeny();
+	}
+	
+	@Test
+    public void test207AutzJackObjectFilterCaribbeanfRole() throws Exception {
+		final String TEST_NAME = "test207AutzJackObjectFilterCaribbeanfRole";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
@@ -456,7 +489,16 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         
-        assertReadAllow();
+        assertGetAllow(UserType.class, USER_JACK_OID);
+        assertGetAllow(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+        
+        assertSearch(UserType.class, null, 2);
+        assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
+        assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 1);
+        assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
+        assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 0);
 
         assertAddDeny();
         
@@ -505,7 +547,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
         
-        assertReadDeny();
+        assertReadDeny(2);
         assertAddDeny();
         assertModifyDeny();
         assertDeleteDeny();
@@ -513,7 +555,12 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertGetAllow(UserType.class, userRumRogersOid);
         assertModifyAllow(UserType.class, userRumRogersOid, UserType.F_TITLE, PrismTestUtil.createPolyString("drunk"));
         assertAddAllow(USER_MANCOMB_FILE);
+        
+        assertVisibleUsers(3);
+        
         assertDeleteAllow(UserType.class, USER_ESTEVAN_OID);
+        
+        assertVisibleUsers(2);
 	}
 	
 	private void cleanupAutzTest(String userOid) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException, IOException {
@@ -553,19 +600,43 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 			result.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
 		}
 	}
+	
+	private void assertVisibleUsers(int expectedNumAllUsers) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		assertSearch(UserType.class, null, expectedNumAllUsers);
+	}
+	
+	private void assertReadDeny() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		assertReadDeny(0);
+	}
 
-	private void assertReadDeny() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
+	private void assertReadDeny(int expectedNumAllUsers) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         assertGetDeny(UserType.class, USER_JACK_OID);
         assertGetDeny(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+        
+        assertSearch(UserType.class, null, expectedNumAllUsers);
+        assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 0);
+        assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 0);
+        assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
+        assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 0);
 	}
 
 	private void assertReadAllow() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		assertReadAllow(9);
+	}
+	
+	private void assertReadAllow(int expectedNumAllUsers) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         assertGetAllow(UserType.class, USER_JACK_OID);
         assertGetAllow(UserType.class, USER_JACK_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         assertGetAllow(UserType.class, USER_GUYBRUSH_OID);
         assertGetAllow(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
+        
+        assertSearch(UserType.class, null, expectedNumAllUsers);
+        assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
+        assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 1);
+        assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 1);
+        assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 1);
 	}
 	
 	private void assertAddDeny() throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
@@ -640,6 +711,61 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		TestUtil.assertSuccess(result);
 		logAllow("get", type, oid, null);
 		// TODO: check audit
+	}
+	
+	private <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		assertSearch(type, query, null, expectedResults);
+	}
+	
+	private <O extends ObjectType> void assertSearch(Class<O> type, ObjectQuery query, 
+			Collection<SelectorOptions<GetOperationOptions>> options, int expectedResults) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(TestSecurity.class.getName() + ".assertSearchObjects");
+        OperationResult result = task.getResult();
+		try {
+			logAttempt("search", type, query);
+			List<PrismObject<O>> objects = modelService.searchObjects(type, query, options, task, result);
+			display("Search returned", objects.toString());
+			if (objects.size() > expectedResults) {
+				failDeny("search", type, query, expectedResults, objects.size());
+			} else if (objects.size() < expectedResults) {
+				failAllow("search", type, query, expectedResults, objects.size());
+			}
+			result.computeStatus();
+			TestUtil.assertSuccess(result);
+		} catch (SecurityViolationException e) {
+			// this should not happen
+			result.computeStatus();
+			TestUtil.assertFailure(result);
+			failAllow("search", type, query, e);
+		}
+
+		task = taskManager.createTaskInstance(TestSecurity.class.getName() + ".assertSearchObjectsIterative");
+        result = task.getResult();
+		try {
+			logAttempt("searchIterative", type, query);
+			final List<PrismObject<O>> objects = new ArrayList<>();
+			ResultHandler<O> handler = new ResultHandler<O>() {
+				@Override
+				public boolean handle(PrismObject<O> object, OperationResult parentResult) {
+					objects.add(object);
+					return true;
+				}
+			};
+			modelService.searchObjectsIterative(type, query, handler, options, task, result);
+			display("Search iterative returned", objects.toString());
+			if (objects.size() > expectedResults) {
+				failDeny("searchIterative", type, query, expectedResults, objects.size());
+			} else if (objects.size() < expectedResults) {
+				failAllow("searchIterative", type, query, expectedResults, objects.size());
+			}
+			result.computeStatus();
+			TestUtil.assertSuccess(result);
+		} catch (SecurityViolationException e) {
+			// this should not happen
+			result.computeStatus();
+			TestUtil.assertFailure(result);
+			failAllow("searchIterative", type, query, e);
+		}
 	}
 	
 	private void assertAddDeny(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {
@@ -857,34 +983,78 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		return attrs;
 	}
 	
+	private <O extends ObjectType> void failDeny(String action, Class<O> type, ObjectQuery query, int expected, int actual) {
+		failDeny(action, type, (query==null?"null":query.toString())+", expected "+expected+", actual "+actual);
+	}
+	
 	private <O extends ObjectType> void failDeny(String action, Class<O> type, String oid, QName propertyName) {
-		String msg = "Failed to deny "+action+" of "+type.getSimpleName()+":"+oid+" prop "+propertyName;
+		failDeny(action, type, oid+" prop "+propertyName);
+	}
+	
+	private <O extends ObjectType> void failDeny(String action, Class<O> type, String desc) {
+		String msg = "Failed to deny "+action+" of "+type.getSimpleName()+":"+desc;
 		System.out.println(LOG_PREFIX_FAIL+msg);
 		LOGGER.error(LOG_PREFIX_FAIL+msg);
 		AssertJUnit.fail(msg);
 	}
 	
+	private <O extends ObjectType> void failAllow(String action, Class<O> type, ObjectQuery query, SecurityViolationException e) throws SecurityViolationException {
+		failAllow(action, type, query==null?"null":query.toString(), e);
+	}
+
+	private <O extends ObjectType> void failAllow(String action, Class<O> type, ObjectQuery query, int expected, int actual) throws SecurityViolationException {
+		failAllow(action, type, (query==null?"null":query.toString())+", expected "+expected+", actual "+actual, null);
+	}
+
 	private <O extends ObjectType> void failAllow(String action, Class<O> type, String oid, QName propertyName, SecurityViolationException e) throws SecurityViolationException {
-		String msg = "Failed to allow "+action+" of "+type.getSimpleName()+":"+oid+" prop "+propertyName;
+		failAllow(action, type, oid+" prop "+propertyName, e);
+	}
+	
+	private <O extends ObjectType> void failAllow(String action, Class<O> type, String desc, SecurityViolationException e) throws SecurityViolationException {
+		String msg = "Failed to allow "+action+" of "+type.getSimpleName()+":"+desc;
 		System.out.println(LOG_PREFIX_FAIL+msg);
 		LOGGER.error(LOG_PREFIX_FAIL+msg);
 		throw new SecurityViolationException(msg+": "+e.getMessage(), e);
 	}
 	
+	private <O extends ObjectType> void logAttempt(String action, Class<O> type, ObjectQuery query) {
+		logAttempt(action, type, query==null?"null":query.toString());
+	}
+	
 	private <O extends ObjectType> void logAttempt(String action, Class<O> type, String oid, QName propertyName) {
-		String msg = "SSSSS=> Trying "+action+" of "+type.getSimpleName()+":"+oid+" prop "+propertyName;
+		logAttempt(action, type, oid+" prop "+propertyName);
+	}
+	
+	private <O extends ObjectType> void logAttempt(String action, Class<O> type, String desc) {
+		String msg = LOG_PREFIX_ATTEMPT+"Trying "+action+" of "+type.getSimpleName()+":"+desc;
 		System.out.println(msg);
 		LOGGER.info(msg);
+	}
+	
+	private <O extends ObjectType> void logDeny(String action, Class<O> type, ObjectQuery query) {
+		logDeny(action, type, query==null?"null":query.toString());
 	}
 	
 	private <O extends ObjectType> void logDeny(String action, Class<O> type, String oid, QName propertyName) {
-		String msg = "SSSSS=- Denied "+action+" of "+type.getSimpleName()+":"+oid+" prop "+propertyName;
+		logDeny(action, type, oid+" prop "+propertyName);
+	}
+	
+	private <O extends ObjectType> void logDeny(String action, Class<O> type, String desc) {
+		String msg = LOG_PREFIX_DENY+"Denied "+action+" of "+type.getSimpleName()+":"+desc;
 		System.out.println(msg);
 		LOGGER.info(msg);
 	}
 	
+	private <O extends ObjectType> void logAllow(String action, Class<O> type, ObjectQuery query) {
+		logAllow(action, type, query==null?"null":query.toString());
+	}
+	
 	private <O extends ObjectType> void logAllow(String action, Class<O> type, String oid, QName propertyName) {
-		String msg = "SSSSS=+ Allowed "+action+" of "+type.getSimpleName()+":"+oid+" prop "+propertyName;
+		logAllow(action, type, oid+" prop "+propertyName);
+	}
+	
+	private <O extends ObjectType> void logAllow(String action, Class<O> type, String desc) {
+		String msg = LOG_PREFIX_ALLOW+"Allowed "+action+" of "+type.getSimpleName()+":"+desc;
 		System.out.println(msg);
 		LOGGER.info(msg);
 	}

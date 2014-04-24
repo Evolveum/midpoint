@@ -13,14 +13,16 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role oid="00000000-0000-0000-0000-00000000aa07"
+<role oid="00000000-0000-0000-0000-00000000aa04"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2">
-    <name>Object Filter Caribbean</name>
+    <name>Object Filter Modify Caribbean</name>
     <authorization>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#read</action>
+    </authorization>
+    <authorization>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#modify</action>
     	<object>
     		<filter>

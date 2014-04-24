@@ -934,13 +934,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected <O extends ObjectType> PrismObject<O> findObjectByName(Class<O> type, String name) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".findObjectByName");
         OperationResult result = task.getResult();
-        ObjectQuery query = ObjectQueryUtil.createNameQuery(PrismTestUtil.createPolyString(name), prismContext);
-		List<PrismObject<O>> objects = modelService.searchObjects(type, query, null, task, result);
+		List<PrismObject<O>> objects = modelService.searchObjects(type, createNameQuery(name), null, task, result);
 		if (objects.isEmpty()) {
 			return null;
 		}
 		assert objects.size() == 1 : "Too many objects found for name "+name+": "+objects;
 		return objects.iterator().next();
+	}
+	
+	protected ObjectQuery createNameQuery(String name) throws SchemaException {
+		return ObjectQueryUtil.createNameQuery(PrismTestUtil.createPolyString(name), prismContext);
 	}
 	
 	protected PrismObject<UserType> findUserByUsername(String username) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {

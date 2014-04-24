@@ -172,7 +172,7 @@ public class PrismTestUtil {
 		if (!(filter instanceof NaryLogicalFilter)) {
 			throw new IllegalArgumentException("Filter not an instance of n-ary logical filter.");
 		}
-		return ((LogicalFilter) filter).getCondition().get(index);
+		return ((LogicalFilter) filter).getConditions().get(index);
 	}
 	
 	public static void displayQuery(ObjectQuery query) {

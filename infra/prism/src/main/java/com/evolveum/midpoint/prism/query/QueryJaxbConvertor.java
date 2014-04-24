@@ -62,19 +62,32 @@ public class QueryJaxbConvertor {
             return query.getFilter();
         }
     }
-
+    
+    public static <O extends Objectable> ObjectFilter createObjectFilter(PrismObjectDefinition<O> objectDefinition, SearchFilterType filterType, PrismContext prismContext)
+            throws SchemaException {
+        ObjectQuery query = createObjectQueryInternal(objectDefinition, filterType, null, prismContext);
+        if (query == null) {
+            return null;
+        } else {
+            return query.getFilter();
+        }
+    }
+    
     public static <O extends Objectable> ObjectQuery createObjectQueryInternal(Class<O> clazz, SearchFilterType filterType, PagingType pagingType, PrismContext prismContext)
+			throws SchemaException {
+    	PrismObjectDefinition<O> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
+		if (objDef == null) {
+			throw new SchemaException("cannot find obj definition for class "+clazz);
+		}
+		return createObjectQueryInternal(objDef, filterType, pagingType, prismContext);
+    }
+
+    public static <O extends Objectable> ObjectQuery createObjectQueryInternal(PrismObjectDefinition<O> objDef, SearchFilterType filterType, PagingType pagingType, PrismContext prismContext)
 			throws SchemaException {
 
         boolean filterNotEmpty = filterType != null && filterType.containsFilterClause();
 		if (!filterNotEmpty && pagingType == null) {
 			return null;
-		}
-		
-		PrismObjectDefinition<O> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
-
-		if (objDef == null) {
-			throw new SchemaException("cannot find obj definition for class "+clazz);
 		}
 
 		try {
