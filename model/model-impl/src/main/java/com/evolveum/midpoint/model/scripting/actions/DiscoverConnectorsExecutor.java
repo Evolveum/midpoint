@@ -80,8 +80,8 @@ public class DiscoverConnectorsExecutor extends BaseActionExecutor {
                 PrismObject<ConnectorHostType> connectorHostTypePrismObject = (PrismObject) item;
                 Set<ConnectorType> newConnectors;
                 try {
-                    newConnectors = modelService.discoverConnectors(connectorHostTypePrismObject.asObjectable(), result);
-                } catch (CommunicationException e) {
+					newConnectors = modelService.discoverConnectors(connectorHostTypePrismObject.asObjectable(), result);
+                } catch (CommunicationException | SecurityViolationException | SchemaException e) {
                     throw new ScriptExecutionException("Couldn't discover connectors from " + connectorHostTypePrismObject, e);
                 }
                 context.println("Discovered " + newConnectors.size() + " new connector(s) from " + connectorHostTypePrismObject);

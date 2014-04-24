@@ -29,7 +29,6 @@
             <class name="com.evolveum.midpoint.model.controller.ControllerAddObjectTest"/>
             <class name="com.evolveum.midpoint.model.controller.ControllerGetObjectTest"/>
             <class name="com.evolveum.midpoint.model.controller.ControllerLaunchImportTest"/>
-            <class name="com.evolveum.midpoint.model.controller.ControllerListAccountShadowOwnerTest"/>
             <class name="com.evolveum.midpoint.model.controller.ControllerListResourceObjectsTest"/>
             <class name="com.evolveum.midpoint.model.controller.ControllerModifyObjectTest"/>
             <class name="com.evolveum.midpoint.model.controller.ControllerSearchObjectsTest"/>

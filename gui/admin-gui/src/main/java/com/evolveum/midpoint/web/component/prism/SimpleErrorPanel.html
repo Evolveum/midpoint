@@ -16,13 +16,19 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="col-xs-10">
-        <input type="checkbox" disabled/>
-        <i class="silk-error" wicket:id="icon"></i>
-        <span class="name" wicket:id="description"/>
-        <a wicket:id="link">
-            <span class="name" wicket:id="showMore"/>
-        </a>
+    <div>
+        <div class="tableForm">
+            <div class="row header check-table-header">
+                <div class="col-xs-10">
+                    <input type="checkbox" disabled/>
+                    <i class="silk-error" wicket:id="icon"></i>
+                    <span class="description" wicket:id="description"/>
+                    <a wicket:id="link">
+                        <span class="name" wicket:id="showMore"/>
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </wicket:panel>
 </html>

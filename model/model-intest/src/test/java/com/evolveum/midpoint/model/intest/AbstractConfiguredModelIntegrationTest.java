@@ -169,6 +169,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File USER_JACK_FILE = new File(COMMON_DIR_NAME, "user-jack.xml");
 	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	protected static final String USER_JACK_USERNAME = "jack";
+	protected static final String USER_JACK_FULL_NAME = "Jack Sparrow";
 
 	protected static final String USER_BARBOSSA_FILENAME = COMMON_DIR_NAME + "/user-barbossa.xml";
 	protected static final String USER_BARBOSSA_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
@@ -177,6 +178,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String USER_GUYBRUSH_FILENAME = COMMON_DIR_NAME + "/user-guybrush.xml";
 	protected static final String USER_GUYBRUSH_OID = "c0c010c0-d34d-b33f-f00d-111111111116";
 	protected static final String USER_GUYBRUSH_USERNAME = "guybrush";
+	protected static final String USER_GUYBRUSH_FULL_NAME = "Guybrush Threepwood";
 	
 	// Largo does not have a full name set, employeeType=PIRATE
 	protected static final File USER_LARGO_FILE = new File(COMMON_DIR, "user-largo.xml");

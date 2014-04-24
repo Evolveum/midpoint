@@ -278,7 +278,7 @@ public interface ModelService {
 	 *             state
 	 */
 	PrismObject<UserType> findShadowOwner(String shadowOid, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException;
+			throws ObjectNotFoundException, SecurityViolationException, SchemaException;
 
 	/**
 	 * <p>
@@ -559,7 +559,8 @@ public interface ModelService {
 	 * @return discovered connectors
 	 * @throws CommunicationException error communicating with the connector host
 	 */
-	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) throws CommunicationException;
+	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) 
+			throws CommunicationException, SecurityViolationException, SchemaException;
 
 	/**
 	 * Finish initialization of the model and lower system components

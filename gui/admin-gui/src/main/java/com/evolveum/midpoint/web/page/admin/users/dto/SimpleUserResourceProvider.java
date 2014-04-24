@@ -83,14 +83,16 @@ public class SimpleUserResourceProvider extends BaseSortableDataProvider<Selecta
         }
 
         for (UserAccountDto account : accounts) {
-            PrismObject<ShadowType> prismAccount = account.getObject().getObject();
-            PrismReference resourceRef = prismAccount.findReference(ShadowType.F_RESOURCE_REF);
-            if (resourceRef == null || resourceRef.getValue() == null) {
-                continue;
-            }
+            if(account.isLoadedOK()){
+                PrismObject<ShadowType> prismAccount = account.getObject().getObject();
+                PrismReference resourceRef = prismAccount.findReference(ShadowType.F_RESOURCE_REF);
+                if (resourceRef == null || resourceRef.getValue() == null) {
+                    continue;
+                }
 
-            PrismReferenceValue value = resourceRef.getValue();
-            set.add(value.getOid());
+                PrismReferenceValue value = resourceRef.getValue();
+                set.add(value.getOid());
+            }
         }
 
         return set;

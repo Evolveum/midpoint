@@ -718,8 +718,6 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								LOGGER.trace("  filter empty");
 							}
 							
-							LOGGER.trace("objSpecSecurityFilter 4 {}", objSpecSecurityFilter);
-							
 							// Org
 							if (specOrgRef != null) {
 								OrgFilter orgFilter = OrgFilter.createOrg(specOrgRef.getOid());
@@ -729,17 +727,11 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								LOGGER.trace("  org empty");
 							}
 							
-							LOGGER.trace("objSpecSecurityFilter 5 {}", objSpecSecurityFilter);
-							
-							LOGGER.trace("autzObjSecurityFilter 1 {}", autzObjSecurityFilter);
 							autzObjSecurityFilter = ObjectQueryUtil.filterOr(autzObjSecurityFilter, objSpecSecurityFilter);
-							LOGGER.trace("autzObjSecurityFilter 2 {}", autzObjSecurityFilter);
 						}
 					} else {
 						LOGGER.trace("  No object specification in authorization (authorization is universaly applicable)");
 					}
-					
-					LOGGER.trace("autzObjSecurityFilter 3 {}", autzObjSecurityFilter);
 					
 					if (applicable) {
 						// authority is applicable to this situation. now we can process the decision.
@@ -770,10 +762,6 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			}
 		}
 		
-		LOGGER.trace("securityFilterAllow E {}", securityFilterAllow);
-		LOGGER.trace("securityFilterDeny E {}", securityFilterDeny);
-		LOGGER.trace("hasAllowAll E {}", hasAllowAll);
-		
 		ObjectFilter origWithAllowFilter;
 		if (hasAllowAll) {
 			origWithAllowFilter = origFilter;
@@ -785,8 +773,6 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			origWithAllowFilter = ObjectQueryUtil.filterAnd(origFilter, securityFilterAllow);
 		}
 
-		LOGGER.trace("origWithAllowFilter X {}", origWithAllowFilter);
-		
 		if (securityFilterDeny == null) {
 			LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: allow: {}", 
 					new Object[]{principal.getUsername(), operationUrl, origWithAllowFilter});
