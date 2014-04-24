@@ -201,6 +201,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         HashSet<String> realApproversSet = new HashSet<String>();
         for (ObjectReferenceType approver : realApprovers) {
             realApproversSet.add(approver.getOid());
+            assertEquals("Unexpected target type in approverRef", UserType.COMPLEX_TYPE, approver.getType());
         }
         assertEquals("Mismatch in modifyApproverRef in metadata", new HashSet(expectedApprovers), realApproversSet);
     }
