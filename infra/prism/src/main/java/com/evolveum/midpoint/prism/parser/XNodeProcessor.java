@@ -265,7 +265,7 @@ public class XNodeProcessor {
 	private <C extends Containerable> PrismContainerValue<C> parsePrismContainerValueFromMap(MapXNode xmap, PrismContainerDefinition<C> containerDef,
 			Collection<QName> ignoredItems) throws SchemaException {
 		Long id = getContainerId(xmap);
-		PrismContainerValue<C> cval = new PrismContainerValue<C>(null, null, null, id);
+		PrismContainerValue<C> cval = new PrismContainerValue<C>(null, null, null, id, xmap.getTypeQName());
 		for (Entry<QName,XNode> xentry: xmap.entrySet()) {
 			QName itemQName = xentry.getKey();
 			if (QNameUtil.match(itemQName, XNode.KEY_CONTAINER_ID)) {
