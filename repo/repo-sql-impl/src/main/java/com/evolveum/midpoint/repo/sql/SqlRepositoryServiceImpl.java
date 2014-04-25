@@ -839,7 +839,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                                                                      Session session) throws SchemaException {
 
         String xml = RUtil.getXmlFromByteArray(result.getFullObject(), getConfiguration().isUseZip());
-        PrismObject<T> prismObject = getPrismContext().parseObject(xml);
+        PrismObject<T> prismObject;
+        try {
+            prismObject = getPrismContext().parseObject(xml);
+        } catch (SchemaException e) {
+            LOGGER.debug("Couldn't parse object because of schema exception ({}):\nObject: {}", e, xml);
+            throw e;
+        }
 
         if (UserType.class.equals(prismObject.getCompileTimeClass())) {
             if (SelectorOptions.hasToLoadPath(UserType.F_JPEG_PHOTO, options)) {

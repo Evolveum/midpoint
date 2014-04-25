@@ -460,12 +460,12 @@ public class PageTaskAdd extends PageAdminTasks {
         }
         task.setHandlerUri(handlerUri);
 
-        ObjectReferenceType objectRef = null;
+        ObjectReferenceType objectRef;
         if (dto.getResource() != null) {
             objectRef = new ObjectReferenceType();
             objectRef.setOid(dto.getResource().getOid());
+            objectRef.setType(ResourceType.COMPLEX_TYPE);
             task.setObjectRef(objectRef);
-            // todo set also object ref type
         }
 
         task.setName(WebMiscUtil.createPolyFromOrigString(dto.getName()));
