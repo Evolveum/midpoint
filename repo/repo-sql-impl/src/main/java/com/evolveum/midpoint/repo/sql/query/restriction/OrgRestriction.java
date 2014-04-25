@@ -20,10 +20,10 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryContext;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
+import org.apache.commons.lang.ObjectUtils;
 import org.hibernate.Criteria;
-import org.hibernate.FetchMode;
 import org.hibernate.criterion.*;
 import org.hibernate.type.StringType;
 import org.hibernate.type.Type;
@@ -35,10 +35,6 @@ public class OrgRestriction extends Restriction<OrgFilter> {
 
     private static final String QUERY_PATH = "descendants";
     private static final String CLOSURE_ALIAS = "closure";
-    private static final String ANCESTOR = CLOSURE_ALIAS + ".ancestor";
-    private static final String ANCESTOR_ALIAS = "anc";
-    private static final String ANCESTOR_ID = ANCESTOR_ALIAS + ".id";
-    private static final String ANCESTOR_OID = ANCESTOR_ALIAS + ".oid";
     private static final String DEPTH = CLOSURE_ALIAS + ".depth";
 
     @Override
@@ -81,21 +77,33 @@ public class OrgRestriction extends Restriction<OrgFilter> {
             maxDepth = null;
         }
 
-        if (maxDepth == null) {
-            return Restrictions.eq(ANCESTOR_OID, orgRefOid);
-        } else {
-            Conjunction conjunction = Restrictions.conjunction();
-            conjunction.add(Restrictions.eq(ANCESTOR_OID, orgRefOid));
-            conjunction.add(Restrictions.le(DEPTH, maxDepth));
-            conjunction.add(Restrictions.gt(DEPTH, 0));
-            return conjunction;
-//			return Restrictions.and(Restrictions.eq(ANCESTOR_OID, orgRefOid), Restrictions.le(DEPTH, maxDepth));
+        Integer minDepth = filter.getMinDepth();
+        if (minDepth != null && minDepth < 0) {
+            minDepth = null;
         }
+
+        if (minDepth == null && maxDepth == null) {
+            return Restrictions.eq(CLOSURE_ALIAS + ".ancestorOid", orgRefOid);
+        }
+
+        Conjunction conjunction = Restrictions.conjunction();
+        conjunction.add(Restrictions.eq(CLOSURE_ALIAS + ".ancestorOid", orgRefOid));
+        if (ObjectUtils.equals(minDepth, maxDepth)) {
+            conjunction.add(Restrictions.eq(DEPTH, minDepth));
+        } else {
+            if (minDepth != null) {
+                conjunction.add(Restrictions.gt(DEPTH, minDepth));
+            }
+            if (maxDepth != null) {
+                conjunction.add(Restrictions.le(DEPTH, maxDepth));
+            }
+        }
+        return conjunction;
     }
 
     private void updateCriteria() {
         // get root criteria
-        Criteria pCriteria = getContext().getCriteria(null);
+        Criteria main = getContext().getCriteria(null);
         // create subcriteria on the ROgrClosure table to search through org struct
 
         ProjectionList list = Projections.projectionList();
@@ -120,14 +128,8 @@ public class OrgRestriction extends Restriction<OrgFilter> {
             list.add(Projections.groupProperty(alias + ".polysCount"));
         }
 
-        list.add(Projections.groupProperty(alias + ".name.orig"));     //just used for sorting by name
-        list.add(Projections.groupProperty(CLOSURE_ALIAS + ".descendant"));
-
-
-
-
-        pCriteria.createCriteria(QUERY_PATH, CLOSURE_ALIAS).setFetchMode(ANCESTOR, FetchMode.DEFAULT)
-                .createAlias(ANCESTOR, ANCESTOR_ALIAS).setProjection(list);
+        main.createCriteria(QUERY_PATH, CLOSURE_ALIAS);
+        main.setProjection(list);
     }
 
     @Override

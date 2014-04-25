@@ -1163,4 +1163,44 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         result.computeStatusIfUnknown();
         AssertJUnit.assertTrue(result.isSuccess());
     }
+
+    @Test
+    public void test310QueryNameAndOrg() throws Exception {
+        Session session = open();
+
+        try {
+            Criteria main = session.createCriteria(RUser.class, "u");
+            Criteria ancestors = main.createCriteria("descendants", "closure");
+
+            Conjunction c = Restrictions.conjunction();
+            c.add(Restrictions.and(
+                            Restrictions.eq("u.name.orig", "cpt. Jack Sparrow"),
+                            Restrictions.eq("u.name.norm", "cpt jack sparrow")));
+            c.add(Restrictions.eq("closure.ancestorOid", "12341234-1234-1234-1234-123412341234"));
+            main.add(c);
+
+            main.addOrder(Order.asc("u.name.orig"));
+
+            ProjectionList projections = Projections.projectionList();
+            addFullObjectProjectionList("u", projections, false);
+            main.setProjection(projections);
+
+            String expected = HibernateToSqlTranslator.toSql(main);
+
+            EqualsFilter eqFilter = EqualsFilter.createEqual(ObjectType.F_NAME, ObjectType.class, prismContext,
+                    null, new PolyString("cpt. Jack Sparrow", "cpt jack sparrow"));
+
+            OrgFilter orgFilter = OrgFilter.createOrg("12341234-1234-1234-1234-123412341234");
+
+            ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(eqFilter, orgFilter));
+            query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
+
+            String real = getInterpretedQuery(session, UserType.class, query);
+
+            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+            AssertJUnit.assertEquals(expected, real);
+        } finally {
+            close(session);
+        }
+    }
 }

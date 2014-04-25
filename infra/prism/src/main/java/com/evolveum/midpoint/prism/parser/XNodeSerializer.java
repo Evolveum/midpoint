@@ -239,6 +239,10 @@ public class XNodeSerializer {
 		if (id != null) {
 			xmap.put(XNode.KEY_CONTAINER_ID, createPrimitiveXNodeAttr(id, DOMUtil.XSD_LONG));
 		}
+        if (containerVal.getConcreteType() != null) {
+            xmap.setTypeQName(containerVal.getConcreteType());
+        }
+
 		Collection<QName> serializedItems = new ArrayList<>();
 		if (containerDefinition != null) {
 			// We have to serialize in the definition order. Some data formats (XML) are
@@ -267,7 +271,7 @@ public class XNodeSerializer {
 			}
 		}
 	}
-	//endregion
+    //endregion
 
     //region Serializing references - specific functionality
     private XNode serializeReferenceValue(PrismReferenceValue value, PrismReferenceDefinition definition) throws SchemaException {

@@ -81,6 +81,7 @@ public class ItemApprovalProcessInterface extends BaseProcessMidPointInterface {
             }
         }
 
+        extState.asPrismContainerValue().setConcreteType(ItemApprovalProcessState.COMPLEX_TYPE);
         return extState;
     }
 
