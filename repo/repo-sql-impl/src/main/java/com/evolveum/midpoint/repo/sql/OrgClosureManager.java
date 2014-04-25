@@ -16,11 +16,11 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.repo.sql.data.common.*;
+import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -38,7 +38,6 @@ import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -67,12 +66,12 @@ public class OrgClosureManager {
         List<ReferenceDelta> deltas = filterParentRefDeltas(modifications);
 
         switch (operation) {
-            case DELETE:
-                handleDelete(deltas, session, oid, type);
-                break;
             case ADD:
                 List<String> parents = getOidFromAddDeltas(deltas);
                 handleAdd(oid, parents, type, session);
+                break;
+            case DELETE:
+                handleDelete(oid, type, session);
                 break;
             case MODIFY:
                 handleModify(deltas, session, oid, type);
@@ -81,27 +80,28 @@ public class OrgClosureManager {
         LOGGER.debug("Org. closure update finished.");
     }
 
-    private <T extends ObjectType> void handleDelete(Collection<? extends ItemDelta> modifications, Session session,
-                                                     String oid, Class<T> type) {
+    private <T extends ObjectType> void handleDelete(String oid, Class<T> type, Session session) {
+        Query query = session.createQuery("delete from ROrgClosure o where o.descendant=:oid");
+        query.setString("oid", oid);
+        int count = query.executeUpdate();
 
-//        "select distinct o.descendantOid from ROrgClosure as o where o.ancestorId=0 and o.ancestorOid=:oid";
-//        "select distinct o.ancestorOid from ROrgClosure as o " +
-//                "where o.descendantId=0 and o.descendantOid=:oid and and o.ancestorId=0 o.ancestorOid != :oid";
+        if (LOGGER.isTraceEnabled()) LOGGER.trace("Deleted {} records from org. closure table.", count);
 
+        //if there is still parentRef pointing to this oid, we have to add oid to incorrect table
+        //todo index!!!!!!!!!!!!!!1
+        query = session.createQuery("select count(*) from RParentOrgRef r where r.targetOid=:oid");
+        query.setString("oid", oid);
 
-//        LOGGER.trace("Deleting org. closure for object {} {}", oid, type.getSimpleName());
-//        Query query = session.createQuery("select distinct o.ancestorOid from ROrgClosure as o where o.descendantId=0 and o.descendantOid=:dOid");
-//
-//        query = session.createQuery("delete from ROrgClosure as o where (o.ancestorId=0 and " +
-//                "o.ancestorOid=:aOid) or (o.descendantId=0 and o.descendantOid=:dOid)");
-//        query.setString("aOid", oid);
-//        query.setString("dOid", oid);
-//        int count = query.executeUpdate();
-//        LOGGER.trace("Deleted {} records.", count);
+        Number parentCount = (Number) query.uniqueResult();
+        if (parentCount != null && parentCount.intValue() != 0) {
+            query = session.createSQLQuery("insert into m_org_incorrect (ancestor_oid) values (:oid)");
+            query.setString("oid", oid);
+            query.executeUpdate();
+        }
     }
 
     private <T extends ObjectType> void handleAdd(String oid, List<String> parents, Class<T> type, Session session) {
-        Query query = session.createSQLQuery("insert into m_org_closure (ancestor_oid ,descendant_oid ,depthvalue) values (:oid, :oid, 0)");
+        Query query = session.createSQLQuery("insert into m_org_closure (ancestor_oid ,descendant_oid) values (:oid, :oid)");
         query.setString("oid", oid);
         query.executeUpdate();
 
@@ -109,21 +109,26 @@ public class OrgClosureManager {
             return;
         }
 
-        query = session.createSQLQuery("insert into m_org_closure (ancestor_oid ,descendant_oid ,depthvalue) " +
-                "select ancestor_oid, :oid ,depthvalue+1  from m_org_closure where descendant_oid in (:parents) group by ancestor_oid, depthvalue");
+        query = session.createSQLQuery("insert into m_org_closure (ancestor_oid ,descendant_oid) " +
+                "select ancestor_oid, :oid from m_org_closure where descendant_oid in (:parents) group by ancestor_oid");
         query.setParameterList("parents", parents);
         query.setString("oid", oid);
 
         query.executeUpdate();
+
+        //todo check incorrect!!!!!!!
     }
 
     private <T extends ObjectType> void handleModify(Collection<? extends ItemDelta> modifications, Session session,
                                                      String oid, Class<T> type) {
-
+        //todo handle modify
     }
 
     private List<ReferenceDelta> filterParentRefDeltas(Collection<? extends ItemDelta> modifications) {
         List<ReferenceDelta> deltas = new ArrayList<>();
+        if (modifications == null) {
+            return deltas;
+        }
 
         for (ItemDelta delta : modifications) {
             if (!ObjectType.F_PARENT_ORG_REF.equals(delta.getElementName())) {
@@ -133,6 +138,21 @@ public class OrgClosureManager {
         }
 
         return deltas;
+    }
+
+    private List<String> getOidFromDeleteDeltas(Collection<? extends ItemDelta> modifications) {
+        List<String> oids = new ArrayList<>();
+
+        for (ItemDelta delta : modifications) {
+            if (delta.getValuesToDelete() == null) {
+                continue;
+            }
+            for (PrismReferenceValue val : (Collection<PrismReferenceValue>) delta.getValuesToDelete()) {
+                oids.add(val.getOid());
+            }
+        }
+
+        return oids;
     }
 
     private List<String> getOidFromAddDeltas(Collection<? extends ItemDelta> modifications) {
@@ -198,12 +218,11 @@ public class OrgClosureManager {
         }
     }
 
-    private boolean existOrgCLosure(Session session, String ancestorOid, String descendantOid, int depth) {
+    private boolean existOrgCLosure(Session session, String ancestorOid, String descendantOid) {
         // if not exist pair with same depth, then create else nothing do
         Query qExistClosure = session.getNamedQuery("existOrgClosure");
         qExistClosure.setParameter("ancestorOid", ancestorOid);
         qExistClosure.setParameter("descendantOid", descendantOid);
-        qExistClosure.setParameter("depth", depth);
 
         return (Long) qExistClosure.uniqueResult() != 0;
 
@@ -221,8 +240,8 @@ public class OrgClosureManager {
     private <T extends ObjectType> void fillHierarchy(RObject<T> rOrg, Session session, boolean withIncorrect)
             throws SchemaException {
 
-        if (!existOrgCLosure(session, rOrg.getOid(), rOrg.getOid(), 0)) {
-            ROrgClosure closure = new ROrgClosure(rOrg, rOrg, 0);
+        if (!existOrgCLosure(session, rOrg.getOid(), rOrg.getOid())) {
+            ROrgClosure closure = new ROrgClosure(rOrg, rOrg);
             session.save(closure);
         }
 
@@ -265,13 +284,13 @@ public class OrgClosureManager {
                     anc = o.getAncestor().getOid();
                 }
                 LOGGER.trace(
-                        "adding {}\t{}\t{}",
-                        new Object[]{anc, descendant == null ? null : descendant.getOid(), o.getDepth() + 1});
+                        "adding {}\t{}",
+                        new Object[]{anc, descendant == null ? null : descendant.getOid()});
 
                 boolean existClosure = existOrgCLosure(session, o.getAncestor().getOid(),
-                        descendant.getOid(), o.getDepth() + 1);
+                        descendant.getOid());
                 if (!existClosure)
-                    session.save(new ROrgClosure(o.getAncestor(), descendant, o.getDepth() + 1));
+                    session.save(new ROrgClosure(o.getAncestor(), descendant));
             }
         } else if (withIncorrect) {
             boolean existIncorrect = existIncorrect(session, ancestorOid, descendant.getOid());
@@ -416,8 +435,8 @@ public class OrgClosureManager {
             if (LOGGER.isTraceEnabled()) {
                 RObject ancestor = o.getAncestor();
                 RObject descendant = o.getDescendant();
-                LOGGER.trace("deleting from hierarchy: A:{} D:{} depth:{}",
-                        new Object[]{RUtil.getDebugString(ancestor), RUtil.getDebugString(descendant), o.getDepth()});
+                LOGGER.trace("deleting from hierarchy: A:{} D:{}",
+                        new Object[]{RUtil.getDebugString(ancestor), RUtil.getDebugString(descendant)});
             }
             session.delete(o);
         }

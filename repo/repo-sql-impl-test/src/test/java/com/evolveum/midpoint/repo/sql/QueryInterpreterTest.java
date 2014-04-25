@@ -839,8 +839,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             Conjunction conjunction = Restrictions.conjunction();
             conjunction.add(Restrictions.eq("anc.oid", "some oid"));
-            conjunction.add(Restrictions.le("closure.depth", 1));
-            conjunction.add(Restrictions.gt("closure.depth", 0));
             main.add(conjunction);
 
             String expected = HibernateToSqlTranslator.toSql(main);
@@ -974,19 +972,18 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                 query = session.createQuery(
                         "select o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount " +
                                 "from ROrg as o where o.oid in (select distinct d.descendantOid from ROrgClosure " +
-                                "as d where d.ancestorOid = :aOid and d.depth <= :maxDepth)"
+                                "as d where d.ancestorOid = :aOid)"
                 );
             } else {
                 query = session.createQuery(
                         "select o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount "
                                 + "from ROrg as o left join o.descendants as d "
-                                + "where d.ancestorOid=:aOid and d.depth <=:maxDepth "
+                                + "where d.ancestorOid=:aOid "
                                 + "group by o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount, o.name.orig "
                                 + "order by o.name.orig asc"
                 );
             }
             query.setString("aOid", "1234");
-            query.setInteger("maxDepth", 1);
 
             String expected = HibernateToSqlTranslator.toSql(factory, query.getQueryString());
 

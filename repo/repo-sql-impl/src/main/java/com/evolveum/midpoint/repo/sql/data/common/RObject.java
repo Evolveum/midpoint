@@ -63,7 +63,7 @@ import java.util.Set;
         @NamedQuery(name = "getExtCount", query = "select stringsCount, longsCount, datesCount, referencesCount, polysCount from RObject where oid = :oid"),
         @NamedQuery(name = "getVersion", query = "select o.version from RObject as o where o.oid = :oid"),
         @NamedQuery(name = "existIncorrect", query = "select count(*) from ROrgIncorrect as o where o.ancestorOid = :ancestorOid and o.descendantOid = :descendantOid"),
-        @NamedQuery(name = "existOrgClosure", query = "select count(*) from ROrgClosure as o where o.ancestorOid = :ancestorOid and o.descendantOid = :descendantOid and o.depth = :depth"),
+        @NamedQuery(name = "existOrgClosure", query = "select count(*) from ROrgClosure as o where o.ancestorOid = :ancestorOid and o.descendantOid = :descendantOid"),
         @NamedQuery(name = "fillHierarchy", query = "from ROrgIncorrect as o where o.ancestorOid = :oid"),
         @NamedQuery(name = "sqlDeleteOrgClosure", query = "delete from ROrgClosure as o where o.descendantOid = :oid or o.ancestorOid = :oid"),
         @NamedQuery(name = "sqlDeleteOrgIncorrect", query = "delete from ROrgIncorrect as o where o.descendantOid = :oid or o.ancestorOid = :oid"),

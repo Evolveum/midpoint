@@ -534,8 +534,13 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         updateFullObject(rObject, object);
         RObject merged = (RObject) session.merge(rObject);
         //add and maybe modify
+        OrgClosureManager.Operation operation = modifications == null ? OrgClosureManager.Operation.ADD :
+                OrgClosureManager.Operation.MODIFY;
+        if (modifications == null) {
+            modifications = createAddParentRefDelta(object);
+        }
         getClosureManager().updateOrgClosure(modifications, session, merged.getOid(), object.getCompileTimeClass(),
-                OrgClosureManager.Operation.ADD);
+                operation);
 
         return merged.getOid();
     }
@@ -638,31 +643,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         return Arrays.asList(delta);
     }
 
-    private <T extends ObjectType> List<ReferenceDelta> createDeleteParentRefDelta(Class<T> type, String oid,
-                                                                                   Session session) {
-        Query query = session.createQuery("from RParentOrgRef as r where r.ownerOid = :oid");
-        query.setString("oid", oid);
-
-        List<RObjectReference> references = query.list();
-        if (references == null || references.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        List<PrismReferenceValue> values = new ArrayList<>();
-        for (RObjectReference ref : references) {
-            ObjectReferenceType refType = new ObjectReferenceType();
-            RObjectReference.copyToJAXB(ref, refType, getPrismContext());
-
-            values.add(refType.asReferenceValue());
-        }
-
-        PrismObjectDefinition def = getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-        ReferenceDelta delta = ReferenceDelta.createModificationDelete(new ItemPath(ObjectType.F_PARENT_ORG_REF),
-                def, values);
-
-        return Arrays.asList(delta);
-    }
-
     private <T extends ObjectType> void deleteObjectAttempt(Class<T> type, String oid, OperationResult result)
             throws ObjectNotFoundException {
         Session session = null;
@@ -677,8 +657,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                         + "' was not found.", null, oid);
             }
 
+            getClosureManager().updateOrgClosure(null, session, oid, type, OrgClosureManager.Operation.DELETE);
+
             session.delete(object);
-            //TODO org. closure manager impl...
 
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
@@ -1515,17 +1496,18 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-	public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException {
-		Validate.notNull(upperOrgOid, "upperOrgOid must not be null.");
+    public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException {
+        Validate.notNull(upperOrgOid, "upperOrgOid must not be null.");
         Validate.notNull(lowerObjectOids, "lowerObjectOids must not be null.");
 
-        if (LOGGER.isTraceEnabled()) LOGGER.trace("Querying for subordination upper {}, lower {}", new Object[]{upperOrgOid, lowerObjectOids});
+        if (LOGGER.isTraceEnabled())
+            LOGGER.trace("Querying for subordination upper {}, lower {}", new Object[]{upperOrgOid, lowerObjectOids});
 
         if (lowerObjectOids.isEmpty()) {
-        	// trivial case
-        	return false;
+            // trivial case
+            return false;
         }
-        
+
         int attempt = 1;
 
         SqlPerformanceMonitor pm = getPerformanceMonitor();
@@ -1542,10 +1524,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         } finally {
             pm.registerOperationFinish(opHandle, attempt);
         }
-	}
-    
-	private boolean isAnySubordinateAttempt(String upperOrgOid, Collection<String> lowerObjectOids) {
-		Session session = null;
+    }
+
+    private boolean isAnySubordinateAttempt(String upperOrgOid, Collection<String> lowerObjectOids) {
+        Session session = null;
         try {
             session = beginTransaction();
 
@@ -1577,12 +1559,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             Iterator<String> iterator = lowerObjectOids.iterator();
             int paramIndex = 0;
             while (iterator.hasNext()) {
-            	String subOid = iterator.next();
-            	query.setString("aOid" + paramIndex, upperOrgOid);
-            	query.setString("dOid" + paramIndex, subOid);
-            	paramIndex++;
+                String subOid = iterator.next();
+                query.setString("aOid" + paramIndex, upperOrgOid);
+                query.setString("dOid" + paramIndex, subOid);
+                paramIndex++;
             }
-            
+
             Number number = (Number) query.uniqueResult();
             return (number != null && number.longValue() != 0L) ? true : false;
         } catch (RuntimeException ex) {
@@ -1594,7 +1576,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         throw new SystemException("isAnySubordinateAttempt failed somehow, this really should not happen.");
     }
 
-	@Override
+    @Override
     public <T extends ObjectType> boolean matchObject(PrismObject<T> object, ObjectQuery query) throws SchemaException {
         Validate.notNull(object, "Object must not be null.");
         Validate.notNull(query, "Query must not be null.");

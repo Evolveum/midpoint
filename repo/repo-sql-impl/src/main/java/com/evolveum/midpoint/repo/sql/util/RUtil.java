@@ -26,10 +26,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.util.ValueSerializationUtil;
 import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
-import com.evolveum.midpoint.repo.sql.data.common.OperationResult;
-import com.evolveum.midpoint.repo.sql.data.common.OperationResultFull;
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
+import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.container.RAssignmentReference;
@@ -240,6 +237,7 @@ public final class RUtil {
      */
     public static void fixCompositeIDHandling(SessionFactory sessionFactory) {
         fixCompositeIdentifierInMetaModel(sessionFactory, RObjectDeltaOperation.class);
+        fixCompositeIdentifierInMetaModel(sessionFactory, ROrgClosure.class);
 
         fixCompositeIdentifierInMetaModel(sessionFactory, ROExtDate.class);
         fixCompositeIdentifierInMetaModel(sessionFactory, ROExtString.class);

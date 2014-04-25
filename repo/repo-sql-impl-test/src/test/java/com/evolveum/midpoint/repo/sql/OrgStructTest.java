@@ -598,7 +598,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         LOGGER.info("before modify");
         for (ROrgClosure c : orgClosure) {
-            LOGGER.info("{}\t{}\t{}", new Object[]{c.getAncestor().getOid(), c.getDescendant().getOid(), c.getDepth()});
+            LOGGER.info("{}\t{}", new Object[]{c.getAncestor().getOid(), c.getDescendant().getOid()});
         }
         AssertJUnit.assertEquals(3, orgClosure.size());
         session.getTransaction().commit();
@@ -616,7 +616,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         LOGGER.info("after modify");
         for (ROrgClosure c : orgClosure) {
-            LOGGER.info("{}\t{}\t{}", new Object[]{c.getAncestor().getOid(), c.getDescendant().getOid(), c.getDepth()});
+            LOGGER.info("{}\t{}", new Object[]{c.getAncestor().getOid(), c.getDescendant().getOid()});
         }
         AssertJUnit.assertEquals(4, orgClosure.size());
 
@@ -635,8 +635,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
             orgClosure = criteria.list();
 
-            LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[]{orgClosure.get(0).getAncestor().toJAXB(prismContext, null),
-                    orgClosure.get(0).getDescendant().toJAXB(prismContext, null), orgClosure.get(0).getDepth()});
+            LOGGER.info("=> A: {}, D: {}", new Object[]{orgClosure.get(0).getAncestor().toJAXB(prismContext, null),
+                    orgClosure.get(0).getDescendant().toJAXB(prismContext, null)});
 
 //			LOGGER.info("==============CLOSURE TABLE FOR EACH==========");
 //			
@@ -651,18 +651,6 @@ public class OrgStructTest extends BaseSQLRepoTest {
                     .getAncestor().getOid());
             AssertJUnit.assertEquals(MODIFY_ORG_ADD_REF_OID, orgClosure.get(0)
                     .getDescendant().getOid());
-            int depth = -1;
-            if (ancestorOid.equals(MODIFY_ORG_ADD_REF_OID)) {
-                depth = 0;
-            } else if (ancestorOid.equals(ORG_F001_OID)) {
-                depth = 2;
-            } else if (ancestorOid.equals(ORG_F003_OID)) {
-                depth = 1;
-            } else if (ancestorOid.equals(ORG_F002_OID)) {
-                depth = 1;
-            }
-            AssertJUnit.assertEquals(depth, orgClosure.get(0).getDepth());
-
         }
         session.getTransaction().commit();
         session.close();
@@ -693,7 +681,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         LOGGER.info("after modify incorrect - closure");
         for (ROrgClosure c : orgClosure) {
-            LOGGER.info("{}\t{}\t{}", new Object[]{c.getAncestor().getOid(), c.getDescendant().getOid(), c.getDepth()});
+            LOGGER.info("{}\t{}", new Object[]{c.getAncestor().getOid(), c.getDescendant().getOid()});
         }
         AssertJUnit.assertEquals(5, orgClosure.size());
 
@@ -716,16 +704,6 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
             AssertJUnit.assertEquals(ancestorOid, orgClosure.get(0).getAncestor().getOid());
             AssertJUnit.assertEquals(MODIFY_ORG_INCORRECT_ADD_REF_OID, orgClosure.get(0).getDescendant().getOid());
-
-            int depth = -1;
-            if (ancestorOid.equals(MODIFY_ORG_INCORRECT_ADD_REF_OID)) {
-                depth = 0;
-            } else if (ancestorOid.equals(ORG_F001_OID)) {
-                depth = 2;
-            } else if (ancestorOid.equals(ORG_F002_OID)) {
-                depth = 1;
-            }
-            AssertJUnit.assertEquals(depth, orgClosure.get(0).getDepth());
         }
 
 
@@ -736,7 +714,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         LOGGER.info("after modify incorrect - incorrect");
         for (ROrgIncorrect c : orgIncorrect) {
-            LOGGER.info("{}\t{}\t{}", new Object[]{c.getAncestorOid(), c.getDescendantOid()});
+            LOGGER.info("{}\t{}", new Object[]{c.getAncestorOid(), c.getDescendantOid()});
         }
         AssertJUnit.assertEquals(1, orgIncorrect.size());
         AssertJUnit.assertEquals(MODIFY_ORG_INCORRECT_ADD_REF_OID, orgIncorrect.get(0).getDescendantOid());
@@ -889,8 +867,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
         LOGGER.info("==============CLOSURE TABLE==========");
 
         for (ROrgClosure o : orgClosure) {
-            LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[]{o.getAncestor().toJAXB(prismContext, null),
-                    o.getDescendant().toJAXB(prismContext, null), o.getDepth()});
+            LOGGER.info("=> A: {}, D: {}", new Object[]{o.getAncestor().toJAXB(prismContext, null),
+                    o.getDescendant().toJAXB(prismContext, null)});
 
         }
         session.getTransaction().commit();
@@ -963,8 +941,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         LOGGER.info("==============CLOSURE TABLE==========");
         for (ROrgClosure o : orgClosure) {
-            LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[]{o.getAncestor().toJAXB(prismContext, null),
-                    o.getDescendant().toJAXB(prismContext, null), o.getDepth()});
+            LOGGER.info("=> A: {}, D: {}", new Object[]{o.getAncestor().toJAXB(prismContext, null),
+                    o.getDescendant().toJAXB(prismContext, null)});
         }
         session.getTransaction().commit();
         session.close();
