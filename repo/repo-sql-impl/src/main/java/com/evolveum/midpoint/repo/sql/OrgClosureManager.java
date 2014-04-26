@@ -255,13 +255,13 @@ public class OrgClosureManager {
 
             List<ROrgIncorrect> orgIncorrect = qIncorrect.list();
             for (ROrgIncorrect orgInc : orgIncorrect) {
-                Query qObject = session.createQuery("from RObject where oid = :oid");
-                qObject.setString("oid", orgInc.getDescendantOid());
-                RObject rObjectI = (RObject) qObject.uniqueResult();
-                if (rObjectI != null) {
-                    fillTransitiveHierarchy(rObjectI, rOrg.getOid(), session, !withIncorrect);
-                    session.delete(orgInc);
-                }
+//                Query qObject = session.createQuery("from RObject where oid = :oid");
+//                qObject.setString("oid", orgInc.getDescendantOid());
+//                RObject rObjectI = (RObject) qObject.uniqueResult();
+//                if (rObjectI != null) {
+//                    fillTransitiveHierarchy(rObjectI, rOrg.getOid(), session, !withIncorrect);
+//                    session.delete(orgInc);
+//                }
             }
         }
     }
@@ -295,9 +295,8 @@ public class OrgClosureManager {
         } else if (withIncorrect) {
             boolean existIncorrect = existIncorrect(session, ancestorOid, descendant.getOid());
             if (!existIncorrect) {
-                LOGGER.trace("adding incorrect {}\t{}", new Object[]{ancestorOid,
-                        descendant.getOid()});
-                session.save(new ROrgIncorrect(ancestorOid, descendant.getOid()));
+                LOGGER.trace("adding incorrect {}", new Object[]{ancestorOid, descendant.getOid()});
+                session.save(new ROrgIncorrect(ancestorOid));
             }
         }
     }

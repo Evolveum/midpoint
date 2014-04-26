@@ -32,14 +32,12 @@ import java.io.Serializable;
 public class ROrgIncorrect implements Serializable {
 
     private String ancestorOid;
-    private String descendantOid;
 
     public ROrgIncorrect() {
     }
 
-    public ROrgIncorrect(String ancestorOid, String descendantOid) {
+    public ROrgIncorrect(String ancestorOid) {
         this.ancestorOid = ancestorOid;
-        this.descendantOid = descendantOid;
     }
 
     @Id
@@ -52,21 +50,9 @@ public class ROrgIncorrect implements Serializable {
         this.ancestorOid = ancestorOid;
     }
 
-    @Id
-    @Column(name = "descendant_oid", nullable = false, updatable = false, length = RUtil.COLUMN_LENGTH_OID)
-    public String getDescendantOid() {
-        return descendantOid;
-    }
-
-    public void setDescendantOid(String descendantOid) {
-        this.descendantOid = descendantOid;
-    }
-
     @Override
     public int hashCode() {
-        int result = ancestorOid != null ? ancestorOid.hashCode() : 0;
-        result = 31 * result + (descendantOid != null ? descendantOid.hashCode() : 0);
-        return result;
+        return ancestorOid != null ? ancestorOid.hashCode() : 0;
     }
 
     @Override
@@ -79,8 +65,6 @@ public class ROrgIncorrect implements Serializable {
         ROrgIncorrect that = (ROrgIncorrect) obj;
 
         if (ancestorOid != null ? !ancestorOid.equals(that.ancestorOid) : that.ancestorOid != null)
-            return false;
-        if (descendantOid != null ? !descendantOid.equals(that.descendantOid) : that.descendantOid != null)
             return false;
 
         return true;

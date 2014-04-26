@@ -553,7 +553,6 @@ public class OrgStructTest extends BaseSQLRepoTest {
         List<ROrgIncorrect> orgIncorrect = session.createQuery("from ROrgIncorrect").list();
         AssertJUnit.assertEquals(1, orgIncorrect.size());
         AssertJUnit.assertEquals(ORG_F012_OID, orgIncorrect.get(0).getAncestorOid());
-        AssertJUnit.assertEquals(ORG_F010_OID, orgIncorrect.get(0).getDescendantOid());
 
 
         ObjectQuery query = new ObjectQuery();
@@ -712,12 +711,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         List<ROrgIncorrect> orgIncorrect = criteria.list();
 
-        LOGGER.info("after modify incorrect - incorrect");
-        for (ROrgIncorrect c : orgIncorrect) {
-            LOGGER.info("{}\t{}", new Object[]{c.getAncestorOid(), c.getDescendantOid()});
-        }
         AssertJUnit.assertEquals(1, orgIncorrect.size());
-        AssertJUnit.assertEquals(MODIFY_ORG_INCORRECT_ADD_REF_OID, orgIncorrect.get(0).getDescendantOid());
         AssertJUnit.assertEquals(ORG_F012_OID, orgIncorrect.get(0).getAncestorOid());
 
         session.getTransaction().commit();
