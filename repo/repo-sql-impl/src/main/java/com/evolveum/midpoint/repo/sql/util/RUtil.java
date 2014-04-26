@@ -76,6 +76,11 @@ import java.util.zip.GZIPOutputStream;
 public final class RUtil {
 
     /**
+     * Currently set in ctx-session.xml as constant, used for batch inserts (e.g. in OrgClosureManager)
+     */
+    public static final int JDBC_BATCH_SIZE = 20;
+
+    /**
      * This constant is used for mapping type for {@link javax.persistence.Lob}
      * fields. {@link org.hibernate.type.MaterializedClobType} was not working
      * properly with PostgreSQL, causing TEXT types (clobs) to be saved not in

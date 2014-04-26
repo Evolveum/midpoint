@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
+import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import org.apache.commons.collections.ListUtils;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.Query;
@@ -39,6 +41,7 @@ import org.hibernate.criterion.Restrictions;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -56,6 +59,15 @@ public class OrgClosureManager {
 
     public OrgClosureManager(SqlRepositoryConfiguration repoConfiguration) {
         this.repoConfiguration = repoConfiguration;
+    }
+
+    @Deprecated
+    public void cleanupTasks(Date minValue, Session session){
+        Query query = session.createQuery("delete from ROrgClosure o where " +
+                "o.ancestorOid in (select oid from RTask t where t.completionTimestamp < :timestamp) " +
+                "or o.descendantOid in (select oid from RTask t where t.completionTimestamp < :timestamp)");
+        query.setParameter("timestamp", XMLGregorianCalendarType.asXMLGregorianCalendar(minValue));
+        query.executeUpdate();
     }
 
     public <T extends ObjectType> void updateOrgClosure(Collection<? extends ItemDelta> modifications, Session session,
@@ -101,7 +113,9 @@ public class OrgClosureManager {
     }
 
     private <T extends ObjectType> void handleAdd(String oid, List<String> parents, Class<T> type, Session session) {
-        Query query = session.createSQLQuery("insert into m_org_closure (ancestor_oid ,descendant_oid) values (:oid, :oid)");
+        session.flush();
+
+        Query query = session.createSQLQuery("insert into m_org_closure (ancestor_oid, descendant_oid) values (:oid, :oid)");
         query.setString("oid", oid);
         query.executeUpdate();
 
@@ -109,14 +123,32 @@ public class OrgClosureManager {
             return;
         }
 
-        query = session.createSQLQuery("insert into m_org_closure (ancestor_oid ,descendant_oid) " +
-                "select ancestor_oid, :oid from m_org_closure where descendant_oid in (:parents) group by ancestor_oid");
-        query.setParameterList("parents", parents);
-        query.setString("oid", oid);
+        query = session.createQuery("select o.oid from RObject o where o.oid in (:oids)");
+        query.setParameterList("oids", parents);
+        List<String> existing = query.list();
 
-        query.executeUpdate();
+        if (!existing.isEmpty()) {
+            query = session.createSQLQuery("insert into m_org_closure (ancestor_oid, descendant_oid) " +
+                    "select ancestor_oid, :oid from m_org_closure where descendant_oid in (:parents) group by ancestor_oid");
+            query.setParameterList("parents", existing);
+            query.setString("oid", oid);
+            query.executeUpdate();
+        }
 
-        //todo check incorrect!!!!!!!
+        parents.removeAll(existing);
+
+        if (!parents.isEmpty()) {
+            //todo incorrect can already contain non-existing parent oid
+            for (int i = 0; i < parents.size(); i++) {
+                session.save(new ROrgIncorrect(parents.get(i)));
+                if (i % 20 == 0) { //20, same as the JDBC batch size flush a batch of inserts and release memory
+                    session.flush();
+                    session.clear();
+                }
+            }
+            session.flush();
+            session.clear();
+        }
     }
 
     private <T extends ObjectType> void handleModify(Collection<? extends ItemDelta> modifications, Session session,

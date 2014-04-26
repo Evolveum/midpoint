@@ -1490,6 +1490,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         LOGGER.debug("Doing task cleanup, date={}", minValue);
+        getClosureManager().cleanupTasks(minValue, session);
+
         Query query = session.createQuery("delete from RTask as t where t.completionTimestamp < :timestamp");
         query.setParameter("timestamp", XMLGregorianCalendarType.asXMLGregorianCalendar(minValue));
         return query.executeUpdate();
