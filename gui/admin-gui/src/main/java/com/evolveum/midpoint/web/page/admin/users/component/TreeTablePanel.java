@@ -755,7 +755,7 @@ public class TreeTablePanel extends SimplePanel<String> {
         OrgTreeDto dto = selected.getObject();
         String oid = dto != null ? dto.getOid() : getModel().getObject();
 
-        OrgFilter org = OrgFilter.createOrg(oid, 1, 1);
+        OrgFilter org = OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
 //        return ObjectQuery.createObjectQuery(org);
 
         BasicSearchPanel<String> basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));

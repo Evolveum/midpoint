@@ -23,22 +23,19 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
-
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.hibernate.*;
+import org.hibernate.FlushMode;
+import org.hibernate.PessimisticLockException;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.hibernate.exception.LockAcquisitionException;
 import org.hibernate.jdbc.Work;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.HibernateOptimisticLockingFailureException;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 
-import javax.xml.datatype.Duration;
-
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Date;
 
 /**
  * @author lazyman
@@ -60,8 +57,8 @@ public class SqlBaseService {
     private SessionFactory sessionFactory;
     @Autowired
     private LocalSessionFactoryBean sessionFactoryBean;
-    @Autowired(required = true)
-	private MatchingRuleRegistry matchingRuleRegistry;
+    @Autowired
+    private MatchingRuleRegistry matchingRuleRegistry;
 
     private SqlRepositoryFactory repositoryFactory;
 
@@ -100,14 +97,14 @@ public class SqlBaseService {
     }
 
     public MatchingRuleRegistry getMatchingRuleRegistry() {
-		return matchingRuleRegistry;
-	}
+        return matchingRuleRegistry;
+    }
 
-	public void setMatchingRuleRegistry(MatchingRuleRegistry matchingRuleRegistry) {
-		this.matchingRuleRegistry = matchingRuleRegistry;
-	}
+    public void setMatchingRuleRegistry(MatchingRuleRegistry matchingRuleRegistry) {
+        this.matchingRuleRegistry = matchingRuleRegistry;
+    }
 
-	protected int logOperationAttempt(String oid, String operation, int attempt, RuntimeException ex,
+    protected int logOperationAttempt(String oid, String operation, int attempt, RuntimeException ex,
                                       OperationResult result) {
 
         boolean serializationException = isExceptionRelatedToSerialization(ex);
@@ -317,64 +314,5 @@ public class SqlBaseService {
         boolean fatal = !isExceptionRelatedToSerialization(ex);
         rollbackTransaction(session, ex, result, fatal);
         throw new SystemException(ex.getMessage(), ex);
-    }
-
-    protected void cleanup(Class entity, CleanupPolicyType policy, OperationResult subResult) {
-        Validate.notNull(policy, "Cleanup policy must not be null.");
-        Validate.notNull(subResult, "Operation result must not be null.");
-
-        final String operation = "deleting";
-        int attempt = 1;
-
-        SqlPerformanceMonitor pm = repositoryFactory.getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart("deleteObject");
-
-        try {
-            while (true) {
-                try {
-                    cleanupAttempt(entity, policy, subResult);
-                    return;
-                } catch (RuntimeException ex) {
-                    attempt = logOperationAttempt(null, operation, attempt, ex, subResult);
-                    pm.registerOperationNewTrial(opHandle, attempt);
-                }
-            }
-        } finally {
-            pm.registerOperationFinish(opHandle, attempt);
-        }
-    }
-
-    private void cleanupAttempt(Class entity, CleanupPolicyType policy, OperationResult subResult) {
-        if (policy.getMaxAge() == null) {
-            return;
-        }
-
-        Duration duration = policy.getMaxAge();
-        if (duration.getSign() > 0) {
-            duration = duration.negate();
-        }
-        Date minValue = new Date();
-        duration.addTo(minValue);
-        LOGGER.info("Starting cleanup for entity {} deleting up to {} (duration '{}').",
-                new Object[]{entity.getSimpleName(), minValue, duration});
-
-        Session session = null;
-        try {
-            session = beginTransaction();
-
-            int count = cleanupAttempt(entity, minValue, session);
-            LOGGER.info("Cleanup in {} performed, {} records deleted up to {} (duration '{}').",
-                    new Object[]{entity.getSimpleName(), count, minValue, duration});
-
-            session.getTransaction().commit();
-        } catch (RuntimeException ex) {
-            handleGeneralRuntimeException(ex, session, subResult);
-        } finally {
-            cleanupSessionAndResult(session, subResult);
-        }
-    }
-
-    protected int cleanupAttempt(Class entity, Date minValue, Session session) {
-        return 0;
     }
 }
