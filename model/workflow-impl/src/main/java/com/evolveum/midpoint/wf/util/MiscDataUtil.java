@@ -279,7 +279,7 @@ public class MiscDataUtil {
         try {
 			return wfConfiguration.isAllowApproveOthersItems() 
 					&& securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_UI_WORK_ITEMS_APPROVE_OTHERS_ITEMS_URL, 
-							null, null, null, null);
+							null, null, null, null, null);
 		} catch (SchemaException e) {
 			throw new SystemException(e.getMessage(), e);
 		}

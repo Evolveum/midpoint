@@ -59,6 +59,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SynchronizationSituationUtil;
+import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -641,8 +642,22 @@ public class ChangeExecutor {
 		LOGGER.debug("\n{}", sb);
 	}
 
+	private <F extends ObjectType> OwnerResolver createOwnerResolver(final LensContext<F> context) {
+		return new OwnerResolver() {
+			@Override
+			public <F extends FocusType> PrismObject<F> resolveOwner(PrismObject<ShadowType> shadow) {
+				LensFocusContext<F> focusContext = (LensFocusContext<F>) context.getFocusContext();
+				if (focusContext == null) {
+					return null;
+				} else {
+					return focusContext.getObjectCurrent();
+				}
+			}
+		};
+	}
+			
     private <T extends ObjectType, F extends ObjectType> void executeAddition(ObjectDelta<T> change, 
-    		LensContext<F> context, LensElementContext<T> objectContext, ModelExecuteOptions options,
+    		final LensContext<F> context, LensElementContext<T> objectContext, ModelExecuteOptions options,
             ResourceType resource, Task task, OperationResult result)
     				throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, 
     				ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -656,8 +671,9 @@ public class ChangeExecutor {
             change.getModifications().clear();
         }
         
-        securityEnforcer.authorize(ModelService.AUTZ_ADD_URL, AuthorizationPhaseType.EXECUTION,
-        		objectToAdd, null, null, result);
+        OwnerResolver ownerResolver = createOwnerResolver(context);
+		securityEnforcer.authorize(ModelService.AUTZ_ADD_URL, AuthorizationPhaseType.EXECUTION,
+        		objectToAdd, null, null, ownerResolver, result);
 
         T objectTypeToAdd = objectToAdd.asObjectable();
 
@@ -710,8 +726,9 @@ public class ChangeExecutor {
         Class<T> objectTypeClass = change.getObjectTypeClass();
         
         PrismObject<T> objectOld = objectContext.getObjectOld();
+        OwnerResolver ownerResolver = createOwnerResolver(context);
         securityEnforcer.authorize(ModelService.AUTZ_DELETE_URL, AuthorizationPhaseType.EXECUTION,
-        		objectOld, null, null, result);
+        		objectOld, null, null, ownerResolver, result);
 
         if (TaskType.class.isAssignableFrom(objectTypeClass)) {
             taskManager.deleteTask(oid, result);
@@ -748,8 +765,9 @@ public class ChangeExecutor {
         Class<T> objectTypeClass = change.getObjectTypeClass();
         
         PrismObject<T> objectNew = objectContext.getObjectNew();
+        OwnerResolver ownerResolver = createOwnerResolver(context);
         securityEnforcer.authorize(ModelService.AUTZ_MODIFY_URL, AuthorizationPhaseType.EXECUTION,
-        		objectNew, change, null, result);
+        		objectNew, change, null, ownerResolver, result);
         	
     	applyMetadata(change, objectContext, objectTypeClass, task, context, result);
         

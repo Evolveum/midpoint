@@ -51,7 +51,7 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	 * @param phase check authorization for a specific phase. If null then all phases are checked.
 	 */
 	<O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target) throws SchemaException;
+			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver) throws SchemaException;
 	
 	/**
 	 * Evaluates authorization: simply returns if the currently logged it user is authorized for a
@@ -60,10 +60,10 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	 * @param phase check authorization for a specific phase. If null then all phases are checked.
 	 */
 	<O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, 
+			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, 
 			OperationResult result) throws SecurityViolationException, SchemaException;	
 	
-	<O extends ObjectType> ObjectSecurityConstraints compileSecurityContraints(PrismObject<O> object) throws SchemaException;
+	<O extends ObjectType> ObjectSecurityConstraints compileSecurityContraints(PrismObject<O> object, OwnerResolver ownerResolver) throws SchemaException;
 	
 	/**
 	 * TODO

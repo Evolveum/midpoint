@@ -149,7 +149,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
                 LOGGER.trace("Determining authorization for web service operation {} (action: {})", operationName, action);
                 boolean isAuthorized;
 				try {
-					isAuthorized = securityEnforcer.isAuthorized(action, AuthorizationPhaseType.REQUEST, null, null, null);
+					isAuthorized = securityEnforcer.isAuthorized(action, AuthorizationPhaseType.REQUEST, null, null, null, null);
 				} catch (SchemaException e) {
 					LOGGER.debug("Access to web service denied for user '{}': schema error: {}", 
 		        			new Object[]{username, e.getMessage(), e});

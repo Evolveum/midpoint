@@ -61,6 +61,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -749,18 +750,25 @@ public class Clockwork {
 	}
 	
 	private <F extends ObjectType> void authorizeContextRequest(LensContext<F> context, Task task, OperationResult result) throws SecurityViolationException, SchemaException {
-		LensFocusContext<F> focusContext = context.getFocusContext();
+		final LensFocusContext<F> focusContext = context.getFocusContext();
+		OwnerResolver ownerResolver = null;
 		if (focusContext != null) {
-			authorizeElementContext(focusContext, task, result);
-			authorizeAssignmentRequest(focusContext, task, result);
+			ownerResolver = new OwnerResolver() {
+				@Override
+				public <F extends FocusType> PrismObject<F> resolveOwner(PrismObject<ShadowType> shadow) {
+					return (PrismObject<F>) focusContext.getObjectCurrent();
+				}
+			};
+			authorizeElementContext(focusContext, ownerResolver, task, result);
+			authorizeAssignmentRequest(focusContext, ownerResolver, task, result);
 		}
 		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
-			authorizeElementContext(projectionContext, task, result);
+			authorizeElementContext(projectionContext, ownerResolver, task, result);
 		}
 		context.setRequestAuthorized(true);
 	}
 	
-	private <O extends ObjectType> void authorizeElementContext(LensElementContext<O> elementContext, Task task, OperationResult result) throws SecurityViolationException, SchemaException {
+	private <O extends ObjectType> void authorizeElementContext(LensElementContext<O> elementContext, OwnerResolver ownerResolver, Task task, OperationResult result) throws SecurityViolationException, SchemaException {
 		ObjectDelta<O> primaryDelta = elementContext.getPrimaryDelta();
 		// If there is no delta then there is no request to authorize
 		if (primaryDelta != null) {
@@ -769,11 +777,11 @@ public class Clockwork {
 				object = elementContext.getObjectCurrent();
 			}
 			String operationUrl = ModelUtils.getOperationUrlFromDelta(primaryDelta);
-			securityEnforcer.authorize(operationUrl, AuthorizationPhaseType.REQUEST, object, primaryDelta, null, result);
+			securityEnforcer.authorize(operationUrl, AuthorizationPhaseType.REQUEST, object, primaryDelta, null, ownerResolver, result);
 		}
 	}
 	
-	private <F extends ObjectType> void authorizeAssignmentRequest(LensFocusContext<F> focusContext, Task task, OperationResult result) throws SecurityViolationException, SchemaException {
+	private <F extends ObjectType> void authorizeAssignmentRequest(LensFocusContext<F> focusContext, OwnerResolver ownerResolver, Task task, OperationResult result) throws SecurityViolationException, SchemaException {
 		//
 	}
 	

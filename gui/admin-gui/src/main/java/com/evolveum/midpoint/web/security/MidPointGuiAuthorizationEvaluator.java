@@ -23,6 +23,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
+import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -72,18 +73,19 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
 	}
 
 	public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target) throws SchemaException {
-		return securityEnforcer.isAuthorized(operationUrl, phase, object, delta, target);
+			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver) throws SchemaException {
+		return securityEnforcer.isAuthorized(operationUrl, phase, object, delta, target, ownerResolver);
 	}
 
 	public boolean supports(ConfigAttribute attribute) {
 		return securityEnforcer.supports(attribute);
 	}
 
+	@Override
 	public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OperationResult result)
+			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, OperationResult result)
 			throws SecurityViolationException, SchemaException {
-		securityEnforcer.authorize(operationUrl, phase, object, delta, target, result);
+		securityEnforcer.authorize(operationUrl, phase, object, delta, target, ownerResolver, result);
 	}
 
 	public boolean supports(Class<?> clazz) {
@@ -140,9 +142,9 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
     }
 
     @Override
-	public <O extends ObjectType> ObjectSecurityConstraints compileSecurityContraints(PrismObject<O> object)
+	public <O extends ObjectType> ObjectSecurityConstraints compileSecurityContraints(PrismObject<O> object, OwnerResolver ownerResolver)
 			throws SchemaException {
-		return securityEnforcer.compileSecurityContraints(object);
+		return securityEnforcer.compileSecurityContraints(object, ownerResolver);
 	}
 
     @Override

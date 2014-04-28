@@ -53,6 +53,7 @@ import java.util.List;
 
 /**
  * @author lazyman
+ * @author semancik
  */
 @Service(value = "userDetailsService")
 public class UserProfileServiceImpl implements UserProfileService {
@@ -205,4 +206,21 @@ public class UserProfileServiceImpl implements UserProfileService {
 
         return null;
     }
+
+	@Override
+	public <F extends FocusType> PrismObject<F> resolveOwner(PrismObject<ShadowType> shadow) {
+		PrismObject<F> owner;
+		try {
+			owner = repositoryService.searchShadowOwner(shadow.getOid(), new OperationResult(UserProfileServiceImpl.class+".resolveOwner"));
+		} catch (ObjectNotFoundException e) {
+			throw new SystemException(e.getMessage(), e);
+		}
+		if (owner == null) {
+			return null;
+		}
+		if (owner.canRepresent(UserType.class)) {
+			userComputer.recompute((PrismObject<UserType>)owner);
+		}
+		return owner;
+	}
 }
