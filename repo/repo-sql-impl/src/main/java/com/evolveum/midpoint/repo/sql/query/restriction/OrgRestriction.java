@@ -72,15 +72,8 @@ public class OrgRestriction extends Restriction<OrgFilter> {
 
         String orgRefOid = filter.getOrgRef().getOid();
 
-        Integer maxDepth = filter.getMaxDepth();
-        if (maxDepth != null && maxDepth < 0) {
-            maxDepth = null;
-        }
-
-        Integer minDepth = filter.getMinDepth();
-        if (minDepth != null && minDepth < 0) {
-            minDepth = null;
-        }
+        Integer maxDepth = filter.getScope() == OrgFilter.Scope.ONE_LEVEL ? 1 : null;
+        Integer minDepth = filter.getScope() == OrgFilter.Scope.ONE_LEVEL ? 1 : null;
 
         if (minDepth == null && maxDepth == null) {
             return Restrictions.eq(CLOSURE_ALIAS + ".ancestorOid", orgRefOid);

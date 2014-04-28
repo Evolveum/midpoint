@@ -16,180 +16,152 @@
 
 package com.evolveum.midpoint.prism.query;
 
-import org.w3c.dom.Element;
-
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
 
 public class OrgFilter extends ObjectFilter {
 
-	private PrismReferenceValue baseOrgRef;
-	private Integer minDepth;
-	private Integer maxDepth;
-	private boolean root;
+    public static enum Scope {ONE_LEVEL, SUBTREE}
 
-	public OrgFilter(PrismReferenceValue baseOrgRef, Integer minDepth, Integer maxDepth) {
-		this.baseOrgRef = baseOrgRef;
-		this.minDepth = minDepth;
-		this.maxDepth = maxDepth;
-	}
-	
-	public OrgFilter() {
-		// TODO Auto-generated constructor stub
-	}
+    private PrismReferenceValue baseOrgRef;
+    private Scope scope;
+    private boolean root;
 
-	public static OrgFilter createOrg(PrismReferenceValue baseOrgRef, Integer minDepth, Integer maxDepth) {
-		return new OrgFilter(baseOrgRef, minDepth, maxDepth);
-	}
+    public OrgFilter(PrismReferenceValue baseOrgRef, Scope scope) {
+        this.baseOrgRef = baseOrgRef;
+        this.scope = scope != null ? scope : Scope.SUBTREE;
+    }
 
-	public static OrgFilter createOrg(String baseOrgOid, Integer minDepth, Integer maxDepth) {
-		return new OrgFilter(new PrismReferenceValue(baseOrgOid), minDepth, maxDepth);
-	}
+    public OrgFilter() {
+        // TODO Auto-generated constructor stub
+    }
 
-	public static OrgFilter createOrg(String baseOrgRef) {
-		return new OrgFilter(new PrismReferenceValue(baseOrgRef), null, null);
-	}
-	
-	public static OrgFilter createRootOrg(){
-		OrgFilter filter = new OrgFilter();
-		filter.setRoot(true);
-		return filter;
-		
-	}
-	
-	public PrismReferenceValue getOrgRef() {
-		return baseOrgRef;
-	}
+    public static OrgFilter createOrg(PrismReferenceValue baseOrgRef, Scope scope) {
+        return new OrgFilter(baseOrgRef, scope);
+    }
 
-	public void setOrgRef(PrismReferenceValue baseOrgRef) {
-		this.baseOrgRef = baseOrgRef;
-	}
+    public static OrgFilter createOrg(String baseOrgOid, Scope scope) {
+        return new OrgFilter(new PrismReferenceValue(baseOrgOid), scope);
+    }
 
-	public Integer getMinDepth() {
-		return minDepth;
-	}
+    public static OrgFilter createOrg(String baseOrgRef) {
+        return new OrgFilter(new PrismReferenceValue(baseOrgRef), Scope.SUBTREE);
+    }
 
-	public void setMinDepth(Integer minDepth) {
-		this.minDepth = minDepth;
-	}
+    public static OrgFilter createRootOrg() {
+        OrgFilter filter = new OrgFilter();
+        filter.setRoot(true);
+        return filter;
 
-	public Integer getMaxDepth() {
-		return maxDepth;
-	}
+    }
 
-	public void setMaxDepth(Integer maxDepth) {
-		this.maxDepth = maxDepth;
-	}
-	
-	public void setRoot(boolean root) {
-		this.root = root;
-	}
-	
-	public boolean isRoot() {
-		return root;
-	}
-	
-	@Override
-	public OrgFilter clone() {
-		return new OrgFilter(getOrgRef(), getMinDepth(), getMaxDepth());
-	}
+    public PrismReferenceValue getOrgRef() {
+        return baseOrgRef;
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((baseOrgRef == null) ? 0 : baseOrgRef.hashCode());
-		result = prime * result + ((maxDepth == null) ? 0 : maxDepth.hashCode());
-		result = prime * result + ((minDepth == null) ? 0 : minDepth.hashCode());
-		result = prime * result + (root ? 1231 : 1237);
-		return result;
-	}
+    public void setOrgRef(PrismReferenceValue baseOrgRef) {
+        this.baseOrgRef = baseOrgRef;
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		OrgFilter other = (OrgFilter) obj;
-		if (baseOrgRef == null) {
-			if (other.baseOrgRef != null)
-				return false;
-		} else if (!baseOrgRef.equals(other.baseOrgRef))
-			return false;
-		if (maxDepth == null) {
-			if (other.maxDepth != null)
-				return false;
-		} else if (!maxDepth.equals(other.maxDepth))
-			return false;
-		if (minDepth == null) {
-			if (other.minDepth != null)
-				return false;
-		} else if (!minDepth.equals(other.minDepth))
-			return false;
-		if (root != other.root)
-			return false;
-		return true;
-	}
+    public Scope getScope() {
+        return scope;
+    }
 
-	@Override
-	public String debugDump() {
-		return debugDump(0);
-	}
+    public void setScope(Scope scope) {
+        this.scope = scope;
+    }
 
-	@Override
-	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("ORG: \n");
-		if (getOrgRef() != null) {
-			sb.append(getOrgRef().debugDump(indent + 1));
-			sb.append("\n");
-		} else {
-			DebugUtil.indentDebugDump(sb, indent + 1);
-			sb.append("null\n");
-		}
+    public void setRoot(boolean root) {
+        this.root = root;
+    }
 
-		if (getMinDepth() != null) {
-			DebugUtil.indentDebugDump(sb, indent + 1);
-			sb.append(getMaxDepth());
-		}
-		if (getMaxDepth() != null) {
-			DebugUtil.indentDebugDump(sb, indent + 1);
-			sb.append(getMaxDepth());
-		}
-		return sb.toString();
-	}
-	
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("ORG: ");
-		if (getOrgRef() != null){
-			sb.append(getOrgRef().toString());
-			sb.append(", ");
-		}
-		if (getMinDepth() != null){
-			sb.append(getMinDepth());
-			sb.append(", ");
-		}
-		if (getMaxDepth() != null){
-			sb.append(getMaxDepth());
-		}
-		return sb.toString();
-	}
+    public boolean isRoot() {
+        return root;
+    }
 
-	@Override
-	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+    @Override
+    public OrgFilter clone() {
+        return new OrgFilter(getOrgRef(), getScope());
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((baseOrgRef == null) ? 0 : baseOrgRef.hashCode());
+        result = prime * result + ((scope == null) ? 0 : scope.hashCode());
+        result = prime * result + (root ? 1231 : 1237);
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        OrgFilter other = (OrgFilter) obj;
+        if (baseOrgRef == null) {
+            if (other.baseOrgRef != null)
+                return false;
+        } else if (!baseOrgRef.equals(other.baseOrgRef))
+            return false;
+        if (scope != other.scope)
+            return false;
+        if (root != other.root)
+            return false;
+        return true;
+    }
+
+    @Override
+    public String debugDump() {
+        return debugDump(0);
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
+        sb.append("ORG: \n");
+        if (getOrgRef() != null) {
+            sb.append(getOrgRef().debugDump(indent + 1));
+            sb.append("\n");
+        } else {
+            DebugUtil.indentDebugDump(sb, indent + 1);
+            sb.append("null\n");
+        }
+
+        if (getScope() != null) {
+            DebugUtil.indentDebugDump(sb, indent + 1);
+            sb.append(getScope());
+        }
+        return sb.toString();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("ORG: ");
+        if (getOrgRef() != null) {
+            sb.append(getOrgRef().toString());
+            sb.append(", ");
+        }
+        if (getScope() != null) {
+            sb.append(getScope());
+        }
+        return sb.toString();
+    }
+
+    @Override
+    public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) {
+        // TODO Auto-generated method stub
+        return false;
+    }
 
 
 }

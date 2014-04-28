@@ -216,8 +216,6 @@ public class OrgStructTest extends BaseSQLRepoTest {
 //		PrismAsserts.assertEqualsPolyString("Governor", "Governor", elaine.getTitle());
         ELAINE_OID = elaine.getOid();
 
-        // MID-1828
-        testMonkeyMatch();
         testMonkeySubordinate();
 
         LOGGER.info("==>after add<==");
@@ -264,146 +262,6 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         session.getTransaction().commit();
         session.close();
-    }
-
-    /**
-     * Tests for repo.matchObject() method
-     */
-    private void testMonkeyMatch() throws SchemaException, ObjectNotFoundException {
-    	OperationResult result = new OperationResult(OrgStructTest.class.getName()+".testMonkeyMatch");
-    	PrismObject<OrgType> org003 = repositoryService.getObject(OrgType.class, ORG_F003_OID, null, result);
-    	PrismObject<OrgType> org001 = repositoryService.getObject(OrgType.class, ORG_F001_OID, null, result);
-    	PrismObject<OrgType> org005 = repositoryService.getObject(OrgType.class, ORG_F005_OID, null, result);
-    	
-    	// properties
-		assertMatch(org003, createOrgNameFilter("F0003"), true);
-		assertMatch(org003, createOrgNameFilter("NoNSenSe"), false);
-		
-		// AND between properties
-		assertMatch(org003, 
-				AndFilter.createAnd(
-						createOrgNameFilter("F0003"),
-						createOrgDisplayNameFilter("Ministry of Offense")),
-				true);
-		
-		assertMatch(org003, 
-				AndFilter.createAnd(
-						createOrgNameFilter("007"),
-						createOrgDisplayNameFilter("Ministry of Offense")),
-				false);
-		
-		assertMatch(org003, 
-				AndFilter.createAnd(
-						createOrgNameFilter("F0003"),
-						createOrgDisplayNameFilter("Departmemt of NONsenSE")),
-				false);
-		
-		// Orgs
-		assertMatch(org003, OrgFilter.createOrg(ORG_F001_OID), true);
-		assertMatch(org003, OrgFilter.createOrg(ORG_F003_OID), true);
-		assertMatch(org003, OrgFilter.createOrg(ORG_F005_OID), false);
-		assertMatch(org003, OrgFilter.createOrg(ORG_F002_OID), false);
-		
-		assertMatch(org001, OrgFilter.createOrg(ORG_F001_OID), true);
-		assertMatch(org003, OrgFilter.createOrg(ORG_F001_OID), true);
-		assertMatch(org005, OrgFilter.createOrg(ORG_F001_OID), true);
-		
-		// OR betweens orgs
-		assertMatch(org005, 
-				OrFilter.createOr(
-						OrgFilter.createOrg(ORG_F002_OID),
-						OrgFilter.createOrg(ORG_F003_OID)),
-				true);
-		assertMatch(org005, 
-				OrFilter.createOr(
-						OrgFilter.createOrg(ORG_F002_OID),
-						OrgFilter.createOrg(ORG_F004_OID)),
-				false);
-
-		// org AND property 
-		assertMatch(org003, 
-				AndFilter.createAnd(
-						OrgFilter.createOrg(ORG_F001_OID),
-						createOrgNameFilter("F0003")),
-				true);
-
-		assertMatch(org003, 
-				AndFilter.createAnd(
-						OrgFilter.createOrg(ORG_F001_OID),
-						createOrgNameFilter("blabla")),
-				false);
-
-		assertMatch(org003, 
-				AndFilter.createAnd(
-						OrgFilter.createOrg(ORG_F005_OID),
-						createOrgNameFilter("F0003")),
-				false);
-		
-		// (OR between orgs) AND property
-		assertMatch(org005,
-				AndFilter.createAnd(
-					OrFilter.createOr(
-							OrgFilter.createOrg(ORG_F002_OID),
-							OrgFilter.createOrg(ORG_F003_OID)),
-					createOrgNameFilter("F0005")),
-				true);
-
-		assertMatch(org005,
-				AndFilter.createAnd(
-					OrFilter.createOr(
-							OrgFilter.createOrg(ORG_F002_OID),
-							OrgFilter.createOrg(ORG_F003_OID)),
-					createOrgNameFilter("blurbrrfrr!")),
-				false);
-		
-		assertMatch(org005,
-				AndFilter.createAnd(
-					OrFilter.createOr(
-							OrgFilter.createOrg(ORG_F002_OID),
-							OrgFilter.createOrg(ORG_F004_OID)),
-					createOrgNameFilter("F0005")),
-				false);
-		
-		// (OR between orgs) AND (AND between properties)
-		assertMatch(org005,
-				AndFilter.createAnd(
-					OrFilter.createOr(
-							OrgFilter.createOrg(ORG_F002_OID),
-							OrgFilter.createOrg(ORG_F003_OID)),
-					AndFilter.createAnd(
-							createOrgNameFilter("F0005"),
-							createOrgDisplayNameFilter("Swashbuckler Section"))),
-				true);
-		
-		assertMatch(org005,
-				AndFilter.createAnd(
-					OrFilter.createOr(
-							OrgFilter.createOrg(ORG_F002_OID),
-							OrgFilter.createOrg(ORG_F004_OID)),
-					AndFilter.createAnd(
-							createOrgNameFilter("F0005"),
-							createOrgDisplayNameFilter("Swashbuckler Section"))),
-				false);
-		
-		assertMatch(org005,
-				AndFilter.createAnd(
-					OrFilter.createOr(
-							OrgFilter.createOrg(ORG_F002_OID),
-							OrgFilter.createOrg(ORG_F003_OID)),
-					AndFilter.createAnd(
-							createOrgNameFilter("007"),
-							createOrgDisplayNameFilter("Swashbuckler Section"))),
-				false);
-		
-		assertMatch(org005,
-				AndFilter.createAnd(
-					OrFilter.createOr(
-							OrgFilter.createOrg(ORG_F002_OID),
-							OrgFilter.createOrg(ORG_F003_OID)),
-					AndFilter.createAnd(
-							createOrgNameFilter("F0005"),
-							createOrgDisplayNameFilter("landLUBER subSECtion"))),
-				false);
     }
     
     /**
@@ -941,7 +799,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
             LOGGER.info("USER000 ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));
         }
 
-        AssertJUnit.assertEquals(8, orgClosure.size());
+        AssertJUnit.assertEquals(9, orgClosure.size());
     }
 
     @SuppressWarnings("unchecked")
@@ -970,12 +828,12 @@ public class OrgStructTest extends BaseSQLRepoTest {
         session.close();
 
 
-        ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createOrg(SEARCH_ORG_OID_DEPTH1, null, 1));
+        ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createOrg(SEARCH_ORG_OID_DEPTH1, OrgFilter.Scope.ONE_LEVEL));
         objectQuery.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
 
         List<PrismObject<ObjectType>> sOrgClosure = repositoryService.searchObjects(ObjectType.class, objectQuery, null, parentResult);
 
-        AssertJUnit.assertEquals(5, sOrgClosure.size());
+        AssertJUnit.assertEquals(4, sOrgClosure.size());
 
         for (PrismObject<ObjectType> u : sOrgClosure) {
             LOGGER.info("USER000 ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));
@@ -1091,7 +949,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         ObjectQuery query = new ObjectQuery();
         PrismReferenceValue baseOrgRef = new PrismReferenceValue(ORG_F001_OID);
-        ObjectFilter filter = OrgFilter.createOrg(baseOrgRef, null, 1);
+        ObjectFilter filter = OrgFilter.createOrg(baseOrgRef, OrgFilter.Scope.ONE_LEVEL);
         ObjectPaging paging = ObjectPaging.createEmptyPaging();
         paging.setOrderBy(ObjectType.F_NAME);
         query.setFilter(filter);
@@ -1099,7 +957,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         List<PrismObject<ObjectType>> orgClosure = repositoryService.searchObjects(ObjectType.class, query, null, opResult);
 
-        AssertJUnit.assertEquals(5, orgClosure.size());
+        AssertJUnit.assertEquals(4, orgClosure.size());
 
         for (PrismObject<ObjectType> u : orgClosure) {
             LOGGER.info("CHILD ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));
