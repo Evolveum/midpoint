@@ -964,28 +964,16 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled = false)
+    @Test
     public void queryOrgTreeFindOrgs() throws Exception {
         Session session = open();
 
         try {
-            Query query;
-            if (repositoryService.getConfiguration().isUsingOracle()) {
-                query = session.createQuery(
-                        "select o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount " +
-                                "from ROrg as o where o.oid in (select distinct d.descendantOid from ROrgClosure " +
-                                "as d where d.ancestorOid = :aOid and d.depth = :maxDepth)"
+            Query query = session.createQuery(
+                    "select o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount from " +
+                    "ROrg as o where o.oid in (select distinct p.ownerOid from RParentOrgRef p where p.targetOid=:oid)"
                 );
-            } else {
-                query = session.createQuery(
-                        "select o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount "
-                                + "from ROrg as o join o.descendants as d "
-                                + "where d.ancestorOid=:aOid and d.depth = :maxDepth "
-                                + "order by o.name.orig asc"
-                );
-            }
-            query.setString("aOid", "1234");
-            query.setInteger("maxDepth", 1);
+            query.setString("oid", "1234");
 
             String expected = HibernateToSqlTranslator.toSql(factory, query.getQueryString());
 
@@ -1129,12 +1117,19 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         checkQueryResult(ObjectType.class, "00000000-8888-6666-0000-100000000001", OrgFilter.Scope.ONE_LEVEL, 4);
         checkQueryResult(UserType.class, "00000000-8888-6666-0000-100000000001", OrgFilter.Scope.ONE_LEVEL, 1);
-        checkQueryResult(OrgType.class, "00000000-8888-6666-0000-100000000001", OrgFilter.Scope.SUBTREE, 6);
-//        checkQueryResult(ObjectType.class, "00000000-8888-6666-0000-100000000001", OrgFilter.Scope.SUBTREE, 12);  todo enable test !!!!!!!
+        checkQueryResult(OrgType.class, "00000000-8888-6666-0000-100000000001", OrgFilter.Scope.ONE_LEVEL, 3);
+        checkQueryResult(OrgType.class, "00000000-8888-6666-0000-100000000001", OrgFilter.Scope.SUBTREE, 5);
+        checkQueryResult(UserType.class, "00000000-8888-6666-0000-100000000001", OrgFilter.Scope.SUBTREE, 6);
+        checkQueryResult(ObjectType.class, "00000000-8888-6666-0000-100000000001", OrgFilter.Scope.SUBTREE, 11);
         checkQueryResult(ObjectType.class, "00000000-8888-6666-0000-100000000006", OrgFilter.Scope.ONE_LEVEL, 4);
         checkQueryResult(UserType.class, "00000000-8888-6666-0000-100000000006", OrgFilter.Scope.ONE_LEVEL, 4);
+        checkQueryResult(UserType.class, "00000000-8888-6666-0000-100000000006", OrgFilter.Scope.SUBTREE, 4);
         checkQueryResult(OrgType.class, "00000000-8888-6666-0000-100000000006", OrgFilter.Scope.ONE_LEVEL, 0);
-
+        checkQueryResult(OrgType.class, "00000000-8888-6666-0000-100000000006", OrgFilter.Scope.SUBTREE, 0);
+        checkQueryResult(UserType.class, "00000000-8888-6666-0000-200000000002", OrgFilter.Scope.ONE_LEVEL, 2);
+        checkQueryResult(UserType.class, "00000000-8888-6666-0000-200000000002", OrgFilter.Scope.SUBTREE, 2);
+        checkQueryResult(UserType.class, "00000000-8888-6666-0000-200000000001", OrgFilter.Scope.ONE_LEVEL, 1);
+        checkQueryResult(UserType.class, "00000000-8888-6666-0000-200000000001", OrgFilter.Scope.SUBTREE, 1);
     }
 
     private <T extends ObjectType> void checkQueryResult(Class<T> type, String oid, OrgFilter.Scope scope, int count)

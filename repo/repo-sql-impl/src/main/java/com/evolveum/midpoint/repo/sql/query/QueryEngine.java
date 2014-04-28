@@ -23,7 +23,7 @@ public class QueryEngine {
     private static final List<CustomQuery> queryLibrary = new ArrayList<>();
 
     static {
-//        queryLibrary.add(new OrgFilterQuery());
+        queryLibrary.add(new OrgFilterQuery());
     }
 
     private SqlRepositoryConfiguration repoConfiguration;
