@@ -28,9 +28,6 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.notifications.api.events.AccountEvent;
-import com.evolveum.midpoint.notifications.api.transports.Message;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
