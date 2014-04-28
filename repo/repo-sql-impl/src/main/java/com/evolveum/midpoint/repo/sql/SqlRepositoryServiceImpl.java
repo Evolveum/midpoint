@@ -1766,46 +1766,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
-    @Deprecated
-    @Override
-    public void cleanupTasks(CleanupPolicyType policy, OperationResult parentResult) {
-        OperationResult subResult = parentResult.createSubresult(CLEANUP_TASKS);
-        cleanup(RTask.class, policy, subResult);
-    }
-
-
-    /**
-     * This is attempt to do task cleanup by custom native queries. Hibernate tries to delete task
-     * through temporary table with columns oid, id. That's not a bad idea until it attempts to call
-     * delete from statement with "in" clause with two columns (oid, id). H2 and SQL Server fails
-     * with in clause that contains more than one column.
-     * <p/>
-     * Therefore this method do cleanup by creating temporary table only with oid (id is always 0).
-     * Maybe big schema cleanup would help or something like that.
-     * <p/>
-     * Somebody improve this when there's time for it.
-     * <p/>
-     * DEPRECATED: task cleanup is currently done in task manager because of the need of
-     * deleting whole task trees at once (MID-1439).
-     *
-     * @param entity
-     * @param minValue
-     * @param session
-     * @return number of deleted tasks
-     */
-    @Override
-    @Deprecated
-    protected int cleanupAttempt(Class entity, Date minValue, Session session) {
-        if (!RTask.class.equals(entity)) {
-            return 0;
-        }
-
-        LOGGER.debug("Doing task cleanup, date={}", minValue);
-        Query query = session.createQuery("delete from RTask as t where t.completionTimestamp < :timestamp");
-        query.setParameter("timestamp", XMLGregorianCalendarType.asXMLGregorianCalendar(minValue));
-        return query.executeUpdate();
-    }
-
     @Override
 	public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids) throws SchemaException {
 		Validate.notNull(upperOrgOid, "upperOrgOid must not be null.");
