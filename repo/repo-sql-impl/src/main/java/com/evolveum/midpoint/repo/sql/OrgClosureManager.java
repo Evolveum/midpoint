@@ -73,7 +73,8 @@ public class OrgClosureManager {
     public <T extends ObjectType> void updateOrgClosure(Collection<? extends ItemDelta> modifications, Session session,
                                                         String oid, Class<T> type, Operation operation) {
         session.flush();
-        LOGGER.debug("Starting update for org. closure for {} {}.", oid, type);
+        session.clear();
+        LOGGER.debug("Starting update for org. closure for {} oid={}.", type.getSimpleName(), oid);
 
         List<ReferenceDelta> deltas = filterParentRefDeltas(modifications);
 
@@ -100,7 +101,6 @@ public class OrgClosureManager {
         if (LOGGER.isTraceEnabled()) LOGGER.trace("Deleted {} records from org. closure table.", count);
 
         //if there is still parentRef pointing to this oid, we have to add oid to incorrect table
-        //todo index!!!!!!!!!!!!!!1
         query = session.createQuery("select count(*) from RParentOrgRef r where r.targetOid=:oid");
         query.setString("oid", oid);
 
@@ -113,17 +113,37 @@ public class OrgClosureManager {
     }
 
     private <T extends ObjectType> void handleAdd(String oid, List<String> parents, Class<T> type, Session session) {
-        session.flush();
-
         Query query = session.createSQLQuery("insert into m_org_closure (ancestor_oid, descendant_oid) values (:oid, :oid)");
         query.setString("oid", oid);
         query.executeUpdate();
 
+        addParents(oid, parents, session);
+    }
+
+    private <T extends ObjectType> void handleModify(Collection<? extends ItemDelta> modifications, Session session,
+                                                     String oid, Class<T> type) {
+        if (modifications.isEmpty()) {
+            return;
+        }
+        //todo handle modify
+
+        List<String> parents = getOidFromDeleteDeltas(modifications);
+        removeParents(oid, parents, session);
+
+        parents = getOidFromAddDeltas(modifications);
+        addParents(oid, parents, session);
+    }
+
+    private void removeParents(String oid, List<String> parents, Session session) {
+
+    }
+
+    private void addParents(String oid, List<String> parents, Session session) {
         if (parents.isEmpty()) {
             return;
         }
 
-        query = session.createQuery("select o.oid from RObject o where o.oid in (:oids)");
+        Query query = session.createQuery("select o.oid from RObject o where o.oid in (:oids)");
         query.setParameterList("oids", parents);
         List<String> existing = query.list();
 
@@ -149,11 +169,6 @@ public class OrgClosureManager {
             session.flush();
             session.clear();
         }
-    }
-
-    private <T extends ObjectType> void handleModify(Collection<? extends ItemDelta> modifications, Session session,
-                                                     String oid, Class<T> type) {
-        //todo handle modify
     }
 
     private List<ReferenceDelta> filterParentRefDeltas(Collection<? extends ItemDelta> modifications) {
