@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.security.api;
+package com.evolveum.midpoint.security.impl;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +24,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisi
  * @author semancik
  *
  */
-public class ItemSecurityConstraints {
+public class ItemSecurityConstraintsImpl {
 
 	private Map<String, AuthorizationDecisionType> actionDecisionMap = new HashMap<>();
 

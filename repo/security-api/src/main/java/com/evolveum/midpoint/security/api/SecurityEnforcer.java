@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -47,16 +48,18 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	/**
 	 * Returns true if the currently logged-in user is authorized for specified action, returns false otherwise.
 	 * Does not throw SecurityViolationException.
+	 * @param phase check authorization for a specific phase. If null then all phases are checked.
 	 */
-	<O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, 
+	<O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target) throws SchemaException;
 	
 	/**
 	 * Evaluates authorization: simply returns if the currently logged it user is authorized for a
 	 * specified action. If it is not authorized then a  SecurityViolationException is thrown and the
 	 * error is recorded in the result.
+	 * @param phase check authorization for a specific phase. If null then all phases are checked.
 	 */
-	<O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, 
+	<O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, 
 			OperationResult result) throws SecurityViolationException, SchemaException;	
 	

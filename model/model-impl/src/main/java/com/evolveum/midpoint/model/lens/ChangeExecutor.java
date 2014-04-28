@@ -656,7 +656,8 @@ public class ChangeExecutor {
             change.getModifications().clear();
         }
         
-        securityEnforcer.authorize(ModelService.AUTZ_ADD_URL, objectToAdd, null, null, result);
+        securityEnforcer.authorize(ModelService.AUTZ_ADD_URL, AuthorizationPhaseType.EXECUTION,
+        		objectToAdd, null, null, result);
 
         T objectTypeToAdd = objectToAdd.asObjectable();
 
@@ -709,7 +710,8 @@ public class ChangeExecutor {
         Class<T> objectTypeClass = change.getObjectTypeClass();
         
         PrismObject<T> objectOld = objectContext.getObjectOld();
-        securityEnforcer.authorize(ModelService.AUTZ_DELETE_URL, objectOld, null, null, result);
+        securityEnforcer.authorize(ModelService.AUTZ_DELETE_URL, AuthorizationPhaseType.EXECUTION,
+        		objectOld, null, null, result);
 
         if (TaskType.class.isAssignableFrom(objectTypeClass)) {
             taskManager.deleteTask(oid, result);
@@ -746,7 +748,8 @@ public class ChangeExecutor {
         Class<T> objectTypeClass = change.getObjectTypeClass();
         
         PrismObject<T> objectNew = objectContext.getObjectNew();
-        securityEnforcer.authorize(ModelService.AUTZ_MODIFY_URL, objectNew, change, null, result);
+        securityEnforcer.authorize(ModelService.AUTZ_MODIFY_URL, AuthorizationPhaseType.EXECUTION,
+        		objectNew, change, null, result);
         	
     	applyMetadata(change, objectContext, objectTypeClass, task, context, result);
         

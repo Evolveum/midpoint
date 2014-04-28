@@ -28,6 +28,7 @@ import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -70,19 +71,19 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
 		return securityEnforcer.getPrincipal();
 	}
 
-	public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl,
+	public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target) throws SchemaException {
-		return securityEnforcer.isAuthorized(operationUrl, object, delta, target);
+		return securityEnforcer.isAuthorized(operationUrl, phase, object, delta, target);
 	}
 
 	public boolean supports(ConfigAttribute attribute) {
 		return securityEnforcer.supports(attribute);
 	}
 
-	public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl,
+	public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OperationResult result)
 			throws SecurityViolationException, SchemaException {
-		securityEnforcer.authorize(operationUrl, object, delta, target, result);
+		securityEnforcer.authorize(operationUrl, phase, object, delta, target, result);
 	}
 
 	public boolean supports(Class<?> clazz) {

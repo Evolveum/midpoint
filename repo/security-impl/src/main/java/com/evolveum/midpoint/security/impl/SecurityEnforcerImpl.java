@@ -63,7 +63,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
@@ -76,6 +75,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -136,7 +136,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	}
 
 	@Override
-	public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl,
+	public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target)
 			throws SchemaException {	
 		MidPointPrincipal midPointPrincipal = getMidPointPrincipal();
@@ -144,9 +144,25 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			// No need to log, the getMidPointPrincipal() already logs the reason
 			return false;
 		}
+		if (phase == null) {
+			if (!isAuthorizedInternal(midPointPrincipal, operationUrl, AuthorizationPhaseType.REQUEST, object, delta, target)) {
+				return false;
+			}
+			return isAuthorizedInternal(midPointPrincipal, operationUrl, AuthorizationPhaseType.EXECUTION, object, delta, target);
+		} else {
+			return isAuthorizedInternal(midPointPrincipal, operationUrl, phase, object, delta, target);
+		}
+	} 
+	
+	private <O extends ObjectType, T extends ObjectType> boolean isAuthorizedInternal(MidPointPrincipal midPointPrincipal, String operationUrl, AuthorizationPhaseType phase,
+			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target)
+			throws SchemaException {	
+		if (phase == null) {
+			throw new IllegalArgumentException("No phase");
+		}
 		boolean allow = false;
-		LOGGER.trace("AUTZ: evaluating authorization principal={}, op={}, object={}, delta={}, target={}",
-				new Object[]{midPointPrincipal, operationUrl, object, delta, target});
+		LOGGER.trace("AUTZ: evaluating authorization principal={}, op={}, phase={}, object={}, delta={}, target={}",
+				new Object[]{midPointPrincipal, operationUrl, phase, object, delta, target});
 		final Collection<ItemPath> allowedItems = new ArrayList<>();
 		Collection<Authorization> authorities = midPointPrincipal.getAuthorities();
 		if (authorities != null) {
@@ -160,6 +176,18 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					if (!autz.getAction().contains(operationUrl) && !autz.getAction().contains(AuthorizationConstants.AUTZ_ALL_URL)) {
 						LOGGER.trace("  Authorization not applicable for operation {}", operationUrl);
 						continue;
+					}
+					
+					// phase
+					if (autz.getPhase() == null) {
+						LOGGER.trace("  Authorization is applicable for all phases (continuing evaluation)");
+					} else {
+						if (autz.getPhase() != phase) {
+							LOGGER.trace("  Authorization is not applicable for phases {} (breaking evaluation)", phase);
+							continue;
+						} else {
+							LOGGER.trace("  Authorization is applicable for phases {} (continuing evaluation)", phase);
+						}
 					}
 					
 					// object
@@ -277,11 +305,11 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	}
 
 	@Override
-	public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, 
+	public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, 
 			OperationResult result) throws SecurityViolationException, SchemaException {
 		MidPointPrincipal principal = getPrincipal();
-		boolean allow = isAuthorized(operationUrl, object, delta, target);
+		boolean allow = isAuthorized(operationUrl, phase, object, delta, target);
 		if (!allow) {
 			String username = getQuotedUsername(principal);
 			LOGGER.error("User {} not authorized for operation {}", username, operationUrl);
@@ -473,7 +501,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		for(String configAction: configActions) {
 			boolean isAuthorized;
 			try {
-				isAuthorized = isAuthorized(configAction, null, null, null);
+				isAuthorized = isAuthorized(configAction, null, null, null, null);
 			} catch (SchemaException e) {
 				throw new SystemException(e.getMessage(), e);
 			}
@@ -566,7 +594,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 			return null;
 		}
 		LOGGER.trace("AUTZ: evaluating security constraints principal={}, object={}", principal, object);
-		ObjectSecurityConstraints objectSecurityConstraints = new ObjectSecurityConstraints();
+		ObjectSecurityConstraintsImpl objectSecurityConstraints = new ObjectSecurityConstraintsImpl();
 		Collection<Authorization> authorities = principal.getAuthorities();
 		if (authorities != null) {
 			for (GrantedAuthority authority: authorities) {
@@ -618,11 +646,11 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return objectSecurityConstraints;
 	}
 
-	private void applyItemDecision(Map<ItemPath, ItemSecurityConstraints> itemConstraintMap, ItemPath item,
+	private void applyItemDecision(Map<ItemPath, ItemSecurityConstraintsImpl> itemConstraintMap, ItemPath item,
 			List<String> actions, AuthorizationDecisionType decision) {
-		ItemSecurityConstraints entry = itemConstraintMap.get(item);
+		ItemSecurityConstraintsImpl entry = itemConstraintMap.get(item);
 		if (entry == null) {
-			entry = new ItemSecurityConstraints();
+			entry = new ItemSecurityConstraintsImpl();
 			itemConstraintMap.put(item,entry);
 		}
 		applyDecision(entry.getActionDecisionMap(), actions, decision);

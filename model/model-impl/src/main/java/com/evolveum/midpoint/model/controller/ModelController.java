@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,7 +101,6 @@ import com.evolveum.midpoint.schema.result.OperationResultRunner;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.security.api.UserProfileService;
@@ -395,12 +394,12 @@ public class ModelController implements ModelService, ModelInteractionService, T
 						if (ModelExecuteOptions.isOverwrite(options)) {
 							repoOptions.setOverwrite(true);
 						}
-						securityEnforcer.authorize(AUTZ_ADD_URL, delta.getObjectToAdd(), null, null, result);
+						securityEnforcer.authorize(AUTZ_ADD_URL, null, delta.getObjectToAdd(), null, null, result);
 						String oid = cacheRepositoryService.addObject(delta.getObjectToAdd(), repoOptions, result);
 						delta.setOid(oid);
 					} else if (delta.isDelete()) {
 						PrismObject<? extends ObjectType> existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result);
-						securityEnforcer.authorize(AUTZ_DELETE_URL, existingObject, null, null, result);
+						securityEnforcer.authorize(AUTZ_DELETE_URL, null, existingObject, null, null, result);
 						if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
                             Utils.clearRequestee(task);
 							provisioning.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
@@ -411,7 +410,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 						}
 					} else if (delta.isModify()) {
 						PrismObject existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result);
-						securityEnforcer.authorize(AUTZ_MODIFY_URL, existingObject, delta, null, result);
+						securityEnforcer.authorize(AUTZ_MODIFY_URL, null, existingObject, delta, null, result);
 						cacheRepositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(), 
 								delta.getModifications(), result);
 					} else {
@@ -1283,7 +1282,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				// shortcut
 				throw new SecurityViolationException("Access denied");
 			}
-			if (globalDecision == AuthorizationDecisionType.ALLOW && securityConstraints.getItemConstraintMap().isEmpty()) {
+			if (globalDecision == AuthorizationDecisionType.ALLOW && securityConstraints.hasNoItemDecisions()) {
 				// shortcut, nothing to do
 			} else {
 				removeDeniedItems((List)object.getValue().getItems(), securityConstraints, globalDecision);

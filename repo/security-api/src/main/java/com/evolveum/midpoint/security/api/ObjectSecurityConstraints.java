@@ -15,61 +15,17 @@
  */
 package com.evolveum.midpoint.security.api;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisionType;
 
-public class ObjectSecurityConstraints {
+public interface ObjectSecurityConstraints {
 	
-	private Map<ItemPath, ItemSecurityConstraints> itemConstraintMap = new HashMap<>();
-	private Map<String, AuthorizationDecisionType> actionDecisionMap = new HashMap<>();
-		
-	public Map<ItemPath, ItemSecurityConstraints> getItemConstraintMap() {
-		return itemConstraintMap;
-	}
-
-	/**
-	 * Specifies decisions applicable to the entire object (regardless of any specific items)
-	 */
-	public Map<String, AuthorizationDecisionType> getActionDecisionMap() {
-		return actionDecisionMap;
-	}
+	public AuthorizationDecisionType getActionDecistion(String actionUrl);
 	
-	public AuthorizationDecisionType getActionDecistion(String actionUrl) {
-		AuthorizationDecisionType actionDecision = actionDecisionMap.get(actionUrl);
-		AuthorizationDecisionType allDecision = actionDecisionMap.get(AuthorizationConstants.AUTZ_ALL_URL);
-		if (actionDecision == null && allDecision == null) {
-			return null;
-		}
-		if (actionDecision == AuthorizationDecisionType.DENY || allDecision == AuthorizationDecisionType.DENY) {
-			return AuthorizationDecisionType.DENY;
-		}
-		if (actionDecision != null) {
-			return actionDecision;
-		}
-		return allDecision;
-	}
+	public AuthorizationDecisionType findItemDecision(ItemPath itemPath, String actionUrl);
 	
-	public AuthorizationDecisionType findItemDecision(ItemPath itemPath, String actionUrl) {
-		// TODO: loop to match possible wildcards
-		ItemSecurityConstraints itemSecurityConstraints = itemConstraintMap.get(itemPath);
-		if (itemSecurityConstraints == null) {
-			return null;
-		}
-		AuthorizationDecisionType actionDecision = itemSecurityConstraints.getActionDecisionMap().get(actionUrl);
-		AuthorizationDecisionType allDecision = itemSecurityConstraints.getActionDecisionMap().get(AuthorizationConstants.AUTZ_ALL_URL);
-		if (actionDecision == null && allDecision == null) {
-			return null;
-		}
-		if (actionDecision == AuthorizationDecisionType.DENY || allDecision == AuthorizationDecisionType.DENY) {
-			return AuthorizationDecisionType.DENY;
-		}
-		if (actionDecision != null) {
-			return actionDecision;
-		}
-		return allDecision;
-	}
+	public boolean hasNoItemDecisions();
 	
 }
