@@ -23,11 +23,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
+import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -70,19 +72,20 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
 		return securityEnforcer.getPrincipal();
 	}
 
-	public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl,
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target) throws SchemaException {
-		return securityEnforcer.isAuthorized(operationUrl, object, delta, target);
+	public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
+			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver) throws SchemaException {
+		return securityEnforcer.isAuthorized(operationUrl, phase, object, delta, target, ownerResolver);
 	}
 
 	public boolean supports(ConfigAttribute attribute) {
 		return securityEnforcer.supports(attribute);
 	}
 
-	public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl,
-			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OperationResult result)
+	@Override
+	public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
+			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, OperationResult result)
 			throws SecurityViolationException, SchemaException {
-		securityEnforcer.authorize(operationUrl, object, delta, target, result);
+		securityEnforcer.authorize(operationUrl, phase, object, delta, target, ownerResolver, result);
 	}
 
 	public boolean supports(Class<?> clazz) {
@@ -139,15 +142,15 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
     }
 
     @Override
-	public <O extends ObjectType> ObjectSecurityConstraints compileSecurityContraints(PrismObject<O> object)
+	public <O extends ObjectType> ObjectSecurityConstraints compileSecurityContraints(PrismObject<O> object, OwnerResolver ownerResolver)
 			throws SchemaException {
-		return securityEnforcer.compileSecurityContraints(object);
+		return securityEnforcer.compileSecurityContraints(object, ownerResolver);
 	}
 
     @Override
-	public <O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl,
+	public <O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase,
 			Class<O> objectType, ObjectFilter origFilter) throws SchemaException {
-		return securityEnforcer.preProcessObjectFilter(operationUrl, objectType, origFilter);
+		return securityEnforcer.preProcessObjectFilter(operationUrl, phase, objectType, origFilter);
 	}
     
     

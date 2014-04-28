@@ -85,6 +85,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -115,9 +116,17 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	
 	protected static final File ROLE_READONLY_FILE = new File(TEST_DIR, "role-readonly.xml");
 	protected static final String ROLE_READONLY_OID = "00000000-0000-0000-0000-00000000aa01";
+	protected static final File ROLE_READONLY_REQ_FILE = new File(TEST_DIR, "role-readonly-req.xml");
+	protected static final String ROLE_READONLY_REQ_OID = "00000000-0000-0000-0000-00000000ab01";
+	protected static final File ROLE_READONLY_EXEC_FILE = new File(TEST_DIR, "role-readonly-exec.xml");
+	protected static final String ROLE_READONLY_EXEC_OID = "00000000-0000-0000-0000-00000000ae01";
+	protected static final File ROLE_READONLY_REQ_EXEC_FILE = new File(TEST_DIR, "role-readonly-req-exec.xml");
+	protected static final String ROLE_READONLY_REQ_EXEC_OID = "00000000-0000-0000-0000-00000000ab01";
 	
 	protected static final File ROLE_READONLY_DEEP_FILE = new File(TEST_DIR, "role-readonly-deep.xml");
 	protected static final String ROLE_READONLY_DEEP_OID = "00000000-0000-0000-0000-00000000aa02";
+	protected static final File ROLE_READONLY_DEEP_EXEC_FILE = new File(TEST_DIR, "role-readonly-deep-exec.xml");
+	protected static final String ROLE_READONLY_DEEP_EXEC_OID = "00000000-0000-0000-0000-00000000ae02";
 	
 	protected static final File ROLE_SELF_FILE = new File(TEST_DIR, "role-self.xml");
 	protected static final String ROLE_SELF_OID = "00000000-0000-0000-0000-00000000aa03";
@@ -136,7 +145,11 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	
 	protected static final File ROLE_PROP_READ_SOME_MODIFY_SOME_FILE = new File(TEST_DIR, "role-prop-read-some-modify-some.xml");
 	protected static final String ROLE_PROP_READ_SOME_MODIFY_SOME_OID = "00000000-0000-0000-0000-00000000aa08";
+	protected static final File ROLE_PROP_READ_SOME_MODIFY_SOME_REQ_EXEC_FILE = new File(TEST_DIR, "role-prop-read-some-modify-some-req-exec.xml");
+	protected static final String ROLE_PROP_READ_SOME_MODIFY_SOME_REQ_EXEC_OID = "00000000-0000-0000-0000-00000000ac08";
 
+	protected static final File ROLE_SELF_ACCOUNTS_READ_FILE = new File(TEST_DIR, "role-self-accounts-read.xml");
+	protected static final String ROLE_SELF_ACCOUNTS_READ_OID = "00000000-0000-0000-0000-00000000aa09";
 
 	private static final String LOG_PREFIX_FAIL = "SSSSS=X ";
 	private static final String LOG_PREFIX_ATTEMPT = "SSSSS=> ";
@@ -156,13 +169,19 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		super.initSystem(initTask, initResult);
 		
 		repoAddObjectFromFile(ROLE_READONLY_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_READONLY_REQ_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_READONLY_EXEC_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_READONLY_REQ_EXEC_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_READONLY_DEEP_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_READONLY_DEEP_EXEC_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_SELF_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_OBJECT_FILTER_MODIFY_CARIBBEAN_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_PROP_READ_ALL_MODIFY_SOME_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_MASTER_MINISTRY_OF_RUM_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_OBJECT_FILTER_CARIBBEAN_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_REQ_EXEC_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_READ_FILE, RoleType.class, initResult);
 		
 		assignOrg(USER_GUYBRUSH_OID, ORG_SWASHBUCKLER_SECTION_OID, initTask, initResult);
 		
@@ -308,13 +327,15 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong number of authorizations", 1, principal.getAuthorities().size());
         assertHasAuthotizationAllow(principal.getAuthorities().iterator().next(), AUTZ_LOOT_URL);
         
-        assertAuthorized(principal, AUTZ_LOOT_URL);
+        assertAuthorized(principal, AUTZ_LOOT_URL, AuthorizationPhaseType.EXECUTION);
+        assertNotAuthorized(principal, AUTZ_LOOT_URL, AuthorizationPhaseType.REQUEST);
+        assertNotAuthorized(principal, AUTZ_LOOT_URL, null);
         assertNotAuthorized(principal, AUTZ_COMMAND_URL);
 	}
 	
 	@Test
     public void test109JackUnassignRolePirate() throws Exception {
-		final String TEST_NAME = "test100JackRolePirate";
+		final String TEST_NAME = "test109JackUnassignRolePirate";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
@@ -424,10 +445,80 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertModifyDeny();
         assertDeleteDeny();
 	}
+
+	/**
+	 * Authorized only for request but not execution. Everything should be denied.
+	 */
+	@Test
+    public void test202rAutzJackReadonlyReqRole() throws Exception {
+		final String TEST_NAME = "test202rAutzJackReadonlyReqRole";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_READONLY_REQ_OID);
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        assertReadDeny();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+	}
 	
+	/**
+	 * Authorized only for execution but not request. Everything should be denied.
+	 */
+	@Test
+    public void test202eAutzJackReadonlyExecRole() throws Exception {
+		final String TEST_NAME = "test202eAutzJackReadonlyExecRole";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_READONLY_EXEC_OID);
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        assertReadDeny();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+	}
+	
+	@Test
+    public void test202reAutzJackReadonlyReqExecRole() throws Exception {
+		final String TEST_NAME = "test202reAutzJackReadonlyReqExecRole";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_READONLY_OID);
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        assertReadAllow();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+	}
+
 	@Test
     public void test203AutzJackReadonlyDeepRole() throws Exception {
 		final String TEST_NAME = "test203AutzJackReadonlyDeepRole";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_READONLY_DEEP_OID);
+        login(USER_JACK_USERNAME);
+        
+        // WHEN
+        assertReadAllow();
+        assertAddDeny();
+        assertModifyDeny();
+        assertDeleteDeny();
+	}
+	
+	@Test
+    public void test203eAutzJackReadonlyDeepExecRole() throws Exception {
+		final String TEST_NAME = "test203eAutzJackReadonlyDeepExecRole";
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
@@ -549,10 +640,20 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test215AutzJackPropReadSomeModifySome() throws Exception {
 		final String TEST_NAME = "test215AutzJackPropReadSomeModifySome";
+		testAutzJackPropReadSomeModifySome(TEST_NAME, ROLE_PROP_READ_SOME_MODIFY_SOME_OID);
+	}
+
+	@Test
+    public void test215reAutzJackPropReadSomeModifySomeReqExec() throws Exception {
+		final String TEST_NAME = "test215reAutzJackPropReadSomeModifySomeReqExec";
+		testAutzJackPropReadSomeModifySome(TEST_NAME, ROLE_PROP_READ_SOME_MODIFY_SOME_REQ_EXEC_OID);
+	}
+
+    public void testAutzJackPropReadSomeModifySome(final String TEST_NAME, String roleOid) throws Exception {
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
-        assignRole(USER_JACK_OID, ROLE_PROP_READ_SOME_MODIFY_SOME_OID);
+        assignRole(USER_JACK_OID, roleOid);
         login(USER_JACK_USERNAME);
         
         // WHEN
@@ -597,8 +698,12 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
         assertModifyDeny(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Mutinier"));
         
+        assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_COST_CENTER, "V3RYC0STLY");
+        assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_ORGANIZATION, PrismTestUtil.createPolyString("Brethren of the Coast"));
+        
         assertDeleteDeny();
 	}
+
 	
 	private void assertAssignmentsWithTargets(PrismObject<UserType> user, int expectedNumber) {
 		PrismContainer<AssignmentType> assignmentContainer = user.findContainer(UserType.F_ASSIGNMENT);
@@ -1018,26 +1123,40 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		assertEquals("Wrong decision in "+authorization, AuthorizationDecisionType.ALLOW, authorization.getDecision());
 		TestUtil.assertSetEquals("Wrong action in "+authorization, authorization.getAction(), action);
 	}
-
+	
 	private void assertAuthorized(MidPointPrincipal principal, String action) throws SchemaException {
+		assertAuthorized(principal, action, null);
+		assertAuthorized(principal, action, AuthorizationPhaseType.REQUEST);
+		assertAuthorized(principal, action, AuthorizationPhaseType.EXECUTION);
+	}
+
+	private void assertAuthorized(MidPointPrincipal principal, String action, AuthorizationPhaseType phase) throws SchemaException {
 		SecurityContext origContext = SecurityContextHolder.getContext();
 		createSecurityContext(principal);
 		try {
 			assertTrue("AuthorizationEvaluator.isAuthorized: Principal "+principal+" NOT authorized for action "+action, 
-					securityEnforcer.isAuthorized(action, null, null, null));
-			securityEnforcer.decide(SecurityContextHolder.getContext().getAuthentication(), createSecureObject(), 
+					securityEnforcer.isAuthorized(action, phase, null, null, null, null));
+			if (phase == null) {
+				securityEnforcer.decide(SecurityContextHolder.getContext().getAuthentication(), createSecureObject(), 
 					createConfigAttributes(action));
+			}
 		} finally {
 			SecurityContextHolder.setContext(origContext);
 		}
 	}
 	
 	private void assertNotAuthorized(MidPointPrincipal principal, String action) throws SchemaException {
+		assertNotAuthorized(principal, action, null);
+		assertNotAuthorized(principal, action, AuthorizationPhaseType.REQUEST);
+		assertNotAuthorized(principal, action, AuthorizationPhaseType.EXECUTION);
+	}
+	
+	private void assertNotAuthorized(MidPointPrincipal principal, String action, AuthorizationPhaseType phase) throws SchemaException {
 		SecurityContext origContext = SecurityContextHolder.getContext();
 		createSecurityContext(principal);
-		boolean isAuthorized = securityEnforcer.isAuthorized(action, null, null, null);
+		boolean isAuthorized = securityEnforcer.isAuthorized(action, phase, null, null, null, null);
 		SecurityContextHolder.setContext(origContext);
-		assertFalse("AuthorizationEvaluator.isAuthorized: Principal "+principal+" IS authorized for action "+action+" but he should not be", isAuthorized);
+		assertFalse("AuthorizationEvaluator.isAuthorized: Principal "+principal+" IS authorized for action "+action+" ("+phase+") but he should not be", isAuthorized);
 	}
 
 	private void createSecurityContext(MidPointPrincipal principal) {
@@ -1088,7 +1207,11 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		String msg = "Failed to allow "+action+" of "+type.getSimpleName()+":"+desc;
 		System.out.println(LOG_PREFIX_FAIL+msg);
 		LOGGER.error(LOG_PREFIX_FAIL+msg);
-		throw new SecurityViolationException(msg+": "+e.getMessage(), e);
+		if (e != null) {
+			throw new SecurityViolationException(msg+": "+e.getMessage(), e);
+		} else {
+			AssertJUnit.fail(msg);
+		}
 	}
 	
 	private <O extends ObjectType> void logAttempt(String action, Class<O> type, ObjectQuery query) {

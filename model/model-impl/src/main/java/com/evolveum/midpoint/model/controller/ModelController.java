@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,8 +101,8 @@ import com.evolveum.midpoint.schema.result.OperationResultRunner;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.ItemSecurityConstraints;
 import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
+import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
@@ -395,12 +395,12 @@ public class ModelController implements ModelService, ModelInteractionService, T
 						if (ModelExecuteOptions.isOverwrite(options)) {
 							repoOptions.setOverwrite(true);
 						}
-						securityEnforcer.authorize(AUTZ_ADD_URL, delta.getObjectToAdd(), null, null, result);
+						securityEnforcer.authorize(AUTZ_ADD_URL, null, delta.getObjectToAdd(), null, null, null, result);
 						String oid = cacheRepositoryService.addObject(delta.getObjectToAdd(), repoOptions, result);
 						delta.setOid(oid);
 					} else if (delta.isDelete()) {
 						PrismObject<? extends ObjectType> existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result);
-						securityEnforcer.authorize(AUTZ_DELETE_URL, existingObject, null, null, result);
+						securityEnforcer.authorize(AUTZ_DELETE_URL, null, existingObject, null, null, null, result);
 						if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
                             Utils.clearRequestee(task);
 							provisioning.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
@@ -411,7 +411,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 						}
 					} else if (delta.isModify()) {
 						PrismObject existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result);
-						securityEnforcer.authorize(AUTZ_MODIFY_URL, existingObject, delta, null, result);
+						securityEnforcer.authorize(AUTZ_MODIFY_URL, null, existingObject, delta, null, null, result);
 						cacheRepositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(), 
 								delta.getModifications(), result);
 					} else {
@@ -426,7 +426,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			} else {				
 				
 				LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, options, task, result);
-
+				// Note: Request authorization happens inside clockwork
 				clockwork.run(context, task, result);
 						
 			}
@@ -1274,16 +1274,19 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	private <T extends ObjectType> void postProcessObject(PrismObject<T> object, GetOperationOptions options, OperationResult result) throws SecurityViolationException, SchemaException {
 		validateObject(object, options, result);
 		try {
-			ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityContraints(object);
+			ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityContraints(object, null);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Security constrains for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
+			}
 			if (securityConstraints == null) {
 				throw new SecurityViolationException("Access denied");
 			}
-			AuthorizationDecisionType globalDecision = securityConstraints.getActionDecistion(ModelService.AUTZ_READ_URL);
+			AuthorizationDecisionType globalDecision = securityConstraints.getActionDecistion(ModelService.AUTZ_READ_URL, null);
 			if (globalDecision == AuthorizationDecisionType.DENY) {
 				// shortcut
 				throw new SecurityViolationException("Access denied");
 			}
-			if (globalDecision == AuthorizationDecisionType.ALLOW && securityConstraints.getItemConstraintMap().isEmpty()) {
+			if (globalDecision == AuthorizationDecisionType.ALLOW && securityConstraints.hasNoItemDecisions()) {
 				// shortcut, nothing to do
 			} else {
 				removeDeniedItems((List)object.getValue().getItems(), securityConstraints, globalDecision);
@@ -1304,7 +1307,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		while (iterator.hasNext()) {
 			Item<? extends PrismValue> item = iterator.next();
 			ItemPath itemPath = item.getPath();
-			AuthorizationDecisionType itemDecision = securityContraints.findItemDecision(itemPath, ModelService.AUTZ_READ_URL);
+			AuthorizationDecisionType itemDecision = securityContraints.findItemDecision(itemPath, ModelService.AUTZ_READ_URL, null);
 			if (item instanceof PrismContainer<?>) {
 				if (itemDecision == AuthorizationDecisionType.DENY) {
 					// Explicitly denied access to the entire container
@@ -1431,7 +1434,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
     	if (origQuery != null) {
     		origFilter = origQuery.getFilter();
     	}
-		ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(ModelService.AUTZ_READ_URL, objectType, origFilter);
+		ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(ModelService.AUTZ_READ_URL, null, objectType, origFilter);
 		if (origQuery != null) {
 			origQuery.setFilter(secFilter);
 			return origQuery;

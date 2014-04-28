@@ -99,6 +99,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	int executionWave = 0;
 
 	transient private boolean isFresh = false;
+	transient private boolean isRequestAuthorized = false;
 	
 	/**
      * Cache of resource instances. It is used to reduce the number of read (getObject) calls for ResourceType objects.
@@ -310,6 +311,14 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		this.isFresh = isFresh;
 	}
 	
+	public boolean isRequestAuthorized() {
+		return isRequestAuthorized;
+	}
+
+	public void setRequestAuthorized(boolean isRequestAuthorized) {
+		this.isRequestAuthorized = isRequestAuthorized;
+	}
+
 	/**
 	 * Makes the context and all sub-context non-fresh.
 	 */

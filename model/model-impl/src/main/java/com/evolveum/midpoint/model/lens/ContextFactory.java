@@ -233,7 +233,4 @@ public class ContextFactory {
 		return ShadowType.class.isAssignableFrom(aClass);
 	}
 
-
-	
-
 }
