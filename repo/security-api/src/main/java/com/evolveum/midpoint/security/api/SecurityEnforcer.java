@@ -70,6 +70,6 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	 * If it returns NoneFilter then no search should be done. The principal is not authorized for this operation at all.
 	 * It may return null in case that the original filter was also null.
 	 */
-	<O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, Class<O> objectType, ObjectFilter origFilter)
-			throws SchemaException; 
+	<O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase,
+			Class<O> objectType, ObjectFilter origFilter) throws SchemaException; 
 }

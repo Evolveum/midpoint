@@ -145,6 +145,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	
 	protected static final File ROLE_PROP_READ_SOME_MODIFY_SOME_FILE = new File(TEST_DIR, "role-prop-read-some-modify-some.xml");
 	protected static final String ROLE_PROP_READ_SOME_MODIFY_SOME_OID = "00000000-0000-0000-0000-00000000aa08";
+	protected static final File ROLE_PROP_READ_SOME_MODIFY_SOME_REQ_EXEC_FILE = new File(TEST_DIR, "role-prop-read-some-modify-some-req-exec.xml");
+	protected static final String ROLE_PROP_READ_SOME_MODIFY_SOME_REQ_EXEC_OID = "00000000-0000-0000-0000-00000000ac08";
 
 
 	private static final String LOG_PREFIX_FAIL = "SSSSS=X ";
@@ -176,6 +178,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_MASTER_MINISTRY_OF_RUM_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_OBJECT_FILTER_CARIBBEAN_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_REQ_EXEC_FILE, RoleType.class, initResult);
 		
 		assignOrg(USER_GUYBRUSH_OID, ORG_SWASHBUCKLER_SECTION_OID, initTask, initResult);
 		
@@ -634,10 +637,20 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	@Test
     public void test215AutzJackPropReadSomeModifySome() throws Exception {
 		final String TEST_NAME = "test215AutzJackPropReadSomeModifySome";
+		testAutzJackPropReadSomeModifySome(TEST_NAME, ROLE_PROP_READ_SOME_MODIFY_SOME_OID);
+	}
+
+	@Test
+    public void test215reAutzJackPropReadSomeModifySomeReqExec() throws Exception {
+		final String TEST_NAME = "test215reAutzJackPropReadSomeModifySomeReqExec";
+		testAutzJackPropReadSomeModifySome(TEST_NAME, ROLE_PROP_READ_SOME_MODIFY_SOME_REQ_EXEC_OID);
+	}
+
+    public void testAutzJackPropReadSomeModifySome(final String TEST_NAME, String roleOid) throws Exception {
         TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
-        assignRole(USER_JACK_OID, ROLE_PROP_READ_SOME_MODIFY_SOME_OID);
+        assignRole(USER_JACK_OID, roleOid);
         login(USER_JACK_USERNAME);
         
         // WHEN
@@ -682,8 +695,12 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
         assertModifyDeny(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Mutinier"));
         
+        assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_COST_CENTER, "V3RYC0STLY");
+        assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_ORGANIZATION, PrismTestUtil.createPolyString("Brethren of the Coast"));
+        
         assertDeleteDeny();
 	}
+
 	
 	private void assertAssignmentsWithTargets(PrismObject<UserType> user, int expectedNumber) {
 		PrismContainer<AssignmentType> assignmentContainer = user.findContainer(UserType.F_ASSIGNMENT);
@@ -1187,7 +1204,11 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		String msg = "Failed to allow "+action+" of "+type.getSimpleName()+":"+desc;
 		System.out.println(LOG_PREFIX_FAIL+msg);
 		LOGGER.error(LOG_PREFIX_FAIL+msg);
-		throw new SecurityViolationException(msg+": "+e.getMessage(), e);
+		if (e != null) {
+			throw new SecurityViolationException(msg+": "+e.getMessage(), e);
+		} else {
+			AssertJUnit.fail(msg);
+		}
 	}
 	
 	private <O extends ObjectType> void logAttempt(String action, Class<O> type, ObjectQuery query) {

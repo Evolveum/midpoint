@@ -18,13 +18,15 @@ package com.evolveum.midpoint.security.api;
 import java.util.Map;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationPhaseType;
 
-public interface ObjectSecurityConstraints {
+public interface ObjectSecurityConstraints extends DebugDumpable {
 	
-	public AuthorizationDecisionType getActionDecistion(String actionUrl);
+	public AuthorizationDecisionType getActionDecistion(String actionUrl, AuthorizationPhaseType phase);
 	
-	public AuthorizationDecisionType findItemDecision(ItemPath itemPath, String actionUrl);
+	public AuthorizationDecisionType findItemDecision(ItemPath itemPath, String actionUrl, AuthorizationPhaseType phase);
 	
 	public boolean hasNoItemDecisions();
 	

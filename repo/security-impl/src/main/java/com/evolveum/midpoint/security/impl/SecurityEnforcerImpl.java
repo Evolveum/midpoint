@@ -50,6 +50,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.NoneFilter;
@@ -616,23 +617,24 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					// skip target applicability evaluation. We do not have a target here
 					
 					List<String> actions = autz.getAction();
+					AuthorizationPhaseType phase = autz.getPhase();
 					AuthorizationDecisionType decision = autz.getDecision();
 					if (decision == null || decision == AuthorizationDecisionType.ALLOW) {
 						Collection<ItemPath> items = getItems(autz);
 						if (items == null || items.isEmpty()) {
-							applyDecision(objectSecurityConstraints.getActionDecisionMap(), actions, AuthorizationDecisionType.ALLOW);
+							applyDecision(objectSecurityConstraints.getActionDecisionMap(), actions, phase, AuthorizationDecisionType.ALLOW);
 						} else {
 							for (ItemPath item: items) {
-								applyItemDecision(objectSecurityConstraints.getItemConstraintMap(), item, actions, AuthorizationDecisionType.ALLOW);
+								applyItemDecision(objectSecurityConstraints.getItemConstraintMap(), item, actions, phase, AuthorizationDecisionType.ALLOW);
 							}
 						}
 					} else {
 						Collection<ItemPath> items = getItems(autz);
 						if (items == null || items.isEmpty()) {
-							applyDecision(objectSecurityConstraints.getActionDecisionMap(), actions, AuthorizationDecisionType.DENY);
+							applyDecision(objectSecurityConstraints.getActionDecisionMap(), actions, phase, AuthorizationDecisionType.DENY);
 						} else {
 							for (ItemPath item: items) {
-								applyItemDecision(objectSecurityConstraints.getItemConstraintMap(), item, actions, AuthorizationDecisionType.DENY);
+								applyItemDecision(objectSecurityConstraints.getItemConstraintMap(), item, actions, phase, AuthorizationDecisionType.DENY);
 							}
 						}
 					}
@@ -647,36 +649,92 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	}
 
 	private void applyItemDecision(Map<ItemPath, ItemSecurityConstraintsImpl> itemConstraintMap, ItemPath item,
-			List<String> actions, AuthorizationDecisionType decision) {
+			List<String> actions, AuthorizationPhaseType phase, AuthorizationDecisionType decision) {
 		ItemSecurityConstraintsImpl entry = itemConstraintMap.get(item);
 		if (entry == null) {
 			entry = new ItemSecurityConstraintsImpl();
 			itemConstraintMap.put(item,entry);
 		}
-		applyDecision(entry.getActionDecisionMap(), actions, decision);
+		applyDecision(entry.getActionDecisionMap(), actions, phase, decision);
 	}
 
-	private void applyDecision(Map<String, AuthorizationDecisionType> actionDecisionMap,
-			List<String> actions, AuthorizationDecisionType decision) {
+	private void applyDecision(Map<String, PhaseDecisionImpl> actionDecisionMap,
+			List<String> actions, AuthorizationPhaseType phase, AuthorizationDecisionType decision) {
 		for (String action: actions) {
-			AuthorizationDecisionType existingDecision = actionDecisionMap.get(action);
-			if (existingDecision == null) {
-				actionDecisionMap.put(action, decision);
-			} else if (existingDecision == AuthorizationDecisionType.ALLOW && decision == AuthorizationDecisionType.DENY) {
-				// deny overrides
-				actionDecisionMap.put(action, decision);
+			if (phase == null) {
+				applyDecisionRequest(actionDecisionMap, action, decision);
+				applyDecisionExecution(actionDecisionMap, action, decision);
+			} else if (phase == AuthorizationPhaseType.REQUEST){
+				applyDecisionRequest(actionDecisionMap, action, decision);
+			} else if (phase == AuthorizationPhaseType.EXECUTION) {
+				applyDecisionExecution(actionDecisionMap, action, decision);
+			} else {
+				throw new IllegalArgumentException("Unknown phase "+phase);
 			}
+		}
+	}
+	
+	private void applyDecisionRequest(Map<String, PhaseDecisionImpl> actionDecisionMap,
+			String action, AuthorizationDecisionType decision) {
+		PhaseDecisionImpl phaseDecision = actionDecisionMap.get(action);
+		if (phaseDecision == null) {
+			phaseDecision = new PhaseDecisionImpl();
+			phaseDecision.setRequestDecision(decision);
+			actionDecisionMap.put(action, phaseDecision);
+		} else if (phaseDecision.getRequestDecision() == null ||
+				// deny overrides
+				(phaseDecision.getRequestDecision() == AuthorizationDecisionType.ALLOW && decision == AuthorizationDecisionType.DENY)) {
+			phaseDecision.setRequestDecision(decision);
+		}
+	}
+
+	private void applyDecisionExecution(Map<String, PhaseDecisionImpl> actionDecisionMap,
+			String action, AuthorizationDecisionType decision) {
+		PhaseDecisionImpl phaseDecision = actionDecisionMap.get(action);
+		if (phaseDecision == null) {
+			phaseDecision = new PhaseDecisionImpl();
+			phaseDecision.setExecDecision(decision);
+			actionDecisionMap.put(action, phaseDecision);
+		} else if (phaseDecision.getExecDecision() == null ||
+				// deny overrides
+				(phaseDecision.getExecDecision() == AuthorizationDecisionType.ALLOW && decision == AuthorizationDecisionType.DENY)) {
+			phaseDecision.setExecDecision(decision);
 		}
 	}
 
 	@Override
-	public <O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, Class<O> objectType, 
-			ObjectFilter origFilter) throws SchemaException {
+	public <O extends ObjectType> ObjectFilter preProcessObjectFilter(String operationUrl, AuthorizationPhaseType phase, 
+			Class<O> objectType, ObjectFilter origFilter) throws SchemaException {
 		MidPointPrincipal principal = getMidPointPrincipal();
 		if (principal == null) {
 			throw new IllegalArgumentException("No vaild principal");
 		}
-		LOGGER.trace("AUTZ: evaluating search pre-process principal={}, objectType={}", principal, objectType);
+		LOGGER.trace("AUTZ: evaluating search pre-process principal={}, objectType={}: orig filter {}", 
+				new Object[]{principal, objectType, origFilter});
+		if (origFilter == null) {
+			origFilter = AllFilter.createAll();
+		}
+		ObjectFilter finalFilter;
+		if (phase != null) {
+			finalFilter = preProcessObjectFilterInternal(principal, operationUrl, phase, true, objectType, origFilter);
+		} else {
+			ObjectFilter filterBoth = preProcessObjectFilterInternal(principal, operationUrl, null, false, objectType, origFilter);
+			ObjectFilter filterRequest = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.REQUEST, false, objectType, origFilter);
+			ObjectFilter filterExecution = preProcessObjectFilterInternal(principal, operationUrl, AuthorizationPhaseType.EXECUTION, false, objectType, origFilter);
+			finalFilter = ObjectQueryUtil.filterOr(filterBoth, ObjectQueryUtil.filterAnd(filterRequest, filterExecution));
+		}
+		LOGGER.trace("AUTZ: evaluated search pre-process principal={}, objectType={}: {}", 
+				new Object[]{principal, objectType, finalFilter});
+		if (finalFilter instanceof AllFilter) {
+			// compatibility
+			return null;
+		}
+		return finalFilter;
+	}
+	
+	private <O extends ObjectType> ObjectFilter preProcessObjectFilterInternal(MidPointPrincipal principal, String operationUrl, 
+			AuthorizationPhaseType phase, boolean includeNullPhase, 
+			Class<O> objectType, ObjectFilter origFilter) throws SchemaException {
 		Collection<Authorization> authorities = principal.getAuthorities();
 		ObjectFilter securityFilterAllow = null;
 		ObjectFilter securityFilterDeny = null;
@@ -692,7 +750,15 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 						LOGGER.trace("  Authorization not applicable for operation {}", operationUrl);
 						continue;
 					}
-					
+	
+					// phase
+					if (autz.getPhase() == phase || (includeNullPhase && autz.getPhase() == null)) {
+						LOGGER.trace("  Authorization is applicable for phases {} (continuing evaluation)", phase);
+					} else {
+						LOGGER.trace("  Authorization is not applicable for phase {}", phase);
+						continue;
+					}
+	
 					// object
 					ObjectFilter autzObjSecurityFilter = null;
 					List<ObjectSpecificationType> objectSpecTypes = autz.getObject();
@@ -704,7 +770,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							ObjectReferenceType specOrgRef = objectSpecType.getOrgRef();
 							QName specTypeQName = objectSpecType.getType();
 							PrismObjectDefinition<O> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectType);
-							ObjectFilter objSpecSecurityFilter = null;
+							ObjectFilter objSpecSecurityFilter = AllFilter.createAll();
 							
 							// Type
 							if (specTypeQName != null && !QNameUtil.match(specTypeQName, objectDefinition.getTypeName())) {
@@ -759,6 +825,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 						}
 					} else {
 						LOGGER.trace("  No object specification in authorization (authorization is universaly applicable)");
+						autzObjSecurityFilter = AllFilter.createAll();
 					}
 					
 					if (applicable) {
@@ -766,7 +833,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 						AuthorizationDecisionType decision = autz.getDecision();
 						if (decision == null || decision == AuthorizationDecisionType.ALLOW) {
 							// allow
-							if (autzObjSecurityFilter == null) {
+							if (ObjectQueryUtil.isAll(autzObjSecurityFilter)) {
 								// this is "allow all" authorization.
 								hasAllowAll = true;
 							} else {
@@ -774,7 +841,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							}
 						} else {
 							// deny
-							if (autzObjSecurityFilter == null) {
+							if (ObjectQueryUtil.isAll(autzObjSecurityFilter)) {
 								// This is "deny all". We cannot have anything stronger than that.
 								// There is no point in continuing the evaluation.
 								LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: deny all", new Object[]{principal.getUsername(), operationUrl});

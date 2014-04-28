@@ -15,9 +15,6 @@
  */
 package com.evolveum.midpoint.security.impl;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisionType;
@@ -26,12 +23,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisi
  * @author semancik
  *
  */
-public class ItemSecurityConstraintsImpl implements DebugDumpable {
-
-	private Map<String, PhaseDecisionImpl> actionDecisionMap = new HashMap<>();
-
-	public Map<String, PhaseDecisionImpl> getActionDecisionMap() {
-		return actionDecisionMap;
+public class PhaseDecisionImpl implements DebugDumpable {
+	
+	private AuthorizationDecisionType requestDecision;
+	private AuthorizationDecisionType execDecision;
+	
+	public AuthorizationDecisionType getRequestDecision() {
+		return requestDecision;
+	}
+	
+	public void setRequestDecision(AuthorizationDecisionType requestDecision) {
+		this.requestDecision = requestDecision;
+	}
+	
+	public AuthorizationDecisionType getExecDecision() {
+		return execDecision;
+	}
+	
+	public void setExecDecision(AuthorizationDecisionType execDecision) {
+		this.execDecision = execDecision;
 	}
 
 	@Override
@@ -43,10 +53,11 @@ public class ItemSecurityConstraintsImpl implements DebugDumpable {
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("ItemSecurityConstraintsImpl");
+		sb.append("PhaseDecisionImpl");
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "actionDecisionMap", actionDecisionMap, indent+1);
+		DebugUtil.debugDumpWithLabel(sb, "requestDecision", requestDecision==null?"null":requestDecision.toString(), indent+1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "execDecision", execDecision==null?"null":execDecision.toString(), indent+1);
 		return sb.toString();
 	}
-	
 }

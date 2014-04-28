@@ -46,6 +46,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
+import com.evolveum.midpoint.model.controller.ModelUtils;
 import com.evolveum.midpoint.model.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.lens.projector.Projector;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -60,6 +61,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -72,6 +74,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -110,6 +113,9 @@ public class Clockwork {
     
     @Autowired(required = true)
 	private AuditService auditService;
+    
+    @Autowired(required = true)
+    private SecurityEnforcer securityEnforcer;
     
     @Autowired(required = true)
     private Clock clock;
@@ -186,6 +192,10 @@ public class Clockwork {
 				projector.project(context, "PROJECTOR ("+state+")", task, result);
 			} else {
 				LOGGER.trace("Skipping projection because the context is fresh");
+			}
+			
+			if (!context.isRequestAuthorized()) {
+				authorizeContextRequest(context, task, result);
 			}
 			
 			LensUtil.traceContext(LOGGER, "CLOCKWORK (" + state + ")", "before processing", true, context, false);
@@ -736,6 +746,35 @@ public class Clockwork {
 		LOGGER.debug("\n###[ CLOCKWORK SUMMARY ]######################################\n{}" +
 				       "##############################################################",
 				sb.toString());
+	}
+	
+	private <F extends ObjectType> void authorizeContextRequest(LensContext<F> context, Task task, OperationResult result) throws SecurityViolationException, SchemaException {
+		LensFocusContext<F> focusContext = context.getFocusContext();
+		if (focusContext != null) {
+			authorizeElementContext(focusContext, task, result);
+			authorizeAssignmentRequest(focusContext, task, result);
+		}
+		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
+			authorizeElementContext(projectionContext, task, result);
+		}
+		context.setRequestAuthorized(true);
+	}
+	
+	private <O extends ObjectType> void authorizeElementContext(LensElementContext<O> elementContext, Task task, OperationResult result) throws SecurityViolationException, SchemaException {
+		ObjectDelta<O> primaryDelta = elementContext.getPrimaryDelta();
+		// If there is no delta then there is no request to authorize
+		if (primaryDelta != null) {
+			PrismObject<O> object = elementContext.getObjectNew();
+			if (primaryDelta.isDelete()) {
+				object = elementContext.getObjectCurrent();
+			}
+			String operationUrl = ModelUtils.getOperationUrlFromDelta(primaryDelta);
+			securityEnforcer.authorize(operationUrl, AuthorizationPhaseType.REQUEST, object, primaryDelta, null, result);
+		}
+	}
+	
+	private <F extends ObjectType> void authorizeAssignmentRequest(LensFocusContext<F> focusContext, Task task, OperationResult result) throws SecurityViolationException, SchemaException {
+		//
 	}
 	
 }

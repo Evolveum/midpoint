@@ -425,7 +425,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			} else {				
 				
 				LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, options, task, result);
-
+				// Note: Request authorization happens inside clockwork
 				clockwork.run(context, task, result);
 						
 			}
@@ -1274,10 +1274,13 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		validateObject(object, options, result);
 		try {
 			ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityContraints(object);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Security constrains for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
+			}
 			if (securityConstraints == null) {
 				throw new SecurityViolationException("Access denied");
 			}
-			AuthorizationDecisionType globalDecision = securityConstraints.getActionDecistion(ModelService.AUTZ_READ_URL);
+			AuthorizationDecisionType globalDecision = securityConstraints.getActionDecistion(ModelService.AUTZ_READ_URL, null);
 			if (globalDecision == AuthorizationDecisionType.DENY) {
 				// shortcut
 				throw new SecurityViolationException("Access denied");
@@ -1303,7 +1306,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		while (iterator.hasNext()) {
 			Item<? extends PrismValue> item = iterator.next();
 			ItemPath itemPath = item.getPath();
-			AuthorizationDecisionType itemDecision = securityContraints.findItemDecision(itemPath, ModelService.AUTZ_READ_URL);
+			AuthorizationDecisionType itemDecision = securityContraints.findItemDecision(itemPath, ModelService.AUTZ_READ_URL, null);
 			if (item instanceof PrismContainer<?>) {
 				if (itemDecision == AuthorizationDecisionType.DENY) {
 					// Explicitly denied access to the entire container
@@ -1430,7 +1433,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
     	if (origQuery != null) {
     		origFilter = origQuery.getFilter();
     	}
-		ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(ModelService.AUTZ_READ_URL, objectType, origFilter);
+		ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(ModelService.AUTZ_READ_URL, null, objectType, origFilter);
 		if (origQuery != null) {
 			origQuery.setFilter(secFilter);
 			return origQuery;
