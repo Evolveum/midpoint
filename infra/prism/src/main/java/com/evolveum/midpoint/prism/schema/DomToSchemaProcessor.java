@@ -247,30 +247,6 @@ class DomToSchemaProcessor {
 		}
 	}
 	
-	private ComplexTypeDefinition processComplexTypeDefinition(XSComplexType complexType) throws SchemaException {
-		// Create the actual definition. This is potentially recursive call
-		ComplexTypeDefinition complexTypeDefinition = createComplexTypeDefinition(complexType);
-		ComplexTypeDefinition existingComplexTypeDefinition = schema.findComplexTypeDefinition(complexTypeDefinition.getTypeName());
-		if (existingComplexTypeDefinition != null) {
-			// Already processed
-			return existingComplexTypeDefinition;
-		}
-		schema.getDefinitions().add(complexTypeDefinition);
-
-		// As this is a top-level complex type definition, attempt to create object or container definition
-		// from it
-		
-		PrismContainerDefinition<?> defFromComplexType = getDefinitionFactory().createExtraDefinitionFromComplexType(complexType, complexTypeDefinition, prismContext, 
-				complexType.getAnnotation());
-		
-		if (defFromComplexType != null) {
-			markRuntime(defFromComplexType);
-			schema.getDefinitions().add(defFromComplexType);
-		}
-		
-		return complexTypeDefinition;
-	}
-
 	private ComplexTypeDefinition getOrProcessComplexType(QName typeName) throws SchemaException {
 		ComplexTypeDefinition complexTypeDefinition = schema.findComplexTypeDefinition(typeName);
 		if (complexTypeDefinition != null) {
@@ -286,11 +262,20 @@ class DomToSchemaProcessor {
 	 * Creates ComplexTypeDefinition object from a single XSD complexType definition.
 	 * @param complexType XS complex type definition
 	 */
-	private ComplexTypeDefinition createComplexTypeDefinition(XSComplexType complexType) throws SchemaException {
+	private ComplexTypeDefinition processComplexTypeDefinition(XSComplexType complexType) throws SchemaException {
 		
 		SchemaDefinitionFactory definitionFactory = getDefinitionFactory();
 		ComplexTypeDefinition ctd = definitionFactory.createComplexTypeDefinition(complexType, prismContext, complexType.getAnnotation());
-				
+		
+		ComplexTypeDefinition existingComplexTypeDefinition = schema.findComplexTypeDefinition(ctd.getTypeName());
+		if (existingComplexTypeDefinition != null) {
+			// We already have this in schema. So avoid redundant work and infinite loops;
+			return existingComplexTypeDefinition;
+		}
+		// Add to the schema right now to avoid loops - even if it is not complete yet
+		// The definition may reference itself
+		schema.add(ctd);
+		
 		XSContentType content = complexType.getContentType();
         XSContentType explicitContent = complexType.getExplicitContent();
 		if (content != null) {
@@ -348,6 +333,16 @@ class DomToSchemaProcessor {
 		}
 		
 		definitionFactory.finishComplexTypeDefinition(ctd, complexType, prismContext, complexType.getAnnotation());
+		
+		// Attempt to create object or container definition from this complex type
+		
+		PrismContainerDefinition<?> defFromComplexType = getDefinitionFactory().createExtraDefinitionFromComplexType(complexType, 
+				ctd, prismContext, complexType.getAnnotation());
+		
+		if (defFromComplexType != null) {
+			markRuntime(defFromComplexType);
+			schema.add(defFromComplexType);
+		}
 		
 		return ctd;
 
@@ -438,7 +433,7 @@ class DomToSchemaProcessor {
 									" as specified in type override annotation at "+elementName);
 						}
 					} else {
-						complexTypeDefinition = createComplexTypeDefinition(complexType);
+						complexTypeDefinition = processComplexTypeDefinition(complexType);
 					}
 					XSAnnotation containerAnnotation = complexType.getAnnotation();
 					PrismContainerDefinition<?> containerDefinition = createPropertyContainerDefinition(xsType, p, 

@@ -6396,6 +6396,14 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
+	        <xsd:element name="owner" type="tns:ObjectSpecificationType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						The object matches the specification if it has an owner specified by this element.
+						The "owner" means a focus that has a link to the object.
+					</xsd:documentation>
+				</xsd:annotation>
+	        </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
 	</xsd:complexType>
