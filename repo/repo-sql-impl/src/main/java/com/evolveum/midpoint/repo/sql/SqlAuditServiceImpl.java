@@ -27,15 +27,13 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.jdbc.Work;
-import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.xml.datatype.Duration;
 import java.sql.*;
 import java.util.Date;
 
@@ -88,15 +86,60 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     @Override
     public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
-        cleanup(RAuditEventRecord.class, policy, parentResult);
+        Validate.notNull(policy, "Cleanup policy must not be null.");
+        Validate.notNull(parentResult, "Operation result must not be null.");
+
+        final String operation = "deleting";
+        int attempt = 1;
+
+        SqlPerformanceMonitor pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart("deleteObject");
+
+        try {
+            while (true) {
+                try {
+                    cleanupAuditAttempt(policy, parentResult);
+                    return;
+                } catch (RuntimeException ex) {
+                    attempt = logOperationAttempt(null, operation, attempt, ex, parentResult);
+                    pm.registerOperationNewTrial(opHandle, attempt);
+                }
+            }
+        } finally {
+            pm.registerOperationFinish(opHandle, attempt);
+        }
     }
 
-    @Override
-    protected int cleanupAttempt(Class entity, Date minValue, Session session) {
-        if (!RAuditEventRecord.class.equals(entity)) {
-            return 0;
+    private void cleanupAuditAttempt(CleanupPolicyType policy, OperationResult subResult) {
+        if (policy.getMaxAge() == null) {
+            return;
         }
 
+        Duration duration = policy.getMaxAge();
+        if (duration.getSign() > 0) {
+            duration = duration.negate();
+        }
+        Date minValue = new Date();
+        duration.addTo(minValue);
+        LOGGER.info("Starting audit cleanup, deleting up to {} (duration '{}').", new Object[]{minValue, duration});
+
+        Session session = null;
+        try {
+            session = beginTransaction();
+
+            int count = cleanupAuditAttempt(minValue, session);
+            LOGGER.info("Cleanup in performed, {} records deleted up to {} (duration '{}').",
+                    new Object[]{count, minValue, duration});
+
+            session.getTransaction().commit();
+        } catch (RuntimeException ex) {
+            handleGeneralRuntimeException(ex, session, subResult);
+        } finally {
+            cleanupSessionAndResult(session, subResult);
+        }
+    }
+
+    protected int cleanupAuditAttempt(Date minValue, Session session) {
         final Dialect dialect = Dialect.getDialect(getSessionFactoryBean().getHibernateProperties());
         if (!dialect.supportsTemporaryTables()) {
             LOGGER.error("Dialect {} doesn't support temporary tables, couldn't cleanup audit logs.",

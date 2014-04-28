@@ -508,14 +508,4 @@ public interface RepositoryService {
 	 * without changing the result structure. It must not throw an exception in this case.
 	 */
     public void repositorySelfTest(OperationResult parentResult);
-
-    /**
-     * Clean up closed tasks that are older than specified.
-     *
-     * Deprecated: use TaskManager.cleanupTasks instead.
-     *
-     * @param policy Tasks will be deleted based on this policy.
-     */
-    @Deprecated
-    public void cleanupTasks(CleanupPolicyType policy, OperationResult parentResult);
 }

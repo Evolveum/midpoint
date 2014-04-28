@@ -306,11 +306,6 @@ public class RepositoryCache implements RepositoryService {
 	}
 
 	@Override
-	public void cleanupTasks(CleanupPolicyType policy, OperationResult parentResult) {
-		repository.cleanupTasks(policy, parentResult);
-	}
-
-	@Override
 	public <T extends ObjectType> boolean matchObject(PrismObject<T> object, ObjectQuery query)
 			throws SchemaException {
 		return repository.matchObject(object, query);
@@ -321,7 +316,4 @@ public class RepositoryCache implements RepositoryService {
 			throws SchemaException {
 		return repository.isAnySubordinate(upperOrgOid, lowerObjectOids);
 	}
-	
-	
-
 }

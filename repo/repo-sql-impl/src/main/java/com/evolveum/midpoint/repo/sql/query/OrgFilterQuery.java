@@ -54,8 +54,6 @@ public class OrgFilterQuery extends CustomQuery {
         return true;
     }
 
-    // http://stackoverflow.com/questions/10515391/oracle-equivalent-of-postgres-distinct-on
-    // select distinct col1, first_value(col2) over (partition by col1 order by col2 asc) from tmp
     @Override
     public RQuery createQuery(ObjectQuery objectQuery, Class<? extends ObjectType> type,
                               Collection<SelectorOptions<GetOperationOptions>> options, boolean countingObjects,
@@ -69,56 +67,40 @@ public class OrgFilterQuery extends CustomQuery {
             return countQuery(filter, type, session);
         }
 
-        if (getRepoConfiguration().isUsingOracle()) {
-            return createOracleQuery(filter, type, session);
-        }
-
         StringBuilder sb = new StringBuilder();
-        sb.append("select o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount from ");
-        sb.append(ClassMapper.getHQLType(type)).append(" as o left join o.descendants as d where d.ancestorOid = :aOid");
-        sb.append(" group by o.fullObject, o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount, o.name.orig order by o.name.orig asc");
-
+        if (OrgFilter.Scope.ONE_LEVEL.equals(filter.getScope())) {
+            sb.append("select o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount from ");
+            sb.append(ClassMapper.getHQLType(type)).append(" as o where o.oid in (select distinct p.ownerOid from RParentOrgRef p where p.targetOid=:oid)");
+        } else {
+            sb.append("select o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount from ");
+            sb.append(ClassMapper.getHQLType(type)).append(" as o where o.oid in (");
+            //todo change to sb.append("select d.descendantOid from ROrgClosure as d where d.ancestorOid = :oid and d.descendantOid != :oid)");
+            sb.append("select distinct d.descendantOid from ROrgClosure as d where d.ancestorOid = :oid and d.descendantOid != :oid)");
+        }
         Query query = session.createQuery(sb.toString());
-        updateQueryParameters(query, filter, countingObjects);
+        query.setString("oid", filter.getOrgRef().getOid());
+        query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
 
         return new RQueryImpl(query);
-    }
-
-    /**
-     * This query is probably much faster than the standard one,
-     * but it's using IN clause, we need to check it's performance. [lazyman]
-     */
-    private RQuery createOracleQuery(OrgFilter filter, Class<? extends ObjectType> type, Session session) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("select o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount from ");
-        sb.append(ClassMapper.getHQLType(type));
-        sb.append(" as o where o.oid in (select distinct d.descendantOid from ROrgClosure as d where d.ancestorOid = :aOid)");
-
-        Query query = session.createQuery(sb.toString());
-        updateQueryParameters(query, filter, false);
-
-        return new RQueryImpl(query);
-    }
-
-    private void updateQueryParameters(Query query, OrgFilter filter, boolean countingObjects) {
-        query.setString("aOid", filter.getOrgRef().getOid());
-
-        if (!countingObjects) {
-            query.setResultTransformer(GetObjectResult.RESULT_TRANSFORMER);
-        }
     }
 
     private RQuery countQuery(OrgFilter filter, Class type, Session session) {
         StringBuilder sb = new StringBuilder();
-        if (ObjectType.class.equals(type)) {
-            sb.append("select count(distinct d.descendantOid) from ROrgClosure d where d.ancestorOid = :aOid");
+        if (OrgFilter.Scope.ONE_LEVEL.equals(filter.getScope())) {
+            sb.append("select count(distinct o.oid) from ");
+            sb.append(ClassMapper.getHQLType(type)).append(" o left join o.parentOrgRef p where p.targetOid=:oid");
         } else {
-            sb.append("select count(distinct d.descendantOid) from ").append(ClassMapper.getHQLType(type));
-            sb.append(" as o left join o.descendants as d where d.ancestorOid = :aOid");
+            if (ObjectType.class.equals(type)) {
+                //todo change to select count(*) from ROrgClosure d where d.ancestorOid = :oid
+                sb.append("select count(distinct d.descendantOid) from ROrgClosure d where d.ancestorOid = :oid and d.descendantOid != :oid");
+            } else {
+                //todo change to sb.append("select count(d.descendantOid) from ").append(ClassMapper.getHQLType(type));
+                sb.append("select count(distinct d.descendantOid) from ").append(ClassMapper.getHQLType(type));
+                sb.append(" as o left join o.descendants as d where d.ancestorOid = :oid and d.descendantOid != :oid");
+            }
         }
-
         Query query = session.createQuery(sb.toString());
-        updateQueryParameters(query, filter, true);
+        query.setString("oid", filter.getOrgRef().getOid());
 
         return new RQueryImpl(query);
     }
