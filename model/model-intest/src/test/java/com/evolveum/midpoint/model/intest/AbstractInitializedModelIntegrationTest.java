@@ -354,7 +354,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         
         List<PrismObject<OrgType>> governorSubOrgs = searchOrg(ORG_GOVERNOR_OFFICE_OID, OrgFilter.Scope.ONE_LEVEL, task, result);
         if (verbose) display("governor suborgs", governorSubOrgs);
-        assertEquals("Unexpected number of governor suborgs", 4, governorSubOrgs.size());
+        assertEquals("Unexpected number of governor suborgs", 3, governorSubOrgs.size());
         
         List<PrismObject<OrgType>> functionalOrgs = searchOrg(ORG_GOVERNOR_OFFICE_OID, OrgFilter.Scope.SUBTREE, task, result);
         if (verbose) display("functional orgs (null)", functionalOrgs);
@@ -366,7 +366,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         
         List<PrismObject<OrgType>> prootSubOrgs = searchOrg(ORG_PROJECT_ROOT_OID, OrgFilter.Scope.ONE_LEVEL, task, result);
         if (verbose) display("project root suborgs", prootSubOrgs);
-        assertEquals("Unexpected number of governor suborgs", 3, prootSubOrgs.size());
+        assertEquals("Unexpected number of governor suborgs", 2, prootSubOrgs.size());
         
         List<PrismObject<OrgType>> projectOrgs = searchOrg(ORG_PROJECT_ROOT_OID, OrgFilter.Scope.SUBTREE, task, result);
         if (verbose) display("project orgs (null)", projectOrgs);
