@@ -60,7 +60,8 @@ public class OrgRestriction extends Restriction<OrgFilter> {
 //			Query rootOrgQuery = session.createQuery("select org from ROrg as org where org.oid in (select descendant.oid from ROrgClosure group by descendant.oid having count(descendant.oid)=1)");
         }
 
-        updateCriteria();
+        Criteria main = getContext().getCriteria(null);
+        main.createCriteria(QUERY_PATH, CLOSURE_ALIAS);
 
         if (filter.getOrgRef() == null) {
             throw new QueryException("No organization reference defined in the search query.");
@@ -92,37 +93,6 @@ public class OrgRestriction extends Restriction<OrgFilter> {
             }
         }
         return conjunction;
-    }
-
-    private void updateCriteria() {
-        // get root criteria
-        Criteria main = getContext().getCriteria(null);
-        // create subcriteria on the ROgrClosure table to search through org struct
-
-        ProjectionList list = Projections.projectionList();
-        String alias = getContext().getAlias(null);
-
-        QueryContext context = getContext();
-        SqlRepositoryConfiguration sqlConfig = context.getInterpreter().getRepoConfiguration();
-
-        list.add(Projections.property(alias + ".fullObject"));
-        list.add(Projections.property(alias + ".stringsCount"));
-        list.add(Projections.property(alias + ".longsCount"));
-        list.add(Projections.property(alias + ".datesCount"));
-        list.add(Projections.property(alias + ".referencesCount"));
-        list.add(Projections.property(alias + ".polysCount"));
-
-        if (sqlConfig.isUsingSQLServer()) {
-            list.add(Projections.groupProperty(alias + ".fullObject"));
-            list.add(Projections.groupProperty(alias + ".stringsCount"));
-            list.add(Projections.groupProperty(alias + ".longsCount"));
-            list.add(Projections.groupProperty(alias + ".datesCount"));
-            list.add(Projections.groupProperty(alias + ".referencesCount"));
-            list.add(Projections.groupProperty(alias + ".polysCount"));
-        }
-
-        main.createCriteria(QUERY_PATH, CLOSURE_ALIAS);
-        main.setProjection(list);
     }
 
     @Override

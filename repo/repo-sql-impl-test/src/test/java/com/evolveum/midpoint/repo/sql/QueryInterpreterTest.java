@@ -802,14 +802,12 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         }
 
         if (group) {
-            if (repositoryService.getConfiguration().isUsingSQLServer()) {
-                list.add(Projections.groupProperty(prefix + "fullObject"));
-                list.add(Projections.groupProperty(prefix + "stringsCount"));
-                list.add(Projections.groupProperty(prefix + "longsCount"));
-                list.add(Projections.groupProperty(prefix + "datesCount"));
-                list.add(Projections.groupProperty(prefix + "referencesCount"));
-                list.add(Projections.groupProperty(prefix + "polysCount"));
-            }
+            list.add(Projections.groupProperty(prefix + "fullObject"));
+            list.add(Projections.groupProperty(prefix + "stringsCount"));
+            list.add(Projections.groupProperty(prefix + "longsCount"));
+            list.add(Projections.groupProperty(prefix + "datesCount"));
+            list.add(Projections.groupProperty(prefix + "referencesCount"));
+            list.add(Projections.groupProperty(prefix + "polysCount"));
         } else {
             list.add(Projections.property(prefix + "fullObject"));
             list.add(Projections.property(prefix + "stringsCount"));
