@@ -57,6 +57,7 @@ public class ROrgClosure implements Serializable {
         this.descendant = descendant;
     }
 
+    @MapsId("ancestorOid")
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumns({@JoinColumn(name = "ancestor_oid", referencedColumnName = "oid")})
     @ForeignKey(name = "fk_ancestor")
@@ -78,6 +79,7 @@ public class ROrgClosure implements Serializable {
         this.ancestor = ancestor;
     }
 
+    @MapsId("descendantOid")
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumns({@JoinColumn(name = "descendant_oid", referencedColumnName = "oid")})
     @ForeignKey(name = "fk_descendant")

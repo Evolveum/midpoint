@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgIncorrect;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -249,7 +250,10 @@ public class OrgStructTest extends BaseSQLRepoTest {
                     .add(Restrictions.eq("anc.oid", ORG_F007_OID));
 
             List<ROrgClosure> orgClosure = criteria.list();
-            AssertJUnit.assertEquals(5, orgClosure.size());
+            for (ROrgClosure c : orgClosure) {
+                LOGGER.info("{}", c.getDescendant());
+            }
+            AssertJUnit.assertEquals(4, orgClosure.size());
 
             criteria = session.createCriteria(ROrgClosure.class)
                     .createCriteria("ancestor", "anc")

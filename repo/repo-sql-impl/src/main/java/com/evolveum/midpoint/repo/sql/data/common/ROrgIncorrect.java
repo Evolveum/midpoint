@@ -16,28 +16,29 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
+import com.evolveum.midpoint.repo.sql.data.common.id.ROrgClosureId;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.io.Serializable;
 
 /**
  * @author lazyman
  */
+@IdClass(ROrgClosureId.class)
 @Entity
 @Table(name = "m_org_incorrect")
 public class ROrgIncorrect implements Serializable {
 
     private String ancestorOid;
+    private String descendantOid;
 
     public ROrgIncorrect() {
     }
 
-    public ROrgIncorrect(String ancestorOid) {
+    public ROrgIncorrect(String ancestorOid, String descendantOid) {
         this.ancestorOid = ancestorOid;
+        this.descendantOid= descendantOid;
     }
 
     @Id
@@ -46,27 +47,38 @@ public class ROrgIncorrect implements Serializable {
         return ancestorOid;
     }
 
+    @Id
+    @Column(name = "descendant_oid", nullable = false, updatable = false, length = RUtil.COLUMN_LENGTH_OID)
+    public String getDescendantOid() {
+        return descendantOid;
+    }
+
+    public void setDescendantOid(String descendantOid) {
+        this.descendantOid = descendantOid;
+    }
+
     public void setAncestorOid(String ancestorOid) {
         this.ancestorOid = ancestorOid;
     }
 
     @Override
-    public int hashCode() {
-        return ancestorOid != null ? ancestorOid.hashCode() : 0;
-    }
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null || getClass() != obj.getClass())
-            return false;
+        ROrgIncorrect that = (ROrgIncorrect) o;
 
-        ROrgIncorrect that = (ROrgIncorrect) obj;
-
-        if (ancestorOid != null ? !ancestorOid.equals(that.ancestorOid) : that.ancestorOid != null)
+        if (ancestorOid != null ? !ancestorOid.equals(that.ancestorOid) : that.ancestorOid != null) return false;
+        if (descendantOid != null ? !descendantOid.equals(that.descendantOid) : that.descendantOid != null)
             return false;
 
         return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = ancestorOid != null ? ancestorOid.hashCode() : 0;
+        result = 31 * result + (descendantOid != null ? descendantOid.hashCode() : 0);
+        return result;
     }
 }

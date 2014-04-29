@@ -29,12 +29,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import org.apache.commons.collections.ListUtils;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
+import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 
 import java.util.*;
 
@@ -104,6 +106,16 @@ public class OrgClosureManager {
         query.executeUpdate();
 
         addParents(oid, parents, session);
+
+        query = session.createQuery("select count(*) from ROrgIncorrect where ancestorOid=:oid");
+        query.setString("oid", oid);
+        Number parentCount = (Number) query.uniqueResult();
+        if (parentCount != null && parentCount.intValue() != 0) {
+            query = session.createSQLQuery("insert into m_org_closure (ancestor_oid, descendant_oid) " +
+                    "select ancestor_oid, descendant_oid from m_org_incorrect where ancestor_oid=:oid");
+            query.setString("oid", oid);
+            query.executeUpdate();
+        }
     }
 
     private <T extends ObjectType> void handleModify(Collection<? extends ItemDelta> modifications, Session session,
@@ -111,7 +123,6 @@ public class OrgClosureManager {
         if (modifications.isEmpty()) {
             return;
         }
-        //todo handle modify
 
         Set<String> parents = getOidFromDeleteDeltas(modifications);
         removeParents(oid, parents, session);
@@ -121,7 +132,7 @@ public class OrgClosureManager {
     }
 
     private void removeParents(String oid, Set<String> parents, Session session) {
-
+        //todo implement
     }
 
     private void addParents(String oid, Set<String> parents, Session session) {
@@ -138,17 +149,26 @@ public class OrgClosureManager {
         if (!existing.isEmpty()) {
             if (LOGGER.isTraceEnabled())
                 LOGGER.trace("adding for existing {} for {}", Arrays.toString(existing.toArray()), oid);
-            //todo this can produce records that are already there, it would fail.
-            query = session.createSQLQuery("insert into m_org_closure (ancestor_oid, descendant_oid) " +
-                    "select ancestor_oid, :oid from m_org_closure where descendant_oid in (:parents) group by ancestor_oid");
+
+            query = session.createQuery("select ancestorOid from ROrgClosure where descendantOid in (:parents) group by ancestorOid");
             query.setParameterList("parents", existing);
+            List<String> ancestors = new ArrayList<String>(query.list());
+
+            query = session.createQuery("select ancestorOid from ROrgClosure where descendantOid = :oid");
             query.setString("oid", oid);
-            query.executeUpdate();
+            ancestors.removeAll(new ArrayList<String>(query.list()));
+
+            List<ROrgClosure> closures = new ArrayList<>();
+            for (String a : ancestors) {
+                closures.add(new ROrgClosure(a, oid));
+            }
+            bulkSave(closures, session);
         }
 
         parents.removeAll(existing);
 
         if (!parents.isEmpty()) {
+            //todo fix incorrects handling
             query = session.createQuery("select i.ancestorOid from ROrgIncorrect  i where i.ancestorOid in (:parents)");
             query.setParameterList("parents", parents);
 
@@ -159,13 +179,19 @@ public class OrgClosureManager {
 
             List<ROrgIncorrect> incorrects = new ArrayList<>();
             for (String p : parents) {
-                incorrects.add(new ROrgIncorrect(p));
+                incorrects.add(new ROrgIncorrect(p, null));
             }
             bulkSave(incorrects, session);
         }
     }
 
     private void bulkSave(List objects, Session session) {
+        if (objects == null || objects.isEmpty()) {
+            return;
+        }
+
+        LOGGER.debug("Bulk saving {} objects {}", objects.size(), objects.get(0).getClass().getSimpleName());
+
         for (int i = 0; i < objects.size(); i++) {
             session.save(objects.get(i));
             if (i > 0 && i % RUtil.JDBC_BATCH_SIZE == 0) {
@@ -349,7 +375,7 @@ public class OrgClosureManager {
             boolean existIncorrect = existIncorrect(session, ancestorOid, descendant.getOid());
             if (!existIncorrect) {
                 LOGGER.trace("adding incorrect {}", new Object[]{ancestorOid, descendant.getOid()});
-                session.save(new ROrgIncorrect(ancestorOid));
+                session.save(new ROrgIncorrect(ancestorOid, descendant.getOid()));
             }
         }
     }
