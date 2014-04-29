@@ -119,6 +119,7 @@
     </inducement>
     <authorization>
     	<action>http://midpoint.evolveum.com/xml/ns/test/authorization#loot</action>
+    	<phase>execution</phase>
     </authorization>
     <requestable>true</requestable>
 </role>

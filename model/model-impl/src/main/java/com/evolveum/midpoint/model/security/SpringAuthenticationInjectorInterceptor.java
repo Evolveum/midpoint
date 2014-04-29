@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 import org.apache.cxf.binding.soap.SoapMessage;
@@ -148,7 +149,7 @@ public class SpringAuthenticationInjectorInterceptor implements PhaseInterceptor
                 LOGGER.trace("Determining authorization for web service operation {} (action: {})", operationName, action);
                 boolean isAuthorized;
 				try {
-					isAuthorized = securityEnforcer.isAuthorized(action, null, null, null);
+					isAuthorized = securityEnforcer.isAuthorized(action, AuthorizationPhaseType.REQUEST, null, null, null, null);
 				} catch (SchemaException e) {
 					LOGGER.debug("Access to web service denied for user '{}': schema error: {}", 
 		        			new Object[]{username, e.getMessage(), e});
