@@ -29,7 +29,9 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
+import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
 import com.evolveum.midpoint.repo.sql.query.RQueryImpl;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
@@ -38,13 +40,7 @@ import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.Query;
 import org.hibernate.Session;
-import org.hibernate.criterion.Conjunction;
-import org.hibernate.criterion.Criterion;
-import org.hibernate.criterion.Disjunction;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.ProjectionList;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
+import org.hibernate.criterion.*;
 import org.hibernate.sql.JoinType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -73,14 +69,6 @@ import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.sql.data.common.RConnector;
-import com.evolveum.midpoint.repo.sql.data.common.RGenericObject;
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.ROrg;
-import com.evolveum.midpoint.repo.sql.data.common.RRole;
-import com.evolveum.midpoint.repo.sql.data.common.RShadow;
-import com.evolveum.midpoint.repo.sql.data.common.RTask;
-import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RTaskExecutionStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
@@ -1161,21 +1149,33 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
 
         try {
+            DetachedCriteria detached = DetachedCriteria.forClass(ROrgClosure.class, "cl");
+            detached.setProjection(Projections.distinct(Projections.property("cl.descendantOid")));
+            detached.add(Restrictions.eq("cl.ancestorOid", "1234"));
+            detached.add(Restrictions.ne("cl.descendantOid", "1234"));
+
             Criteria main = session.createCriteria(RUser.class, "u");
-            Criteria ancestors = main.createCriteria("descendants", "closure");
+            String mainAlias = "u";
+
+            ProjectionList projections = Projections.projectionList();
+            projections.add(Projections.property("fullObject"));
+
+            projections.add(Projections.property("stringsCount"));
+            projections.add(Projections.property("longsCount"));
+            projections.add(Projections.property("datesCount"));
+            projections.add(Projections.property("referencesCount"));
+            projections.add(Projections.property("polysCount"));
+
+            main.setProjection(projections);
 
             Conjunction c = Restrictions.conjunction();
             c.add(Restrictions.and(
                             Restrictions.eq("u.name.orig", "cpt. Jack Sparrow"),
                             Restrictions.eq("u.name.norm", "cpt jack sparrow")));
-            c.add(Restrictions.eq("closure.ancestorOid", "12341234-1234-1234-1234-123412341234"));
+            c.add(Subqueries.propertyIn(mainAlias + ".oid", detached));
             main.add(c);
 
             main.addOrder(Order.asc("u.name.orig"));
-
-            ProjectionList projections = Projections.projectionList();
-            addFullObjectProjectionList("u", projections, false);
-            main.setProjection(projections);
 
             String expected = HibernateToSqlTranslator.toSql(main);
 
