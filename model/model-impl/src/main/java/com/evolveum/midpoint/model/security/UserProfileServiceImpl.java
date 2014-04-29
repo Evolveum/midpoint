@@ -209,6 +209,9 @@ public class UserProfileServiceImpl implements UserProfileService {
 
 	@Override
 	public <F extends FocusType> PrismObject<F> resolveOwner(PrismObject<ShadowType> shadow) {
+		if (shadow == null || shadow.getOid() == null) {
+			return null;
+		}
 		PrismObject<F> owner;
 		try {
 			owner = repositoryService.searchShadowOwner(shadow.getOid(), new OperationResult(UserProfileServiceImpl.class+".resolveOwner"));

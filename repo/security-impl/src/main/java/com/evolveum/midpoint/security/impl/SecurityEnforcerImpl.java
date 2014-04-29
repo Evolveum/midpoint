@@ -439,6 +439,11 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 				}
 			}
 			PrismObject<? extends FocusType> owner = ownerResolver.resolveOwner((PrismObject<ShadowType>)object);
+			if (owner == null) {
+				LOGGER.trace("  owner object spec not applicable for {}, object OID {} because it has no owner",
+						new Object[]{desc, object.getOid()});
+				return false;
+			}
 			boolean ownerApplicable = isApplicable(ownerSpec, owner, principal, ownerResolver, "owner of "+desc);
 			if (!ownerApplicable) {
 				LOGGER.trace("  owner object spec not applicable for {}, object OID {} because owner does not match (owner={})",
