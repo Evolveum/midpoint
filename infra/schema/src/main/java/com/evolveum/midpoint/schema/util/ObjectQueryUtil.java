@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,11 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.AllFilter;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.InOidFilter;
+import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
@@ -167,10 +169,26 @@ public class ObjectQueryUtil {
 	 * Merges the two provided arguments into one AND filter in the most efficient way. 
 	 */
 	public static ObjectFilter filterAnd(ObjectFilter origFilter, ObjectFilter additionalFilter) {
+		if (origFilter == additionalFilter) {
+			// AND with itself
+			return origFilter;
+		}
 		if (origFilter == null) {
 			return additionalFilter;
 		}
 		if (additionalFilter == null) {
+			return origFilter;
+		}
+		if (origFilter instanceof NoneFilter) {
+			return origFilter;
+		}
+		if (additionalFilter instanceof NoneFilter) {
+			return additionalFilter;
+		}
+		if (origFilter instanceof AllFilter) {
+			return additionalFilter;
+		}
+		if (additionalFilter instanceof AllFilter) {
 			return origFilter;
 		}
 		if (origFilter instanceof AndFilter) {
@@ -186,10 +204,26 @@ public class ObjectQueryUtil {
 	 * Merges the two provided arguments into one OR filter in the most efficient way. 
 	 */
 	public static ObjectFilter filterOr(ObjectFilter origFilter, ObjectFilter additionalFilter) {
+		if (origFilter == additionalFilter) {
+			// OR with itself
+			return origFilter;
+		}
 		if (origFilter == null) {
 			return additionalFilter;
 		}
 		if (additionalFilter == null) {
+			return origFilter;
+		}
+		if (origFilter instanceof AllFilter) {
+			return origFilter;
+		}
+		if (additionalFilter instanceof AllFilter) {
+			return additionalFilter;
+		}
+		if (origFilter instanceof NoneFilter) {
+			return additionalFilter;
+		}
+		if (additionalFilter instanceof NoneFilter) {
 			return origFilter;
 		}
 		if (origFilter instanceof OrFilter) {
@@ -199,5 +233,13 @@ public class ObjectQueryUtil {
 			return origFilter;
 		}
 		return OrFilter.createOr(origFilter, additionalFilter);
+	}
+
+	public static boolean isAll(ObjectFilter filter) {
+		return filter == null || filter instanceof AllFilter;
+	}
+	
+	public static boolean isNone(ObjectFilter filter) {
+		return filter != null && filter instanceof NoneFilter;
 	}
 }

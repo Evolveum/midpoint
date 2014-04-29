@@ -27,6 +27,7 @@ import java.net.ConnectException;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.query.OrgFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.icf.dummy.resource.DummyGroup;
@@ -72,8 +73,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  */
 public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredModelIntegrationTest {
 	
-	private static final Object NUM_FUNCTIONAL_ORGS = 6;
-	private static final Object NUM_PROJECT_ORGS = 3;
+	private static final int NUM_FUNCTIONAL_ORGS = 6;
+	private static final int NUM_PROJECT_ORGS = 3;
 	
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractInitializedModelIntegrationTest.class);
 	
@@ -351,30 +352,22 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         OrgType orgGovernorOfficeType = orgGovernorOffice.asObjectable();
         assertEquals("Wrong governor office name", PrismTestUtil.createPolyStringType("F0001"), orgGovernorOfficeType.getName());
         
-        List<PrismObject<OrgType>> governorSubOrgs = searchOrg(ORG_GOVERNOR_OFFICE_OID, null, 1, task, result);
+        List<PrismObject<OrgType>> governorSubOrgs = searchOrg(ORG_GOVERNOR_OFFICE_OID, OrgFilter.Scope.ONE_LEVEL, task, result);
         if (verbose) display("governor suborgs", governorSubOrgs);
-        assertEquals("Unexpected number of governor suborgs", 4, governorSubOrgs.size());
+        assertEquals("Unexpected number of governor suborgs", 3, governorSubOrgs.size());
         
-        List<PrismObject<OrgType>> functionalOrgs = searchOrg(ORG_GOVERNOR_OFFICE_OID, null, null, task, result);
+        List<PrismObject<OrgType>> functionalOrgs = searchOrg(ORG_GOVERNOR_OFFICE_OID, OrgFilter.Scope.SUBTREE, task, result);
         if (verbose) display("functional orgs (null)", functionalOrgs);
-        assertEquals("Unexpected number of functional orgs (null)", NUM_FUNCTIONAL_ORGS, functionalOrgs.size());
-        
-        functionalOrgs = searchOrg(ORG_GOVERNOR_OFFICE_OID, null, null, task, result);
-        if (verbose) display("functional orgs (-1)", functionalOrgs);
-        assertEquals("Unexpected number of functional orgs (-1)", NUM_FUNCTIONAL_ORGS, functionalOrgs.size());
-        
-        List<PrismObject<OrgType>> prootSubOrgs = searchOrg(ORG_PROJECT_ROOT_OID, null, 1, task, result);
+        assertEquals("Unexpected number of functional orgs (null)", NUM_FUNCTIONAL_ORGS - 1, functionalOrgs.size());
+
+        List<PrismObject<OrgType>> prootSubOrgs = searchOrg(ORG_PROJECT_ROOT_OID, OrgFilter.Scope.ONE_LEVEL, task, result);
         if (verbose) display("project root suborgs", prootSubOrgs);
-        assertEquals("Unexpected number of governor suborgs", 3, prootSubOrgs.size());
+        assertEquals("Unexpected number of governor suborgs", 2, prootSubOrgs.size());
         
-        List<PrismObject<OrgType>> projectOrgs = searchOrg(ORG_PROJECT_ROOT_OID, null, null, task, result);
+        List<PrismObject<OrgType>> projectOrgs = searchOrg(ORG_PROJECT_ROOT_OID, OrgFilter.Scope.SUBTREE, task, result);
         if (verbose) display("project orgs (null)", projectOrgs);
-        assertEquals("Unexpected number of functional orgs (null)", NUM_PROJECT_ORGS, projectOrgs.size());
-        
-        projectOrgs = searchOrg(ORG_PROJECT_ROOT_OID, null, null, task, result);
-        if (verbose) display("project orgs (-1)", projectOrgs);
-        assertEquals("Unexpected number of functional orgs (-1)", NUM_PROJECT_ORGS, projectOrgs.size());
-        
+        assertEquals("Unexpected number of functional orgs (null)", NUM_PROJECT_ORGS - 1, projectOrgs.size());
+
         PrismObject<OrgType> orgScummBar = modelService.getObject(OrgType.class, ORG_SCUMM_BAR_OID, null, task, result);
         List<AssignmentType> scummBarInducements = orgScummBar.asObjectable().getInducement();
         assertEquals("Unexpected number of scumm bar inducements: "+scummBarInducements,  1, scummBarInducements.size());

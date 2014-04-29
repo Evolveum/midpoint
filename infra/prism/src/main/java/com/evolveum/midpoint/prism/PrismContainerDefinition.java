@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 
 import javax.xml.namespace.QName;
@@ -490,16 +491,20 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < indent; i++) {
-            sb.append(DebugDumpable.INDENT_STRING);
-        }
+        DebugUtil.indentDebugDump(sb, indent);
         sb.append(toString());
         if (isRuntimeSchema()) {
             sb.append(" dynamic");
         }
         for (Definition def : getDefinitions()) {
         	sb.append("\n");
-            sb.append(def.debugDump(indent + 1));
+        	if (def == this) {
+        		// Not perfect loop protection, but works for now
+                DebugUtil.indentDebugDump(sb, indent);
+                sb.append("<itself>");
+        	} else {
+        		sb.append(def.debugDump(indent + 1));
+        	}
         }
         return sb.toString();
     }

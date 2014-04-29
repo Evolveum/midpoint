@@ -82,7 +82,7 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
         LOGGER.debug("Loading children for {}", new Object[]{node});
         Iterator<OrgTreeDto> iterator = null;
 
-        OrgFilter orgFilter = OrgFilter.createOrg(node.getOid(), 1, 1);
+        OrgFilter orgFilter = OrgFilter.createOrg(node.getOid(), OrgFilter.Scope.ONE_LEVEL);
         ObjectQuery query = ObjectQuery.createObjectQuery(orgFilter);
         query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
 

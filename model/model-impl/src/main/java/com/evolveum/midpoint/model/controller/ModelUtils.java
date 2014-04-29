@@ -22,8 +22,10 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.Utils;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.RandomString;
@@ -34,6 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReference
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
@@ -83,6 +86,22 @@ public class ModelUtils {
 		LoggingUtils.logErrorOnDebugLevel(LOGGER, message, e);
 		result.recordPartialError(message, e);
 		result.cleanupResult(e);
+	}
+	
+	public static <O extends ObjectType> String getOperationUrlFromDelta(ObjectDelta<O> delta) {
+		if (delta == null) {
+			return null;
+		}
+		if (delta.isAdd()) {
+			return ModelService.AUTZ_ADD_URL;
+		}
+		if (delta.isModify()) {
+			return ModelService.AUTZ_MODIFY_URL;
+		}
+		if (delta.isDelete()) {
+			return ModelService.AUTZ_DELETE_URL;
+		}
+		throw new IllegalArgumentException("Unknown delta type "+delta);
 	}
 
 }

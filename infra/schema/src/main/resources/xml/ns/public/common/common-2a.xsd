@@ -6252,6 +6252,14 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
+        	<xsd:element name="phase" type="tns:AuthorizationPhaseType" minOccurs="0" maxOccurs="1">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Specifies when to conduct authorizationa and what exactly to authorize.
+        				If no phase is specified then the authorization applies to all phases.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
         	<xsd:element name="object" type="tns:ObjectSpecificationType" minOccurs="0" maxOccurs="unbounded">
         		<xsd:annotation>
         			<xsd:documentation>
@@ -6299,6 +6307,42 @@
                 <xsd:annotation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="DENY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:simpleType name="AuthorizationPhaseType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="request">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Authorize the requested operations. I.e. the authorization happens
+                		at the beginning of request processing. 
+                		The request may be spread to many other oprations but in this case
+                		only the explicitly requested set is authorized.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REQUEST"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="execution">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Authorize the executed operations. I.e. the authorization happens
+                		at the end of request processing. 
+                		The request may be spread to many other oprations but in this case
+                		all the requested and computed operations are authorized.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXECUTION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -6352,6 +6396,14 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
+	        <xsd:element name="owner" type="tns:ObjectSpecificationType" minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						The object matches the specification if it has an owner specified by this element.
+						The "owner" means a focus that has a link to the object.
+					</xsd:documentation>
+				</xsd:annotation>
+	        </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
 	</xsd:complexType>

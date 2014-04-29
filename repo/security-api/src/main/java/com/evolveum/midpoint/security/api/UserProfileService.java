@@ -28,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  * @author Igor Farinic
  * @author Radovan Semancik
  */
-public interface UserProfileService {
+public interface UserProfileService extends OwnerResolver {
     
     String DOT_CLASS = UserProfileService.class.getName() + ".";
     String OPERATION_GET_USER = DOT_CLASS + "getUser";

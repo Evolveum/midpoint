@@ -129,11 +129,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
     @SuppressWarnings({"unchecked", "unused"})
     @Test
     public void test001addOrgStructObjects() throws Exception {
-    	final String TEST_NAME = "test001addOrgStructObjects";
-    	TestUtil.displayTestTile(TEST_NAME);
-
-        LOGGER.info("===[ addOrgStruct ]===");
-        OperationResult opResult = new OperationResult("===[ addOrgStruct ]===");
+        OperationResult opResult = new OperationResult("test001addOrgStructObjects");
         List<PrismObject<? extends Objectable>> orgStruct = prismContext.parseObjects(
                 new File(ORG_STRUCT_OBJECTS));  
 
@@ -148,15 +144,6 @@ public class OrgStructTest extends BaseSQLRepoTest {
         OrgType orgF001 = repositoryService.getObject(OrgType.class, ORG_F001_OID, null, opResult).asObjectable();
         AssertJUnit.assertNotNull(orgF001);
         AssertJUnit.assertEquals("F0001", orgF001.getName().getOrig());
-        AssertJUnit.assertEquals("The office of the most respectful Governor.", orgF001.getDescription());
-
-//		PrismAsserts.assertEqualsPolyString("Governor Office", "Governor Office", orgF001.getDisplayName());
-        AssertJUnit.assertEquals("0001", orgF001.getIdentifier());
-        AssertJUnit.assertEquals(1, orgF001.getOrgType().size());
-        AssertJUnit.assertEquals("functional", orgF001.getOrgType().get(0));
-        AssertJUnit.assertEquals("CC0", orgF001.getCostCenter());
-//		PrismAsserts.assertEqualsPolyString("The Governor's Mansion", "The Governor's Mansion", orgF001.getLocality());
-
 
         OrgType orgF003 = repositoryService.getObject(OrgType.class, ORG_F003_OID, null, opResult).asObjectable();
         OrgType orgF004 = repositoryService.getObject(OrgType.class, ORG_F004_OID, null, opResult).asObjectable();
@@ -164,13 +151,6 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         AssertJUnit.assertNotNull(orgF006);
         AssertJUnit.assertEquals("F0006", orgF006.getName().getOrig());
-        AssertJUnit.assertEquals("Hosting the worst scumm of the Caribbean.", orgF006.getDescription());
-        AssertJUnit.assertEquals("Scumm Bar", orgF006.getDisplayName().getOrig());
-        AssertJUnit.assertEquals("0006", orgF006.getIdentifier());
-        AssertJUnit.assertEquals(1, orgF006.getOrgType().size());
-        AssertJUnit.assertEquals("functional", orgF006.getOrgType().get(0));
-        AssertJUnit.assertEquals("Mêlée Island", orgF006.getLocality().getOrig());
-
 
         ObjectReferenceType oRefType;
         boolean isEqual003 = false;
@@ -184,13 +164,8 @@ public class OrgStructTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(true, isEqual003);
         AssertJUnit.assertEquals(true, isEqual004);
 
-
         OrgType pRoot = repositoryService.getObject(OrgType.class, ORG_PROJECT_ROOT_OID, null, opResult).asObjectable();
         AssertJUnit.assertEquals("PRoot", pRoot.getName().getOrig());
-        AssertJUnit.assertEquals("Project organizational structure root", pRoot.getDescription());
-//		PrismAsserts.assertEqualsPolyString("Projects", "Projects", pRoot.getDisplayName());
-        AssertJUnit.assertEquals(1, pRoot.getOrgType().size());
-        AssertJUnit.assertEquals("project", pRoot.getOrgType().get(0));
 
 //		QueryType query = QueryUtil.createNameQuery(ELAINE_NAME);
         ObjectQuery query = new ObjectQuery();
@@ -202,22 +177,13 @@ public class OrgStructTest extends BaseSQLRepoTest {
         AssertJUnit.assertNotNull(users);
         AssertJUnit.assertEquals(1, users.size());
         UserType elaine = users.get(0).asObjectable();
-        LOGGER.info("--->elaine<----");
-//        LOGGER.info(prismContext.silentMarshalObject(elaine, LOGGER));
+
         AssertJUnit.assertEquals("Expected name elaine, but got " + elaine.getName().getOrig(), "elaine", elaine.getName().getOrig());
         AssertJUnit.assertEquals("Expected elaine has one org ref, but got " + elaine.getParentOrgRef().size(), 2, elaine.getParentOrgRef().size());
         AssertJUnit.assertEquals("Parent org ref oid not equal.", "00000000-8888-6666-0000-100000000001", elaine.getParentOrgRef().get(0).getOid());
-//		AssertJUnit.assertEquals("Elaine is not manager, but: "
-//				+ elaine.getParentOrgRef().get(0).getRelation().getLocalPart(), "manager", elaine.getParentOrgRef()
-//				.get(0).getRelation().getLocalPart());
-//		PrismAsserts.assertEqualsPolyString("Elaine Marley", "Elaine Marley", elaine.getFullName());
-//		PrismAsserts.assertEqualsPolyString("Marley", "Marley", elaine.getFamilyName());
-//		PrismAsserts.assertEqualsPolyString("Elaine", "Elaine", elaine.getGivenName());
-//		PrismAsserts.assertEqualsPolyString("Governor", "Governor", elaine.getTitle());
+
         ELAINE_OID = elaine.getOid();
 
-        // MID-1828
-        testMonkeyMatch();
         testMonkeySubordinate();
 
         LOGGER.info("==>after add<==");
@@ -228,33 +194,10 @@ public class OrgStructTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(54L, count);
 
         // check descendants for F0001 org unit
-        /*Criteria criteria = session.createCriteria(ROrgClosure.class)
-                .createCriteria("ancestor", "anc")
-                .setFetchMode("ancestor", FetchMode.JOIN).
-                add(Restrictions.eq("anc.oid", ORG_F001_OID));
-
-        List<ROrgClosure> results = criteria.list();
-        AssertJUnit.assertEquals(13, results.size());
-        */
-        // check descendants for F0001 org unit
         qCount = session.createQuery("select count(*) from ROrgClosure where ancestorOid = :ancestorOid");
         qCount.setParameter("ancestorOid", ORG_F001_OID);
         count = (Long) qCount.uniqueResult();
         AssertJUnit.assertEquals(13L, count);
-        
-        
-        /*
-        criteria = session.createCriteria(ROrgClosure.class)
-        		.add(Restrictions.eq("depth", 2));
-        Criteria ancCriteria = criteria.createCriteria("ancestor", "anc")
-        		.setFetchMode("ancestor", FetchMode.JOIN)
-                .add(Restrictions.eq("anc.oid", ORG_F001_OID));
-        Criteria descCriteria = criteria.createCriteria("descendant", "desc")
-                .setFetchMode("descendant", FetchMode.JOIN)
-                .add(Restrictions.eq("desc.oid", ORG_F006_OID));
-        results = criteria.list();
-        AssertJUnit.assertEquals(1, results.size());
-        */
 
         qCount = session.createQuery("select count(*) from ROrgClosure where ancestorOid = :ancestorOid and descendantOid = :descendantOid");
         qCount.setParameter("ancestorOid", ORG_F001_OID);
@@ -266,146 +209,6 @@ public class OrgStructTest extends BaseSQLRepoTest {
         session.close();
     }
 
-    /**
-     * Tests for repo.matchObject() method
-     */
-    private void testMonkeyMatch() throws SchemaException, ObjectNotFoundException {
-    	OperationResult result = new OperationResult(OrgStructTest.class.getName()+".testMonkeyMatch");
-    	PrismObject<OrgType> org003 = repositoryService.getObject(OrgType.class, ORG_F003_OID, null, result);
-    	PrismObject<OrgType> org001 = repositoryService.getObject(OrgType.class, ORG_F001_OID, null, result);
-    	PrismObject<OrgType> org005 = repositoryService.getObject(OrgType.class, ORG_F005_OID, null, result);
-    	
-    	// properties
-		assertMatch(org003, createOrgNameFilter("F0003"), true);
-		assertMatch(org003, createOrgNameFilter("NoNSenSe"), false);
-		
-		// AND between properties
-		assertMatch(org003, 
-				AndFilter.createAnd(
-						createOrgNameFilter("F0003"),
-						createOrgDisplayNameFilter("Ministry of Offense")),
-				true);
-		
-		assertMatch(org003, 
-				AndFilter.createAnd(
-						createOrgNameFilter("007"),
-						createOrgDisplayNameFilter("Ministry of Offense")),
-				false);
-		
-		assertMatch(org003, 
-				AndFilter.createAnd(
-						createOrgNameFilter("F0003"),
-						createOrgDisplayNameFilter("Departmemt of NONsenSE")),
-				false);
-		
-		// Orgs
-		assertMatch(org003, OrgFilter.createOrg(ORG_F001_OID), true);
-		assertMatch(org003, OrgFilter.createOrg(ORG_F003_OID), true);
-		assertMatch(org003, OrgFilter.createOrg(ORG_F005_OID), false);
-		assertMatch(org003, OrgFilter.createOrg(ORG_F002_OID), false);
-		
-		assertMatch(org001, OrgFilter.createOrg(ORG_F001_OID), true);
-		assertMatch(org003, OrgFilter.createOrg(ORG_F001_OID), true);
-		assertMatch(org005, OrgFilter.createOrg(ORG_F001_OID), true);
-		
-		// OR betweens orgs
-		assertMatch(org005, 
-				OrFilter.createOr(
-						OrgFilter.createOrg(ORG_F002_OID),
-						OrgFilter.createOrg(ORG_F003_OID)),
-				true);
-		assertMatch(org005, 
-				OrFilter.createOr(
-						OrgFilter.createOrg(ORG_F002_OID),
-						OrgFilter.createOrg(ORG_F004_OID)),
-				false);
-
-		// org AND property 
-		assertMatch(org003, 
-				AndFilter.createAnd(
-						OrgFilter.createOrg(ORG_F001_OID),
-						createOrgNameFilter("F0003")),
-				true);
-
-		assertMatch(org003, 
-				AndFilter.createAnd(
-						OrgFilter.createOrg(ORG_F001_OID),
-						createOrgNameFilter("blabla")),
-				false);
-
-		assertMatch(org003, 
-				AndFilter.createAnd(
-						OrgFilter.createOrg(ORG_F005_OID),
-						createOrgNameFilter("F0003")),
-				false);
-		
-		// (OR between orgs) AND property
-		assertMatch(org005,
-				AndFilter.createAnd(
-					OrFilter.createOr(
-							OrgFilter.createOrg(ORG_F002_OID),
-							OrgFilter.createOrg(ORG_F003_OID)),
-					createOrgNameFilter("F0005")),
-				true);
-
-		assertMatch(org005,
-				AndFilter.createAnd(
-					OrFilter.createOr(
-							OrgFilter.createOrg(ORG_F002_OID),
-							OrgFilter.createOrg(ORG_F003_OID)),
-					createOrgNameFilter("blurbrrfrr!")),
-				false);
-		
-		assertMatch(org005,
-				AndFilter.createAnd(
-					OrFilter.createOr(
-							OrgFilter.createOrg(ORG_F002_OID),
-							OrgFilter.createOrg(ORG_F004_OID)),
-					createOrgNameFilter("F0005")),
-				false);
-		
-		// (OR between orgs) AND (AND between properties)
-		assertMatch(org005,
-				AndFilter.createAnd(
-					OrFilter.createOr(
-							OrgFilter.createOrg(ORG_F002_OID),
-							OrgFilter.createOrg(ORG_F003_OID)),
-					AndFilter.createAnd(
-							createOrgNameFilter("F0005"),
-							createOrgDisplayNameFilter("Swashbuckler Section"))),
-				true);
-		
-		assertMatch(org005,
-				AndFilter.createAnd(
-					OrFilter.createOr(
-							OrgFilter.createOrg(ORG_F002_OID),
-							OrgFilter.createOrg(ORG_F004_OID)),
-					AndFilter.createAnd(
-							createOrgNameFilter("F0005"),
-							createOrgDisplayNameFilter("Swashbuckler Section"))),
-				false);
-		
-		assertMatch(org005,
-				AndFilter.createAnd(
-					OrFilter.createOr(
-							OrgFilter.createOrg(ORG_F002_OID),
-							OrgFilter.createOrg(ORG_F003_OID)),
-					AndFilter.createAnd(
-							createOrgNameFilter("007"),
-							createOrgDisplayNameFilter("Swashbuckler Section"))),
-				false);
-		
-		assertMatch(org005,
-				AndFilter.createAnd(
-					OrFilter.createOr(
-							OrgFilter.createOrg(ORG_F002_OID),
-							OrgFilter.createOrg(ORG_F003_OID)),
-					AndFilter.createAnd(
-							createOrgNameFilter("F0005"),
-							createOrgDisplayNameFilter("landLUBER subSECtion"))),
-				false);
-    }
-    
     /**
      * Tests for repo.matchObject() method
      */
@@ -638,14 +441,6 @@ public class OrgStructTest extends BaseSQLRepoTest {
             LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[]{orgClosure.get(0).getAncestor().toJAXB(prismContext, null),
                     orgClosure.get(0).getDescendant().toJAXB(prismContext, null), orgClosure.get(0).getDepth()});
 
-//			LOGGER.info("==============CLOSURE TABLE FOR EACH==========");
-//			
-//			for (ROrgClosure o : results) {
-//				LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[] { o.getAncestor().toJAXB(prismContext),
-//						o.getDescendant().toJAXB(prismContext), o.getDepth() });
-//
-//			}
-
             AssertJUnit.assertEquals(1, orgClosure.size());
             AssertJUnit.assertEquals(ancestorOid, orgClosure.get(0)
                     .getAncestor().getOid());
@@ -848,24 +643,9 @@ public class OrgStructTest extends BaseSQLRepoTest {
     @SuppressWarnings("unchecked")
     @Test
     public void test004modifyOrgStructAddUser() throws Exception {
-        LOGGER.info("===[ modify add user to orgStruct ]===");
-
         Session session = getFactory().openSession();
-        
-        /* session.beginTransaction();
-        
-        Query sqlUser = session.createQuery("from RUser where givenName_norm = :userName");
-        sqlUser.setParameter("userName", ELAINE_NAME);
-        List<RUser> users = sqlUser.list();
-        
-        AssertJUnit.assertEquals(1,users.size());
-        
-        ELAINE_OID = users.get(0).getOid();
 
-        session.getTransaction().commit();
-        */
-
-        OperationResult opResult = new OperationResult("===[ modify add user to orgStruct ]===");
+        OperationResult opResult = new OperationResult("test004modifyOrgStructAddUser");
 
         //test modification of org ref in another org type..
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(new File(MODIFY_ORG_ADD_USER_FILENAME),
@@ -875,7 +655,6 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         repositoryService.modifyObject(UserType.class, ELAINE_OID, delta.getModifications(), opResult);
 
-        //session.clear();
         session.beginTransaction();
 
         LOGGER.info("==>after modify - add user to org<==");
@@ -900,26 +679,18 @@ public class OrgStructTest extends BaseSQLRepoTest {
     @SuppressWarnings("unchecked")
     @Test
     public void test005deleteOrg() throws Exception {
-        LOGGER.info("===[ deleteOrgStruct ]===");
-
-        OperationResult opResult = new OperationResult("===[ deleteOrgStruct ]===");
+        OperationResult opResult = new OperationResult("test005deleteOrg");
 
         repositoryService.deleteObject(OrgType.class, DELETE_ORG_OID, opResult);
 
         Session session = getFactory().openSession();
         session.beginTransaction();
 
-        LOGGER.info("==>after delete<==");
+        Query sqlOrgClosure = session.createQuery("select count(*) from ROrgClosure where descendantOid=:oid or ancestorOid=:oid");
+        sqlOrgClosure.setParameter("oid", DELETE_ORG_OID);
 
-        Query sqlOrgClosure = session.createQuery("from ROrgClosure as o where " +
-                "o.descendantOid = :deleteOid or o.ancestorOid = :deleteOid");
-        sqlOrgClosure.setParameter("deleteOid", DELETE_ORG_OID);
-
-        List<ROrgClosure> orgClosure = sqlOrgClosure.list();
-
-        AssertJUnit.assertEquals(0, orgClosure.size());
-
-        LOGGER.info("==============CLOSURE TABLE==========");
+        Number number = (Number) sqlOrgClosure.uniqueResult();
+        AssertJUnit.assertEquals(0, (number != null ? number.intValue() : 0));
 
         session.getTransaction().commit();
         session.close();
@@ -927,10 +698,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
     @Test
     public void test006searchOrgStructUserUnbounded() throws Exception {
-
-        LOGGER.info("===[ SEARCH QUERY ]===");
-        OperationResult parentResult = new OperationResult("search objects - org struct unbound");
-
+        OperationResult parentResult = new OperationResult("test006searchOrgStructUserUnbounded");
 
         ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createOrg(SEARCH_ORG_OID_UNBOUNDED_DEPTH));
         objectQuery.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
@@ -941,70 +709,46 @@ public class OrgStructTest extends BaseSQLRepoTest {
             LOGGER.info("USER000 ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));
         }
 
-        AssertJUnit.assertEquals(8, orgClosure.size());
+        AssertJUnit.assertEquals(7, orgClosure.size());
     }
 
     @SuppressWarnings("unchecked")
     @Test
     public void test007searchOrgStructOrgDepth() throws Exception {
-        LOGGER.info("===[ SEARCH QUERY ]===");
-        OperationResult parentResult = new OperationResult("search objects - org struct");
+        OperationResult parentResult = new OperationResult("test007searchOrgStructOrgDepth");
 
         Session session = getFactory().openSession();
         session.beginTransaction();
 
-        Query sqlSearch = session.createQuery("from ROrgClosure where depthValue = 1 and " +
-                "(ancestor_oid = :searchOid or descendant_oid = :searchOid)");
-        sqlSearch.setParameter("searchOid", SEARCH_ORG_OID_DEPTH1);
+        Query sqlSearch = session.createQuery("from ROrgClosure where depthValue=1 and (ancestorOid=:oid or descendantOid=:oid)");
+        sqlSearch.setParameter("oid", SEARCH_ORG_OID_DEPTH1);
 
         List<ROrgClosure> orgClosure = sqlSearch.list();
-
-        AssertJUnit.assertEquals(4, orgClosure.size());
 
         LOGGER.info("==============CLOSURE TABLE==========");
         for (ROrgClosure o : orgClosure) {
             LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[]{o.getAncestor().toJAXB(prismContext, null),
                     o.getDescendant().toJAXB(prismContext, null), o.getDepth()});
         }
+        AssertJUnit.assertEquals(4, orgClosure.size());
         session.getTransaction().commit();
         session.close();
 
-
-        ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createOrg(SEARCH_ORG_OID_DEPTH1, null, 1));
+        ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createOrg(SEARCH_ORG_OID_DEPTH1, OrgFilter.Scope.ONE_LEVEL));
         objectQuery.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
 
         List<PrismObject<ObjectType>> sOrgClosure = repositoryService.searchObjects(ObjectType.class, objectQuery, null, parentResult);
 
-        AssertJUnit.assertEquals(5, sOrgClosure.size());
-
         for (PrismObject<ObjectType> u : sOrgClosure) {
             LOGGER.info("USER000 ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));
         }
+        AssertJUnit.assertEquals(4, sOrgClosure.size());
     }
 
     @Test
     public void test008searchRootOrg() throws Exception {
-        LOGGER.info("===[ SEARCH ROOT QUERY ]===");
-        OperationResult parentResult = new OperationResult("search root org struct");
-         /*       
-        Session session = getFactory().openSession();
-        session.beginTransaction();
-       
-        Query sqlSearch = session.createQuery("select distinct ancestor_oid from ROrgClosure where ancestor_oid " +
-        		" not in (select distinct descendant_oid from ROrgClosure where depthValue > 0)");
-        List<ROrgClosure> orgClosure = sqlSearch.list();
+        OperationResult parentResult = new OperationResult("test008searchRootOrg");
 
-        AssertJUnit.assertEquals(5, orgClosure.size());
-        
-        for (ROrgClosure o : orgClosure) 
-        {
-            LOGGER.info("=> A: {}, D: {}, depth: {}", new Object[]{o.getAncestor().toJAXB(prismContext),
-                    o.getDescendant().toJAXB(prismContext), o.getDepth()});
-        }
-
-        session.getTransaction().commit();
-        session.close();
-*/
         ObjectQuery qSearch = ObjectQuery.createObjectQuery(OrgFilter.createRootOrg());
         qSearch.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
 
@@ -1016,12 +760,9 @@ public class OrgStructTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(5, rootOrgs.size());
     }
 
-
     @Test
     public void test009modifyOrgStructRemoveUser() throws Exception {
-        LOGGER.info("===[ modify remove org ref from user ]===");
-
-        OperationResult opResult = new OperationResult("===[ modify remove org ref from user ]===");
+        OperationResult opResult = new OperationResult("test009modifyOrgStructRemoveUser");
 
         PrismReferenceValue prv = new PrismReferenceValue(MODIFY_USER_DELETE_REF_OID);
         prv.setTargetType(OrgType.COMPLEX_TYPE);
@@ -1040,58 +781,12 @@ public class OrgStructTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test010megaSimpleTest() throws Exception {
-        LOGGER.info("===[test010megaSimpleTest]===");
-        try {
-            RUser user = new RUser();
-            user.setOid(UUID.randomUUID().toString());
-            user.setName(new RPolyString("vilko", "vilko"));
-            Set<RObjectReference> refs = new HashSet<RObjectReference>();
-            refs.add(createRef(user, "1", null, null));
-            refs.add(createRef(user, "1", "namespace", "localpart"));
-            refs.add(createRef(user, "6", null, null));
-            user.setParentOrgRef(refs);
-
-            Session session = getFactory().openSession();
-            session.beginTransaction();
-            String id = (String) session.save(user);
-            session.getTransaction().commit();
-            session.close();
-
-            user = getUser(id, 3, user);
-            //todo asserts
-
-            user = new RUser();
-            user.setOid(id);
-            user.setName(new RPolyString("vilko", "vilko"));
-            refs = new HashSet<>();
-            refs.add(createRef(user, "1", null, null));
-            refs.add(createRef(user, "1", "namespace", "localpart"));
-            user.setParentOrgRef(refs);
-
-            session = getFactory().openSession();
-            session.beginTransaction();
-            session.merge(user);
-            session.getTransaction().commit();
-            session.close();
-
-            user = getUser(id, 2, user);
-            //todo asserts
-        } catch (Exception ex) {
-            LOGGER.error("Exception occurred.", ex);
-            throw ex;
-        }
-    }
-
-    @Test
     public void test011OrgFilter() throws Exception {
-        LOGGER.info("===[ test sorting org filter ]===");
-
-        OperationResult opResult = new OperationResult("===[ test sorting org filter  ]===");
+        OperationResult opResult = new OperationResult("test011OrgFilter");
 
         ObjectQuery query = new ObjectQuery();
         PrismReferenceValue baseOrgRef = new PrismReferenceValue(ORG_F001_OID);
-        ObjectFilter filter = OrgFilter.createOrg(baseOrgRef, null, 1);
+        ObjectFilter filter = OrgFilter.createOrg(baseOrgRef, OrgFilter.Scope.ONE_LEVEL);
         ObjectPaging paging = ObjectPaging.createEmptyPaging();
         paging.setOrderBy(ObjectType.F_NAME);
         query.setFilter(filter);
@@ -1099,11 +794,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         List<PrismObject<ObjectType>> orgClosure = repositoryService.searchObjects(ObjectType.class, query, null, opResult);
 
-        AssertJUnit.assertEquals(5, orgClosure.size());
-
-        for (PrismObject<ObjectType> u : orgClosure) {
-            LOGGER.info("CHILD ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));
-        }
+        AssertJUnit.assertEquals(4, orgClosure.size());
     }
 
     private RUser getUser(String oid, int count, RUser other) {

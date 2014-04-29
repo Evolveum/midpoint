@@ -56,47 +56,6 @@ public class CleanupTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(CleanupTest.class);
 
-    @Test
-    public void testTasksCleanup() throws Exception {
-        // GIVEN
-        final File file = new File(FOLDER_BASIC, "tasks.xml");
-        List<PrismObject<? extends Objectable>> elements = prismContext.parseObjects(file);
-
-        OperationResult result = new OperationResult("tasks cleanup");
-        for (int i = 0; i < elements.size(); i++) {
-            PrismObject object = elements.get(i);
-
-            String oid = repositoryService.addObject(object, null, result);
-            AssertJUnit.assertTrue(StringUtils.isNotEmpty(oid));
-        }
-
-        // WHEN
-        // because now we can't move system time (we're not using DI for it) we create policy
-        // which should always point to 2013-05-07T12:00:00.000+02:00
-        final long NOW = System.currentTimeMillis();
-        Calendar when = create_2013_07_12_12_00_Calendar();
-        CleanupPolicyType policy = createPolicy(when, NOW);
-
-        repositoryService.cleanupTasks(policy, result);
-        // doExperimentalCleanup(when);
-
-        // THEN
-        List<PrismObject<TaskType>> tasks = repositoryService.searchObjects(TaskType.class, null, null, result);
-        AssertJUnit.assertNotNull(tasks);
-        AssertJUnit.assertEquals(1, tasks.size());
-
-        PrismObject<TaskType> task = tasks.get(0);
-        XMLGregorianCalendar timestamp = task.getPropertyRealValue(TaskType.F_COMPLETION_TIMESTAMP,
-                XMLGregorianCalendar.class);
-        Date finished = XMLGregorianCalendarType.asDate(timestamp);
-
-        Date mark = new Date(NOW);
-        Duration duration = policy.getMaxAge();
-        duration.addTo(mark);
-
-        AssertJUnit.assertTrue("finished: " + finished + ", mark: " + mark, finished.after(mark));
-    }
-
     private Calendar create_2013_07_12_12_00_Calendar() {
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.YEAR, 2013);

@@ -26,6 +26,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.query.ExpressionWrapper;
 import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -91,6 +92,7 @@ public class QueryConvertor {
 	
 	public static final QName KEY_FILTER_ORG_REF = new QName(NS_QUERY, "orgRef");
 	public static final QName KEY_FILTER_ORG_REF_OID = new QName(NS_QUERY, "oid");
+    public static final QName KEY_FILTER_ORG_SCOPE = new QName(NS_QUERY, "scope");
 	public static final QName KEY_FILTER_ORG_MIN_DEPTH = new QName(NS_QUERY, "minDepth");
 	public static final QName KEY_FILTER_ORG_MAX_DEPTH = new QName(NS_QUERY, "maxDepth");
 	
@@ -417,7 +419,18 @@ public class QueryConvertor {
 			max = XsdTypeMapper.multiplicityToInteger(maxDepth);
 		}
 
-		return OrgFilter.createOrg(orgOid, min, max);
+        //todo fix scope handling properly
+        OrgFilter.Scope scope;
+        if (min == null && max == null) {
+            scope = OrgFilter.Scope.SUBTREE;
+        } else if (ObjectUtils.equals(min, max) && (min != null && min.intValue() == 1)) {
+            scope = OrgFilter.Scope.ONE_LEVEL;
+        } else {
+            throw new SchemaException("Unsupported min/max (" + min + "/" + max
+                    + ") depth, can't translate it to scope SUBTREE/ONE_LEVEL");
+        }
+
+		return OrgFilter.createOrg(orgOid, scope);
 	}
 	
 	private static Entry<QName, XNode> singleSubEntry(MapXNode xmap, String filterName) throws SchemaException {

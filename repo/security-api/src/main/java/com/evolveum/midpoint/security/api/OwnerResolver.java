@@ -15,21 +15,13 @@
  */
 package com.evolveum.midpoint.security.api;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisionType;
-
-/**
- * @author semancik
- *
- */
-public class ItemSecurityConstraints {
-
-	private Map<String, AuthorizationDecisionType> actionDecisionMap = new HashMap<>();
-
-	public Map<String, AuthorizationDecisionType> getActionDecisionMap() {
-		return actionDecisionMap;
-	}
+public interface OwnerResolver {
+	
+	<F extends FocusType> PrismObject<F> resolveOwner(PrismObject<ShadowType> shadow);
 	
 }
