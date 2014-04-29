@@ -20,8 +20,6 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.repo.sql.data.common.*;
-import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
-import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -31,7 +29,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
-import org.apache.commons.collections.ListUtils;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.Query;
@@ -39,10 +36,7 @@ import org.hibernate.Session;
 import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * This class and its subclasses provides org. closure table handling.
@@ -61,26 +55,18 @@ public class OrgClosureManager {
         this.repoConfiguration = repoConfiguration;
     }
 
-    @Deprecated
-    public void cleanupTasks(Date minValue, Session session){
-        Query query = session.createQuery("delete from ROrgClosure o where " +
-                "o.ancestorOid in (select oid from RTask t where t.completionTimestamp < :timestamp) " +
-                "or o.descendantOid in (select oid from RTask t where t.completionTimestamp < :timestamp)");
-        query.setParameter("timestamp", XMLGregorianCalendarType.asXMLGregorianCalendar(minValue));
-        query.executeUpdate();
-    }
-
     public <T extends ObjectType> void updateOrgClosure(Collection<? extends ItemDelta> modifications, Session session,
                                                         String oid, Class<T> type, Operation operation) {
         session.flush();
         session.clear();
-        LOGGER.debug("Starting update for org. closure for {} oid={}.", type.getSimpleName(), oid);
+        long time = System.currentTimeMillis();
+        LOGGER.debug("Starting {} for org. closure for {} oid={}.", new Object[]{operation, type.getSimpleName(), oid});
 
         List<ReferenceDelta> deltas = filterParentRefDeltas(modifications);
 
         switch (operation) {
             case ADD:
-                List<String> parents = getOidFromAddDeltas(deltas);
+                Set<String> parents = getOidFromAddDeltas(deltas);
                 handleAdd(oid, parents, type, session);
                 break;
             case DELETE:
@@ -90,7 +76,7 @@ public class OrgClosureManager {
                 handleModify(deltas, session, oid, type);
         }
 
-        LOGGER.debug("Org. closure update finished.");
+        LOGGER.debug("Org. closure update finished in {}ms.", (System.currentTimeMillis() - time));
     }
 
     private <T extends ObjectType> void handleDelete(String oid, Class<T> type, Session session) {
@@ -112,7 +98,7 @@ public class OrgClosureManager {
         }
     }
 
-    private <T extends ObjectType> void handleAdd(String oid, List<String> parents, Class<T> type, Session session) {
+    private <T extends ObjectType> void handleAdd(String oid, Set<String> parents, Class<T> type, Session session) {
         Query query = session.createSQLQuery("insert into m_org_closure (ancestor_oid, descendant_oid) values (:oid, :oid)");
         query.setString("oid", oid);
         query.executeUpdate();
@@ -127,27 +113,32 @@ public class OrgClosureManager {
         }
         //todo handle modify
 
-        List<String> parents = getOidFromDeleteDeltas(modifications);
+        Set<String> parents = getOidFromDeleteDeltas(modifications);
         removeParents(oid, parents, session);
 
         parents = getOidFromAddDeltas(modifications);
         addParents(oid, parents, session);
     }
 
-    private void removeParents(String oid, List<String> parents, Session session) {
+    private void removeParents(String oid, Set<String> parents, Session session) {
 
     }
 
-    private void addParents(String oid, List<String> parents, Session session) {
+    private void addParents(String oid, Set<String> parents, Session session) {
         if (parents.isEmpty()) {
             return;
         }
 
+        if (LOGGER.isTraceEnabled()) LOGGER.trace("add parents {} for {}", Arrays.toString(parents.toArray()), oid);
+
         Query query = session.createQuery("select o.oid from RObject o where o.oid in (:oids)");
         query.setParameterList("oids", parents);
-        List<String> existing = query.list();
+        List<String> existing = new ArrayList<String>(query.list());
 
         if (!existing.isEmpty()) {
+            if (LOGGER.isTraceEnabled())
+                LOGGER.trace("adding for existing {} for {}", Arrays.toString(existing.toArray()), oid);
+            //todo this can produce records that are already there, it would fail.
             query = session.createSQLQuery("insert into m_org_closure (ancestor_oid, descendant_oid) " +
                     "select ancestor_oid, :oid from m_org_closure where descendant_oid in (:parents) group by ancestor_oid");
             query.setParameterList("parents", existing);
@@ -158,17 +149,32 @@ public class OrgClosureManager {
         parents.removeAll(existing);
 
         if (!parents.isEmpty()) {
-            //todo incorrect can already contain non-existing parent oid
-            for (int i = 0; i < parents.size(); i++) {
-                session.save(new ROrgIncorrect(parents.get(i)));
-                if (i % 20 == 0) { //20, same as the JDBC batch size flush a batch of inserts and release memory
-                    session.flush();
-                    session.clear();
-                }
+            query = session.createQuery("select i.ancestorOid from ROrgIncorrect  i where i.ancestorOid in (:parents)");
+            query.setParameterList("parents", parents);
+
+            parents.removeAll(query.list());
+
+            if (LOGGER.isTraceEnabled())
+                LOGGER.trace("adding incorrects {} for {}", Arrays.toString(parents.toArray()), oid);
+
+            List<ROrgIncorrect> incorrects = new ArrayList<>();
+            for (String p : parents) {
+                incorrects.add(new ROrgIncorrect(p));
             }
-            session.flush();
-            session.clear();
+            bulkSave(incorrects, session);
         }
+    }
+
+    private void bulkSave(List objects, Session session) {
+        for (int i = 0; i < objects.size(); i++) {
+            session.save(objects.get(i));
+            if (i > 0 && i % RUtil.JDBC_BATCH_SIZE == 0) {
+                session.flush();
+                session.clear();
+            }
+        }
+        session.flush();
+        session.clear();
     }
 
     private List<ReferenceDelta> filterParentRefDeltas(Collection<? extends ItemDelta> modifications) {
@@ -187,8 +193,8 @@ public class OrgClosureManager {
         return deltas;
     }
 
-    private List<String> getOidFromDeleteDeltas(Collection<? extends ItemDelta> modifications) {
-        List<String> oids = new ArrayList<>();
+    private Set<String> getOidFromDeleteDeltas(Collection<? extends ItemDelta> modifications) {
+        Set<String> oids = new HashSet<>();
 
         for (ItemDelta delta : modifications) {
             if (delta.getValuesToDelete() == null) {
@@ -202,8 +208,8 @@ public class OrgClosureManager {
         return oids;
     }
 
-    private List<String> getOidFromAddDeltas(Collection<? extends ItemDelta> modifications) {
-        List<String> oids = new ArrayList<>();
+    private Set<String> getOidFromAddDeltas(Collection<? extends ItemDelta> modifications) {
+        Set<String> oids = new HashSet<>();
 
         for (ItemDelta delta : modifications) {
             if (delta.getValuesToAdd() == null) {
