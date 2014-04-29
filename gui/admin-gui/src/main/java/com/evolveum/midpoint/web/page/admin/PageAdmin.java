@@ -37,6 +37,7 @@ import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesAll;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesRequestedBy;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesRequestedFor;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
+import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItemsClaimable;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -116,6 +117,9 @@ public class PageAdmin extends PageBase {
         MenuBarItem workItems = new MenuBarItem(createStringResource("PageAdmin.menu.top.workItems"), null);
         workItems.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.workItems.list"),
                 PageWorkItems.class));
+        workItems.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.workItems.listClaimable"),
+                PageWorkItemsClaimable.class));
+        workItems.addMenuItem(new MenuItem(null));
         workItems.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.workItems.listProcessInstancesAll"),
                 PageProcessInstancesAll.class));
         workItems.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.workItems.listProcessInstancesRequestedBy"),

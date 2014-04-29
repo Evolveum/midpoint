@@ -38,7 +38,6 @@ import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -91,12 +90,12 @@ public class WorkflowManagerImpl implements WorkflowManager {
      */
 
     @Override
-    public int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult) {
+    public int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
         return workItemProvider.countWorkItemsRelatedToUser(userOid, assigned, parentResult);
     }
 
     @Override
-    public List<WorkItemType> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) {
+    public List<WorkItemType> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
         return workItemProvider.listWorkItemsRelatedToUser(userOid, assigned, first, count, parentResult);
     }
 
@@ -118,6 +117,16 @@ public class WorkflowManagerImpl implements WorkflowManager {
     @Override
     public void completeWorkItemWithDetails(String taskId, PrismObject specific, String decision, OperationResult parentResult) {
         workItemManager.completeWorkItemWithDetails(taskId, specific, decision, parentResult);
+    }
+
+    @Override
+    public void claimWorkItem(String workItemId, OperationResult result) {
+        workItemManager.claimWorkItem(workItemId, result);
+    }
+
+    @Override
+    public void releaseWorkItem(String workItemId, OperationResult result) {
+        workItemManager.releaseWorkItem(workItemId, result);
     }
 
     /*
@@ -191,6 +200,11 @@ public class WorkflowManagerImpl implements WorkflowManager {
 
     @Override
     public boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem) {
-        return miscDataUtil.isCurrentUserAuthorizedToSubmit(workItem);
+        return miscDataUtil.isAuthorizedToSubmit(workItem);
+    }
+
+    @Override
+    public boolean isCurrentUserAuthorizedToClaim(WorkItemType workItem) {
+        return miscDataUtil.isAuthorizedToClaim(workItem);
     }
 }

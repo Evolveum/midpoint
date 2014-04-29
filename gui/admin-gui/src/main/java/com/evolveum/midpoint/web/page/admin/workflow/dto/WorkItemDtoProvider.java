@@ -18,6 +18,9 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -104,7 +107,11 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_ITEMS);
         WorkflowManager workflowManager = getWorkflowService();
-        count = workflowManager.countWorkItemsRelatedToUser(currentUser(), assigned, result);
+        try {
+            count = workflowManager.countWorkItemsRelatedToUser(currentUser(), assigned, result);
+        } catch (SchemaException|ObjectNotFoundException e) {
+            throw new SystemException("Couldn't count work items: " + e.getMessage(), e);
+        }
 
         if (result.isUnknown()) {
             result.computeStatus();

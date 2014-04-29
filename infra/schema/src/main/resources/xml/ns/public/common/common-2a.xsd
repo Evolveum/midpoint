@@ -9508,20 +9508,20 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="candidateOrgs" type="tns:OrgType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="candidateRoles" type="tns:AbstractRoleType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Organizations to members of which the work item MAY BE assigned.
+                                Organizations/roles to users of which the work item MAY BE assigned.
                             </xsd:documentation>
                             <xsd:appinfo>
-                                <a:objectReference>tns:candidateUsersRef</a:objectReference>
+                                <a:objectReference>tns:candidateRolesRef</a:objectReference>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="candidateOrgsRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="candidateRolesRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:appinfo>
-                                <a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+                                <a:objectReferenceTargetType>tns:AbstractRoleType</a:objectReferenceTargetType>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>

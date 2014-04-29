@@ -51,7 +51,7 @@ public interface WorkflowManager {
      * @return number of relevant work items
      * @throws WorkflowException
      */
-    int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult);
+    int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Lists work items related to a user.
@@ -64,7 +64,7 @@ public interface WorkflowManager {
      * @return list of work items
      * @throws WorkflowException
      */
-    List<WorkItemType> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult);
+    List<WorkItemType> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Provides detailed information about a given work item (may be inefficient, so use with care).
@@ -119,6 +119,10 @@ public interface WorkflowManager {
 
     void completeWorkItemWithDetails(String taskId, PrismObject specific, String decision, OperationResult parentResult);
 
+    void claimWorkItem(String workItemId, OperationResult result);
+
+    void releaseWorkItem(String workItemId, OperationResult result);
+
     void stopProcessInstance(String instanceId, String username, OperationResult parentResult);
 
     void deleteProcessInstance(String instanceId, OperationResult parentResult);
@@ -141,4 +145,5 @@ public interface WorkflowManager {
 
     boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem);
 
+    boolean isCurrentUserAuthorizedToClaim(WorkItemType workItem);
 }

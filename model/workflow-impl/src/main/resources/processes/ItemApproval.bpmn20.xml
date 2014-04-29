@@ -103,9 +103,14 @@
                 <sequenceFlow sourceRef="loopLevels.loopApprovers.start" targetRef="loopLevels.loopApprovers.start.1" />
 
                 <serviceTask id="loopLevels.loopApprovers.start.1" activiti:class="com.evolveum.midpoint.wf.processes.common.DumpVariables" />
-                <sequenceFlow sourceRef="loopLevels.loopApprovers.start.1" targetRef="loopLevels.loopApprovers.approve" />
+                <sequenceFlow sourceRef="loopLevels.loopApprovers.start.1" targetRef="loopLevels.loopApprovers.prepareApprover" />
 
-                <userTask id="loopLevels.loopApprovers.approve" name="${approvalTaskName}" activiti:assignee="${approverRef.oid}">
+                <serviceTask id="loopLevels.loopApprovers.prepareApprover" activiti:class="com.evolveum.midpoint.wf.processes.itemApproval.PrepareApprover" />
+                <sequenceFlow sourceRef="loopLevels.loopApprovers.prepareApprover" targetRef="loopLevels.loopApprovers.approve" />
+
+                <userTask id="loopLevels.loopApprovers.approve" name="${approvalTaskName}"
+                          activiti:assignee="${assignee}"
+                          activiti:candidateGroups="${candidateGroups}">
                     <extensionElements>
                         <!--
                         <activiti:formProperty id="userName" expression="#{userName}" name="01: User" type="string" required="false" readable="true" writable="false"></activiti:formProperty>

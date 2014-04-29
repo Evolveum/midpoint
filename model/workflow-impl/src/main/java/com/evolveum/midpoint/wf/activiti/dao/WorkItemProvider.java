@@ -19,8 +19,8 @@ package com.evolveum.midpoint.wf.activiti.dao;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -40,7 +40,9 @@ import com.evolveum.midpoint.wf.messages.TaskEvent;
 import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TrackingDataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
@@ -50,6 +52,7 @@ import org.activiti.engine.TaskService;
 import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.runtime.ProcessInstanceQuery;
 import org.activiti.engine.task.IdentityLink;
+import org.activiti.engine.task.IdentityLinkType;
 import org.activiti.engine.task.Task;
 import org.activiti.engine.task.TaskQuery;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,6 +89,9 @@ public class WorkItemProvider {
     @Autowired
     private PrismContext prismContext;
 
+    @Autowired
+    private RepositoryService repositoryService;
+
     private static final String DOT_CLASS = WorkflowManagerImpl.class.getName() + ".";
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
 
@@ -108,12 +114,12 @@ public class WorkItemProvider {
      * @return number of relevant work items
      * @throws WorkflowException
      */
-    public int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult) {
+    public int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
         OperationResult result = parentResult.createSubresult(OPERATION_COUNT_WORK_ITEMS_RELATED_TO_USER);
         result.addParam("userOid", userOid);
         result.addParam("assigned", assigned);
         try {
-            int count = (int) createQueryForTasksRelatedToUser(userOid, assigned).count();
+            int count = (int) createQueryForTasksRelatedToUser(userOid, assigned, result).count();
             result.recordSuccess();
             return count;
         } catch (ActivitiException e) {
@@ -133,7 +139,7 @@ public class WorkItemProvider {
      * @return list of work items
      * @throws WorkflowException
      */
-    public List<WorkItemType> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) {
+    public List<WorkItemType> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
         OperationResult result = parentResult.createSubresult(OPERATION_LIST_WORK_ITEMS_RELATED_TO_USER);
         result.addParam("userOid", userOid);
         result.addParam("assigned", assigned);
@@ -141,7 +147,7 @@ public class WorkItemProvider {
         result.addParam("count", count);
         List<Task> tasks;
         try {
-            tasks = createQueryForTasksRelatedToUser(userOid, assigned).listPage(first, count);
+            tasks = createQueryForTasksRelatedToUser(userOid, assigned, result).listPage(first, count);
         } catch (ActivitiException e) {
             result.recordFatalError("Couldn't list work items assigned/assignable to " + userOid, e);
             throw new SystemException("Couldn't list work items assigned/assignable to " + userOid + " due to Activiti exception", e);
@@ -152,11 +158,11 @@ public class WorkItemProvider {
         return retval;
     }
 
-    private TaskQuery createQueryForTasksRelatedToUser(String oid, boolean assigned) {
+    private TaskQuery createQueryForTasksRelatedToUser(String oid, boolean assigned, OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (assigned) {
             return activitiEngine.getTaskService().createTaskQuery().taskAssignee(oid).orderByTaskCreateTime().desc();
         } else {
-            return activitiEngine.getTaskService().createTaskQuery().taskCandidateUser(oid).orderByTaskCreateTime().desc();
+            return activitiEngine.getTaskService().createTaskQuery().taskUnassigned().taskCandidateGroupIn(miscDataUtil.getGroupsForUser(oid, result)).orderByTaskCreateTime().desc();
         }
     }
 
@@ -353,10 +359,24 @@ public class WorkItemProvider {
     }
 
     private WorkItemType taskExtractToWorkItem(TaskExtract task, boolean getAssigneeDetails, OperationResult result) throws WorkflowException {
-        WorkItemType wi = new WorkItemType();
+        WorkItemType wi = prismContext.createObject(WorkItemType.class).asObjectable();
         try {
             wi.setWorkItemId(task.getId());
-            wi.setAssigneeRef(MiscSchemaUtil.createObjectReference(task.getAssignee(), SchemaConstants.C_USER_TYPE));
+            if (task.getAssignee() != null) {
+                wi.setAssigneeRef(MiscSchemaUtil.createObjectReference(task.getAssignee(), SchemaConstants.C_USER_TYPE));
+            }
+            TaskService taskService = activitiEngine.getTaskService();
+            for (IdentityLink link : taskService.getIdentityLinksForTask(task.getId())) {
+                if (IdentityLinkType.CANDIDATE.equals(link.getType())) {
+                    if (link.getUserId() != null) {
+                        wi.getCandidateUsersRef().add(MiscSchemaUtil.createObjectReference(link.getUserId(), SchemaConstants.C_USER_TYPE));
+                    } else if (link.getGroupId() != null) {
+                        wi.getCandidateRolesRef().add(miscDataUtil.groupIdToObjectReference(link.getGroupId()));
+                    } else {
+                        throw new IllegalStateException("A link is defined to neither a user nor a group for task " + task.getId());
+                    }
+                }
+            }
             wi.setName(new PolyStringType(task.getName()));
             wi.setProcessInstanceId(task.getProcessInstanceId());
             wi.setChangeProcessor((String) task.getVariables().get(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR));
@@ -373,14 +393,18 @@ public class WorkItemProvider {
             if (assignee != null) {
                 wi.setAssignee(assignee.asObjectable());
             }
-            // todo fill-in candidate orgs/users
-//            try {
-//                wi.setCandidates(activitiEngineDataHelper.getCandidatesAsString(task));
-//            } catch (ActivitiException e) {
-//                String m = "Couldn't get work item candidates for Activiti task " + task.getId();
-//                result.recordPartialError(m, e);
-//                LoggingUtils.logException(LOGGER, m, e);
-//            }
+            for (ObjectReferenceType ort : wi.getCandidateUsersRef()) {
+                PrismObject<UserType> obj = miscDataUtil.getUserByOid(ort.getOid(), result);
+                if (obj != null) {
+                    wi.getCandidateUsers().add(obj.asObjectable());
+                }
+            }
+            for (ObjectReferenceType ort : wi.getCandidateRolesRef()) {
+                PrismObject<AbstractRoleType> obj = miscDataUtil.resolveObjectReferenceType(ort, result);
+                if (obj != null) {
+                    wi.getCandidateRoles().add(obj.asObjectable());
+                }
+            }
         }
         return wi;
     }
