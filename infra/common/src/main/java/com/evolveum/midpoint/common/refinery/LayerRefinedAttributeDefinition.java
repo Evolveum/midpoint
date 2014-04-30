@@ -116,12 +116,12 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 
 	@Override
 	public boolean canAdd() {
-		return refinedAttributeDefinition.canCreate(layer);
+		return refinedAttributeDefinition.canAdd(layer);
 	}
 
 	@Override
-	public boolean canCreate(LayerType layer) {
-		return refinedAttributeDefinition.canCreate(layer);
+	public boolean canAdd(LayerType layer) {
+		return refinedAttributeDefinition.canAdd(layer);
 	}
 
 	@Override
@@ -136,7 +136,7 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 
 	@Override
 	public boolean canModify() {
-		return refinedAttributeDefinition.canUpdate(layer);
+		return refinedAttributeDefinition.canModify(layer);
 	}
 
 	@Override
@@ -145,8 +145,8 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 	}
 
 	@Override
-	public boolean canUpdate(LayerType layer) {
-		return refinedAttributeDefinition.canUpdate(layer);
+	public boolean canModify(LayerType layer) {
+		return refinedAttributeDefinition.canModify(layer);
 	}
 
 	@Override

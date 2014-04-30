@@ -260,11 +260,11 @@ public class ConsolidationProcessor {
         if (limitations != null) {
         	PropertyAccessType access = limitations.getAccess();
         	if (access != null) {
-        		if (projCtx.isAdd() && (access.isCreate() == null || !access.isCreate())) {
+        		if (projCtx.isAdd() && (access.isAdd() == null || !access.isAdd())) {
         			LOGGER.trace("Skipping processing mappings for attribute {} because it is non-createable", itemName);
                 	return null;
         		}
-        		if (projCtx.isModify() && (access.isUpdate() == null || !access.isUpdate())) {
+        		if (projCtx.isModify() && (access.isModify() == null || !access.isModify())) {
         			LOGGER.trace("Skipping processing mappings for attribute {} because it is non-updateable", itemName);
                 	return null;
         		}

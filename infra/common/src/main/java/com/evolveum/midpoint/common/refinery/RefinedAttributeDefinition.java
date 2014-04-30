@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AttributeFetchStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.DepreactedAccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PropertyAccessType;
@@ -78,11 +77,11 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 	
 	@Override
     public boolean canAdd() {
-		return canCreate(DEFAULT_LAYER);
+		return canAdd(DEFAULT_LAYER);
     }
 	
-	public boolean canCreate(LayerType layer) {
-        return limitationsMap.get(layer).getAccess().isCreate();
+	public boolean canAdd(LayerType layer) {
+        return limitationsMap.get(layer).getAccess().isAdd();
     }
 
 	@Override
@@ -96,11 +95,11 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 
     @Override
     public boolean canModify() {
-    	return canUpdate(DEFAULT_LAYER);
+    	return canModify(DEFAULT_LAYER);
     }
     
-    public boolean canUpdate(LayerType layer) {
-        return limitationsMap.get(layer).getAccess().isUpdate();
+    public boolean canModify(LayerType layer) {
+        return limitationsMap.get(layer).getAccess().isModify();
     }
 
     @Override
@@ -325,17 +324,10 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
         schemaLimitations.setMinOccurs(schemaAttrDef.getMinOccurs());
         schemaLimitations.setMaxOccurs(schemaAttrDef.getMaxOccurs());
         schemaLimitations.setIgnore(schemaAttrDef.isIgnored());
-        schemaLimitations.getAccess().setCreate(schemaAttrDef.canAdd());
-        schemaLimitations.getAccess().setUpdate(schemaAttrDef.canModify());
+        schemaLimitations.getAccess().setAdd(schemaAttrDef.canAdd());
+        schemaLimitations.getAccess().setModify(schemaAttrDef.canModify());
         schemaLimitations.getAccess().setRead(schemaAttrDef.canRead());
         
-        Integer deprecatedMinOccurs = null;
-        Integer deprecatedMaxOccurs = null;
-        Boolean deprecatedIgnored = null;
-        Boolean deprecatedCreate = null;
-        Boolean deprecatedRead = null;
-        Boolean deprecatedUpdate = null;
-
         if (schemaHandlingAttrDefType != null) {
         	
         	if (schemaHandlingAttrDefType.getDescription() != null) {
@@ -360,15 +352,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
             if (schemaHandlingAttrDefType.getInbound() != null) {
                 rAttrDef.setInboundMappingTypes(schemaHandlingAttrDefType.getInbound());
             }
-        
-            deprecatedMinOccurs = SchemaProcessorUtil.parseMultiplicity(schemaHandlingAttrDefType.getMinOccurs());
-            deprecatedMaxOccurs = SchemaProcessorUtil.parseMultiplicity(schemaHandlingAttrDefType.getMaxOccurs());
-            deprecatedIgnored = schemaHandlingAttrDefType.isIgnore();
-            
-            deprecatedCreate = parseDeprecatedAccess(schemaHandlingAttrDefType, DepreactedAccessType.CREATE);
-            deprecatedRead = parseDeprecatedAccess(schemaHandlingAttrDefType, DepreactedAccessType.READ);
-            deprecatedUpdate = parseDeprecatedAccess(schemaHandlingAttrDefType, DepreactedAccessType.UPDATE);
-            
+                    
         }
 
         PropertyLimitations previousLimitations = null;
@@ -378,31 +362,11 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
         		limitations.setMinOccurs(previousLimitations.getMinOccurs());
         		limitations.setMaxOccurs(previousLimitations.getMaxOccurs());
         		limitations.setIgnore(previousLimitations.isIgnore());
-        		limitations.getAccess().setCreate(previousLimitations.getAccess().isCreate());
+        		limitations.getAccess().setAdd(previousLimitations.getAccess().isAdd());
         		limitations.getAccess().setRead(previousLimitations.getAccess().isRead());
-        		limitations.getAccess().setUpdate(previousLimitations.getAccess().isUpdate());
+        		limitations.getAccess().setModify(previousLimitations.getAccess().isModify());
         	}
         	previousLimitations = limitations;
-        	if (layer == DEFAULT_LAYER) {
-        		if (deprecatedMinOccurs != null) {
-        			limitations.setMinOccurs(deprecatedMinOccurs);
-        		}
-        		if (deprecatedMaxOccurs != null) {
-        			limitations.setMaxOccurs(deprecatedMaxOccurs);
-        		}
-        		if (deprecatedIgnored != null) {
-        			limitations.setIgnore(deprecatedIgnored);
-        		}
-        		if (deprecatedCreate != null) {
-        			limitations.getAccess().setCreate(deprecatedCreate);
-        		}
-        		if (deprecatedRead != null) {
-        			limitations.getAccess().setRead(deprecatedRead);
-        		}
-        		if (deprecatedUpdate != null) {
-        			limitations.getAccess().setUpdate(deprecatedUpdate);
-        		}
-        	}
         	if (schemaHandlingAttrDefType != null) {
         		if (layer != LayerType.SCHEMA) {
         			// SCHEMA is a pseudo-layer. It cannot be overriden ... unless specified explicitly
@@ -434,14 +398,14 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 		}
 		if (layerLimitationsType.getAccess() != null) {
 			PropertyAccessType accessType = layerLimitationsType.getAccess();
-			if (accessType.isCreate() != null) {
-				limitations.getAccess().setCreate(accessType.isCreate());
+			if (accessType.isAdd() != null) {
+				limitations.getAccess().setAdd(accessType.isAdd());
 			}
 			if (accessType.isRead() != null) {
 				limitations.getAccess().setRead(accessType.isRead());
 			}
-			if (accessType.isUpdate() != null) {
-				limitations.getAccess().setUpdate(accessType.isUpdate());
+			if (accessType.isModify() != null) {
+				limitations.getAccess().setModify(accessType.isModify());
 			}
 		}
 	}
@@ -481,27 +445,19 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 		return limitations;
 	}
 
-	private static Boolean parseDeprecatedAccess(ResourceAttributeDefinitionType attrDefType, DepreactedAccessType access) {
-		if (attrDefType == null) {
-			return null;
+	static boolean isIgnored(ResourceAttributeDefinitionType attrDefType) throws SchemaException {
+		List<PropertyLimitationsType> limitations = attrDefType.getLimitations();
+		if (limitations == null) {
+			return false;
 		}
-		List<DepreactedAccessType> accessList = attrDefType.getAccess();
-		if (accessList == null || accessList.isEmpty()) {
-			return null;
+		PropertyLimitationsType limitationsType = getLimitationsType(limitations, DEFAULT_LAYER);
+		if (limitationsType == null) {
+			return false;
 		}
-		for (DepreactedAccessType acccessEntry: accessList) {
-			if (acccessEntry == access) {
-				return true;
-			}
+		if (limitationsType.isIgnore() == null) {
+			return false;
 		}
-		return false;
-	}
-
-	public static boolean isIgnored(ResourceAttributeDefinitionType attrDefType) {
-        if (attrDefType.isIgnore() == null) {
-            return false;
-        }
-        return attrDefType.isIgnore();
+        return limitationsType.isIgnore();
     }
     
     @Override

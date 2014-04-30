@@ -87,13 +87,13 @@ public class PropertyLimitations implements DebugDumpable, Serializable {
 		} else {
 			sb.append("-");
 		}
-		if (getAccess().isCreate()) {
-			sb.append("C");
+		if (getAccess().isAdd()) {
+			sb.append("A");
 		} else {
 			sb.append("-");
 		}
-		if (getAccess().isUpdate()) {
-			sb.append("U");
+		if (getAccess().isModify()) {
+			sb.append("M");
 		} else {
 			sb.append("-");
 		}
