@@ -249,8 +249,8 @@ This is now the only account type that midPoint can work with. -->
 <!--                 <access>read</access> -->
  				<limitations>
 					<access>
-						<create>true</create>
 						<read>true</read>
+						<add>true</add>
 					</access>
 				</limitations>
 
@@ -303,9 +303,9 @@ This is now the only account type that midPoint can work with. -->
 <!--                 <access>read</access> -->
                 <limitations>
 					<access>
-<!-- 						<create>true</create> -->
+<!-- 						<add>true</add> -->
 						<read>true</read>
-<!-- 						<update>true</update> -->
+<!-- 						<modify>true</modify> -->
 					</access>
 				</limitations>
                 
@@ -327,9 +327,9 @@ This is now the only account type that midPoint can work with. -->
 <!--                 <access>update</access> -->
                  <limitations>
 					<access>
-						<create>true</create>
 						<read>true</read>
-						<update>true</update>
+						<add>true</add>
+						<modify>true</modify>
 					</access>
 				</limitations>
 
@@ -364,9 +364,9 @@ This is now the only account type that midPoint can work with. -->
                 <displayName>Surname</displayName>
                  <limitations>
 					<access>
-						<create>true</create>
 						<read>true</read>
-						<update>true</update>
+						<add>true</add>
+						<modify>true</modify>
 					</access>
 				</limitations>
 
@@ -391,9 +391,9 @@ This is now the only account type that midPoint can work with. -->
                 <limitations>
 <!-- 					<minOccurs>0</minOccurs> -->
 					<access>
-						<create>true</create>
 						<read>true</read>
-						<update>true</update>
+						<add>true</add>
+						<modify>true</modify>
 					</access>
 				</limitations>
 <!--                 <access>create</access> -->

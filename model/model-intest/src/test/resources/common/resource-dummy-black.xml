@@ -139,14 +139,10 @@
 			<attribute>
 				<ref>icfs:uid</ref>
 				<displayName>UID</displayName>
-				<access>read</access>
 			</attribute>
 			<attribute>
 				<ref>ri:fullname</ref>
 				<displayName>Full Name</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<strength>weak</strength>
 					<source>
@@ -163,9 +159,6 @@
 			<attribute>
 				<ref>ri:ship</ref>
 				<displayName>Ship</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<strength>weak</strength>
 					<source>

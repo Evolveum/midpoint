@@ -43,6 +43,9 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 	
 	private RefinedAttributeDefinition refinedAttributeDefinition;
 	private LayerType layer;
+	private Boolean overrideCanRead = null;
+	private Boolean overrideCanAdd = null;
+	private Boolean overrideCanModify = null;
 
 	private LayerRefinedAttributeDefinition(RefinedAttributeDefinition refinedAttributeDefinition, LayerType layer) {
 		super(refinedAttributeDefinition, refinedAttributeDefinition.getPrismContext());
@@ -113,19 +116,49 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 	public void setTolerant(boolean tolerant) {
 		refinedAttributeDefinition.setTolerant(tolerant);
 	}
+	
+	public Boolean getOverrideCanRead() {
+		return overrideCanRead;
+	}
 
-	@Override
-	public boolean canCreate() {
-		return refinedAttributeDefinition.canCreate(layer);
+	public void setOverrideCanRead(Boolean overrideCanRead) {
+		this.overrideCanRead = overrideCanRead;
+	}
+
+	public Boolean getOverrideCanAdd() {
+		return overrideCanAdd;
+	}
+
+	public void setOverrideCanAdd(Boolean overrideCanAdd) {
+		this.overrideCanAdd = overrideCanAdd;
+	}
+
+	public Boolean getOverrideCanModify() {
+		return overrideCanModify;
+	}
+
+	public void setOverrideCanModify(Boolean overrideCanModify) {
+		this.overrideCanModify = overrideCanModify;
 	}
 
 	@Override
-	public boolean canCreate(LayerType layer) {
-		return refinedAttributeDefinition.canCreate(layer);
+	public boolean canAdd() {
+		if (overrideCanAdd != null) {
+			return overrideCanAdd;
+		}
+		return refinedAttributeDefinition.canAdd(layer);
+	}
+
+	@Override
+	public boolean canAdd(LayerType layer) {
+		return refinedAttributeDefinition.canAdd(layer);
 	}
 
 	@Override
 	public boolean canRead() {
+		if (overrideCanRead != null) {
+			return overrideCanRead;
+		}
 		return refinedAttributeDefinition.canRead(layer);
 	}
 
@@ -135,8 +168,11 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 	}
 
 	@Override
-	public boolean canUpdate() {
-		return refinedAttributeDefinition.canUpdate(layer);
+	public boolean canModify() {
+		if (overrideCanModify != null) {
+			return overrideCanModify;
+		}
+		return refinedAttributeDefinition.canModify(layer);
 	}
 
 	@Override
@@ -145,8 +181,8 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 	}
 
 	@Override
-	public boolean canUpdate(LayerType layer) {
-		return refinedAttributeDefinition.canUpdate(layer);
+	public boolean canModify(LayerType layer) {
+		return refinedAttributeDefinition.canModify(layer);
 	}
 
 	@Override
@@ -185,13 +221,13 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 	}
 
 	@Override
-	public void setRead(boolean read) {
-		refinedAttributeDefinition.setRead(read);
+	public void setCanRead(boolean read) {
+		refinedAttributeDefinition.setCanRead(read);
 	}
 
 	@Override
-	public void setUpdate(boolean update) {
-		refinedAttributeDefinition.setUpdate(update);
+	public void setCanModify(boolean update) {
+		refinedAttributeDefinition.setCanModify(update);
 	}
 
 	@Override
@@ -210,8 +246,8 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 	}
 
 	@Override
-	public void setCreate(boolean create) {
-		refinedAttributeDefinition.setCreate(create);
+	public void setCanAdd(boolean create) {
+		refinedAttributeDefinition.setCanAdd(create);
 	}
 
 	@Override
@@ -489,7 +525,7 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append(getDebugDumpClassName()).append("(layer=").append(layer).append(",\n");
-		sb.append(refinedAttributeDefinition.debugDump(indent+1));
+		sb.append(refinedAttributeDefinition.debugDump(indent+1, layer));
 		return sb.toString();
 	}
 	

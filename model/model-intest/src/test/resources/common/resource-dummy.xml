@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -88,14 +88,10 @@
 			<attribute>
 				<ref>icfs:uid</ref>
 				<displayName>UID</displayName>
-				<access>read</access>
 			</attribute>
 			<attribute>
 				<ref>ri:fullname</ref>
 				<displayName>Full Name</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<source>
 						<path>$user/fullName</path>
@@ -111,9 +107,6 @@
 			<attribute>
 				<ref>ri:location</ref>
 				<displayName>Location</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<strength>strong</strength>
 					<source>
@@ -137,9 +130,6 @@
 			<attribute>
 				<ref>ri:ship</ref>
 				<displayName>Ship</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<inbound>
 					<expression>
 						<script>
@@ -211,7 +201,9 @@
             </attribute>
             <attribute>
                 <ref>ri:water</ref>
-                <ignore>true</ignore>
+                <limitations>
+                	<ignore>true</ignore>
+                </limitations>
                 <outbound>
                 	<!-- Make sure this mapping is really ignored -->
 					<expression>

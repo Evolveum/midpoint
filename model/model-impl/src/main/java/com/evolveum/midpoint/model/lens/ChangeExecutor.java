@@ -20,6 +20,7 @@ import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 import ch.qos.logback.core.pattern.parser.ScanException;
 
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
@@ -672,7 +673,7 @@ public class ChangeExecutor {
         }
         
         OwnerResolver ownerResolver = createOwnerResolver(context);
-		securityEnforcer.authorize(ModelService.AUTZ_ADD_URL, AuthorizationPhaseType.EXECUTION,
+		securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(), AuthorizationPhaseType.EXECUTION,
         		objectToAdd, null, null, ownerResolver, result);
 
         T objectTypeToAdd = objectToAdd.asObjectable();
@@ -727,7 +728,7 @@ public class ChangeExecutor {
         
         PrismObject<T> objectOld = objectContext.getObjectOld();
         OwnerResolver ownerResolver = createOwnerResolver(context);
-        securityEnforcer.authorize(ModelService.AUTZ_DELETE_URL, AuthorizationPhaseType.EXECUTION,
+        securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), AuthorizationPhaseType.EXECUTION,
         		objectOld, null, null, ownerResolver, result);
 
         if (TaskType.class.isAssignableFrom(objectTypeClass)) {
@@ -766,7 +767,7 @@ public class ChangeExecutor {
         
         PrismObject<T> objectNew = objectContext.getObjectNew();
         OwnerResolver ownerResolver = createOwnerResolver(context);
-        securityEnforcer.authorize(ModelService.AUTZ_MODIFY_URL, AuthorizationPhaseType.EXECUTION,
+        securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), AuthorizationPhaseType.EXECUTION,
         		objectNew, change, null, ownerResolver, result);
         	
     	applyMetadata(change, objectContext, objectTypeClass, task, context, result);

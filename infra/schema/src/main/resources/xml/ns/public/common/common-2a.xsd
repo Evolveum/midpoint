@@ -170,42 +170,7 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-    
-    <xsd:simpleType name="DepreactedAccessType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Deprecated. Use LimirationsType instead.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <jaxb:typesafeEnumClass/>
-                <a:deprecated/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="read">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="READ"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="update">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="UPDATE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="create">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="CREATE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-
+ 
     <xsd:element name="ignore" type="xsd:boolean" default="true">
         <xsd:annotation>
             <xsd:documentation>
@@ -219,8 +184,7 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
-    
-
+ 
     <!-- Basic Object Types -->
 
 
@@ -3560,31 +3524,6 @@
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
-            <xsd:element ref="tns:ignore" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:documentation>
-            			DEPRECACTED, use limitations instead
-            		</xsd:documentation>
-            	</xsd:annotation>
-            </xsd:element>
-            <xsd:element name="minOccurs" type="xsd:string" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:documentation>
-            			DEPRECACTED, use limitations instead
-            			
-            			Override of schema minOccurs specification.
-            		</xsd:documentation>
-            	</xsd:annotation>
-            </xsd:element>
-            <xsd:element name="maxOccurs" type="xsd:string" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:documentation>
-            			DEPRECACTED, use limitations instead
-            			
-            			Override of schema maxOccurs specification.
-            		</xsd:documentation>
-            	</xsd:annotation>
-            </xsd:element>
             <xsd:element name="exclusiveStrong" type="xsd:boolean" minOccurs="0" default="false">
             	<xsd:annotation>
             		<xsd:documentation>
@@ -3621,21 +3560,6 @@
             			The value must be derived from a mapping or it will be removed.
             		</xsd:documentation>
             	</xsd:annotation>
-            </xsd:element>
-            <xsd:element name="access" type="tns:DepreactedAccessType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                    	DEPRECACTED, use limitations instead
-                    	
-                        Access to the attribute as defined by the system administrator or deployer.
-                        This can constrain the access defined by resource schema annotations.
-                        Specifying broader access that the resource connector can handle is an
-                        error.
-
-                        If no access is specified, it defaults to access definition specified in the
-                        resource schema annotations.
-                    </xsd:documentation>
-                </xsd:annotation>
             </xsd:element>
             <xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
             <xsd:element name="matchingRule" type="xsd:QName" minOccurs="0">
@@ -3799,9 +3723,9 @@
     
     <xsd:complexType name="PropertyAccessType">
     	<xsd:sequence>
-    		<xsd:element name="create" type="xsd:boolean" minOccurs="0"/>
     		<xsd:element name="read" type="xsd:boolean" minOccurs="0"/>
-    		<xsd:element name="update" type="xsd:boolean" minOccurs="0"/>
+    		<xsd:element name="add" type="xsd:boolean" minOccurs="0"/>
+    		<xsd:element name="modify" type="xsd:boolean" minOccurs="0"/>
     		<!-- delete does not make sense here -->
     	</xsd:sequence>
     </xsd:complexType>

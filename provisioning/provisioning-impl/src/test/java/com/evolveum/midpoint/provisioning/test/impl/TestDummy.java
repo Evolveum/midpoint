@@ -478,8 +478,8 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals(1, uidDef.getMaxOccurs());
 		assertEquals(0, uidDef.getMinOccurs());
 		assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
-		assertFalse("UID has create", uidDef.canCreate());
-		assertFalse("UID has update", uidDef.canUpdate());
+		assertFalse("UID has create", uidDef.canAdd());
+		assertFalse("UID has update", uidDef.canModify());
 		assertTrue("No UID read", uidDef.canRead());
 		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(uidDef));
 
@@ -487,8 +487,8 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals(1, nameDef.getMaxOccurs());
 		assertEquals(1, nameDef.getMinOccurs());
 		assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
-		assertTrue("No NAME create", nameDef.canCreate());
-		assertTrue("No NAME update", nameDef.canUpdate());
+		assertTrue("No NAME create", nameDef.canAdd());
+		assertTrue("No NAME update", nameDef.canModify());
 		assertTrue("No NAME read", nameDef.canRead());
 		assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
 
@@ -496,8 +496,8 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("No definition for fullname", fullnameDef);
 		assertEquals(1, fullnameDef.getMaxOccurs());
 		assertEquals(1, fullnameDef.getMinOccurs());
-		assertTrue("No fullname create", fullnameDef.canCreate());
-		assertTrue("No fullname update", fullnameDef.canUpdate());
+		assertTrue("No fullname create", fullnameDef.canAdd());
+		assertTrue("No fullname update", fullnameDef.canModify());
 		assertTrue("No fullname read", fullnameDef.canRead());
 
 		assertNull("The _PASSSWORD_ attribute sneaked into schema",

@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.Utils;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -93,13 +94,13 @@ public class ModelUtils {
 			return null;
 		}
 		if (delta.isAdd()) {
-			return ModelService.AUTZ_ADD_URL;
+			return ModelAuthorizationAction.ADD.getUrl();
 		}
 		if (delta.isModify()) {
-			return ModelService.AUTZ_MODIFY_URL;
+			return ModelAuthorizationAction.MODIFY.getUrl();
 		}
 		if (delta.isDelete()) {
-			return ModelService.AUTZ_DELETE_URL;
+			return ModelAuthorizationAction.DELETE.getUrl();
 		}
 		throw new IllegalArgumentException("Unknown delta type "+delta);
 	}

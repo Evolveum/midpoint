@@ -209,9 +209,9 @@
 				<displayName>Distinguished Name</displayName>
 				<limitations>
 					<access>
-						<create>true</create>
+						<add>true</add>
 						<read>true</read>
-						<update>false</update>
+						<modify>false</modify>
 					</access>
 				</limitations>
 				<outbound>
@@ -228,9 +228,9 @@
 				<displayName>Entry UUID</displayName>
 				<limitations>
 					<access>
-						<create>false</create>
+						<add>false</add>
 						<read>true</read>
-						<update>false</update>
+						<modify>false</modify>
 					</access>
 				</limitations>
 			</attribute>
@@ -240,9 +240,9 @@
 				<limitations>
 					<maxOccurs>1</maxOccurs>
 					<access>
-						<create>true</create>
+						<add>true</add>
 						<read>true</read>
-						<update>true</update>
+						<modify>true</modify>
 					</access>
 				</limitations>
 				<limitations>
@@ -267,9 +267,9 @@
 				<displayName>Surname</displayName>
 				<limitations>
 					<access>
-						<create>true</create>
+						<add>true</add>
 						<read>true</read>
-						<update>true</update>
+						<modify>true</modify>
 					</access>
 				</limitations>
 				<outbound>
@@ -290,9 +290,9 @@
 				<displayName>Given Name</displayName>
 				<limitations>
 					<access>
-						<create>true</create>
+						<add>true</add>
 						<read>true</read>
-						<update>true</update>
+						<modify>true</modify>
 					</access>
 				</limitations>
 				<outbound>
@@ -318,9 +318,9 @@
 				<limitations>
 					<layer>presentation</layer>
 					<access>
-						<create>true</create>
+						<add>true</add>
 						<!-- no <read> here, it should be "inherited" -->
-						<update>false</update>
+						<modify>false</modify>
 					</access>
 				</limitations>
 				<outbound>

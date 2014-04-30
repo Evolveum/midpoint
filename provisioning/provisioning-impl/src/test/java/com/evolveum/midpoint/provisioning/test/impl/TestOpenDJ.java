@@ -354,8 +354,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertEquals(1, uidDef.getMaxOccurs());
 		assertEquals(0, uidDef.getMinOccurs());
 		assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
-		assertFalse("UID has create", uidDef.canCreate());
-		assertFalse("UID has update", uidDef.canUpdate());
+		assertFalse("UID has create", uidDef.canAdd());
+		assertFalse("UID has update", uidDef.canModify());
 		assertTrue("No UID read", uidDef.canRead());
 		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(uidDef));
 
@@ -363,8 +363,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertEquals(1, nameDef.getMaxOccurs());
 		assertEquals(1, nameDef.getMinOccurs());
 		assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
-		assertTrue("No NAME create", nameDef.canCreate());
-		assertTrue("No NAME update", nameDef.canUpdate());
+		assertTrue("No NAME create", nameDef.canAdd());
+		assertTrue("No NAME update", nameDef.canModify());
 		assertTrue("No NAME read", nameDef.canRead());
 		assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
 		assertEquals("Wrong NAME matching rule", StringIgnoreCaseMatchingRule.NAME, nameDef.getMatchingRuleQName());
@@ -373,8 +373,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertNotNull("No definition for cn", cnDef);
 		assertEquals(-1, cnDef.getMaxOccurs());
 		assertEquals(1, cnDef.getMinOccurs());
-		assertTrue("No fullname create", cnDef.canCreate());
-		assertTrue("No fullname update", cnDef.canUpdate());
+		assertTrue("No fullname create", cnDef.canAdd());
+		assertTrue("No fullname update", cnDef.canModify());
 		assertTrue("No fullname read", cnDef.canRead());
 
 		assertNull("The _PASSSWORD_ attribute sneaked into schema",

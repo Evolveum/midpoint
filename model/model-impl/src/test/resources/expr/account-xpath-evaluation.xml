@@ -178,7 +178,7 @@
 					<displayName>Distinguished Name</displayName>
 					<limitations>
 						<access>
-							<create>true</create>
+							<add>true</add>
 							<read>true</read>
 						</access>
 					</limitations>
@@ -211,9 +211,9 @@
 					<displayName>Common Name</displayName>
 					<limitations>
 						<access>
-							<create>true</create>
+							<add>true</add>
 							<read>true</read>
-							<update>true</update>
+							<modify>true</modify>
 						</access>
 					</limitations>
 					<outbound>
@@ -234,9 +234,9 @@
 					<displayName>Surname</displayName>
 					<limitations>
 						<access>
-							<create>true</create>
+							<add>true</add>
 							<read>true</read>
-							<update>true</update>
+							<modify>true</modify>
 						</access>
 					</limitations>
 					<outbound>
@@ -266,9 +266,9 @@
 					<displayName>Given Name</displayName>
 					<limitations>
 						<access>
-							<create>true</create>
+							<add>true</add>
 							<read>true</read>
-							<update>true</update>
+							<modify>true</modify>
 						</access>
 					</limitations>
 					<outbound>
@@ -294,9 +294,9 @@
 					<displayName>Title before name</displayName>
 					<limitations>
 						<access>
-							<create>true</create>
+							<add>true</add>
 							<read>true</read>
-							<update>true</update>
+							<modify>true</modify>
 						</access>
 					</limitations>
 					<inbound>
@@ -313,9 +313,9 @@
 					<displayName>Not defined attribute in the resource schema</displayName>
 					<limitations>
 						<access>
-							<create>true</create>
+							<add>true</add>
 							<read>true</read>
-							<update>true</update>
+							<modify>true</modify>
 						</access>
 					</limitations>
 					<inbound>

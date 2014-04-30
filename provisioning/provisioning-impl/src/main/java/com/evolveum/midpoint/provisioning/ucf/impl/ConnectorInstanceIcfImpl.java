@@ -710,9 +710,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					}
 				}
 
-				attrDef.setCreate(canCreate);
-				attrDef.setUpdate(canUpdate);
-				attrDef.setRead(canRead);
+				attrDef.setCanAdd(canCreate);
+				attrDef.setCanModify(canUpdate);
+				attrDef.setCanRead(canRead);
 
 			}
 
