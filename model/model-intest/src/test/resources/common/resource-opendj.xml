@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -203,10 +203,9 @@
 			<attribute>
 				<ref>ri:cn</ref>
 				<displayName>Common Name</displayName>
-				<maxOccurs>1</maxOccurs>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
+				<limitations>
+					<maxOccurs>1</maxOccurs>
+				</limitations>
 				<outbound>
 					<source>
 						<path>$user/fullName</path>
@@ -221,9 +220,6 @@
 			<attribute>
 				<ref>ri:sn</ref>
 				<displayName>Surname</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<source>
 						<path>$c:user/c:familyName</path>
@@ -238,9 +234,6 @@
 			<attribute>
 				<ref>ri:givenName</ref>
 				<displayName>Given Name</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<source>
 						<path>givenName</path>
@@ -263,8 +256,6 @@
 			<attribute>
 				<ref>ri:uid</ref>
 				<displayName>Login Name</displayName>
-				<access>create</access>
-				<access>read</access>
 				<outbound>
 					<strength>weak</strength>
 					<source>

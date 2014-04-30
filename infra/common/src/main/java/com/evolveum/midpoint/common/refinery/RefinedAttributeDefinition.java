@@ -489,10 +489,21 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 
     @Override
 	public String debugDump(int indent) {
+    	return debugDump(indent, null);
+    }
+    
+	String debugDump(int indent, LayerType layer) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(super.debugDump(indent));
-		sb.append("\n");
-		DebugUtil.debugDumpMapSingleLine(sb, limitationsMap, indent + 1);
+		if (layer == null) {
+			sb.append("\n");
+			DebugUtil.debugDumpMapSingleLine(sb, limitationsMap, indent + 1);
+		} else {
+			PropertyLimitations limitations = limitationsMap.get(layer);
+			if (limitations != null) {
+				sb.append(limitations.toString());
+			}
+		}
 		return sb.toString();
 	}
 

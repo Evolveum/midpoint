@@ -48,6 +48,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -159,6 +160,9 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	
 	protected static final File ROLE_SELF_ACCOUNTS_READ_WRITE_FILE = new File(TEST_DIR, "role-self-accounts-read-write.xml");
 	protected static final String ROLE_SELF_ACCOUNTS_READ_WRITE_OID = "00000000-0000-0000-0000-00000000aa0a";
+	
+	protected static final File ROLE_SELF_ACCOUNTS_PARTIAL_CONTROL_FILE = new File(TEST_DIR, "role-self-accounts-partial-control.xml");
+	protected static final String ROLE_SELF_ACCOUNTS_PARTIAL_CONTROL_OID = "00000000-0000-0000-0000-00000000aa0b";
 
 	private static final String LOG_PREFIX_FAIL = "SSSSS=X ";
 	private static final String LOG_PREFIX_ATTEMPT = "SSSSS=> ";
@@ -192,6 +196,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		repoAddObjectFromFile(ROLE_PROP_READ_SOME_MODIFY_SOME_REQ_EXEC_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_READ_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_READ_WRITE_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_SELF_ACCOUNTS_PARTIAL_CONTROL_FILE, RoleType.class, initResult);
 		
 		assignOrg(USER_GUYBRUSH_OID, ORG_SWASHBUCKLER_SECTION_OID, initTask, initResult);
 		
@@ -878,6 +883,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertGetAllow(ShadowType.class, accountOid);
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, accountOid);
         display("Jack's shadow", shadow);
+        RefinedObjectClassDefinition rOcDef = modelInteractionService.getEditObjectClassDefinition(shadow, resourceDummy);
+        display("Refined objectclass def", rOcDef);
         
         // Not linked to jack
         assertGetDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);

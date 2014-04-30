@@ -43,6 +43,9 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 	
 	private RefinedAttributeDefinition refinedAttributeDefinition;
 	private LayerType layer;
+	private Boolean overrideCanRead = null;
+	private Boolean overrideCanAdd = null;
+	private Boolean overrideCanModify = null;
 
 	private LayerRefinedAttributeDefinition(RefinedAttributeDefinition refinedAttributeDefinition, LayerType layer) {
 		super(refinedAttributeDefinition, refinedAttributeDefinition.getPrismContext());
@@ -113,9 +116,36 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 	public void setTolerant(boolean tolerant) {
 		refinedAttributeDefinition.setTolerant(tolerant);
 	}
+	
+	public Boolean getOverrideCanRead() {
+		return overrideCanRead;
+	}
+
+	public void setOverrideCanRead(Boolean overrideCanRead) {
+		this.overrideCanRead = overrideCanRead;
+	}
+
+	public Boolean getOverrideCanAdd() {
+		return overrideCanAdd;
+	}
+
+	public void setOverrideCanAdd(Boolean overrideCanAdd) {
+		this.overrideCanAdd = overrideCanAdd;
+	}
+
+	public Boolean getOverrideCanModify() {
+		return overrideCanModify;
+	}
+
+	public void setOverrideCanModify(Boolean overrideCanModify) {
+		this.overrideCanModify = overrideCanModify;
+	}
 
 	@Override
 	public boolean canAdd() {
+		if (overrideCanAdd != null) {
+			return overrideCanAdd;
+		}
 		return refinedAttributeDefinition.canAdd(layer);
 	}
 
@@ -126,6 +156,9 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 
 	@Override
 	public boolean canRead() {
+		if (overrideCanRead != null) {
+			return overrideCanRead;
+		}
 		return refinedAttributeDefinition.canRead(layer);
 	}
 
@@ -136,6 +169,9 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 
 	@Override
 	public boolean canModify() {
+		if (overrideCanModify != null) {
+			return overrideCanModify;
+		}
 		return refinedAttributeDefinition.canModify(layer);
 	}
 
@@ -489,7 +525,7 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append(getDebugDumpClassName()).append("(layer=").append(layer).append(",\n");
-		sb.append(refinedAttributeDefinition.debugDump(indent+1));
+		sb.append(refinedAttributeDefinition.debugDump(indent+1, layer));
 		return sb.toString();
 	}
 	

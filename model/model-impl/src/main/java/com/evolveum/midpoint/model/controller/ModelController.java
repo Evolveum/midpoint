@@ -53,6 +53,7 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
+import com.evolveum.midpoint.common.refinery.LayerRefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.LayerRefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.LayerRefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -750,12 +751,14 @@ public class ModelController implements ModelService, ModelInteractionService, T
     @Override
 	public RefinedObjectClassDefinition getEditObjectClassDefinition(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource)
 			throws SchemaException {
-//    	if (resource == null) {
-//			String resourceOid = ShadowUtil.getResourceOid(shadow);
-//			if (resourceOid == null) {
-//				throw new IllegalArgumentException("No resource OID in the shadow");
-//			}
-//			getObject(ResourceType.class, resourceOid, null, task, parentResult)
+    	// TODO: maybe we need to expose owner resolver in the interface?
+		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(shadow, null);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Security constrains for {}:\n{}", shadow, securityConstraints==null?"null":securityConstraints.debugDump());
+		}
+		if (securityConstraints == null) {
+			return null;
+		}
     	
     	RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
     	LayerRefinedResourceSchema layerRefinedSchema = refinedSchema.forLayer(LayerType.PRESENTATION);
@@ -775,7 +778,28 @@ public class ModelController implements ModelService, ModelInteractionService, T
     		}
     	}
     	
-    	// TODO: security
+    	ItemPath attributesPath = new ItemPath(ShadowType.F_ATTRIBUTES);
+		AuthorizationDecisionType attributesReadDecision = computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.READ.getUrl(), 
+    			securityConstraints.getActionDecistion(ModelAuthorizationAction.READ.getUrl(), null));
+		AuthorizationDecisionType attributesAddDecision = computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.ADD.getUrl(),
+				securityConstraints.getActionDecistion(ModelAuthorizationAction.ADD.getUrl(), null));
+		AuthorizationDecisionType attributesModifyDecision = computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.MODIFY.getUrl(),
+				securityConstraints.getActionDecistion(ModelAuthorizationAction.MODIFY.getUrl(), null));
+		for (LayerRefinedAttributeDefinition rAttrDef: rOCDef.getAttributeDefinitions()) {
+			ItemPath attributePath = new ItemPath(ShadowType.F_ATTRIBUTES, rAttrDef.getName());
+			AuthorizationDecisionType attributeReadDecision = computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.READ.getUrl(), attributesReadDecision);
+			AuthorizationDecisionType attributeAddDecision = computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.ADD.getUrl(), attributesAddDecision);
+			AuthorizationDecisionType attributeModifyDecision = computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.MODIFY.getUrl(), attributesModifyDecision);
+			if (attributeReadDecision != AuthorizationDecisionType.ALLOW) {
+				rAttrDef.setOverrideCanRead(false);
+			}
+			if (attributeAddDecision != AuthorizationDecisionType.ALLOW) {
+				rAttrDef.setOverrideCanAdd(false);
+			}
+			if (attributeModifyDecision != AuthorizationDecisionType.ALLOW) {
+				rAttrDef.setOverrideCanModify(false);
+			}
+		}
     	
     	return rOCDef;
 	}
