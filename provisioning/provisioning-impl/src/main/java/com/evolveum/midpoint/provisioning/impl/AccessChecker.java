@@ -78,7 +78,7 @@ public class AccessChecker {
 			if (access == null) {
 				continue;
 			}
-			if (access.isCreate() == null || !access.isCreate()) {
+			if (access.isAdd() == null || !access.isAdd()) {
 				String message = "Attempt to add shadow with non-createable attribute "+attribute.getElementName();
 				LOGGER.error(message);
 				result.recordFatalError(message);
@@ -121,7 +121,7 @@ public class AccessChecker {
 			if (access == null) {
 				continue;
 			}
-			if (access.isUpdate() == null || !access.isUpdate()) {
+			if (access.isModify() == null || !access.isModify()) {
 				String message = "Attempt to modify non-updateable attribute "+attrName;
 				LOGGER.error(message);
 				result.recordFatalError(message);

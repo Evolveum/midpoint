@@ -105,7 +105,7 @@ public class ResourceCarefulAntUtil {
     	ResourceObjectTypeDefinitionType accountType = schemaHandling.getObjectType().iterator().next();
     	List<ResourceAttributeDefinitionType> attrDefs = accountType.getAttribute();
     	ResourceAttributeDefinitionType attributeDefinitionType = attrDefs.get(rnd.nextInt(attrDefs.size()));
-    	attributeDefinitionType.setMaxOccurs(Integer.toString(iteration));
+    	attributeDefinitionType.setDescription(Integer.toString(iteration));
 		return schemaHandling;
 	}
 

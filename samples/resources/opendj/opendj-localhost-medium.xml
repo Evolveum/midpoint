@@ -246,9 +246,9 @@ It also contains inbound mappings and definition to enable synchronization.
 				<limitations>
 					<minOccurs>0</minOccurs>
 					<access>
-						<create>true</create>
+						<add>true</add>
 						<read>true</read>
-						<update>true</update>
+						<modify>true</modify>
 					</access>
 				</limitations>
 				<matchingRule>mr:stringIgnoreCase</matchingRule>
@@ -271,9 +271,9 @@ It also contains inbound mappings and definition to enable synchronization.
 				<displayName>Entry UUID</displayName>
 				<limitations>
 					<access>
-						<create>false</create>
+						<add>false</add>
 						<read>true</read>
-						<update>true</update>
+						<modify>true</modify>
 					</access>
 				</limitations>
 				<matchingRule>mr:stringIgnoreCase</matchingRule>
@@ -284,9 +284,9 @@ It also contains inbound mappings and definition to enable synchronization.
 				<limitations>
 					<minOccurs>0</minOccurs>
 					<access>
-						<create>true</create>
+						<add>true</add>
 						<read>true</read>
-						<update>true</update>
+						<modify>true</modify>
 					</access>
 				</limitations>
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -146,14 +146,10 @@
 			<attribute>
 				<ref>icfs:uid</ref>
 				<displayName>UID</displayName>
-				<access>read</access>
 			</attribute>
 			<attribute>
 				<ref>ri:fullname</ref>
 				<displayName>Full Name</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<strength>strong</strength>
 					<source>
@@ -185,9 +181,6 @@
 			<attribute>
 				<ref>ri:ship</ref>
 				<displayName>Ship</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<strength>strong</strength>
 					<source>
@@ -217,9 +210,9 @@
                 <description>Non-readable attribute, the inbound mapping should be ignored</description>
                 <limitations>
 					<access>
-						<create>true</create>
 						<read>false</read>
-						<update>true</update>
+						<add>true</add>
+						<modify>true</modify>
 					</access>
 				</limitations>
 				<inbound>
@@ -237,9 +230,9 @@
                 <description>Non-readable and non-writable attribute, all mappings should be ignored</description>
                 <limitations>
 					<access>
-						<create>false</create>
 						<read>false</read>
-						<update>false</update>
+						<add>false</add>
+						<modify>false</modify>
 					</access>
 				</limitations>
                 <outbound>

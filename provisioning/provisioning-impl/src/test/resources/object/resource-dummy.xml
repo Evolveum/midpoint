@@ -65,9 +65,9 @@
 				<ref>ri:ship</ref>
 				<limitations>
 					<access>
-						<create>true</create>
+						<add>true</add>
 						<read>true</read>
-						<update>true</update>
+						<modify>true</modify>
 					</access>
 				</limitations>
 			</attribute>
@@ -75,9 +75,9 @@
 				<ref>ri:drink</ref>
 				<limitations>
 					<access>
-						<create>false</create>
+						<add>false</add>
 						<read>true</read>
-						<update>true</update>
+						<modify>true</modify>
 					</access>
 				</limitations>
 			</attribute>
@@ -85,9 +85,9 @@
 				<ref>ri:quote</ref>
 				<limitations>
 					<access>
-						<create>true</create>
+						<add>true</add>
 						<read>true</read>
-						<update>false</update>
+						<modify>false</modify>
 					</access>
 				</limitations>
 			</attribute>
@@ -95,9 +95,9 @@
 				<ref>ri:gossip</ref>
 				<limitations>
 					<access>
-						<create>true</create>
+						<add>true</add>
 						<read>false</read>
-						<update>true</update>
+						<modify>true</modify>
 					</access>
 				</limitations>
 			</attribute>
@@ -105,9 +105,9 @@
 				<ref>ri:water</ref>
 				<limitations>
 					<access>
-						<create>false</create>
+						<add>false</add>
 						<read>false</read>
-						<update>false</update>
+						<modify>false</modify>
 					</access>
 				</limitations>
 			</attribute>

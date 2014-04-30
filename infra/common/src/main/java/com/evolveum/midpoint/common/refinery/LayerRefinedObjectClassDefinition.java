@@ -452,11 +452,7 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 
 	@Override
 	public String debugDump(int indent) {
-		StringBuilder sb = new StringBuilder();
-		DebugUtil.indentDebugDump(sb, indent);
-		sb.append(getDebugDumpClassName()).append("(layer=").append(layer).append(",\n");
-		sb.append(refinedObjectClassDefinition.debugDump(indent+1));
-		return sb.toString();
+		return debugDump(indent, layer);
 	}
 
 	/**

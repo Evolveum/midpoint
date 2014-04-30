@@ -272,8 +272,6 @@ object.
 			<attribute>
 				<ref>icfs:name</ref>
 				<displayName>Distinguished Name</displayName>
-				<access>create</access>
-				<access>read</access>
 				<outbound>
 				    <strength>weak</strength>
 					<expression>
@@ -288,14 +286,10 @@ object.
 			<attribute>
 				<ref>icfs:uid</ref>
 				<displayName>Entry UUID</displayName>
-				<access>read</access>
 			</attribute>
 			<attribute>
 				<ref>ri:cn</ref>
 				<displayName>Common Name</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<source>
 						<path>
@@ -312,9 +306,6 @@ object.
 			<attribute>
 				<ref>ri:sn</ref>
 				<displayName>Surname</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<source>
 						<path>
@@ -331,9 +322,6 @@ object.
 			<attribute>
 				<ref>ri:givenName</ref>
 				<displayName>Given Name</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<source>
 						<path>
@@ -350,8 +338,6 @@ object.
 			<attribute>
 				<ref>ri:uid</ref>
 				<displayName>Login Name</displayName>
-				<access>create</access>
-				<access>read</access>
 				<outbound>
 					<source>
 						<path>

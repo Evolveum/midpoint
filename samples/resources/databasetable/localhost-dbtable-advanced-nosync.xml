@@ -129,9 +129,9 @@ using an Identity Connector Framework DBTable connector.
 					<limitations>
 						<minOccurs>0</minOccurs>
 						<access>
-							<create>true</create>
+							<add>true</add>
 							<read>true</read>
-							<update>true</update>
+							<modify>true</modify>
 						</access>
 					</limitations>
 					<outbound>
