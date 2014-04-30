@@ -35,10 +35,10 @@ public class MidPointUserManager extends UserEntityManager {
         throw new UnsupportedOperationException("MidPoint user manager doesn't support inserting a new user");
     }
 
-    @Override
-    public void updateUser(User updatedUser) {
-        throw new UnsupportedOperationException("MidPoint user manager doesn't support updating a user");
-    }
+//    @Override
+//    public void updateUser(User updatedUser) {
+//        throw new UnsupportedOperationException("MidPoint user manager doesn't support updating a user");
+//    }
 
     @Override
     public UserEntity findUserById(String userId) {
