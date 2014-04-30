@@ -217,9 +217,9 @@
                 <description>Non-readable attribute, the inbound mapping should be ignored</description>
                 <limitations>
 					<access>
-						<create>true</create>
+						<add>true</add>
 						<read>false</read>
-						<update>true</update>
+						<modify>true</modify>
 					</access>
 				</limitations>
 				<inbound>
@@ -237,9 +237,9 @@
                 <description>Non-readable and non-writable attribute, all mappings should be ignored</description>
                 <limitations>
 					<access>
-						<create>false</create>
+						<add>false</add>
 						<read>false</read>
-						<update>false</update>
+						<modify>false</modify>
 					</access>
 				</limitations>
                 <outbound>

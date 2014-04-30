@@ -270,9 +270,9 @@ object.
 					<limitations>
 						<minOccurs>0</minOccurs>
 						<access>
-							<create>true</create>
+							<add>true</add>
 							<read>true</read>
-							<update>true</update>
+							<modify>true</modify>
 						</access>
 					</limitations>
 					<matchingRule>mr:stringIgnoreCase</matchingRule>
@@ -295,9 +295,9 @@ object.
 					<displayName>Entry UUID</displayName>
 					<limitations>
 						<access>
-							<create>false</create>
+							<add>false</add>
 							<read>true</read>
-							<update>true</update>
+							<modify>true</modify>
 						</access>
 					</limitations>
 					<matchingRule>mr:stringIgnoreCase</matchingRule>
@@ -308,9 +308,9 @@ object.
 					<limitations>
 						<minOccurs>0</minOccurs>
 						<access>
-							<create>true</create>
+							<add>true</add>
 							<read>true</read>
-							<update>true</update>
+							<modify>true</modify>
 						</access>
 					</limitations>
 
