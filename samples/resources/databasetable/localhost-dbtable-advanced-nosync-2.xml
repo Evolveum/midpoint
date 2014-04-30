@@ -112,7 +112,11 @@ using an Identity Connector Framework DBTable connector.
                     <!-- Access limitation for this attribute.
                          Entry UUID is created by the directory server itelf
                          and it is immutable. We can only read it. -->
-					<access>read</access>
+                    <limitations>
+                        <access>
+                            <read>true</read>
+                        </access>
+                    </limitations>
 				</attribute>
 				<attribute>
 					<ref>icfs:name</ref>
@@ -125,8 +129,8 @@ using an Identity Connector Framework DBTable connector.
 					<limitations>
 						<minOccurs>0</minOccurs>
 						<access>
+                            <read>true</read>
 							<add>true</add>
-							<read>true</read>
 							<modify>true</modify>
 						</access>
 					</limitations>
@@ -145,7 +149,9 @@ icfs:name = icfs:uid so this not yet possible -->
 				<attribute>
 					<ref>ri:id</ref>
 					<displayName>Autoincrement id</displayName>
-					<ignore/>
+                    <limitations>
+                        <ignore/>
+                    </limitations>
 				</attribute>
 
 				<attribute>
@@ -187,8 +193,8 @@ icfs:name = icfs:uid so this not yet possible -->
 					<limitations>
 					        <minOccurs>0</minOccurs>
 						<access>
+                            <read>true</read>
 							<add>true</add>
-							<read>true</read>
 							<modify>true</modify>
 						</access>
 					</limitations>

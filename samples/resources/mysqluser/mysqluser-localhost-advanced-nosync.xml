@@ -101,8 +101,8 @@ This resource definition contains only the very basic definitions for midPoint t
 				<limitations>
 					<minOccurs>0</minOccurs>
 					<access>
+                        <read>true</read>
 						<add>true</add>
-						<read>true</read>
 						<modify>true</modify>
 					</access>
 				</limitations>
@@ -120,7 +120,11 @@ This resource definition contains only the very basic definitions for midPoint t
 			<attribute>
 				<ref>icfs:uid</ref>
 				<displayName>Entry UUID</displayName>
-				<access>read</access>
+                <limitations>
+                    <access>
+                        <read>true</read>
+                    </access>
+                </limitations>
 			</attribute>
 
 			<iteration>

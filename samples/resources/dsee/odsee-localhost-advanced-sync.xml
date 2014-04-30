@@ -119,8 +119,12 @@ object.
                          In our case ICF will put DN in the __NAME__ attribute.
                          Althouhg DN can be theoretically changes, this definition
                          will make it immutable. -->
-					<access>create</access>
-					<access>read</access>
+                    <limitations>
+                        <access>
+                            <read>true</read>
+                            <add>true</add>
+                        </access>
+                    </limitations>
 
 					<!-- Outbound expression for the __NAME__ attribute.
                          If account is created or updated, the __NAME__ attribute
@@ -165,7 +169,11 @@ object.
 					<!-- Access limitation for this attribute.
                          Entry UUID is created by the directory server itelf
                          and it is immutable. We can only read it. -->
-					<access>read</access>
+                    <limitations>
+                        <access>
+                            <read>true</read>
+                        </access>
+                    </limitations>
 
 					<!-- There is no "outbound" expression, so midPoint will not
                          do anything with this attribute. -->
@@ -178,8 +186,13 @@ object.
 				<attribute>
 					<ref>ri:uid</ref>
 					<displayName>Login Name</displayName>
-					<access>create</access>
-					<access>read</access>
+                    <limitations>
+                        <access>
+                            <read>true</read>
+                            <add>true</add>
+                            <modify>false</modify>
+                        </access>
+                    </limitations>
 					<outbound>
 						<!-- It is mapped from (and also to) "name" property of
                              user. It is essentially a login name -->
@@ -202,9 +215,6 @@ object.
 					<ref>ri:cn</ref>
 
 					<displayName>Common Name</displayName>
-					<access>create</access>
-					<access>read</access>
-					<access>update</access>
 
 					<!-- Outbound expression here is using "pure" XPath, without
                          using functions. This is the simplest case, just copying
@@ -237,9 +247,6 @@ object.
 				<attribute>
 					<ref>ri:sn</ref>
 					<displayName>Surname</displayName>
-					<access>create</access>
-					<access>read</access>
-					<access>update</access>
 					<outbound>
 						<source>
 							<path>$user/familyName</path>
@@ -259,9 +266,6 @@ object.
 				<attribute>
 					<ref>ri:givenName</ref>
 					<displayName>Given Name</displayName>
-					<access>create</access>
-					<access>read</access>
-					<access>update</access>
 					<outbound>
 						<source>
 							<path>$user/givenName</path>

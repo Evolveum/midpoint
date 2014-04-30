@@ -272,8 +272,8 @@ follows: uid=flastname,ou=people,dc=example,dc=ck</description>
 				<limitations>
 					<minOccurs>0</minOccurs>
 					<access>
+                        <read>true</read>
 						<add>true</add>
-						<read>true</read>
 						<modify>true</modify>
 					</access>
 				</limitations>
@@ -308,8 +308,8 @@ else {
 				<displayName>Entry UUID</displayName>
 				<limitations>
 					<access>
+                        <read>true</read>
 						<add>false</add>
-						<read>true</read>
 						<modify>false</modify>
 					</access>
 				</limitations>
@@ -321,8 +321,8 @@ else {
 				<limitations>
 					<minOccurs>0</minOccurs>
 					<access>
+                        <read>true</read>
 						<add>true</add>
-						<read>true</read>
 						<modify>true</modify>
 					</access>
 				</limitations>
