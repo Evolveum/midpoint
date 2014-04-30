@@ -130,4 +130,9 @@ public class ROrgClosure implements Serializable {
 
         return true;
     }
+
+    @Override
+    public String toString() {
+        return "ROrgClosure{a='" + ancestorOid + "', d='" + descendantOid + "'}";
+    }
 }

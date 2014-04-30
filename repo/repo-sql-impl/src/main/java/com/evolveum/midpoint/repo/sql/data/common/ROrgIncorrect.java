@@ -81,4 +81,9 @@ public class ROrgIncorrect implements Serializable {
         result = 31 * result + (descendantOid != null ? descendantOid.hashCode() : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "ROrgIncorrect{a='" + ancestorOid + "', d='" + descendantOid + "'}";
+    }
 }

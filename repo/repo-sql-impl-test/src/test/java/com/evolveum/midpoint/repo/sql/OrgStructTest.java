@@ -253,15 +253,15 @@ public class OrgStructTest extends BaseSQLRepoTest {
             for (ROrgClosure c : orgClosure) {
                 LOGGER.info("{}", c.getDescendant());
             }
-            AssertJUnit.assertEquals(4, orgClosure.size());
+            AssertJUnit.assertEquals(5, orgClosure.size());
 
             criteria = session.createCriteria(ROrgClosure.class)
                     .createCriteria("ancestor", "anc")
                     .setFetchMode("ancestor", FetchMode.JOIN)
-                    .add(Restrictions.eq("anc.oid", ORG_F007_OID));
+                    .add(Restrictions.eq("anc.oid", ORG_F009_OID));
 
             orgClosure = criteria.list();
-            AssertJUnit.assertEquals(3, orgClosure.size());
+            AssertJUnit.assertEquals(4, orgClosure.size());
 
             LOGGER.info("==============ORG INCORRECT TABLE==========");
             List<ROrgIncorrect> orgIncorrect = session.createQuery("from ROrgIncorrect").list();
