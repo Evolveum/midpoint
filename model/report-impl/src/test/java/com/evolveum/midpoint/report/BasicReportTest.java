@@ -37,6 +37,7 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 
 import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_2.XmlAsStringType;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -100,8 +101,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrientationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportTemplateStyleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
@@ -400,12 +399,12 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		
 //		ReportTemplateType reportTemplate = new ReportTemplateType();
 //		reportTemplate.setAny(DOMUtil.parseDocument(template).getDocumentElement());
-		reportType.setTemplate(template);
+		reportType.setTemplate(new XmlAsStringType(template));
 
 		String templateStyle = FileUtils.readFileToString(STYLE_TEMPLATE_DEFAULT, "UTF-8"); //readFile(STYLE_TEMPLATE_DEFAULT, StandardCharsets.UTF_8);
 //		ReportTemplateStyleType reportTemplateStyle = new ReportTemplateStyleType();
 //		reportTemplateStyle.setAny(DOMUtil.parseDocument(templateStyle).getDocumentElement());
-		reportType.setTemplateStyle(templateStyle);
+		reportType.setTemplateStyle(new XmlAsStringType(templateStyle));
 /*
 		String config_schema = FileUtils.readFileToString(REPORT_DATASOURCE_TEST, "UTF-8");
 		

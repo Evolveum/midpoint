@@ -15,6 +15,39 @@
  */
 package com.evolveum.midpoint.prism.parser;
 
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.Revivable;
+import com.evolveum.midpoint.prism.parser.util.XNodeProcessorUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.prism.xnode.ListXNode;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.Handler;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.TunnelException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedByteArrayType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedDataType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_2.RawType;
+import com.evolveum.prism.xml.ns._public.types_2.XmlAsStringType;
+import org.apache.commons.lang.StringUtils;
+import org.w3c.dom.Element;
+
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.annotation.XmlType;
+import javax.xml.namespace.QName;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -26,54 +59,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElementDecl;
-import javax.xml.bind.annotation.XmlElementRef;
-import javax.xml.bind.annotation.XmlEnumValue;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
-import org.apache.commons.lang.StringUtils;
-import org.w3c.dom.Element;
-
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.Revivable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.parser.util.XNodeProcessorUtil;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.xjc.AnyArrayList;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.prism.xnode.ListXNode;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.Handler;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.exception.TunnelException;
-import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
-import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
-import com.evolveum.prism.xml.ns._public.types_2.ProtectedByteArrayType;
-import com.evolveum.prism.xml.ns._public.types_2.ProtectedDataType;
-import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
-import com.evolveum.prism.xml.ns._public.types_2.RawType;
 
 public class PrismBeanConverter {
 
@@ -122,6 +110,21 @@ public class PrismBeanConverter {
 		if (prismContext.getSchemaRegistry().determineDefinitionFromClass(beanClass) != null) {
 			return (T) prismContext.getXnodeProcessor().parseObject(xnode).asObjectable();			
 		}
+        if (XmlAsStringType.class.equals(beanClass)) {
+            // reading a string represented a XML-style content
+            // used e.g. when reading report templates (embedded XML)
+            // A necessary condition: there may be only one map entry.
+            if (xnode.size() > 1) {
+                throw new SchemaException("Map with more than one item cannot be parsed as a string: " + xnode);
+            } else if (xnode.isEmpty()) {
+                return (T) new XmlAsStringType();
+            } else {
+                Map.Entry<QName,XNode> entry = xnode.entrySet().iterator().next();
+                DomParser domParser = prismContext.getParserDom();
+                String value = domParser.serializeToString(entry.getValue(), entry.getKey());
+                return (T) new XmlAsStringType(value);
+            }
+        }
 		T bean;
         Set<String> keysToParse;          // only these keys will be parsed (null if all)
 		if (SearchFilterType.class.isAssignableFrom(beanClass)) {
@@ -480,6 +483,9 @@ public class PrismBeanConverter {
 	}
 	
 	private <T> T unmarshallPrimitive(PrimitiveXNode<?> xprim, Class<T> classType) throws SchemaException {
+        if (XmlAsStringType.class.equals(classType)) {
+            return (T) new XmlAsStringType((String) xprim.getParsedValue(DOMUtil.XSD_STRING));
+        }
 		if (XmlTypeConverter.canConvert(classType)) {
 			// Trivial case, direct conversion
 			QName xsdType = XsdTypeMapper.toXsdType(classType);
@@ -589,7 +595,9 @@ public class PrismBeanConverter {
             return marshalSearchFilterType((SearchFilterType) bean);
         } else if (bean instanceof RawType) {
             return marshalRawValue((RawType) bean);
-        } 
+        } else if (bean instanceof XmlAsStringType) {
+            return marshalXmlAsStringType((XmlAsStringType) bean);
+        }
         else if (prismContext != null && prismContext.getSchemaRegistry().determineDefinitionFromClass(bean.getClass()) != null){
         	return prismContext.getXnodeProcessor().serializeObject(((Objectable)bean).asPrismObject()).getSubnode();
         }
@@ -699,8 +707,15 @@ public class PrismBeanConverter {
 		
 		return xmap;
 	}
-	
-	public void revive(Object bean, final PrismContext prismContext) throws SchemaException {
+
+    private XNode marshalXmlAsStringType(XmlAsStringType bean) {
+        PrimitiveXNode xprim = new PrimitiveXNode<>();
+        xprim.setValue(bean.getContentAsString());
+        xprim.setTypeQName(DOMUtil.XSD_STRING);
+        return xprim;
+    }
+
+    public void revive(Object bean, final PrismContext prismContext) throws SchemaException {
 		Handler<Object> visitor = new Handler<Object>() {
 			@Override
 			public boolean handle(Object o) {
