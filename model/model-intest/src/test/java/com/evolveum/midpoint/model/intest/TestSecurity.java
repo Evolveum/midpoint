@@ -48,13 +48,16 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -88,6 +91,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
@@ -210,8 +214,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         display("Role self", roleSelf);
         List<AuthorizationType> authorizations = roleSelf.asObjectable().getAuthorization();
         assertEquals("Wrong number of authorizations", 2, authorizations.size());
-        AuthorizationType authRead = findAutz(authorizations, ModelService.AUTZ_READ_URL);
-        assertEquals("Wrong action in authorization", ModelService.AUTZ_READ_URL, authRead.getAction().get(0));
+        AuthorizationType authRead = findAutz(authorizations, ModelAuthorizationAction.READ.getUrl());
+        assertEquals("Wrong action in authorization", ModelAuthorizationAction.READ.getUrl(), authRead.getAction().get(0));
         List<ObjectSpecificationType> objectSpecs = authRead.getObject();
         assertEquals("Wrong number of object specs in authorization", 1, objectSpecs.size());
         ObjectSpecificationType objectSpec = objectSpecs.get(0);
@@ -682,6 +686,22 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertNoItem(userJack, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
         assertAssignmentsWithTargets(userJack, 1);
         
+        PrismObjectDefinition<UserType> userJackEditSchema = modelInteractionService.getEditSchema(userJack);
+        display("Jack's edit schema", userJackEditSchema);
+        assertItemFlags(userJackEditSchema, UserType.F_NAME, true, false, false);
+        assertItemFlags(userJackEditSchema, UserType.F_FULL_NAME, true, false, true);
+        assertItemFlags(userJackEditSchema, UserType.F_DESCRIPTION, false, false, true);
+        assertItemFlags(userJackEditSchema, UserType.F_GIVEN_NAME, false, false, false);
+        assertItemFlags(userJackEditSchema, UserType.F_FAMILY_NAME, false, false, false);
+        assertItemFlags(userJackEditSchema, UserType.F_ADDITIONAL_NAME, false, false, true);
+        assertItemFlags(userJackEditSchema, UserType.F_METADATA, false, false, false);
+        assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), false, false, false);
+        assertItemFlags(userJackEditSchema, UserType.F_ASSIGNMENT, true, false, false);
+        assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA), true, false, false);
+        assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ASSIGNMENT, UserType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), true, false, false);
+        assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), true, false, false);
+        assertItemFlags(userJackEditSchema, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS), false, false, false);
+        
         PrismObject<UserType> userGuybrush = findUserByUsername(USER_GUYBRUSH_USERNAME);
         display("Guybrush", userGuybrush);
         PrismAsserts.assertPropertyValue(userGuybrush, UserType.F_NAME, PrismTestUtil.createPolyString(USER_GUYBRUSH_USERNAME));
@@ -711,6 +731,17 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	}
 
 	
+	private void assertItemFlags(PrismObjectDefinition<UserType> editSchema, QName itemName, boolean expectedRead, boolean expectedAdd, boolean expectedModify) {
+		assertItemFlags(editSchema, new ItemPath(itemName), expectedRead, expectedAdd, expectedModify);
+	}
+	
+	private void assertItemFlags(PrismObjectDefinition<UserType> editSchema, ItemPath itemPath, boolean expectedRead, boolean expectedAdd, boolean expectedModify) {
+		ItemDefinition itemDefinition = editSchema.findItemDefinition(itemPath);
+		assertEquals("Wrong readability flag for "+itemPath, expectedRead, itemDefinition.canRead());
+		assertEquals("Wrong addition flag for "+itemPath, expectedAdd, itemDefinition.canCreate());
+		assertEquals("Wrong modification flag for "+itemPath, expectedModify, itemDefinition.canUpdate());
+	}
+
 	private void assertAssignmentsWithTargets(PrismObject<UserType> user, int expectedNumber) {
 		PrismContainer<AssignmentType> assignmentContainer = user.findContainer(UserType.F_ASSIGNMENT);
         assertEquals("Unexpected number of assignments in "+user, expectedNumber, assignmentContainer.size());

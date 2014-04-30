@@ -63,7 +63,7 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 			PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, 
 			OperationResult result) throws SecurityViolationException, SchemaException;	
 	
-	<O extends ObjectType> ObjectSecurityConstraints compileSecurityContraints(PrismObject<O> object, OwnerResolver ownerResolver) throws SchemaException;
+	<O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, OwnerResolver ownerResolver) throws SchemaException;
 	
 	/**
 	 * TODO

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,9 @@ public abstract class ItemDefinition extends Definition implements Serializable 
     private int maxOccurs = 1;
     private boolean operational = false;
     private boolean dynamic;
+    private boolean create = true;
+    private boolean read = true;
+    private boolean update = true;
 
 	// TODO: annotations
 
@@ -191,6 +194,49 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		this.dynamic = dynamic;
 	}
 	
+    /**
+     * TODO:
+     *
+     * @return
+     */
+    public boolean canRead() {
+        return read;
+    }
+
+    /**
+     * TODO:
+     *
+     * @return
+     */
+    public boolean canUpdate() {
+        return update;
+    }
+
+    /**
+     *
+     */
+    public void setReadOnly() {
+        create = false;
+        read = true;
+        update = false;
+    }
+
+	public void setRead(boolean read) {
+        this.read = read;
+    }
+
+    public void setUpdate(boolean update) {
+        this.update = update;
+    }
+
+    public void setCreate(boolean create) {
+        this.create = create;
+    }
+
+    public boolean canCreate() {
+        return create;
+    }
+	
 	public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz) {
 		if (!clazz.isAssignableFrom(this.getClass())) {
     		return false;
@@ -246,6 +292,9 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		clone.minOccurs = this.minOccurs;
 		clone.maxOccurs = this.maxOccurs;
 		clone.dynamic = this.dynamic;
+		clone.create = this.create;
+		clone.read = this.read;
+		clone.update = this.update;
 	}
 
 	@Override
@@ -263,6 +312,9 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
         result = prime * result + maxOccurs;
         result = prime * result + minOccurs;
+        result = prime * result + (create ? 1231 : 1237);
+        result = prime * result + (read ? 1231 : 1237);
+        result = prime * result + (update ? 1231 : 1237);
 		return result;
 	}
 
@@ -283,6 +335,12 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		if (maxOccurs != other.maxOccurs)
             return false;
         if (minOccurs != other.minOccurs)
+            return false;
+        if (create != other.create)
+            return false;
+        if (read != other.read)
+            return false;
+        if (update != other.update)
             return false;
 		return true;
 	}
@@ -343,7 +401,23 @@ public abstract class ItemDefinition extends Definition implements Serializable 
     }
 	
 	protected void extendToString(StringBuilder sb) {
-		// Nothing to do here
+		sb.append(",");
+		if (canRead()) {
+			sb.append("R");
+		} else {
+			sb.append("-");
+		}
+		if (canCreate()) {
+			sb.append("C");
+		} else {
+			sb.append("-");
+		}
+		if (canUpdate()) {
+			sb.append("U");
+		} else {
+			sb.append("-");
+		}
+
 	}
 	
 }

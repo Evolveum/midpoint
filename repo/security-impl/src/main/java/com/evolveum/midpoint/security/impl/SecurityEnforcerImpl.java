@@ -611,7 +611,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	}
 	
 	@Override
-	public <O extends ObjectType> ObjectSecurityConstraints compileSecurityContraints(PrismObject<O> object, OwnerResolver ownerResolver) throws SchemaException {
+	public <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, OwnerResolver ownerResolver) throws SchemaException {
 		MidPointPrincipal principal = getMidPointPrincipal();
 		if (object == null) {
 			throw new IllegalArgumentException("Cannot compile security constraints of null object");
