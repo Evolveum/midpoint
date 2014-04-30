@@ -109,7 +109,8 @@ public class SchemaProcessor implements Processor {
     private static final String METHOD_PRISM_UTIL_SET_REFERENCE_FILTER_CLAUSE_XNODE = "setReferenceFilterClauseXNode";
     private static final String METHOD_PRISM_UTIL_OBJECTABLE_AS_REFERENCE_VALUE = "objectableAsReferenceValue";
 	private static final String METHOD_PRISM_UTIL_SETUP_CONTAINER_VALUE = "setupContainerValue";
-    
+    private static final String METHOD_PRISM_UTIL_CREATE_TARGET_INSTANCE = "createTargetInstance";
+
     // ???
     private static final String METHOD_PRISM_GET_ANY = "getAny";
     
@@ -1083,10 +1084,24 @@ public class SchemaProcessor implements Processor {
         JClass type = ((JClass) field.type()).getTypeParameters().get(0);
 
         JBlock body = method.body();
-        JVar decl = body.decl(type, field.name(), JExpr._new(type));
+        JExpression initExpr;
+        initExpr = constructorExpression(method, type);
+        JVar decl = body.decl(type, field.name(), initExpr);
         JInvocation invocation = body.invoke(decl, METHOD_SETUP_REFERENCE_VALUE);
         invocation.arg(method.listParams()[0]);
         body._return(decl);
+    }
+
+    private JExpression constructorExpression(JMethod method, JClass type) {
+        JExpression initExpr;
+        if (type.isAbstract()) {
+            JInvocation invocation = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_CREATE_TARGET_INSTANCE);
+            invocation.arg(method.listParams()[0]);
+            initExpr = invocation;
+        } else {
+            initExpr = JExpr._new(type);
+        }
+        return initExpr;
     }
 
     private void createFieldReferenceGetValueFrom(JFieldVar field, JMethod method) {
@@ -1183,7 +1198,9 @@ public class SchemaProcessor implements Processor {
         JClass type = ((JClass) field.type()).getTypeParameters().get(0);
 
         JBlock body = method.body();
-        JVar decl = body.decl(type, field.name(), JExpr._new(type));
+        JExpression initExpr;
+        initExpr = constructorExpression(method, type);
+        JVar decl = body.decl(type, field.name(), initExpr);
         JInvocation invocation = body.invoke(decl, METHOD_SETUP_CONTAINER);
         invocation.arg(JExpr.invoke(method.listParams()[0], "getObject"));
         body._return(decl);
@@ -1417,7 +1434,7 @@ public class SchemaProcessor implements Processor {
         JClass listType = list.getTypeParameters().get(0);
 
         JBlock body = method.body();
-        JVar decl = body.decl(listType, field.name(), JExpr._new(listType));
+        JVar decl = body.decl(listType, field.name(), constructorExpression(method, listType));
         JInvocation invocation = body.invoke(decl, METHOD_SETUP_CONTAINER_VALUE);
         invocation.arg(method.listParams()[0]);
         body._return(decl);
