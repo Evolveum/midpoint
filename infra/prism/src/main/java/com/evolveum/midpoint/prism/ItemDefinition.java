@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,9 @@ public abstract class ItemDefinition extends Definition implements Serializable 
     private int maxOccurs = 1;
     private boolean operational = false;
     private boolean dynamic;
+    private boolean canAdd = true;
+    private boolean canRead = true;
+    private boolean canModify = true;
 
 	// TODO: annotations
 
@@ -191,6 +194,51 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		this.dynamic = dynamic;
 	}
 	
+    /**
+     * Returns true if the property can be read. I.e. if it is returned in objects
+     * retrieved from "get", "search" and similar operations.
+     */
+    public boolean canRead() {
+        return canRead;
+    }
+
+    /**
+     * Returns true if the item can be modified. I.e. if it can be changed
+     * during a modification of existing object.
+     */
+    public boolean canModify() {
+        return canModify;
+    }
+
+    /**
+     *
+     */
+    public void setReadOnly() {
+        canAdd = false;
+        canRead = true;
+        canModify = false;
+    }
+
+	public void setCanRead(boolean read) {
+        this.canRead = read;
+    }
+
+    public void setCanModify(boolean modify) {
+        this.canModify = modify;
+    }
+
+    public void setCanAdd(boolean add) {
+        this.canAdd = add;
+    }
+
+    /**
+     * Returns true if the item can be added. I.e. if it can be present
+     * in the object when a new object is created.
+     */
+    public boolean canAdd() {
+        return canAdd;
+    }
+	
 	public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz) {
 		if (!clazz.isAssignableFrom(this.getClass())) {
     		return false;
@@ -246,6 +294,9 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		clone.minOccurs = this.minOccurs;
 		clone.maxOccurs = this.maxOccurs;
 		clone.dynamic = this.dynamic;
+		clone.canAdd = this.canAdd;
+		clone.canRead = this.canRead;
+		clone.canModify = this.canModify;
 	}
 
 	@Override
@@ -263,6 +314,9 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
         result = prime * result + maxOccurs;
         result = prime * result + minOccurs;
+        result = prime * result + (canAdd ? 1231 : 1237);
+        result = prime * result + (canRead ? 1231 : 1237);
+        result = prime * result + (canModify ? 1231 : 1237);
 		return result;
 	}
 
@@ -283,6 +337,12 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		if (maxOccurs != other.maxOccurs)
             return false;
         if (minOccurs != other.minOccurs)
+            return false;
+        if (canAdd != other.canAdd)
+            return false;
+        if (canRead != other.canRead)
+            return false;
+        if (canModify != other.canModify)
             return false;
 		return true;
 	}
@@ -343,7 +403,23 @@ public abstract class ItemDefinition extends Definition implements Serializable 
     }
 	
 	protected void extendToString(StringBuilder sb) {
-		// Nothing to do here
+		sb.append(",");
+		if (canRead()) {
+			sb.append("R");
+		} else {
+			sb.append("-");
+		}
+		if (canAdd()) {
+			sb.append("A");
+		} else {
+			sb.append("-");
+		}
+		if (canModify()) {
+			sb.append("M");
+		} else {
+			sb.append("-");
+		}
+
 	}
 	
 }

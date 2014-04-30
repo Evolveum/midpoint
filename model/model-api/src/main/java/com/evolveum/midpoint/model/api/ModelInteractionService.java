@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,12 @@ package com.evolveum.midpoint.model.api;
 import java.util.Collection;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -62,10 +65,46 @@ public interface ModelInteractionService {
 	 * by the resource are not taken into account while recomputing the values. This may also cause errors if some expressions depend
 	 * on the generated values. 
 	 */
-	public <F extends ObjectType> ModelContext<F> previewChanges(
+	<F extends ObjectType> ModelContext<F> previewChanges(
 			Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result) 
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
 
-    public <F extends ObjectType> ModelContext<F> unwrapModelContext(LensContextType wrappedContext, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException;
+    <F extends ObjectType> ModelContext<F> unwrapModelContext(LensContextType wrappedContext, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException;
 
+    /**
+     * <p>
+     * Returns a schema that reflects editability of the object in terms of midPoint schema limitations and security. This method
+     * merges together all the applicable limitations that midPoint knows of (schema, security, other constratints). It may be required
+     * to pre-populate new object before calling this method, e.g. to put the object in a correct org in case that delegated administration
+     * is used.
+     * </p>
+     * <p>
+     * If null is returned then the access to the entire object is denied. It cannot be created or edited at all.
+     * </p>
+     * <p>
+     * This is <b>not</b> security-sensitive function. It provides data about security constraints but it does <b>not</b> enforce it and
+     * it does not modify anything or reveal any data. The purpose of this method is to enable convenient display of GUI form fields,
+     * e.g. to hide non-accessible fields from the form. The actual enforcement of the security is executed regardless of this
+     * method.
+     * </p>
+     * 
+     * @param object object to edit
+     * @return schema with correctly set constraint parts or null
+     * @throws SchemaException 
+     */
+    <O extends ObjectType> PrismObjectDefinition<O> getEditSchema(PrismObject<O> object) throws SchemaException;
+    
+    /**
+     * <p>
+     * Returns a collection of all authorization actions known to the system. The format of returned data is designed for displaying
+     * purposes.
+     * </p>
+     * <p>
+     * Note: this method returns only the list of authorization actions that are known to the IDM Model component and the components
+     * below. It does <b>not</b> return a GUI-specific authorization actions.
+     * </p>
+     * 
+     * @return
+     */
+    Collection<? extends DisplayableValue<String>> getActionUrls();
 }

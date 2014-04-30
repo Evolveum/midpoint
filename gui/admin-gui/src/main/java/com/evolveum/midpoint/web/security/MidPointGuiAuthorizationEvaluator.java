@@ -142,9 +142,9 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
     }
 
     @Override
-	public <O extends ObjectType> ObjectSecurityConstraints compileSecurityContraints(PrismObject<O> object, OwnerResolver ownerResolver)
+	public <O extends ObjectType> ObjectSecurityConstraints compileSecurityConstraints(PrismObject<O> object, OwnerResolver ownerResolver)
 			throws SchemaException {
-		return securityEnforcer.compileSecurityContraints(object, ownerResolver);
+		return securityEnforcer.compileSecurityConstraints(object, ownerResolver);
 	}
 
     @Override

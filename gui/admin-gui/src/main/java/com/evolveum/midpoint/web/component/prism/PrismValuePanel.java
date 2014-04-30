@@ -140,12 +140,12 @@ public class PrismValuePanel extends Panel {
     private boolean isAccessible(PrismPropertyDefinition def, ContainerStatus status) {
         switch (status) {
             case ADDING:
-                if (!def.canCreate()) {
+                if (!def.canAdd()) {
                     return false;
                 }
                 break;
             case MODIFYING:
-                if (!def.canUpdate()) {
+                if (!def.canModify()) {
                     return false;
                 }
                 break;

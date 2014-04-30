@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.controller;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -53,6 +54,7 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.ModelObjectResolver;
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -66,8 +68,11 @@ import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.ContextFactory;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.projector.Projector;
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -108,6 +113,7 @@ import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -395,12 +401,12 @@ public class ModelController implements ModelService, ModelInteractionService, T
 						if (ModelExecuteOptions.isOverwrite(options)) {
 							repoOptions.setOverwrite(true);
 						}
-						securityEnforcer.authorize(AUTZ_ADD_URL, null, delta.getObjectToAdd(), null, null, null, result);
+						securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(), null, delta.getObjectToAdd(), null, null, null, result);
 						String oid = cacheRepositoryService.addObject(delta.getObjectToAdd(), repoOptions, result);
 						delta.setOid(oid);
 					} else if (delta.isDelete()) {
 						PrismObject<? extends ObjectType> existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result);
-						securityEnforcer.authorize(AUTZ_DELETE_URL, null, existingObject, null, null, null, result);
+						securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), null, existingObject, null, null, null, result);
 						if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
                             Utils.clearRequestee(task);
 							provisioning.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
@@ -411,7 +417,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 						}
 					} else if (delta.isModify()) {
 						PrismObject existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result);
-						securityEnforcer.authorize(AUTZ_MODIFY_URL, null, existingObject, delta, null, null, result);
+						securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, existingObject, delta, null, null, result);
 						cacheRepositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(), 
 								delta.getModifications(), result);
 					} else {
@@ -666,8 +672,81 @@ public class ModelController implements ModelService, ModelInteractionService, T
 
 		return context;
 	}
+	
+	@Override
+	public <O extends ObjectType> PrismObjectDefinition<O> getEditSchema(PrismObject<O> object) throws SchemaException {
+		PrismObjectDefinition<O> origDefinition = object.getDefinition();
+		// TODO: maybe we need to expose owner resolver in the interface?
+		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, null);
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Security constrains for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
+		}
+		if (securityConstraints == null) {
+			return null;
+		}
+		PrismObjectDefinition<O> finalDefinition = applySecurityContraints(origDefinition, new ItemPath(), securityConstraints,
+				securityConstraints.getActionDecistion(ModelAuthorizationAction.READ.getUrl(), null),
+				securityConstraints.getActionDecistion(ModelAuthorizationAction.ADD.getUrl(), null),
+				securityConstraints.getActionDecistion(ModelAuthorizationAction.MODIFY.getUrl(), null));
+		return finalDefinition;
+	}
+	
+	private <D extends ItemDefinition> D applySecurityContraints(D origItemDefinition, ItemPath itemPath, ObjectSecurityConstraints securityConstraints,
+			AuthorizationDecisionType defaultReadDecition, AuthorizationDecisionType defaultAddDecition, AuthorizationDecisionType defaultModifyDecition) {
+		D itemDefinition = (D) origItemDefinition.clone();
+		// We need to make a super-deep clone here. Even make sure that the complex types inside are cloned.
+		// Otherwise permissions from one part of the definition tree may be incorrectly propagated to another part
+		if (itemDefinition instanceof PrismContainerDefinition<?>) {
+			PrismContainerDefinition<?> containerDefinition = (PrismContainerDefinition<?>)itemDefinition;
+			ComplexTypeDefinition origCtd = containerDefinition.getComplexTypeDefinition();
+			containerDefinition.setComplexTypeDefinition(origCtd.clone());
+		}
+		AuthorizationDecisionType readDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.READ.getUrl(), defaultReadDecition);
+		AuthorizationDecisionType addDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.ADD.getUrl(), defaultAddDecition);
+		AuthorizationDecisionType modifyDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.MODIFY.getUrl(), defaultModifyDecition);
+//		LOGGER.trace("Decision for {}: {}", itemPath, readDecision);
+		if (readDecision != AuthorizationDecisionType.ALLOW) {
+			itemDefinition.setCanRead(false);
+		}
+		if (addDecision != AuthorizationDecisionType.ALLOW) {
+			itemDefinition.setCanAdd(false);
+		}
+		if (modifyDecision != AuthorizationDecisionType.ALLOW) {
+			itemDefinition.setCanModify(false);
+		}
+		
+		if (itemDefinition instanceof PrismContainerDefinition<?>) {
+			PrismContainerDefinition<?> containerDefinition = (PrismContainerDefinition<?>)itemDefinition;
+			// The items are still shallow-clonned, we need to deep-clone them
+			List<? extends ItemDefinition> origSubDefinitions = ((PrismContainerDefinition<?>)origItemDefinition).getDefinitions();
+			containerDefinition.getDefinitions().clear();
+			for (ItemDefinition subDef: origSubDefinitions) {
+				ItemDefinition newDef = applySecurityContraints(subDef, new ItemPath(itemPath, subDef.getName()), securityConstraints, 
+						readDecision, addDecision, modifyDecision);
+				containerDefinition.getComplexTypeDefinition().add(newDef);
+			}
+		}
+		return itemDefinition;
+	}
+		
+    private AuthorizationDecisionType computeItemDecision(ObjectSecurityConstraints securityConstraints, ItemPath itemPath, String actionUrl,
+			AuthorizationDecisionType defaultDecision) {
+    	AuthorizationDecisionType explicitDecision = securityConstraints.findItemDecision(itemPath, actionUrl, null);
+//    	LOGGER.trace("Explicit decision for {}: {}", itemPath, explicitDecision);
+    	if (explicitDecision != null) {
+    		return explicitDecision;
+    	} else {
+    		return defaultDecision;
+    	}
+	}
+    
+    @Override
+	public Collection<? extends DisplayableValue<String>> getActionUrls() {
+		return Arrays.asList(ModelAuthorizationAction.values());
+	}
 
-    private PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) throws ObjectNotFoundException, SchemaException {
+
+	private PrismObject<SystemConfigurationType> getSystemConfiguration(OperationResult result) throws ObjectNotFoundException, SchemaException {
         PrismObject<SystemConfigurationType> config = cacheRepositoryService.getObject(SystemConfigurationType.class,
                 SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
 
@@ -1274,14 +1353,14 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	private <T extends ObjectType> void postProcessObject(PrismObject<T> object, GetOperationOptions options, OperationResult result) throws SecurityViolationException, SchemaException {
 		validateObject(object, options, result);
 		try {
-			ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityContraints(object, null);
+			ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, null);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Security constrains for {}:\n{}", object, securityConstraints==null?"null":securityConstraints.debugDump());
 			}
 			if (securityConstraints == null) {
 				throw new SecurityViolationException("Access denied");
 			}
-			AuthorizationDecisionType globalDecision = securityConstraints.getActionDecistion(ModelService.AUTZ_READ_URL, null);
+			AuthorizationDecisionType globalDecision = securityConstraints.getActionDecistion(ModelAuthorizationAction.READ.getUrl(), null);
 			if (globalDecision == AuthorizationDecisionType.DENY) {
 				// shortcut
 				throw new SecurityViolationException("Access denied");
@@ -1307,7 +1386,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		while (iterator.hasNext()) {
 			Item<? extends PrismValue> item = iterator.next();
 			ItemPath itemPath = item.getPath();
-			AuthorizationDecisionType itemDecision = securityContraints.findItemDecision(itemPath, ModelService.AUTZ_READ_URL, null);
+			AuthorizationDecisionType itemDecision = securityContraints.findItemDecision(itemPath, ModelAuthorizationAction.READ.getUrl(), null);
 			if (item instanceof PrismContainer<?>) {
 				if (itemDecision == AuthorizationDecisionType.DENY) {
 					// Explicitly denied access to the entire container
@@ -1434,7 +1513,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
     	if (origQuery != null) {
     		origFilter = origQuery.getFilter();
     	}
-		ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(ModelService.AUTZ_READ_URL, null, objectType, origFilter);
+		ObjectFilter secFilter = securityEnforcer.preProcessObjectFilter(ModelAuthorizationAction.READ.getUrl(), null, objectType, origFilter);
 		if (origQuery != null) {
 			origQuery.setFilter(secFilter);
 			return origQuery;

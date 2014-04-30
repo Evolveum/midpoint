@@ -77,7 +77,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
 	}
 	
 	@Override
-    public boolean canCreate() {
+    public boolean canAdd() {
 		return canCreate(DEFAULT_LAYER);
     }
 	
@@ -95,7 +95,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     }
 
     @Override
-    public boolean canUpdate() {
+    public boolean canModify() {
     	return canUpdate(DEFAULT_LAYER);
     }
     
@@ -124,17 +124,17 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     }
 
     @Override
-    public void setRead(boolean read) {
+    public void setCanRead(boolean read) {
         throw new UnsupportedOperationException("Parts of refined attribute are immutable");
     }
 
     @Override
-    public void setUpdate(boolean update) {
+    public void setCanModify(boolean update) {
         throw new UnsupportedOperationException("Parts of refined attribute are immutable");
     }
 
     @Override
-    public void setCreate(boolean create) {
+    public void setCanAdd(boolean create) {
         throw new UnsupportedOperationException("Parts of refined attribute are immutable");
     }
 
@@ -325,8 +325,8 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
         schemaLimitations.setMinOccurs(schemaAttrDef.getMinOccurs());
         schemaLimitations.setMaxOccurs(schemaAttrDef.getMaxOccurs());
         schemaLimitations.setIgnore(schemaAttrDef.isIgnored());
-        schemaLimitations.getAccess().setCreate(schemaAttrDef.canCreate());
-        schemaLimitations.getAccess().setUpdate(schemaAttrDef.canUpdate());
+        schemaLimitations.getAccess().setCreate(schemaAttrDef.canAdd());
+        schemaLimitations.getAccess().setUpdate(schemaAttrDef.canModify());
         schemaLimitations.getAccess().setRead(schemaAttrDef.canRead());
         
         Integer deprecatedMinOccurs = null;

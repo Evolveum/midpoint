@@ -799,23 +799,23 @@ class DomToSchemaProcessor {
 		List<Element> accessElements = SchemaProcessorUtil.getAnnotationElements(annotation, A_ACCESS);
 		if (accessElements == null || accessElements.isEmpty()) {
 			// Default access is read-write-create
-			propDef.setCreate(true);
-			propDef.setUpdate(true);
-			propDef.setRead(true);
+			propDef.setCanAdd(true);
+			propDef.setCanModify(true);
+			propDef.setCanRead(true);
 		} else {
-			propDef.setCreate(false);
-			propDef.setUpdate(false);
-			propDef.setRead(false);
+			propDef.setCanAdd(false);
+			propDef.setCanModify(false);
+			propDef.setCanRead(false);
 			for (Element e : accessElements) {
 				String access = e.getTextContent();
 				if (access.equals(A_ACCESS_CREATE)) {
-					propDef.setCreate(true);
+					propDef.setCanAdd(true);
 				}
 				if (access.equals(A_ACCESS_UPDATE)) {
-					propDef.setUpdate(true);
+					propDef.setCanModify(true);
 				}
 				if (access.equals(A_ACCESS_READ)) {
-					propDef.setRead(true);
+					propDef.setCanRead(true);
 				}
 			}
 		}
