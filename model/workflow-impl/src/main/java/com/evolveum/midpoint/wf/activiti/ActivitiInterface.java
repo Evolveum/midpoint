@@ -47,6 +47,7 @@ import org.activiti.engine.history.HistoricDetailQuery;
 import org.activiti.engine.history.HistoricFormProperty;
 import org.activiti.engine.history.HistoricVariableUpdate;
 import org.activiti.engine.runtime.ProcessInstance;
+import org.activiti.engine.task.IdentityLink;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -272,6 +273,15 @@ public class ActivitiInterface {
         taskEvent.setCreateTime(delegateTask.getCreateTime());
         taskEvent.setExecutionId(delegateTask.getExecutionId());
         taskEvent.setOwner(delegateTask.getOwner());
+        for (IdentityLink identityLink : delegateTask.getCandidates()) {
+            if (identityLink.getUserId() != null) {
+                taskEvent.getCandidateUsers().add(identityLink.getUserId());
+            } else if (identityLink.getGroupId() != null) {
+                taskEvent.getCandidateGroups().add(identityLink.getGroupId());
+            } else {
+                throw new IllegalStateException("Neither candidate user nor group id is provided in delegateTask: " + delegateTask);
+            }
+        }
 
         try {
             jobController.processWorkflowMessage(taskEvent, null, true, result);

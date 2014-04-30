@@ -227,6 +227,8 @@ public class WorkItemProvider {
         private String owner;
         private String executionId;
         private Map<String,Object> variables;
+        private List<String> candidateUsers;
+        private List<String> candidateGroups;
 
         TaskExtract(Task task) {
             id = task.getId();
@@ -243,18 +245,32 @@ public class WorkItemProvider {
             if (task.getTaskLocalVariables() != null) {
                 variables.putAll(task.getTaskLocalVariables());
             }
+            candidateUsers = new ArrayList<>();
+            candidateGroups = new ArrayList<>();
+            TaskService taskService = activitiEngine.getTaskService();
+            for (IdentityLink link : taskService.getIdentityLinksForTask(task.getId())) {
+                if (IdentityLinkType.CANDIDATE.equals(link.getType())) {
+                    if (link.getUserId() != null) {
+                        candidateUsers.add(link.getUserId());
+                    } else if (link.getGroupId() != null) {
+                        candidateGroups.add(link.getGroupId());
+                    } else {
+                        throw new IllegalStateException("A link is defined to neither a user nor a group for task " + task.getId());
+                    }
+                }
+            }
         }
 
-        TaskExtract(DelegateTask task) {
-            id = task.getId();
-            assignee = task.getAssignee();
-            name = task.getName();
-            processInstanceId = task.getProcessInstanceId();
-            createTime = task.getCreateTime();
-            owner = task.getOwner();
-            executionId = task.getExecutionId();
-            variables = task.getVariables();
-        }
+//        TaskExtract(DelegateTask task) {
+//            id = task.getId();
+//            assignee = task.getAssignee();
+//            name = task.getName();
+//            processInstanceId = task.getProcessInstanceId();
+//            createTime = task.getCreateTime();
+//            owner = task.getOwner();
+//            executionId = task.getExecutionId();
+//            variables = task.getVariables();
+//        }
 
         TaskExtract(TaskEvent task) {
             id = task.getTaskId();
@@ -265,6 +281,8 @@ public class WorkItemProvider {
             owner = task.getOwner();
             executionId = task.getExecutionId();
             variables = task.getVariables();
+            candidateUsers = task.getCandidateUsers();
+            candidateGroups = task.getCandidateGroups();
         }
 
         String getId() {
@@ -297,6 +315,14 @@ public class WorkItemProvider {
 
         Map<String,Object> getVariables() {
             return variables;
+        }
+
+        public List<String> getCandidateUsers() {
+            return candidateUsers;
+        }
+
+        public List<String> getCandidateGroups() {
+            return candidateGroups;
         }
 
         @Override
@@ -365,17 +391,11 @@ public class WorkItemProvider {
             if (task.getAssignee() != null) {
                 wi.setAssigneeRef(MiscSchemaUtil.createObjectReference(task.getAssignee(), SchemaConstants.C_USER_TYPE));
             }
-            TaskService taskService = activitiEngine.getTaskService();
-            for (IdentityLink link : taskService.getIdentityLinksForTask(task.getId())) {
-                if (IdentityLinkType.CANDIDATE.equals(link.getType())) {
-                    if (link.getUserId() != null) {
-                        wi.getCandidateUsersRef().add(MiscSchemaUtil.createObjectReference(link.getUserId(), SchemaConstants.C_USER_TYPE));
-                    } else if (link.getGroupId() != null) {
-                        wi.getCandidateRolesRef().add(miscDataUtil.groupIdToObjectReference(link.getGroupId()));
-                    } else {
-                        throw new IllegalStateException("A link is defined to neither a user nor a group for task " + task.getId());
-                    }
-                }
+            for (String candidateUser : task.getCandidateUsers()) {
+                wi.getCandidateUsersRef().add(MiscSchemaUtil.createObjectReference(candidateUser, SchemaConstants.C_USER_TYPE));
+            }
+            for (String candidateGroup : task.getCandidateGroups()) {
+                wi.getCandidateRolesRef().add(miscDataUtil.groupIdToObjectReference(candidateGroup));
             }
             wi.setName(new PolyStringType(task.getName()));
             wi.setProcessInstanceId(task.getProcessInstanceId());
@@ -443,7 +463,7 @@ public class WorkItemProvider {
         form.setProcessInstanceId(task.getProcessInstanceId());
         form.setTaskAssignee(task.getAssignee());
         form.setTaskOwner(task.getOwner());
-        form.setTaskCandidates(getCandidatesAsString(task));
+        //form.setTaskCandidates(getCandidatesAsString(task));
         form.setExecutionId(task.getExecutionId());
         form.setProcessDefinitionId(processInstance.getProcessDefinitionId());
         form.setShadowTaskOid((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID));
@@ -454,41 +474,40 @@ public class WorkItemProvider {
         return formPrism;
     }
 
-    private List<String> getCandidates(TaskExtract task) {
-
-        List<String> retval = new ArrayList<String>();
-
-        TaskService taskService = activitiEngine.getTaskService();
-
-        List<IdentityLink> ils = taskService.getIdentityLinksForTask(task.getId());
-        for (IdentityLink il : ils) {
-            if ("candidate".equals(il.getType())) {
-                if (il.getGroupId() != null) {
-                    retval.add("G:" + il.getGroupId());
-                }
-                if (il.getUserId() != null) {
-                    retval.add("U:" + il.getUserId());
-                }
-            }
-        }
-
-        return retval;
-    }
-
-    private String getCandidatesAsString(TaskExtract task) {
-
-        StringBuilder retval = new StringBuilder();
-        boolean first = true;
-        for (String c : getCandidates(task)) {
-            if (first) {
-                first = false;
-            } else {
-                retval.append(", ");
-            }
-            retval.append(c);
-        }
-        return retval.toString();
-    }
-
+//    private List<String> getCandidates(TaskExtract task) {
+//
+//        List<String> retval = new ArrayList<String>();
+//
+//        TaskService taskService = activitiEngine.getTaskService();
+//
+//        List<IdentityLink> ils = taskService.getIdentityLinksForTask(task.getId());     // dangerous (activiti bug)
+//        for (IdentityLink il : ils) {
+//            if ("candidate".equals(il.getType())) {
+//                if (il.getGroupId() != null) {
+//                    retval.add("G:" + il.getGroupId());
+//                }
+//                if (il.getUserId() != null) {
+//                    retval.add("U:" + il.getUserId());
+//                }
+//            }
+//        }
+//
+//        return retval;
+//    }
+//
+//    private String getCandidatesAsString(TaskExtract task) {
+//
+//        StringBuilder retval = new StringBuilder();
+//        boolean first = true;
+//        for (String c : getCandidates(task)) {
+//            if (first) {
+//                first = false;
+//            } else {
+//                retval.append(", ");
+//            }
+//            retval.append(c);
+//        }
+//        return retval.toString();
+//    }
 
 }
