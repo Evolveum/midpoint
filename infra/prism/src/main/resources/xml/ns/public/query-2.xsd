@@ -215,7 +215,7 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="value" type="t:RawType"/>
+    <xsd:element name="value" type="xsd:anyType"/>      <!-- parsed as RawType; anyType is here for schema compliance when using xsi:type attribute -->
 
     <xsd:complexType name="PropertyComplexValueFilterClauseType">
         <xsd:complexContent>
