@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.api;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -33,6 +34,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 
 /**
@@ -82,6 +85,10 @@ public interface ModelInteractionService {
      * If null is returned then the access to the entire object is denied. It cannot be created or edited at all.
      * </p>
      * <p>
+     * The returned definition contains all parts of static schema and run-time extensions. It does not contain parts of resource
+     * "refined" schemas. Therefore for shadows it is only applicable to static parts of the shadow (not attributes).
+     * </p>
+     * <p>
      * This is <b>not</b> security-sensitive function. It provides data about security constraints but it does <b>not</b> enforce it and
      * it does not modify anything or reveal any data. The purpose of this method is to enable convenient display of GUI form fields,
      * e.g. to hide non-accessible fields from the form. The actual enforcement of the security is executed regardless of this
@@ -92,8 +99,10 @@ public interface ModelInteractionService {
      * @return schema with correctly set constraint parts or null
      * @throws SchemaException 
      */
-    <O extends ObjectType> PrismObjectDefinition<O> getEditSchema(PrismObject<O> object) throws SchemaException;
-    
+    <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object) throws SchemaException;
+
+    RefinedObjectClassDefinition getEditObjectClassDefinition(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource) throws SchemaException;
+
     /**
      * <p>
      * Returns a collection of all authorization actions known to the system. The format of returned data is designed for displaying

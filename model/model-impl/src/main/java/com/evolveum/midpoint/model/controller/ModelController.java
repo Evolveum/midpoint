@@ -53,6 +53,10 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
+import com.evolveum.midpoint.common.refinery.LayerRefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.LayerRefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.ModelObjectResolver;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -104,6 +108,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultRunner;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
@@ -131,6 +136,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisi
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -138,6 +144,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStat
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
@@ -674,7 +681,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
 	
 	@Override
-	public <O extends ObjectType> PrismObjectDefinition<O> getEditSchema(PrismObject<O> object) throws SchemaException {
+	public <O extends ObjectType> PrismObjectDefinition<O> getEditObjectDefinition(PrismObject<O> object) throws SchemaException {
 		PrismObjectDefinition<O> origDefinition = object.getDefinition();
 		// TODO: maybe we need to expose owner resolver in the interface?
 		ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, null);
@@ -741,6 +748,39 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
     
     @Override
+	public RefinedObjectClassDefinition getEditObjectClassDefinition(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource)
+			throws SchemaException {
+//    	if (resource == null) {
+//			String resourceOid = ShadowUtil.getResourceOid(shadow);
+//			if (resourceOid == null) {
+//				throw new IllegalArgumentException("No resource OID in the shadow");
+//			}
+//			getObject(ResourceType.class, resourceOid, null, task, parentResult)
+    	
+    	RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+    	LayerRefinedResourceSchema layerRefinedSchema = refinedSchema.forLayer(LayerType.PRESENTATION);
+    	ShadowType shadowType = shadow.asObjectable();
+    	ShadowKindType kind = shadowType.getKind();
+    	String intent = shadowType.getIntent();
+    	LayerRefinedObjectClassDefinition rOCDef;
+    	if (kind != null) {
+    		rOCDef = layerRefinedSchema.getRefinedDefinition(kind, intent);
+    	} else {
+    		QName objectClassName = shadowType.getObjectClass();
+    		if (objectClassName == null) {
+    			// No data. Fall back to the default
+    			rOCDef = layerRefinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String)null);
+    		} else {
+    			rOCDef = layerRefinedSchema.getRefinedDefinition(objectClassName);
+    		}
+    	}
+    	
+    	// TODO: security
+    	
+    	return rOCDef;
+	}
+
+	@Override
 	public Collection<? extends DisplayableValue<String>> getActionUrls() {
 		return Arrays.asList(ModelAuthorizationAction.values());
 	}

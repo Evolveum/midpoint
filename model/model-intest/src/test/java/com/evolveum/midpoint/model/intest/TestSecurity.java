@@ -686,7 +686,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertNoItem(userJack, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
         assertAssignmentsWithTargets(userJack, 1);
         
-        PrismObjectDefinition<UserType> userJackEditSchema = modelInteractionService.getEditSchema(userJack);
+        PrismObjectDefinition<UserType> userJackEditSchema = modelInteractionService.getEditObjectDefinition(userJack);
         display("Jack's edit schema", userJackEditSchema);
         assertItemFlags(userJackEditSchema, UserType.F_NAME, true, false, false);
         assertItemFlags(userJackEditSchema, UserType.F_FULL_NAME, true, false, true);
