@@ -288,28 +288,21 @@ public class OrgStructTest extends BaseSQLRepoTest {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void test002modifyOrgStructAddRef() throws Exception {
-        LOGGER.info("===[ modifyOrgStruct ]===");
-        OperationResult opResult = new OperationResult("===[ modifyOrgStruct ]===");
+        OperationResult opResult = new OperationResult("test002modifyOrgStructAddRef");
         // test modification of org ref in another org type..
 
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(new File(MODIFY_ORG_ADD_REF_FILENAME),
                 ObjectModificationType.COMPLEX_TYPE);
         ObjectDelta<OrgType> delta = DeltaConvertor.createObjectDelta(modification, OrgType.class, prismContext);
 
-        Criteria criteria;
+        Query query;
         List<ROrgClosure> orgClosure;
 
         Session session = open();
         try {
-            criteria = session.createCriteria(ROrgClosure.class)
-                    .createCriteria("descendant", "desc")
-                    .setFetchMode("descendant", FetchMode.JOIN)
-                    .add(Restrictions.eq("desc.oid", MODIFY_ORG_ADD_REF_OID));
-
-            orgClosure = criteria.list();
+            orgClosure = getOrgClosureByDescendant(MODIFY_ORG_ADD_REF_OID, session);
 
             LOGGER.info("before modify");
             for (ROrgClosure c : orgClosure) {
@@ -324,12 +317,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 
         session = open();
         try {
-            criteria = session.createCriteria(ROrgClosure.class)
-                    .createCriteria("descendant", "desc")
-                    .setFetchMode("descendant", FetchMode.JOIN)
-                    .add(Restrictions.eq("desc.oid", MODIFY_ORG_ADD_REF_OID));
-
-            orgClosure = criteria.list();
+            orgClosure = getOrgClosureByDescendant(MODIFY_ORG_ADD_REF_OID, session);
 
             LOGGER.info("after modify");
             for (ROrgClosure c : orgClosure) {
@@ -344,33 +332,35 @@ public class OrgStructTest extends BaseSQLRepoTest {
             ancestors.add(ORG_F002_OID);
 
             for (String ancestorOid : ancestors) {
-                criteria = session.createCriteria(ROrgClosure.class);
-                criteria.createCriteria("ancestor", "anc").setFetchMode("ancestor", FetchMode.JOIN)
-                        .add(Restrictions.eq("anc.oid", ancestorOid));
-                criteria.createCriteria("descendant", "desc")
-                        .setFetchMode("descendant", FetchMode.JOIN).add(Restrictions.eq("desc.oid", MODIFY_ORG_ADD_REF_OID));
-
-                orgClosure = criteria.list();
-
+                orgClosure = getOrgClosure(ancestorOid, MODIFY_ORG_ADD_REF_OID, session);
                 LOGGER.info("=> A: {}, D: {}", new Object[]{orgClosure.get(0).getAncestor().toJAXB(prismContext, null),
                         orgClosure.get(0).getDescendant().toJAXB(prismContext, null)});
 
                 AssertJUnit.assertEquals(1, orgClosure.size());
-                AssertJUnit.assertEquals(ancestorOid, orgClosure.get(0)
-                        .getAncestor().getOid());
-                AssertJUnit.assertEquals(MODIFY_ORG_ADD_REF_OID, orgClosure.get(0)
-                        .getDescendant().getOid());
+                AssertJUnit.assertEquals(ancestorOid, orgClosure.get(0).getAncestor().getOid());
+                AssertJUnit.assertEquals(MODIFY_ORG_ADD_REF_OID, orgClosure.get(0).getDescendant().getOid());
             }
         } finally {
             close(session);
         }
     }
 
-    @SuppressWarnings("unchecked")
+    private List<ROrgClosure> getOrgClosure(String ancestorOid, String descendantOid, Session session) {
+        Query query = session.createQuery("from ROrgClosure where ancestorOid=:aOid and descendantOid=:dOid");
+        query.setString("aOid", ancestorOid);
+        query.setString("dOid", descendantOid);
+        return query.list();
+    }
+
+    private List<ROrgClosure> getOrgClosureByDescendant(String descendantOid, Session session) {
+        Query query = session.createQuery("from ROrgClosure where descendantOid=:oid");
+        query.setString("oid", descendantOid);
+        return query.list();
+    }
+
     @Test
     public void test002modifyOrgStructAddRefIncorrect() throws Exception {
-        LOGGER.info("===[ modifyOrgStruct ]===");
-        OperationResult opResult = new OperationResult("===[ modifyOrgStructIncorrect ]===");
+        OperationResult opResult = new OperationResult("test002modifyOrgStructAddRefIncorrect");
         // test modification of org ref in another org type..
 
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(new File(MODIFY_ORG_INCORRECT_ADD_REF_FILENAME),
@@ -382,12 +372,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         Session session = open();
 
         try {
-            Criteria criteria = session.createCriteria(ROrgClosure.class)
-                    .createCriteria("descendant", "desc")
-                    .setFetchMode("descendant", FetchMode.JOIN)
-                    .add(Restrictions.eq("desc.oid", MODIFY_ORG_INCORRECT_ADD_REF_OID));
-
-            List<ROrgClosure> orgClosure = criteria.list();
+            List<ROrgClosure> orgClosure = getOrgClosureByDescendant(MODIFY_ORG_INCORRECT_ADD_REF_OID, session);
 
             LOGGER.info("after modify incorrect - closure");
             for (ROrgClosure c : orgClosure) {
@@ -401,14 +386,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
             ancestors.add(ORG_F002_OID);
 
             for (String ancestorOid : ancestors) {
-                criteria = session.createCriteria(ROrgClosure.class);
-                criteria.createCriteria("ancestor", "anc").setFetchMode("ancestor", FetchMode.JOIN)
-                        .add(Restrictions.eq("anc.oid", ancestorOid));
-                criteria.createCriteria("descendant", "desc")
-                        .setFetchMode("descendant", FetchMode.JOIN)
-                        .add(Restrictions.eq("desc.oid", MODIFY_ORG_INCORRECT_ADD_REF_OID));
-
-                orgClosure = criteria.list();
+                orgClosure = getOrgClosure(ancestorOid, MODIFY_ORG_INCORRECT_ADD_REF_OID, session);
 
                 AssertJUnit.assertEquals(1, orgClosure.size());
 
@@ -416,8 +394,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
                 AssertJUnit.assertEquals(MODIFY_ORG_INCORRECT_ADD_REF_OID, orgClosure.get(0).getDescendant().getOid());
             }
 
-
-            criteria = session.createCriteria(ROrgIncorrect.class)
+            Criteria criteria = session.createCriteria(ROrgIncorrect.class)
                     .add(Restrictions.eq("descendantOid", MODIFY_ORG_INCORRECT_ADD_REF_OID));
 
             List<ROrgIncorrect> orgIncorrect = criteria.list();
@@ -443,14 +420,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         Session session = open();
         try {
             LOGGER.info("==>before modify - delete<==");
-
-            Query qDelete = session.createQuery("from ROrgClosure as o where " +
-                    "o.descendantOid = :descendantOid and o.ancestorOid = :ancestorOid");
-            qDelete.setParameter("descendantOid", MODIFY_ORG_DELETE_REF_OID);
-            qDelete.setParameter("ancestorOid", ORG_F003_OID);
-
-            List<ROrgClosure> orgClosure = qDelete.list();
-
+            List<ROrgClosure> orgClosure = getOrgClosure(ORG_F003_OID, MODIFY_ORG_DELETE_REF_OID, session);
             AssertJUnit.assertEquals(1, orgClosure.size());
 
             session.getTransaction().commit();
@@ -461,27 +431,17 @@ public class OrgStructTest extends BaseSQLRepoTest {
             session.beginTransaction();
 
             LOGGER.info("==>after modify - delete<==");
-
-            qDelete = session.createQuery("from ROrgClosure as o where " +
-                    "o.descendantOid = :descendantOid  and o.ancestorOid = :ancestorOid");
-            qDelete.setParameter("descendantOid", MODIFY_ORG_DELETE_REF_OID);
-            qDelete.setParameter("ancestorOid", ORG_F003_OID);
-
-            orgClosure = qDelete.list();
-
+            orgClosure = getOrgClosure(ORG_F003_OID, MODIFY_ORG_DELETE_REF_OID, session);
             AssertJUnit.assertEquals(0, orgClosure.size());
         } finally {
             close(session);
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void test003modifyOrgStructDeleteRefIncorrect() throws Exception {
-
         // test modification of org ref - delete org ref
-        LOGGER.info("===[ modify delete org ref ]===");
-        OperationResult opResult = new OperationResult("===[ modify delete org ref ]===");
+        OperationResult opResult = new OperationResult("test003modifyOrgStructDeleteRefIncorrect");
         ObjectModificationType modification = PrismTestUtil.parseAtomicValue(new File(MODIFY_ORG_INCORRECT_DELETE_REF_FILENAME),
                 ObjectModificationType.COMPLEX_TYPE);
 
@@ -490,14 +450,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         Session session = open();
         try {
             LOGGER.info("==>before modify - delete<==");
-
-            Query qDelete = session.createQuery("from ROrgClosure as o where " +
-                    "o.descendantOid = :descendantOid  and o.ancestorOid = :ancestorOid");
-            qDelete.setParameter("descendantOid", MODIFY_ORG_INCORRECT_DELETE_REF_OID);
-            qDelete.setParameter("ancestorOid", ORG_F012_OID);
-
-            List<ROrgClosure> orgClosure = qDelete.list();
-
+            List<ROrgClosure> orgClosure = getOrgClosure(ORG_F012_OID, MODIFY_ORG_INCORRECT_DELETE_REF_OID, session);
             AssertJUnit.assertEquals(0, orgClosure.size());
 
             session.getTransaction().commit();
@@ -508,27 +461,17 @@ public class OrgStructTest extends BaseSQLRepoTest {
             session.beginTransaction();
 
             LOGGER.info("==>after modify - delete<==");
-
-            qDelete = session.createQuery("from ROrgClosure as o where " +
-                    "o.descendantOid = :descendantOid and o.ancestorOid = :ancestorOid");
-            qDelete.setParameter("descendantOid", MODIFY_ORG_INCORRECT_DELETE_REF_OID);
-            qDelete.setParameter("ancestorOid", ORG_F012_OID);
-
-            orgClosure = qDelete.list();
-
+            orgClosure = getOrgClosure(ORG_F012_OID, MODIFY_ORG_INCORRECT_DELETE_REF_OID, session);
             AssertJUnit.assertEquals(0, orgClosure.size());
-
         } finally {
             close(session);
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void test004modifyOrgStructAddUser() throws Exception {
         Session session = open();
         try {
-
             OperationResult opResult = new OperationResult("test004modifyOrgStructAddUser");
 
             //test modification of org ref in another org type..
@@ -540,11 +483,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
             repositoryService.modifyObject(UserType.class, ELAINE_OID, delta.getModifications(), opResult);
 
             LOGGER.info("==>after modify - add user to org<==");
-
-            Query sqlOrgClosure = session.createQuery("from ROrgClosure as o where o.descendantOid = :descendantOid");
-            sqlOrgClosure.setParameter("descendantOid", ELAINE_OID);
-            List<ROrgClosure> orgClosure = sqlOrgClosure.list();
-
+            List<ROrgClosure> orgClosure = getOrgClosureByDescendant(ELAINE_OID, session);
             AssertJUnit.assertEquals(7, orgClosure.size());
 
             LOGGER.info("==============CLOSURE TABLE==========");
@@ -552,14 +491,12 @@ public class OrgStructTest extends BaseSQLRepoTest {
             for (ROrgClosure o : orgClosure) {
                 LOGGER.info("=> A: {}, D: {}", new Object[]{o.getAncestor().toJAXB(prismContext, null),
                         o.getDescendant().toJAXB(prismContext, null)});
-
             }
         } finally {
             close(session);
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void test005deleteOrg() throws Exception {
         OperationResult opResult = new OperationResult("test005deleteOrg");
@@ -594,17 +531,13 @@ public class OrgStructTest extends BaseSQLRepoTest {
         AssertJUnit.assertEquals(7, orgClosure.size());
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void test007searchOrgStructOrgDepth() throws Exception {
         OperationResult parentResult = new OperationResult("test007searchOrgStructOrgDepth");
 
         Session session = open();
         try {
-            Query sqlSearch = session.createQuery("from ROrgClosure where ancestorOid=:oid or descendantOid=:oid");
-            sqlSearch.setParameter("oid", SEARCH_ORG_OID_DEPTH1);
-
-            List<ROrgClosure> orgClosure = sqlSearch.list();
+            List<ROrgClosure> orgClosure = getOrgClosure(SEARCH_ORG_OID_DEPTH1, SEARCH_ORG_OID_DEPTH1, session);
 
             LOGGER.info("==============CLOSURE TABLE==========");
             for (ROrgClosure o : orgClosure) {

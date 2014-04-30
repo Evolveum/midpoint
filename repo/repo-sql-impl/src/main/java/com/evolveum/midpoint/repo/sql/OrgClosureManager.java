@@ -87,15 +87,23 @@ public class OrgClosureManager {
         if (LOGGER.isTraceEnabled()) LOGGER.trace("Deleted {} records from org. closure table.", count);
 
         //if there is still parentRef pointing to this oid, we have to add oid to incorrect table
-        query = session.createQuery("select count(*) from RParentOrgRef r where r.targetOid=:oid");
+        query = session.createSQLQuery("insert into m_org_incorrect (ancestor_oid, descendant_oid) " +
+                "select distinct :oid, owner_oid from m_reference where targetOid=:oid and reference_type=0");
         query.setString("oid", oid);
+        count = query.executeUpdate();
 
-        Number parentCount = (Number) query.uniqueResult();
-        if (parentCount != null && parentCount.intValue() != 0) {
-            query = session.createSQLQuery("insert into m_org_incorrect (ancestor_oid) values (:oid)");
-            query.setString("oid", oid);
-            query.executeUpdate();
-        }
+        if (LOGGER.isTraceEnabled()) LOGGER.trace("Added {} records to incorrect table.", count);
+
+        //this is an alternative to previous insert into select, can be removed later
+//        query = session.createQuery("select distinct ownerOid from RParentOrgRef where targetOid=:oid");
+//        query.setString("oid", oid);
+//        List<String> descendants = query.list();
+//
+//        List<ROrgIncorrect> incorrects = new ArrayList<>();
+//        for (String descendant : descendants) {
+//            incorrects.add(new ROrgIncorrect(oid, descendant));
+//        }
+//        bulkSave(incorrects, session);
     }
 
     private <T extends ObjectType> void handleAdd(String oid, Set<String> parents, Class<T> type, Session session) {
@@ -237,7 +245,7 @@ public class OrgClosureManager {
         LOGGER.trace("Bulk saving {} objects {}", objects.size(), objects.get(0).getClass().getSimpleName());
 
         for (int i = 0; i < objects.size(); i++) {
-            LOGGER.trace("{}", objects.get(i));
+            LOGGER.trace("{}", objects.get(i));     //todo delete
 
             session.save(objects.get(i));
             if (i > 0 && i % RUtil.JDBC_BATCH_SIZE == 0) {
