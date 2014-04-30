@@ -738,8 +738,8 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	private void assertItemFlags(PrismObjectDefinition<UserType> editSchema, ItemPath itemPath, boolean expectedRead, boolean expectedAdd, boolean expectedModify) {
 		ItemDefinition itemDefinition = editSchema.findItemDefinition(itemPath);
 		assertEquals("Wrong readability flag for "+itemPath, expectedRead, itemDefinition.canRead());
-		assertEquals("Wrong addition flag for "+itemPath, expectedAdd, itemDefinition.canCreate());
-		assertEquals("Wrong modification flag for "+itemPath, expectedModify, itemDefinition.canUpdate());
+		assertEquals("Wrong addition flag for "+itemPath, expectedAdd, itemDefinition.canAdd());
+		assertEquals("Wrong modification flag for "+itemPath, expectedModify, itemDefinition.canModify());
 	}
 
 	private void assertAssignmentsWithTargets(PrismObject<UserType> user, int expectedNumber) {

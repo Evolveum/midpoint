@@ -706,13 +706,13 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		AuthorizationDecisionType modifyDecision = computeItemDecision(securityConstraints, itemPath, ModelAuthorizationAction.MODIFY.getUrl(), defaultModifyDecition);
 //		LOGGER.trace("Decision for {}: {}", itemPath, readDecision);
 		if (readDecision != AuthorizationDecisionType.ALLOW) {
-			itemDefinition.setRead(false);
+			itemDefinition.setCanRead(false);
 		}
 		if (addDecision != AuthorizationDecisionType.ALLOW) {
-			itemDefinition.setCreate(false);
+			itemDefinition.setCanAdd(false);
 		}
 		if (modifyDecision != AuthorizationDecisionType.ALLOW) {
-			itemDefinition.setUpdate(false);
+			itemDefinition.setCanModify(false);
 		}
 		
 		if (itemDefinition instanceof PrismContainerDefinition<?>) {

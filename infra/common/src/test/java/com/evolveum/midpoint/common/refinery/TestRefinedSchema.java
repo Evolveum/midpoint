@@ -248,10 +248,10 @@ public class TestRefinedSchema {
         
         if (validationLayer == LayerType.PRESENTATION) {
         	assertFalse("Can update "+riUidAttrDef+" from ResourceAttributeContainerDefinition ("+sourceLayer+")", 
-        			riUidAttrDef.canUpdate());
+        			riUidAttrDef.canModify());
         } else {
         	assertTrue("Cannot update "+riUidAttrDef+" from ResourceAttributeContainerDefinition ("+sourceLayer+")", 
-        			riUidAttrDef.canUpdate());
+        			riUidAttrDef.canModify());
         }
         
         Collection<? extends ResourceAttributeDefinition> definitionsFromResAttrContainerDef = resAttrContainerDef.getDefinitions();
@@ -508,9 +508,9 @@ public class TestRefinedSchema {
 	                assertEquals("Attribute " + name + " ("+sourceLayer+") outbound mismatch", hasOutbound, def.getOutboundMappingType() != null);
                 }
                 assertEquals("Attribute " + name + " ("+sourceLayer+") ignored flag mismatch", ignore, def.isIgnored());
-                assertEquals("Attribute " + name + " ("+sourceLayer+") canCreate mismatch", canCreate, def.canCreate());
+                assertEquals("Attribute " + name + " ("+sourceLayer+") canCreate mismatch", canCreate, def.canAdd());
                 assertEquals("Attribute " + name + " ("+sourceLayer+") canRead mismatch", canRead, def.canRead());
-                assertEquals("Attribute " + name + " ("+sourceLayer+") canUpdate mismatch", canUpdate, def.canUpdate());
+                assertEquals("Attribute " + name + " ("+sourceLayer+") canUpdate mismatch", canUpdate, def.canModify());
                 return;
             }
         }

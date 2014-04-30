@@ -239,16 +239,16 @@ public class SchemaToDomProcessor {
 
 		addCommonDefinitionAnnotations(definition, appinfo);
 		
-		if (!definition.canCreate() || !definition.canRead() || !definition.canUpdate()) {
+		if (!definition.canAdd() || !definition.canRead() || !definition.canModify()) {
 			// read-write-create attribute is the default. If any of this flags is missing, we must
 			// add appropriate annotations.
-			if (definition.canCreate()) {
+			if (definition.canAdd()) {
 				addAnnotation(A_ACCESS, A_ACCESS_CREATE, appinfo);
 			}
 			if (definition.canRead()) {
 				addAnnotation(A_ACCESS, A_ACCESS_READ, appinfo);
 			}
-			if (definition.canUpdate()) {
+			if (definition.canModify()) {
 				addAnnotation(A_ACCESS, A_ACCESS_UPDATE, appinfo);
 			}
 		}

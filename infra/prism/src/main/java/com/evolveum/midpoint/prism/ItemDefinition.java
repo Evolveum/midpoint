@@ -59,9 +59,9 @@ public abstract class ItemDefinition extends Definition implements Serializable 
     private int maxOccurs = 1;
     private boolean operational = false;
     private boolean dynamic;
-    private boolean create = true;
-    private boolean read = true;
-    private boolean update = true;
+    private boolean canAdd = true;
+    private boolean canRead = true;
+    private boolean canModify = true;
 
 	// TODO: annotations
 
@@ -195,46 +195,48 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	}
 	
     /**
-     * TODO:
-     *
-     * @return
+     * Returns true if the property can be read. I.e. if it is returned in objects
+     * retrieved from "get", "search" and similar operations.
      */
     public boolean canRead() {
-        return read;
+        return canRead;
     }
 
     /**
-     * TODO:
-     *
-     * @return
+     * Returns true if the item can be modified. I.e. if it can be changed
+     * during a modification of existing object.
      */
-    public boolean canUpdate() {
-        return update;
+    public boolean canModify() {
+        return canModify;
     }
 
     /**
      *
      */
     public void setReadOnly() {
-        create = false;
-        read = true;
-        update = false;
+        canAdd = false;
+        canRead = true;
+        canModify = false;
     }
 
-	public void setRead(boolean read) {
-        this.read = read;
+	public void setCanRead(boolean read) {
+        this.canRead = read;
     }
 
-    public void setUpdate(boolean update) {
-        this.update = update;
+    public void setCanModify(boolean modify) {
+        this.canModify = modify;
     }
 
-    public void setCreate(boolean create) {
-        this.create = create;
+    public void setCanAdd(boolean add) {
+        this.canAdd = add;
     }
 
-    public boolean canCreate() {
-        return create;
+    /**
+     * Returns true if the item can be added. I.e. if it can be present
+     * in the object when a new object is created.
+     */
+    public boolean canAdd() {
+        return canAdd;
     }
 	
 	public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz) {
@@ -292,9 +294,9 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		clone.minOccurs = this.minOccurs;
 		clone.maxOccurs = this.maxOccurs;
 		clone.dynamic = this.dynamic;
-		clone.create = this.create;
-		clone.read = this.read;
-		clone.update = this.update;
+		clone.canAdd = this.canAdd;
+		clone.canRead = this.canRead;
+		clone.canModify = this.canModify;
 	}
 
 	@Override
@@ -312,9 +314,9 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
         result = prime * result + maxOccurs;
         result = prime * result + minOccurs;
-        result = prime * result + (create ? 1231 : 1237);
-        result = prime * result + (read ? 1231 : 1237);
-        result = prime * result + (update ? 1231 : 1237);
+        result = prime * result + (canAdd ? 1231 : 1237);
+        result = prime * result + (canRead ? 1231 : 1237);
+        result = prime * result + (canModify ? 1231 : 1237);
 		return result;
 	}
 
@@ -336,11 +338,11 @@ public abstract class ItemDefinition extends Definition implements Serializable 
             return false;
         if (minOccurs != other.minOccurs)
             return false;
-        if (create != other.create)
+        if (canAdd != other.canAdd)
             return false;
-        if (read != other.read)
+        if (canRead != other.canRead)
             return false;
-        if (update != other.update)
+        if (canModify != other.canModify)
             return false;
 		return true;
 	}
@@ -407,12 +409,12 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		} else {
 			sb.append("-");
 		}
-		if (canCreate()) {
+		if (canAdd()) {
 			sb.append("C");
 		} else {
 			sb.append("-");
 		}
-		if (canUpdate()) {
+		if (canModify()) {
 			sb.append("U");
 		} else {
 			sb.append("-");
