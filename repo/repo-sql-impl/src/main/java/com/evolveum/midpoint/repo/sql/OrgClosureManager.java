@@ -124,7 +124,58 @@ public class OrgClosureManager {
     }
 
     private void removeParents(String oid, Set<String> parents, Session session) {
-        //todo implement
+        Query query = session.createQuery("select o.oid from RObject o where o.oid in (:oids)");
+        query.setParameterList("oids", parents);
+        List<String> existing = query.list();
+
+        if (!existing.isEmpty()) {
+            query = session.createQuery("select distinct ancestorOid from ROrgClosure where descendantOid in (:existing)");
+            query.setParameterList("existing", existing);
+            List<String> ancestors = query.list();
+            if (!ancestors.isEmpty()) {
+                query = session.createQuery("select distinct ownerOid from RParentOrgRef where targetOid=:oid");
+                query.setString("oid", oid);
+                List<String> ownerList = new ArrayList(query.list());
+
+                ownerList.removeAll(parents);
+
+                if (!ownerList.isEmpty()) {
+                    for (String ancestor : ancestors) {
+                        query = session.createQuery("select count(*) from ROrgClosure where ancestorOid=:aOid and descendantOid in (:dOids)");
+                        query.setString("aOid", ancestor);
+                        query.setParameterList("dOids", ownerList);
+
+                        Number count = (Number) query.uniqueResult();
+                        if (count != null && count.intValue() > 0) {
+                            continue;
+                        }
+
+                        query = session.createQuery("delete from ROrgClosure o where o.ancestorOid=:aOid and o.descendantOid in (" +
+                                "select descendantOid from ROrgClosure o1 where o1.ancestorOid=:aOid1 and o1.descendantOid!=:aOid1)");
+                        query.setString("aOid", ancestor);
+//                        query.setString("aOid1", );
+                    }
+                }
+            }
+        }
+
+        //todo handle incorrects
+
+        //todo finish
+    }
+
+    private Map<String, Set<String>> createDescendantAncestorsMap(List<String[]> ocList) {
+        Map<String, Set<String>> descAncMap = new HashMap<>();
+        for (String[] array : ocList) {
+            Set<String> ancestors = descAncMap.get(array[1]);
+            if (ancestors == null) {
+                ancestors = new HashSet<>();
+                descAncMap.put(array[1], ancestors);
+            }
+            ancestors.add(array[0]);
+        }
+
+        return descAncMap;
     }
 
     private void addParents(String oid, Set<String> parents, boolean addingObject, Session session) {
@@ -136,6 +187,7 @@ public class OrgClosureManager {
 
         if (parents.isEmpty()) {
             if (addingObject) {
+                //we'll attempt to fix incorrect references to object referenced by oid (if it's currently adding)
                 closures.addAll(addClosuresFromIncorrects(oid, new ArrayList<String>(), session));
             }
             bulkSave(closures, session);
@@ -192,6 +244,7 @@ public class OrgClosureManager {
         }
 
         if (addingObject) {
+            //we'll attempt to fix incorrect references to object referenced by oid (if it's currently adding)
             closures.addAll(addClosuresFromIncorrects(oid, newClosureAncestors, session));
         }
 
