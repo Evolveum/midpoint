@@ -410,12 +410,12 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 			sb.append("-");
 		}
 		if (canAdd()) {
-			sb.append("C");
+			sb.append("A");
 		} else {
 			sb.append("-");
 		}
 		if (canModify()) {
-			sb.append("U");
+			sb.append("M");
 		} else {
 			sb.append("-");
 		}
