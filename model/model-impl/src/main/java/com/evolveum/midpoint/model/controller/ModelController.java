@@ -785,11 +785,13 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				securityConstraints.getActionDecistion(ModelAuthorizationAction.ADD.getUrl(), null));
 		AuthorizationDecisionType attributesModifyDecision = computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.MODIFY.getUrl(),
 				securityConstraints.getActionDecistion(ModelAuthorizationAction.MODIFY.getUrl(), null));
+		LOGGER.trace("Attributes container access read:{}, add:{}, modify:{}", new Object[]{attributesReadDecision, attributesAddDecision, attributesModifyDecision});
 		for (LayerRefinedAttributeDefinition rAttrDef: rOCDef.getAttributeDefinitions()) {
 			ItemPath attributePath = new ItemPath(ShadowType.F_ATTRIBUTES, rAttrDef.getName());
 			AuthorizationDecisionType attributeReadDecision = computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.READ.getUrl(), attributesReadDecision);
 			AuthorizationDecisionType attributeAddDecision = computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.ADD.getUrl(), attributesAddDecision);
 			AuthorizationDecisionType attributeModifyDecision = computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.MODIFY.getUrl(), attributesModifyDecision);
+			LOGGER.trace("Attribute {} access read:{}, add:{}, modify:{}", new Object[]{rAttrDef.getName(), attributeReadDecision, attributeAddDecision, attributeModifyDecision});
 			if (attributeReadDecision != AuthorizationDecisionType.ALLOW) {
 				rAttrDef.setOverrideCanRead(false);
 			}
