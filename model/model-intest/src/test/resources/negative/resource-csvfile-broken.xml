@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -92,19 +92,6 @@
                     <!-- Readable name for the attribute. This will be used in GUI -->
 					<displayName>Entry UUID</displayName>
 
-                    <!-- Access limitation for this attribute.
-                         Entry UUID is created by the directory server itelf
-                         and it is immutable. We can only read it. -->
-					<access>read</access>
-<!--
-					<outbound default="true">
-						<expression>
-							<code>
-                                                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
-							$i:user/c:name
-							</code>
-						</expression>
-					</outbound>-->
 				</attribute>
 				<attribute>
 					<ref>icfs:name</ref>
@@ -112,10 +99,6 @@
                     <!-- Readable name for the attribute. This will be used in GUI -->
 					<displayName>Name</displayName>
 
-                    <!-- Access limitation for this attribute.
-                          -->
-					<access>create</access>
-					<access>read</access>
 					<outbound>
 						<strength>weak</strength>
 						<source>
