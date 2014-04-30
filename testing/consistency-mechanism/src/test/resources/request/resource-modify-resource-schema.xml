@@ -118,13 +118,6 @@ else {
 
                 <!-- Readable name for the attribute. This will be used in GUI -->
                 <displayName>Entry UUID</displayName>
-
-                <!-- Access limitation for this attribute.
-       Entry UUID is created by the directory server itelf
-       and it is immutable. We can only read it. -->
-
-                <access>read</access>
-
                 <!-- There is no "outbound" expression, so midPoint will not
            do anything with this attribute. -->
 
@@ -137,10 +130,6 @@ else {
 
                 <ref>ri:cn</ref>
                 <displayName>Common Name</displayName>
-                <access>create</access>
-                <access>read</access>
-                <access>update</access>
-
                 <!-- Outbound expression here is using "pure" XPath, without
                     using functions. This is the simplest case, just copying
                     the "fullName" property of user to the "cn" attribute of
@@ -169,9 +158,6 @@ else {
                 <ref>ri:sn</ref>
 
                 <displayName>Surname</displayName>
-                <access>create</access>
-                <access>read</access>
-                <access>update</access>
                 <outbound>
 					<source>
 						<path>$c:user/c:familyName</path>
@@ -188,10 +174,6 @@ else {
             <attribute>
                 <ref>ri:givenName</ref>
                 <displayName>Given Name</displayName>
-                <access>create</access>
-                <access>read</access>
-
-                <access>update</access>
                 <outbound>
 					<source>
 						<path>givenName</path>
