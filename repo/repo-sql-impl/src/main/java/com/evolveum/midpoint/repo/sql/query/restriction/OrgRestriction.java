@@ -16,17 +16,25 @@
 
 package com.evolveum.midpoint.repo.sql.query.restriction;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.repo.api.query.Query;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.data.common.ROrgClosure;
+import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
 import com.evolveum.midpoint.repo.sql.query.QueryContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.util.ClassMapper;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.apache.commons.lang.ObjectUtils;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.*;
+import org.hibernate.sql.JoinType;
 import org.hibernate.type.StringType;
 import org.hibernate.type.Type;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
@@ -34,6 +42,8 @@ import org.hibernate.type.Type;
 public class OrgRestriction extends Restriction<OrgFilter> {
 
     private static final String QUERY_PATH = "descendants";
+    private static final ItemPath QUERY_ITEM_PATH = new ItemPath(new QName(RUtil.NS_SQL_REPO, QUERY_PATH));
+
     private static final String CLOSURE_ALIAS = "closure";
     private static final String DEPTH = CLOSURE_ALIAS + ".depth";
 
@@ -60,8 +70,6 @@ public class OrgRestriction extends Restriction<OrgFilter> {
 //			Query rootOrgQuery = session.createQuery("select org from ROrg as org where org.oid in (select descendant.oid from ROrgClosure group by descendant.oid having count(descendant.oid)=1)");
         }
 
-        updateCriteria();
-
         if (filter.getOrgRef() == null) {
             throw new QueryException("No organization reference defined in the search query.");
         }
@@ -70,59 +78,22 @@ public class OrgRestriction extends Restriction<OrgFilter> {
             throw new QueryException("No oid specified in organization reference " + filter.getOrgRef().debugDump());
         }
 
-        String orgRefOid = filter.getOrgRef().getOid();
-
-        Integer maxDepth = filter.getScope() == OrgFilter.Scope.ONE_LEVEL ? 1 : null;
-        Integer minDepth = filter.getScope() == OrgFilter.Scope.ONE_LEVEL ? 1 : null;
-
-        if (minDepth == null && maxDepth == null) {
-            return Restrictions.eq(CLOSURE_ALIAS + ".ancestorOid", orgRefOid);
+        DetachedCriteria detached;
+        switch (filter.getScope()) {
+            case ONE_LEVEL:
+                detached = DetachedCriteria.forClass(RParentOrgRef.class, "p");
+                detached.setProjection(Projections.distinct(Projections.property("p.ownerOid")));
+                detached.add(Restrictions.eq("p.targetOid", filter.getOrgRef().getOid()));
+                break;
+            case SUBTREE:
+            default:
+                detached = DetachedCriteria.forClass(ROrgClosure.class, "cl");
+                detached.setProjection(Projections.distinct(Projections.property("cl.descendantOid")));
+                detached.add(Restrictions.eq("cl.ancestorOid", filter.getOrgRef().getOid()));
+                detached.add(Restrictions.ne("cl.descendantOid", filter.getOrgRef().getOid()));
         }
-
-        Conjunction conjunction = Restrictions.conjunction();
-        conjunction.add(Restrictions.eq(CLOSURE_ALIAS + ".ancestorOid", orgRefOid));
-        if (ObjectUtils.equals(minDepth, maxDepth)) {
-            conjunction.add(Restrictions.eq(DEPTH, minDepth));
-        } else {
-            if (minDepth != null) {
-                conjunction.add(Restrictions.gt(DEPTH, minDepth));
-            }
-            if (maxDepth != null) {
-                conjunction.add(Restrictions.le(DEPTH, maxDepth));
-            }
-        }
-        return conjunction;
-    }
-
-    private void updateCriteria() {
-        // get root criteria
-        Criteria main = getContext().getCriteria(null);
-        // create subcriteria on the ROgrClosure table to search through org struct
-
-        ProjectionList list = Projections.projectionList();
-        String alias = getContext().getAlias(null);
-
-        QueryContext context = getContext();
-        SqlRepositoryConfiguration sqlConfig = context.getInterpreter().getRepoConfiguration();
-
-        list.add(Projections.property(alias + ".fullObject"));
-        list.add(Projections.property(alias + ".stringsCount"));
-        list.add(Projections.property(alias + ".longsCount"));
-        list.add(Projections.property(alias + ".datesCount"));
-        list.add(Projections.property(alias + ".referencesCount"));
-        list.add(Projections.property(alias + ".polysCount"));
-
-        if (sqlConfig.isUsingSQLServer()) {
-            list.add(Projections.groupProperty(alias + ".fullObject"));
-            list.add(Projections.groupProperty(alias + ".stringsCount"));
-            list.add(Projections.groupProperty(alias + ".longsCount"));
-            list.add(Projections.groupProperty(alias + ".datesCount"));
-            list.add(Projections.groupProperty(alias + ".referencesCount"));
-            list.add(Projections.groupProperty(alias + ".polysCount"));
-        }
-
-        main.createCriteria(QUERY_PATH, CLOSURE_ALIAS);
-        main.setProjection(list);
+        String mainAlias = getContext().getAlias(null);
+        return Subqueries.propertyIn(mainAlias + ".oid", detached);
     }
 
     @Override
