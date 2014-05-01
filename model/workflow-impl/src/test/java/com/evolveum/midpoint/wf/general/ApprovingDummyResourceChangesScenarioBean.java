@@ -30,7 +30,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.processors.general.scenarios.BaseGcpScenarioBean;
 import com.evolveum.midpoint.wf.processors.general.scenarios.DefaultGcpScenarioBean;
 import com.evolveum.midpoint.wf.util.JaxbValueContainer;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessSpecificState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessSpecificState;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import org.springframework.beans.factory.annotation.Autowired;

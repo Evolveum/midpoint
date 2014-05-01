@@ -18,7 +18,7 @@ package com.evolveum.midpoint.notifications.api.events;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
 
 /**
  * Used to create (fill-in) a workflow event based on information passed from workflow module.

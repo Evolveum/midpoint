@@ -16,8 +16,8 @@
   ~ limitations under the License.
   -->
 
-<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
-            xmlns:tns="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-3"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-3"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"

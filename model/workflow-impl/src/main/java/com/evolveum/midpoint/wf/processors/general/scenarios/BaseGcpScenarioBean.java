@@ -37,9 +37,9 @@ import com.evolveum.midpoint.wf.processors.general.GcpExternalizationHelper;
 import com.evolveum.midpoint.wf.processors.general.GcpProcessVariableNames;
 import com.evolveum.midpoint.wf.util.JaxbValueContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralChangeProcessorScenarioType;
-import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.WorkItemContents;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessSpecificState;
+import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.WorkItemContents;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessSpecificState;
 
 import org.activiti.engine.task.Task;
 import org.springframework.beans.factory.annotation.Autowired;

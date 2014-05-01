@@ -20,7 +20,7 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-	xmlns:modelext="http://midpoint.evolveum.com/xml/ns/public/model/extension-2">
+	xmlns:modelext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
 								  
 	<name>User Recompute: Captain</name>
 	

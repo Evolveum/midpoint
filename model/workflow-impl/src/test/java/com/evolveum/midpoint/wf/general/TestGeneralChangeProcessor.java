@@ -49,10 +49,10 @@ import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.util.JaxbValueContainer;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.QuestionFormType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.WorkItemContents;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
+import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.QuestionFormType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.WorkItemContents;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import org.apache.commons.io.IOUtils;
@@ -262,7 +262,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 //        String xml = IOUtils.toString(new FileInputStream("./src/test/resources/model-context.xml"), "utf-8");
 //        Element root = DOMUtil.parseDocument(xml).getDocumentElement();
 //
-//        QName name = new QName("http://midpoint.evolveum.com/xml/ns/public/model/model-context-2", "modelContext");
+//        QName name = new QName("http://midpoint.evolveum.com/xml/ns/public/model/model-context-3", "modelContext");
 //
 //        PrismObjectDefinition oDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class);
 //        PrismContainerDefinition def = oDef.findContainerDefinition(new ItemPath(ObjectType.F_EXTENSION, name));

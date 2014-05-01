@@ -29,8 +29,8 @@ import com.evolveum.midpoint.wf.processors.primary.PcpChildJobCreationInstructio
 import com.evolveum.midpoint.wf.processors.primary.PcpJob;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.QuestionFormType;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessSpecificState;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.QuestionFormType;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessSpecificState;
 
 import java.util.List;
 import java.util.Map;

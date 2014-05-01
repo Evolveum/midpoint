@@ -28,7 +28,7 @@
 	<!-- Resource printable name -->
 	<name>Reconciliation: CSV (dry-run)</name>
 	
-	<extension xmlns:sync="http://midpoint.evolveum.com/xml/ns/public/model/extension-2">
+	<extension xmlns:sync="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
           <sync:dryRun>true</sync:dryRun>
         </extension>
 

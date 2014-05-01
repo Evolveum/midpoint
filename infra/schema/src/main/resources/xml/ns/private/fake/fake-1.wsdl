@@ -43,10 +43,10 @@
 			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd" 
 						schemaLocation="../../public/communication/workflow-1.xsd"/>
 		    -->
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
-                        schemaLocation="../../public/model/workflow/common-forms-2.xsd"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
-                        schemaLocation="../../public/model/workflow/process-instance-state-2.xsd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-3"
+                        schemaLocation="../../public/model/workflow/common-forms-3.xsd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-3"
+                        schemaLocation="../../public/model/workflow/process-instance-state-3.xsd"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
                         schemaLocation="../../public/model/scripting/scripting-2.xsd"/>
 

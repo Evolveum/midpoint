@@ -2715,7 +2715,7 @@
         </xs:restriction>
       </xs:simpleType>
     </xs:schema>
-    <xs:schema xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/common/common-3" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:schema xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/common/common-3" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-3" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
       <xs:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" />
       <xs:complexType name="TrackingDataFormType">
         <xs:complexContent mixed="false">

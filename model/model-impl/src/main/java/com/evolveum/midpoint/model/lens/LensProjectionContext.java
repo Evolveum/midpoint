@@ -28,7 +28,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensProjectionContextType;
+import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensProjectionContextType;
 
 import org.apache.commons.lang.StringUtils;
 import org.jvnet.jaxb2_commons.lang.Validate;

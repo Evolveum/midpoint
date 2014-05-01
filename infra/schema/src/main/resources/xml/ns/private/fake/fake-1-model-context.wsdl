@@ -30,8 +30,8 @@
 
     <types>
         <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/private/fake/fake-1-model-context.wsdl">
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-context-2"
-            			schemaLocation="../../public/model/context/model-context-2.xsd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-context-3"
+            			schemaLocation="../../public/model/context/model-context-3.xsd"/>
             <!--<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"-->
             			<!--schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3"/>-->
             <!--<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3" -->
