@@ -6836,6 +6836,23 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="displayOrder" type="xsd:int" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The content of this property specifies an order in which the organization
+                                should be displayed relative to other organizations at the same level.
+                                Organizations will be displayed by sorting them by the values of displayOrder
+                                property (ascending). These that do not have any displayOrder annotation
+                                will be displayed last. Organizations with the same displayOrder
+                                are displayed in alphabetic order.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Display Order</a:displayName>
+                                <a:displayOrder>300</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
