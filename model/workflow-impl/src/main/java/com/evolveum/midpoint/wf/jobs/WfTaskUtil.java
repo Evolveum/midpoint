@@ -112,7 +112,7 @@ public class WfTaskUtil {
     private PrismPropertyDefinition wfStatusPropertyDefinition;
     private PrismPropertyDefinition wfLastDetailsPropertyDefinition;
     private PrismPropertyDefinition wfLastVariablesPropertyDefinition;
-    private PrismPropertyDefinition wfProcessWrapperPropertyDefinition;
+    private PrismPropertyDefinition wfPrimaryChangeAspectPropertyDefinition;
     private PrismPropertyDefinition wfChangeProcessorPropertyDefinition;
     private PrismPropertyDefinition wfProcessIdPropertyDefinition;
     private PrismPropertyDefinition wfDeltaToProcessPropertyDefinition;
@@ -129,7 +129,7 @@ public class WfTaskUtil {
         wfStatusPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFSTATUS_PROPERTY_NAME);
         wfLastDetailsPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFLAST_DETAILS_PROPERTY_NAME);
         wfLastVariablesPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFLAST_VARIABLES_PROPERTY_NAME);
-		wfProcessWrapperPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(PcpTaskExtensionItemsNames.WFPROCESS_WRAPPER_PROPERTY_NAME);
+		wfPrimaryChangeAspectPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(PcpTaskExtensionItemsNames.WFPRIMARY_CHANGE_ASPECT_NAME);
         wfChangeProcessorPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFCHANGE_PROCESSOR_PROPERTY_NAME);
 		wfProcessIdPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFPROCESSID_PROPERTY_NAME);
         wfDeltaToProcessPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(PcpTaskExtensionItemsNames.WFDELTA_TO_PROCESS_PROPERTY_NAME);
@@ -143,7 +143,7 @@ public class WfTaskUtil {
         Validate.notNull(wfStatusPropertyDefinition, WfTaskExtensionItemsNames.WFSTATUS_PROPERTY_NAME + " definition was not found");
         Validate.notNull(wfLastDetailsPropertyDefinition, WfTaskExtensionItemsNames.WFLAST_DETAILS_PROPERTY_NAME + " definition was not found");
         Validate.notNull(wfLastVariablesPropertyDefinition, WfTaskExtensionItemsNames.WFLAST_VARIABLES_PROPERTY_NAME + " definition was not found");
-        Validate.notNull(wfProcessWrapperPropertyDefinition, PcpTaskExtensionItemsNames.WFPROCESS_WRAPPER_PROPERTY_NAME + " definition was not found");
+        Validate.notNull(wfPrimaryChangeAspectPropertyDefinition, PcpTaskExtensionItemsNames.WFPRIMARY_CHANGE_ASPECT_NAME + " definition was not found");
         Validate.notNull(wfChangeProcessorPropertyDefinition, WfTaskExtensionItemsNames.WFCHANGE_PROCESSOR_PROPERTY_NAME + " definition was not found");
         Validate.notNull(wfProcessIdPropertyDefinition, WfTaskExtensionItemsNames.WFPROCESSID_PROPERTY_NAME + " definition was not found");
         Validate.notNull(wfDeltaToProcessPropertyDefinition, PcpTaskExtensionItemsNames.WFDELTA_TO_PROCESS_PROPERTY_NAME + " definition was not found");
@@ -234,26 +234,26 @@ public class WfTaskUtil {
 
     }
 
-    public void setProcessWrapper(Task task, PrimaryChangeAspect wrapper) throws SchemaException {
-        Validate.notNull(wrapper, "Process Wrapper is undefined.");
-        PrismProperty<String> w = wfProcessWrapperPropertyDefinition.instantiate();
-        w.setRealValue(wrapper.getClass().getName());
+    public void setPrimaryChangeAspect(Task task, PrimaryChangeAspect aspect) throws SchemaException {
+        Validate.notNull(aspect, "Primary change aspect is undefined.");
+        PrismProperty<String> w = wfPrimaryChangeAspectPropertyDefinition.instantiate();
+        w.setRealValue(aspect.getClass().getName());
         task.setExtensionProperty(w);
     }
 
-    public PrimaryChangeAspect getProcessWrapper(Task task, List<PrimaryChangeAspect> wrappers) {
-        String wrapperClassName = getExtensionValue(String.class, task, PcpTaskExtensionItemsNames.WFPROCESS_WRAPPER_PROPERTY_NAME);
-        if (wrapperClassName == null) {
-            throw new IllegalStateException("No wf process aspect defined in task " + task);
+    public PrimaryChangeAspect getPrimaryChangeAspect(Task task, List<PrimaryChangeAspect> aspects) {
+        String aspectClassName = getExtensionValue(String.class, task, PcpTaskExtensionItemsNames.WFPRIMARY_CHANGE_ASPECT_NAME);
+        if (aspectClassName == null) {
+            throw new IllegalStateException("No wf primary change aspect defined in task " + task);
         }
 
-        for (PrimaryChangeAspect w : wrappers) {
-            if (wrapperClassName.equals(w.getClass().getName())) {
-                return w;
+        for (PrimaryChangeAspect a : aspects) {
+            if (aspectClassName.equals(a.getClass().getName())) {
+                return a;
             }
         }
 
-        throw new IllegalStateException("Wrapper " + wrapperClassName + " is not registered.");
+        throw new IllegalStateException("Primary change aspect " + aspectClassName + " is not registered.");
     }
 
     public void setChangeProcessor(Task task, ChangeProcessor processor) throws SchemaException {
@@ -496,8 +496,8 @@ public class WfTaskUtil {
         return wfLastVariablesPropertyDefinition;
     }
 
-    public PrismPropertyDefinition getWfProcessWrapperPropertyDefinition() {
-        return wfProcessWrapperPropertyDefinition;
+    public PrismPropertyDefinition getWfPrimaryChangeAspectPropertyDefinition() {
+        return wfPrimaryChangeAspectPropertyDefinition;
     }
 
     public PrismPropertyDefinition getWfChangeProcessorPropertyDefinition() {

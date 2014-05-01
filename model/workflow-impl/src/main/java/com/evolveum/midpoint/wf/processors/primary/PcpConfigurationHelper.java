@@ -51,27 +51,27 @@ public class PcpConfigurationHelper {
 
     private void setPrimaryChangeProcessorAspects(PrimaryChangeProcessor primaryChangeProcessor) {
 
-        List<PrimaryChangeAspect> wrappers = new ArrayList<>();
+        List<PrimaryChangeAspect> aspects = new ArrayList<>();
 
         Configuration c = primaryChangeProcessor.getProcessorConfiguration();
         if (c != null) {
-            String[] wrappersNames = c.getStringArray(KEY_ASPECT);
-            if (wrappersNames == null || wrappersNames.length == 0) {
-                LOGGER.warn("No wrappers defined for primary change processor " + primaryChangeProcessor.getBeanName());
+            String[] aspectNames = c.getStringArray(KEY_ASPECT);
+            if (aspectNames == null || aspectNames.length == 0) {
+                LOGGER.warn("No aspects defined for primary change processor " + primaryChangeProcessor.getBeanName());
             } else {
-                for (String wrapperName : wrappersNames) {
-                    LOGGER.trace("Searching for aspect " + wrapperName);
+                for (String aspectName : aspectNames) {
+                    LOGGER.trace("Searching for aspect " + aspectName);
                     try {
-                        PrimaryChangeAspect wrapper = (PrimaryChangeAspect) primaryChangeProcessor.getBeanFactory().getBean(wrapperName);
-                        wrappers.add(wrapper);
+                        PrimaryChangeAspect aspect = (PrimaryChangeAspect) primaryChangeProcessor.getBeanFactory().getBean(aspectName);
+                        aspects.add(aspect);
                     } catch (BeansException e) {
-                        throw new SystemException("Change aspect " + wrapperName + " could not be found.", e);
+                        throw new SystemException("Change aspect " + aspectName + " could not be found.", e);
                     }
                 }
-                LOGGER.debug("Resolved " + wrappers.size() + " process wrappers for primary change processor " + primaryChangeProcessor.getBeanName());
+                LOGGER.debug("Resolved " + aspects.size() + " process aspects for primary change processor " + primaryChangeProcessor.getBeanName());
             }
         }
-        primaryChangeProcessor.setProcessWrappers(wrappers);
+        primaryChangeProcessor.setChangeAspects(aspects);
     }
 
 }

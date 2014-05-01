@@ -123,7 +123,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         if (getBeanFactory().containsBean(name)) {
             return getBeanFactory().getBean(name, GcpScenarioBean.class);
         } else {
-            throw new IllegalStateException("Wrapper " + name + " couldn't be found.");
+            throw new IllegalStateException("Scenario bean " + name + " couldn't be found.");
         }
     }
 

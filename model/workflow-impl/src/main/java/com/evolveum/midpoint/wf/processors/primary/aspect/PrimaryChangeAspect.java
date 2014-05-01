@@ -38,9 +38,9 @@ import java.util.Map;
 /**
  *
  * Change aspect deals with a given (elementary) kind of primary-stage change. Examples of change aspects:
- *  - AddRoleProcessWrapper
- *  - CreateUserProcessWrapper
- *  - ChangeAttributeXProcessWrapper (X is an attribute of a user)
+ *  - AddRoleAssignmentAspect
+ *  - CreateUserAspect
+ *  - ChangeAttributeXAspect (X is an attribute of a user)
  *  - ...
  *
  * Change aspect plays a role on these occasions:
