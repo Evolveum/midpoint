@@ -31,7 +31,7 @@ public enum PrefixMapper {
 
     Q("http://prism.evolveum.com/xml/ns/public/query-3", "QUERY"),
 
-    R_CAP("http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2", "CAPABILITIES"),
+    R_CAP("http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3", "CAPABILITIES"),
 
     A("http://prism.evolveum.com/xml/ns/public/annotation-3", "ANNOTATION"),
 

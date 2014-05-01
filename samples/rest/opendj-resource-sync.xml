@@ -132,7 +132,7 @@ object.
 			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-			xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
+			xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
 			
@@ -464,7 +464,7 @@ object.
 	</schemaHandling>
 
 
-    <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+    <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
     	<configured>
             <cap:activation>
                 <cap:status>

@@ -27,12 +27,12 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationStatusCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.PasswordCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 
 /**
  * @author semancik

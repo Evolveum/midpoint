@@ -45,9 +45,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.LiveSyncCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.LiveSyncCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.testng.annotations.BeforeSuite;

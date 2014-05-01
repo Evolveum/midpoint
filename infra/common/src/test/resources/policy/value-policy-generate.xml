@@ -28,7 +28,7 @@
                xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-               xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
+               xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
                xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
                xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
@@ -43,7 +43,7 @@
                    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-                   xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
+                   xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
                    xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                    xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
                    xmlns:enc="http://www.w3.org/2001/04/xmlenc#">

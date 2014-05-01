@@ -25,7 +25,7 @@
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
 	xmlns:my="http://myself.me/schemas/whatever"
-        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
 
 	<c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d420db">
@@ -100,7 +100,7 @@
 			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-			xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
+			xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
 			

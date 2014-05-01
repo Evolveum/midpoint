@@ -152,7 +152,7 @@
 		</schemaHandling>
 
 		<!-- Resource capabilities. It defines a simulated enableDisable capability. -->
-		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 			<configured>
 				<cap:activation>
 					<cap:status>

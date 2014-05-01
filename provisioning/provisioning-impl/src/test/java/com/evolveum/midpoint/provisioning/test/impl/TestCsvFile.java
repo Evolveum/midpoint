@@ -80,9 +80,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHo
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ScriptCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ScriptCapabilityType.Host;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
 
 /**
  * The test of Provisioning service on the API level. The test is using CSV resource.

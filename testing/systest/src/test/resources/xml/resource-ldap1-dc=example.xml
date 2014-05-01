@@ -355,7 +355,7 @@
 		</c:accountType>
 	</c:schemaHandling>
 	
-	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 			<cap:activation>
 				<cap:status>
 					<cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>

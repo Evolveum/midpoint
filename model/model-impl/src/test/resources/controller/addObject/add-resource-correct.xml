@@ -20,7 +20,7 @@
    xmlns:ldap="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd"
    xmlns:mi6="http://mi6.gov.uk/schema/"
    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-   xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
+   xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
 	xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
    xsi:type="c:ResourceType">    
     <c:name>add-resource-correct</c:name>

@@ -271,7 +271,7 @@
                                            <extension>true</extension>
                                        </xsdOption>
                                        <xsdOption>
-                                           <xsd>src/main/resources/xml/ns/public/resource/capabilities-2.xsd</xsd>
+                                           <xsd>src/main/resources/xml/ns/public/resource/capabilities-3.xsd</xsd>
                                            <extensionArgs>
                                                <extensionArg>-Xts</extensionArg>
                                                <extensionArg>-Xequals</extensionArg>

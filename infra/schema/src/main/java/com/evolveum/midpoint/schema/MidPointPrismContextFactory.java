@@ -126,8 +126,8 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 		
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/annotation-2.xsd", "ra");
 		
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/capabilities-2.xsd", "cap",
-				com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ObjectFactory.class.getPackage());
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/capabilities-3.xsd", "cap",
+				com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory.class.getPackage());
 		
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/connector-schema-2.xsd", "icfc",
 				com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ObjectFactory.class.getPackage());
@@ -152,7 +152,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/scripting/scripting-2.xsd", "s",
                 com.evolveum.midpoint.xml.ns._public.model.scripting_2.ObjectFactory.class.getPackage());
 
-        schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/noop-1.xsd", "noop");
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/noop-3.xsd", "noop");
 
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/extension-3.xsd", "taskext");
 

@@ -37,8 +37,8 @@
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" uri="../xml/ns/public/connector/icf-1/connector-schema-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" uri="../xml/ns/public/connector/icf-1/connector-schema-3.xsd" />
 
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2" uri="../xml/ns/public/resource/capabilities-2.xsd" />
-    <system systemId="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2" uri="../xml/ns/public/resource/capabilities-2.xsd" />
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" uri="../xml/ns/public/resource/capabilities-3.xsd" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" uri="../xml/ns/public/resource/capabilities-3.xsd" />
 
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/import/extension-2" uri="../xml/ns/public/model/import/extension-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/model/import/extension-2" uri="../xml/ns/public/model/import/extension-3.xsd" />

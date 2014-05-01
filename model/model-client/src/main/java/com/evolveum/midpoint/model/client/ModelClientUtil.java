@@ -70,7 +70,7 @@ public class ModelClientUtil {
 				"com.evolveum.midpoint.xml.ns._public.common.fault_1:" +
 				"com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3:" +
 				"com.evolveum.midpoint.xml.ns._public.connector.icf_1.resource_schema_3:" +
-				"com.evolveum.midpoint.xml.ns._public.resource.capabilities_2:" +
+				"com.evolveum.midpoint.xml.ns._public.resource.capabilities_3:" +
 				"com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3:" +
                 "com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3:" +
 				"com.evolveum.prism.xml.ns._public.annotation_2:" +

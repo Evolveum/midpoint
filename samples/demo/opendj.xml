@@ -95,7 +95,7 @@
                          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
                          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-                         xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
+                         xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
                          xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                          xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
                          xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
@@ -105,14 +105,14 @@
       <definition>
          <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
+                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
                      xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
                      xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
                      elementFormDefault="qualified"
                      targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
             <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
 
             <xsd:complexType name="AccountObjectClass">
                <xsd:annotation>
@@ -450,7 +450,7 @@
 	</schemaHandling>
 
 
-    <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+    <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
     	<configured>
             <cap:activation>
                 <cap:status>

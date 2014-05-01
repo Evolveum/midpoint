@@ -54,13 +54,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CreateCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.DeleteCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ReadCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.UpdateCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 /**

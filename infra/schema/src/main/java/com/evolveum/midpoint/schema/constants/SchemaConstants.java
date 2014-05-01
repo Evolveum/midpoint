@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,16 +45,16 @@ public abstract class SchemaConstants {
 
 	// NAMESPACES
 	
-	public static final String NS_ORG = "http://midpoint.evolveum.com/xml/ns/public/common/org-2";
+	public static final String NS_ORG = "http://midpoint.evolveum.com/xml/ns/public/common/org-3";
 	public static final String NS_QUERY = QueryConvertor.NS_QUERY;
 	public static final String NS_TYPES = PrismConstants.NS_TYPES;
     public static final String NS_API_TYPES = "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3";
 	public static final String NS_MIDPOINT_PUBLIC_PREFIX = "http://midpoint.evolveum.com/xml/ns/public/";
 	public static final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 	public static final String NS_C_PREFIX = "c";
-	public static final String NS_CAPABILITIES = "http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2";
+	public static final String NS_CAPABILITIES = "http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3";
 	public static final String NS_FILTER = NS_MIDPOINT_PUBLIC + "/common/value-filter-1.xsd";
-	public static final String NS_MATCHING_RULE = NS_MIDPOINT_PUBLIC + "/common/matching-rule-2";
+	public static final String NS_MATCHING_RULE = NS_MIDPOINT_PUBLIC + "/common/matching-rule-3";
     public static final String NS_WFCF = "http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-3";
     public static final String NS_WFPIS = "http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-3";
 
@@ -139,7 +139,7 @@ public abstract class SchemaConstants {
 	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-1.xsd";
 	public static final QName SYNC_TOKEN = new QName(NS_PROVISIONING_LIVE_SYNC, "token");
 	// Synchronization constants
-	public static final String NS_PROVISIONING_CHANNEL = NS_PROVISIONING + "/channels-2";
+	public static final String NS_PROVISIONING_CHANNEL = NS_PROVISIONING + "/channels-3";
 	public static final QName CHANGE_CHANNEL_LIVE_SYNC = new QName(NS_PROVISIONING_CHANNEL, "liveSync");
 	public static final String CHANGE_CHANNEL_LIVE_SYNC_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_LIVE_SYNC);
 	public static final QName CHANGE_CHANNEL_RECON = new QName(NS_PROVISIONING_CHANNEL, "reconciliation");
@@ -150,13 +150,13 @@ public abstract class SchemaConstants {
 
 	public static final String NS_MODEL = NS_MIDPOINT_PUBLIC + "/model";
 	
-	public static final String NS_MODEL_CHANNEL = NS_MODEL + "/channels-2";
+	public static final String NS_MODEL_CHANNEL = NS_MODEL + "/channels-3";
 	public static final QName CHANNEL_WEB_SERVICE_QNAME = new QName(NS_MODEL_CHANNEL, "webService");
 	public static final String CHANNEL_WEB_SERVICE_URI = QNameUtil.qNameToUri(CHANNEL_WEB_SERVICE_QNAME);
 	
-	public static final String NS_MODEL_SERVICE = NS_MODEL + "/service-2";
+	public static final String NS_MODEL_SERVICE = NS_MODEL + "/service-3";
 	
-	public static final String NS_MODEL_EXTENSION = NS_MODEL + "/extension-2";
+	public static final String NS_MODEL_EXTENSION = NS_MODEL + "/extension-3";
 	public static final QName MODEL_EXTENSION_FRESHENESS_INTERVAL_PROPERTY_NAME = new QName(NS_MODEL_EXTENSION, "freshnessInterval");
 	public static final QName MODEL_EXTENSION_DRY_RUN = new QName(NS_MODEL_EXTENSION, "dryRun");
 	public static final QName MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME = new QName(NS_MODEL_EXTENSION, "lastScanTimestamp");
@@ -169,7 +169,7 @@ public abstract class SchemaConstants {
     public static final QName MODEL_EXTENSION_OBJECT_QUERY = new QName(NS_MODEL_EXTENSION, "objectQuery");
 
     public static final String NS_GUI = NS_MIDPOINT_PUBLIC + "/gui";
-	public static final String NS_GUI_CHANNEL = NS_GUI + "/channels-2";
+	public static final String NS_GUI_CHANNEL = NS_GUI + "/channels-3";
 	public static final QName CHANNEL_GUI_INIT_QNAME = new QName(NS_GUI_CHANNEL, "init");
 	public static final String CHANNEL_GUI_INIT_URI = QNameUtil.qNameToUri(CHANNEL_GUI_INIT_QNAME);
 	public static final QName CHANNEL_GUI_USER_QNAME = new QName(NS_GUI_CHANNEL, "user");
@@ -199,7 +199,7 @@ public abstract class SchemaConstants {
     public static final QName SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY = new QName(MODEL_CONTEXT_NS, "skipModelContextProcessing");
     public static final QName MODEL_CONTEXT_NAME = new QName(MODEL_CONTEXT_NS, "modelContext");
 
-    public static final String SCRIPTING_EXTENSION_NS = "http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-2";
+    public static final String SCRIPTING_EXTENSION_NS = "http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3";
     public static final QName SE_EXECUTE_SCRIPT = new QName(SCRIPTING_EXTENSION_NS, "executeScript");
 
     public static final QName C_EVENT = new QName(NS_C, "event");

@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 
 import java.io.Serializable;
 

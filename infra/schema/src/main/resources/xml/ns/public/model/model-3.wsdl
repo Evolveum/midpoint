@@ -58,8 +58,8 @@
             			schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
             			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
-            			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+            			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"/>
 
             <xsd:element name="getObject">
                 <xsd:complexType>

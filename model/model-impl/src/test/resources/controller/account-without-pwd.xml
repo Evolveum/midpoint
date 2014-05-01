@@ -21,7 +21,7 @@
 	xmlns:icc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
 	xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.x"
 	xmlns:opendse="http://midpoint.evolveum.com/schema/resources/instances/ldap/embeddedJUnitOpenDS" xmlns:opendsl="http://midpoint.evolveum.com/schema/resources/instances/ldap/localhostOpenDS"
-	xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
+	xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
 	xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="c:AccountShadowType">
 	<c:name>bond new</c:name>

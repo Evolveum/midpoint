@@ -233,7 +233,7 @@ to "false". The only way of resetting the flag is to change user's password.
 			</accountType>
 		</schemaHandling>
 		<!--
-                <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+                <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
                     <cap:credentials>
                         <cap:password/>
                     </cap:credentials>
