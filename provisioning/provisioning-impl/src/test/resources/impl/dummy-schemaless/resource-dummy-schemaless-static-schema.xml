@@ -20,7 +20,7 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
         xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 								  
 	<name>Dummy Schemaless Resource with static schema</name>
@@ -40,10 +40,10 @@
 	         <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                      xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
-                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
+                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
                      xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
                      elementFormDefault="qualified"
-                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">
+                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 	            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
 	            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
 	            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>

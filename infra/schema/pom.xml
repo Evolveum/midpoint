@@ -360,7 +360,7 @@
                         <schemaFile>src/main/resources/xml/ns/public/common/common-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/common/api-types-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-3.xsd</schemaFile>
-                        <schemaFile>src/main/resources/xml/ns/public/model/scripting/scripting-2.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/model/scripting/scripting-3.xsd</schemaFile>
                     </schemaFiles>
                     <templateDir>src/main/schemadoc/templates</templateDir>
                 </configuration>

@@ -32,7 +32,7 @@ object.
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
+         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
          xmlns:my="http://whatever.com/my"
@@ -131,7 +131,7 @@ object.
       </cachingMetadata>
 	  <definition>
 		<xsd:schema elementFormDefault="qualified"
-			targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
+			targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
 			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
