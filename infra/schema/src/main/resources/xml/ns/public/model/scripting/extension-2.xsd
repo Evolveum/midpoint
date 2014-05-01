@@ -21,7 +21,7 @@
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
-            xmlns:apit="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2"
+            xmlns:apit="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             elementFormDefault="qualified">
 

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
   ~ limitations under the License.
   -->
 
-<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2"
-            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2"
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
@@ -34,7 +34,7 @@
         <xsd:documentation>
             Schema that defines data types used in XML version of midPoint APIs.
             
-            Version: 2.0
+            Version: 3.0
             Recommended namespace prefix: apit
         </xsd:documentation>
     </xsd:annotation>

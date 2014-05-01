@@ -16,15 +16,15 @@
 package com.evolveum.midpoint.testing.model.client.sample;
 
 import com.evolveum.midpoint.model.client.ModelClientUtil;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ExecuteScriptsOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OutputFormatType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.SingleScriptOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteScriptsOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.OutputFormatType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SingleScriptOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.ExecuteScripts;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.ExecuteScriptsResponse;
-import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelService;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScripts;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsResponse;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelService;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;

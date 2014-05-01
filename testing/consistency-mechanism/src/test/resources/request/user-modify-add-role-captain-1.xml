@@ -18,7 +18,7 @@
 <!-- Object modification description that is changing user "guybrush" by adding a new role (using assignment) -->
 
 <objectModification 
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 		xmlns:my="http://whatever.com/my"

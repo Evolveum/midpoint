@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -16,15 +16,15 @@
   -->
 
 <definitions name="model"
-    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"
-    xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"
+    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"
+    xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/model/model-3"
     xmlns="http://schemas.xmlsoap.org/wsdl/"
     xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-    xmlns:apit="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2"
-    xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl"
+    xmlns:apit="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
+    xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/fault-3"
 	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
 
     <documentation>
@@ -45,15 +45,15 @@
 
     </documentation>
 
-	<import namespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl"
-			location="../common/fault-1.wsdl"/>
+	<import namespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-3"
+			location="../common/fault-3.wsdl"/>
 			
     <types>
-        <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl">
+        <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3">
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2" 
-            			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" 
+            			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"/>
             <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-2"
             			schemaLocation="http://prism.evolveum.com/xml/ns/public/query-2"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
@@ -514,10 +514,10 @@
         <operation name="getObject">
             <soap:operation/>
             <input name="getObjectInput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
             </input>
             <output name="getObjectOutput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
             </output>
             <fault name="fault">
                 <soap:fault name="fault" use="literal"/>
@@ -526,10 +526,10 @@
         <operation name="searchObjects">
             <soap:operation/>
             <input name="searchObjectsInput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
             </input>
             <output name="searchObjectsOutput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
             </output>
             <fault name="fault">
                 <soap:fault name="fault" use="literal"/>
@@ -538,10 +538,10 @@
         <operation name="executeChanges">
             <soap:operation/>
             <input name="executeChangesInput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
             </input>
             <output name="executeChangesOutput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
             </output>
             <fault name="fault">
                 <soap:fault name="fault" use="literal"/>
@@ -550,10 +550,10 @@
         <operation name="findShadowOwner">
             <soap:operation/>
             <input name="findShadowOwnerInput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
             </input>
             <output name="findShadowOwnerOutput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
             </output>
             <fault name="fault">
                 <soap:fault name="fault" use="literal"/>
@@ -562,10 +562,10 @@
         <operation name="testResource">
             <soap:operation/>
             <input name="testResourceInput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
             </input>
             <output name="testResourceOutput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
             </output>
             <fault name="fault">
                 <soap:fault name="fault" use="literal"/>
@@ -574,10 +574,10 @@
         <operation name="importFromResource">
             <soap:operation/>
             <input name="importFromResourceInput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
             </input>
             <output name="importFromResourceOutput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
             </output>
             <fault name="fault">
                 <soap:fault name="fault" use="literal"/>
@@ -586,10 +586,10 @@
         <operation name="notifyChange">
             <soap:operation/>
             <input name="notifyChangeInput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
             </input>
             <output name="notifyChangeOutput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
             </output>
             <fault name="fault">
                 <soap:fault name="fault" use="literal"/>
@@ -598,10 +598,10 @@
         <operation name="executeScripts">
             <soap:operation/>
             <input name="executeScriptsInput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
             </input>
             <output name="executeScriptsOutput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
             </output>
             <fault name="fault">
                 <soap:fault name="fault" use="literal"/>
@@ -611,10 +611,10 @@
         <!--<operation name="getSchemas">-->
             <!--<soap:operation/>-->
             <!--<input name="getSchemasInput">-->
-                <!--<soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>-->
+                <!--<soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>-->
             <!--</input>-->
             <!--<output name="getSchemasOutput">-->
-                <!--<soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>-->
+                <!--<soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>-->
             <!--</output>-->
             <!--<fault name="fault">-->
                 <!--<soap:fault name="fault" use="literal"/>-->

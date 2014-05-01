@@ -83,10 +83,10 @@
         <operation name="fake">
             <soap:operation/>
             <input name="fakeInput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
             </input>
             <output name="fakeOutput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
             </output>
         </operation>
     </binding>

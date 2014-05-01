@@ -29,7 +29,7 @@
                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
                xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
                xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
-               xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2"
+               xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
                xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
       <c:expiration>999</c:expiration>
@@ -44,7 +44,7 @@
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
                    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
                    xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
-                   xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2"
+                   xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                    xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
                    xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
       <c:description>String validation policy</c:description>

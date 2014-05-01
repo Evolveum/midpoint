@@ -16,7 +16,7 @@
   -->
 <c:object xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:apit='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
+	xmlns:apit='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
    xsi:type="apit:ObjectListType">

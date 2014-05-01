@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
   -->
 
 <definitions name="fault"
-             targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl"
+             targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-3"
              xmlns="http://schemas.xmlsoap.org/wsdl/"
              xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
              xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 			 xmlns:jaxws="http://java.sun.com/xml/ns/jaxws"
-			 xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl">
+			 xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/fault-3">
     
 	<!-- This does not really work. Bug in JAX-WS RI? -->
 	<jaxws:bindings>
@@ -30,7 +30,7 @@
 	</jaxws:bindings>
 	
 	<types>
-		<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl">
+		<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-3">
 			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
 						schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>			
 
