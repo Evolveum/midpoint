@@ -357,9 +357,10 @@ public class ObjectWrapper implements Serializable {
 			if (!(def instanceof PrismContainerDefinition)) {
 				continue;
 			}
-            if (AuthorizationType.COMPLEX_TYPE.equals(def.getTypeName())) {
+            if (ObjectSpecificationType.COMPLEX_TYPE.equals(def.getTypeName())) {
                 continue;       // TEMPORARY FIX
             }
+            LOGGER.trace("ObjectWrapper.createContainerWrapper processing definition: {}", def);
 
 			PrismContainerDefinition containerDef = (PrismContainerDefinition) def;
 			if (!showAssignments && AssignmentType.COMPLEX_TYPE.equals(containerDef.getTypeName())) {
