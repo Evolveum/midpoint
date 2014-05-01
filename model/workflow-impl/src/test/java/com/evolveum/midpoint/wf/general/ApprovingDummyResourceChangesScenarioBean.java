@@ -39,7 +39,7 @@ import javax.xml.namespace.QName;
 import java.util.Map;
 
 /**
- * This wrapper simply puts "dummyResourceDelta" process variable into externalized state.
+ * This scenario bean simply puts "dummyResourceDelta" process variable into externalized state.
  *
  * @author mederly
  */

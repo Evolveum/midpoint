@@ -100,7 +100,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     public static final String UNKNOWN_OID = "?";
 
-    List<PrimaryChangeAspect> processWrappers;
+    List<PrimaryChangeAspect> changeAspects;
 
     public enum ExecutionMode {
         ALL_AFTERWARDS, ALL_IMMEDIATELY, MIXED;
@@ -113,8 +113,8 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         pcpConfigurationHelper.configure(this);
     }
 
-    public void setProcessWrappers(List<PrimaryChangeAspect> processWrappers) {
-        this.processWrappers = processWrappers;
+    public void setChangeAspects(List<PrimaryChangeAspect> changeAspects) {
+        this.changeAspects = changeAspects;
     }
     //endregion
 
@@ -133,7 +133,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
             return null;
         }
 
-        // examine the request using process wrappers
+        // examine the request using process aspects
 
         ObjectDelta<? extends ObjectType> changeBeingDecomposed = change.clone();
         List<PcpChildJobCreationInstruction> jobCreationInstructions = gatherStartInstructions(context, changeBeingDecomposed, taskFromModel, result);
@@ -151,15 +151,15 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     private List<PcpChildJobCreationInstruction> gatherStartInstructions(ModelContext context, ObjectDelta<? extends ObjectType> changeBeingDecomposed, Task taskFromModel, OperationResult result) throws SchemaException {
         List<PcpChildJobCreationInstruction> startProcessInstructions = new ArrayList<>();
 
-        for (PrimaryChangeAspect wrapper : processWrappers) {
-            List<PcpChildJobCreationInstruction> instructions = wrapper.prepareJobCreationInstructions(context, changeBeingDecomposed, taskFromModel, result);
-            logWrapperResult(wrapper, instructions);
+        for (PrimaryChangeAspect aspect : changeAspects) {
+            List<PcpChildJobCreationInstruction> instructions = aspect.prepareJobCreationInstructions(context, changeBeingDecomposed, taskFromModel, result);
+            logAspectResult(aspect, instructions);
             if (instructions != null) {
                 startProcessInstructions.addAll(instructions);
             }
         }
 
-        // tweaking the instructions returned from wrappers a bit...
+        // tweaking the instructions returned from aspects a bit...
 
         // if we are adding a new object, we have to set OBJECT_TO_BE_ADDED variable in all instructions
         if (changeBeingDecomposed.isAdd()) {
@@ -185,9 +185,9 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         return startProcessInstructions;
     }
 
-    private void logWrapperResult(PrimaryChangeAspect wrapper, List<? extends JobCreationInstruction> instructions) {
+    private void logAspectResult(PrimaryChangeAspect aspect, List<? extends JobCreationInstruction> instructions) {
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Wrapper " + wrapper.getClass() + " returned the following process start instructions (count: " + (instructions == null ? "(null)" : instructions.size()) + "):");
+            LOGGER.trace("Aspect " + aspect.getClass() + " returned the following process start instructions (count: " + (instructions == null ? "(null)" : instructions.size()) + "):");
             if (instructions != null) {
                 for (JobCreationInstruction instruction : instructions) {
                     LOGGER.trace(instruction.debugDump(0));
@@ -399,27 +399,27 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     //endregion
 
     //region Getters and setters
-    public List<PrimaryChangeAspect> getProcessWrappers() {
-        return processWrappers;
+    public List<PrimaryChangeAspect> getChangeAspects() {
+        return changeAspects;
     }
 
     PrimaryChangeAspect getChangeAspect(Map<String, Object> variables) {
-        String wrapperClassName = (String) variables.get(PcpProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_ASPECT);
-        return findProcessWrapper(wrapperClassName);
+        String aspectClassName = (String) variables.get(PcpProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_ASPECT);
+        return findPrimaryChangeAspect(aspectClassName);
     }
 
-    public PrimaryChangeAspect findProcessWrapper(String name) {
+    public PrimaryChangeAspect findPrimaryChangeAspect(String name) {
 
         // we can search either by bean name or by aspect class name (experience will show what is the better way)
         if (getBeanFactory().containsBean(name)) {
             return getBeanFactory().getBean(name, PrimaryChangeAspect.class);
         }
-        for (PrimaryChangeAspect w : processWrappers) {
+        for (PrimaryChangeAspect w : changeAspects) {
             if (name.equals(w.getClass().getName())) {
                 return w;
             }
         }
-        throw new IllegalStateException("Wrapper " + name + " is not registered.");
+        throw new IllegalStateException("Aspect " + name + " is not registered.");
     }
 
     WfTaskUtil getWfTaskUtil() {     // ugly hack - used in PcpJob

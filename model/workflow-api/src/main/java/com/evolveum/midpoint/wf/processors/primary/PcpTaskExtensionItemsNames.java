@@ -40,5 +40,5 @@ public class PcpTaskExtensionItemsNames {
     public static final QName WFAPPROVED_BY_REFERENCE_NAME = new QName(WfTaskExtensionItemsNames.WORKFLOW_EXTENSION_NS, "approvedBy");
 
     // Name of class that provides an interface between midPoint and activiti process.
-    public static final QName WFPROCESS_WRAPPER_PROPERTY_NAME = new QName(WfTaskExtensionItemsNames.WORKFLOW_EXTENSION_NS, "processWrapper");
+    public static final QName WFPRIMARY_CHANGE_ASPECT_NAME = new QName(WfTaskExtensionItemsNames.WORKFLOW_EXTENSION_NS, "primaryChangeAspect");
 }
