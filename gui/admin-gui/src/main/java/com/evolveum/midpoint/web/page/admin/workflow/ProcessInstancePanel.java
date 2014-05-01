@@ -85,25 +85,30 @@ public class ProcessInstancePanel extends SimplePanel<ProcessInstanceDto> {
         Label finished = new Label("finished", new PropertyModel(model, "finishedTime"));
         add(finished);
 
-        // todo what if task does not exist?
-        LinkPanel task = new LinkPanel(ID_TASK, new PropertyModel(model, ProcessInstanceDto.F_WATCHING_TASK_OID)) {
+        // todo disable clicking behaviour if task does not exist
+        LinkPanel task = new LinkPanel(ID_TASK, new PropertyModel(model, ProcessInstanceDto.F_SHADOW_TASK)) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                String oid = model.getObject().getWatchingTaskOid();
+                String oid = model.getObject().getShadowTaskOid();
                 if (oid != null) {
                     PageParameters parameters = new PageParameters();
                     parameters.add(OnePageParameterEncoder.PARAMETER, oid);
                     setResponsePage(new PageTaskEdit(parameters, (PageBase) this.getPage()));
                 }
             }
+
+            @Override
+            public boolean isEnabled() {
+                return model.getObject().isShadowTaskExisting();
+            }
         };
         add(task);
 
-        Label taskComment = new Label(ID_TASK_COMMENT, createStringResource("processInstancePanel.taskMightBeRemoved"));
+        Label taskComment = new Label(ID_TASK_COMMENT, createStringResource("processInstancePanel.taskAlreadyRemoved"));
         taskComment.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
-                return model.getObject().isFinished();
+                return !model.getObject().isShadowTaskExisting();
             }
         });
         add(taskComment);
