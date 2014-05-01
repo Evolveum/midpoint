@@ -49,6 +49,7 @@
                 </q:value>
             </q:equal>
         </filter>
+        <description>Reference to the ICF LDAP connector.</description>
     </connectorRef>
 
     <!-- Resource configuration section -->
