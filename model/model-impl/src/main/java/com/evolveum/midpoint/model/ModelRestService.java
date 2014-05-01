@@ -67,7 +67,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 @Service
 @Produces({"application/xml", "application/json"})

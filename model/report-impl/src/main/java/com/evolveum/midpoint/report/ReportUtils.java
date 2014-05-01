@@ -15,7 +15,6 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
-import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRExpression;
@@ -75,8 +74,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportConfigurationT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportFieldConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 
 public class ReportUtils {

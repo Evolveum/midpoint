@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -187,11 +187,11 @@
                                         </extraarg>
                                         <extraarg>-xjc-Xmidpoint</extraarg>
                                         <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-2</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-3</extraarg>
                                         <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-2</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-3</extraarg>
                                         <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-2</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
                                         <extraarg>-nexclude</extraarg>
                                         <extraarg>http://midpoint.evolveum.com/xml/ns/public/common/common-3</extraarg>
                                         <extraarg>-nexclude</extraarg>
@@ -219,11 +219,11 @@
                                             -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy
                                         </extraarg>
                                         <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-2</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-3</extraarg>
                                         <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-2</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-3</extraarg>
                                         <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-2</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
                                         <!-- 										<extraargs>-version</extraargs> -->
 
                                         <extraarg>-xjc-Xmidpoint</extraarg>
@@ -249,11 +249,11 @@
                                             -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy
                                         </extraarg>
                                         <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-2</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-3</extraarg>
                                         <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-2</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-3</extraarg>
                                         <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-2</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
                                         <!-- 										<extraargs>-version</extraargs> -->
 
                                         <extraarg>-xjc-Xmidpoint</extraarg>

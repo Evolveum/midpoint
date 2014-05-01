@@ -20,7 +20,7 @@
       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-    <name xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+    <name xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
         <t:orig>testuserX123</t:orig>
         <t:norm>testuserx123</t:norm>
     </name>
@@ -101,15 +101,15 @@
         <validFrom>2013-05-21T14:57:50.759+02:00</validFrom>
         <validTo>2015-12-31T22:59:00.000+01:00</validTo>
     </activation>
-    <fullName xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+    <fullName xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
         <t:orig>Test UserX123</t:orig>
         <t:norm>test userx123</t:norm>
     </fullName>
-    <givenName xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+    <givenName xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
         <t:orig>TestX</t:orig>
         <t:norm>testx</t:norm>
     </givenName>
-    <familyName xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+    <familyName xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
         <t:orig>UserX123</t:orig>
         <t:norm>userx123</t:norm>
     </familyName>
@@ -117,19 +117,19 @@
     <employeeType>e1</employeeType>
     <employeeType>e2</employeeType>
     <employeeType>e3</employeeType>
-    <organization xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+    <organization xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
         <t:orig>org 1</t:orig>
         <t:norm>org 1</t:norm>
     </organization>
-    <organization xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+    <organization xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
         <t:orig>org 2</t:orig>
         <t:norm>org 2</t:norm>
     </organization>
-    <organizationalUnit xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+    <organizationalUnit xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
         <t:orig>org unit 1</t:orig>
         <t:norm>org unit 1</t:norm>
     </organizationalUnit>
-    <organizationalUnit xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+    <organizationalUnit xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
         <t:orig>org unit 2</t:orig>
         <t:norm>org unit 2</t:norm>
     </organizationalUnit>

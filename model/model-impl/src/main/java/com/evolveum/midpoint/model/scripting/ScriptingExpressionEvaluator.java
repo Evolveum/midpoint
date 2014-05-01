@@ -38,7 +38,8 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ForeachExpressionT
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.SearchExpressionType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_2.SelectExpressionType;
-import com.evolveum.prism.xml.ns._public.types_2.RawType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +47,7 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
+
 import java.util.HashMap;
 import java.util.Map;
 

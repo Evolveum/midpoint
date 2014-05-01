@@ -28,9 +28,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.ws.BindingProvider;
 
-import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
-import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.cxf.frontend.ClientProxy;
@@ -43,7 +41,9 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
@@ -60,7 +60,7 @@ public class ModelClientUtil {
 	public static final QName COMMON_VALUE = new QName(NS_COMMON, "value");
 	public static final QName COMMON_ASSIGNMENT = new QName(NS_COMMON, "assignment");
 	
-	public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-2";
+	public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-3";
 	private static final QName TYPES_POLYSTRING_ORIG = new QName(NS_TYPES, "orig");
 	
 	private static final DocumentBuilder domDocumentBuilder;
@@ -75,8 +75,8 @@ public class ModelClientUtil {
 				"com.evolveum.midpoint.xml.ns._public.resource.capabilities_2:" +
 				"com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2:" +
 				"com.evolveum.prism.xml.ns._public.annotation_2:" +
-				"com.evolveum.prism.xml.ns._public.query_2:" +
-				"com.evolveum.prism.xml.ns._public.types_2:" +
+				"com.evolveum.prism.xml.ns._public.query_3:" +
+				"com.evolveum.prism.xml.ns._public.types_3:" +
 				"org.w3._2000._09.xmldsig:" +
 				"org.w3._2001._04.xmlenc");
 	}

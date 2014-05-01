@@ -24,8 +24,8 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.prism.xml.ns._public.query_2.OrderDirectionType;
-import com.evolveum.prism.xml.ns._public.query_2.PagingType;
+import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
+import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 
 
 

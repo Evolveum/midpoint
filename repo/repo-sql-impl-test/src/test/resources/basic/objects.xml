@@ -22,8 +22,8 @@
          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
          xmlns:my="http://myself.me/schemas/whatever"
-         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
          xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
 
     <user version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -93,7 +93,7 @@
         <credentials>
             <password>
              <c:value> -->
-            <t:encryptedData xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+            <t:encryptedData xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
                <t:encryptionMethod>
                   <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes128-cbc</t:algorithm>
                </t:encryptionMethod>
@@ -147,7 +147,7 @@
         <credentials>
             <password>
              <c:value> -->
-            <t:encryptedData xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+            <t:encryptedData xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
                <t:encryptionMethod>
                   <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes128-cbc</t:algorithm>
                </t:encryptionMethod>
@@ -246,12 +246,12 @@
 					targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
 					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-					xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+					xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
 					xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
 					xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" />
 
-					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2" />
+					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
 					<xsd:complexType name="GroupObjectClass">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -774,12 +774,12 @@
             <xsd:schema elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/openicf-csvfile-connector/org.forgerock.openicf.csvfile.CSVFileConnector"
             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:gen366="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd" xmlns:gen538="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/openicf-csvfile-connector/org.forgerock.openicf.csvfile.CSVFileConnector">
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"/>
 
-                <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"/>
+                <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
                 <xsd:complexType name="ConfigurationType">
                     <xsd:annotation>
                         <xsd:appinfo>
@@ -968,7 +968,7 @@
 
     <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2">
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
         <name>Judge</name>
         <linkRef oid="11223355"/>
         <assignment id="1">
@@ -1077,7 +1077,7 @@
 
     <report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             oid="AUDITLOG-3333-3333-TEST-10000000000"
             version="0">
@@ -1149,13 +1149,13 @@
             <definition>
                 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+                            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                             xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report"
                             elementFormDefault="qualified"
                             targetNamespace="http://midpoint.evolveum.com/xml/ns/public/report">
 
                     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
-                    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-2"/>
+                    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
 
                     <xsd:element name="hqlQuery" type="xsd:string"/>
                     <xsd:element name="type" type="xsd:QName"/>
@@ -1183,7 +1183,7 @@
     
 	<valuePolicy oid="SECURITY-0000-0000-0000-000000000003"
         		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+        		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         		version="0">
     	<name>Default Password Policy</name>
     	<description>Default password policy</description>

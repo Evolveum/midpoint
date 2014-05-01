@@ -116,7 +116,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ReadCapabili
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ScriptCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ScriptCapabilityType.Host;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.UpdateCapabilityType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 /**
  * Test for provisioning service implementation.

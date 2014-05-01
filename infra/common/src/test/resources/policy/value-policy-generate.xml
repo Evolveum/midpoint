@@ -19,15 +19,15 @@
              oid="81818181-76e0-59e2-8888-3d4f02d3fffb"
              version="10">
    <name>
-      <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Numeric PIN Policy</orig>
-      <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">numeric pin policy</norm>
+      <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">Numeric PIN Policy</orig>
+      <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">numeric pin policy</norm>
    </name>
    <description>A policy useful for generating PIN.</description>
    <c:lifetime xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-               xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+               xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
-               xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+               xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
                xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
@@ -40,9 +40,9 @@
    </c:lifetime>
    <c:stringPolicy xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-                   xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+                   xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
-                   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+                   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                    xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
                    xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                    xmlns:ds="http://www.w3.org/2000/09/xmldsig#"

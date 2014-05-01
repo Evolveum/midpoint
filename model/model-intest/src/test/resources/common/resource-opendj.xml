@@ -17,8 +17,8 @@
 <object xsi:type="ResourceType" oid="10000000-0000-0000-0000-000000000003" 
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'
-	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+	xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 	xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
@@ -69,12 +69,12 @@
 			targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
 			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
 			xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" />
 			
-			<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2" />
+			<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
 			<xsd:complexType name="GroupObjectClass">
 				<xsd:annotation>
 					<xsd:appinfo>

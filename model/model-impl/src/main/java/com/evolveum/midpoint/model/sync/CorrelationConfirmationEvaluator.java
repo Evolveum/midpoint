@@ -60,7 +60,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.prism.xml.ns._public.query_2.PagingType;
+import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 
 @Component
 public class CorrelationConfirmationEvaluator {

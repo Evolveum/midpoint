@@ -20,7 +20,7 @@
 			targetNamespace="http://schema.foo.com/bar"
 			xmlns:tns="http://schema.foo.com/bar"
 			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
 			xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
             elementFormDefault="qualified">
             

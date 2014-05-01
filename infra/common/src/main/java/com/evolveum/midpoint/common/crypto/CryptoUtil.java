@@ -43,7 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigur
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SmsConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SmsGatewayConfigurationType;
-import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author semancik

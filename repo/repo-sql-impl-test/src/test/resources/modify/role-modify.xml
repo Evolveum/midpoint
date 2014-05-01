@@ -19,8 +19,8 @@
       oid="00000000-d34d-b33f-f00d-100000000001"
       version="3">
     <name>
-        <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">testRole</orig>
-        <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">testrole</norm>
+        <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">testRole</orig>
+        <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">testrole</norm>
     </name>
     <description>GUI</description>
     <metadata>

@@ -17,7 +17,7 @@
 
 <objectDelta
 		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns="http://prism.evolveum.com/xml/ns/public/types-2"
+		xmlns="http://prism.evolveum.com/xml/ns/public/types-3"
 		xmlns:my="http://whatever.com/my"
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		xmlns:xsd="http://www.w3.org/2001/XMLSchema">

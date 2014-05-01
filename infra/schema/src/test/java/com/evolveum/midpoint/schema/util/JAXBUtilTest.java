@@ -25,7 +25,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
 import com.evolveum.midpoint.prism.util.JaxbTestUtil;
-import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -89,7 +89,7 @@ public class JAXBUtilTest {
 
 		String s = "<?xml version='1.0' encoding='utf-8'?> " +
 				"<user oid='deadbeef-c001-f00d-1111-222233330001'" +
-                "      xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'" +
+                "      xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'" +
 				"      xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>" +
 				"	<fullName><t:orig>Jožko Nováčik</t:orig><t:norm>jozko novacik</t:norm></fullName>" +
 				"</user>";
@@ -111,7 +111,7 @@ public class JAXBUtilTest {
 
 		String s = "<?xml version='1.0' encoding='iso-8859-2'?> " +
 				"<user oid='deadbeef-c001-f00d-1111-222233330001'" +
-                "      xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'" +
+                "      xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'" +
 				"      xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>" +
 				"	<fullName><t:orig>Jožko Nováčik</t:orig><t:norm>jozko novacik</t:norm></fullName>" +
 				"</user>";

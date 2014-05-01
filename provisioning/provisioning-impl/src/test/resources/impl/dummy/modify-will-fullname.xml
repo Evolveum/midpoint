@@ -18,7 +18,7 @@
 <objectModification
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd"
 	xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
 	xmlns:ds="http://www.w3.org/2000/09/xmldsig#"

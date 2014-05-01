@@ -38,7 +38,7 @@
                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
                   xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector"
                   xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                  xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+                  xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
 				  xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   elementFormDefault="qualified"
@@ -46,7 +46,7 @@
          <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"/>
          <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
          
-         <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"/>
+         <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
          <xsd:complexType name="ConfigurationPropertiesType">
             <xsd:annotation>
                <xsd:appinfo>

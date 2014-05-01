@@ -20,8 +20,8 @@
         version="6"
         xsi:type="ShadowType">
     <name>
-        <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">undeletableobject</orig>
-        <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">undeletableobject</norm>
+        <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">undeletableobject</orig>
+        <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">undeletableobject</norm>
     </name>
     <trigger id="1">
         <timestamp>2018-01-01T00:00:00.000-05:00</timestamp>
@@ -43,9 +43,9 @@
     <objectClass xmlns:qn363="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">qn363:AccountObjectClass</objectClass>
     <c:kind xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
-            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
             xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
             xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
             xmlns:wfcf="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"

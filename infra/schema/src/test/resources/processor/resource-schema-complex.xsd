@@ -17,7 +17,7 @@
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+	xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
 	xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" 
 	elementFormDefault="qualified"

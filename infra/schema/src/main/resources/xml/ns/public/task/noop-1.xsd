@@ -18,8 +18,8 @@
 
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-2"
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-2"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             elementFormDefault="qualified">
 

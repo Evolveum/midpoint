@@ -314,7 +314,7 @@
         <xs:attribute name="Id" type="xs:ID" />
       </xs:complexType>
     </xs:schema>
-    <xs:schema xmlns:tns="http://prism.evolveum.com/xml/ns/public/types-2" elementFormDefault="qualified" targetNamespace="http://prism.evolveum.com/xml/ns/public/types-2" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:schema xmlns:tns="http://prism.evolveum.com/xml/ns/public/types-3" elementFormDefault="qualified" targetNamespace="http://prism.evolveum.com/xml/ns/public/types-3" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
       <xs:element name="objectDelta" type="tns:ObjectDeltaType" />
       <xs:complexType name="PolyStringType">
         <xs:sequence>
@@ -388,8 +388,8 @@
         </xs:restriction>
       </xs:simpleType>
     </xs:schema>
-    <xs:schema xmlns:tns="http://prism.evolveum.com/xml/ns/public/query-2" xmlns:ns1="http://prism.evolveum.com/xml/ns/public/types-2" elementFormDefault="qualified" targetNamespace="http://prism.evolveum.com/xml/ns/public/query-2" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-      <xs:import namespace="http://prism.evolveum.com/xml/ns/public/types-2" />
+    <xs:schema xmlns:tns="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ns1="http://prism.evolveum.com/xml/ns/public/types-3" elementFormDefault="qualified" targetNamespace="http://prism.evolveum.com/xml/ns/public/query-3" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:import namespace="http://prism.evolveum.com/xml/ns/public/types-3" />
       <xs:element name="and" type="tns:NAryLogicalOperatorFilterType" />
       <xs:element name="equal" type="tns:PropertyComplexValueFilterType" />
       <xs:element name="filter" type="tns:FilterType" />
@@ -507,7 +507,7 @@
         </xs:restriction>
       </xs:simpleType>
     </xs:schema>
-    <xs:schema xmlns:tns="http://prism.evolveum.com/xml/ns/public/annotation-2" targetNamespace="http://prism.evolveum.com/xml/ns/public/annotation-2" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:schema xmlns:tns="http://prism.evolveum.com/xml/ns/public/annotation-3" targetNamespace="http://prism.evolveum.com/xml/ns/public/annotation-3" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
       <xs:element name="access" type="tns:AccessAnnotationType" />
       <xs:element name="composite" type="xs:boolean" />
       <xs:element name="container" type="xs:anyType" />
@@ -659,9 +659,9 @@
         </xs:complexContent>
       </xs:complexType>
     </xs:schema>
-    <xs:schema xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:ns2="http://prism.evolveum.com/xml/ns/public/query-2" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:schema xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:ns2="http://prism.evolveum.com/xml/ns/public/query-3" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
       <xs:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" />
-      <xs:import namespace="http://prism.evolveum.com/xml/ns/public/query-2" />
+      <xs:import namespace="http://prism.evolveum.com/xml/ns/public/query-3" />
       <xs:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" />
       <xs:element name="addObject">
         <xs:complexType>
@@ -958,10 +958,10 @@
         </xs:complexContent>
       </xs:complexType>
     </xs:schema>
-    <xs:schema xmlns:ns3="http://prism.evolveum.com/xml/ns/public/query-2" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:ns1="http://prism.evolveum.com/xml/ns/public/types-2" xmlns:ns2="http://www.w3.org/2001/04/xmlenc#" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-      <xs:import namespace="http://prism.evolveum.com/xml/ns/public/types-2" />
+    <xs:schema xmlns:ns3="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:ns1="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:ns2="http://www.w3.org/2001/04/xmlenc#" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:import namespace="http://prism.evolveum.com/xml/ns/public/types-3" />
       <xs:import namespace="http://www.w3.org/2001/04/xmlenc#" />
-      <xs:import namespace="http://prism.evolveum.com/xml/ns/public/query-2" />
+      <xs:import namespace="http://prism.evolveum.com/xml/ns/public/query-3" />
       <xs:element name="account" type="tns:ShadowType" />
       <xs:element name="accountPasswordNotifier" type="tns:AccountPasswordNotifierType" />
       <xs:element name="approverRef" type="tns:ObjectReferenceType" />
@@ -2634,9 +2634,9 @@
         </xs:restriction>
       </xs:simpleType>
     </xs:schema>
-    <xs:schema xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:ns2="http://prism.evolveum.com/xml/ns/public/types-2" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:schema xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:ns2="http://prism.evolveum.com/xml/ns/public/types-3" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
       <xs:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" />
-      <xs:import namespace="http://prism.evolveum.com/xml/ns/public/types-2" />
+      <xs:import namespace="http://prism.evolveum.com/xml/ns/public/types-3" />
       <xs:element name="objectModification" type="tns:ObjectModificationType" />
       <xs:complexType name="OperationOptionsType">
         <xs:sequence>

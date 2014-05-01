@@ -19,9 +19,9 @@
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-context-2"
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/model/model-context-2"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             elementFormDefault="qualified"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
@@ -56,8 +56,8 @@
     </xsd:import>
 
 
-    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"
-                schemaLocation="http://prism.evolveum.com/xml/ns/public/annotation-2">
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/annotation-3">
         <xsd:annotation>
             <xsd:documentation>
                 Common prism annotations used in various XSD schemas.
@@ -65,8 +65,8 @@
         </xsd:annotation>
     </xsd:import>
 
-    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-2"
-                schemaLocation="http://prism.evolveum.com/xml/ns/public/types-2">
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3">
         <xsd:annotation>
             <xsd:documentation>
                 Prism data types.
@@ -74,8 +74,8 @@
         </xsd:annotation>
     </xsd:import>
 
-    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-2"
-                schemaLocation="http://prism.evolveum.com/xml/ns/public/query-2">
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3">
         <xsd:annotation>
             <xsd:documentation>
                 Prism data types.

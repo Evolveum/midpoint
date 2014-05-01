@@ -27,13 +27,13 @@ public enum PrefixMapper {
 
     C("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "COMMON"),
 
-    T("http://prism.evolveum.com/xml/ns/public/types-2", "TYPES"),
+    T("http://prism.evolveum.com/xml/ns/public/types-3", "TYPES"),
 
-    Q("http://prism.evolveum.com/xml/ns/public/query-2", "QUERY"),
+    Q("http://prism.evolveum.com/xml/ns/public/query-3", "QUERY"),
 
     R_CAP("http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2", "CAPABILITIES"),
 
-    A("http://prism.evolveum.com/xml/ns/public/annotation-2", "ANNOTATION"),
+    A("http://prism.evolveum.com/xml/ns/public/annotation-3", "ANNOTATION"),
 
     S("http://midpoint.evolveum.com/xml/ns/public/model/situation-1.xsd", "SITUATION"),
 

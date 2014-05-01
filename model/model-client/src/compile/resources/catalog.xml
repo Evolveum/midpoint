@@ -16,14 +16,14 @@
   -->
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">
 
-    <public publicId="http://prism.evolveum.com/xml/ns/public/annotation-2" uri="../../../target/midpoint-schema/xml/ns/public/annotation-2.xsd" />
-    <system systemId="http://prism.evolveum.com/xml/ns/public/annotation-2" uri="../../../target/midpoint-schema/xml/ns/public/annotation-2.xsd" />
+    <public publicId="http://prism.evolveum.com/xml/ns/public/annotation-3" uri="../../../target/midpoint-schema/xml/ns/public/annotation-3.xsd" />
+    <system systemId="http://prism.evolveum.com/xml/ns/public/annotation-3" uri="../../../target/midpoint-schema/xml/ns/public/annotation-3.xsd" />
 
-    <public publicId="http://prism.evolveum.com/xml/ns/public/types-2" uri="../../../target/midpoint-schema/xml/ns/public/types-2.xsd" />
-    <system systemId="http://prism.evolveum.com/xml/ns/public/types-2" uri="../../../target/midpoint-schema/xml/ns/public/types-2.xsd" />
+    <public publicId="http://prism.evolveum.com/xml/ns/public/types-3" uri="../../../target/midpoint-schema/xml/ns/public/types-3.xsd" />
+    <system systemId="http://prism.evolveum.com/xml/ns/public/types-3" uri="../../../target/midpoint-schema/xml/ns/public/types-3.xsd" />
 
-    <public publicId="http://prism.evolveum.com/xml/ns/public/query-2" uri="../../../target/midpoint-schema/xml/ns/public/query-2.xsd" />
-    <system systemId="http://prism.evolveum.com/xml/ns/public/query-2" uri="../../../target/midpoint-schema/xml/ns/public/query-2.xsd" />
+    <public publicId="http://prism.evolveum.com/xml/ns/public/query-3" uri="../../../target/midpoint-schema/xml/ns/public/query-3.xsd" />
+    <system systemId="http://prism.evolveum.com/xml/ns/public/query-3" uri="../../../target/midpoint-schema/xml/ns/public/query-3.xsd" />
 
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/common-3" uri="../../../target/midpoint-schema/xml/ns/public/common/common-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-3" uri="../../../target/midpoint-schema/xml/ns/public/common/common-3.xsd" />

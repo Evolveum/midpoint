@@ -21,7 +21,7 @@
     xmlns="http://schemas.xmlsoap.org/wsdl/"
     xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:apit="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
     xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/fault-3"
@@ -54,8 +54,8 @@
             			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" 
             			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"/>
-            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-2"
-            			schemaLocation="http://prism.evolveum.com/xml/ns/public/query-2"/>
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"
+            			schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
             			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"

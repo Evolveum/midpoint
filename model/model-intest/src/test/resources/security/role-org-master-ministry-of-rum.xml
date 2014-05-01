@@ -15,7 +15,7 @@
   -->
 <role oid="00000000-0000-0000-0000-00000000aa06"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Master of Ministry of Rum</name>    
     <authorization>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#read</action>

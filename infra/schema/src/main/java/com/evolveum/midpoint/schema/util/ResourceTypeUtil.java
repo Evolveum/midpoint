@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 
 
 
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -60,7 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsC
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.DeleteCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ReadCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.UpdateCapabilityType;
-import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
+import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 /**
  * Methods that would belong to the ResourceType class but cannot go there

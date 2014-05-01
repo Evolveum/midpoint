@@ -24,7 +24,8 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.OperationOptions;

@@ -15,7 +15,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
-import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
+import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 
 /**
@@ -28,7 +28,7 @@ import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
  *   &lt;complexContent>
  *     &lt;extension base="{http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd}ObjectType">
  *       &lt;sequence>
- *         &lt;element name="schema" type="{http://prism.evolveum.com/xml/ns/public/types-2}SchemaDefinitionType" minOccurs="0"/>
+ *         &lt;element name="schema" type="{http://prism.evolveum.com/xml/ns/public/types-3}SchemaDefinitionType" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/extension>
  *   &lt;/complexContent>

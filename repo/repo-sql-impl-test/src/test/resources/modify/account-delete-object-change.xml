@@ -23,7 +23,7 @@
         xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>accObjecChange</name>
     <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>
     <objectChange>

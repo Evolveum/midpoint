@@ -15,13 +15,13 @@
   -->
 <report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 		oid="00000000-3333-3333-TEST-10000000000"
         version="0">
 	<name>
-		<orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Test report</orig>
-		<norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">test report</norm>
+		<orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">Test report</orig>
+		<norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">test report</norm>
 	</name>
 	<description>TEST Report with DataSource parameter.</description>
 	<template>
@@ -246,7 +246,7 @@
 	</field>	
 	<!-- configuration properties -->
 	<configuration xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report"
-				   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2">
+				   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 		<r:logoPath>src/test/resources/reports/logo.jpg</r:logoPath>
 		<r:type>c:UserType</r:type>
 		<r:filter>
@@ -262,16 +262,16 @@
 		<definition>
 			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-                    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+                    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
                     xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report"
 					xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
                     elementFormDefault="qualified"
                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/report">
 
 				<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
-				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"/>
-				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-2"/>
+				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
 
 				<xsd:complexType name="ConfigurationType">
 					<xsd:annotation>

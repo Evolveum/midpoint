@@ -70,7 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
  * Simple version of model service exposing CRUD-like operations. This is common facade for webservice and REST services.

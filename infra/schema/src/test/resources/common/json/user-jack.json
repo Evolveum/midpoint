@@ -37,7 +37,7 @@
       "type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ShadowType",
       "description" : "This is third accountRef",
       "filter" : {
-        "@ns" : "http://prism.evolveum.com/xml/ns/public/query-2",
+        "@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
         "equal" : {
           "path" : "c:connectorType",
           "value" : [ ">org.identityconnectors.ldap.LdapConnector" ]
@@ -70,7 +70,7 @@
     "credentials" : {
       "password" : {
         "value" : {
-          "@ns" : "http://prism.evolveum.com/xml/ns/public/types-2",
+          "@ns" : "http://prism.evolveum.com/xml/ns/public/types-3",
           "encryptedData" : {
             "encryptionMethod" : {
               "algorithm" : "http://www.w3.org/2001/04/xmlenc#aes256-cbc\""

@@ -53,7 +53,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.foo.AccountConstructionType;
-import com.evolveum.prism.xml.ns._public.types_2.RawType;
+
 import org.testng.AssertJUnit;
 import org.xml.sax.SAXException;
 
@@ -75,7 +75,8 @@ import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
  * @author semancik
@@ -245,8 +246,8 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		schemaRegistry.setNamespacePrefixMapper(prefixMapper);
 		schemaRegistry.registerPrismDefaultSchemaResource("xml/ns/test/foo-1.xsd", "foo", ObjectFactory.class.getPackage());
 		schemaRegistry.registerPrismSchemaResource("xml/ns/test/foo-types-1.xsd", "foot", null);
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/types-2.xsd", "t", com.evolveum.prism.xml.ns._public.types_2.ObjectFactory.class.getPackage());
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/query-2.xsd", "q", com.evolveum.prism.xml.ns._public.query_2.ObjectFactory.class.getPackage());
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/types-3.xsd", "t", com.evolveum.prism.xml.ns._public.types_3.ObjectFactory.class.getPackage());
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/query-3.xsd", "q", com.evolveum.prism.xml.ns._public.query_3.ObjectFactory.class.getPackage());
 		schemaRegistry.registerSchemaResource("xml/ns/standard/XMLSchema.xsd", "xsd");
 		schemaRegistry.registerPrismSchemasFromDirectory(SCHEMA_DIR);
 		if (extraSchema != null){

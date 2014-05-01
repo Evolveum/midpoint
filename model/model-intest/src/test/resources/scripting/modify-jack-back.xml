@@ -17,10 +17,10 @@
 
 <s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <s:search>
         <s:type>c:UserType</s:type>
-        <equal xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
+        <equal xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
             <path>c:name</path>
             <value>jack</value>
         </equal>

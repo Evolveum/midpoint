@@ -17,7 +17,7 @@
 
 <mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
 	<source>
     	<path>$user/employeeType</path>
     </source>

@@ -16,7 +16,7 @@
   -->
 <user oid="00000000-0000-0000-0000-110000000012" 
 		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'
+		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
 		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
 		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
 		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>

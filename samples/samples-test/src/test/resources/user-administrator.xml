@@ -24,7 +24,7 @@
 	<credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 		<password>
 		 <value> 
-            <t:encryptedData xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+            <t:encryptedData xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
                <t:encryptionMethod>
                   <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes128-cbc</t:algorithm>
                </t:encryptionMethod>

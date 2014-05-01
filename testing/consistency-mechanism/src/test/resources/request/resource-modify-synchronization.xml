@@ -22,9 +22,9 @@
 	xmlns:a='http://midpoint.evolveum.com/xml/ns/public/common/api-types-3'
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-2"
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+	xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
 	<t:changeType>modify</t:changeType>
 	<t:objectType>c:ResourceType</t:objectType>

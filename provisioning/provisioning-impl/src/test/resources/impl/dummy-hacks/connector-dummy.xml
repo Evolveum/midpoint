@@ -35,12 +35,12 @@
 	            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
 	            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
 	            xmlns:qn942="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
-	            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
-	            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+	            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+	            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
 	            xmlns:qn984="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	            elementFormDefault="qualified"
 	            targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector">
-	            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"/>
+	            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
 	            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"/>
 	            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
 	            <xsd:complexType name="ConfigurationPropertiesType">

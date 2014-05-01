@@ -16,9 +16,9 @@
   ~ limitations under the License.
   -->
 <filter xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
+	xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
 
-	<or xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
+	<or xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
 		<substring>
 			<path>c:fullName</path>
 			<value>cpt jack sparrow</value>

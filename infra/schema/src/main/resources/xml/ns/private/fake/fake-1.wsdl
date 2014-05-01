@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -50,10 +50,10 @@
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
                         schemaLocation="../../public/model/scripting/scripting-2.xsd"/>
 
-            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-2" 
-            			schemaLocation="http://prism.evolveum.com/xml/ns/public/query-2"/>
-            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-2" 
-            			schemaLocation="http://prism.evolveum.com/xml/ns/public/types-2"/>
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3" 
+            			schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3"/>
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3" 
+            			schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3"/>
 
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/gui/admin-1"
                         schemaLocation="../../public/gui/admin-1.xsd"/>

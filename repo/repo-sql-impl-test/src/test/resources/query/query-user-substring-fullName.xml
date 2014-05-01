@@ -17,9 +17,9 @@
   -->
 
 <query xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-	xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
+	xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
 <filter>
-	<!-- <or xmlns="http://prism.evolveum.com/xml/ns/public/query-2"> -->
+	<!-- <or xmlns="http://prism.evolveum.com/xml/ns/public/query-3"> -->
 	<substring>
         <matching>normIgnoreCase</matching>
 		<path>c:fullName</path>

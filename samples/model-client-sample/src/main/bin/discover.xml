@@ -27,7 +27,7 @@
 
 <s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <s:type>c:ConnectorHostType</s:type>
-    <equal xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
+    <equal xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
         <path>c:hostname</path>
         <value>[[!!hostname!!]]</value>
     </equal>

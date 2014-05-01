@@ -18,9 +18,9 @@
 
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             elementFormDefault="qualified">
 
@@ -30,8 +30,8 @@
         </xsd:documentation>
     </xsd:annotation>
 
-    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-2"
-                schemaLocation="http://prism.evolveum.com/xml/ns/public/types-2">
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3">
         <xsd:annotation>
             <xsd:documentation>
                 Prism data types.

@@ -1,7 +1,7 @@
 package com.evolveum.midpoint.prism.util;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 public class ItemPathUtil {
 	

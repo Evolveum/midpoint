@@ -20,9 +20,9 @@
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
             xmlns:xenc="http://www.w3.org/2001/04/xmlenc#"
@@ -66,8 +66,8 @@
         </xsd:annotation>
     </xsd:import>
 
-    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"
-    			schemaLocation="http://prism.evolveum.com/xml/ns/public/annotation-2">
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"
+    			schemaLocation="http://prism.evolveum.com/xml/ns/public/annotation-3">
         <xsd:annotation>
             <xsd:documentation>
                 Common midPoint annotations used in various XSD schemas.
@@ -75,8 +75,8 @@
         </xsd:annotation>
     </xsd:import>
     
-    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-2"
-    			schemaLocation="http://prism.evolveum.com/xml/ns/public/types-2">
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"
+    			schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3">
         <xsd:annotation>
             <xsd:documentation>
                 Prism data types.

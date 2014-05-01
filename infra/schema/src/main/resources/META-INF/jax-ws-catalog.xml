@@ -28,11 +28,11 @@
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" uri="../xml/ns/public/common/api-types-3.xsd" />
 
     <!--
-       <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" uri="classpath:/xml/ns/public/query-2.xsd" />
-       <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" uri="classpath:/xml/ns/public/query-2.xsd" />
+       <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" uri="classpath:/xml/ns/public/query-3.xsd" />
+       <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" uri="classpath:/xml/ns/public/query-3.xsd" />
 
-       <public publicId="http://prism.evolveum.com/xml/ns/public/query-2" uri="classpath:/xml/ns/public/query-2.xsd" />
-       <system systemId="http://prism.evolveum.com/xml/ns/public/query-2" uri="classpath:/xml/ns/public/query-2.xsd" />
+       <public publicId="http://prism.evolveum.com/xml/ns/public/query-3" uri="classpath:/xml/ns/public/query-3.xsd" />
+       <system systemId="http://prism.evolveum.com/xml/ns/public/query-3" uri="classpath:/xml/ns/public/query-3.xsd" />
 
     -->
 

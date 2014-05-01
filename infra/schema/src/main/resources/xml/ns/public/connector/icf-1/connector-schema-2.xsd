@@ -18,7 +18,7 @@
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
-    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
     elementFormDefault="qualified">    
 
     <xsd:annotation>

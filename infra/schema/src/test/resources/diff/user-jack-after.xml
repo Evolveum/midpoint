@@ -23,7 +23,7 @@
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	
 	xmlns:foo="http://www.example.com/foo"
-    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
 	<name>jack</name>
 	<fullName>
         <t:orig>Cpt. Jack Sparrow</t:orig>

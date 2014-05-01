@@ -18,7 +18,7 @@
 <account oid="ef2bc95b-76e0-1111-d3ad-3d4f12120666"
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">
 	<name>jack</name>
