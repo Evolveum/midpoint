@@ -21,9 +21,10 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -118,8 +119,8 @@ public class PrismObjectPanel extends Panel {
 
     /**
      * Method uses value from administrativeStatus property for
-     * {@link com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType}
-     * and effectiveStatus property for {@link com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType}.
+     * {@link com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType}
+     * and effectiveStatus property for {@link com.evolveum.midpoint.xml.ns._public.common.common_3.UserType}.
      *
      * @return true if panel should look like its' object is disabled (strike through font).
      */

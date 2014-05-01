@@ -31,8 +31,8 @@
 
     <types>
         <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/private/fake/fake-1.wsdl">
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
-            			schemaLocation="../../public/common/common-2a.xsd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+            			schemaLocation="../../public/common/common-3.xsd"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2" 
             			schemaLocation="../../public/resource/capabilities-2.xsd"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" 

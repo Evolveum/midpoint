@@ -15,12 +15,12 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	oid="12345678-d34d-b33f-f00d-987987987989" version="0">
 	<name>Basic Role - CSV</name>
 	<inducement id="1">
 		<c:construction
-			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 			xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"

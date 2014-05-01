@@ -15,7 +15,7 @@
   -->
 
 <role oid="12345678-d34d-b33f-f00d-000387987988"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
         >
     <name>

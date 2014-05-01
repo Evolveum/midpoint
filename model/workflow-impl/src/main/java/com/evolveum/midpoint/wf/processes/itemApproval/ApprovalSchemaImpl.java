@@ -18,7 +18,7 @@ package com.evolveum.midpoint.wf.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.xjc.PrismForJAXBUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import java.io.Serializable;
 import java.util.ArrayList;

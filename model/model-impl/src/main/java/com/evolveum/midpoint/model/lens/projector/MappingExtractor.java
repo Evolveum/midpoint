@@ -20,7 +20,7 @@ import java.util.Collection;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.lens.Construction;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 public interface MappingExtractor<V extends PrismValue, F extends FocusType> {
 

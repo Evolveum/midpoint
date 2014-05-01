@@ -16,9 +16,10 @@
 
 package com.evolveum.midpoint.wf.processes.common;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import javax.xml.namespace.QName;
+
 import java.io.Serializable;
 
 /**

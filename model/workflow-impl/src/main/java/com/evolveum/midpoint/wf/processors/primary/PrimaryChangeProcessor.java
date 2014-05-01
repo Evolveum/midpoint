@@ -52,7 +52,7 @@ import com.evolveum.midpoint.wf.processors.BaseExternalizationHelper;
 import com.evolveum.midpoint.wf.processors.BaseModelInvocationProcessingHelper;
 import com.evolveum.midpoint.wf.processors.primary.aspect.PrimaryChangeAspect;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.WorkItemContents;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -20,10 +20,11 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.wf.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.processes.common.LightweightObjectRefImpl;
 import com.evolveum.midpoint.wf.util.SerializationSafeContainer;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ApprovalLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.LevelEvaluationStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LevelEvaluationStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
 import org.apache.commons.lang.Validate;
 
 import java.io.Serializable;

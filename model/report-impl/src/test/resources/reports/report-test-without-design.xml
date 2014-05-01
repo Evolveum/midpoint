@@ -15,8 +15,8 @@
   -->
 
 <!-- Test report. It specifies creation of simple report, user in midpoint. -->
-<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
         oid="00000000-3333-3333-TEST-20000000000"
@@ -76,7 +76,7 @@
                     elementFormDefault="qualified"
                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/report">
 
-				<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"/>
+				<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
 				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"/>
 				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-2"/>
 

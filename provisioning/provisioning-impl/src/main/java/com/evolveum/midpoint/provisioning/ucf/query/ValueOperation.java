@@ -38,7 +38,7 @@ import com.evolveum.midpoint.provisioning.ucf.impl.IcfNameMapper;
 import com.evolveum.midpoint.provisioning.ucf.util.UcfUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 public class ValueOperation extends Operation {
 

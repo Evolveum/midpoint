@@ -16,7 +16,7 @@
   ~ limitations under the License.
   -->
 
-<q:filter xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<q:filter xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:ConditionalSearchFilterType">
@@ -26,7 +26,7 @@
         <script>
           <language>http://www.w3.org/TR/xpath/</language>
           <code>
-          declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+          declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
           declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
           if (substring($c:account/c:attributes/icfs:name, 0, 1) != 'X') then $c:account/c:attributes/icfs:name
 else

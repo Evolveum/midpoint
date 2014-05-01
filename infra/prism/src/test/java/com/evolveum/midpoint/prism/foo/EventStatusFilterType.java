@@ -44,9 +44,9 @@ import java.util.List;
  * <pre>
  * &lt;complexType name="EventStatusFilterType">
  *   &lt;complexContent>
- *     &lt;extension base="{http://midpoint.evolveum.com/xml/ns/public/common/common-2a}EventHandlerType">
+ *     &lt;extension base="{http://midpoint.evolveum.com/xml/ns/public/common/common-3}EventHandlerType">
  *       &lt;sequence>
- *         &lt;element name="status" type="{http://midpoint.evolveum.com/xml/ns/public/common/common-2a}String" maxOccurs="unbounded" minOccurs="0"/>
+ *         &lt;element name="status" type="{http://midpoint.evolveum.com/xml/ns/public/common/common-3}String" maxOccurs="unbounded" minOccurs="0"/>
  *       &lt;/sequence>
  *     &lt;/extension>
  *   &lt;/complexContent>
@@ -192,12 +192,12 @@ public class EventStatusFilterType
             for (final Iterator<?> it = source.iterator(); it.hasNext(); ) {
                 final Object next = it.next();
                 if (next instanceof String) {
-                    // CEnumLeafInfo: com.evolveum.midpoint.xml.ns._public.common.common_2a.String
+                    // CEnumLeafInfo: com.evolveum.midpoint.xml.ns._public.common.common_3.String
                     target.add(((String) next));
                     continue;
                 }
                 // Please report this at https://apps.sourceforge.net/mantisbt/ccxjc/
-                throw new AssertionError((("Unexpected instance '"+ next)+"' for property 'Status' of class 'com.evolveum.midpoint.xml.ns._public.common.common_2a.EventStatusFilterType'."));
+                throw new AssertionError((("Unexpected instance '"+ next)+"' for property 'Status' of class 'com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusFilterType'."));
             }
         }
     }

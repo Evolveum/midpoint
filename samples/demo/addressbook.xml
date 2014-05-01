@@ -16,8 +16,8 @@
   -->
 
 <resource oid="c1b8b075-8c45-4058-ba32-753b87ac2da0" 
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"

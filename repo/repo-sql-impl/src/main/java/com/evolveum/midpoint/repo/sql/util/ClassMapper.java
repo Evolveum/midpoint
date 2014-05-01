@@ -19,10 +19,12 @@ package com.evolveum.midpoint.repo.sql.util;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;

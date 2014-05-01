@@ -16,8 +16,8 @@
   -->
 
 <resource oid="10000000-0000-0000-0000-000004444001"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
@@ -126,7 +126,7 @@
 					<expression>
 						<script>
 							<code>
-								import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+								import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 								ship = midpoint.getObject(GenericObjectType.class, "54195419-5419-5419-5419-000000000001");
 								'The crew of ' + ship.getName();
 							</code>

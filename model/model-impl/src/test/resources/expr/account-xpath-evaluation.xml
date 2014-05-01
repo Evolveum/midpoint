@@ -15,8 +15,8 @@
   ~ limitations under the License.
   -->
 <shadow 
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -27,9 +27,9 @@
 		<connectorConfiguration>
 			<idc:ConnectorConfiguration
 				xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531"
-				xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+				xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 				xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
-				xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+				xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 				<idc:ConnectorRef bundleName="org.identityconnectors.ldap" bundleVersion="1.0.5531"
 					connectorName="org.identityconnectors.ldap.LdapConnector">
 					<idc:ConnectorHostRef>/configuration/connectorHost[@oid='1234']/configuration</idc:ConnectorHostRef>
@@ -65,7 +65,7 @@
             <xsd:schema elementFormDefault="qualified"
 					targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
 					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 					xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
 					xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
 					xmlns:xsd="http://www.w3.org/2001/XMLSchema">
@@ -184,11 +184,11 @@
 					</limitations>
 <!-- 					<access>create</access> -->
 <!-- 					<access>read</access> -->
-					<outbound xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+					<outbound xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 					<expression>
                     	<script>
 	                        <code>
-	                            declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+	                            declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 	                            concat('uid=', $c:user/c:name, ',ou=people,dc=example,dc=com')
 	                        </code>
                         </script>
@@ -301,8 +301,8 @@
 					</limitations>
 					<inbound>
 						<target>
-							<path>declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
-							declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+							<path>declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+							declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 							$c:user/i:honorificPrefix</path>
                         </target>
 					</inbound>
@@ -320,7 +320,7 @@
 					</limitations>
 					<inbound>
 						<target>
-							<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+							<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 							$c:user/c:familyName</path>
                         </target>
 					</inbound>

@@ -20,7 +20,7 @@
 	targetNamespace="http://whatever.com/my"
 	xmlns:tns="http://whatever.com/my"
 	xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	elementFormDefault="qualified">
 	
 	<import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2" />

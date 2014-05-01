@@ -1,5 +1,5 @@
 {
- "_ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-2a",
+ "_ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
  "_type" : "resource",
  "_oid" : "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff",
           "name" : "Embedded Test OpenDJ",

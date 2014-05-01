@@ -20,7 +20,7 @@
              xmlns="http://schemas.xmlsoap.org/wsdl/"
              xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
              xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-			 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+			 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 			 xmlns:jaxws="http://java.sun.com/xml/ns/jaxws"
 			 xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl">
     
@@ -31,8 +31,8 @@
 	
 	<types>
 		<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl">
-			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
-						schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"/>			
+			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+						schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>			
 
 			<xsd:complexType name="FaultType" abstract="true">
 				<xsd:sequence>

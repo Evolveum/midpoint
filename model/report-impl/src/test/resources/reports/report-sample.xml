@@ -14,8 +14,8 @@
   ~ limitations under the License.
   -->
 
-<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
         oid="AUDITLOG-3333-3333-TEST-10000000000"
@@ -304,7 +304,7 @@
                     elementFormDefault="qualified"
                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/report">
 
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
             <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-2"/>
 
             <!-- sample how HQL query for jasper design (queryString element) can be added to configuration schema -->

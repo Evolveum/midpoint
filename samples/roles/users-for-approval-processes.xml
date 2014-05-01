@@ -15,10 +15,10 @@
   ~ limitations under the License.
   -->
 
-<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
-         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
+<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
          xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-2'>
-	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       oid="0e030e0c-a37d-47b2-bde8-f8e61e4a2bfb"
       version="2">
    <name>
@@ -34,7 +34,7 @@
    </fullName>
    <credentials>
       <password>
-         <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+         <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                   xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
                   xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
@@ -58,7 +58,7 @@
       </password>
    </credentials>
 </user>
-	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       oid="c168470c-bfef-414f-88b5-5d144f4f3d6c"
       version="2">
    <name>
@@ -74,7 +74,7 @@
    </fullName>
    <credentials>
       <password>
-         <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+         <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                   xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
                   xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
@@ -98,7 +98,7 @@
       </password>
    </credentials>
 </user>
-	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       oid="75f2806d-e31b-40c9-8133-85ed4d9e6252"
       version="5">
    <name>
@@ -114,7 +114,7 @@
    </fullName>
    <credentials>
       <password>
-         <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+         <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                   xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
                   xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"

@@ -18,8 +18,8 @@
 <!-- Resource definition for an embedded OpenDJ instance. -->
 
 <resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
           xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"

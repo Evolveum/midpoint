@@ -18,7 +18,7 @@ package com.evolveum.midpoint.security.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 
 /**

@@ -15,10 +15,10 @@
   ~ limitations under the License.
   -->
 
-<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
-         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
+<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
          xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-2'>
-	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       oid="0e030e0c-a37d-47b2-bde8-f8e61e4a2bfb"
       version="2">
    <name>
@@ -34,7 +34,7 @@
    </fullName>
    <credentials>
       <password>
-         <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+         <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                   xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
                   xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
@@ -58,7 +58,7 @@
       </password>
    </credentials>
 </user>
-	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       oid="c168470c-bfef-414f-88b5-5d144f4f3d6c"
       version="2">
    <name>
@@ -74,7 +74,7 @@
    </fullName>
    <credentials>
       <password>
-         <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+         <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                   xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
                   xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
@@ -98,7 +98,7 @@
       </password>
    </credentials>
 </user>
-	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       oid="75f2806d-e31b-40c9-8133-85ed4d9e6252"
       version="5">
    <name>
@@ -114,7 +114,7 @@
    </fullName>
    <credentials>
       <password>
-         <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+         <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                   xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
                   xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
@@ -140,11 +140,11 @@
 </user>
 
 <role oid="12345678-d34d-b33f-f00d-000187987988"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Sensitive Role 1</name>
     <description>Security-sensitive role, whose assignment to a user must be approved by the responsible person - in this simple case, by the administrator.</description>
-    <approverRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+    <approverRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                  oid="00000000-0000-0000-0000-000000000002"
                  type="c:UserType">
         <description>Approval by the administrator</description>
@@ -152,8 +152,8 @@
 </role>
 
 <role oid="12345678-d34d-b33f-f00d-000287987988"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>Sensitive Role 2</name>
     <description>Security-sensitive role, whose assignment to a user must be approved by various persons, as described by the approval schema.</description>
     <approvalSchema>
@@ -162,12 +162,12 @@
         <level>
             <name>Bosses</name>
             <description>At this level, either one of the company directors has to approve the assignment.</description>
-            <approverRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+            <approverRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                          oid="75f2806d-e31b-40c9-8133-85ed4d9e6252"
                          type="c:UserType">
                 <description>Big boss #1 approval</description>
             </approverRef>
-            <approverRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+            <approverRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                          oid="0e030e0c-a37d-47b2-bde8-f8e61e4a2bfb"
                          type="c:UserType">
                 <description>Big boss #2 approval</description>
@@ -177,12 +177,12 @@
         <level>
             <name>Administrators</name>
             <description>At this level, system administrator as well as security manager must approve.</description>
-            <approverRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+            <approverRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                          oid="00000000-0000-0000-0000-000000000002"
                          type="c:UserType">
                 <description>Administrator approval</description>
             </approverRef>
-            <approverRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+            <approverRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                          oid="c168470c-bfef-414f-88b5-5d144f4f3d6c"
                          type="c:UserType">
                 <description>Security Manager approval</description>

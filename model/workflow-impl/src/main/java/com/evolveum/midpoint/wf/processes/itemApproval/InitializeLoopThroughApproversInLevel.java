@@ -40,7 +40,7 @@ import com.evolveum.midpoint.wf.processors.primary.PcpProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.primary.PcpRepoAccessHelper;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;

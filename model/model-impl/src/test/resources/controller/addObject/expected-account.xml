@@ -14,7 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<object xsi:type="AccountShadowType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<object xsi:type="AccountShadowType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	
 	xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
 	xmlns:ds="http://www.w3.org/2000/09/xmldsig#"

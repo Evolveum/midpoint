@@ -19,7 +19,7 @@
 	xmlns:apit='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 	xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	>
 
 	<apit:oid>123456</apit:oid>

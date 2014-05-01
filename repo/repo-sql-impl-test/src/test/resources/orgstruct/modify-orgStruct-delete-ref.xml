@@ -17,7 +17,7 @@
   -->
 <objectModification
         xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
-        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
+        xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
     <oid>00000000-8888-6666-0000-100000000006</oid>
     <itemDelta>

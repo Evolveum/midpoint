@@ -21,8 +21,6 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 import java.io.IOException;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConditionalSearchFilterType;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -44,11 +42,12 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * 
@@ -80,11 +79,11 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 
 		//TODO:  "$c:user/c:givenName/t:orig replaced with "$c:user/c:givenName
 		ExpressionType expression = PrismTestUtil.parseAtomicValue(
-                "<object xsi:type=\"ExpressionType\" xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/common-2a\" "
+                "<object xsi:type=\"ExpressionType\" xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\" "
                         + "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
                         + "<script>\n"
                         + "<language>http://www.w3.org/TR/xpath/</language>\n"
-                        + "<code>declare namespace c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-2a\";\n"
+                        + "<code>declare namespace c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\";\n"
                         + "declare namespace t=\"http://prism.evolveum.com/xml/ns/public/types-2\";\n"
                         + "declare namespace dj=\"http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ\";\n"
                         + "$c:user/c:givenName = $c:account/c:attributes/dj:givenName</code>"

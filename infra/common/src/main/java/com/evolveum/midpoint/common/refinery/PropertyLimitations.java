@@ -19,7 +19,7 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.PropertyAccessType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
 
 /**
  * @author semancik

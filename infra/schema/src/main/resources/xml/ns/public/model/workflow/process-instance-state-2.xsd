@@ -19,7 +19,7 @@
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             elementFormDefault="qualified">
@@ -39,8 +39,8 @@
         </xsd:annotation>
     </xsd:import>
 
-    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
         <xsd:annotation>
             <xsd:documentation>
                 Common schema

@@ -20,8 +20,8 @@
      tests. -->
 
 <resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
           xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
@@ -110,7 +110,7 @@
     <schema>
 		<definition>
 			  <xsd:schema elementFormDefault="qualified"
-			  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+			  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 				xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 					targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
 					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
@@ -275,7 +275,7 @@ This is now the only account type that midPoint can work with. -->
                     <expression>
                     	<script>
 	                        <code>
-<!-- 	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"; -->
+<!-- 	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3"; -->
 	                            'uid=' +name+ ',ou=people,dc=example,dc=com'
 	                        </code>
                         </script>
@@ -478,7 +478,7 @@ This is now the only account type that midPoint can work with. -->
 <!--                 <inbound> -->
 <!--                     <target> -->
 <!--                     	<path> -->
-<!-- 	                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"; -->
+<!-- 	                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3"; -->
 <!-- 	                        declare namespace my="http://whatever.com/my"; -->
 <!-- 	                        $i:user/i:extension/my:description -->
 <!--                         </path> -->

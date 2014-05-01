@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.wf.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ApprovalSchemaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
 
 import java.util.List;
 

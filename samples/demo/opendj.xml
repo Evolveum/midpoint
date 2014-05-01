@@ -16,9 +16,9 @@
   -->
 
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
@@ -90,7 +90,7 @@
 	</connectorConfiguration>
 
    <schema>
-      <c:cachingMetadata xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+      <c:cachingMetadata xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
                          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
                          xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"

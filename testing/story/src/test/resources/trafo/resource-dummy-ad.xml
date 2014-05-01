@@ -16,8 +16,8 @@
   -->
 
 <resource oid="14400000-0000-0000-0000-000000000003"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
@@ -442,7 +442,7 @@ return midpoint.isUniqueAccountValue(resource, shadow, 'sAMAccountName', login)
                       <condition>
                         <script>
                           <code>
-				import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
+				import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 				import com.evolveum.midpoint.schema.constants.SchemaConstants;
 				// do not delete explicitly disabled accounts
 				administrativeStatus == ActivationStatusType.DISABLED &amp;&amp; 
@@ -457,7 +457,7 @@ return midpoint.isUniqueAccountValue(resource, shadow, 'sAMAccountName', login)
                         <expression>
                             <script>
                                 <code>
-                                    import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
                                     if (legal) {
                                         input;
                                     } else {

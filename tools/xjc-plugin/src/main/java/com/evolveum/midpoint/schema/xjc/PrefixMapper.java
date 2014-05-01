@@ -25,7 +25,7 @@ public enum PrefixMapper {
 
     //W("http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd", "WORKFLOW"),
 
-    C("http://midpoint.evolveum.com/xml/ns/public/common/common-2a", "COMMON"),
+    C("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "COMMON"),
 
     T("http://prism.evolveum.com/xml/ns/public/types-2", "TYPES"),
 
