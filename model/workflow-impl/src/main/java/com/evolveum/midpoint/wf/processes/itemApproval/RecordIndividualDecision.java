@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.wf.processes.itemApproval;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -66,10 +67,10 @@ public class RecordIndividualDecision implements JavaDelegate {
         MidPointPrincipal user = null;
 		try {
 			user = SecurityUtil.getPrincipal();
-			decision.setApproverName(user.getName().getOrig());  //TODO: probably not correct setting
+			decision.setApproverName(PolyString.getOrig(user.getName()));
             decision.setApproverOid(user.getOid());
 		} catch (SecurityViolationException e) {
-			decision.setApproverName("?");    // todo
+			decision.setApproverName("?");
             decision.setApproverOid("?");
 		}
 

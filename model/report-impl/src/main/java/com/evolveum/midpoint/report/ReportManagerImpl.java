@@ -238,7 +238,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
              }
              else
              {
-            	 String reportTemplate = reportType.getTemplate();
+            	 String reportTemplate = reportType.getTemplate().getContentAsString();
             	 InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate.getBytes());
             	 jasperDesign = JRXmlLoader.load(inputStreamJRXML);
             	 LOGGER.trace("load jasper design : {}", jasperDesign);

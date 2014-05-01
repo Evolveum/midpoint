@@ -40,6 +40,8 @@ public class DecisionDto extends Selectable {
     public DecisionDto(DecisionType decision) {
         if (decision.getApprover() != null && decision.getApprover().getName() != null) {
             this.user = decision.getApprover().getName().getOrig();
+        } else if (decision.getApproverName() != null) {
+            this.user = decision.getApproverName();
         } else {
             this.user = decision.getApproverRef().getOid();
         }

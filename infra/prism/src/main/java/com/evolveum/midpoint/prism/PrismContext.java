@@ -554,4 +554,12 @@ public class PrismContext {
         RootXNode rootXNode = xnodeProcessor.serializeItemAsRoot(item);
         return new RawType(rootXNode);
     }
+
+    public <T extends Objectable> PrismObject<T> createObject(Class<T> clazz) {
+        PrismObjectDefinition definition = schemaRegistry.findObjectDefinitionByCompileTimeClass(clazz);
+        if (definition == null) {
+            throw new IllegalStateException("Definition for prism object holding " + clazz + " couldn't be found");
+        }
+        return definition.instantiate();
+    }
 }

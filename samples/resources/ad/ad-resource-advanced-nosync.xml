@@ -143,8 +143,8 @@ This resource definition contains only the very basic definitions for midPoint t
 					<limitations>
 						<minOccurs>0</minOccurs>
 						<access>
+                            <read>true</read>
 							<add>true</add>
-							<read>true</read>
 						</access>
 					</limitations>
 

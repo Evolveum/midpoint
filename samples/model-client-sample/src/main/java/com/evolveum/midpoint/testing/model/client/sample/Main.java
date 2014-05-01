@@ -271,7 +271,7 @@ public class Main {
 		passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password"));
         RawType newValue = new RawType();
         newValue.getContent().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_VALUE, ModelClientUtil.createProtectedString(newPassword)));
-        passwordDelta.setValue(newValue);
+        passwordDelta.getValue().add(newValue);
 
         ObjectDeltaType deltaType = new ObjectDeltaType();
         deltaType.setObjectType(ModelClientUtil.getTypeQName(UserType.class));
@@ -294,7 +294,7 @@ public class Main {
         itemDelta.setModificationType(ModificationTypeType.REPLACE);
         RawType itemValue = new RawType();
         itemValue.getContent().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_GIVEN_NAME, ModelClientUtil.createPolyStringType(newValue, doc)));
-        itemDelta.setValue(itemValue);
+        itemDelta.getValue().add(itemValue);
         userDelta.getItemDelta().add(itemDelta);
         ObjectDeltaListType deltaList = new ObjectDeltaListType();
         deltaList.getDelta().add(userDelta);
@@ -321,7 +321,7 @@ public class Main {
 		for (String roleOid: roleOids) {
 			assignmentValue.getContent().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_ASSIGNMENT, createRoleAssignment(roleOid)));
 		}
-		assignmentDelta.setValue(assignmentValue);
+		assignmentDelta.getValue().add(assignmentValue);
 
         ObjectDeltaType deltaType = new ObjectDeltaType();
         deltaType.setObjectType(ModelClientUtil.getTypeQName(UserType.class));

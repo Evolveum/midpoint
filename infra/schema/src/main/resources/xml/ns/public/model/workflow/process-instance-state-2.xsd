@@ -16,16 +16,6 @@
   ~ limitations under the License.
   -->
 
-<!--
-
-TODO FIXME subclassing here does not work. When creating e.g. ItemApprovalProcessState container value,
-and putting it as a field of ProcessInstanceState object, after retrieving the class is not ItemApprovalProcessState but
-(statically declared) ProcessSpecificState.
-
-This has to be either fixed in prism module, or worked around, maybe using PrismObjects instead of containers.
-
--->
-
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"

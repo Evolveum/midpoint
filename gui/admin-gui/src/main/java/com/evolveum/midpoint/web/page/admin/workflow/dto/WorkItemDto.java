@@ -20,7 +20,15 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.List;
 
 /**
  * @author lazyman
@@ -29,7 +37,10 @@ public class WorkItemDto extends Selectable {
 
     public static final String F_NAME = "name";
     public static final String F_OWNER_OR_CANDIDATES = "ownerOrCandidates";
+    public static final String F_CANDIDATES = "candidates";
+    public static final String F_ASSIGNEE = "assignee";
     public static final String F_CREATED = "created";
+
 
     WorkItemType workItem;
 
@@ -58,12 +69,70 @@ public class WorkItemDto extends Selectable {
     }
 
     public String getOwnerOrCandidates() {
-        if (workItem.getAssignee() != null && workItem.getAssignee().getName() != null) {
-            return workItem.getAssignee().getName().getOrig();
+        String assignee = getAssignee();
+        if (assignee != null) {
+            return assignee;
+        } else {
+            return getCandidates();
+        }
+    }
+
+    public String getAssignee() {
+        if (workItem.getAssignee() != null) {
+            if (workItem.getAssignee().getName() != null) {
+                return workItem.getAssignee().getName().getOrig();
+            } else {
+                return workItem.getAssignee().getOid();
+            }
         } else if (workItem.getAssigneeRef() != null) {
             return workItem.getAssigneeRef().getOid();
         } else {
-            return null;            // TODO get candidates
+            return null;
         }
     }
+
+    // what an ugly method :| TODO rework some day [also add users]
+    public String getCandidates() {
+        StringBuilder retval = new StringBuilder();
+        boolean first = true;
+        boolean referenceOnly = false;
+        // we assume that either all roles have full reference information, or none of them
+        for (AbstractRoleType roleType : workItem.getCandidateRoles()) {
+            if (!first) {
+                retval.append(", ");
+            } else {
+                first = false;
+            }
+            if (roleType.getOid() == null) {        // no object information, only reference is present
+                referenceOnly = true;
+                break;
+            }
+            retval.append(PolyString.getOrig(roleType.getName()));
+            if (roleType instanceof RoleType) {
+                retval.append(" (role)");
+            } else if (roleType instanceof OrgType) {
+                retval.append(" (org)");
+            }
+        }
+        if (referenceOnly) {
+            // start again
+            retval = new StringBuilder();
+            first = true;
+            for (ObjectReferenceType roleRef : workItem.getCandidateRolesRef()) {
+                if (!first) {
+                    retval.append(", ");
+                } else {
+                    first = false;
+                }
+                retval.append(roleRef.getOid());
+                if (RoleType.COMPLEX_TYPE.equals(roleRef.getType())) {
+                    retval.append(" (role)");
+                } else if (OrgType.COMPLEX_TYPE.equals(roleRef.getType())) {
+                    retval.append(" (org)");
+                }
+            }
+        }
+        return retval.toString();
+    }
+
 }

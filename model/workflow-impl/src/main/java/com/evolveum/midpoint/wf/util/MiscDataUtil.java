@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
@@ -40,22 +41,29 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConfiguration;
+import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.common.StringHolder;
 import com.evolveum.midpoint.wf.processors.primary.PcpProcessVariableNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationPhaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
+import org.activiti.engine.ActivitiException;
+import org.activiti.engine.TaskService;
 import org.activiti.engine.form.FormProperty;
+import org.activiti.engine.task.IdentityLink;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBException;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,6 +76,9 @@ import java.util.Map;
 public class MiscDataUtil {
 
     private static final transient Trace LOGGER = TraceManager.getTrace(MiscDataUtil.class);
+
+    public static final String ROLE_PREFIX = "role";
+    public static final String ORG_PREFIX = "org";
 
     @Autowired
     private RepositoryService repositoryService;
@@ -83,6 +94,9 @@ public class MiscDataUtil {
 
     @Autowired
     private WfConfiguration wfConfiguration;
+
+    @Autowired
+    private ActivitiEngine activitiEngine;
 
     public PrismObject<UserType> getUserByOid(String oid, OperationResult result) {
         if (oid == null) {
@@ -261,29 +275,81 @@ public class MiscDataUtil {
         }
     }
 
-    public boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem) {
-        return isAuthorizedToSubmit(workItem.getAssigneeRef().getOid());
+    public boolean isAuthorizedToSubmit(WorkItemType workItem) {
+        return isAuthorizedToSubmit(workItem.getWorkItemId(),
+                workItem.getAssigneeRef() != null ? workItem.getAssigneeRef().getOid() : null);
     }
 
-    public boolean isAuthorizedToSubmit(String assigneeOid) {
+    public boolean isAuthorizedToSubmit(String taskId, String assigneeOid) {
         MidPointPrincipal principal;
 		try {
 			principal = securityEnforcer.getPrincipal();
 		} catch (SecurityViolationException e) {
 			return false;
 		}
+        String currentUserOid = principal.getOid();
+        if (currentUserOid == null) {
+            return false;
+        }
         LOGGER.trace("isAuthorizedToSubmit: principal = {}, assignee = {}", principal, assigneeOid);
-        if (principal.getOid() != null && principal.getOid().equals(assigneeOid)) {
+        // 1) is this the task assignee?
+        if (currentUserOid.equals(assigneeOid)) {       // assigneeOid may be null here
             return true;
         }
+        // 2) is the current user allowed to approve any item?
         try {
-			return wfConfiguration.isAllowApproveOthersItems() 
-					&& securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_UI_WORK_ITEMS_APPROVE_OTHERS_ITEMS_URL, 
-							null, null, null, null, null);
+			if (wfConfiguration.isAllowApproveOthersItems()
+					&& securityEnforcer.isAuthorized(AuthorizationConstants.AUTZ_UI_WORK_ITEMS_APPROVE_OTHERS_ITEMS_URL, null, null, null, null, null)) {
+                return true;
+            }
 		} catch (SchemaException e) {
 			throw new SystemException(e.getMessage(), e);
 		}
+        // 3) is the current user in one of candidate users or groups?
+        return isAmongCandidates(principal, taskId);
     }
+
+    // principal != null, principal.getOid() != null, principal.getUser() != null
+    private boolean isAmongCandidates(MidPointPrincipal principal, String taskId) {
+        String currentUserOid = principal.getOid();
+        List<IdentityLink> identityLinks;
+        try {
+            TaskService taskService = activitiEngine.getTaskService();
+            identityLinks = taskService.getIdentityLinksForTask(taskId);
+        } catch (ActivitiException e) {
+            throw new SystemException("Couldn't determine user authorization, because the task candidate users and groups couldn't be retrieved: " + e.getMessage(), e);
+        }
+        for (IdentityLink identityLink : identityLinks) {
+            if (identityLink.getUserId() != null && identityLink.getUserId().equals(currentUserOid)) {
+                return true;
+            }
+            if (identityLink.getGroupId() != null) {
+                if (isMemberOfActivitiGroup(principal.getUser(), identityLink.getGroupId())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean isAuthorizedToClaim(WorkItemType workItem) {
+        return isAuthorizedToClaim(workItem.getWorkItemId());
+    }
+
+    public boolean isAuthorizedToClaim(String taskId) {
+        MidPointPrincipal principal;
+        try {
+            principal = securityEnforcer.getPrincipal();
+        } catch (SecurityViolationException e) {
+            return false;
+        }
+        String currentUserOid = principal.getOid();
+        if (currentUserOid == null) {
+            return false;
+        }
+        return isAmongCandidates(principal, taskId);
+    }
+
 
     // todo move to something activiti-related
 
@@ -293,6 +359,74 @@ public class MiscDataUtil {
             retval.put(property.getId(), property);
         }
         return retval;
+    }
+
+    // TODO: currently we check only the direct assignments, we need to implement more complex mechanism
+    public boolean isMemberOfActivitiGroup(UserType userType, String activitiGroupId) {
+        ObjectReferenceType abstractRoleRef = groupIdToObjectReference(activitiGroupId);
+        for (AssignmentType assignmentType : userType.getAssignment()) {
+            if (assignmentType.getTargetRef() != null &&
+                    (RoleType.COMPLEX_TYPE.equals(assignmentType.getTargetRef().getType()) ||
+                     OrgType.COMPLEX_TYPE.equals(assignmentType.getTargetRef().getType())) &&
+                    abstractRoleRef.getOid().equals(assignmentType.getTargetRef().getOid())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // TODO: currently we check only the direct assignments, we need to implement more complex mechanism
+    public List<String> getGroupsForUser(String oid, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        List<String> retval = new ArrayList<>();
+        UserType userType = repositoryService.getObject(UserType.class, oid, null, result).asObjectable();
+        for (AssignmentType assignmentType : userType.getAssignment()) {
+            ObjectReferenceType ref = assignmentType.getTargetRef();
+            if (ref != null) {
+                String groupName = objectReferenceToGroupName(ref);
+                if (groupName != null) {        // if the reference represents a group name (i.e. it is not e.g. an account ref)
+                    retval.add(groupName);
+                }
+            }
+        }
+        return retval;
+    }
+
+    public PrismObject resolveObjectReferenceType(ObjectReferenceType ref, OperationResult result) {
+        try {
+            return repositoryService.getObject((Class) prismContext.getSchemaRegistry().getCompileTimeClass(ref.getType()), ref.getOid(), null, result);
+        } catch (ObjectNotFoundException e) {
+            // there should be a note in result by now
+            LoggingUtils.logException(LOGGER, "Couldn't get reference {} details because it couldn't be found", e, ref);
+            return null;
+        } catch (SchemaException e) {
+            // there should be a note in result by now
+            LoggingUtils.logException(LOGGER, "Couldn't get reference {} details due to schema exception", e, ref);
+            return null;
+        }
+    }
+
+    public ObjectReferenceType groupIdToObjectReference(String groupId) {
+        String parts[] = groupId.split(":");
+        if (parts.length != 2) {
+            throw new IllegalStateException("Invalid format of group id: " + groupId);
+        }
+        if (ROLE_PREFIX.equals(parts[0])) {
+            return MiscSchemaUtil.createObjectReference(parts[1], RoleType.COMPLEX_TYPE);
+        } else if (ORG_PREFIX.equals(parts[0])) {
+            return MiscSchemaUtil.createObjectReference(parts[1], OrgType.COMPLEX_TYPE);
+        } else {
+            throw new IllegalStateException("Unknown kind of group id: " + parts[0] + " in: " + groupId);
+        }
+    }
+
+    private String objectReferenceToGroupName(ObjectReferenceType ref) {
+        if (RoleType.COMPLEX_TYPE.equals(ref.getType())) {
+            return ROLE_PREFIX + ":" + ref.getOid();
+        } else if (OrgType.COMPLEX_TYPE.equals(ref.getType())) {
+            return ORG_PREFIX + ":" + ref.getOid();
+        } else {
+            return null;
+        }
     }
 
 }

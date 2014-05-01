@@ -272,7 +272,7 @@ public class ProcessInstanceProvider {
         if (getWorkItems) {
             TaskService ts = activitiEngine.getTaskService();
             List<Task> tasks = ts.createTaskQuery().processInstanceId(instance.getProcessInstanceId()).list();
-            pi.getWorkItems().addAll(workItemProvider.tasksToWorkItems(tasks, false, true, result));     // "no" to task forms, "yes" to assignee details
+            pi.getWorkItems().addAll(workItemProvider.tasksToWorkItems(tasks, false, true, true, result));     // "no" to task forms, "yes" to assignee and candidate details
         }
 
         result.recordSuccessIfUnknown();

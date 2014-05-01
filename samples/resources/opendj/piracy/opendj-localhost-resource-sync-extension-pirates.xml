@@ -113,8 +113,13 @@ This resource definition contains also definition to enable synchronization.
                          In our case ICF will put DN in the __NAME__ attribute.
                          Althouhg DN can be theoretically changes, this definition
                          will make it immutable. -->
-                    <access>create</access>
-                    <access>read</access>
+                    <limitations>
+                        <access>
+                            <read>true</read>
+                            <add>true</add>
+                            <modify>false</modify>
+                        </access>
+                    </limitations>
                     <!-- Outbound expression for the __NAME__ attribute.
                          If account is created or updated, the __NAME__ attribute
                          will be set accrding to this expression.
@@ -152,7 +157,11 @@ This resource definition contains also definition to enable synchronization.
                     <!-- Access limitation for this attribute.
                          Entry UUID is created by the directory server itelf
                          and it is immutable. We can only read it. -->
-                    <access>read</access>
+                    <limitations>
+                        <access>
+                            <read>true</read>
+                        </access>
+                    </limitations>
                     <!-- There is no "outbound" expression, so OpenIDM will not
                          do anything with this attribute. -->
                     <!-- No inbound expression here. Does not make sense to sync UUID as it is supposed to be immutable -->
@@ -161,9 +170,6 @@ This resource definition contains also definition to enable synchronization.
                 <attribute>
                     <ref>rcn</ref>
                     <displayName>Common Name</displayName>
-                    <access>create</access>
-                    <access>read</access>
-                    <access>update</access>
                     <!-- Outbound expression here is using "pure" XPath, without
                          using functions. This is the simplest case, just copying
                          the "fullName" property of user to the "cn" attribute of
@@ -193,9 +199,6 @@ This resource definition contains also definition to enable synchronization.
                 <attribute>
                     <ref>rsn</ref>
                     <displayName>Surname</displayName>
-                    <access>create</access>
-                    <access>read</access>
-                    <access>update</access>
                     <outbound>
                         <source>
                             <path>$user/familyName</path>
@@ -212,9 +215,6 @@ This resource definition contains also definition to enable synchronization.
                 <attribute>
                     <ref>rgivenName</ref>
                     <displayName>Given Name</displayName>
-                    <access>create</access>
-                    <access>read</access>
-                    <access>update</access>
                     <outbound>
                         <source>
                             <path>$user/givenName</path>
@@ -232,8 +232,13 @@ This resource definition contains also definition to enable synchronization.
                 <attribute>
                     <ref>ruid</ref>
                     <displayName>Login Name</displayName>
-                    <access>create</access>
-                    <access>read</access>
+                    <limitations>
+                        <access>
+                            <read>true</read>
+                            <add>true</add>
+                            <modify>false</modify>
+                        </access>
+                    </limitations>
                     <outbound>
                         <!-- It is mapped from (and also to) "name" property of
                              user. It is essentially a login name -->

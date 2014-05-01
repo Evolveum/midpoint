@@ -408,7 +408,18 @@
         </xsd:sequence>
         <xsd:anyAttribute processContents="lax"/>
     </xsd:complexType>
-    
+
+    <xsd:complexType name="XmlAsStringType" mixed="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                Represents a string that may contain unescaped XML data.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <!-- ########################################### -->
     <!-- ##                DELTAS                 ## -->
     <!-- ########################################### -->
@@ -434,7 +445,7 @@
         		</xsd:annotation>
         	</xsd:element>
             <!--<xsd:element name="value" type="tns:RawType">-->
-            <xsd:element name="value" type="xsd:anyType">
+            <xsd:element name="value" type="xsd:anyType" minOccurs="0" maxOccurs="unbounded">
 <!--                 <xsd:complexType> -->
 <!--                     <xsd:sequence> -->
 <!--                         <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"> -->

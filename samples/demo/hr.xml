@@ -65,12 +65,10 @@
                 <attribute>
                     <ref>icfs:uid</ref>
                     <displayName>ICF UID</displayName>
-                    <access>read</access>
                 </attribute>
                 <attribute>
                     <ref>icfs:name</ref>
                     <displayName>Employee#</displayName>
-                    <access>read</access>
                     <inbound>
                         <target>
                         	<path>$user/employeeNumber</path>
@@ -82,7 +80,6 @@
                     <ref>ri:firstname</ref>
                     <displayName>First Name</displayName>
                     <description>Definition of Firstname attribute handling.</description>
-                    <access>read</access>
                     <inbound>
                         <target>
                             <path>$user/givenName</path>
@@ -93,7 +90,6 @@
                 <attribute>
                     <ref>ri:lastname</ref>
                     <displayName>Last name</displayName>
-                    <access>read</access>
                     <inbound>
                         <target>
                             <path>$user/familyName</path>
@@ -104,7 +100,6 @@
                 <attribute>
                     <ref>ri:artname</ref>
                     <displayName>Artisitc name</displayName>
-                    <access>read</access>
                     <inbound>
                         <target>
                             <path>$user/extension/ext:artisticName</path>
@@ -132,7 +127,6 @@
                 <attribute>
                     <ref>ri:emptype</ref>
                     <displayName>Employee type</displayName>
-                    <access>read</access>
                     <inbound>
                         <target>
                             <path>$user/employeeType</path>

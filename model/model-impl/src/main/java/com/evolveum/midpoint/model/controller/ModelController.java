@@ -1667,12 +1667,12 @@ public class ModelController implements ModelService, ModelInteractionService, T
 
     //region Workflow-related operations
     @Override
-    public int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult) {
+    public int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
         return workflowManager.countWorkItemsRelatedToUser(userOid, assigned, parentResult);
     }
 
     @Override
-    public List<WorkItemType> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) {
+    public List<WorkItemType> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
         return workflowManager.listWorkItemsRelatedToUser(userOid, assigned, first, count, parentResult);
     }
 

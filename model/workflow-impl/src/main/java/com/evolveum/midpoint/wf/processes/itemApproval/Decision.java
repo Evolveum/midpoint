@@ -93,6 +93,7 @@ public class Decision implements Serializable {
             ort.setType(UserType.COMPLEX_TYPE);
             decisionType.setApproverRef(ort);
         }
+        decisionType.setApproverName(approverName);
         return decisionType;
     }
 }

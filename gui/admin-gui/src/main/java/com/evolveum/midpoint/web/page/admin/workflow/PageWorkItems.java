@@ -68,7 +68,15 @@ public class PageWorkItems extends PageAdminWorkItems {
     private static final String OPERATION_RELEASE_ITEMS = DOT_CLASS + "releaseItems";
     private static final String OPERATION_RELEASE_ITEM = DOT_CLASS + "releaseItem";
 
+    boolean assigned;
+
     public PageWorkItems() {
+        assigned = true;
+        initLayout();
+    }
+
+    public PageWorkItems(boolean assigned) {
+        this.assigned = assigned;
         initLayout();
     }
 
@@ -76,43 +84,17 @@ public class PageWorkItems extends PageAdminWorkItems {
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
-//        List<IColumn<WorkItemDto>> unassignedItemColumns = initUnassignedItemColumns();
-//        TablePanel<WorkItemDto> unassignedItemTable = new TablePanel<WorkItemDto>("unassignedItemTable", new WorkItemDtoProvider(PageWorkItems.this, false),
-//                unassignedItemColumns);
-//        unassignedItemTable.setOutputMarkupId(true);
-//        mainForm.add(unassignedItemTable);
-
-        List<IColumn<WorkItemDto, String>> assignedItemColumns = initAssignedItemColumns();
-        TablePanel<WorkItemDto> assignedItemTable = new TablePanel<WorkItemDto>("assignedItemTable", new WorkItemDtoProvider(PageWorkItems.this, true),
-                assignedItemColumns);
-        assignedItemTable.setOutputMarkupId(true);
-        mainForm.add(assignedItemTable);
+        List<IColumn<WorkItemDto, String>> workItemColumns = initWorkItemColumns();
+        TablePanel<WorkItemDto> workItemTable = new TablePanel<>("workItemTable", new WorkItemDtoProvider(PageWorkItems.this, assigned),
+                workItemColumns);
+        workItemTable.setOutputMarkupId(true);
+        mainForm.add(workItemTable);
 
         initItemButtons(mainForm);
     }
 
-    private List<IColumn<WorkItemDto, String>> initUnassignedItemColumns() {
-        List<IColumn<WorkItemDto, String>> columns = new ArrayList<IColumn<WorkItemDto, String>>();
-
-        IColumn column = new CheckBoxHeaderColumn<TaskType>();
-        columns.add(column);
-
-        column = new LinkColumn<WorkItemDto>(createStringResource("pageWorkItems.item.name"), "name", "name") {
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {
-                WorkItemDto workItemDto = rowModel.getObject();
-                itemDetailsPerformed(target, workItemDto.getWorkItem().getWorkItemId());
-            }
-        };
-        columns.add(column);
-
-        columns.add(new PropertyColumn(createStringResource("pageWorkItems.item.candidates"), "candidates"));
-        return columns;
-    }
-
-    private List<IColumn<WorkItemDto, String>> initAssignedItemColumns() {
-        List<IColumn<WorkItemDto, String>> columns = new ArrayList<IColumn<WorkItemDto, String>>();
+    private List<IColumn<WorkItemDto, String>> initWorkItemColumns() {
+        List<IColumn<WorkItemDto, String>> columns = new ArrayList<>();
 
         IColumn column = new CheckBoxHeaderColumn<TaskType>();
         columns.add(column);
@@ -148,31 +130,35 @@ public class PageWorkItems extends PageAdminWorkItems {
             }
         });
 
+        if (!assigned) {
+            columns.add(new PropertyColumn(createStringResource("pageWorkItems.item.candidates"), WorkItemDto.F_CANDIDATES));
+        }
 
         return columns;
     }
 
     private void initItemButtons(Form mainForm) {
-//        AjaxLinkButton claim = new AjaxLinkButton("claim",
-//                createStringResource("pageWorkItems.button.claim")) {
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                claimWorkItemsPerformed(target);
-//            }
-//        };
-//        mainForm.add(claim);
-//
-//        AjaxLinkButton release = new AjaxLinkButton("release",
-//                createStringResource("pageWorkItems.button.release")) {
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                releaseWorkItemsPerformed(target);
-//            }
-//        };
-//        mainForm.add(release);
+        AjaxButton claim = new AjaxButton("claim", createStringResource("pageWorkItems.button.claim")) {
 
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                claimWorkItemsPerformed(target);
+            }
+        };
+        claim.setVisible(!assigned);
+        mainForm.add(claim);
+
+        AjaxButton release = new AjaxButton("release", createStringResource("pageWorkItems.button.release")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                releaseWorkItemsPerformed(target);
+            }
+        };
+        release.setVisible(assigned);
+        mainForm.add(release);
+
+        // the following are shown irrespectively of whether the work item is assigned or not
         AjaxButton approve = new AjaxButton("approve",
                 createStringResource("pageWorkItems.button.approve")) {
 
@@ -194,16 +180,12 @@ public class PageWorkItems extends PageAdminWorkItems {
         mainForm.add(reject);
     }
 
-    private TablePanel getAssignedItemTable() {
-        return (TablePanel) get("mainForm:assignedItemTable");
+    private TablePanel getWorkItemTable() {
+        return (TablePanel) get("mainForm:workItemTable");
     }
 
-    private TablePanel getUnassignedItemTable() {
-        return (TablePanel) get("mainForm:unassignedItemTable");
-    }
-
-    private List<WorkItemDto> getSelectedUnassignedItems() {
-        DataTable table = getUnassignedItemTable().getDataTable();
+    private List<WorkItemDto> getSelectedWorkItems() {
+        DataTable table = getWorkItemTable().getDataTable();
         WorkItemDtoProvider provider = (WorkItemDtoProvider) table.getDataProvider();
 
         List<WorkItemDto> selected = new ArrayList<WorkItemDto>();
@@ -216,22 +198,8 @@ public class PageWorkItems extends PageAdminWorkItems {
         return selected;
     }
 
-    private List<WorkItemDto> getSelectedAssignedItems() {
-        DataTable table = getAssignedItemTable().getDataTable();
-        WorkItemDtoProvider provider = (WorkItemDtoProvider) table.getDataProvider();
-
-        List<WorkItemDto> selected = new ArrayList<WorkItemDto>();
-        for (WorkItemDto row : provider.getAvailableData()) {
-            if (row.isSelected()) {
-                selected.add(row);
-            }
-        }
-
-        return selected;
-    }
-
-    private boolean isSomeItemSelected(List<WorkItemDto> tasks, AjaxRequestTarget target) {
-        if (!tasks.isEmpty()) {
+    private boolean isSomeItemSelected(List<WorkItemDto> items, AjaxRequestTarget target) {
+        if (!items.isEmpty()) {
             return true;
         }
 
@@ -247,7 +215,7 @@ public class PageWorkItems extends PageAdminWorkItems {
     }
 
     private void approveOrRejectWorkItemsPerformed(AjaxRequestTarget target, boolean approve) {
-        List<WorkItemDto> workItemDtoList = getSelectedAssignedItems();
+        List<WorkItemDto> workItemDtoList = getSelectedWorkItems();
         if (!isSomeItemSelected(workItemDtoList, target)) {
             return;
         }
@@ -257,7 +225,6 @@ public class PageWorkItems extends PageAdminWorkItems {
         for (WorkItemDto workItemDto : workItemDtoList) {
             OperationResult result = mainResult.createSubresult(OPERATION_APPROVE_OR_REJECT_ITEM);
             try {
-                //wfDataAccessor.approveOrRejectWorkItem(workItemDto.getWorkItem().getTaskId(), WorkItemDtoProvider.currentUser(), approve, result);
                 workflowManagerImpl.approveOrRejectWorkItem(workItemDto.getWorkItem().getWorkItemId(), approve, result);
                 result.computeStatus();
             } catch (Exception e) {
@@ -276,72 +243,70 @@ public class PageWorkItems extends PageAdminWorkItems {
 
         //refresh feedback and table
         target.add(getFeedbackPanel());
-//        target.add(getUnassignedItemTable());
-        target.add(getAssignedItemTable());
+        target.add(getWorkItemTable());
     }
 
-//    private void claimWorkItemsPerformed(AjaxRequestTarget target) {
-//        List<WorkItemDto> workItemDtoList = getSelectedUnassignedItems();
-//        if (!isSomeItemSelected(workItemDtoList, target)) {
-//            return;
-//        }
-//
-//        OperationResult mainResult = new OperationResult(OPERATION_CLAIM_ITEMS);
-//        WfDataAccessor wfDataAccessor = getWorkflowManager();
-//        for (WorkItemDto workItemDto : workItemDtoList) {
-//            OperationResult result = mainResult.createSubresult(OPERATION_CLAIM_ITEM);
-//            try {
-//                wfDataAccessor.claimWorkItem(workItemDto.getWorkItem(), WorkItemDtoProvider.currentUser(), result);
-//            } catch (Exception e) {
-//                result.recordPartialError("Couldn't claim work item due to an unexpected exception.", e);
-//            }
-//        }
-//        if (mainResult.isUnknown()) {
-//            mainResult.recomputeStatus();
-//        }
-//
-//        if (mainResult.isSuccess()) {
-//            mainResult.recordStatus(OperationResultStatus.SUCCESS, "The work item(s) have been successfully claimed.");
-//        }
-//
-//        showResult(mainResult);
-//
-//        //refresh feedback and table
-//        target.add(getFeedbackPanel());
-//        target.add(getUnassignedItemTable());
-//        target.add(getAssignedItemTable());
-//    }
-//
-//    private void releaseWorkItemsPerformed(AjaxRequestTarget target) {
-//        List<WorkItemDto> workItemDtoList = getSelectedAssignedItems();
-//        if (!isSomeItemSelected(workItemDtoList, target)) {
-//            return;
-//        }
-//
-//        OperationResult mainResult = new OperationResult(OPERATION_RELEASE_ITEMS);
-//        WfDataAccessor wfDataAccessor = getWorkflowManager();
-//        for (WorkItemDto workItemDto : workItemDtoList) {
-//            OperationResult result = mainResult.createSubresult(OPERATION_RELEASE_ITEM);
-//            try {
-//                wfDataAccessor.releaseWorkItem(workItemDto.getWorkItem(), result);
-//            } catch (Exception e) {
-//                result.recordPartialError("Couldn't release work item due to an unexpected exception.", e);
-//            }
-//        }
-//        if (mainResult.isUnknown()) {
-//            mainResult.recomputeStatus();
-//        }
-//
-//        if (mainResult.isSuccess()) {
-//            mainResult.recordStatus(OperationResultStatus.SUCCESS, "The work item(s) have been successfully released.");
-//        }
-//
-//        showResult(mainResult);
-//
-//        //refresh feedback and table
-//        target.add(getFeedbackPanel());
-//        target.add(getUnassignedItemTable());
-//        target.add(getAssignedItemTable());
-//    }
+    private void claimWorkItemsPerformed(AjaxRequestTarget target) {
+        List<WorkItemDto> workItemDtoList = getSelectedWorkItems();
+        if (!isSomeItemSelected(workItemDtoList, target)) {
+            return;
+        }
 
+        OperationResult mainResult = new OperationResult(OPERATION_CLAIM_ITEMS);
+        WorkflowManager workflowManagerImpl = getWorkflowManager();
+        for (WorkItemDto workItemDto : workItemDtoList) {
+            OperationResult result = mainResult.createSubresult(OPERATION_CLAIM_ITEM);
+            try {
+                workflowManagerImpl.claimWorkItem(workItemDto.getWorkItem().getWorkItemId(), result);
+                result.computeStatusIfUnknown();
+            } catch (RuntimeException e) {
+                result.recordPartialError("Couldn't claim work item due to an unexpected exception.", e);
+            }
+        }
+        if (mainResult.isUnknown()) {
+            mainResult.recomputeStatus();
+        }
+
+        if (mainResult.isSuccess()) {
+            mainResult.recordStatus(OperationResultStatus.SUCCESS, "The work item(s) have been successfully claimed.");
+        }
+
+        showResult(mainResult);
+
+        //refresh feedback and table
+        target.add(getFeedbackPanel());
+        target.add(getWorkItemTable());
+    }
+
+    private void releaseWorkItemsPerformed(AjaxRequestTarget target) {
+        List<WorkItemDto> workItemDtoList = getSelectedWorkItems();
+        if (!isSomeItemSelected(workItemDtoList, target)) {
+            return;
+        }
+
+        OperationResult mainResult = new OperationResult(OPERATION_RELEASE_ITEMS);
+        WorkflowManager workflowManagerImpl = getWorkflowManager();
+        for (WorkItemDto workItemDto : workItemDtoList) {
+            OperationResult result = mainResult.createSubresult(OPERATION_RELEASE_ITEM);
+            try {
+                workflowManagerImpl.releaseWorkItem(workItemDto.getWorkItem().getWorkItemId(), result);
+                result.computeStatusIfUnknown();
+            } catch (RuntimeException e) {
+                result.recordPartialError("Couldn't release work item due to an unexpected exception.", e);
+            }
+        }
+        if (mainResult.isUnknown()) {
+            mainResult.recomputeStatus();
+        }
+
+        if (mainResult.isSuccess()) {
+            mainResult.recordStatus(OperationResultStatus.SUCCESS, "The work item(s) have been successfully released.");
+        }
+
+        showResult(mainResult);
+
+        //refresh feedback and table
+        target.add(getFeedbackPanel());
+        target.add(getWorkItemTable());
+    }
 }

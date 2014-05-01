@@ -120,8 +120,8 @@ using an Identity Connector Framework connector.
 					<limitations>
 						<minOccurs>0</minOccurs>
 						<access>
+                            <read>true</read>
 							<add>true</add>
-							<read>true</read>
 						</access>
 					</limitations>
 					<outbound>
@@ -159,8 +159,8 @@ using an Identity Connector Framework connector.
 						<minOccurs>0</minOccurs>
 						<maxOccurs>-1</maxOccurs>
 						<access>
+                            <read>true</read>
 							<add>true</add>
-							<read>true</read>
 							<modify>true</modify>
 						</access>
 					</limitations>
