@@ -47,7 +47,7 @@
                         schemaLocation="../../public/model/workflow/common-forms-3.xsd"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-3"
                         schemaLocation="../../public/model/workflow/process-instance-state-3.xsd"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
                         schemaLocation="../../public/model/scripting/scripting-2.xsd"/>
 
             <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3" 

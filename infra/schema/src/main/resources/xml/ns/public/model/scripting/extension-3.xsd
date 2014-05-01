@@ -16,11 +16,11 @@
   ~ limitations under the License.
   -->
 
-<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-2"
-            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-2"
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
+            xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
             xmlns:apit="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             elementFormDefault="qualified">
@@ -34,7 +34,7 @@
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
     			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
 
-    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
                 schemaLocation="http://midpoint.evolveum.com/xml/ns/public/model/scripting/scripting-2"/>
 
     <xsd:element name="executeScript" type="s:ExecuteScriptType">

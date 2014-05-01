@@ -23,7 +23,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_2.SelectExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SelectExpressionType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.springframework.stereotype.Component;

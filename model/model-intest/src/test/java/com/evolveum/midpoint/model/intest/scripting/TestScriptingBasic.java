@@ -31,9 +31,9 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionPipelineType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExpressionSequenceType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExpressionPipelineType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExpressionSequenceType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ObjectFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;

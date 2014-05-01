@@ -21,7 +21,7 @@
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
-            xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
+            xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
@@ -57,8 +57,8 @@
         </xsd:annotation>
     </xsd:import>
 
-    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
-                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2">
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
         <xsd:annotation>
             <xsd:documentation>
                 Scripting language.

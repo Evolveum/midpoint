@@ -75,7 +75,7 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_3.SystemFaultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScripts;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsResponse;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ItemListType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ItemListType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;

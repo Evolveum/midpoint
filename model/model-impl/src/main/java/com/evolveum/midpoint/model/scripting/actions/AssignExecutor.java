@@ -33,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ActionExpressionType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 
 import org.springframework.stereotype.Component;
 
