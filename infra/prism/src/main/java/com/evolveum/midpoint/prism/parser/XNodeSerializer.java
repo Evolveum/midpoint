@@ -276,6 +276,7 @@ public class XNodeSerializer {
     //region Serializing references - specific functionality
     private XNode serializeReferenceValue(PrismReferenceValue value, PrismReferenceDefinition definition) throws SchemaException {
         MapXNode xmap = new MapXNode();
+        String namespace = definition != null ? definition.getNamespace() : null;           // namespace for filter and description
         if (StringUtils.isNotBlank(value.getOid())){
             xmap.put(XNode.KEY_REFERENCE_OID, createPrimitiveXNodeStringAttr(value.getOid()));
         }
@@ -289,12 +290,12 @@ public class XNodeSerializer {
         }
         String description = value.getDescription();
         if (description != null) {
-            xmap.put(XNode.KEY_REFERENCE_DESCRIPTION, createPrimitiveXNode(description, DOMUtil.XSD_STRING));
+            xmap.put(createReferenceQName(XNode.KEY_REFERENCE_DESCRIPTION, namespace), createPrimitiveXNode(description, DOMUtil.XSD_STRING));
         }
         SearchFilterType filter = value.getFilter();
         if (filter != null) {
             XNode xsubnode = filter.serializeToXNode(value.getPrismContext());
-            xmap.put(XNode.KEY_REFERENCE_FILTER, xsubnode);
+            xmap.put(createReferenceQName(XNode.KEY_REFERENCE_FILTER, namespace), xsubnode);
         }
 
         boolean isComposite = false;
@@ -307,6 +308,16 @@ public class XNodeSerializer {
         }
 
         return xmap;
+    }
+
+    // expects that qnames have null namespaces by default
+    // namespace (second parameter) may be null if unknown
+    private QName createReferenceQName(QName qname, String namespace) {
+        if (namespace != null) {
+            return new QName(namespace, qname.getLocalPart());
+        } else {
+            return qname;
+        }
     }
     //endregion
 

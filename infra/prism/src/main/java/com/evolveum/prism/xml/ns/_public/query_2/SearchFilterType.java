@@ -34,6 +34,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.datatype.Duration;
@@ -71,7 +72,7 @@ import org.jvnet.jaxb2_commons.locator.util.LocatorUtils;
 import org.w3c.dom.Element;
 
 
-@XmlAccessorType(XmlAccessType.FIELD)
+@XmlAccessorType(XmlAccessType.NONE)        // we select getters/fields to expose via JAXB individually
 @XmlType(name = "SearchFilterType", propOrder = {
 	"description",
     "filterClause",
@@ -79,11 +80,14 @@ import org.w3c.dom.Element;
 public class SearchFilterType implements Serializable, Cloneable, Equals, HashCode, DebugDumpable, Revivable
 {
     private final static long serialVersionUID = 201303040000L;
-    
+
+    @XmlElement
     protected String description;
-    @XmlAnyElement
+
+    // we annotate the getter instead to use it, not accessing directly this field
     protected Element filterClause;
-    @XmlTransient
+
+    // this one is not exposed via JAXB
     protected MapXNode filterClauseXNode;           // single-subnode map node (key = filter element qname, value = contents)
     
     public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "SearchFilterType");
@@ -134,6 +138,7 @@ public class SearchFilterType implements Serializable, Cloneable, Equals, HashCo
      *     {@link Element }
      *     
      */
+    @XmlAnyElement
     public Element getFilterClause() {
         if (filterClauseXNode != null) {
         	try {
