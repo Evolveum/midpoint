@@ -42,6 +42,7 @@
           OID during import. -->
     <connectorRef type="ConnectorType">
 		<filter>
+            <q:description>...a filter description...</q:description>
             <q:equal>
             	<q:path>connectorType</q:path>
                 <q:value>

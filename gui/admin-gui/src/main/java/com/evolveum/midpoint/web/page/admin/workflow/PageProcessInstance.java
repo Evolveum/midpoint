@@ -18,7 +18,9 @@ package com.evolveum.midpoint.web.page.admin.workflow;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
@@ -30,6 +32,8 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
 
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessSpecificState;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
@@ -94,7 +98,15 @@ public class PageProcessInstance extends PageAdminWorkItems {
                     throw e;
                 }
             }
-            return new ProcessInstanceDto(processInstance);
+            ProcessInstanceState processInstanceState = (ProcessInstanceState) processInstance.getState();
+            String shadowTaskOid = processInstanceState.getShadowTaskOid();
+            Task shadowTask = null;
+            try {
+                shadowTask = getTaskManager().getTask(shadowTaskOid, result);
+            } catch (ObjectNotFoundException e) {
+                // task is already deleted, no problem here
+            }
+            return new ProcessInstanceDto(processInstance, shadowTask);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get process instance information.", ex);
             showResult(result);

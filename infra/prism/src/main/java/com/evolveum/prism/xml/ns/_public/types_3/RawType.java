@@ -55,7 +55,7 @@ import org.w3c.dom.Text;
 /**
  * A class used to hold raw XNodes until the definition for such an object is known.
  */
-@XmlAccessorType(XmlAccessType.FIELD)
+@XmlAccessorType(XmlAccessType.NONE)
 @XmlType(name = "RawType", propOrder = {
     "content"
 })
@@ -80,7 +80,6 @@ public class RawType implements Serializable, Cloneable, Equals {
      *
      * Note that its type QName is coupled with the "type" attribute.
      */
-    @XmlTransient
 	private XNode xnode;
 
     /**
@@ -88,7 +87,6 @@ public class RawType implements Serializable, Cloneable, Equals {
      *
      * Beware: At most one of these fields (xnode, parsed) may be non-null at any instant.
      */
-	@XmlTransient
 	private PrismValue parsed;
 
     /**
@@ -120,7 +118,6 @@ public class RawType implements Serializable, Cloneable, Equals {
      *
      * Will be removed when we get rid of JAXB.
      */
-    @XmlAttribute(name = "xsiType")
     private QName xsiType;
 
     //region General getters/setters
@@ -132,6 +129,7 @@ public class RawType implements Serializable, Cloneable, Equals {
         return content;                     // content is initialized at instantiation time
     }
 
+    @XmlAttribute(name = "xsiType")
     public QName getXsiType() {
         if (xnode != null) {
             return xnode.getTypeQName();

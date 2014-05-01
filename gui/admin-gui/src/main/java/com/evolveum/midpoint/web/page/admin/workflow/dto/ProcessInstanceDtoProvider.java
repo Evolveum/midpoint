@@ -92,7 +92,7 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
 
             for (WfProcessInstanceType item : items) {
                 try {
-                    getAvailableData().add(new ProcessInstanceDto(item));
+                    getAvailableData().add(new ProcessInstanceDto(item, null));
                 } catch (Exception e) {
                     LoggingUtils.logException(LOGGER, "Unhandled exception when listing process instance ", e, item);
                     result.recordPartialError("Couldn't list process instance.", e);
