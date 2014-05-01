@@ -76,7 +76,7 @@ public class TestQueryConvertor {
 	private static final File TEST_DIR = new File("src/test/resources/queryconvertor");
 
 	private static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/test/extension";
-	private static final String NS_ICFS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
+	private static final String NS_ICFS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
 	private static final String NS_BLA = "http://midpoint.evolveum.com/blabla";
 
 	private static final QName intExtensionDefinition = new QName(NS_EXTENSION, "intType");

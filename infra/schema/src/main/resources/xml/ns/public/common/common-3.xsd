@@ -24,7 +24,7 @@
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-            xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+            xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
             xmlns:xenc="http://www.w3.org/2001/04/xmlenc#"
@@ -114,8 +114,8 @@
         </xsd:annotation>
     </xsd:import>
     
-    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" 
-    			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2">
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" 
+    			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">
         <xsd:annotation>
             <xsd:documentation>
                 This is a hack. It should not be here. And it will be gone as soon as we remove a deprecated functionality

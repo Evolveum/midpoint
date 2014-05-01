@@ -27,7 +27,7 @@ using an Identity Connector Framework Solaris connector.
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 
 
@@ -50,7 +50,7 @@ using an Identity Connector Framework Solaris connector.
              such as hostnames and passwords -->
 		<c:connectorConfiguration
                         xmlns:icfcsolaris="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.solaris-connector/org.identityconnectors.solaris.SolarisConnector"
-	                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
+	                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 	
             <!-- Configuration specific for the LDAP connector -->
 			<icfc:configurationProperties>

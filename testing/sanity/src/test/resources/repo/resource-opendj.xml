@@ -28,7 +28,7 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-2"
           xmlns:my="http://whatever.com/my">
 
@@ -50,7 +50,7 @@
     <!-- Resource configuration section -->
     <connectorConfiguration
             xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector"
-            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
         <!-- Configuration specific for the LDAP connector -->
         <icfc:configurationProperties>
@@ -218,7 +218,7 @@ This is now the only account type that midPoint can work with. -->
 							<language>http://www.w3.org/TR/xpath/</language>
 							<code>
 								declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-	 							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
+	 							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
 	 							func:determineLdapSingleAttributeValue($c:account/c:attributes/icfs:name, 'cn', $c:input)
 	 						</code>
 						</script>
@@ -265,7 +265,7 @@ This is now the only account type that midPoint can work with. -->
 							<language>http://www.w3.org/TR/xpath/</language>
 							<code>
 								declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-	 							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
+	 							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
 	 							func:determineLdapSingleAttributeValue($c:account/c:attributes/icfs:name, 'sn', $c:input)
  							</code>
 						</script>
@@ -300,7 +300,7 @@ This is now the only account type that midPoint can work with. -->
 							<language>http://www.w3.org/TR/xpath/</language>
  							<code>
 	 							declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-	 							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
+	 							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
 	 							func:determineLdapSingleAttributeValue($c:account/c:attributes/icfs:name, 'givenName', $c:input)</code>  
 <!--							<code>func:logDebug($c:account/c:attributes/icfs:name, 'givenName', $c:input)</code> -->
 						</script>
@@ -354,7 +354,7 @@ This is now the only account type that midPoint can work with. -->
                 			<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
                 			<code>
                 				basic.determineLdapSingleAttributeValue(
-                					basic.getAttributeStringValues(account, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2', 'name'),
+                					basic.getAttributeStringValues(account, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name'),
                 					'uid', input)
                 			</code>
                 		</script>

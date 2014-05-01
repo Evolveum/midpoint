@@ -130,10 +130,10 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 				com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ObjectFactory.class.getPackage());
 		
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/connector-schema-2.xsd", "icfc",
-				com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_2.ObjectFactory.class.getPackage());
+				com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ObjectFactory.class.getPackage());
 		
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/resource-schema-2.xsd", "icfs",
-				com.evolveum.midpoint.xml.ns._public.connector.icf_1.resource_schema_2.ObjectFactory.class.getPackage());
+				com.evolveum.midpoint.xml.ns._public.connector.icf_1.resource_schema_3.ObjectFactory.class.getPackage());
 		
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/import/extension-2.xsd", "impext");
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/extension-2.xsd", "mext");

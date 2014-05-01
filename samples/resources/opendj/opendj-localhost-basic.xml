@@ -51,7 +51,7 @@ This resource definition contains only the very basic definitions for midPoint t
              such as hostnames and passwords -->
 		<connectorConfiguration
 			xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
             <!-- Configuration specific for the LDAP connector -->
 			<icfc:configurationProperties>

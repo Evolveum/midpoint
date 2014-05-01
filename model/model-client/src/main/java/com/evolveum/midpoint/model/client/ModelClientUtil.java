@@ -68,8 +68,8 @@ public class ModelClientUtil {
 		return JAXBContext.newInstance("com.evolveum.midpoint.xml.ns._public.common.api_types_2:" +
 				"com.evolveum.midpoint.xml.ns._public.common.common_3:" +
 				"com.evolveum.midpoint.xml.ns._public.common.fault_1:" +
-				"com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_2:" +
-				"com.evolveum.midpoint.xml.ns._public.connector.icf_1.resource_schema_2:" +
+				"com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3:" +
+				"com.evolveum.midpoint.xml.ns._public.connector.icf_1.resource_schema_3:" +
 				"com.evolveum.midpoint.xml.ns._public.resource.capabilities_2:" +
 				"com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2:" +
                 "com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2:" +

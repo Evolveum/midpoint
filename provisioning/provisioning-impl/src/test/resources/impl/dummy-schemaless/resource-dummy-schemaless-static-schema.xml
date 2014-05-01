@@ -19,14 +19,14 @@
 		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
         xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
 								  
 	<name>Dummy Schemaless Resource with static schema</name>
 	<connectorRef oid="will-be-supplied-by-the-test-code"/>
 	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 					   
 		<icfc:configurationProperties>
 			<icfi:instanceId>staticSchema</icfi:instanceId> <!-- Default instance -->
@@ -38,13 +38,13 @@
 	<schema>
 		<definition>
 	         <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                      xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
                      xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
                      xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
                      elementFormDefault="qualified"
                      targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">
-	            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"/>
+	            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
 	            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
 	            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"/>
 	            <xsd:complexType name="AccountObjectClass">

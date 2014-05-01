@@ -22,8 +22,8 @@
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
 	xmlns:my="http://myself.me/schemas/whatever"
         xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
 
@@ -96,12 +96,12 @@
 			<definition>
 				<xsd:schema elementFormDefault="qualified"
 			targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
-			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
 			xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" />
+					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
 
 					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
 					<xsd:complexType name="AccountObjectClass">

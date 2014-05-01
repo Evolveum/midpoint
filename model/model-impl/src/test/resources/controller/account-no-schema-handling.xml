@@ -17,7 +17,7 @@
 <c:object oid="007" xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' 
 	xmlns:ldap="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd" xmlns:unix="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd"
-	xmlns:mi6="http://mi6.gov.uk/schema/" xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd"
+	xmlns:mi6="http://mi6.gov.uk/schema/" xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-3.xsd"
 	xmlns:icc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
 	xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.x"
 	xmlns:opendse="http://midpoint.evolveum.com/schema/resources/instances/ldap/embeddedJUnitOpenDS" xmlns:opendsl="http://midpoint.evolveum.com/schema/resources/instances/ldap/localhostOpenDS"
@@ -25,7 +25,7 @@
 	xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
    http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../ns/public/common/common-3.xsd
    
-   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd ../ns/public/resource/idconnector/resource-schema-2.xsd
+   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-3.xsd ../ns/public/resource/idconnector/resource-schema-3.xsd
    http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd ../ns/public/resource/idconnector/configuration-1.xsd'>
 	<c:name>bond new</c:name>
 	<resource oid="333">

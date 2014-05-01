@@ -33,8 +33,8 @@ object.
            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
            xmlns:my="http://myself.me/schemas/whatever"
-           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
            xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
 
           <!-- Resource name. It will be displayed in GUI.  -->

@@ -19,7 +19,7 @@
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
           xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
           xmlns:trafo="http://midpoint.evolveum.com/xml/ns/story/trafo/ext"
@@ -42,7 +42,7 @@
 		</filter>
 	</connectorRef>
 	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 					   
 		<icfc:configurationProperties>
 			<icfi:instanceId>AD</icfi:instanceId>
@@ -516,7 +516,7 @@ return midpoint.isUniqueAccountValue(resource, shadow, 'sAMAccountName', login)
 		tmpContainer = '(?i)^CN=.*?,(OU=.*,)O=Trafo'
 		dnRegExp2 = ~tmpContainer
 		
-		tmpName = basic.getAttributeValue(account, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2', 'name')
+		tmpName = basic.getAttributeValue(account, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name')
 		tmpLogin = basic.getAttributeValue(account, 'sAMAccountName')
 		
 		loginMatcher = (tmpLogin =~ sAMAccountNameRegExp)

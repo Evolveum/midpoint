@@ -134,12 +134,12 @@
         	<definition>
             <xsd:schema elementFormDefault="qualified"
 					targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 					xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
 					xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
 					xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" />
+					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
 					
 					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
 					<xsd:complexType name="GroupObjectClass">
@@ -250,7 +250,7 @@
 			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 			
 			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/c0c010c0-d34d-b33f-f00d-333222111111"
-			xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd"
+			xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-3.xsd"
 			xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd">
 
 			<!-- Definition of default account type. This is now the only account 

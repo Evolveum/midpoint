@@ -31,11 +31,11 @@
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/common-3" uri="../xml/ns/public/common/common-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-3" uri="../xml/ns/public/common/common-3.xsd" />
 
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" uri="../xml/ns/public/connector/icf-1/resource-schema-2.xsd" />
-    <system systemId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" uri="../xml/ns/public/connector/icf-1/resource-schema-2.xsd" />
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" uri="../xml/ns/public/connector/icf-1/resource-schema-3.xsd" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" uri="../xml/ns/public/connector/icf-1/resource-schema-3.xsd" />
 
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2" uri="../xml/ns/public/connector/icf-1/connector-schema-2.xsd" />
-    <system systemId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2" uri="../xml/ns/public/connector/icf-1/connector-schema-2.xsd" />
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" uri="../xml/ns/public/connector/icf-1/connector-schema-3.xsd" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" uri="../xml/ns/public/connector/icf-1/connector-schema-3.xsd" />
 
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2" uri="../xml/ns/public/resource/capabilities-2.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2" uri="../xml/ns/public/resource/capabilities-2.xsd" />

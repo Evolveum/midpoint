@@ -25,7 +25,7 @@
           xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
           xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-2"
           xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
 
@@ -43,7 +43,7 @@
 
     <connectorConfiguration
             xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector"
-            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties>
             <icfcldap:port>10389</icfcldap:port>
             <icfcldap:host>localhost</icfcldap:host>

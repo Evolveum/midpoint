@@ -18,13 +18,13 @@
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' 
 	xmlns:ldap="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd" xmlns:unix="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-	xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+	xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xsi:type="c:AccountShadowType"
 	xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
    http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../ns/public/common/common-3.xsd
    
-   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd ../ns/public/resource/idconnector/resource-schema-2.xsd
+   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-3.xsd ../ns/public/resource/idconnector/resource-schema-3.xsd
    http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd ../ns/public/resource/idconnector/configuration-1.xsd'>
  
 	<c:resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType" />

@@ -820,7 +820,7 @@
         </xs:complexType>
       </xs:element>
     </xs:schema>
-    <xs:schema xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:schema xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
       <xs:element name="configurationProperties" type="tns:ConfigurationPropertiesType" />
       <xs:element name="connectorPoolConfiguration" type="tns:ConnectorPoolConfigurationType" />
       <xs:element name="producerBufferSize" type="xs:int" />

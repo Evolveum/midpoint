@@ -280,7 +280,7 @@
                                            <extension>true</extension>
                                        </xsdOption>
                                        <xsdOption>
-                                           <xsd>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-2.xsd</xsd>
+                                           <xsd>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-3.xsd</xsd>
                                            <extensionArgs>
                                                <extensionArg>-Xts</extensionArg>
                                                <extensionArg>-Xequals</extensionArg>
@@ -289,7 +289,7 @@
                                            <extension>true</extension>
                                        </xsdOption>
                                        <xsdOption>
-                                           <xsd>src/main/resources/xml/ns/public/connector/icf-1/connector-schema-2.xsd</xsd>
+                                           <xsd>src/main/resources/xml/ns/public/connector/icf-1/connector-schema-3.xsd</xsd>
                                            <extensionArgs>
                                                <extensionArg>-Xts</extensionArg>
                                                <extensionArg>-Xequals</extensionArg>
@@ -359,7 +359,7 @@
                     <schemaFiles>
                         <schemaFile>src/main/resources/xml/ns/public/common/common-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/common/api-types-3.xsd</schemaFile>
-                        <schemaFile>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-2.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/model/scripting/scripting-2.xsd</schemaFile>
                     </schemaFiles>
                     <templateDir>src/main/schemadoc/templates</templateDir>

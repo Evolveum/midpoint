@@ -23,9 +23,9 @@
     <extension>
         <wf:changeProcessor xmlns:wf="http://midpoint.evolveum.com/model/workflow/extension-2">com.evolveum.midpoint.wf.processors.general.GeneralChangeProcessor</wf:changeProcessor>
         <m:modelContext xmlns:m="http://midpoint.evolveum.com/xml/ns/public/model/model-context-2">
-            <m:state xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+            <m:state xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                     xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                     xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                      xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
                      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
@@ -60,9 +60,9 @@
                     </assignment>
                     <activation>
                         <c:administrativeStatus xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                                                xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                                                xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                                                 xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                                                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                                                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                                                 xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
                                                 xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                                                 xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
@@ -72,9 +72,9 @@
                                                 xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
                                                 xmlns:enc="http://www.w3.org/2001/04/xmlenc#">enabled</c:administrativeStatus>
                         <c:effectiveStatus xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                                           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                                           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                                            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                                           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                                           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                                            xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
                                            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                                            xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
@@ -120,11 +120,11 @@
                     <credentials>
                         <password>
                             <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                                     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                                     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                                      xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
                                      xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                                      xmlns:wfcf="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
-                                     xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                                     xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                                      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
                                      xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
                                      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
@@ -170,24 +170,24 @@
                     </assignment>
                     <activation>
                         <c:administrativeStatus xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                                                xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                                                xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                                                 xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
                                                 xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                                                 xmlns:wfcf="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
                                                 xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                                                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                                                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                                                 xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
                                                 xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                                                 xmlns:wfpis="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
                                                 xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
                                                 xmlns:enc="http://www.w3.org/2001/04/xmlenc#">enabled</c:administrativeStatus>
                         <c:effectiveStatus xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                                           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                                           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                                            xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
                                            xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                                            xmlns:wfcf="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
                                            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                                           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                                           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                                            xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
                                            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                                            xmlns:wfpis="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
@@ -230,12 +230,12 @@
                     <credentials>
                         <password>
                             <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                                     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                                     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                                      xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
                                      xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                                      xmlns:wfcf="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
                                      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                                     xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                                     xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                                      xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
                                      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                                      xmlns:wfpis="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
@@ -255,13 +255,13 @@
                         </password>
                     </credentials>
                 </m:objectNew>
-                <m:executedDeltas xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                <m:executedDeltas xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                                   xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                                   xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
                                   xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                                   xmlns:wfcf="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
                                   xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                                  xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                                  xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                                   xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
                                   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                                   xmlns:wfpis="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
@@ -313,13 +313,13 @@
                 </m:executedDeltas>
                 <m:objectTypeClass>com.evolveum.midpoint.xml.ns._public.common.common_3.UserType</m:objectTypeClass>
                 <m:oid>c0c010c0-d34d-b33f-f00d-111111111111</m:oid>
-                <m:secondaryDeltas xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                <m:secondaryDeltas xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                                    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                                    xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
                                    xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                                    xmlns:wfcf="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
                                    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                                    xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
                                    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                                    xmlns:wfpis="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
@@ -343,7 +343,7 @@
                     <iterationToken/>
                     <attributes>
                         <ri:fullname xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">Jack Sparrow</ri:fullname>
-                        <icfs:name xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2">jack</icfs:name>
+                        <icfs:name xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">jack</icfs:name>
                         <ri:location xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">Caribbean</ri:location>
                         <ri:weapon xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">mouth</ri:weapon>
                         <ri:weapon xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">pistol</ri:weapon>
@@ -352,12 +352,12 @@
                     </attributes>
                     <activation>
                         <c:administrativeStatus xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                                                xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                                                xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                                                 xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
                                                 xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                                                 xmlns:wfcf="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
                                                 xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                                                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                                                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                                                 xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
                                                 xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                                                 xmlns:wfpis="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
@@ -368,12 +368,12 @@
                     <credentials>
                         <password>
                             <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                                     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                                     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                                      xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
                                      xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                                      xmlns:wfcf="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
                                      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                                     xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                                     xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                                      xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
                                      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                                      xmlns:wfpis="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
@@ -394,13 +394,13 @@
                         </password>
                     </credentials>
                 </m:objectNew>
-                <m:primaryDelta xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                <m:primaryDelta xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                                 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                                 xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
                                 xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                                 xmlns:wfcf="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
                                 xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                                 xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
                                 xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                                 xmlns:wfpis="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
@@ -427,13 +427,13 @@
                     </t:objectToAdd>
                     <t:oid>e3a820c4-224b-4714-bce7-7d4855f6fa97</t:oid>
                 </m:primaryDelta>
-                <m:secondaryDelta xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                <m:secondaryDelta xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                                   xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                                   xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
                                   xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                                   xmlns:wfcf="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
                                   xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                                  xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                                  xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                                   xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
                                   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                                   xmlns:wfpis="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
@@ -556,13 +556,13 @@
                         </t:value>
                     </t:modification>
                 </m:secondaryDelta>
-                <m:executedDeltas xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                <m:executedDeltas xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                                   xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                                   xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
                                   xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                                   xmlns:wfcf="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
                                   xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                                  xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                                  xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                                   xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
                                   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                                   xmlns:wfpis="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
@@ -872,13 +872,13 @@
                 <m:oid>e3a820c4-224b-4714-bce7-7d4855f6fa97</m:oid>
                 <m:syncAbsoluteTrigger>false</m:syncAbsoluteTrigger>
                 <m:wave>0</m:wave>
-                <m:resourceShadowDiscriminator xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                <m:resourceShadowDiscriminator xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                                                xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                                                xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
                                                xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                                                xmlns:wfcf="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
                                                xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                                               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                                               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                                                xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
                                                xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                                                xmlns:wfpis="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
@@ -895,13 +895,13 @@
                 <m:isActive>true</m:isActive>
                 <m:isLegal>true</m:isLegal>
                 <m:isExists>false</m:isExists>
-                <m:synchronizationPolicyDecision xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                <m:synchronizationPolicyDecision xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                                                  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                                                  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
                                                  xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                                                  xmlns:wfcf="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
                                                  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                                                 xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                                                 xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                                                  xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
                                                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                                                  xmlns:wfpis="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
@@ -910,13 +910,13 @@
                 <m:doReconciliation>false</m:doReconciliation>
                 <m:iteration>0</m:iteration>
                 <m:iterationToken/>
-                <m:synchronizationSituationResolved xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                <m:synchronizationSituationResolved xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                                                     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                                                     xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
                                                     xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                                                     xmlns:wfcf="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
                                                     xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                                                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                                                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                                                     xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
                                                     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                                                     xmlns:wfpis="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
@@ -931,13 +931,13 @@
             <m:lazyAuditRequest>false</m:lazyAuditRequest>
             <m:requestAudited>true</m:requestAudited>
             <m:executionAudited>true</m:executionAudited>
-            <m:stats xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+            <m:stats xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                      xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
                      xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                      xmlns:wfcf="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
                      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                     xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                     xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                      xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
                      xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                      xmlns:wfpis="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
@@ -953,13 +953,13 @@
               type="c:UserType"/>
     <parent>1395235525301-0-1</parent>
     <c:executionStatus xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                       xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
                        xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                        xmlns:wfcf="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
                        xmlns:m="http://midpoint.evolveum.com/xml/ns/public/model/model-context-2"
                        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                       xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                       xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                        xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
                        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                        xmlns:wfpis="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
@@ -968,13 +968,13 @@
     <category>Workflow</category>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/operation/handler-2</handlerUri>
     <c:result xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-              xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+              xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
               xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
               xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
               xmlns:wfcf="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
               xmlns:m="http://midpoint.evolveum.com/xml/ns/public/model/model-context-2"
               xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-              xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+              xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
               xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
               xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
               xmlns:wfpis="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
@@ -985,13 +985,13 @@
         <c:token>1000000000000000087</c:token>
     </c:result>
     <c:resultStatus xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                     xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
                     xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                     xmlns:wfcf="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
                     xmlns:m="http://midpoint.evolveum.com/xml/ns/public/model/model-context-2"
                     xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                     xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
                     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                     xmlns:wfpis="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
@@ -1002,26 +1002,26 @@
                type="c:UserType"/>
     <progress>0</progress>
     <c:recurrence xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                  xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+                  xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                   xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
                   xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                   xmlns:wfcf="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
                   xmlns:m="http://midpoint.evolveum.com/xml/ns/public/model/model-context-2"
                   xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-                  xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+                  xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                   xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
                   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                   xmlns:wfpis="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
                   xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
                   xmlns:enc="http://www.w3.org/2001/04/xmlenc#">single</c:recurrence>
     <c:binding xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-               xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+               xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
                xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
                xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                xmlns:wfcf="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
                xmlns:m="http://midpoint.evolveum.com/xml/ns/public/model/model-context-2"
                xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
                xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
                xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                xmlns:wfpis="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"

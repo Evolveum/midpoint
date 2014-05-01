@@ -25,7 +25,7 @@
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2">
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3">
 
     <!-- Resource printable name -->
     <name>
@@ -47,7 +47,7 @@
     <!-- Resource configuration section -->
     <connectorConfiguration
             xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector"
-            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
         <!-- Configuration specific for the LDAP connector -->
         <icfc:configurationProperties>
