@@ -29,7 +29,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextStatsType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensFocusContextType;

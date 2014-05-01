@@ -18,7 +18,7 @@
 
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/model/workflow/extension-2"
             xmlns:tns="http://midpoint.evolveum.com/model/workflow/extension-2"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -39,8 +39,8 @@
         </xsd:annotation>
     </xsd:import>
 
-    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     </xsd:import>
 
     <xsd:element name="deltaToProcess" type="t:ObjectDeltaType">

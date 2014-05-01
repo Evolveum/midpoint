@@ -27,8 +27,9 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+
 import org.quartz.Scheduler;
 import org.quartz.core.jmx.QuartzSchedulerMBean;
 
@@ -40,6 +41,7 @@ import javax.management.openmbean.CompositeData;
 import javax.management.openmbean.TabularData;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXServiceURL;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;

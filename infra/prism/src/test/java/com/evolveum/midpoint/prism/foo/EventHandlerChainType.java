@@ -188,39 +188,39 @@ public class EventHandlerChainType
                 if (next instanceof JAXBElement) {
                     // Referenced elements without classes.
                     if (((JAXBElement) next).getValue() instanceof EventOperationFilterType) {
-                        // CElementInfo: javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_2a.EventOperationFilterType>
+                        // CElementInfo: javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationFilterType>
                         target.add(copyOfEventOperationFilterTypeElement(((JAXBElement) next)));
                         continue;
                     }
                     if (((JAXBElement) next).getValue() instanceof EventStatusFilterType) {
-                        // CElementInfo: javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_2a.EventStatusFilterType>
+                        // CElementInfo: javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusFilterType>
                         target.add(copyOfEventStatusFilterTypeElement(((JAXBElement) next)));
                         continue;
                     }
                     if (((JAXBElement) next).getValue() instanceof EventCategoryFilterType) {
-                        // CElementInfo: javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_2a.EventCategoryFilterType>
+                        // CElementInfo: javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryFilterType>
                         target.add(copyOfEventCategoryFilterTypeElement(((JAXBElement) next)));
                         continue;
                     }
                     if (((JAXBElement) next).getValue() instanceof EventHandlerChainType) {
-                        // CElementInfo: javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerChainType>
+                        // CElementInfo: javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerChainType>
                         target.add(copyOfEventHandlerChainTypeElement(((JAXBElement) next)));
                         continue;
                     }
                     if (((JAXBElement) next).getValue() instanceof EventHandlerType) {
-                        // CElementInfo: javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType>
+                        // CElementInfo: javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType>
                         target.add(copyOfEventHandlerTypeElement(((JAXBElement) next)));
                         continue;
                     }
                 }
                 // Please report this at https://apps.sourceforge.net/mantisbt/ccxjc/
-                throw new AssertionError((("Unexpected instance '"+ next)+"' for property 'Handler' of class 'com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerChainType'."));
+                throw new AssertionError((("Unexpected instance '"+ next)+"' for property 'Handler' of class 'com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerChainType'."));
             }
         }
     }
 
     /**
-     * Creates and returns a deep copy of a given {@code javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_2a.EventOperationFilterType>} instance.
+     * Creates and returns a deep copy of a given {@code javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationFilterType>} instance.
      * 
      * @param e
      *     The instance to copy or {@code null}.
@@ -233,7 +233,7 @@ public class EventHandlerChainType
         if (e!= null) {
             final JAXBElement<EventOperationFilterType> copy = new JAXBElement<EventOperationFilterType>(e.getName(), e.getDeclaredType(), e.getScope(), e.getValue());
             copy.setNil(e.isNil());
-            // CClassInfo: com.evolveum.midpoint.xml.ns._public.common.common_2a.EventOperationFilterType
+            // CClassInfo: com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationFilterType
             copy.setValue(((((EventOperationFilterType) copy.getValue()) == null)?null:((EventOperationFilterType) copy.getValue()).clone()));
             return copy;
         }
@@ -242,7 +242,7 @@ public class EventHandlerChainType
 
 
     /**
-     * Creates and returns a deep copy of a given {@code javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_2a.EventStatusFilterType>} instance.
+     * Creates and returns a deep copy of a given {@code javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusFilterType>} instance.
      * 
      * @param e
      *     The instance to copy or {@code null}.
@@ -255,7 +255,7 @@ public class EventHandlerChainType
         if (e!= null) {
             final JAXBElement<EventStatusFilterType> copy = new JAXBElement<EventStatusFilterType>(e.getName(), e.getDeclaredType(), e.getScope(), e.getValue());
             copy.setNil(e.isNil());
-            // CClassInfo: com.evolveum.midpoint.xml.ns._public.common.common_2a.EventStatusFilterType
+            // CClassInfo: com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusFilterType
             copy.setValue(((((EventStatusFilterType) copy.getValue()) == null)?null:((EventStatusFilterType) copy.getValue()).clone()));
             return copy;
         }
@@ -263,7 +263,7 @@ public class EventHandlerChainType
     }
 
     /**
-     * Creates and returns a deep copy of a given {@code javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_2a.EventCategoryFilterType>} instance.
+     * Creates and returns a deep copy of a given {@code javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryFilterType>} instance.
      * 
      * @param e
      *     The instance to copy or {@code null}.
@@ -276,7 +276,7 @@ public class EventHandlerChainType
         if (e!= null) {
             final JAXBElement<EventCategoryFilterType> copy = new JAXBElement<EventCategoryFilterType>(e.getName(), e.getDeclaredType(), e.getScope(), e.getValue());
             copy.setNil(e.isNil());
-            // CClassInfo: com.evolveum.midpoint.xml.ns._public.common.common_2a.EventCategoryFilterType
+            // CClassInfo: com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryFilterType
             copy.setValue(((((EventCategoryFilterType) copy.getValue()) == null)?null:((EventCategoryFilterType) copy.getValue()).clone()));
             return copy;
         }
@@ -285,7 +285,7 @@ public class EventHandlerChainType
 
 
     /**
-     * Creates and returns a deep copy of a given {@code javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerChainType>} instance.
+     * Creates and returns a deep copy of a given {@code javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerChainType>} instance.
      * 
      * @param e
      *     The instance to copy or {@code null}.
@@ -298,7 +298,7 @@ public class EventHandlerChainType
         if (e!= null) {
             final JAXBElement<EventHandlerChainType> copy = new JAXBElement<EventHandlerChainType>(e.getName(), e.getDeclaredType(), e.getScope(), e.getValue());
             copy.setNil(e.isNil());
-            // CClassInfo: com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerChainType
+            // CClassInfo: com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerChainType
             copy.setValue(((((EventHandlerChainType) copy.getValue()) == null)?null:((EventHandlerChainType) copy.getValue()).clone()));
             return copy;
         }
@@ -307,7 +307,7 @@ public class EventHandlerChainType
 
 
     /**
-     * Creates and returns a deep copy of a given {@code javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType>} instance.
+     * Creates and returns a deep copy of a given {@code javax.xml.bind.JAXBElement<com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType>} instance.
      * 
      * @param e
      *     The instance to copy or {@code null}.
@@ -320,7 +320,7 @@ public class EventHandlerChainType
         if (e!= null) {
             final JAXBElement<EventHandlerType> copy = new JAXBElement<EventHandlerType>(e.getName(), e.getDeclaredType(), e.getScope(), e.getValue());
             copy.setNil(e.isNil());
-            // CClassInfo: com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType
+            // CClassInfo: com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType
             copy.setValue(((((EventHandlerType) copy.getValue()) == null)?null:((EventHandlerType) copy.getValue()).clone()));
             return copy;
         }

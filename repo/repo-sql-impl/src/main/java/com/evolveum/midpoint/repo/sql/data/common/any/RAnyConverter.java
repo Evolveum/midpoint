@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import com.evolveum.midpoint.prism.*;
-
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ValueSerializationUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -28,7 +27,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import org.apache.commons.lang.Validate;

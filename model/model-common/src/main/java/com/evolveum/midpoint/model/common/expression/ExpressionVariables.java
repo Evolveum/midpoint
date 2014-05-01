@@ -25,7 +25,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;

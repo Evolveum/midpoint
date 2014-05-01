@@ -17,8 +17,8 @@ package com.evolveum.midpoint.security.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 public interface OwnerResolver {
 	

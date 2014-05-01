@@ -19,7 +19,7 @@
 	a new account -->
 
 <objectDelta
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns="http://prism.evolveum.com/xml/ns/public/types-2">
 	<changeType>modify</changeType>
 	<objectType>c:UserType</objectType>

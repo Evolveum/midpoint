@@ -15,8 +15,8 @@
   ~ limitations under the License.
   -->
 
-<script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
+<script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
 		xmlns:x="http://example.com/xxx"
 		xmlns:y="http://example.com/yyy">
     <language>http://www.w3.org/TR/xpath/</language>
@@ -31,7 +31,7 @@
 	<code xmlns:x="http://example.com/xxx">
         declare namespace x="http://example.com/xxx";
         declare namespace y="http://example.com/yyy";
-        declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+        declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 		concat($x:foo,' ',$y:jack/c:description)
 	</code>
 </script>

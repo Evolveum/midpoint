@@ -20,7 +20,7 @@
 
 <t:objectDelta
 	xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -34,11 +34,11 @@
 	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
 	<t:itemDelta>
 		<t:modificationType>replace</t:modificationType>
-		<t:path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";c:schemaHandling</t:path>
+		<t:path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";c:schemaHandling</t:path>
 		<t:value>
 <!-- 			<schemaHandling oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" -->
-<!--           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" -->
-<!--           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" -->
+<!--           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" -->
+<!--           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" -->
 <!--           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2" -->
 <!--           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2" -->
 <!--           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" -->
@@ -182,7 +182,7 @@ else {
 						<script>
 							<language>http://www.w3.org/TR/xpath/</language>
 							<code>
-								declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+								declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 								$givenName
 							</code>
 						</script>
@@ -256,7 +256,7 @@ else {
                 <inbound>
                     <target>
                     	<path>
-	                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+	                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 	                        declare namespace my="http://whatever.com/my";
 	                        $i:user/i:extension/my:description
                         </path>
@@ -279,14 +279,14 @@ else {
                 <outbound>
                 	<strength>strong</strength>
                 	<source>
-                		<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";$c:user/c:locality</path>
+                		<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";$c:user/c:locality</path>
                 	</source>
                 	<expression>
                 		<script>
                 			<c:language>http://www.w3.org/TR/xpath/</c:language>
                 			<c:returnType>scalar</c:returnType>
                 			<code>
-                				declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+                				declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
                 				if (empty($c:user/c:locality)) then
                 					"middle of nowhere"
                 				else

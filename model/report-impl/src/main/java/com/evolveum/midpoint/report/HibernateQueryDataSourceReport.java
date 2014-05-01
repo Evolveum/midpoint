@@ -8,8 +8,8 @@ import java.util.List;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportFieldConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRException;

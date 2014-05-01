@@ -17,7 +17,7 @@
 
 <!-- Import test file with references between objects -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2" xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
 
@@ -31,12 +31,12 @@
 		</namespace>
 	</connector>
 
-	<resource xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+	<resource xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 		<name>Sample Resource</name>
 		<connectorRef type="ConnectorType">
 			<filter>
 				<!-- <q:and> -->
-				<!-- <q:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-2a#ConnectorType"/> -->
+				<!-- <q:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType"/> -->
 				<q:equal>
 					<q:path>c:connectorType</q:path>
 					<q:value>org.identityconnectors.ldap.LdapConnector</q:value>

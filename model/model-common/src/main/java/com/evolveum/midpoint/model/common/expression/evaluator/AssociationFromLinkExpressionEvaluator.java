@@ -64,16 +64,16 @@ import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenerateExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowDiscriminatorExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowDiscriminatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GenerateExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowDiscriminatorExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowDiscriminatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
 
 /**
  * @author Radovan Semancik

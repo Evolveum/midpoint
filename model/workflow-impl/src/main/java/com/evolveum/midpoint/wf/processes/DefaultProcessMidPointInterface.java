@@ -17,9 +17,10 @@
 package com.evolveum.midpoint.wf.processes;
 
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessSpecificState;
 import com.sun.corba.se.spi.ior.iiop.ORBTypeComponent;
+
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;

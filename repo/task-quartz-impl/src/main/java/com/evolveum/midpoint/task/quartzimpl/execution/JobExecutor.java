@@ -20,8 +20,8 @@ import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
 import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.commons.lang.Validate;
 import org.quartz.*;

@@ -40,14 +40,14 @@ import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.EntryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.LocalizedMessageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ParamsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UnknownJavaObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EntryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizedMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ParamsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UnknownJavaObjectType;
 
 /**
  * Nested Operation Result.

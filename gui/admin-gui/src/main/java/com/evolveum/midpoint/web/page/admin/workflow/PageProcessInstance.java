@@ -28,7 +28,7 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;

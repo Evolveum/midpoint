@@ -28,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.GetOperationOptio
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.SelectorQualifiedGetOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.SelectorQualifiedGetOptionsType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
+
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -46,14 +47,14 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectSelectorType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProjectionPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CachingMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectionPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 
 /**

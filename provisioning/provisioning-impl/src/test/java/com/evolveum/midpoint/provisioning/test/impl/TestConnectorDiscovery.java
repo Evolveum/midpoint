@@ -44,7 +44,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 
 /** 

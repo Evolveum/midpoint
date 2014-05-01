@@ -35,9 +35,10 @@ import com.evolveum.midpoint.wf.jobs.JobController;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

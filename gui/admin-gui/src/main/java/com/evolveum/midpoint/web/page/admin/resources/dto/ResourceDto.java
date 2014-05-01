@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -34,10 +35,10 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 import javax.xml.namespace.QName;
 

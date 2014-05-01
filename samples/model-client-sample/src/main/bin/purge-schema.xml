@@ -25,7 +25,7 @@ runscript -s purge-schema.xml -Dname="resource name"
 
 
 <s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <s:type>c:ResourceType</s:type>
     <equal xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
         <path>c:name</path>

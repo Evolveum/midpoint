@@ -19,6 +19,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 
 import com.evolveum.midpoint.prism.PrismContext;
+
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 
@@ -57,7 +58,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik

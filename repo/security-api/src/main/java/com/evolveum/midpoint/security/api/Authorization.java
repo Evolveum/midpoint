@@ -24,10 +24,10 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationDecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSpecificationType;
 
 /**
  * @author semancik

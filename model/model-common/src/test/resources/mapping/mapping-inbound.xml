@@ -8,7 +8,7 @@
 	License for the specific language governing permissions and ~ limitations 
 	under the License. -->
 
-<mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
 	<strength>weak</strength>

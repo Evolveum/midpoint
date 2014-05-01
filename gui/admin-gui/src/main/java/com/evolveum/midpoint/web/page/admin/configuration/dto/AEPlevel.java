@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
 
 /**
  *  TODO - when mark AEP is implemented, add it here as well

@@ -14,7 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<object xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<object xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         oid="f17ab2a1-a6ce-4ad1-b057-6537bfc49cc8"
         version="6"
@@ -29,7 +29,7 @@
     </trigger>
     <metadata>
         <createTimestamp>2013-09-30T14:23:23.817-04:00</createTimestamp>
-        <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+        <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                     oid="00000000-0000-0000-0000-000000000002"
                     type="c:UserType"/>
         <createChannel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-2#discovery</createChannel>
@@ -37,11 +37,11 @@
         <modifierRef oid="00000000-0000-0000-0000-000000000002"/>
         <modifyChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-2#user</modifyChannel>
     </metadata>
-    <resourceRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+    <resourceRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                  oid="af2bc95b-76e0-48e2-86d6-3d4f02d3fafe"
                  type="c:ResourceType"/>
     <objectClass xmlns:qn363="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">qn363:AccountObjectClass</objectClass>
-    <c:kind xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+    <c:kind xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
             xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"

@@ -24,8 +24,9 @@ import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -37,6 +38,7 @@ import org.testng.annotations.Test;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
+
 import java.io.File;
 import java.util.Calendar;
 import java.util.Date;

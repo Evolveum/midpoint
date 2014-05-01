@@ -19,7 +19,8 @@ package com.evolveum.midpoint.wf.processes.itemApproval;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.processes.common.SpringApplicationContextHolder;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.LevelEvaluationStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LevelEvaluationStrategyType;
+
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.apache.commons.lang.Validate;

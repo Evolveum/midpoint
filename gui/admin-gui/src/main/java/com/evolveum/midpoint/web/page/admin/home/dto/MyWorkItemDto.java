@@ -18,7 +18,7 @@ package com.evolveum.midpoint.web.page.admin.home.dto;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 
 import java.io.Serializable;
 import java.util.Date;

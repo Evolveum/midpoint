@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <c:user oid="00000000-0000-0000-0000-000000000002"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
     <c:name>
         <t:orig>administrator</t:orig>
@@ -39,7 +39,7 @@
     <c:activation>
         <c:administrativeStatus>enabled</c:administrativeStatus>
     </c:activation>
-    <c:credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+    <c:credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
         <c:password>
 <!--         <c:value> -->
 <!--             <t:encryptedData xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"> -->

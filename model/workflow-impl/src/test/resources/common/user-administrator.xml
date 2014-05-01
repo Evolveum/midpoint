@@ -15,8 +15,8 @@
   ~ limitations under the License.
   -->
 <user oid="00000000-0000-0000-0000-000000000002" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 	<name>administrator</name>
 	<assignment>
 		<targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"/>
@@ -25,7 +25,7 @@
 	<givenName>midPoint</givenName>
 	<familyName>Administrator</familyName>
 	<emailAddress>administrator@evolveum.com</emailAddress>
-	<credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+	<credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 		<password>
 		 <c:value> 
             <t:encryptedData xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">

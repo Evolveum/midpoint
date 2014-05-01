@@ -58,14 +58,13 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeErrorStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeErrorStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import org.quartz.JobKey;

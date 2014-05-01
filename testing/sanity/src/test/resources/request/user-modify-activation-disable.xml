@@ -19,7 +19,7 @@
 
 <objectDelta 
 	xmlns="http://prism.evolveum.com/xml/ns/public/types-2"
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
 	<t:changeType>modify</t:changeType>
 	<objectType>c:UserType</objectType>

@@ -15,7 +15,7 @@
   -->
 
 <user version="1"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
     <name>concurrentModifyUser002</name>
     <fullName>

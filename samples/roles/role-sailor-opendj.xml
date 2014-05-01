@@ -15,8 +15,8 @@
   -->
 
 <role oid="12345678-d34d-b33f-f00d-111111111111"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">
     <name>Sailor OpenDJ</name>
     <description>

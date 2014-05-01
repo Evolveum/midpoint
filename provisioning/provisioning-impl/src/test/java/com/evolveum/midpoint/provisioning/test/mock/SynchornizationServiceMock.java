@@ -20,6 +20,7 @@ import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertTrue;
+
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
@@ -41,9 +42,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.ObjectChecker;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 @Service(value = "syncServiceMock")
 public class SynchornizationServiceMock implements ResourceObjectChangeListener, ResourceOperationListener {

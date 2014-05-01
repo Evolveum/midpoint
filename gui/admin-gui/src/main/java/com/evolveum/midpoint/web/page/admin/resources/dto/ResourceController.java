@@ -19,11 +19,12 @@ package com.evolveum.midpoint.web.page.admin.resources.dto;
 import java.util.List;
 
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
 
 /**
  * @author mserbak

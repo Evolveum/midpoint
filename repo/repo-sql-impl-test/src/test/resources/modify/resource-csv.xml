@@ -26,8 +26,8 @@ object.
 
 -->
 
-<c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-	   xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	   xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
@@ -35,7 +35,7 @@ object.
            xmlns:my="http://myself.me/schemas/whatever"
            xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
-           xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
+           xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
 
           <!-- Resource name. It will be displayed in GUI.  -->
         <c:name>Localhost CSVfile</c:name>
@@ -105,7 +105,7 @@ object.
                          <outbound default="true">
                              <expression>
                                  <code>
-                                                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+                                                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
                                  $i:user/c:name
                                  </code>
                              </expression>
@@ -127,7 +127,7 @@ object.
                     </outbound>
                     <inbound>
                         <target>
-                        	<path>declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+                        	<path>declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
                             $user/i:name
                             </path>
                         </target>
@@ -146,7 +146,7 @@ object.
                     </outbound>
                     <inbound>
                         <target>
-                            <path>declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+                            <path>declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
                             $user/i:givenName
                             </path>
                         </target>
@@ -165,7 +165,7 @@ object.
                     </outbound>
                     <inbound>
                         <target>
-                            <path>declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+                            <path>declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
                             $user/i:familyName
                             </path>
                         </target>

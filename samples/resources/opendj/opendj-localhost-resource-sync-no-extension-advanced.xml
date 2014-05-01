@@ -28,9 +28,9 @@ object.
 
 -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
@@ -133,7 +133,7 @@ object.
 				<xsd:schema elementFormDefault="qualified"
 			targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
 			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
 			xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema">

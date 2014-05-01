@@ -33,7 +33,7 @@ import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.activiti.engine.ActivitiException;
 import org.activiti.engine.HistoryService;

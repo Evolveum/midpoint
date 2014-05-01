@@ -21,9 +21,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.apache.commons.lang.Validate;
 
 /**

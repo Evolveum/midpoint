@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.BeforeAfterType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.BeforeAfterType;
 
 /**
  * 

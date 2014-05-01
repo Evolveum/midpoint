@@ -16,8 +16,8 @@
   -->
 
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 	<name>System Configuration</name>
 	<defaultUserTemplate>
 	    <name>Default User Template</name>
@@ -28,7 +28,7 @@
                 <script>
                     <language>http://www.w3.org/TR/xpath/</language>
                     <code>
-                        declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+                        declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
                         concat($c:user/c:givenName,' ',$c:user/c:familyName)
                     </code>
                 </script>

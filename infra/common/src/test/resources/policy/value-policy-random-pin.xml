@@ -16,7 +16,7 @@
   ~ limitations under the License.
   -->
 
-<valuePolicy xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<valuePolicy xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
              oid="81818181-76e0-59e2-8888-3d4f02d3fffb"
              version="6">
    <name>
@@ -24,7 +24,7 @@
       <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">numeric pin policy</norm>
    </name>
    <description>A policy useful for generating PIN.</description>
-   <c:lifetime xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+   <c:lifetime xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
                xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
@@ -39,7 +39,7 @@
       <c:minPasswordAge>0</c:minPasswordAge>
       <c:passwordHistoryLength>0</c:passwordHistoryLength>
    </c:lifetime>
-   <c:stringPolicy xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+   <c:stringPolicy xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
                    xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"

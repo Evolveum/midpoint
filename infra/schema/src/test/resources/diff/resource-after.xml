@@ -15,12 +15,12 @@
   ~ limitations under the License.
   -->
 
-<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd
+		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
 	<name>Embedded Test OpenDJ</name>

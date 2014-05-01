@@ -608,7 +608,7 @@
               <xs:element maxOccurs="unbounded" name="host">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" name="type" type="ns1:ProvisioningScriptHostType" />
+                    <xs:element xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/common/common-3" name="type" type="ns1:ProvisioningScriptHostType" />
                     <xs:element minOccurs="0" maxOccurs="unbounded" name="language" nillable="true" type="xs:anyURI" />
                   </xs:sequence>
                 </xs:complexType>
@@ -659,8 +659,8 @@
         </xs:complexContent>
       </xs:complexType>
     </xs:schema>
-    <xs:schema xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2" xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:ns2="http://prism.evolveum.com/xml/ns/public/query-2" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-      <xs:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" />
+    <xs:schema xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2" xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:ns2="http://prism.evolveum.com/xml/ns/public/query-2" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" />
       <xs:import namespace="http://prism.evolveum.com/xml/ns/public/query-2" />
       <xs:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2" />
       <xs:element name="addObject">
@@ -865,8 +865,8 @@
         </xs:sequence>
       </xs:complexType>
     </xs:schema>
-    <xs:schema xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl" xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-      <xs:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" />
+    <xs:schema xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl" xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/common/common-3" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" />
       <xs:element name="fault" type="tns:FaultType" />
       <xs:element name="illegalArgumentFault" type="tns:IllegalArgumentFaultType" />
       <xs:element name="inapplicableOperationFault" type="tns:InapplicableOperationFaultType" />
@@ -958,7 +958,7 @@
         </xs:complexContent>
       </xs:complexType>
     </xs:schema>
-    <xs:schema xmlns:ns3="http://prism.evolveum.com/xml/ns/public/query-2" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:ns1="http://prism.evolveum.com/xml/ns/public/types-2" xmlns:ns2="http://www.w3.org/2001/04/xmlenc#" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:schema xmlns:ns3="http://prism.evolveum.com/xml/ns/public/query-2" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:ns1="http://prism.evolveum.com/xml/ns/public/types-2" xmlns:ns2="http://www.w3.org/2001/04/xmlenc#" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
       <xs:import namespace="http://prism.evolveum.com/xml/ns/public/types-2" />
       <xs:import namespace="http://www.w3.org/2001/04/xmlenc#" />
       <xs:import namespace="http://prism.evolveum.com/xml/ns/public/query-2" />
@@ -2634,8 +2634,8 @@
         </xs:restriction>
       </xs:simpleType>
     </xs:schema>
-    <xs:schema xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2" xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:ns2="http://prism.evolveum.com/xml/ns/public/types-2" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-      <xs:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" />
+    <xs:schema xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2" xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:ns2="http://prism.evolveum.com/xml/ns/public/types-2" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" />
       <xs:import namespace="http://prism.evolveum.com/xml/ns/public/types-2" />
       <xs:element name="objectModification" type="tns:ObjectModificationType" />
       <xs:complexType name="OperationOptionsType">
@@ -2715,8 +2715,8 @@
         </xs:restriction>
       </xs:simpleType>
     </xs:schema>
-    <xs:schema xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
-      <xs:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" />
+    <xs:schema xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/common/common-3" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" />
       <xs:complexType name="TrackingDataFormType">
         <xs:complexContent mixed="false">
           <xs:extension base="ns1:ObjectType">

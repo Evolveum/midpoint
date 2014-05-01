@@ -16,10 +16,11 @@
 
 package com.evolveum.midpoint.web.page.admin.users.dto;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 import javax.xml.namespace.QName;
+
 import java.io.Serializable;
 
 /**

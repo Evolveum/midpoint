@@ -18,11 +18,12 @@ package com.evolveum.midpoint.web.component.wizard.resource.dto;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 
 import org.apache.commons.lang.StringUtils;
 
 import javax.xml.namespace.QName;
+
 import java.util.Comparator;
 
 /**

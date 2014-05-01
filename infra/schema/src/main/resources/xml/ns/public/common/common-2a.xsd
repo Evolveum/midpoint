@@ -16,10 +16,10 @@
   ~ limitations under the License.
   -->
 
-<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"

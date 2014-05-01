@@ -17,8 +17,8 @@ package com.evolveum.midpoint.model.lens;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 /**
  * @author semancik

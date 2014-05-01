@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.sync;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.util.Utils;
+
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -36,8 +37,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Iterative search result handler for account synchronization. Works both for

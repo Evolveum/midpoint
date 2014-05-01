@@ -15,9 +15,9 @@
   ~ limitations under the License.
   -->
 
-<mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
 		 xmlns:x="http://example.com/xxx"
 		 xmlns:y="http://example.com/yyy">
 	<source>
@@ -36,7 +36,7 @@
 			<language>http://www.w3.org/TR/xpath/</language>
 			<returnType>scalar</returnType>
 			<code>
-                declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+                declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 				concat($foo,' ',$sailor/c:description)
 			</code>
 		</script>

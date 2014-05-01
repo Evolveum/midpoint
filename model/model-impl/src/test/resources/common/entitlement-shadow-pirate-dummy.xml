@@ -16,8 +16,8 @@
   -->
 
 <shadow
-	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
-	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">

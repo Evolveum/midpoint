@@ -15,7 +15,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>
         <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">u2</orig>
         <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">u2</norm>
@@ -47,7 +47,7 @@
                </t:cipherData>
             </t:encryptedData>
          </value>
-<!--             <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" -->
+<!--             <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" -->
 <!--                      xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" -->
 <!--                      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2" -->
 <!--                      xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2" -->

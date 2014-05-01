@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.FileAppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
 
 /**
  * @author lazyman

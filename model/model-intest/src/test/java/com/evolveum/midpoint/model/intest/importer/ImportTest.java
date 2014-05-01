@@ -45,9 +45,9 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -58,6 +58,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import javax.xml.namespace.QName;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

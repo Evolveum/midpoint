@@ -37,7 +37,7 @@
             <changeProcessors>
                 <generalChangeProcessor>
                     <enabled>true</enabled>
-                    <c:generalChangeProcessorConfiguration xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+                    <c:generalChangeProcessorConfiguration xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
                         <c:scenario>
                             <c:name>primaryScenario</c:name>
                             <c:activationCondition>

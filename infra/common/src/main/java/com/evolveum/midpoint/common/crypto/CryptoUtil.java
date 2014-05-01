@@ -38,11 +38,11 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.TunnelException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.MailServerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.NotificationConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SmsConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SmsGatewayConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MailServerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.NotificationConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SmsConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SmsGatewayConfigurationType;
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 
 /**

@@ -29,9 +29,9 @@ import javax.xml.bind.JAXBException;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.util.JaxbTestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_2.RawType;
+
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;

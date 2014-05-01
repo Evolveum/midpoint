@@ -30,7 +30,7 @@ import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
 import com.evolveum.midpoint.wf.processes.common.StringHolder;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.processors.primary.aspect.PrimaryChangeAspect;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import javax.xml.bind.JAXBException;
 

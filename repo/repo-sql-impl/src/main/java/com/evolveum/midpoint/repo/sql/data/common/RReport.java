@@ -8,11 +8,13 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
+
 import java.util.Collection;
 
 @Entity

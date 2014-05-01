@@ -21,7 +21,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensObjectDeltaOperationType;
 
 import java.io.Serializable;

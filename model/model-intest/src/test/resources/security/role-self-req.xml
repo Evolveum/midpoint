@@ -14,8 +14,8 @@
   ~ limitations under the License.
   -->
 <role oid="00000000-0000-0000-0000-00000000ab03"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
     <name>Self Req</name>    
     <authorization>

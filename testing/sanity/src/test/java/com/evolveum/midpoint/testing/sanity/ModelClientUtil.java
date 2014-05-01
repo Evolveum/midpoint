@@ -31,6 +31,7 @@ import javax.xml.ws.BindingProvider;
 import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.cxf.frontend.ClientProxy;
 import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
@@ -43,9 +44,9 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 
 /**
  * @author Radovan Semancik
@@ -54,7 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 public class ModelClientUtil {
 	
 	// XML constants
-	public static final String NS_COMMON = "http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+	public static final String NS_COMMON = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 	public static final QName COMMON_PATH = new QName(NS_COMMON, "path");
 	public static final QName COMMON_VALUE = new QName(NS_COMMON, "value");
 	public static final QName COMMON_ASSIGNMENT = new QName(NS_COMMON, "assignment");
@@ -66,7 +67,7 @@ public class ModelClientUtil {
 	
 	public static JAXBContext instantiateJaxbContext() throws JAXBException {
 		return JAXBContext.newInstance("com.evolveum.midpoint.xml.ns._public.common.api_types_2:" +
-				"com.evolveum.midpoint.xml.ns._public.common.common_2a:" +
+				"com.evolveum.midpoint.xml.ns._public.common.common_3:" +
 				"com.evolveum.midpoint.xml.ns._public.common.fault_1:" +
 				"com.evolveum.midpoint.xml.ns._public.communication.workflow_1:" +
 				"com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_2:" +

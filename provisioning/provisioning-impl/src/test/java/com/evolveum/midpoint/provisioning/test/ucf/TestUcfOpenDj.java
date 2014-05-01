@@ -50,7 +50,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;

@@ -20,7 +20,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 
 import java.io.Serializable;
 import java.util.ArrayList;

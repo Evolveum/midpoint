@@ -130,7 +130,7 @@ public class XPathTest {
             System.out.println("c: "+nsC);
             System.out.println("piracy: "+nsPiracy);
 
-//            AssertJUnit.assertEquals("http://midpoint.evolveum.com/xml/ns/public/common/common-2a", nsC.getValue());
+//            AssertJUnit.assertEquals("http://midpoint.evolveum.com/xml/ns/public/common/common-3", nsC.getValue());
 //            AssertJUnit.assertEquals("http://midpoint.evolveum.com/xml/ns/samples/piracy", nsPiracy.getValue());
 
             System.out.println("XPATH Element: " + xpathElement);

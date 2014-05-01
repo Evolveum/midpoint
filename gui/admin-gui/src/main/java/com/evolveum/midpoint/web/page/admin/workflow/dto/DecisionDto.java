@@ -18,7 +18,7 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.DecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DecisionType;
 
 import java.util.Date;
 
