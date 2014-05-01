@@ -296,13 +296,13 @@
                                     <c:entry key="modifications">
                                         <c:unknownJavaObject>
                                             <c:class>java.util.ArrayList</c:class>
-                                            <c:toString>[ReferenceDelta( / {.../common/common-2a}linkRef, ADD)]</c:toString>
+                                            <c:toString>[ReferenceDelta( / {.../common/common-3}linkRef, ADD)]</c:toString>
                                         </c:unknownJavaObject>
                                     </c:entry>
                                     <c:entry key="type">
                                         <c:value xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                                                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                                 xsi:type="xsd:string">com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType</c:value>
+                                                 xsi:type="xsd:string">com.evolveum.midpoint.xml.ns._public.common.common_3.UserType</c:value>
                                     </c:entry>
                                 </c:params>
                                 <c:token>1000000000000000072</c:token>
@@ -311,7 +311,7 @@
                     </m:objectDeltaOperation>
                     <m:audited>true</m:audited>
                 </m:executedDeltas>
-                <m:objectTypeClass>com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType</m:objectTypeClass>
+                <m:objectTypeClass>com.evolveum.midpoint.xml.ns._public.common.common_3.UserType</m:objectTypeClass>
                 <m:oid>c0c010c0-d34d-b33f-f00d-111111111111</m:oid>
                 <m:secondaryDeltas xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
                                    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -682,7 +682,7 @@
                                             <c:entry key="type">
                                                 <c:value xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                                                          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                                         xsi:type="xsd:string">com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType</c:value>
+                                                         xsi:type="xsd:string">com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType</c:value>
                                             </c:entry>
                                         </c:params>
                                         <c:token>1000000000000000076</c:token>
@@ -712,7 +712,7 @@
                                             <c:entry key="type">
                                                 <c:value xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                                                          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                                         xsi:type="xsd:string">com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType</c:value>
+                                                         xsi:type="xsd:string">com.evolveum.midpoint.xml.ns._public.common.common_3.UserType</c:value>
                                             </c:entry>
                                         </c:params>
                                         <c:token>1000000000000000078</c:token>
@@ -748,7 +748,7 @@
                                             <c:entry key="type">
                                                 <c:value xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                                                          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                                         xsi:type="xsd:string">com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType</c:value>
+                                                         xsi:type="xsd:string">com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType</c:value>
                                             </c:entry>
                                         </c:params>
                                         <c:token>1000000000000000080</c:token>
@@ -761,8 +761,8 @@
                                 <c:params>
                                     <c:entry key="scripts">
                                         <c:unknownJavaObject>
-                                            <c:class>com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationProvisioningScriptsType</c:class>
-                                            <c:toString>com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationProvisioningScriptsType@266c2164[script=[]]</c:toString>
+                                            <c:class>com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType</c:class>
+                                            <c:toString>com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType@266c2164[script=[]]</c:toString>
                                         </c:unknownJavaObject>
                                     </c:entry>
                                     <c:entry key="object">
@@ -868,7 +868,7 @@
                     </m:objectDeltaOperation>
                     <m:audited>true</m:audited>
                 </m:executedDeltas>
-                <m:objectTypeClass>com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType</m:objectTypeClass>
+                <m:objectTypeClass>com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType</m:objectTypeClass>
                 <m:oid>e3a820c4-224b-4714-bce7-7d4855f6fa97</m:oid>
                 <m:syncAbsoluteTrigger>false</m:syncAbsoluteTrigger>
                 <m:wave>0</m:wave>
@@ -924,7 +924,7 @@
                                                     xmlns:enc="http://www.w3.org/2001/04/xmlenc#">linked</m:synchronizationSituationResolved>
                 <m:accountPasswordPolicyRef oid=""/>
             </m:projectionContext>
-            <m:focusClass>com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType</m:focusClass>
+            <m:focusClass>com.evolveum.midpoint.xml.ns._public.common.common_3.UserType</m:focusClass>
             <m:doReconciliationForAllProjections>false</m:doReconciliationForAllProjections>
             <m:projectionWave>2</m:projectionWave>
             <m:executionWave>1</m:executionWave>

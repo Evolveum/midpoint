@@ -72,7 +72,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class OperationResultType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private string operationField;
@@ -229,7 +229,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum OperationResultStatusType {
         
         /// <remarks/>
@@ -262,7 +262,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class EntryType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private System.Xml.XmlElement anyField;
@@ -308,7 +308,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class LocalizedMessageType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private string keyField;
@@ -831,7 +831,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public abstract partial class ObjectType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private PolyStringType nameField;
@@ -1049,7 +1049,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ExtensionType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private System.Xml.XmlElement[] anyField;
@@ -1109,7 +1109,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class OrgType : AbstractRoleType {
         
         private PolyStringType displayNameField;
@@ -1190,7 +1190,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public abstract partial class AbstractRoleType : FocusType {
         
         private AssignmentType[] inducementField;
@@ -1330,7 +1330,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class AssignmentType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private string descriptionField;
@@ -1488,7 +1488,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class MetadataType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private System.DateTime createTimestampField;
@@ -1646,7 +1646,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ObjectReferenceType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private string descriptionField;
@@ -1734,7 +1734,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ConstructionType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private string descriptionField;
@@ -1869,7 +1869,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ResourceType : ObjectType {
         
         private OperationalStateType operationalStateField;
@@ -2062,7 +2062,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class OperationalStateType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private AvailabilityStatusType lastAvailabilityStatusField;
@@ -2134,7 +2134,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum AvailabilityStatusType {
         
         /// <remarks/>
@@ -2149,7 +2149,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ConnectorType : ObjectType {
         
         private string frameworkField;
@@ -2284,7 +2284,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ConnectorHostType : ObjectType {
         
         private string hostnameField;
@@ -2382,7 +2382,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ProtectedStringType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private EncryptedDataType encryptedDataField;
@@ -3676,7 +3676,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class XmlSchemaType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private CachingMetadataType cachingMetadataField;
@@ -3737,7 +3737,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class CachingMetadataType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private System.DateTime retrievalTimestampField;
@@ -3797,7 +3797,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true, Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true, Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class XmlSchemaTypeDefinition : object, System.ComponentModel.INotifyPropertyChanged {
         
         private System.Xml.XmlElement[] anyField;
@@ -3829,7 +3829,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ConnectorConfigurationType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private System.Xml.XmlElement[] anyField;
@@ -3861,7 +3861,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class SchemaHandlingType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private ResourceObjectTypeDefinitionType[] objectTypeField;
@@ -3907,7 +3907,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ResourceObjectTypeDefinitionType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private ShadowKindType kindField;
@@ -4166,7 +4166,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum ShadowKindType {
         
         /// <remarks/>
@@ -4184,7 +4184,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ResourceAttributeDefinitionType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private System.Xml.XmlQualifiedName refField;
@@ -4433,7 +4433,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class PropertyLimitationsType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private System.Nullable<LayerType>[] layerField;
@@ -4524,7 +4524,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum LayerType {
         
         /// <remarks/>
@@ -4542,7 +4542,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class PropertyAccessType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private bool createField;
@@ -4642,7 +4642,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum DepreactedAccessType {
         
         /// <remarks/>
@@ -4658,7 +4658,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum AttributeFetchStrategyType {
         
         /// <remarks/>
@@ -4673,7 +4673,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class MappingType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private string nameField;
@@ -4908,7 +4908,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum MappingStrengthType {
         
         /// <remarks/>
@@ -4926,7 +4926,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class MappingTimeDeclarationType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private string descriptionField;
@@ -4986,7 +4986,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class MappingSourceDeclarationType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private System.Xml.XmlQualifiedName nameField;
@@ -5047,7 +5047,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ExpressionType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private string descriptionField;
@@ -5212,7 +5212,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class StringFilterType : object, System.ComponentModel.INotifyPropertyChanged {
         
         public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
@@ -5230,7 +5230,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ExpressionVariableDefinitionType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private System.Xml.XmlQualifiedName nameField;
@@ -5316,7 +5316,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum ExpressionReturnMultiplicityType {
         
         /// <remarks/>
@@ -5331,7 +5331,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class AsIsExpressionEvaluatorType : object, System.ComponentModel.INotifyPropertyChanged {
         
         public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
@@ -5349,7 +5349,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class GenerateExpressionEvaluatorType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private ObjectReferenceType valuePolicyRefField;
@@ -5381,7 +5381,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ScriptExpressionEvaluatorType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private string descriptionField;
@@ -5532,7 +5532,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum ScriptExpressionReturnTypeType {
         
         /// <remarks/>
@@ -5545,7 +5545,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum ScriptExpressionRelativityModeType {
         
         /// <remarks/>
@@ -5558,7 +5558,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a", IncludeInSchema=false)]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3", IncludeInSchema=false)]
     public enum ItemsChoiceType5 {
         
         /// <remarks/>
@@ -5585,7 +5585,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true, Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true, Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ExpressionTypeSequence : object, System.ComponentModel.INotifyPropertyChanged {
         
         private object[] itemsField;
@@ -5636,7 +5636,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a", IncludeInSchema=false)]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3", IncludeInSchema=false)]
     public enum ItemsChoiceType6 {
         
         /// <remarks/>
@@ -5663,7 +5663,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ProvisioningScriptArgumentType : ExpressionType {
         
         private string nameField;
@@ -5686,7 +5686,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class MappingTargetDeclarationType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private string descriptionField;
@@ -5732,7 +5732,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ValueFilterType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private System.Xml.XmlElement[] anyField;
@@ -5778,7 +5778,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ResourceObjectTypeDependencyType : ShadowDiscriminatorType {
         
         private ResourceObjectTypeDependencyStrictnessType strictnessField;
@@ -5832,7 +5832,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum ResourceObjectTypeDependencyStrictnessType {
         
         /// <remarks/>
@@ -5851,7 +5851,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ShadowDiscriminatorType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private ObjectReferenceType resourceRefField;
@@ -5918,7 +5918,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ResourceObjectAssociationType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private System.Xml.XmlQualifiedName nameField;
@@ -6060,7 +6060,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum ResourceObjectAssociationDirectionType {
         
         /// <remarks/>
@@ -6073,7 +6073,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum AssignmentPolicyEnforcementType {
         
         /// <remarks/>
@@ -6094,7 +6094,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class IterationSpecificationType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private int maxIterationsField;
@@ -6168,7 +6168,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ResourceObjectPatternType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private System.Xml.XmlElement[] anyField;
@@ -6200,7 +6200,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ResourceActivationDefinitionType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private ResourceBidirectionalMappingType existenceField;
@@ -6288,7 +6288,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ResourceBidirectionalMappingType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private AttributeFetchStrategyType fetchStrategyField;
@@ -6362,7 +6362,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ResourceCredentialsDefinitionType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private ResourcePasswordDefinitionType passwordField;
@@ -6394,7 +6394,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ResourcePasswordDefinitionType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private AttributeFetchStrategyType fetchStrategyField;
@@ -6482,7 +6482,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class CapabilitiesType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private CachingMetadataType cachingMetadataField;
@@ -6542,7 +6542,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class CapabilityCollectionType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private System.Xml.XmlElement[] anyField;
@@ -6574,7 +6574,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class OperationProvisioningScriptType : ProvisioningScriptType {
         
         private System.Nullable<ProvisioningOperationTypeType>[] operationField;
@@ -6637,7 +6637,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum ProvisioningOperationTypeType {
         
         /// <remarks/>
@@ -6659,7 +6659,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum ProvisioningScriptOrderType {
         
         /// <remarks/>
@@ -6675,7 +6675,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ProvisioningScriptType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private ProvisioningScriptHostType hostField;
@@ -6752,7 +6752,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum ProvisioningScriptHostType {
         
         /// <remarks/>
@@ -6767,7 +6767,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ProjectionPolicyType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private AssignmentPolicyEnforcementType assignmentPolicyEnforcementField;
@@ -6832,7 +6832,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ResourceConsistencyType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private bool avoidDuplicateValuesField;
@@ -6929,7 +6929,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ObjectSynchronizationType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private System.Xml.XmlQualifiedName typeField;
@@ -7154,7 +7154,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true, Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true, Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ObjectSynchronizationTypeReaction : object, System.ComponentModel.INotifyPropertyChanged {
         
         private string descriptionField;
@@ -7226,7 +7226,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum SynchronizationSituationType {
         
         /// <remarks/>
@@ -7250,7 +7250,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true, Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true, Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ObjectSynchronizationTypeReactionAction : object, System.ComponentModel.INotifyPropertyChanged {
         
         private System.Xml.XmlElement[] anyField;
@@ -7296,7 +7296,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ResourceBusinessConfigurationType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private ResourceAdministrativeStateType administrativeStateField;
@@ -7382,7 +7382,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum ResourceAdministrativeStateType {
         
         /// <remarks/>
@@ -7397,7 +7397,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ActivationType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private bool enabledField;
@@ -7721,7 +7721,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum ActivationStatusType {
         
         /// <remarks/>
@@ -7737,7 +7737,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum TimeIntervalStatusType {
         
         /// <remarks/>
@@ -7755,7 +7755,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class AuthorizationType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private string descriptionField;
@@ -7846,7 +7846,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum AuthorizationDecisionType {
         
         /// <remarks/>
@@ -7861,7 +7861,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ExclusionType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private string descriptionField;
@@ -7961,7 +7961,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum ExclusionPolicyType {
         
         /// <remarks/>
@@ -7979,7 +7979,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ApprovalSchemaType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private string nameField;
@@ -8039,7 +8039,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ApprovalLevelType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private string nameField;
@@ -8153,7 +8153,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum LevelEvaluationStrategyType {
         
         /// <remarks/>
@@ -8172,7 +8172,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public abstract partial class FocusType : ObjectType {
         
         private ShadowType[] linkField;
@@ -8238,7 +8238,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ShadowType : ObjectType {
         
         private ObjectReferenceType resourceRefField;
@@ -8916,7 +8916,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum FailedOperationTypeType {
         
         /// <remarks/>
@@ -8937,7 +8937,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class SynchronizationSituationDescriptionType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private SynchronizationSituationType situationField;
@@ -9025,7 +9025,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ShadowAttributesType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private System.Xml.XmlElement[] anyField;
@@ -9085,7 +9085,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ShadowAssociationType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private System.Xml.XmlQualifiedName nameField;
@@ -9173,7 +9173,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ShadowIdentifiersType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private System.Xml.XmlElement[] anyField;
@@ -9233,7 +9233,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class CredentialsType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private PasswordType passwordField;
@@ -9312,7 +9312,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class PasswordType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private ProtectedStringType valueField;
@@ -9442,7 +9442,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class LoginEventType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private System.DateTime timestampField;
@@ -9502,7 +9502,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class AccountShadowType : ShadowType {
         
         private string accountTypeField;
@@ -9525,7 +9525,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class UserType : FocusType {
         
         private PolyStringType fullNameField;
@@ -9856,7 +9856,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class RoleType : AbstractRoleType {
         
         private string roleTypeField;
@@ -9879,7 +9879,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class TriggerType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private System.DateTime timestampField;
@@ -10167,7 +10167,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class TaskType : ObjectType {
         
         private string taskIdentifierField;
@@ -10707,7 +10707,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum TaskExecutionStatusType {
         
         /// <remarks/>
@@ -10726,7 +10726,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum TaskWaitingReasonType {
         
         /// <remarks/>
@@ -10744,7 +10744,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class UriStackEntry : object, System.ComponentModel.INotifyPropertyChanged {
         
         private string handlerUriField;
@@ -10832,7 +10832,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ScheduleType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private System.DateTime earliestStartTimeField;
@@ -11002,7 +11002,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum MisfireActionType {
         
         /// <remarks/>
@@ -11015,7 +11015,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum TaskBindingType {
         
         /// <remarks/>
@@ -11028,7 +11028,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum TaskRecurrenceType {
         
         /// <remarks/>
@@ -11041,7 +11041,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum ThreadStopActionType {
         
         /// <remarks/>
@@ -11062,7 +11062,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ObjectTemplateType : ObjectType {
         
         private ObjectReferenceType[] includeRefField;
@@ -11113,7 +11113,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class SystemConfigurationType : ObjectType {
         
         private ProjectionPolicyType globalAccountSynchronizationSettingsField;
@@ -11277,7 +11277,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ValuePolicyType : ObjectType {
         
         private PasswordLifeTimeType lifetimeField;
@@ -11314,7 +11314,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class PasswordLifeTimeType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private int expirationField;
@@ -11415,7 +11415,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class StringPolicyType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private string descriptionField;
@@ -11475,7 +11475,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class LimitationsType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private int minLengthField;
@@ -11588,7 +11588,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class StringLimitType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private string descriptionField;
@@ -11685,7 +11685,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class CharacterClassType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private CharacterClassType[] characterClassField;
@@ -11759,7 +11759,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ModelHooksType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private HookListType changeField;
@@ -11791,7 +11791,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class HookListType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private HookType hookField;
@@ -11823,7 +11823,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class HookType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private string refField;
@@ -11855,7 +11855,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class LoggingConfigurationType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private SubSystemLoggerConfigurationType[] subSystemLoggerField;
@@ -11971,7 +11971,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class SubSystemLoggerConfigurationType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private LoggingLevelType levelField;
@@ -12029,7 +12029,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum LoggingLevelType {
         
         /// <remarks/>
@@ -12057,7 +12057,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum LoggingComponentType {
         
         /// <remarks/>
@@ -12093,7 +12093,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ClassLoggerConfigurationType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private LoggingLevelType levelField;
@@ -12154,7 +12154,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class AppenderConfigurationType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private string patternField;
@@ -12200,7 +12200,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class FileAppenderConfigurationType : AppenderConfigurationType {
         
         private string fileNameField;
@@ -12279,7 +12279,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class AuditingConfigurationType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private bool enabledField;
@@ -12346,7 +12346,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class AdvancedLoggingConfigurationType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private System.Xml.XmlNode[] anyField;
@@ -12379,7 +12379,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ConnectorFrameworkConfigurationType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private ExtensionType extensionField;
@@ -12425,7 +12425,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class NotificationConfigurationType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private EventHandlerType[] itemsField;
@@ -12497,7 +12497,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class AccountPasswordNotifierType : GeneralNotifierType {
     }
     
@@ -12512,7 +12512,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class GeneralNotifierType : EventHandlerType {
         
         private EventHandlerType[] itemsField;
@@ -12701,7 +12701,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class EventCategoryFilterType : EventHandlerType {
         
         private System.Nullable<EventCategoryType>[] categoryField;
@@ -12722,7 +12722,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum EventCategoryType {
         
         /// <remarks/>
@@ -12759,7 +12759,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class EventHandlerType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private string descriptionField;
@@ -12805,7 +12805,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class EventHandlerChainType : EventHandlerType {
         
         private EventHandlerType[] itemsField;
@@ -12840,7 +12840,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class DummyNotifierType : GeneralNotifierType {
     }
     
@@ -12849,7 +12849,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class EventExpressionFilterType : EventHandlerType {
         
         private ExpressionType expressionField;
@@ -12872,7 +12872,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class EventHandlerForkType : EventHandlerType {
         
         private EventHandlerType[] itemsField;
@@ -12907,7 +12907,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class EventOperationFilterType : EventHandlerType {
         
         private System.Nullable<EventOperationType>[] operationField;
@@ -12928,7 +12928,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum EventOperationType {
         
         /// <remarks/>
@@ -12946,7 +12946,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class SimpleResourceObjectNotifierType : GeneralNotifierType {
         
         private bool watchSynchronizationAttributesField;
@@ -12983,7 +12983,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class SimpleUserNotifierType : GeneralNotifierType {
     }
     
@@ -12992,7 +12992,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class SimpleWorkflowNotifierType : GeneralNotifierType {
     }
     
@@ -13001,7 +13001,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class EventStatusFilterType : EventHandlerType {
         
         private System.Nullable<EventStatusType>[] statusField;
@@ -13022,7 +13022,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum EventStatusType {
         
         /// <remarks/>
@@ -13046,7 +13046,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class UserPasswordNotifierType : GeneralNotifierType {
     }
     
@@ -13055,7 +13055,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class MailConfigurationType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private MailServerConfigurationType[] serverField;
@@ -13143,7 +13143,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class MailServerConfigurationType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private string hostField;
@@ -13257,7 +13257,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum MailTransportSecurityType {
         
         /// <remarks/>
@@ -13278,7 +13278,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class SmsConfigurationType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private SmsGatewayConfigurationType[] gatewayField;
@@ -13352,7 +13352,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class SmsGatewayConfigurationType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private ExpressionType urlField;
@@ -13440,7 +13440,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class ProfilingConfigurationType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private bool enabledField;
@@ -13671,7 +13671,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class CleanupPoliciesType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private CleanupPolicyType auditRecordsField;
@@ -13717,7 +13717,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class CleanupPolicyType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private string maxAgeField;
@@ -13749,7 +13749,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class NodeType : ObjectType {
         
         private string nodeIdentifierField;
@@ -13952,7 +13952,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum NodeExecutionStatusType {
         
         /// <remarks/>
@@ -13974,7 +13974,7 @@ namespace ModelClientSample.midpointModelService {
     /// <remarks/>
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18060")]
     [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public enum NodeErrorStatusType {
         
         /// <remarks/>
@@ -14001,7 +14001,7 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3")]
     public partial class GenericObjectType : ObjectType {
         
         private string objectTypeField;

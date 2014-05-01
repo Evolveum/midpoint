@@ -126,7 +126,7 @@
 					<expression>
 						<script>
 							<code>
-								import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+								import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 								ship = midpoint.getObject(GenericObjectType.class, "54195419-5419-5419-5419-000000000001");
 								'The crew of ' + ship.getName();
 							</code>
