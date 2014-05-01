@@ -171,7 +171,7 @@
                                 <wsdlOption>
                                     <!-- Ugly hack. The fake WSDL includes the XSD file we need to compile.
                                          This is the only way I found to skip generating java classes for included
-                                         schemas (namely, common-2a); we need to use -nexclude parameter that is
+                                         schemas (namely, common-3); we need to use -nexclude parameter that is
                                          available only in wsdl codegen plugin. -->
                                     <wsdl>src/main/resources/xml/ns/private/fake/fakeWrapper-model-context.wsdl</wsdl>
                                     <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog-model-context.xml</catalog>
@@ -262,7 +262,7 @@
                             </wsdlOptions>
                             <!--							<xsdOptions>
                                        <xsdOption>
-                                           <xsd>src/main/resources/xml/ns/public/common/common-2a.xsd</xsd>
+                                           <xsd>src/main/resources/xml/ns/public/common/common-3.xsd</xsd>
                                            <extensionArgs>
                                                <extensionArg>-Xts</extensionArg>
                                                <extensionArg>-Xequals</extensionArg>
@@ -357,7 +357,7 @@
                 <version>2.3-SNAPSHOT</version>
                 <configuration>
                     <schemaFiles>
-                        <schemaFile>src/main/resources/xml/ns/public/common/common-2a.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/common/common-3.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/common/api-types-2.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-2.xsd</schemaFile>
                         <schemaFile>src/main/resources/xml/ns/public/model/scripting/scripting-2.xsd</schemaFile>

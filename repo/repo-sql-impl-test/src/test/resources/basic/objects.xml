@@ -24,7 +24,7 @@
          xmlns:my="http://myself.me/schemas/whatever"
          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
+         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
 
     <user version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 

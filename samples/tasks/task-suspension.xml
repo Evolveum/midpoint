@@ -29,7 +29,7 @@ so please do not edit unless you know what you are doing.
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
          xmlns:noop="http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-2"
-         xsi:schemaLocation="/../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
+         xsi:schemaLocation="/../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
 
     <task oid="00000002-0000-0000-0000-123450000001">
         <name>Task1: long-running task (3600x1s, a 3600s)</name>

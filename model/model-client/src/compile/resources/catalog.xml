@@ -25,8 +25,8 @@
     <public publicId="http://prism.evolveum.com/xml/ns/public/query-2" uri="../../../target/midpoint-schema/xml/ns/public/query-2.xsd" />
     <system systemId="http://prism.evolveum.com/xml/ns/public/query-2" uri="../../../target/midpoint-schema/xml/ns/public/query-2.xsd" />
 
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/common-3" uri="../../../target/midpoint-schema/xml/ns/public/common/common-2a.xsd" />
-    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-3" uri="../../../target/midpoint-schema/xml/ns/public/common/common-2a.xsd" />
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/common-3" uri="../../../target/midpoint-schema/xml/ns/public/common/common-3.xsd" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-3" uri="../../../target/midpoint-schema/xml/ns/public/common/common-3.xsd" />
 
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" uri="../../../target/midpoint-schema/xml/ns/public/connector/icf-1/resource-schema-2.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" uri="../../../target/midpoint-schema/xml/ns/public/connector/icf-1/resource-schema-2.xsd" />
