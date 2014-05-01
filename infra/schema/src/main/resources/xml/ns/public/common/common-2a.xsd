@@ -9769,7 +9769,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="approver" type="tns:ObjectType">
+            <xsd:element name="approver" type="c:UserType">
                 <xsd:annotation>
                     <xsd:documentation>
                         Information on a user who has made this decision.
@@ -9784,6 +9784,13 @@
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
                     </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="approverName" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The name of a user who has made this decision. Used as an optimization to avoid retrieving and storing whole UserType.
+                    </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
 

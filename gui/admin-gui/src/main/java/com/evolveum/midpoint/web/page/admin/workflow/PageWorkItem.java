@@ -314,7 +314,6 @@ public class PageWorkItem extends PageAdminWorkItems {
         return wrapper;
     }
 
-
     private ObjectWrapper getAdditionalDataWrapper() {
         GeneralChangeApprovalWorkItemContents wic = getGeneralChangeApprovalWorkItemContents();
         ObjectType relatedObject = wic.getRelatedObject();

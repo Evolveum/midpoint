@@ -119,9 +119,9 @@ public class BaseAuditHelper {
             }
         }
 
-        WorkItemType workItemType = workItemProvider.taskEventToWorkItem(taskEvent, false, result);
+        WorkItemType workItemType = workItemProvider.taskEventToWorkItem(taskEvent, false, false, result);
 
-        // temporary hacking (work items are not supported)
+        // temporary hacking (work items in audit are not supported)
         PrismObject<GenericObjectType> targetObject = new PrismObject<>(GenericObjectType.COMPLEX_TYPE, GenericObjectType.class);
         targetObject.asObjectable().setName(workItemType.getName());
         targetObject.asObjectable().setOid(workItemType.getWorkItemId());

@@ -91,24 +91,33 @@ public class WorkItemDto extends Selectable {
         }
     }
 
+    // what an ugly method :| TODO rework some day [also add users]
     public String getCandidates() {
         StringBuilder retval = new StringBuilder();
         boolean first = true;
-        if (workItem.getCandidateRoles() != null && !workItem.getCandidateRoles().isEmpty()) {
-            for (AbstractRoleType roleType : workItem.getCandidateRoles()) {
-                if (!first) {
-                    retval.append(", ");
-                } else {
-                    first = false;
-                }
-                retval.append(PolyString.getOrig(roleType.getName()));
-                if (roleType instanceof RoleType) {
-                    retval.append(" (role)");
-                } else if (roleType instanceof OrgType) {
-                    retval.append(" (org)");
-                }
+        boolean referenceOnly = false;
+        // we assume that either all roles have full reference information, or none of them
+        for (AbstractRoleType roleType : workItem.getCandidateRoles()) {
+            if (!first) {
+                retval.append(", ");
+            } else {
+                first = false;
             }
-        } else {
+            if (roleType.getOid() == null) {        // no object information, only reference is present
+                referenceOnly = true;
+                break;
+            }
+            retval.append(PolyString.getOrig(roleType.getName()));
+            if (roleType instanceof RoleType) {
+                retval.append(" (role)");
+            } else if (roleType instanceof OrgType) {
+                retval.append(" (org)");
+            }
+        }
+        if (referenceOnly) {
+            // start again
+            retval = new StringBuilder();
+            first = true;
             for (ObjectReferenceType roleRef : workItem.getCandidateRolesRef()) {
                 if (!first) {
                     retval.append(", ");

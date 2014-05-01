@@ -49,7 +49,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.activiti.engine.ActivitiException;
 import org.activiti.engine.TaskService;
-import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.runtime.ProcessInstanceQuery;
 import org.activiti.engine.task.IdentityLink;
 import org.activiti.engine.task.IdentityLinkType;
@@ -66,6 +65,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Used to retrieve (and provide) data about work items.
+ *
  * @author mederly
  */
 
@@ -153,7 +154,7 @@ public class WorkItemProvider {
             throw new SystemException("Couldn't list work items assigned/assignable to " + userOid + " due to Activiti exception", e);
         }
 
-        List<WorkItemType> retval = tasksToWorkItems(tasks, false, false, result);       // there's no need to fill-in assignee details nor data forms
+        List<WorkItemType> retval = tasksToWorkItems(tasks, false, false, true, result);       // there's no need to fill-in assignee details nor data forms; but candidates are necessary to fill-in
         result.computeStatusIfUnknown();
         return retval;
     }
@@ -178,7 +179,7 @@ public class WorkItemProvider {
         }
         WorkItemType retval;
         try {
-            retval = taskToWorkItem(task, true, true, result);
+            retval = taskToWorkItem(task, true, true, true, result);
         } catch (WorkflowException e) {
             throw new SystemException(e);
         }
@@ -196,15 +197,16 @@ public class WorkItemProvider {
      *  - all forms needed to display the work item,
      * so, obviously, it is more expensive to obtain.
      *
-     * In similar way, getAssigneeDetails influences whether details about assignee and candidates are filled-in.
+     * In similar way, getAssigneeDetails influences whether details about assignee are filled-in.
+     * And getCandidateDetails influences whether details about candidate users and groups are filled-in.
      * This should be skipped if there's no need to display these (e.g. in the list of work items assigned to the current user).
      */
 
-    List<WorkItemType> tasksToWorkItems(List<Task> tasks, boolean getTaskDetails, boolean getAssigneeDetails, OperationResult result) {
+    List<WorkItemType> tasksToWorkItems(List<Task> tasks, boolean getTaskDetails, boolean getAssigneeDetails, boolean getCandidateDetails, OperationResult result) {
         List<WorkItemType> retval = new ArrayList<WorkItemType>();
         for (Task task : tasks) {
             try {
-                retval.add(taskToWorkItem(task, getTaskDetails, getAssigneeDetails, result));
+                retval.add(taskToWorkItem(task, getTaskDetails, getAssigneeDetails, getCandidateDetails, result));
             } catch (WorkflowException e) {
                 LoggingUtils.logException(LOGGER, "Couldn't get information on activiti task {}", e, task.getId());
             }
@@ -335,14 +337,14 @@ public class WorkItemProvider {
         }
     }
 
-    private WorkItemType taskToWorkItem(Task task, boolean getTaskDetails, boolean getAssigneeDetails, OperationResult parentResult) throws WorkflowException {
+    private WorkItemType taskToWorkItem(Task task, boolean getTaskDetails, boolean getAssigneeDetails, boolean getCandidateDetails, OperationResult parentResult) throws WorkflowException {
         OperationResult result = parentResult.createSubresult(OPERATION_ACTIVITI_TASK_TO_WORK_ITEM);
         result.addParam("task id", task.getId());
         result.addParam("getTaskDetails", getTaskDetails);
         result.addParam("getAssigneeDetails", getAssigneeDetails);
 
         TaskExtract taskExtract = new TaskExtract(task);
-        WorkItemType wi = taskExtractToWorkItem(taskExtract, getAssigneeDetails, result);
+        WorkItemType wi = taskExtractToWorkItem(taskExtract, getAssigneeDetails, getCandidateDetails, result);
 
         // this could be moved to taskExtractToWorkType after changing ChangeProcessor interface to accept TaskExtract instead of Task
         if (getTaskDetails) {
@@ -374,17 +376,17 @@ public class WorkItemProvider {
 
     // this method should reside outside activiti-related packages
     // we'll deal with it when we implement support for multiple wf providers
-    public WorkItemType taskEventToWorkItem(TaskEvent taskEvent, boolean getAssigneeDetails, OperationResult parentResult) throws WorkflowException {
+    public WorkItemType taskEventToWorkItem(TaskEvent taskEvent, boolean getAssigneeDetails, boolean getCandidateDetails, OperationResult parentResult) throws WorkflowException {
         OperationResult result = parentResult.createSubresult(OPERATION_ACTIVITI_DELEGATE_TASK_TO_WORK_ITEM);
         result.addParam("task id", taskEvent.getTaskId());
         result.addParam("getAssigneeDetails", getAssigneeDetails);
 
-        WorkItemType wi = taskExtractToWorkItem(new TaskExtract(taskEvent), getAssigneeDetails, result);
+        WorkItemType wi = taskExtractToWorkItem(new TaskExtract(taskEvent), getAssigneeDetails, getCandidateDetails, result);
         result.recordSuccessIfUnknown();
         return wi;
     }
 
-    private WorkItemType taskExtractToWorkItem(TaskExtract task, boolean getAssigneeDetails, OperationResult result) throws WorkflowException {
+    private WorkItemType taskExtractToWorkItem(TaskExtract task, boolean getAssigneeDetails, boolean getCandidateDetails, OperationResult result) throws WorkflowException {
         WorkItemType wi = prismContext.createObject(WorkItemType.class).asObjectable();
         try {
             wi.setWorkItemId(task.getId());
@@ -413,6 +415,8 @@ public class WorkItemProvider {
             if (assignee != null) {
                 wi.setAssignee(assignee.asObjectable());
             }
+        }
+        if (getCandidateDetails) {
             for (ObjectReferenceType ort : wi.getCandidateUsersRef()) {
                 PrismObject<UserType> obj = miscDataUtil.getUserByOid(ort.getOid(), result);
                 if (obj != null) {
