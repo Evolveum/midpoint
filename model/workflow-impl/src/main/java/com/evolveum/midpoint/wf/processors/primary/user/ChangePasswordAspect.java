@@ -60,7 +60,7 @@ import java.util.Map;
  * Exact conditions should be coded into getApprovalRequestList method. Currently, we only test for ANY password change
  * request and push it into approval process.
  *
- * DO NOT USE THIS WRAPPER IN PRODUCTION UNLESS YOU KNOW WHAT YOU ARE DOING
+ * DO NOT USE THIS ASPECT IN PRODUCTION UNLESS YOU KNOW WHAT YOU ARE DOING
  *
  * @author mederly
  */

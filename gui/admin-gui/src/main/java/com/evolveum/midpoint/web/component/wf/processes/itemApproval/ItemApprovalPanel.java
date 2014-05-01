@@ -122,7 +122,6 @@ public class ItemApprovalPanel extends Panel {
                 ItemApprovalProcessState instanceState = (ItemApprovalProcessState) model.getObject().getInstanceState().getProcessSpecificState();
                 ItemApprovalRequestType approvalRequestType = instanceState.getApprovalRequest();
 
-                // todo delegate to process wrapper instead
                 if (approvalRequestType == null) {
                     return "?";
                 } else {

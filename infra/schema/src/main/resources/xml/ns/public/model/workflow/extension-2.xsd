@@ -143,13 +143,13 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="processWrapper" type="xsd:string">
+    <xsd:element name="primaryChangeAspect" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation>
                 The name of a class that provides an interface between midPoint and activiti process.
                 See https://wiki.evolveum.com/display/midPoint/Workflow+Management.
 
-                Valid for PrimaryChangeProcessor and GeneralChangeProcessor only.
+                Valid for PrimaryChangeProcessor only.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:indexed>true</a:indexed>
