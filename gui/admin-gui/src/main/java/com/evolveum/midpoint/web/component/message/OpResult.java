@@ -19,8 +19,8 @@ package com.evolveum.midpoint.web.component.message;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
 import org.apache.commons.lang.Validate;
 

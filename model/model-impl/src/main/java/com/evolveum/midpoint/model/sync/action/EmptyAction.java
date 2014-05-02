@@ -24,7 +24,7 @@ import com.evolveum.midpoint.model.sync.Action;
 import com.evolveum.midpoint.model.sync.SynchronizationSituation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
 /**
  * @author semancik

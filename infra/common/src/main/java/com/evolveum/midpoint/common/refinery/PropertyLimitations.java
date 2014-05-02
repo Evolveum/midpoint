@@ -19,7 +19,7 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.PropertyAccessType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
 
 /**
  * @author semancik
@@ -87,13 +87,13 @@ public class PropertyLimitations implements DebugDumpable, Serializable {
 		} else {
 			sb.append("-");
 		}
-		if (getAccess().isCreate()) {
-			sb.append("C");
+		if (getAccess().isAdd()) {
+			sb.append("A");
 		} else {
 			sb.append("-");
 		}
-		if (getAccess().isUpdate()) {
-			sb.append("U");
+		if (getAccess().isModify()) {
+			sb.append("M");
 		} else {
 			sb.append("-");
 		}

@@ -24,14 +24,15 @@ import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.DecisionDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ApprovalLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ApprovalSchemaType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.DecisionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ItemApprovalProcessState;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ItemApprovalRequestType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ItemApprovalProcessState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ItemApprovalRequestType;
+
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
@@ -121,7 +122,6 @@ public class ItemApprovalPanel extends Panel {
                 ItemApprovalProcessState instanceState = (ItemApprovalProcessState) model.getObject().getInstanceState().getProcessSpecificState();
                 ItemApprovalRequestType approvalRequestType = instanceState.getApprovalRequest();
 
-                // todo delegate to process wrapper instead
                 if (approvalRequestType == null) {
                     return "?";
                 } else {

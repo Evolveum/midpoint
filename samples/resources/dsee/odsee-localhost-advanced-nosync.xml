@@ -28,16 +28,16 @@ object.
 
 -->
 
-<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
-           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
            xmlns:my="http://myself.me/schemas/whatever"
-           xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
+           xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
 
     <c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1aa">
         <!-- Resource name. It will be displayed in GUI.  -->
@@ -117,8 +117,12 @@ object.
                          In our case ICF will put DN in the __NAME__ attribute.
                          Althouhg DN can be theoretically changes, this definition
                          will make it immutable. -->
-                    <access>create</access>
-                    <access>read</access>
+                    <limitations>
+                        <access>
+                            <read>true</read>
+                            <add>true</add>
+                        </access>
+                    </limitations>
 
                     <!-- Outbound expression for the __NAME__ attribute.
                          If account is created or updated, the __NAME__ attribute
@@ -163,7 +167,11 @@ object.
                     <!-- Access limitation for this attribute.
                          Entry UUID is created by the directory server itelf
                          and it is immutable. We can only read it. -->
-                    <access>read</access>
+                    <limitations>
+                        <access>
+                            <read>true</read>
+                        </access>
+                    </limitations>
 
                     <!-- There is no "outbound" expression, so midPoint will not
                          do anything with this attribute. -->
@@ -176,8 +184,12 @@ object.
                 <attribute>
                     <ref>ri:uid</ref>
                     <displayName>Login Name</displayName>
-                    <access>create</access>
-                    <access>read</access>
+                    <limitations>
+                        <access>
+                            <read>true</read>
+                            <add>true</add>
+                        </access>
+                    </limitations>
                     <outbound>
                         <!-- It is mapped from (and also to) "name" property of
                              user. It is essentially a login name -->
@@ -200,9 +212,6 @@ object.
                     <ref>ri:cn</ref>
 
                     <displayName>Common Name</displayName>
-                    <access>create</access>
-                    <access>read</access>
-                    <access>update</access>
 
                     <!-- Outbound expression here is using "pure" XPath, without
                          using functions. This is the simplest case, just copying
@@ -235,9 +244,6 @@ object.
                 <attribute>
                     <ref>ri:sn</ref>
                     <displayName>Surname</displayName>
-                    <access>create</access>
-                    <access>read</access>
-                    <access>update</access>
                     <outbound>
                     	<source>
                           <path>$user/familyName</path>
@@ -257,9 +263,6 @@ object.
                 <attribute>
                     <ref>ri:givenName</ref>
                     <displayName>Given Name</displayName>
-                    <access>create</access>
-                    <access>read</access>
-                    <access>update</access>
                     <outbound>
                     	<source>
                         	<path>$user/givenName</path>
@@ -289,7 +292,7 @@ object.
             </accountType>
         </schemaHandling>
         
-        <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+        <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
         	<configured>
 	            <cap:activation>
 	                <cap:status>
@@ -328,7 +331,7 @@ object.
 	                        <script>
 	                        	<language>http://www.w3.org/TR/xpath/</language>
 		                        <code>
-		                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+		                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 		                            declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
 		                            $i:account/i:attributes/dj:uid
 		                        </code>

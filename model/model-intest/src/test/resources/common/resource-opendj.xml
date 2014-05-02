@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -15,12 +15,12 @@
   ~ limitations under the License.
   -->
 <object xsi:type="ResourceType" oid="10000000-0000-0000-0000-000000000003" 
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-	xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'
-	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 	xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -36,8 +36,8 @@
 			</q:and>
 		</filter>
 	</connectorRef>
-	<connectorConfiguration xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	<connectorConfiguration xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector"
@@ -66,15 +66,15 @@
       </cachingMetadata>
 	  <definition>
 		<xsd:schema elementFormDefault="qualified"
-			targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
-			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
-			xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
+			targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+			xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" />
+			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
 			
-			<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2" />
+			<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
 			<xsd:complexType name="GroupObjectClass">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -203,10 +203,9 @@
 			<attribute>
 				<ref>ri:cn</ref>
 				<displayName>Common Name</displayName>
-				<maxOccurs>1</maxOccurs>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
+				<limitations>
+					<maxOccurs>1</maxOccurs>
+				</limitations>
 				<outbound>
 					<source>
 						<path>$user/fullName</path>
@@ -221,9 +220,6 @@
 			<attribute>
 				<ref>ri:sn</ref>
 				<displayName>Surname</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<source>
 						<path>$c:user/c:familyName</path>
@@ -238,9 +234,6 @@
 			<attribute>
 				<ref>ri:givenName</ref>
 				<displayName>Given Name</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<source>
 						<path>givenName</path>
@@ -263,8 +256,6 @@
 			<attribute>
 				<ref>ri:uid</ref>
 				<displayName>Login Name</displayName>
-				<access>create</access>
-				<access>read</access>
 				<outbound>
 					<strength>weak</strength>
 					<source>
@@ -339,7 +330,7 @@
 		</accountType>
 	</schemaHandling>
 	
-	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 		<cachingMetadata>
          <retrievalTimestamp>2012-03-20T13:02:29.275+01:00</retrievalTimestamp>
          <serialNumber>1798eed6def9f54c-3d4bce63faa79272</serialNumber>
@@ -380,8 +371,8 @@
 							<script>
 								<language>http://www.w3.org/TR/xpath/</language>
 								<code>
-                                    declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
-                                    declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2";
+                                    declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                                    declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
 									$c:account/c:attributes/ri:employeeNumber
 								</code>
 							</script>

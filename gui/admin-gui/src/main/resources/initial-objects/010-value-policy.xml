@@ -15,8 +15,8 @@
   ~ limitations under the License.
   -->
 <valuePolicy oid="00000000-0000-0000-0000-000000000003"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         version="0">
     <name>
         <t:orig>Default Password Policy</t:orig>

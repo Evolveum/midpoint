@@ -27,10 +27,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.processors.primary.PcpChildJobCreationInstruction;
 import com.evolveum.midpoint.wf.processors.primary.PcpJob;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.QuestionFormType;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessSpecificState;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.QuestionFormType;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessSpecificState;
 
 import java.util.List;
 import java.util.Map;
@@ -38,9 +38,9 @@ import java.util.Map;
 /**
  *
  * Change aspect deals with a given (elementary) kind of primary-stage change. Examples of change aspects:
- *  - AddRoleProcessWrapper
- *  - CreateUserProcessWrapper
- *  - ChangeAttributeXProcessWrapper (X is an attribute of a user)
+ *  - AddRoleAssignmentAspect
+ *  - CreateUserAspect
+ *  - ChangeAttributeXAspect (X is an attribute of a user)
  *  - ...
  *
  * Change aspect plays a role on these occasions:

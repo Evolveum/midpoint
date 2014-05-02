@@ -39,12 +39,14 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;

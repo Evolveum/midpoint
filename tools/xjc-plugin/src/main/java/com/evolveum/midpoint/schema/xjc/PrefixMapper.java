@@ -25,21 +25,21 @@ public enum PrefixMapper {
 
     //W("http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd", "WORKFLOW"),
 
-    C("http://midpoint.evolveum.com/xml/ns/public/common/common-2a", "COMMON"),
+    C("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "COMMON"),
 
-    T("http://prism.evolveum.com/xml/ns/public/types-2", "TYPES"),
+    T("http://prism.evolveum.com/xml/ns/public/types-3", "TYPES"),
 
-    Q("http://prism.evolveum.com/xml/ns/public/query-2", "QUERY"),
+    Q("http://prism.evolveum.com/xml/ns/public/query-3", "QUERY"),
 
-    R_CAP("http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2", "CAPABILITIES"),
+    R_CAP("http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3", "CAPABILITIES"),
 
-    A("http://prism.evolveum.com/xml/ns/public/annotation-2", "ANNOTATION"),
+    A("http://prism.evolveum.com/xml/ns/public/annotation-3", "ANNOTATION"),
 
     S("http://midpoint.evolveum.com/xml/ns/public/model/situation-1.xsd", "SITUATION"),
 
-    ICF_S("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2", "ICF_SCHEMA"),
+    ICF_S("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3", "ICF_SCHEMA"),
 
-    ICF_C("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2", "ICF_CONFIGURATION"),
+    ICF_C("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3", "ICF_CONFIGURATION"),
 
     ENC("http://www.w3.org/2001/04/xmlenc#", "XML_ENC"),
 

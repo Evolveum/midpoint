@@ -43,19 +43,21 @@ import com.evolveum.midpoint.wf.processors.primary.PcpChildJobCreationInstructio
 import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.processors.primary.aspect.BasePrimaryChangeAspect;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.QuestionFormType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.RoleApprovalFormType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.QuestionFormType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.RoleApprovalFormType;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;

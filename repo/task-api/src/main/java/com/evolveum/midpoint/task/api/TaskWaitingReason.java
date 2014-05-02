@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.task.api;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskWaitingReasonType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWaitingReasonType;
 
 /**
  * Task waiting reason.

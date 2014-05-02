@@ -32,9 +32,9 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_2.RawType;
-import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 import java.io.Serializable;
 import java.util.ArrayList;

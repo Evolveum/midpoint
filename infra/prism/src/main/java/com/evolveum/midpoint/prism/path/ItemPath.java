@@ -25,7 +25,7 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * @author semancik

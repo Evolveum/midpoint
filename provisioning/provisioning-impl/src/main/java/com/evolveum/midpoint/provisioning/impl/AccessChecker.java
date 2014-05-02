@@ -37,10 +37,10 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.PropertyAccessType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author Radovan Semancik
@@ -78,7 +78,7 @@ public class AccessChecker {
 			if (access == null) {
 				continue;
 			}
-			if (access.isCreate() == null || !access.isCreate()) {
+			if (access.isAdd() == null || !access.isAdd()) {
 				String message = "Attempt to add shadow with non-createable attribute "+attribute.getElementName();
 				LOGGER.error(message);
 				result.recordFatalError(message);
@@ -121,7 +121,7 @@ public class AccessChecker {
 			if (access == null) {
 				continue;
 			}
-			if (access.isUpdate() == null || !access.isUpdate()) {
+			if (access.isModify() == null || !access.isModify()) {
 				String message = "Attempt to modify non-updateable attribute "+attrName;
 				LOGGER.error(message);
 				result.recordFatalError(message);

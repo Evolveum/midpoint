@@ -103,23 +103,45 @@
                 <sequenceFlow sourceRef="loopLevels.loopApprovers.start" targetRef="loopLevels.loopApprovers.start.1" />
 
                 <serviceTask id="loopLevels.loopApprovers.start.1" activiti:class="com.evolveum.midpoint.wf.processes.common.DumpVariables" />
-                <sequenceFlow sourceRef="loopLevels.loopApprovers.start.1" targetRef="loopLevels.loopApprovers.approve" />
+                <sequenceFlow sourceRef="loopLevels.loopApprovers.start.1" targetRef="loopLevels.loopApprovers.prepareApprover" />
 
-                <userTask id="loopLevels.loopApprovers.approve" name="${approvalTaskName}" activiti:assignee="${approverRef.oid}">
+                <serviceTask id="loopLevels.loopApprovers.prepareApprover" activiti:class="com.evolveum.midpoint.wf.processes.itemApproval.PrepareApprover" />
+                <sequenceFlow sourceRef="loopLevels.loopApprovers.prepareApprover" targetRef="loopLevels.loopApprovers.approve" />
+
+                <exclusiveGateway id="loopLevels.loopApprovers.approve" />
+
+                <sequenceFlow sourceRef='loopLevels.loopApprovers.approve' targetRef='loopLevels.loopApprovers.approve.withGroups' >
+                    <conditionExpression xsi:type="tFormalExpression">
+                        ${candidateGroups != null}</conditionExpression>
+                </sequenceFlow>
+
+                <sequenceFlow sourceRef='loopLevels.loopApprovers.approve' targetRef='loopLevels.loopApprovers.approve.withoutGroups' >
+                    <conditionExpression xsi:type="tFormalExpression">
+                        ${candidateGroups == null}</conditionExpression>
+                </sequenceFlow>
+
+                <userTask id="loopLevels.loopApprovers.approve.withGroups" name="${approvalTaskName}"
+                          activiti:candidateGroups="${candidateGroups}">
                     <extensionElements>
-                        <!--
-                        <activiti:formProperty id="userName" expression="#{userName}" name="01: User" type="string" required="false" readable="true" writable="false"></activiti:formProperty>
-                        <activiti:formProperty id="role" expression="#{approvalRequest.role.name.orig}" name="02: Role" required="false" readable="true" writable="false"></activiti:formProperty>
-                        <activiti:formProperty id="timeInterval" expression="#{approvalRequest.timeInterval}" name="03: Time interval" readable="true" writable="false"/>
-                        <activiti:formProperty id="comment" expression="#{approvalRequest.assignment.description}" name="04: Requester's comment" type="string" required="false" readable="true" writable="false"></activiti:formProperty>
-                        -->
                         <activiti:formProperty id="comment" name="01: Your comment" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
                         <activiti:formProperty id="[H]decision" name="decision to be filled-in automatically" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
                         <activiti:taskListener event="create" class="com.evolveum.midpoint.wf.processes.common.MidPointTaskListener" />
                         <activiti:taskListener event="complete" class="com.evolveum.midpoint.wf.processes.common.MidPointTaskListener" />
                     </extensionElements>
                 </userTask>
-                <sequenceFlow sourceRef="loopLevels.loopApprovers.approve" targetRef="loopLevels.loopApprovers.recordDecision" />
+
+                <userTask id="loopLevels.loopApprovers.approve.withoutGroups" name="${approvalTaskName}"
+                          activiti:assignee="${assignee}">
+                    <extensionElements>
+                        <activiti:formProperty id="comment" name="01: Your comment" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
+                        <activiti:formProperty id="[H]decision" name="decision to be filled-in automatically" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
+                        <activiti:taskListener event="create" class="com.evolveum.midpoint.wf.processes.common.MidPointTaskListener" />
+                        <activiti:taskListener event="complete" class="com.evolveum.midpoint.wf.processes.common.MidPointTaskListener" />
+                    </extensionElements>
+                </userTask>
+
+                <sequenceFlow sourceRef="loopLevels.loopApprovers.approve.withGroups" targetRef="loopLevels.loopApprovers.recordDecision" />
+                <sequenceFlow sourceRef="loopLevels.loopApprovers.approve.withoutGroups" targetRef="loopLevels.loopApprovers.recordDecision" />
 
                 <!-- modifies decisionList, allDecisions, and loopApproversInLevel_stop (if necessary) -->
                 <serviceTask id="loopLevels.loopApprovers.recordDecision" activiti:class="com.evolveum.midpoint.wf.processes.itemApproval.RecordIndividualDecision" />

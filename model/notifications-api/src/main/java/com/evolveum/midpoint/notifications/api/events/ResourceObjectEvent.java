@@ -23,11 +23,12 @@ import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
 import org.apache.commons.lang.StringUtils;
 
 /**

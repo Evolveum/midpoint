@@ -15,24 +15,24 @@
   ~ limitations under the License.
   -->
 <catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">
-    <!--	<public uri="http://localhost:8080/faultService?wsdl" publicId="../xml/ns/public/common/fault-1.wsdl"/>
-     <system uri="http://localhost:8080/faultService?wsdl" systemId="../xml/ns/public/common/fault-1.wsdl"/>
+    <!--	<public uri="http://localhost:8080/faultService?wsdl" publicId="../xml/ns/public/common/fault-3.wsdl"/>
+     <system uri="http://localhost:8080/faultService?wsdl" systemId="../xml/ns/public/common/fault-3.wsdl"/>
 
-     <public uri="http://localhost:8080/modelService?wsdl" publicId="../xml/ns/public/model/model-1.wsdl"/>
-     <system uri="http://localhost:8080/modelService?wsdl" systemId="../xml/ns/public/model/model-1.wsdl"/>  -->
+     <public uri="http://localhost:8080/modelService?wsdl" publicId="../xml/ns/public/model/model-3.wsdl"/>
+     <system uri="http://localhost:8080/modelService?wsdl" systemId="../xml/ns/public/model/model-3.wsdl"/>  -->
 
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl" uri="../xml/ns/public/model/model-1.wsdl" />
-    <system systemId="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl" uri="../xml/ns/public/model/model-1.wsdl" />
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/model-3" uri="../xml/ns/public/model/model-3.wsdl" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/model/model-3" uri="../xml/ns/public/model/model-3.wsdl" />
 
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2" uri="../xml/ns/public/common/api-types-2.xsd" />
-    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2" uri="../xml/ns/public/common/api-types-2.xsd" />
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" uri="../xml/ns/public/common/api-types-3.xsd" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" uri="../xml/ns/public/common/api-types-3.xsd" />
 
     <!--
-       <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl" uri="classpath:/xml/ns/public/query-2.xsd" />
-       <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl" uri="classpath:/xml/ns/public/query-2.xsd" />
+       <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" uri="classpath:/xml/ns/public/query-3.xsd" />
+       <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" uri="classpath:/xml/ns/public/query-3.xsd" />
 
-       <public publicId="http://prism.evolveum.com/xml/ns/public/query-2" uri="classpath:/xml/ns/public/query-2.xsd" />
-       <system systemId="http://prism.evolveum.com/xml/ns/public/query-2" uri="classpath:/xml/ns/public/query-2.xsd" />
+       <public publicId="http://prism.evolveum.com/xml/ns/public/query-3" uri="classpath:/xml/ns/public/query-3.xsd" />
+       <system systemId="http://prism.evolveum.com/xml/ns/public/query-3" uri="classpath:/xml/ns/public/query-3.xsd" />
 
     -->
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,11 +18,11 @@
 <!-- GREEN dummy resource. This is authoritative resource. -->
 
 <resource oid="10000000-0000-0000-0000-000000000404"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
           xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -43,7 +43,7 @@
 		</filter>
 	</connectorRef>
 	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 					   
 		<icfc:configurationProperties>
 			<icfi:instanceId>green</icfi:instanceId>
@@ -55,16 +55,16 @@
 	<schema>
 		<definition>
 			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
-                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
-                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+                     xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+                     xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
+                     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+                     xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                      elementFormDefault="qualified"
-                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"/>
-            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"/>
+                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
+            <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"/>
             <xsd:complexType name="AccountObjectClass">
                <xsd:annotation>
                   <xsd:appinfo>
@@ -142,14 +142,10 @@
 			<attribute>
 				<ref>icfs:uid</ref>
 				<displayName>UID</displayName>
-				<access>read</access>
 			</attribute>
 			<attribute>
 				<ref>ri:fullname</ref>
 				<displayName>Full Name</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<source>
 						<path>$user/fullName</path>
@@ -165,9 +161,6 @@
 			<attribute>
 				<ref>ri:location</ref>
 				<displayName>Location</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<strength>strong</strength>
 					<source>
@@ -192,9 +185,6 @@
 			<attribute>
 				<ref>ri:ship</ref>
 				<displayName>Ship</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<inbound>
 					<strength>strong</strength>
 					<expression>
@@ -352,14 +342,10 @@
 			<attribute>
 				<ref>icfs:uid</ref>
 				<displayName>UID</displayName>
-				<access>read</access>
 			</attribute>
 			<attribute>
 				<ref>ri:fullname</ref>
 				<displayName>Full Name</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<source>
 						<path>$user/fullName</path>
@@ -492,7 +478,7 @@
 				<q:equal>
 					<q:path>c:name</q:path>
 					<valueExpression>
-						<path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
+						<path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
                             $account/attributes/icfs:name</path>
 					</valueExpression>
 				</q:equal>

@@ -29,7 +29,7 @@ import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.sun.tools.xjc.model.CNonElement;
 
 public class ValueSerializationUtil {

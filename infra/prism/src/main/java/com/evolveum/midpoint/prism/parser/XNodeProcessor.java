@@ -23,7 +23,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -61,11 +61,11 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_2.ProtectedByteArrayType;
-import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
-import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedByteArrayType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 public class XNodeProcessor {
 
@@ -471,22 +471,6 @@ public class XNodeProcessor {
             return (T) schemaDefType;
         } else if (prismContext.getBeanConverter().canProcess(typeName)) {
             return prismContext.getBeanConverter().unmarshall(xmap, typeName);
-        } else if (DOMUtil.XSD_STRING.equals(typeName)) {
-            // a bit of hack: trying to get a string but a Map is present
-            // e.g. when reading report templates (embedded XML)
-            // A necessary condition: there may be only one map entry.
-            if (xmap.size() > 1) {
-                throw new SchemaException("Map with more than one item cannot be parsed as a string. "
-                    + (propertyDefinition!=null ? ("Property definition: " + propertyDefinition.getName() + ". ") : "")
-                    + "Map: " + xmap);
-            } else if (xmap.isEmpty()) {
-                return (T) "";
-            } else {
-                Map.Entry<QName,XNode> entry = xmap.entrySet().iterator().next();
-                DomParser domParser = prismContext.getParserDom();
-                String value = domParser.serializeToString(entry.getValue(), entry.getKey());
-                return (T) value;
-            }
         } else {
             if (propertyDefinition != null) {
                 if (propertyDefinition.isRuntimeSchema()) {

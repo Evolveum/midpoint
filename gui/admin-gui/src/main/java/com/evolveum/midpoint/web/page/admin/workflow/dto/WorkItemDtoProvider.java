@@ -18,6 +18,9 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -26,7 +29,7 @@ import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.api.WorkflowException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 
 import org.apache.wicket.Component;
 
@@ -104,7 +107,11 @@ public class WorkItemDtoProvider extends BaseSortableDataProvider<WorkItemDto> {
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_ITEMS);
         WorkflowManager workflowManager = getWorkflowService();
-        count = workflowManager.countWorkItemsRelatedToUser(currentUser(), assigned, result);
+        try {
+            count = workflowManager.countWorkItemsRelatedToUser(currentUser(), assigned, result);
+        } catch (SchemaException|ObjectNotFoundException e) {
+            throw new SystemException("Couldn't count work items: " + e.getMessage(), e);
+        }
 
         if (result.isUnknown()) {
             result.computeStatus();

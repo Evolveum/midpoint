@@ -15,10 +15,10 @@
   ~ limitations under the License.
   -->
 
-<script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+<script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 	<language>http://www.w3.org/TR/xpath/</language>
 	<code>
-		declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+		declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 		declare namespace ext="http://midpoint.evolveum.com/xml/ns/test/extension";
 		$c:user/c:extension/ext:ship
 	</code>

@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.prism.query;
 
-import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Objectable;
@@ -27,8 +26,9 @@ import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.query_3.PagingType;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * This is mostly legacy converter between JAXB/DOM representation of queries and filter and the native prism

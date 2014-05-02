@@ -19,8 +19,10 @@ package com.evolveum.midpoint.wf.messages;
 import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
 import org.activiti.engine.delegate.DelegateTask;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -64,6 +66,9 @@ public class TaskEvent extends ActivitiToMidPointMessage {
      * Create time.
      */
     private Date createTime;
+
+    private List<String> candidateUsers = new ArrayList<>();
+    private List<String> candidateGroups = new ArrayList<>();
 
     public void setProcessInstanceId(String processInstanceId) {
         this.processInstanceId = processInstanceId;
@@ -145,7 +150,23 @@ public class TaskEvent extends ActivitiToMidPointMessage {
         return getTaskName() + " (id " + getTaskId() + ")";
     }
 
-//    private String getWorkItemName(DelegateTask delegateTask) {
+    public List<String> getCandidateUsers() {
+        return candidateUsers;
+    }
+
+    public void setCandidateUsers(List<String> candidateUsers) {
+        this.candidateUsers = candidateUsers;
+    }
+
+    public List<String> getCandidateGroups() {
+        return candidateGroups;
+    }
+
+    public void setCandidateGroups(List<String> candidateGroups) {
+        this.candidateGroups = candidateGroups;
+    }
+
+    //    private String getWorkItemName(DelegateTask delegateTask) {
 //        return (String) delegateTask.getVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME);
 //    }
 

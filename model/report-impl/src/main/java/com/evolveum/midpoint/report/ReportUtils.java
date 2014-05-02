@@ -15,7 +15,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
-import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
+
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRExpression;
 import net.sf.jasperreports.engine.JRStyle;
@@ -69,14 +69,14 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportTemplateStyleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportFieldConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 
 public class ReportUtils {
@@ -235,7 +235,7 @@ public class ReportUtils {
 		 }
 		 else
 		 {
-    	 	String reportTemplate = reportType.getTemplate();
+    	 	String reportTemplate = reportType.getTemplate().getContentAsString();
     	 	InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate.getBytes());
     	 	jasperDesign = JRXmlLoader.load(inputStreamJRXML);
     	 	LOGGER.trace("load jasper design : {}", jasperDesign);
@@ -269,7 +269,7 @@ public class ReportUtils {
 		Map<String, Object> params = new HashMap<String, Object>();
 		if (reportType.getTemplateStyle() != null)
 		{	 
-			String reportTemplateStyle = reportType.getTemplateStyle();
+			String reportTemplateStyle = reportType.getTemplateStyle().getContentAsString();
 			//TODO must be changed
 			//without replace strings, without xmlns namespace, with insert into schema special xml element DOCTYPE
 			int first = reportTemplateStyle.indexOf(">");

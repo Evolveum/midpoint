@@ -16,9 +16,10 @@
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;

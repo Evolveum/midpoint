@@ -20,8 +20,8 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.prism.xml.ns._public.query_2.OrderDirectionType;
-import com.evolveum.prism.xml.ns._public.query_2.PagingType;
+import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
+import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 
 /**
  *

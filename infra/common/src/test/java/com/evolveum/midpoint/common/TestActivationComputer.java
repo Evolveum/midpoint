@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.common;
 
 import static org.testng.AssertJUnit.assertEquals;
+
 import java.io.IOException;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -30,9 +31,9 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TimeIntervalStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 
 /**
  * @author semancik

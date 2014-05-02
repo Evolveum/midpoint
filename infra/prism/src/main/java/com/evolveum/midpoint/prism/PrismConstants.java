@@ -37,14 +37,14 @@ public class PrismConstants {
 	public static final String ELEMENT_FILTER_LOCAL_NAME = "filter";
 	
 	public static final String NS_PREFIX = "http://prism.evolveum.com/xml/ns/public/";
-	public static final String NS_ANNOTATION = NS_PREFIX + "annotation-2";
+	public static final String NS_ANNOTATION = NS_PREFIX + "annotation-3";
 	public static final String PREFIX_NS_ANNOTATION = "a";
-	public static final String NS_TYPES = NS_PREFIX + "types-2";
+	public static final String NS_TYPES = NS_PREFIX + "types-3";
 	public static final String PREFIX_NS_TYPES = "t";
-	public static final String NS_QUERY = NS_PREFIX + "query-2";
+	public static final String NS_QUERY = NS_PREFIX + "query-3";
 	public static final String PREFIX_NS_QUERY = "q";
 	
-	public static final String NS_MATCHING_RULE = NS_PREFIX + "matching-rule-2";
+	public static final String NS_MATCHING_RULE = NS_PREFIX + "matching-rule-3";
 	public static final String PREFIX_NS_MATCHING = "mr";
 
 	// Annotations

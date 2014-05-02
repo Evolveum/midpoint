@@ -18,11 +18,11 @@
 <!-- Testing single task -->
 
 <task oid="91919191-76e0-59e2-86d6-556655660002"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-	xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-2.xsd"
+	xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-3.xsd"
 	xmlns:my="http://myself.me/schemas/whatever">
 								  
 	<name>Passive task 0002</name>

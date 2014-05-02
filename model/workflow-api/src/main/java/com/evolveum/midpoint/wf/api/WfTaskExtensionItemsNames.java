@@ -27,7 +27,7 @@ import javax.xml.namespace.QName;
  */
 public class WfTaskExtensionItemsNames {
 
-    public static final String WORKFLOW_EXTENSION_NS = "http://midpoint.evolveum.com/model/workflow/extension-2";
+    public static final String WORKFLOW_EXTENSION_NS = "http://midpoint.evolveum.com/model/workflow/extension-3";
 
     // Contains relevant activiti process instance ID (when known).
     public static final QName WFPROCESSID_PROPERTY_NAME = new QName(WORKFLOW_EXTENSION_NS, "processInstanceId");

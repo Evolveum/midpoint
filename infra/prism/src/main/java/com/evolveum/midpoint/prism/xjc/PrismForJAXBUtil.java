@@ -27,8 +27,9 @@ import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
 
-import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
@@ -498,5 +499,12 @@ public final class PrismForJAXBUtil {
 			return parser;
 		}
 	}
-	
+
+    public static <T extends ObjectType> T createTargetInstance(PrismReferenceValue value) {
+        try {
+            return (T) value.getTargetTypeCompileTimeClass().newInstance();
+        } catch (InstantiationException|IllegalAccessException e) {
+            throw new SystemException("Cannot instantiate item: " + e.getMessage(), e);
+        }
+    }
 }

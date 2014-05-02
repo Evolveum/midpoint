@@ -42,12 +42,12 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.MailConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.MailServerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.MailTransportSecurityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MailConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MailServerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MailTransportSecurityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author mederly

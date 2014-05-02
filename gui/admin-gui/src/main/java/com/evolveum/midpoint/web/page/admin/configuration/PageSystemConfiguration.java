@@ -37,7 +37,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.SystemConfig
 import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;

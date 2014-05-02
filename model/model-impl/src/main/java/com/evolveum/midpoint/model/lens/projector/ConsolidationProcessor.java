@@ -65,14 +65,14 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.PropertyAccessType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -260,11 +260,11 @@ public class ConsolidationProcessor {
         if (limitations != null) {
         	PropertyAccessType access = limitations.getAccess();
         	if (access != null) {
-        		if (projCtx.isAdd() && (access.isCreate() == null || !access.isCreate())) {
+        		if (projCtx.isAdd() && (access.isAdd() == null || !access.isAdd())) {
         			LOGGER.trace("Skipping processing mappings for attribute {} because it is non-createable", itemName);
                 	return null;
         		}
-        		if (projCtx.isModify() && (access.isUpdate() == null || !access.isUpdate())) {
+        		if (projCtx.isModify() && (access.isModify() == null || !access.isModify())) {
         			LOGGER.trace("Skipping processing mappings for attribute {} because it is non-updateable", itemName);
                 	return null;
         		}

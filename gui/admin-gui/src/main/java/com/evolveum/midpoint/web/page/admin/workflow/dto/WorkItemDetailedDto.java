@@ -23,13 +23,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.model.delta.ContainerValueDto;
 import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.GeneralChangeApprovalWorkItemContents;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.GeneralChangeApprovalWorkItemContents;
 
 /**
  * @author lazyman
  */
-public class WorkItemDetailedDto extends Selectable {
+public class WorkItemDetailedDto extends WorkItemDto {
 
     public static final String F_DELTA = "delta";
     public static final String F_REQUESTER = "requester";
@@ -37,11 +37,10 @@ public class WorkItemDetailedDto extends Selectable {
     public static final String F_OBJECT_NEW = "objectNew";
     public static final String F_RELATED_OBJECT = "relatedObject";
 
-    WorkItemType workItem;
     DeltaDto deltaDto;
 
     public WorkItemDetailedDto(WorkItemType workItem, PrismContext prismContext) throws SchemaException {
-        this.workItem = workItem;
+        super(workItem);
         if (workItem.getContents() instanceof GeneralChangeApprovalWorkItemContents) {
             GeneralChangeApprovalWorkItemContents wic = (GeneralChangeApprovalWorkItemContents) workItem.getContents();
             if (wic.getObjectDelta() != null) {

@@ -32,6 +32,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+
 import org.testng.Assert;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
@@ -49,7 +50,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -63,11 +63,11 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
@@ -248,10 +248,10 @@ public class TestRefinedSchema {
         
         if (validationLayer == LayerType.PRESENTATION) {
         	assertFalse("Can update "+riUidAttrDef+" from ResourceAttributeContainerDefinition ("+sourceLayer+")", 
-        			riUidAttrDef.canUpdate());
+        			riUidAttrDef.canModify());
         } else {
         	assertTrue("Cannot update "+riUidAttrDef+" from ResourceAttributeContainerDefinition ("+sourceLayer+")", 
-        			riUidAttrDef.canUpdate());
+        			riUidAttrDef.canModify());
         }
         
         Collection<? extends ResourceAttributeDefinition> definitionsFromResAttrContainerDef = resAttrContainerDef.getDefinitions();
@@ -508,9 +508,9 @@ public class TestRefinedSchema {
 	                assertEquals("Attribute " + name + " ("+sourceLayer+") outbound mismatch", hasOutbound, def.getOutboundMappingType() != null);
                 }
                 assertEquals("Attribute " + name + " ("+sourceLayer+") ignored flag mismatch", ignore, def.isIgnored());
-                assertEquals("Attribute " + name + " ("+sourceLayer+") canCreate mismatch", canCreate, def.canCreate());
+                assertEquals("Attribute " + name + " ("+sourceLayer+") canCreate mismatch", canCreate, def.canAdd());
                 assertEquals("Attribute " + name + " ("+sourceLayer+") canRead mismatch", canRead, def.canRead());
-                assertEquals("Attribute " + name + " ("+sourceLayer+") canUpdate mismatch", canUpdate, def.canUpdate());
+                assertEquals("Attribute " + name + " ("+sourceLayer+") canUpdate mismatch", canUpdate, def.canModify());
                 return;
             }
         }

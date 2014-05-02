@@ -36,7 +36,6 @@ import java.util.Map;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 
-import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
@@ -91,24 +90,24 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrientationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportTemplateStyleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.prism.xml.ns._public.query_2.OrderDirectionType;
-import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrientationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportFieldConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.XmlAsStringType;
 
 /**
  * @author garbika
@@ -400,12 +399,12 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		
 //		ReportTemplateType reportTemplate = new ReportTemplateType();
 //		reportTemplate.setAny(DOMUtil.parseDocument(template).getDocumentElement());
-		reportType.setTemplate(template);
+		reportType.setTemplate(new XmlAsStringType(template));
 
 		String templateStyle = FileUtils.readFileToString(STYLE_TEMPLATE_DEFAULT, "UTF-8"); //readFile(STYLE_TEMPLATE_DEFAULT, StandardCharsets.UTF_8);
 //		ReportTemplateStyleType reportTemplateStyle = new ReportTemplateStyleType();
 //		reportTemplateStyle.setAny(DOMUtil.parseDocument(templateStyle).getDocumentElement());
-		reportType.setTemplateStyle(templateStyle);
+		reportType.setTemplateStyle(new XmlAsStringType(templateStyle));
 /*
 		String config_schema = FileUtils.readFileToString(REPORT_DATASOURCE_TEST, "UTF-8");
 		

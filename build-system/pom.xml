@@ -48,8 +48,8 @@
         <cxf.version>2.7.6</cxf.version>
         <cxf-xjc.version>2.4.0</cxf-xjc.version>
         <dbunit.version>2.4.7</dbunit.version>
-        <jaxb.version>2.2.3</jaxb.version>
-        <jaxb-xjc.version>2.2.4-1</jaxb-xjc.version>
+        <jaxb.version>2.2.7</jaxb.version>
+        <jaxb-xjc.version>2.2.7</jaxb-xjc.version>
         <junit.version>4.8.2</junit.version>
         <opendj.version>2.4.3</opendj.version>
         <mockito.version>1.8.5</mockito.version>
@@ -67,8 +67,8 @@
         <jdbc.mysql>5.1.25</jdbc.mysql>
         <wicket.version>6.14.0</wicket.version>
         <groovy.version>1.8.6</groovy.version>
-        <activiti-engine.version>5.14</activiti-engine.version>
-        <activiti-spring.version>5.14</activiti-spring.version>
+        <activiti-engine.version>5.15.1</activiti-engine.version>
+        <activiti-spring.version>5.15.1</activiti-spring.version>
         <commons-email.version>1.3</commons-email.version>
     </properties>
     <dependencyManagement>

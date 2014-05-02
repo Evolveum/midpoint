@@ -6,7 +6,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.jobs.Job;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.processors.primary.aspect.PrimaryChangeAspect;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import java.util.List;
 
@@ -22,7 +22,7 @@ public class PcpJob extends Job {
     }
 
     public PrimaryChangeAspect getChangeAspect() {
-        return getWfTaskUtil().getProcessWrapper(getTask(), getPcp().getProcessWrappers());
+        return getWfTaskUtil().getPrimaryChangeAspect(getTask(), getPcp().getChangeAspects());
     }
 
     private PrimaryChangeProcessor getPcp() {

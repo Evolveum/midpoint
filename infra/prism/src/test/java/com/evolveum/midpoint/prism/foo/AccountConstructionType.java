@@ -24,11 +24,12 @@
 
 package com.evolveum.midpoint.prism.foo;
 
-import com.evolveum.prism.xml.ns._public.types_2.RawType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;

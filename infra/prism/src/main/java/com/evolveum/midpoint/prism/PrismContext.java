@@ -36,7 +36,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.prism.xml.ns._public.types_2.RawType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Document;
@@ -553,5 +553,13 @@ public class PrismContext {
     public RawType toRawType(Item item) throws SchemaException {
         RootXNode rootXNode = xnodeProcessor.serializeItemAsRoot(item);
         return new RawType(rootXNode);
+    }
+
+    public <T extends Objectable> PrismObject<T> createObject(Class<T> clazz) {
+        PrismObjectDefinition definition = schemaRegistry.findObjectDefinitionByCompileTimeClass(clazz);
+        if (definition == null) {
+            throw new IllegalStateException("Definition for prism object holding " + clazz + " couldn't be found");
+        }
+        return definition.instantiate();
     }
 }

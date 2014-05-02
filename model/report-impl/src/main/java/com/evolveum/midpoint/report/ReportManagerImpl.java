@@ -27,6 +27,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.schema.util.ReportTypeUtil;
+
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperReport;
@@ -75,12 +76,12 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ThreadStopActionType;
 
 
 /**
@@ -238,7 +239,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
              }
              else
              {
-            	 String reportTemplate = reportType.getTemplate();
+            	 String reportTemplate = reportType.getTemplate().getContentAsString();
             	 InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate.getBytes());
             	 jasperDesign = JRXmlLoader.load(inputStreamJRXML);
             	 LOGGER.trace("load jasper design : {}", jasperDesign);

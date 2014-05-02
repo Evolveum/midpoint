@@ -57,7 +57,7 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.session.ResourceContentStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -16,15 +16,15 @@
   -->
 
 <resource 	oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3bbbb"
-		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
+		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-		xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
+		xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
          	xmlns:my="http://whatever.com/my"
-		xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-        	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
+		xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
 
     	<!-- Resource name. It will be displayed in GUI.  -->
@@ -92,19 +92,6 @@
                     <!-- Readable name for the attribute. This will be used in GUI -->
 					<displayName>Entry UUID</displayName>
 
-                    <!-- Access limitation for this attribute.
-                         Entry UUID is created by the directory server itelf
-                         and it is immutable. We can only read it. -->
-					<access>read</access>
-<!--
-					<outbound default="true">
-						<expression>
-							<code>
-                                                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
-							$i:user/c:name
-							</code>
-						</expression>
-					</outbound>-->
 				</attribute>
 				<attribute>
 					<ref>icfs:name</ref>
@@ -112,10 +99,6 @@
                     <!-- Readable name for the attribute. This will be used in GUI -->
 					<displayName>Name</displayName>
 
-                    <!-- Access limitation for this attribute.
-                          -->
-					<access>create</access>
-					<access>read</access>
 					<outbound>
 						<strength>weak</strength>
 						<source>
@@ -174,7 +157,7 @@
 		</schemaHandling>
 
 		<!-- Resource capabilities. It defines a simulated enableDisable capability. -->
-		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 			<configured>
 				<cap:activation>
 					<cap:status>

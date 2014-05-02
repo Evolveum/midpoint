@@ -28,16 +28,16 @@ object.
 
 -->
 
-<resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
-         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
          xmlns:my="http://whatever.com/my"
-         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
 
 
    
@@ -136,14 +136,14 @@ object.
 	  <definition>
 		<xsd:schema elementFormDefault="qualified"
 			targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
-			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
-			xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
+			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+			xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" />
+			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
 			
-			<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2" />
+			<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
 			<xsd:complexType name="GroupObjectClass">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -272,8 +272,6 @@ object.
 			<attribute>
 				<ref>icfs:name</ref>
 				<displayName>Distinguished Name</displayName>
-				<access>create</access>
-				<access>read</access>
 				<outbound>
 				    <strength>weak</strength>
 					<expression>
@@ -288,14 +286,10 @@ object.
 			<attribute>
 				<ref>icfs:uid</ref>
 				<displayName>Entry UUID</displayName>
-				<access>read</access>
 			</attribute>
 			<attribute>
 				<ref>ri:cn</ref>
 				<displayName>Common Name</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<source>
 						<path>
@@ -312,9 +306,6 @@ object.
 			<attribute>
 				<ref>ri:sn</ref>
 				<displayName>Surname</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<source>
 						<path>
@@ -331,9 +322,6 @@ object.
 			<attribute>
 				<ref>ri:givenName</ref>
 				<displayName>Given Name</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
 				<outbound>
 					<source>
 						<path>
@@ -350,8 +338,6 @@ object.
 			<attribute>
 				<ref>ri:uid</ref>
 				<displayName>Login Name</displayName>
-				<access>create</access>
-				<access>read</access>
 				<outbound>
 					<source>
 						<path>
@@ -446,7 +432,7 @@ object.
 	</schemaHandling>
 
 
-        <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+        <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 	        <configured>
 	            <cap:activation>
 	

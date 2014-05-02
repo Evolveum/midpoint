@@ -16,12 +16,12 @@
   -->
 
 <resource oid="14400000-0000-0000-0000-000000000001"
-		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
-          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-2"
+		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
           xmlns:trafo="http://midpoint.evolveum.com/xml/ns/story/trafo/ext"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -42,7 +42,7 @@
 		</filter>
 	</connectorRef>
 	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 					   
 		<icfc:configurationProperties>
 			<icfi:instanceId>mail</icfi:instanceId>
@@ -78,9 +78,9 @@
                     <displayName>Name</displayName>
 					<limitations>
 						<access>
-							<create>true</create>
+							<add>true</add>
 							<read>true</read>
-							<update>true</update>
+							<modify>true</modify>
 						</access>
 					</limitations>
 					<matchingRule>mr:stringIgnoreCase</matchingRule>
@@ -259,9 +259,9 @@ log.info('XXXXX got here, input = {}', input)
 		    <limitations>
 				<minOccurs>0</minOccurs>
 				<access>
-					<create>true</create>
+					<add>true</add>
 					<read>true</read>
-					<update>false</update>
+					<modify>false</modify>
 				</access>
 		    </limitations>
                     <matchingRule>mr:stringIgnoreCase</matchingRule>
@@ -470,7 +470,7 @@ accounts feature
                       <condition>
                         <script>
                           <code>
-				import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
+				import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 				import com.evolveum.midpoint.schema.constants.SchemaConstants;
 				// do not delete explicitly disabled accounts
 				administrativeStatus == ActivationStatusType.DISABLED &amp;&amp; 
@@ -485,7 +485,7 @@ accounts feature
                         <expression>
                             <script>
                                 <code>
-                                    import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
                                     if (legal) {
                                         input;
                                     } else {
@@ -518,7 +518,7 @@ accounts feature
                 </credentials>
             </accountType>
         </schemaHandling>
-       <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+       <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
             <configured>
 		<cap:activation>
 			<cap:status>
@@ -556,7 +556,7 @@ FIXME FIXME FIXME FIXME -->
 			                        <script>
 							<code>
 
-tmpName = basic.getAttributeValue(account, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2', 'name')
+tmpName = basic.getAttributeValue(account, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name')
 nameRegExp = /(?i)^(?:.*)\/(\d+)\/TRAFO\/XX$/
 
 matcher = (tmpName =~ nameRegExp)
@@ -572,7 +572,7 @@ else return '###ThisIsAnExpressionThatWillNeverMatchUserEmployeeNumber###'
 					<expression>
 			                        <script>
 							<code>
-tmpName = basic.getAttributeValue(account, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2', 'name')
+tmpName = basic.getAttributeValue(account, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name')
 nameRegExp = /(?i)^(?:.*)\/(\d+)\/TRAFO\/XX$/
 
 matcher = (tmpName =~ nameRegExp)

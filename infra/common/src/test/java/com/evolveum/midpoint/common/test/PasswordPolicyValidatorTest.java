@@ -45,9 +45,9 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringLimitType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.StringLimitType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 
 public class PasswordPolicyValidatorTest {
 

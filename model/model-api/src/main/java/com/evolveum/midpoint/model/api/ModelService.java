@@ -46,13 +46,13 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * <p>
@@ -101,15 +101,6 @@ public interface ModelService {
 	String DISCOVER_CONNECTORS = CLASS_NAME_WITH_DOT + "discoverConnectors";
 
 	String AUTZ_NAMESPACE = AuthorizationConstants.NS_AUTHORIZATION_MODEL;
-	String AUTZ_READ_URL = QNameUtil.qNameToUri(new QName(AUTZ_NAMESPACE, "read"));
-	String AUTZ_ADD_URL = QNameUtil.qNameToUri(new QName(AUTZ_NAMESPACE, "add"));
-	String AUTZ_MODIFY_URL = QNameUtil.qNameToUri(new QName(AUTZ_NAMESPACE, "modify"));
-	String AUTZ_DELETE_URL = QNameUtil.qNameToUri(new QName(AUTZ_NAMESPACE, "delete"));
-	String AUTZ_RECOMPUTE_URL = QNameUtil.qNameToUri(new QName(AUTZ_NAMESPACE, "recompute"));
-	String AUTZ_TEST_URL = QNameUtil.qNameToUri(new QName(AUTZ_NAMESPACE, "test"));
-	String AUTZ_IMPORT_OBJECTS_URL = QNameUtil.qNameToUri(new QName(AUTZ_NAMESPACE, "importObjects"));
-	String AUTZ_IMPORT_FROM_RESOURCE_URL = QNameUtil.qNameToUri(new QName(AUTZ_NAMESPACE, "importFromResource"));
-	String AUTZ_DISCOVER_CONNECTORS_URL = QNameUtil.qNameToUri(new QName(AUTZ_NAMESPACE, "discoverConnectors"));
 	
 	/**
 	 * <p>

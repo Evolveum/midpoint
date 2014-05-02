@@ -24,12 +24,12 @@ import javax.xml.bind.JAXBElement;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.EntryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.LocalizedMessageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ParamsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EntryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LocalizedMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ParamsType;
 
 /**
  * 

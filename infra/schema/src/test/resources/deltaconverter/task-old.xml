@@ -15,9 +15,9 @@
   ~ limitations under the License.
   -->
 
-<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<task xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       oid="91919192-76e0-59e2-86d6-3d4f02d3ffff"
       version="5664">
     <name>
@@ -38,7 +38,7 @@
     <executionStatus>suspended</executionStatus>
     <category>LiveSynchronization</category>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-2</handlerUri>
-    <result xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+    <result xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
         <c:operation>com.evolveum.midpoint.common.operation.liveSync</c:operation>
         <c:status>success</c:status>
         <c:token>1000000000000000894</c:token>
@@ -71,7 +71,7 @@
                     <c:entry key="type">
                         <c:unknownJavaObject>
                             <c:class>java.lang.Class</c:class>
-                            <c:toString>class com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType</c:toString>
+                            <c:toString>class com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType</c:toString>
                         </c:unknownJavaObject>
                     </c:entry>
                     <c:entry key="options"/>
@@ -89,7 +89,7 @@
                         <c:entry key="type">
                             <c:value xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                     xsi:type="xsd:string">com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType</c:value>
+                                     xsi:type="xsd:string">com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType</c:value>
                         </c:entry>
                     </c:params>
                     <c:token>1000000000000000891</c:token>
@@ -110,7 +110,7 @@
                             <c:entry key="type">
                                 <c:value xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                                          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                         xsi:type="xsd:string">com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType</c:value>
+                                         xsi:type="xsd:string">com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType</c:value>
                             </c:entry>
                         </c:params>
                         <c:token>1000000000000000893</c:token>
@@ -172,13 +172,13 @@
                     <c:entry key="modifications">
                         <c:unknownJavaObject>
                             <c:class>java.util.ArrayList</c:class>
-                            <c:toString>[PropertyDelta( / {.../common/common-2a}progress, REPLACE), PropertyDelta( / {.../common/common-2a}lastRunFinishTimestamp, REPLACE)]</c:toString>
+                            <c:toString>[PropertyDelta( / {.../common/common-3}progress, REPLACE), PropertyDelta( / {.../common/common-3}lastRunFinishTimestamp, REPLACE)]</c:toString>
                         </c:unknownJavaObject>
                     </c:entry>
                     <c:entry key="type">
                         <c:value xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                 xsi:type="xsd:string">com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType</c:value>
+                                 xsi:type="xsd:string">com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType</c:value>
                     </c:entry>
                 </c:params>
                 <c:token>1000000000000000899</c:token>
@@ -186,7 +186,7 @@
         </c:partialResults>
     </result>
     <resultStatus>success</resultStatus>
-    <objectRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+    <objectRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
                type="c:ResourceType"/>
     <lastRunStartTimestamp>2013-02-26T16:43:05.692+01:00</lastRunStartTimestamp>

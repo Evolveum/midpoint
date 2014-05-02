@@ -88,7 +88,11 @@ public final class ProcessorUtils {
         invocation.arg(reference.getLocalPart());
 
         int psf = JMod.PUBLIC | JMod.STATIC | JMod.FINAL;
-        return definedClass.field(psf, QName.class, fieldName, invocation);
+        try {
+        	return definedClass.field(psf, QName.class, fieldName, invocation);
+        } catch (RuntimeException e) {
+        	throw new RuntimeException(e.getMessage() + ", field "+fieldName+", class "+definedClass.fullName(), e);
+        }
     }
 
     public static String getGetterMethod(ClassOutline classOutline, JFieldVar field) {

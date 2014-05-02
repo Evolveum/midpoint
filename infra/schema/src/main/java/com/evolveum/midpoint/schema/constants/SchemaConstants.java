@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,15 +21,16 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author Vilo Repan
@@ -44,18 +45,18 @@ public abstract class SchemaConstants {
 
 	// NAMESPACES
 	
-	public static final String NS_ORG = "http://midpoint.evolveum.com/xml/ns/public/common/org-2";
+	public static final String NS_ORG = "http://midpoint.evolveum.com/xml/ns/public/common/org-3";
 	public static final String NS_QUERY = QueryConvertor.NS_QUERY;
-	public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-2";
-    public static final String NS_API_TYPES = "http://midpoint.evolveum.com/xml/ns/public/common/api-types-2";
+	public static final String NS_TYPES = PrismConstants.NS_TYPES;
+    public static final String NS_API_TYPES = "http://midpoint.evolveum.com/xml/ns/public/common/api-types-3";
 	public static final String NS_MIDPOINT_PUBLIC_PREFIX = "http://midpoint.evolveum.com/xml/ns/public/";
-	public static final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+	public static final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 	public static final String NS_C_PREFIX = "c";
-	public static final String NS_CAPABILITIES = "http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2";
+	public static final String NS_CAPABILITIES = "http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3";
 	public static final String NS_FILTER = NS_MIDPOINT_PUBLIC + "/common/value-filter-1.xsd";
-	public static final String NS_MATCHING_RULE = NS_MIDPOINT_PUBLIC + "/common/matching-rule-2";
-    public static final String NS_WFCF = "http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2";
-    public static final String NS_WFPIS = "http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2";
+	public static final String NS_MATCHING_RULE = NS_MIDPOINT_PUBLIC + "/common/matching-rule-3";
+    public static final String NS_WFCF = "http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-3";
+    public static final String NS_WFPIS = "http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-3";
 
 	// COMMON NAMESPACE
 	
@@ -138,7 +139,7 @@ public abstract class SchemaConstants {
 	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-1.xsd";
 	public static final QName SYNC_TOKEN = new QName(NS_PROVISIONING_LIVE_SYNC, "token");
 	// Synchronization constants
-	public static final String NS_PROVISIONING_CHANNEL = NS_PROVISIONING + "/channels-2";
+	public static final String NS_PROVISIONING_CHANNEL = NS_PROVISIONING + "/channels-3";
 	public static final QName CHANGE_CHANNEL_LIVE_SYNC = new QName(NS_PROVISIONING_CHANNEL, "liveSync");
 	public static final String CHANGE_CHANNEL_LIVE_SYNC_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_LIVE_SYNC);
 	public static final QName CHANGE_CHANNEL_RECON = new QName(NS_PROVISIONING_CHANNEL, "reconciliation");
@@ -149,13 +150,13 @@ public abstract class SchemaConstants {
 
 	public static final String NS_MODEL = NS_MIDPOINT_PUBLIC + "/model";
 	
-	public static final String NS_MODEL_CHANNEL = NS_MODEL + "/channels-2";
+	public static final String NS_MODEL_CHANNEL = NS_MODEL + "/channels-3";
 	public static final QName CHANNEL_WEB_SERVICE_QNAME = new QName(NS_MODEL_CHANNEL, "webService");
 	public static final String CHANNEL_WEB_SERVICE_URI = QNameUtil.qNameToUri(CHANNEL_WEB_SERVICE_QNAME);
 	
-	public static final String NS_MODEL_SERVICE = NS_MODEL + "/service-2";
+	public static final String NS_MODEL_SERVICE = NS_MODEL + "/service-3";
 	
-	public static final String NS_MODEL_EXTENSION = NS_MODEL + "/extension-2";
+	public static final String NS_MODEL_EXTENSION = NS_MODEL + "/extension-3";
 	public static final QName MODEL_EXTENSION_FRESHENESS_INTERVAL_PROPERTY_NAME = new QName(NS_MODEL_EXTENSION, "freshnessInterval");
 	public static final QName MODEL_EXTENSION_DRY_RUN = new QName(NS_MODEL_EXTENSION, "dryRun");
 	public static final QName MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME = new QName(NS_MODEL_EXTENSION, "lastScanTimestamp");
@@ -168,7 +169,7 @@ public abstract class SchemaConstants {
     public static final QName MODEL_EXTENSION_OBJECT_QUERY = new QName(NS_MODEL_EXTENSION, "objectQuery");
 
     public static final String NS_GUI = NS_MIDPOINT_PUBLIC + "/gui";
-	public static final String NS_GUI_CHANNEL = NS_GUI + "/channels-2";
+	public static final String NS_GUI_CHANNEL = NS_GUI + "/channels-3";
 	public static final QName CHANNEL_GUI_INIT_QNAME = new QName(NS_GUI_CHANNEL, "init");
 	public static final String CHANNEL_GUI_INIT_URI = QNameUtil.qNameToUri(CHANNEL_GUI_INIT_QNAME);
 	public static final QName CHANNEL_GUI_USER_QNAME = new QName(NS_GUI_CHANNEL, "user");
@@ -179,26 +180,26 @@ public abstract class SchemaConstants {
 	// This constant should not be here. It is used by schema processor to
 	// supply correct import. But the dependency should
 	// be inverted, eventually (MID-356)
-	public static final String NS_ICF_CONFIGURATION = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2";
+	public static final String NS_ICF_CONFIGURATION = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3";
 	public static final QName ICF_CONFIGURATION_PROPERTIES = new QName(NS_ICF_CONFIGURATION, "configurationProperties");
 	public static final QName ICF_TIMEOUTS = new QName(NS_ICF_CONFIGURATION, "timeouts");
 	public static final QName ICF_CONNECTOR_POOL_CONFIGURATION = new QName(NS_ICF_CONFIGURATION,
 			"connectorPoolConfiguration");
 	
 	// These are used in script expressions, they should remain here
-	public static final String NS_ICF_SCHEMA = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
+	public static final String NS_ICF_SCHEMA = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
 	public static final QName ICFS_NAME = new QName(NS_ICF_SCHEMA, "name");
 	public static final QName ICFS_UID = new QName(NS_ICF_SCHEMA, "uid");
 
     // OTHER (temporary? [mederly])
 
-    public static final String ICF_CONNECTOR_EXTENSION = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-extension-2";
+    public static final String ICF_CONNECTOR_EXTENSION = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-extension-3";
     public static final QName ICF_CONNECTOR_USUAL_NAMESPACE_PREFIX = new QName(ICF_CONNECTOR_EXTENSION, "usualNamespacePrefix");
-    public static final String MODEL_CONTEXT_NS = "http://midpoint.evolveum.com/xml/ns/public/model/model-context-2";
+    public static final String MODEL_CONTEXT_NS = "http://midpoint.evolveum.com/xml/ns/public/model/model-context-3";
     public static final QName SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY = new QName(MODEL_CONTEXT_NS, "skipModelContextProcessing");
     public static final QName MODEL_CONTEXT_NAME = new QName(MODEL_CONTEXT_NS, "modelContext");
 
-    public static final String SCRIPTING_EXTENSION_NS = "http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-2";
+    public static final String SCRIPTING_EXTENSION_NS = "http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3";
     public static final QName SE_EXECUTE_SCRIPT = new QName(SCRIPTING_EXTENSION_NS, "executeScript");
 
     public static final QName C_EVENT = new QName(NS_C, "event");

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -30,12 +30,12 @@
 
     <types>
         <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/private/fake/fake-1-model-context.wsdl">
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-context-2"
-            			schemaLocation="../../public/model/context/model-context-2.xsd"/>
-            <!--<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-2"-->
-            			<!--schemaLocation="http://prism.evolveum.com/xml/ns/public/query-2"/>-->
-            <!--<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-2" -->
-            			<!--schemaLocation="http://prism.evolveum.com/xml/ns/public/types-2"/>-->
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-context-3"
+            			schemaLocation="../../public/model/context/model-context-3.xsd"/>
+            <!--<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"-->
+            			<!--schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3"/>-->
+            <!--<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3" -->
+            			<!--schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3"/>-->
         </xsd:schema>
     </types>
 
@@ -62,10 +62,10 @@
         <operation name="fake">
             <soap:operation/>
             <input name="fakeInput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1-model-context.wsdl"/>
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3-model-context.wsdl"/>
             </input>
             <output name="fakeOutput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1-model-context.wsdl"/>
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3-model-context.wsdl"/>
             </output>
         </operation>
     </binding>

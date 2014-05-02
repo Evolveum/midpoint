@@ -34,12 +34,12 @@ import com.evolveum.midpoint.wf.processors.general.scenarios.DefaultGcpScenarioB
 import com.evolveum.midpoint.wf.processors.general.scenarios.GcpScenarioBean;
 import com.evolveum.midpoint.wf.util.JaxbValueContainer;
 import com.evolveum.midpoint.wf.util.SerializationSafeContainer;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralChangeProcessorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralChangeProcessorScenarioType;
-import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.WorkItemContents;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessSpecificState;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralChangeProcessorConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralChangeProcessorScenarioType;
+import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.WorkItemContents;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessSpecificState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -123,7 +123,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         if (getBeanFactory().containsBean(name)) {
             return getBeanFactory().getBean(name, GcpScenarioBean.class);
         } else {
-            throw new IllegalStateException("Wrapper " + name + " couldn't be found.");
+            throw new IllegalStateException("Scenario bean " + name + " couldn't be found.");
         }
     }
 

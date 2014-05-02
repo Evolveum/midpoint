@@ -57,7 +57,7 @@
     <bean id="basicFunctionLibrary" class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary"
           scope="singleton">
         <property name="variableName" value="basic"/>
-        <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/basic-2"/>
+        <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/basic-3"/>
         <property name="genericFunctions">
             <ref bean="basicFunctionObject"/>
         </property>
@@ -74,7 +74,7 @@
     <bean id="logFunctionLibrary" class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary"
           scope="singleton">
         <property name="variableName" value="log"/>
-        <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/log-2"/>
+        <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/log-3"/>
         <property name="genericFunctions">
             <ref bean="logFunctionObject"/>
         </property>

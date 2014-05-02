@@ -107,58 +107,58 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 
 		
 		// Prism Schemas
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/annotation-2.xsd", "a");
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/annotation-3.xsd", "a");
 
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/types-2.xsd", "t", 
-				com.evolveum.prism.xml.ns._public.types_2.ObjectFactory.class.getPackage());
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/types-3.xsd", "t", 
+				com.evolveum.prism.xml.ns._public.types_3.ObjectFactory.class.getPackage());
 
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/query-2.xsd", "q", 
-				com.evolveum.prism.xml.ns._public.query_2.ObjectFactory.class.getPackage());
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/query-3.xsd", "q", 
+				com.evolveum.prism.xml.ns._public.query_3.ObjectFactory.class.getPackage());
 		
 		
 		// midPoint schemas
-		schemaRegistry.registerPrismDefaultSchemaResource("xml/ns/public/common/common-2a.xsd", "c", 
-				com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectFactory.class.getPackage());
+		schemaRegistry.registerPrismDefaultSchemaResource("xml/ns/public/common/common-3.xsd", "c", 
+				com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory.class.getPackage());
 		
 		
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/api-types-2.xsd", "apti", 
-				com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectFactory.class.getPackage());
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/api-types-3.xsd", "apti", 
+				com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectFactory.class.getPackage());
 		
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/annotation-2.xsd", "ra");
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/annotation-3.xsd", "ra");
 		
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/capabilities-2.xsd", "cap",
-				com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ObjectFactory.class.getPackage());
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/capabilities-3.xsd", "cap",
+				com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory.class.getPackage());
 		
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/connector-schema-2.xsd", "icfc",
-				com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_2.ObjectFactory.class.getPackage());
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/connector-schema-3.xsd", "icfc",
+				com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3.ObjectFactory.class.getPackage());
 		
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/resource-schema-2.xsd", "icfs",
-				com.evolveum.midpoint.xml.ns._public.connector.icf_1.resource_schema_2.ObjectFactory.class.getPackage());
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/resource-schema-3.xsd", "icfs",
+				com.evolveum.midpoint.xml.ns._public.connector.icf_1.resource_schema_3.ObjectFactory.class.getPackage());
 		
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/import/extension-2.xsd", "impext");
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/extension-2.xsd", "mext");
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/import/extension-3.xsd", "impext");
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/extension-3.xsd", "mext");
 
-        schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/context/model-context-2.xsd", "m",
-                com.evolveum.midpoint.xml.ns._public.model.model_context_2.ObjectFactory.class.getPackage());
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/context/model-context-3.xsd", "m",
+                com.evolveum.midpoint.xml.ns._public.model.model_context_3.ObjectFactory.class.getPackage());
 
-        schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/workflow/extension-2.xsd", "wf");
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/workflow/extension-3.xsd", "wf");
 
-        schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/workflow/common-forms-2.xsd", "wfcf",
-                com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.ObjectFactory.class.getPackage());
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/workflow/common-forms-3.xsd", "wfcf",
+                com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.ObjectFactory.class.getPackage());
 
-        schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/workflow/process-instance-state-2.xsd", "wfpis",
-                com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ObjectFactory.class.getPackage());
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/workflow/process-instance-state-3.xsd", "wfpis",
+                com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ObjectFactory.class.getPackage());
 
-        schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/scripting/scripting-2.xsd", "s",
-                com.evolveum.midpoint.xml.ns._public.model.scripting_2.ObjectFactory.class.getPackage());
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/scripting/scripting-3.xsd", "s",
+                com.evolveum.midpoint.xml.ns._public.model.scripting_3.ObjectFactory.class.getPackage());
 
-        schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/noop-1.xsd", "noop");
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/noop-3.xsd", "noop");
 
-        schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/extension-2.xsd", "taskext");
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/extension-3.xsd", "taskext");
 
-        schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/connector-extension-2.xsd", "connext");
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/connector/icf-1/connector-extension-3.xsd", "connext");
 
-        schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/scripting/extension-2.xsd", "se");
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/model/scripting/extension-3.xsd", "se");
     }
 	
 	private void setupDebug() {

@@ -15,9 +15,9 @@
   ~ limitations under the License.
   -->
 
-<mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+<mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 	<source>
     	<path>$user/name</path>
     </source>
@@ -26,7 +26,7 @@
 			<language>http://www.w3.org/TR/xpath/</language>
 			<relativityMode>absolute</relativityMode>
 			<code>
-                declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+                declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 				c:locality
 			</code>
 		</script>

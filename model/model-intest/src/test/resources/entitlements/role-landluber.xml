@@ -14,12 +14,12 @@
   ~ limitations under the License.
   -->
 <role oid="10000000-0000-0000-0000-000000001603"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Landluber</name>
     <inducement>
@@ -33,7 +33,7 @@
             			<associationTargetSearch>
             				<filter>
 								<q:equal>
-									<q:path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
+									<q:path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
                                         attributes/icfs:name</q:path>
 									<q:value>landlubers</q:value>
 								</q:equal>

@@ -94,29 +94,29 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CachingMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilityCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CreateCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.DeleteCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ReadCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ScriptCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ScriptCapabilityType.Host;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.UpdateCapabilityType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CreateCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.DeleteCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType.Host;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.UpdateCapabilityType;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 /**
  * Test for provisioning service implementation.
@@ -354,8 +354,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertEquals(1, uidDef.getMaxOccurs());
 		assertEquals(0, uidDef.getMinOccurs());
 		assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
-		assertFalse("UID has create", uidDef.canCreate());
-		assertFalse("UID has update", uidDef.canUpdate());
+		assertFalse("UID has create", uidDef.canAdd());
+		assertFalse("UID has update", uidDef.canModify());
 		assertTrue("No UID read", uidDef.canRead());
 		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(uidDef));
 
@@ -363,8 +363,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertEquals(1, nameDef.getMaxOccurs());
 		assertEquals(1, nameDef.getMinOccurs());
 		assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
-		assertTrue("No NAME create", nameDef.canCreate());
-		assertTrue("No NAME update", nameDef.canUpdate());
+		assertTrue("No NAME create", nameDef.canAdd());
+		assertTrue("No NAME update", nameDef.canModify());
 		assertTrue("No NAME read", nameDef.canRead());
 		assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
 		assertEquals("Wrong NAME matching rule", StringIgnoreCaseMatchingRule.NAME, nameDef.getMatchingRuleQName());
@@ -373,8 +373,8 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertNotNull("No definition for cn", cnDef);
 		assertEquals(-1, cnDef.getMaxOccurs());
 		assertEquals(1, cnDef.getMinOccurs());
-		assertTrue("No fullname create", cnDef.canCreate());
-		assertTrue("No fullname update", cnDef.canUpdate());
+		assertTrue("No fullname create", cnDef.canAdd());
+		assertTrue("No fullname update", cnDef.canModify());
 		assertTrue("No fullname read", cnDef.canRead());
 
 		assertNull("The _PASSSWORD_ attribute sneaked into schema",

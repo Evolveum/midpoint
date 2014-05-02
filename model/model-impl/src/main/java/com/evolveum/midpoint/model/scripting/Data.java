@@ -27,10 +27,11 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import javax.xml.namespace.QName;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;

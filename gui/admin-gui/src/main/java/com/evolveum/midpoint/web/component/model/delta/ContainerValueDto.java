@@ -18,7 +18,7 @@ package com.evolveum.midpoint.web.component.model.delta;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import java.io.Serializable;
 import java.util.ArrayList;

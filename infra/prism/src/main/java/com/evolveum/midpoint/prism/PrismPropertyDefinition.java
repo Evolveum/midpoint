@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,9 +57,6 @@ public class PrismPropertyDefinition<T> extends ItemDefinition {
     private static final long serialVersionUID = 7259761997904371009L;
     private QName valueType;
     private T[] allowedValues;
-    private boolean create = true;
-    private boolean read = true;
-    private boolean update = true;
     private Boolean indexed = null;
 
     public PrismPropertyDefinition(QName elementName, QName typeName, PrismContext prismContext) {
@@ -73,33 +70,6 @@ public class PrismPropertyDefinition<T> extends ItemDefinition {
      */
     public T[] getAllowedValues() {
         return allowedValues;
-    }
-
-    /**
-     * TODO:
-     *
-     * @return
-     */
-    public boolean canRead() {
-        return read;
-    }
-
-    /**
-     * TODO:
-     *
-     * @return
-     */
-    public boolean canUpdate() {
-        return update;
-    }
-
-    /**
-     *
-     */
-    public void setReadOnly() {
-        create = false;
-        read = true;
-        update = false;
     }
 
     /**
@@ -166,46 +136,11 @@ public class PrismPropertyDefinition<T> extends ItemDefinition {
 		super.copyDefinitionData(clone);
 		clone.allowedValues = this.allowedValues;
 		clone.valueType = this.valueType;
-		clone.create = this.create;
-		clone.read = this.read;
-		clone.update = this.update;
 	}
-
-	public void setRead(boolean read) {
-        this.read = read;
-    }
-
-    public void setUpdate(boolean update) {
-        this.update = update;
-    }
-
-    public void setCreate(boolean create) {
-        this.create = create;
-    }
-
-    public boolean canCreate() {
-        return create;
-    }
 
     @Override
 	protected void extendToString(StringBuilder sb) {
 		super.extendToString(sb);
-		sb.append(",");
-		if (canRead()) {
-			sb.append("R");
-		} else {
-			sb.append("-");
-		}
-		if (canCreate()) {
-			sb.append("C");
-		} else {
-			sb.append("-");
-		}
-		if (canUpdate()) {
-			sb.append("U");
-		} else {
-			sb.append("-");
-		}
 		if (indexed != null && indexed) {
 			sb.append(",I");
 		}
@@ -216,9 +151,6 @@ public class PrismPropertyDefinition<T> extends ItemDefinition {
         final int prime = 31;
         int result = super.hashCode();
         result = prime * result + Arrays.hashCode(allowedValues);
-        result = prime * result + (create ? 1231 : 1237);
-        result = prime * result + (read ? 1231 : 1237);
-        result = prime * result + (update ? 1231 : 1237);
         result = prime * result + ((valueType == null) ? 0 : valueType.hashCode());
         return result;
     }
@@ -233,12 +165,6 @@ public class PrismPropertyDefinition<T> extends ItemDefinition {
             return false;
         PrismPropertyDefinition other = (PrismPropertyDefinition) obj;
         if (!Arrays.equals(allowedValues, other.allowedValues))
-            return false;
-        if (create != other.create)
-            return false;
-        if (read != other.read)
-            return false;
-        if (update != other.update)
             return false;
         if (valueType == null) {
             if (other.valueType != null)

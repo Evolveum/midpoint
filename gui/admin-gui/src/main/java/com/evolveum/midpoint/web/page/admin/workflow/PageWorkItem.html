@@ -36,6 +36,14 @@
                         <td><wicket:message key="pageWorkItem.workItemCreatedOn" /></td>
                         <td><b><span wicket:id="workItemCreatedOn" /></b></td>
                     </tr>
+                    <tr>
+                        <td><wicket:message key="pageWorkItem.assignee" /></td>
+                        <td><b><span wicket:id="assignee" /></b></td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="pageWorkItem.candidates" /></td>
+                        <td><b><span wicket:id="candidates" /></b></td>
+                    </tr>
                 </table>
 
                 <div wicket:id="requestSpecificForm"/>
@@ -86,6 +94,8 @@
         <div class="main-button-bar">
             <span class="button-group">
                 <a class="btn btn-default" wicket:id="cancel" />
+                <a class="btn btn-default" wicket:id="claim" />
+                <a class="btn btn-default" wicket:id="release" />
             </span>
             <a class="btn btn-danger" wicket:id="reject"/>
             <a class="btn btn-success" wicket:id="approve"/>

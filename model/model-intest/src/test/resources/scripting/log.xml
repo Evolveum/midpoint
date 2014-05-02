@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<s:action xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2">
+<s:action xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
     <s:type>log</s:type>
     <s:parameter>
         <s:name>message</s:name>

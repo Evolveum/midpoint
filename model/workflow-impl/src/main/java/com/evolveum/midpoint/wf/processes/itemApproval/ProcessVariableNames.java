@@ -39,6 +39,15 @@ public class ProcessVariableNames {
     // Approvers that should be consulted within this level.
     public static final String APPROVERS_IN_LEVEL = "approversInLevel";         // List<LightweightObjectRef>
 
+    // Current approver (one of APPROVERS_IN_LEVEL)
+    public static final String APPROVER_REF = "approverRef";         // LightweightObjectRef
+
+    // Oid of the approver if approverRef is a user (in that case, the task is assigned directly to the user)
+    public static final String ASSIGNEE = "assignee";
+
+    // Oid of the abstract role if approverRef is an abstract role (in that case, it is used as a candidate group)
+    public static final String CANDIDATE_GROUPS = "candidateGroups";
+
     // List of decisions done in this level.
     public static final String DECISIONS_IN_LEVEL = "decisionsInLevel";         // List<Decision>
 

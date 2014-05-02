@@ -18,7 +18,7 @@ package com.evolveum.midpoint.schema.util;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * Constants for use in tests. DO NOT USE IN "MAIN" CODE. This is placed in "main" just for convenience, so the
@@ -29,8 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 public class SchemaTestConstants {
 
 	public static final String NS_ICFC_LDAP = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector";
-	public static final String NS_ICFC = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2";
-	public static final String NS_ICFS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
+	public static final String NS_ICFC = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3";
+	public static final String NS_ICFS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
 	
 	public static final QName ICFC_CONFIGURATION_PROPERTIES = new QName(NS_ICFC, "configurationProperties");
 	public static final QName ICFC_CONFIGURATION_PROPERTIES_TYPE = new QName(NS_ICFC, "ConfigurationPropertiesType");

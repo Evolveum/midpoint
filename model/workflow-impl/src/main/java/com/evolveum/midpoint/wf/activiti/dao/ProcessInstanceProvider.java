@@ -33,8 +33,8 @@ import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
-import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.activiti.engine.ActivitiException;
 import org.activiti.engine.HistoryService;
 import org.activiti.engine.RuntimeService;
@@ -272,7 +272,7 @@ public class ProcessInstanceProvider {
         if (getWorkItems) {
             TaskService ts = activitiEngine.getTaskService();
             List<Task> tasks = ts.createTaskQuery().processInstanceId(instance.getProcessInstanceId()).list();
-            pi.getWorkItems().addAll(workItemProvider.tasksToWorkItems(tasks, false, true, result));     // "no" to task forms, "yes" to assignee details
+            pi.getWorkItems().addAll(workItemProvider.tasksToWorkItems(tasks, false, true, true, result));     // "no" to task forms, "yes" to assignee and candidate details
         }
 
         result.recordSuccessIfUnknown();

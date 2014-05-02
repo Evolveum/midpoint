@@ -21,11 +21,12 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
 
 import javax.xml.namespace.QName;
+
 import java.util.Map;
 
 /**

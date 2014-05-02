@@ -44,6 +44,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.JaxbTestUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -119,26 +120,26 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CachingMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilitiesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CapabilityCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationProvisioningScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ScriptCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.TestConnectionCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CachingMetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilityCollectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.TestConnectionCapabilityType;
 
 /**
  * The test of Provisioning service on the API level. The test is using dummy
@@ -478,8 +479,8 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals(1, uidDef.getMaxOccurs());
 		assertEquals(0, uidDef.getMinOccurs());
 		assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
-		assertFalse("UID has create", uidDef.canCreate());
-		assertFalse("UID has update", uidDef.canUpdate());
+		assertFalse("UID has create", uidDef.canAdd());
+		assertFalse("UID has update", uidDef.canModify());
 		assertTrue("No UID read", uidDef.canRead());
 		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(uidDef));
 
@@ -487,8 +488,8 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals(1, nameDef.getMaxOccurs());
 		assertEquals(1, nameDef.getMinOccurs());
 		assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
-		assertTrue("No NAME create", nameDef.canCreate());
-		assertTrue("No NAME update", nameDef.canUpdate());
+		assertTrue("No NAME create", nameDef.canAdd());
+		assertTrue("No NAME update", nameDef.canModify());
 		assertTrue("No NAME read", nameDef.canRead());
 		assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
 
@@ -496,8 +497,8 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("No definition for fullname", fullnameDef);
 		assertEquals(1, fullnameDef.getMaxOccurs());
 		assertEquals(1, fullnameDef.getMinOccurs());
-		assertTrue("No fullname create", fullnameDef.canCreate());
-		assertTrue("No fullname update", fullnameDef.canUpdate());
+		assertTrue("No fullname create", fullnameDef.canAdd());
+		assertTrue("No fullname update", fullnameDef.canModify());
 		assertTrue("No fullname read", fullnameDef.canRead());
 
 		assertNull("The _PASSSWORD_ attribute sneaked into schema",

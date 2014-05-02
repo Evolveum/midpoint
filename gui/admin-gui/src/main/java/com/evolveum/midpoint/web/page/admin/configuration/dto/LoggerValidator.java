@@ -25,7 +25,7 @@ import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.validator.AbstractValidator;
 
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.LoggingComponentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType;
 
 public class LoggerValidator extends AbstractValidator<LoggingComponentType> {
 

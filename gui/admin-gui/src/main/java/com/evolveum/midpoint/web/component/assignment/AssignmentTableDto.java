@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.io.Serializable;
 

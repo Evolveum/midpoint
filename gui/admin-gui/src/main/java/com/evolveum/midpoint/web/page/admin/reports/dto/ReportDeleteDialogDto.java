@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
 
 import java.io.Serializable;
 import java.util.List;

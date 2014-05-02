@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -27,9 +28,10 @@ import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.hibernate.Session;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -51,7 +53,7 @@ public class RAnyConverterStaticTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(RAnyConverterStaticTest.class);
     private static final String NS_P = "http://example.com/p";
-    private static final String NS_T = "http://prism.evolveum.com/xml/ns/public/types-2";
+    private static final String NS_T = PrismConstants.NS_TYPES;
     private static final String NS_FOO_RESOURCE = "http://example.com/foo";
 
     @Test

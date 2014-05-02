@@ -16,8 +16,8 @@
   -->
 
 <script
-		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-		xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-2">
+		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-3">
 	<language>http://www.w3.org/TR/xpath/</language>
 	<code>
 		func:concatName(' Horatio ', 'Torquemada', 'Marley ')

@@ -45,9 +45,9 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.test.ldap.AbstractResourceController;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
@@ -218,8 +218,8 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertNotNull("No definition for fullname", fullnameDef);
 		assertEquals(1, fullnameDef.getMaxOccurs());
 		assertEquals(1, fullnameDef.getMinOccurs());
-		assertTrue("No fullname create", fullnameDef.canCreate());
-		assertTrue("No fullname update", fullnameDef.canUpdate());
+		assertTrue("No fullname create", fullnameDef.canAdd());
+		assertTrue("No fullname update", fullnameDef.canModify());
 		assertTrue("No fullname read", fullnameDef.canRead());
 		
 		// GROUP
@@ -230,8 +230,8 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertNotNull("No definition for members", membersDef);
 		assertEquals("Wrong maxOccurs", -1, membersDef.getMaxOccurs());
 		assertEquals("Wrong minOccurs", 0, membersDef.getMinOccurs());
-		assertTrue("No members create", membersDef.canCreate());
-		assertTrue("No members update", membersDef.canUpdate());
+		assertTrue("No members create", membersDef.canAdd());
+		assertTrue("No members update", membersDef.canModify());
 		assertTrue("No members read", membersDef.canRead());
 	}
 	
@@ -259,8 +259,8 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertEquals(1, uidDef.getMaxOccurs());
 		assertEquals(0, uidDef.getMinOccurs());
 		assertFalse("No UID display name", StringUtils.isBlank(uidDef.getDisplayName()));
-		assertFalse("UID has create", uidDef.canCreate());
-		assertFalse("UID has update",uidDef.canUpdate());
+		assertFalse("UID has create", uidDef.canAdd());
+		assertFalse("UID has update",uidDef.canModify());
 		assertTrue("No UID read",uidDef.canRead());
 		assertTrue("UID definition not in identifiers", accountDef.getIdentifiers().contains(uidDef));
 
@@ -268,8 +268,8 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertEquals(1, nameDef.getMaxOccurs());
 		assertEquals(1, nameDef.getMinOccurs());
 		assertFalse("No NAME displayName", StringUtils.isBlank(nameDef.getDisplayName()));
-		assertTrue("No NAME create", nameDef.canCreate());
-		assertTrue("No NAME update",nameDef.canUpdate());
+		assertTrue("No NAME create", nameDef.canAdd());
+		assertTrue("No NAME update",nameDef.canModify());
 		assertTrue("No NAME read",nameDef.canRead());
 		assertTrue("NAME definition not in identifiers", accountDef.getSecondaryIdentifiers().contains(nameDef));
 
@@ -277,8 +277,8 @@ public class DummyResourceContoller extends AbstractResourceController {
 		assertNotNull("No definition for fullname", fullnameDef);
 		assertEquals(1, fullnameDef.getMaxOccurs());
 		assertEquals(1, fullnameDef.getMinOccurs());
-		assertTrue("No fullname create", fullnameDef.canCreate());
-		assertTrue("No fullname update", fullnameDef.canUpdate());
+		assertTrue("No fullname create", fullnameDef.canAdd());
+		assertTrue("No fullname update", fullnameDef.canModify());
 		assertTrue("No fullname read", fullnameDef.canRead());
 		
 		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(SchemaTestConstants.NS_ICFS,"password")));

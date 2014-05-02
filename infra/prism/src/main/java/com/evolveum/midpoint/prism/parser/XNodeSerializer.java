@@ -21,7 +21,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -52,11 +53,11 @@ import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.prism.xml.ns._public.types_2.EncryptedDataType;
-import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_2.ProtectedDataType;
-import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
+import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
+import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 /**
  * @author semancik
@@ -276,6 +277,7 @@ public class XNodeSerializer {
     //region Serializing references - specific functionality
     private XNode serializeReferenceValue(PrismReferenceValue value, PrismReferenceDefinition definition) throws SchemaException {
         MapXNode xmap = new MapXNode();
+        String namespace = definition != null ? definition.getNamespace() : null;           // namespace for filter and description
         if (StringUtils.isNotBlank(value.getOid())){
             xmap.put(XNode.KEY_REFERENCE_OID, createPrimitiveXNodeStringAttr(value.getOid()));
         }
@@ -289,12 +291,12 @@ public class XNodeSerializer {
         }
         String description = value.getDescription();
         if (description != null) {
-            xmap.put(XNode.KEY_REFERENCE_DESCRIPTION, createPrimitiveXNode(description, DOMUtil.XSD_STRING));
+            xmap.put(createReferenceQName(XNode.KEY_REFERENCE_DESCRIPTION, namespace), createPrimitiveXNode(description, DOMUtil.XSD_STRING));
         }
         SearchFilterType filter = value.getFilter();
         if (filter != null) {
             XNode xsubnode = filter.serializeToXNode(value.getPrismContext());
-            xmap.put(XNode.KEY_REFERENCE_FILTER, xsubnode);
+            xmap.put(createReferenceQName(XNode.KEY_REFERENCE_FILTER, namespace), xsubnode);
         }
 
         boolean isComposite = false;
@@ -307,6 +309,16 @@ public class XNodeSerializer {
         }
 
         return xmap;
+    }
+
+    // expects that qnames have null namespaces by default
+    // namespace (second parameter) may be null if unknown
+    private QName createReferenceQName(QName qname, String namespace) {
+        if (namespace != null) {
+            return new QName(namespace, qname.getLocalPart());
+        } else {
+            return qname;
+        }
     }
     //endregion
 

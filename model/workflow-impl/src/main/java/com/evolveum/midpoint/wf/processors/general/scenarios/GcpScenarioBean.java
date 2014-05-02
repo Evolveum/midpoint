@@ -29,12 +29,13 @@ import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.wf.jobs.Job;
 import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
 import com.evolveum.midpoint.wf.messages.TaskEvent;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralChangeProcessorScenarioType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.WorkItemContents;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessSpecificState;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GeneralChangeProcessorScenarioType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.WorkItemContents;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessSpecificState;
 
 import javax.xml.bind.JAXBException;
+
 import java.util.Map;
 
 /**

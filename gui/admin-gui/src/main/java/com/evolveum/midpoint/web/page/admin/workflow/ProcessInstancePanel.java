@@ -28,9 +28,9 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ItemApprovalProcessState;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessSpecificState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ItemApprovalProcessState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessSpecificState;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -85,25 +85,30 @@ public class ProcessInstancePanel extends SimplePanel<ProcessInstanceDto> {
         Label finished = new Label("finished", new PropertyModel(model, "finishedTime"));
         add(finished);
 
-        // todo what if task does not exist?
-        LinkPanel task = new LinkPanel(ID_TASK, new PropertyModel(model, ProcessInstanceDto.F_WATCHING_TASK_OID)) {
+        // todo disable clicking behaviour if task does not exist
+        LinkPanel task = new LinkPanel(ID_TASK, new PropertyModel(model, ProcessInstanceDto.F_SHADOW_TASK)) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                String oid = model.getObject().getWatchingTaskOid();
+                String oid = model.getObject().getShadowTaskOid();
                 if (oid != null) {
                     PageParameters parameters = new PageParameters();
                     parameters.add(OnePageParameterEncoder.PARAMETER, oid);
                     setResponsePage(new PageTaskEdit(parameters, (PageBase) this.getPage()));
                 }
             }
+
+            @Override
+            public boolean isEnabled() {
+                return model.getObject().isShadowTaskExisting();
+            }
         };
         add(task);
 
-        Label taskComment = new Label(ID_TASK_COMMENT, createStringResource("processInstancePanel.taskMightBeRemoved"));
+        Label taskComment = new Label(ID_TASK_COMMENT, createStringResource("processInstancePanel.taskAlreadyRemoved"));
         taskComment.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
-                return model.getObject().isFinished();
+                return !model.getObject().isShadowTaskExisting();
             }
         });
         add(taskComment);

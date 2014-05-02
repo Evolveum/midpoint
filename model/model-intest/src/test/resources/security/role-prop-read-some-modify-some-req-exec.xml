@@ -14,8 +14,8 @@
   ~ limitations under the License.
   -->
 <role oid="00000000-0000-0000-0000-00000000ac08"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Prop Read Some Modify Some Req Exec</name>    
     <authorization>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#read</action>

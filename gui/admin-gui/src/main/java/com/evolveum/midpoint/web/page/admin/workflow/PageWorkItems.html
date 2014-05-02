@@ -19,10 +19,12 @@
 <body>
 <wicket:extend>
     <form wicket:id="mainForm">
-        <div wicket:id="assignedItemTable"/>
+        <div wicket:id="workItemTable"/>
 
         <div class="main-button-bar">
             <span class="button-group">
+                <a class="btn btn-default" wicket:id="claim"/>
+                <a class="btn btn-default" wicket:id="release"/>
                 <a class="btn btn-danger" wicket:id="reject" />
             </span>
             <a class="btn btn-primary" wicket:id="approve"/>

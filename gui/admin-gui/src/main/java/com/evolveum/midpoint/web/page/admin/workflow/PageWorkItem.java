@@ -21,9 +21,13 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -44,16 +48,18 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDetailedDto;
+import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.GeneralChangeApprovalWorkItemContents;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.GeneralChangeApprovalWorkItemContents;
 
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -64,6 +70,9 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.List;
 
 /**
  * @author mederly
@@ -77,6 +86,8 @@ public class PageWorkItem extends PageAdminWorkItems {
     private static final String OPERATION_LOAD_WORK_ITEM = DOT_CLASS + "loadWorkItem";
     private static final String OPERATION_LOAD_PROCESS_INSTANCE = DOT_CLASS + "loadProcessInstance";
     private static final String OPERATION_SAVE_WORK_ITEM = DOT_CLASS + "saveWorkItem";
+    private static final String OPERATION_CLAIM_WORK_ITEM = DOT_CLASS + "claimWorkItem";
+    private static final String OPERATION_RELEASE_WORK_ITEM = DOT_CLASS + "releaseWorkItem";
 
     private static final String ID_ACCORDION = "accordion";
     private static final String ID_DELTA_PANEL = "deltaPanel";
@@ -305,7 +316,6 @@ public class PageWorkItem extends PageAdminWorkItems {
         return wrapper;
     }
 
-
     private ObjectWrapper getAdditionalDataWrapper() {
         GeneralChangeApprovalWorkItemContents wic = getGeneralChangeApprovalWorkItemContents();
         ObjectType relatedObject = wic.getRelatedObject();
@@ -382,8 +392,15 @@ public class PageWorkItem extends PageAdminWorkItems {
             WorkflowManager wfm = getWorkflowManager();
             processInstance = wfm.getProcessInstanceByWorkItemId(taskId, result);
             LOGGER.trace("Found process instance {}", processInstance);
+            String shadowTaskOid = ((ProcessInstanceState) processInstance.getState()).getShadowTaskOid();
+            Task shadowTask = null;
+            try {
+                shadowTask = getTaskManager().getTask(shadowTaskOid, result);
+            } catch (ObjectNotFoundException e) {
+                // ok
+            }
             result.recordSuccess();
-            return new ProcessInstanceDto(processInstance);
+            return new ProcessInstanceDto(processInstance, shadowTask);
         } catch (ObjectNotFoundException ex) {
             result.recordWarning("Work item seems to be already closed.");
             LoggingUtils.logException(LOGGER, "Couldn't get process instance for work item; it might be already closed.", ex);
@@ -434,6 +451,12 @@ public class PageWorkItem extends PageAdminWorkItems {
 
         });
         mainForm.add(workItemCreatedOn);
+
+        Label assignee = new Label("assignee", new PropertyModel(workItemDtoModel, WorkItemDto.F_ASSIGNEE));
+        mainForm.add(assignee);
+
+        Label candidates = new Label("candidates", new PropertyModel(workItemDtoModel, WorkItemDto.F_CANDIDATES));
+        mainForm.add(candidates);
 
         PrismObjectPanel requestSpecificForm = new PrismObjectPanel("requestSpecificForm", requestSpecificModel,
                 new PackageResourceReference(ImgResources.class, ImgResources.DECISION_PRISM), mainForm) {
@@ -566,12 +589,68 @@ public class PageWorkItem extends PageAdminWorkItems {
 
     private void initButtons(Form mainForm) {
 
-        VisibleEnableBehaviour isAuthorizedToSubmit = new VisibleEnableBehaviour() {
+        VisibleEnableBehaviour isAllowedToSubmit = new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
                 return getWorkflowManager().isCurrentUserAuthorizedToSubmit(workItemDtoModel.getObject().getWorkItem());
             }
         };
+
+        VisibleEnableBehaviour isAllowedToClaim = new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return workItemDtoModel.getObject().getWorkItem().getAssigneeRef() == null &&
+                        getWorkflowManager().isCurrentUserAuthorizedToClaim(workItemDtoModel.getObject().getWorkItem());
+            }
+        };
+
+        VisibleEnableBehaviour isAllowedToRelease = new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                WorkItemType workItem = workItemDtoModel.getObject().getWorkItem();
+                MidPointPrincipal principal;
+                try {
+                    principal = (MidPointPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+                } catch (ClassCastException e) {
+                    return false;
+                }
+                String principalOid = principal.getOid();
+                if (workItem.getAssigneeRef() == null || !workItem.getAssigneeRef().getOid().equals(principalOid)) {
+                    return false;
+                }
+                return !workItem.getCandidateUsersRef().isEmpty() || !workItem.getCandidateRolesRef().isEmpty();
+            }
+        };
+
+        AjaxSubmitButton claim = new AjaxSubmitButton("claim", createStringResource("pageWorkItem.button.claim")) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                claimPerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        claim.add(isAllowedToClaim);
+        mainForm.add(claim);
+
+        AjaxSubmitButton release = new AjaxSubmitButton("release", createStringResource("pageWorkItem.button.release")) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                releasePerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        release.add(isAllowedToRelease);
+        mainForm.add(release);
 
         AjaxSubmitButton approve = new AjaxSubmitButton("approve", createStringResource("pageWorkItem.button.approve")) {
 
@@ -585,7 +664,7 @@ public class PageWorkItem extends PageAdminWorkItems {
                 target.add(getFeedbackPanel());
             }
         };
-        approve.add(isAuthorizedToSubmit);
+        approve.add(isAllowedToSubmit);
         mainForm.add(approve);
 
         AjaxSubmitButton reject = new AjaxSubmitButton("reject", createStringResource("pageWorkItem.button.reject")) {
@@ -600,7 +679,7 @@ public class PageWorkItem extends PageAdminWorkItems {
                 target.add(getFeedbackPanel());
             }
         };
-        reject.add(isAuthorizedToSubmit);
+        reject.add(isAllowedToSubmit);
         mainForm.add(reject);
 
 //        AjaxSubmitLinkButton done = new AjaxSubmitLinkButton("done",
@@ -665,6 +744,48 @@ public class PageWorkItem extends PageAdminWorkItems {
             LoggingUtils.logException(LOGGER, "Couldn't save work item", ex);
         }
 
+        result.computeStatusIfUnknown();
+
+        if (!result.isSuccess()) {
+            showResult(result);
+            target.add(getFeedbackPanel());
+        } else {
+            showResultInSession(result);
+            goBack(PageWorkItems.class);
+        }
+    }
+
+    private void claimPerformed(AjaxRequestTarget target) {
+
+        OperationResult result = new OperationResult(OPERATION_CLAIM_WORK_ITEM);
+        WorkflowManager workflowManagerImpl = getWorkflowManager();
+        try {
+            workflowManagerImpl.claimWorkItem(workItemDtoModel.getObject().getWorkItem().getWorkItemId(), result);
+            setReinitializePreviousPages(true);
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't claim work item due to an unexpected exception.", e);
+        }
+        result.computeStatusIfUnknown();
+
+        if (!result.isSuccess()) {
+            showResult(result);
+            target.add(getFeedbackPanel());
+        } else {
+            showResultInSession(result);
+            goBack(PageWorkItems.class);
+        }
+    }
+
+    private void releasePerformed(AjaxRequestTarget target) {
+
+        OperationResult result = new OperationResult(OPERATION_RELEASE_WORK_ITEM);
+        WorkflowManager workflowManagerImpl = getWorkflowManager();
+        try {
+            workflowManagerImpl.releaseWorkItem(workItemDtoModel.getObject().getWorkItem().getWorkItemId(), result);
+            setReinitializePreviousPages(true);
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't release work item due to an unexpected exception.", e);
+        }
         result.computeStatusIfUnknown();
 
         if (!result.isSuccess()) {

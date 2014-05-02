@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+<systemConfiguration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 
     <name>dummy</name>
 

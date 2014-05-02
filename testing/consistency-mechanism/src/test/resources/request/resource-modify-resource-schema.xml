@@ -19,32 +19,32 @@
 	a new account -->
 
 <t:objectDelta
-	xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+	xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+	xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-2"
+    xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
     xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
     xmlns:my="http://whatever.com/my">
     <t:changeType>modify</t:changeType>
     <t:objectType>c:ResourceType</t:objectType>
 	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
 	<t:itemDelta>
 		<t:modificationType>replace</t:modificationType>
-		<t:path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";c:schemaHandling</t:path>
+		<t:path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";c:schemaHandling</t:path>
 		<t:value>
 <!-- 			<schemaHandling oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" -->
-<!--           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" -->
-<!--           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" -->
-<!--           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2" -->
-<!--           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2" -->
+<!--           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" -->
+<!--           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" -->
+<!--           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" -->
+<!--           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" -->
 <!--           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" -->
 <!--           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" -->
 <!--           xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" -->
-<!--           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" -->
+<!--           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" -->
 <!--           xmlns:my="http://whatever.com/my"> -->
 
 
@@ -74,9 +74,9 @@ follows: uid=flastname,ou=people,dc=example,dc=ck</description>
 				<limitations>
 					<minOccurs>0</minOccurs>
 					<access>
-						<create>true</create>
+						<add>true</add>
 						<read>true</read>
-						<update>true</update>
+						<modify>true</modify>
 					</access>
 				</limitations>
 				<matchingRule>mr:stringIgnoreCase</matchingRule>
@@ -118,13 +118,6 @@ else {
 
                 <!-- Readable name for the attribute. This will be used in GUI -->
                 <displayName>Entry UUID</displayName>
-
-                <!-- Access limitation for this attribute.
-       Entry UUID is created by the directory server itelf
-       and it is immutable. We can only read it. -->
-
-                <access>read</access>
-
                 <!-- There is no "outbound" expression, so midPoint will not
            do anything with this attribute. -->
 
@@ -137,10 +130,6 @@ else {
 
                 <ref>ri:cn</ref>
                 <displayName>Common Name</displayName>
-                <access>create</access>
-                <access>read</access>
-                <access>update</access>
-
                 <!-- Outbound expression here is using "pure" XPath, without
                     using functions. This is the simplest case, just copying
                     the "fullName" property of user to the "cn" attribute of
@@ -169,9 +158,6 @@ else {
                 <ref>ri:sn</ref>
 
                 <displayName>Surname</displayName>
-                <access>create</access>
-                <access>read</access>
-                <access>update</access>
                 <outbound>
 					<source>
 						<path>$c:user/c:familyName</path>
@@ -188,10 +174,6 @@ else {
             <attribute>
                 <ref>ri:givenName</ref>
                 <displayName>Given Name</displayName>
-                <access>create</access>
-                <access>read</access>
-
-                <access>update</access>
                 <outbound>
 					<source>
 						<path>givenName</path>
@@ -200,7 +182,7 @@ else {
 						<script>
 							<language>http://www.w3.org/TR/xpath/</language>
 							<code>
-								declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+								declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 								$givenName
 							</code>
 						</script>
@@ -274,7 +256,7 @@ else {
                 <inbound>
                     <target>
                     	<path>
-	                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+	                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 	                        declare namespace my="http://whatever.com/my";
 	                        $i:user/i:extension/my:description
                         </path>
@@ -297,14 +279,14 @@ else {
                 <outbound>
                 	<strength>strong</strength>
                 	<source>
-                		<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";$c:user/c:locality</path>
+                		<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";$c:user/c:locality</path>
                 	</source>
                 	<expression>
                 		<script>
                 			<c:language>http://www.w3.org/TR/xpath/</c:language>
                 			<c:returnType>scalar</c:returnType>
                 			<code>
-                				declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+                				declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
                 				if (empty($c:user/c:locality)) then
                 					"middle of nowhere"
                 				else

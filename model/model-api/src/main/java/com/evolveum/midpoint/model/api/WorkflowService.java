@@ -6,9 +6,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 
 import java.util.List;
 
@@ -30,7 +30,7 @@ public interface WorkflowService {
      * @param parentResult
      * @return number of relevant work items
      */
-    int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult);
+    int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Lists work items related to a user.
@@ -42,7 +42,7 @@ public interface WorkflowService {
      * @param parentResult
      * @return list of work items
      */
-    List<WorkItemType> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult);
+    List<WorkItemType> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Provides detailed information about a given work item (may be inefficient, so use with care).

@@ -20,9 +20,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.LoggingComponentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SubSystemLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingComponentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SubSystemLoggerConfigurationType;
 
 import org.apache.commons.lang.Validate;
 

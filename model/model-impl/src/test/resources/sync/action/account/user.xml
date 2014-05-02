@@ -14,7 +14,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<user oid="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+<user oid="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 	<name>johny</name>
 	<fullName>Jan Prvy</fullName>
 	<givenName>Jan</givenName>

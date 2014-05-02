@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.wf.api;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
 
 /**
  * An interface through which external observers can be notified about work item related events.

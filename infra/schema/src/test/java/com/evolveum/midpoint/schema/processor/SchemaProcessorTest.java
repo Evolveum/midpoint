@@ -43,10 +43,10 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
-import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 public class SchemaProcessorTest {
 
@@ -65,24 +65,24 @@ public class SchemaProcessorTest {
 		ResourceSchema schema = ResourceSchema.parse(DOMUtil.getFirstChildElement(schemaDom), filename, PrismTestUtil.getPrismContext());
 		
 		final String defaultNS = "http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
-		final String icfNS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2";
+		final String icfNS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
 		ObjectClassComplexTypeDefinition objectDef = schema.findObjectClassDefinition(new QName(defaultNS, "AccountObjectClass"));
 		assertNotNull("AccountObjectClass definition not found", objectDef);
 		
 		ResourceAttributeDefinition attrDef = objectDef.findAttributeDefinition(new QName(icfNS, "uid"));
 		AssertJUnit.assertTrue("uid readability", attrDef.canRead());
-		AssertJUnit.assertFalse("uid updateability", attrDef.canUpdate());
-		AssertJUnit.assertFalse("uid createability", attrDef.canCreate());
+		AssertJUnit.assertFalse("uid updateability", attrDef.canModify());
+		AssertJUnit.assertFalse("uid createability", attrDef.canAdd());
 		
 		attrDef = objectDef.findAttributeDefinition(new QName(defaultNS, "title"));
 		AssertJUnit.assertTrue(attrDef.canRead());
-		AssertJUnit.assertTrue(attrDef.canUpdate());
-		AssertJUnit.assertTrue(attrDef.canCreate());
+		AssertJUnit.assertTrue(attrDef.canModify());
+		AssertJUnit.assertTrue(attrDef.canAdd());
 		
 		attrDef = objectDef.findAttributeDefinition(new QName(defaultNS, "photo"));
 		AssertJUnit.assertFalse(attrDef.canRead());
-		AssertJUnit.assertTrue(attrDef.canUpdate());
-		AssertJUnit.assertTrue(attrDef.canCreate());
+		AssertJUnit.assertTrue(attrDef.canModify());
+		AssertJUnit.assertTrue(attrDef.canAdd());
 	}
 	
 	@Test
@@ -139,8 +139,8 @@ public class SchemaProcessorTest {
 		assertEquals(new QName(SCHEMA_NS,"login"), loginDef.getName());
 		assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
 		assertTrue("Read flag is wrong",loginDef.canRead());
-		assertTrue("Create flag is wrong",loginDef.canCreate());
-		assertTrue("Update flag is wrong",loginDef.canUpdate());
+		assertTrue("Create flag is wrong",loginDef.canAdd());
+		assertTrue("Update flag is wrong",loginDef.canModify());
 
 		PrismPropertyDefinition passwdDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"password"));
 		assertEquals(new QName(SCHEMA_NS,"password"), passwdDef.getName());
@@ -154,8 +154,8 @@ public class SchemaProcessorTest {
 		assertEquals(new QName(SCHEMA_NS,"counter"), countDef.getName());
 		assertEquals(DOMUtil.XSD_INT, countDef.getTypeName());
 		assertTrue("Read flag is wrong",countDef.canRead());
-		assertFalse("Create flag is wrong",countDef.canCreate());
-		assertFalse("Update flag is wrong",countDef.canUpdate());
+		assertFalse("Create flag is wrong",countDef.canAdd());
+		assertFalse("Update flag is wrong",countDef.canModify());
 	}
 
 	

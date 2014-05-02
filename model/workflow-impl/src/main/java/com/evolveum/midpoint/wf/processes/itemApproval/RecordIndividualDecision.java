@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.wf.processes.itemApproval;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -26,7 +27,7 @@ import com.evolveum.midpoint.wf.processes.common.SpringApplicationContextHolder;
 import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.LevelEvaluationStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LevelEvaluationStrategyType;
 
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
@@ -66,10 +67,10 @@ public class RecordIndividualDecision implements JavaDelegate {
         MidPointPrincipal user = null;
 		try {
 			user = SecurityUtil.getPrincipal();
-			decision.setApproverName(user.getName().getOrig());  //TODO: probably not correct setting
+			decision.setApproverName(PolyString.getOrig(user.getName()));
             decision.setApproverOid(user.getOid());
 		} catch (SecurityViolationException e) {
-			decision.setApproverName("?");    // todo
+			decision.setApproverName("?");
             decision.setApproverOid("?");
 		}
 

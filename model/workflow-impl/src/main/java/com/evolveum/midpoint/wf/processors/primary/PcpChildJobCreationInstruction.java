@@ -30,7 +30,7 @@ import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
 import com.evolveum.midpoint.wf.processes.common.StringHolder;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.processors.primary.aspect.PrimaryChangeAspect;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import javax.xml.bind.JAXBException;
 
@@ -69,15 +69,15 @@ public class PcpChildJobCreationInstruction extends JobCreationInstruction {
         this.executeApprovedChangeImmediately = executeApprovedChangeImmediately;
     }
 
-    public void prepareCommonAttributes(PrimaryChangeAspect wrapper, ModelContext<?> modelContext, String objectOid, PrismObject<UserType> requester) throws SchemaException {
+    public void prepareCommonAttributes(PrimaryChangeAspect aspect, ModelContext<?> modelContext, String objectOid, PrismObject<UserType> requester) throws SchemaException {
 
         setRequesterOidInProcess(requester);
         setObjectOidInProcess(objectOid);
 
         setExecuteApprovedChangeImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
 
-        addProcessVariable(PcpProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_ASPECT, wrapper.getClass().getName());
-        addTaskVariable(getChangeProcessor().getWorkflowManager().getWfTaskUtil().getWfProcessWrapperPropertyDefinition(), wrapper.getClass().getName());
+        addProcessVariable(PcpProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_ASPECT, aspect.getClass().getName());
+        addTaskVariable(getChangeProcessor().getWorkflowManager().getWfTaskUtil().getWfPrimaryChangeAspectPropertyDefinition(), aspect.getClass().getName());
 
         if (isExecuteApprovedChangeImmediately()) {
             // actually, context should be emptied anyway; but to be sure, let's do it here as well
