@@ -17,8 +17,8 @@
 package com.evolveum.midpoint.web.page.admin.home.component;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.web.component.async.AsyncUpdatePanel;
-import com.evolveum.midpoint.web.component.async.CallableResult;
+import com.evolveum.midpoint.web.component.AsyncUpdatePanel;
+import com.evolveum.midpoint.web.component.util.CallableResult;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
