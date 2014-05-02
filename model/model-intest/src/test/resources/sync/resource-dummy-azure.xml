@@ -254,7 +254,7 @@
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
-	            <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-2#reconciliation</channel>
+	            <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#reconciliation</channel>
 	            <synchronize>true</synchronize>
 	            <action>
 	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#inactivateShadow</handlerUri>
