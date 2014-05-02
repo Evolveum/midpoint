@@ -484,32 +484,32 @@
 			<i:reaction>
 				<i:situation>confirmed</i:situation>
 				<i:action
-					ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser" />
+					ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser" />
 			</i:reaction>
 			<i:reaction>
 				<i:situation>deleted</i:situation>
 				<i:action
-					ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount" />
+					ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount" />
 			</i:reaction>
 			<i:reaction>
 				<i:situation>missing</i:situation>
 				<i:action
-					ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addAccount" />
+					ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addAccount" />
 			</i:reaction>
 			<i:reaction>
 				<i:situation>found</i:situation>
 				<i:action
-					ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount" />
+					ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount" />
 			</i:reaction>
 			<i:reaction>
 				<i:situation>unassigned</i:situation>
 				<i:action
-					ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount" />
+					ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount" />
 			</i:reaction>
 			<i:reaction>
 				<i:situation>unmatched</i:situation>
 				<i:action
-					ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser">
+					ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser">
 					<!-- Reference to the User Template is here. If the user would be created 
 						as a result of this action, it will be created according to this template. -->
 					<i:userTemplateRef oid="c0c010c0-d34d-b55f-f22d-777666111111" />

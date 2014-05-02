@@ -252,15 +252,15 @@ object.
 	             -->
 				<reaction>
 					<situation>linked</situation>
-					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
+					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
 				</reaction>
 				<reaction>
 					<situation>deleted</situation>
-					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
+					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
 				</reaction>
 				<reaction>
 					<situation>unlinked</situation>
-					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
 				</reaction>
 				<reaction>
 					<situation>unmatched</situation>
@@ -268,8 +268,8 @@ object.
 	                         created as a result of this action, it will be created according
 	                         to this template. -->
 					<objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222333"/>
-					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser"/>
-					<!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>-->
+					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"/>
+					<!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>-->
 				</reaction>
 			</objectSynchronization>
 		</synchronization>

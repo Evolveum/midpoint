@@ -18,19 +18,19 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Master of Ministry of Rum</name>    
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#read</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#modify</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#add</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#delete</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
     	<object>
     		<orgRef oid="00000000-8888-6666-0000-100000000004"/>
     	</object>
     </authorization>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#read</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#modify</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#add</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#delete</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
     	<object>
     		<type>ShadowType</type>
     	</object>

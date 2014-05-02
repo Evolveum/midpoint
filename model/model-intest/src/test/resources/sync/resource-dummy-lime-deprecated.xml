@@ -250,19 +250,19 @@
 			</correlation>
 			<reaction>
 	            <situation>linked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
 	        </reaction>
 	        <reaction>
 	            <situation>deleted</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#deleteUser"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#deleteUser"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unlinked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"/>
 	        </reaction>
         </objectSynchronization>
 	</synchronization>

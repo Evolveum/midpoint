@@ -18,7 +18,7 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Prop Read Some Modify Some Req Exec</name>    
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#read</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     	<phase>request</phase>
     	<item>name</item>
     	<item>fullName</item>
@@ -27,7 +27,7 @@
     	<item>familyName</item> <!-- Not in exec autz -->
     </authorization>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#read</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     	<phase>execution</phase>
     	<item>name</item>
     	<item>fullName</item>
@@ -36,7 +36,7 @@
     	<item>assignment</item>
     </authorization>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#modify</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
     	<phase>request</phase>
     	<item>fullName</item>
     	<item>additionalName</item>
@@ -44,7 +44,7 @@
     	<item>costCenter</item> <!-- Not in exec autz -->
     </authorization>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#modify</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
     	<phase>execution</phase>
     	<item>fullName</item>
     	<item>additionalName</item>

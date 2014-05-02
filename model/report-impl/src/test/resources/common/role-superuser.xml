@@ -19,6 +19,6 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Superuser</name>    
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#all</action>
     </authorization>
 </role>

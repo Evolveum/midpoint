@@ -19,6 +19,6 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Read Only</name>    
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#read</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     </authorization>
 </role>

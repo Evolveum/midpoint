@@ -19,6 +19,6 @@
     <name>Superuser</name>
     <description>Role that gives user full authorization in MidPoint.</description>
     <authorization>
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#all</action>
     </authorization>
 </role>

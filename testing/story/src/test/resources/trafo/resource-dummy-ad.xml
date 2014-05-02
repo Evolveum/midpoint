@@ -530,20 +530,20 @@ return midpoint.isUniqueAccountValue(resource, shadow, 'sAMAccountName', login)
 	
 	            <reaction>
 	                <situation>linked</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
 	            </reaction>
 	            <reaction>
 	                <situation>deleted</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
 	            </reaction>
 	            <reaction>
 	                <situation>unlinked</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
 	            </reaction>
 
 	            <reaction>
 	                <situation>unmatched</situation>
-	                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser">
+	                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser">
 				<objectTemplateRef oid="10000000-0000-0000-0000-a000fe000003"/>
 	                </action>-->
 	            </reaction>

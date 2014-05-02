@@ -411,33 +411,33 @@
              -->
 			<c:reaction>
 				<c:situation>confirmed</c:situation>
-				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
+				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
 			</c:reaction>
 			<c:reaction>
 				<c:situation>deleted</c:situation>
-				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
+				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
 			</c:reaction>
 			<c:reaction>
 				<c:situation>missing</c:situation>
-				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addAccount"/>
+				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addAccount"/>
 			</c:reaction>
 			<c:reaction>
 				<c:situation>found</c:situation>
-				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
 			</c:reaction>
 			<c:reaction>
 				<c:situation>unassigned</c:situation>
-				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
 			</c:reaction>
 			<c:reaction>
 				<c:situation>unmatched</c:situation>
-				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser">
+				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser">
                     <!-- Reference to the User Template is here. If the user would be
                          created as a result of this action, it will be created according
                          to this template. -->
 					<c:userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
 				</c:action>
-				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
 			</c:reaction>
 
 		</c:synchronization>

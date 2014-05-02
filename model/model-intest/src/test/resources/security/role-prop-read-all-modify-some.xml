@@ -18,10 +18,10 @@
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Prop Read All Modify Some</name>    
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#read</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     </authorization>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#modify</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
     	<item>fullName</item>
     	<item>description</item>
     </authorization>

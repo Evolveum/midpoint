@@ -523,31 +523,31 @@ object.
 	
 	            <reaction>
 	                <situation>linked</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
-	<!--				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addAccount"/>-->
-	                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#disableAccount"/>-->
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
+	<!--				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addAccount"/>-->
+	                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#disableAccount"/>-->
 	            </reaction>
 	            <reaction>
 	                <situation>deleted</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
-	                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#disableUser"/>-->
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
+	                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#disableUser"/>-->
 	            </reaction>
 	
 	            <reaction>
 	                <situation>unlinked</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
-	                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#enableUser"/>-->
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+	                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#enableUser"/>-->
 	            </reaction>
 	            <reaction>
 	                <situation>unmatched</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser">
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser">
 	                    <!-- Reference to the User Template is here. If the user would be
 	                         created as a result of this action, it will be created according
 	                         to this template. -->
 	
 	                    <objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
 	                </action>
-	                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>-->
+	                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>-->
 	            </reaction>
 			</objectSynchronization>
         </synchronization>

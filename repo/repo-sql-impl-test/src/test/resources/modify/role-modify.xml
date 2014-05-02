@@ -34,6 +34,6 @@
         <modifyChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</modifyChannel>
     </metadata>
     <authorization id="1">
-        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-2#all</action>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#all</action>
     </authorization>
 </role>
