@@ -32,7 +32,7 @@ public class ImportConstants {
 	/**
 	 * Schema URI for import extensions.
 	 */
-	public static final String IMPORT_EXTENSION_SCHEMA = IMPORT_URI_PREFIX + "/extension-2";
+	public static final String IMPORT_EXTENSION_SCHEMA = IMPORT_URI_PREFIX + "/extension-3";
 
 	/**
 	 * Extension property that specifies object class to import.

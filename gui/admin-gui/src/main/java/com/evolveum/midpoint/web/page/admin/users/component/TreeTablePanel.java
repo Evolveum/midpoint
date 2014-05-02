@@ -928,7 +928,7 @@ public class TreeTablePanel extends SimplePanel<String> {
 
         extensionType.asPrismContainerValue().add(property);
 
-        taskType.setHandlerUri("http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-2");
+        taskType.setHandlerUri("http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/recompute/handler-3");
 
         return taskType.asPrismObject();
     }

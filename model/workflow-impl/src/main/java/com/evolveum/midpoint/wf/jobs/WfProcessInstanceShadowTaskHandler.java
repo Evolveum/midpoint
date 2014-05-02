@@ -40,7 +40,7 @@ import java.util.List;
 @DependsOn({ "taskManager" })
 public class WfProcessInstanceShadowTaskHandler implements TaskHandler {
 
-	public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/workflow/process-instance-shadow/handler-2";
+	public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/workflow/process-instance-shadow/handler-3";
     private static final String DOT_CLASS = WfProcessInstanceShadowTaskHandler.class.getName() + ".";
 
     @Autowired(required = true)

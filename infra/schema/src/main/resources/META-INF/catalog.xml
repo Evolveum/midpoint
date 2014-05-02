@@ -40,8 +40,8 @@
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" uri="../xml/ns/public/resource/capabilities-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" uri="../xml/ns/public/resource/capabilities-3.xsd" />
 
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/import/extension-2" uri="../xml/ns/public/model/import/extension-3.xsd" />
-    <system systemId="http://midpoint.evolveum.com/xml/ns/public/model/import/extension-2" uri="../xml/ns/public/model/import/extension-3.xsd" />
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/import/extension-3" uri="../xml/ns/public/model/import/extension-3.xsd" />
+    <system systemId="http://midpoint.evolveum.com/xml/ns/public/model/import/extension-3" uri="../xml/ns/public/model/import/extension-3.xsd" />
 
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" uri="../xml/ns/public/model/scripting/scripting-3.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" uri="../xml/ns/public/model/scripting/scripting-3.xsd" />

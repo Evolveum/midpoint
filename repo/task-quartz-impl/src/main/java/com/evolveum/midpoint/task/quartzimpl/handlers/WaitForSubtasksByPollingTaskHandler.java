@@ -41,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 public class WaitForSubtasksByPollingTaskHandler implements TaskHandler {
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(WaitForSubtasksByPollingTaskHandler.class);
-	public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/wait-for-subtasks-polling/handler-2";
+	public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/wait-for-subtasks-polling/handler-3";
 
 	private static WaitForSubtasksByPollingTaskHandler instance = null;
 	private TaskManagerQuartzImpl taskManagerImpl;

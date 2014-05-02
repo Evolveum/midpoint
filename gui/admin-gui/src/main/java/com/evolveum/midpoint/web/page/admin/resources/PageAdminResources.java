@@ -108,7 +108,7 @@ public class PageAdminResources extends PageAdmin {
     protected void deleteSyncTokenPerformed(AjaxRequestTarget target, IModel<ResourceDto> model){
         ResourceDto dto = model.getObject();
         String resourceOid = dto.getOid();
-        String handlerUri = "http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-2";
+        String handlerUri = "http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3";
         ObjectReferenceType resourceRef = new ObjectReferenceType();
         resourceRef.setOid(resourceOid);
         PrismObject<TaskType> oldTask;

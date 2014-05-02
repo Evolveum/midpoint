@@ -58,7 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @Component
 public class RecomputeTriggerHandler implements TriggerHandler {
 	
-	public static final String HANDLER_URI = ModelConstants.NS_MODEL_TRIGGER_PREFIX + "/recompute/handler-2";
+	public static final String HANDLER_URI = ModelConstants.NS_MODEL_TRIGGER_PREFIX + "/recompute/handler-3";
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(RecomputeTriggerHandler.class);
 

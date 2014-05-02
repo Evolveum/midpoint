@@ -78,7 +78,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 	// Therefore it must not have task-specific fields. It can only contain fields specific to
 	// all tasks of a specified type
 	
-	public static final String HANDLER_URI = SchemaConstants.NS_MODEL + "/trigger/scanner/handler-2";
+	public static final String HANDLER_URI = SchemaConstants.NS_MODEL + "/trigger/scanner/handler-3";
         	
 	private static final transient Trace LOGGER = TraceManager.getTrace(TriggerScannerTaskHandler.class);
 	

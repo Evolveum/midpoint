@@ -53,7 +53,7 @@ import java.util.List;
 public class WfPropagateTaskObjectReferenceTaskHandler implements TaskHandler {
 
     // should be available only within the context of primary change processor
-    static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/workflow/propagate-task-object-reference/handler-2";
+    static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/workflow/propagate-task-object-reference/handler-3";
 
     private static final Trace LOGGER = TraceManager.getTrace(WfPropagateTaskObjectReferenceTaskHandler.class);
 

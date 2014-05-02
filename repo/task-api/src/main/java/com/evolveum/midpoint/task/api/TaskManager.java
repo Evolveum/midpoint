@@ -653,7 +653,7 @@ public interface TaskManager {
     /**
      * Registers a handler for a specified handler URI.
      *
-     * @param uri URI of the handler, e.g. http://midpoint.evolveum.com/xml/ns/public/model/cleanup/handler-2
+     * @param uri URI of the handler, e.g. http://midpoint.evolveum.com/xml/ns/public/model/cleanup/handler-3
      * @param handler instance of the handler
      */
     void registerHandler(String uri, TaskHandler handler);
