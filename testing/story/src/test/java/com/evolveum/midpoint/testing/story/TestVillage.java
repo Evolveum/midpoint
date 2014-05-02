@@ -155,6 +155,10 @@ public class TestVillage extends AbstractStoryTest {
 	public static final String ROLE_BASIC_OID = "10000000-0000-0000-0000-000000000601";
 	public static final String ROLE_BASIC_NAME = "Basic";
 	
+	public static final File ROLE_SIMPLE_FILE = new File(TEST_DIR, "role-account-construction.xml");
+	public static final String ROLE_SIMPLE_OID = "10000000-0000-0000-0000-000000000602";
+	public static final String ROLE_SIMPLE_NAME = "Simple account construction";
+	
 	public static final File ROLE_META_FUNCTIONAL_ORG_FILE = new File(TEST_DIR, "role-meta-functional-org.xml");
 	public static final String ROLE_META_FUNCTIONAL_ORG_OID = "74aac2c8-ca0f-11e3-bb29-001e8c717e5b";
 	
@@ -274,6 +278,7 @@ public class TestVillage extends AbstractStoryTest {
 				
 		// Role
 		importObjectFromFile(ROLE_BASIC_FILE, initResult);
+		importObjectFromFile(ROLE_SIMPLE_FILE, initResult);
 		importObjectFromFile(ROLE_META_FUNCTIONAL_ORG_FILE, initResult);
 		
 		// Org
@@ -328,8 +333,8 @@ public class TestVillage extends AbstractStoryTest {
 	}
 
 	@Test
-    public void test102HermanAssignBasicRole() throws Exception {
-		final String TEST_NAME = "test102HermanAssignBasicRole";
+    public void test101HermanAssignBasicRole() throws Exception {
+		final String TEST_NAME = "test101HermanAssignBasicRole";
         TestUtil.displayTestTile(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         
@@ -346,8 +351,8 @@ public class TestVillage extends AbstractStoryTest {
 	}
 	
 	@Test
-    public void test104HermanUnAssignBasicRole() throws Exception {
-		final String TEST_NAME = "test104HermanUnAssignBasicRole";
+    public void test102HermanUnAssignBasicRole() throws Exception {
+		final String TEST_NAME = "test102HermanUnAssignBasicRole";
         TestUtil.displayTestTile(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         
@@ -362,6 +367,54 @@ public class TestVillage extends AbstractStoryTest {
         assertLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
         assertNoLdapLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
 	}
+	
+	@Test
+    public void test103HermanAssignBasicAndSimpleRole() throws Exception {
+		final String TEST_NAME = "test103HermanAssignBasicAndSimpleRole";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        
+        PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
+        
+        // WHEN
+        assignRole(user.getOid(), ROLE_SIMPLE_OID);
+        assignRole(user.getOid(), ROLE_BASIC_OID);
+        
+        // THEN
+        PrismObject<UserType> userAfter = getUser(user.getOid());
+        assertUserLdap(userAfter, ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME, ACCOUNT_HERMAN_ORG, 2);
+        assertAssignedRole(userAfter, ROLE_SIMPLE_OID);
+        assertLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
+        assertLdapLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
+	}
+	
+	@Test
+    public void test104HermanUnAssignSimpleRoleThenBasic() throws Exception {
+		final String TEST_NAME = "test104HermanUnAssignSimpleRoleThenBasic";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        
+        PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
+        
+        // WHEN
+        unassignRole(user.getOid(), ROLE_SIMPLE_OID);
+        
+        // THEN
+        PrismObject<UserType> userAfter = getUser(user.getOid());
+        assertUserLdap(userAfter, ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME, ACCOUNT_HERMAN_ORG);
+        assertLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
+        assertNoLdapLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
+        
+        // WHEN
+        unassignRole(user.getOid(), ROLE_BASIC_OID);
+        
+        // THEN
+        userAfter = getUser(user.getOid());
+        assertUserNoRole(userAfter, ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME, ACCOUNT_HERMAN_ORG);
+        assertLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
+        assertNoLdapLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
+	}
+	
 
 	@Test
     public void test105ModifySrcAccountHermanRemoveLoc() throws Exception {
@@ -594,6 +647,26 @@ public class TestVillage extends AbstractStoryTest {
 	}
 
 	private void assertUserLdap(PrismObject<UserType> user, String firstName, String lastName, String orgName) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+//		String username = getUsername(firstName, lastName, orgName);
+//		assertNotNull("No "+username+" user", user);
+//        display("User", user);
+//   		assertUser(user, user.getOid(), username, firstName+" "+lastName,
+//   				firstName, lastName);
+//        assertLinks(user, 2);
+//        assertAccount(user, RESOURCE_DUMMY_SOURCE_OID);
+//        
+//        assertAssignments(user, RoleType.class, 1);
+//        assertAssignedRole(user, ROLE_BASIC_OID);
+//        
+//        assertAccount(user, RESOURCE_OPENDJ_OID);
+//        PrismReferenceValue linkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
+//        PrismObject<ShadowType> shadow = getShadowModel(linkRef.getOid());
+//		display("OpenDJ shadow linked to "+user, shadow);
+//		IntegrationTestTools.assertIcfsNameAttribute(shadow, "uid="+username+",ou=people,dc=example,dc=com");
+		assertUserLdap(user, firstName, lastName, orgName, 1);
+	}
+	
+	private void assertUserLdap(PrismObject<UserType> user, String firstName, String lastName, String orgName, int assignments) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		String username = getUsername(firstName, lastName, orgName);
 		assertNotNull("No "+username+" user", user);
         display("User", user);
@@ -602,7 +675,7 @@ public class TestVillage extends AbstractStoryTest {
         assertLinks(user, 2);
         assertAccount(user, RESOURCE_DUMMY_SOURCE_OID);
         
-        assertAssignments(user, RoleType.class, 1);
+        assertAssignments(user, RoleType.class, assignments);
         assertAssignedRole(user, ROLE_BASIC_OID);
         
         assertAccount(user, RESOURCE_OPENDJ_OID);
