@@ -168,11 +168,6 @@
             <artifactId>admin-gui-sk-SK</artifactId>
             <version>2.3-SNAPSHOT</version>
         </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.gui</groupId>
-            <artifactId>gui-components</artifactId>
-            <version>2.3-SNAPSHOT</version>
-        </dependency>
 
         <!-- JDBC DRIVERS -->
         <dependency>
