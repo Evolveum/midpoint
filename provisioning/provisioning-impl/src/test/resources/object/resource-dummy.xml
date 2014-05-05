@@ -18,6 +18,7 @@
 <resource oid="ef2bc95b-76e0-59e2-86d6-9999dddddddd"
 		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
@@ -65,8 +66,8 @@
 				<ref>ri:ship</ref>
 				<limitations>
 					<access>
-						<add>true</add>
 						<read>true</read>
+						<add>true</add>
 						<modify>true</modify>
 					</access>
 				</limitations>
@@ -75,8 +76,8 @@
 				<ref>ri:drink</ref>
 				<limitations>
 					<access>
-						<add>false</add>
 						<read>true</read>
+						<add>false</add>
 						<modify>true</modify>
 					</access>
 				</limitations>
@@ -85,8 +86,8 @@
 				<ref>ri:quote</ref>
 				<limitations>
 					<access>
-						<add>true</add>
 						<read>true</read>
+						<add>true</add>
 						<modify>false</modify>
 					</access>
 				</limitations>
@@ -95,8 +96,8 @@
 				<ref>ri:gossip</ref>
 				<limitations>
 					<access>
-						<add>true</add>
 						<read>false</read>
+						<add>true</add>
 						<modify>true</modify>
 					</access>
 				</limitations>
@@ -105,8 +106,8 @@
 				<ref>ri:water</ref>
 				<limitations>
 					<access>
-						<add>false</add>
 						<read>false</read>
+						<add>false</add>
 						<modify>false</modify>
 					</access>
 				</limitations>
@@ -134,7 +135,15 @@
 				<icfs:name>daemon</icfs:name>
 			</protected>
 			<protected>
-				<icfs:name>daviejones</icfs:name>
+				<filter>
+					<q:equal>
+						<q:path>
+							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+							attributes/icfs:name
+						</q:path>
+						<q:value>daviejones</q:value>
+					</q:equal>
+				</filter>
 			</protected>
 		</objectType>
 		<objectType>
