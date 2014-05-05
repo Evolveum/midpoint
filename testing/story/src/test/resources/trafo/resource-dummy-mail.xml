@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -78,8 +78,8 @@
                     <displayName>Name</displayName>
 					<limitations>
 						<access>
-							<add>true</add>
 							<read>true</read>
+							<add>true</add>
 							<modify>true</modify>
 						</access>
 					</limitations>
@@ -259,8 +259,8 @@ log.info('XXXXX got here, input = {}', input)
 		    <limitations>
 				<minOccurs>0</minOccurs>
 				<access>
-					<add>true</add>
 					<read>true</read>
+					<add>true</add>
 					<modify>false</modify>
 				</access>
 		    </limitations>
