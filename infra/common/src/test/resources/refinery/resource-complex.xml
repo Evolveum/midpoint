@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -209,17 +209,19 @@
 				<displayName>Distinguished Name</displayName>
 				<limitations>
 					<access>
-						<add>true</add>
 						<read>true</read>
+						<add>true</add>
 						<modify>false</modify>
 					</access>
 				</limitations>
 				<outbound>
 				    <strength>weak</strength>
 					<expression>
-						<code>
-							concat('uid=', $c:user/c:name, ',ou=people,dc=example,dc=com')
-						</code>
+						<script>
+							<code>
+								concat('uid=', $c:user/c:name, ',ou=people,dc=example,dc=com')
+							</code>
+						</script>
 					</expression>
 				</outbound>
 			</attribute>
@@ -228,8 +230,8 @@
 				<displayName>Entry UUID</displayName>
 				<limitations>
 					<access>
-						<add>false</add>
 						<read>true</read>
+						<add>false</add>
 						<modify>false</modify>
 					</access>
 				</limitations>
@@ -240,8 +242,8 @@
 				<limitations>
 					<maxOccurs>1</maxOccurs>
 					<access>
-						<add>true</add>
 						<read>true</read>
+						<add>true</add>
 						<modify>true</modify>
 					</access>
 				</limitations>
@@ -251,14 +253,14 @@
 				</limitations>
 				<outbound>
 					<expression>
-						<code>
-							$c:user/c:fullName
-						</code>
+						<script>
+							<code>$c:user/c:fullName</code>
+						</script>
 					</expression>
 				</outbound>
 				<inbound>
 					<target>
-						$c:user/c:fullName
+						<path>$c:user/c:fullName</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -267,21 +269,21 @@
 				<displayName>Surname</displayName>
 				<limitations>
 					<access>
-						<add>true</add>
 						<read>true</read>
+						<add>true</add>
 						<modify>true</modify>
 					</access>
 				</limitations>
 				<outbound>
 					<expression>
-						<code>
-							$c:user/c:familyName
-						</code>
+						<script>
+							<code>$c:user/c:familyName</code>
+						</script>
 					</expression>
 				</outbound>
 				<inbound>
 					<target>
-						$c:user/c:familyName
+						<path>$c:user/c:familyName</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -290,21 +292,23 @@
 				<displayName>Given Name</displayName>
 				<limitations>
 					<access>
-						<add>true</add>
 						<read>true</read>
+						<add>true</add>
 						<modify>true</modify>
 					</access>
 				</limitations>
 				<outbound>
 					<expression>
-						<code>
-							$c:user/c:givenName
-						</code>
+						<script>
+							<code>
+								$c:user/c:givenName
+							</code>
+						</script>
 					</expression>
 				</outbound>
 				<inbound>
 					<target>
-						$c:user/c:givenName
+						<path>$c:user/c:givenName</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -325,14 +329,16 @@
 				</limitations>
 				<outbound>
 					<expression>
-						<code>
-							$c:user/c:name
-						</code>
+						<script>
+							<code>
+								$c:user/c:name
+							</code>
+						</script>
 					</expression>
 				</outbound>
 				<inbound>
 					<target>
-						$c:user/c:name
+						<path>$c:user/c:name</path>
                     </target>
 				</inbound>
 			</attribute>
@@ -340,12 +346,16 @@
 				<ref>ri:description</ref>
 				<outbound>
 					<strength>weak</strength>
-					<value>Created by IDM</value>
+					<expression>
+						<value>Created by IDM</value>
+					</expression>
 				</outbound>
 				<inbound>
 					<target>
-						declare namespace my="http://whatever.com/my";
-						$c:user/c:extension/my:description
+						<path>
+							declare namespace my="http://whatever.com/my";
+							$c:user/c:extension/my:description
+						</path>
                     </target>
 				</inbound>
 			</attribute>
@@ -357,9 +367,11 @@
 							<name>my:defaultLocation</name>
 							<value xsi:type="xsd:string">middle of nowhere</value>
 						</variable>
-						<c:code xmlns:my="http://myself.me/schemas/whatever">
-								$my:defaultLocation
-						</c:code>
+						<script>
+							<c:code xmlns:my="http://myself.me/schemas/whatever">
+									$my:defaultLocation
+							</c:code>
+						</script>
 					</expression>
 				</outbound>
 			</attribute>
@@ -391,48 +403,48 @@
         	<objectClass>ri:GroupObjectClass</objectClass>
         </objectType>
 	</schemaHandling>
-		<synchronization>
-		<enabled>true</enabled>
-		<correlation>
-			<equal xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
-				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
-				xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:my="http://myself.me/schemas/whatever">
-				<path>.</path>
-				<valueExpression>
-					<ref>c:name</ref>
-					<code>
-						declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
-						$c:account/c:attributes/dj:uid
-					</code>
-				</valueExpression>
-			</equal>
-		</correlation>
-		<reaction>
-			<situation>confirmed</situation>
-			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser" />
-		</reaction>
-		<reaction>
-			<situation>deleted</situation>
-			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount" />
-		</reaction>
-		<reaction>
-			<situation>missing</situation>
-			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addAccount" />
-		</reaction>
-		<reaction>
-			<situation>found</situation>
-			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount" />
-		</reaction>
-		<reaction>
-			<situation>unassigned</situation>
-			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount" />
-		</reaction>
-		<reaction>
-			<situation>unmatched</situation>
-			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser">
-				<userTemplateRef oid="10000000-0000-0000-0000-000000000002"/>
-			</action>
-			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount" />
-		</reaction>
+	<synchronization>
+		<objectSynchronization>
+			<enabled>true</enabled>
+			<correlation>
+				<equal xmlns="http://prism.evolveum.com/xml/ns/public/query-3"
+					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+					xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
+					xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:my="http://myself.me/schemas/whatever">
+					<path>.</path>
+					<c:expression>
+						<c:script>
+							<c:code>
+								declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+								$c:account/c:attributes/dj:uid
+							</c:code>
+						</c:script>
+					</c:expression>
+				</equal>
+			</correlation>
+			<reaction>
+				<situation>linked</situation>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser" />
+			</reaction>
+			<reaction>
+				<situation>deleted</situation>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount" />
+			</reaction>
+			<reaction>
+				<situation>unmatched</situation>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addAccount" />
+			</reaction>
+			<reaction>
+				<situation>unlinked</situation>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount" />
+			</reaction>
+			<reaction>
+				<situation>unmatched</situation>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser">
+					<userTemplateRef oid="10000000-0000-0000-0000-000000000002"/>
+				</action>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount" />
+			</reaction>
+		</objectSynchronization>
 	</synchronization>
 </object>

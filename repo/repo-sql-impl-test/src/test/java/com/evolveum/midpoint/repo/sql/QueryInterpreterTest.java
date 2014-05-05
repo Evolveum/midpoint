@@ -1176,6 +1176,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             c.add(Subqueries.propertyIn(mainAlias + ".oid", detached));
             main.add(c);
 
+
             main.addOrder(Order.asc("u.name.orig"));
 
             String expected = HibernateToSqlTranslator.toSql(main);
@@ -1192,6 +1193,52 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
             AssertJUnit.assertEquals(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test(enabled=false)
+    public void test320QueryEmployeeTypeAndOrgType() throws Exception {
+        Session session = open();
+
+        try {
+            Criteria main = session.createCriteria(RObject.class, "o");
+            main.add(Restrictions.or(
+               Restrictions.and(
+                       Restrictions.eq("o.name.orig", "some name"),
+                       Restrictions.eq("o.employeeNumber", "123")
+               ),
+                Restrictions.eq("o.identifier", "1234")
+            ));
+            ProjectionList list = Projections.projectionList();
+            addFullObjectProjectionList("o", list, false);
+            main.setProjection(list);
+
+            List l= main.list();
+            l.size();
+            String expected = HibernateToSqlTranslator.toSql(main);
+            LOGGER.info("expected query>\n{}", new Object[]{expected});
+
+
+//            EqualsFilter nameFilter = EqualsFilter.createEqual(ObjectType.F_NAME, ObjectType.class, prismContext,
+//                    null, new PolyString("cpt. Jack Sparrow", "cpt jack sparrow"));
+//
+//            EqualsFilter numberFilter = EqualsFilter.createEqual(UserType.F_EMPLOYEE_NUMBER, UserType.class, prismContext,
+//                    null, "123");
+//
+////            EqualsFilter orgTypeFilter = EqualsFilter.createEqual(OrgType.F_ORG_TYPE, OrgType.class, prismContext,
+////                    null, "orgtypevalue");
+//
+//            ObjectQuery query = ObjectQuery.createObjectQuery(OrFilter.createOr(
+//                    AndFilter.createAnd(nameFilter, numberFilter)//,
+////                    orgTypeFilter
+//            ));
+//            query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
+//
+//            String real = getInterpretedQuery(session, ObjectType.class, query);
+//
+//            LOGGER.info("real query>\n{}", new Object[]{real});
         } finally {
             close(session);
         }

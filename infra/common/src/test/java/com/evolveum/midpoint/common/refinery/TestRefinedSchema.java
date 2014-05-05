@@ -55,10 +55,12 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -76,7 +78,6 @@ public class TestRefinedSchema {
 
     public static final String TEST_DIR_NAME = "src/test/resources/refinery";
 	private static final File RESOURCE_COMPLEX_FILE = new File(TEST_DIR_NAME, "resource-complex.xml");
-	private static final String RESOURCE_COMPLEX_DEPRECATED_FILENAME = TEST_DIR_NAME + "resource-complex-deprecated.xml";
 	private static final File RESOURCE_SIMPLE_FILE = new File(TEST_DIR_NAME, "resource-simple.xml");
 	
 	private static final String ENTITLEMENT_GROUP_INTENT = "group";
@@ -87,36 +88,6 @@ public class TestRefinedSchema {
 		resetPrismContext(MidPointPrismContextFactory.FACTORY);
 	}
 
-    @Test
-    public void testParseFromResourceComplexDeprecated() throws JAXBException, SchemaException, SAXException, IOException {
-    	System.out.println("\n===[ testParseFromResourceComplexDeprecated ]===\n");
-    	
-        // GIVEN
-    	PrismContext prismContext = createInitializedPrismContext();
-
-        PrismObject<ResourceType> resource = prismContext.parseObject(new File(RESOURCE_COMPLEX_DEPRECATED_FILENAME));
-        ResourceType resourceType = resource.asObjectable();
-
-        // WHEN
-        RefinedResourceSchema rSchema = RefinedResourceSchema.parse(resourceType, prismContext);
-
-        // THEN
-        assertNotNull("Refined schema is null", rSchema);
-        System.out.println("Refined schema");
-        System.out.println(rSchema.debugDump());
-        assertRefinedSchema(resourceType, rSchema, null, LayerType.MODEL, false);
-        
-        assertLayerRefinedSchema(resourceType, rSchema, LayerType.SCHEMA, LayerType.SCHEMA, false);
-        assertLayerRefinedSchema(resourceType, rSchema, LayerType.MODEL, LayerType.MODEL, false);
-        assertLayerRefinedSchema(resourceType, rSchema, LayerType.PRESENTATION, LayerType.MODEL, false);
-
-        
-        RefinedObjectClassDefinition rAccount = rSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String)null);
-        RefinedAttributeDefinition userPasswordAttribute = rAccount.findAttributeDefinition("userPassword");
-        assertNotNull("No userPassword attribute", userPasswordAttribute);
-        assertTrue("userPassword not ignored", userPasswordAttribute.isIgnored());
-    }
-    
     @Test
     public void testParseFromResourceComplex() throws JAXBException, SchemaException, SAXException, IOException {
     	System.out.println("\n===[ testParseFromResourceComplex ]===\n");
@@ -443,8 +414,8 @@ public class TestRefinedSchema {
         assertFalse("Empty protectedAccounts", protectedAccounts.isEmpty());
         assertEquals("Unexpected number of protectedAccounts", 2, protectedAccounts.size());
         Iterator<ResourceObjectPattern> iterator = protectedAccounts.iterator();
-        assertProtectedAccount("first protected account", iterator.next(), "uid=idm,ou=Administrators,dc=example,dc=com");
-        assertProtectedAccount("second protected account", iterator.next(), "uid=root,ou=Administrators,dc=example,dc=com");
+        assertDeprecatedProtectedAccount("first protected account", iterator.next(), "uid=idm,ou=Administrators,dc=example,dc=com", rAccount);
+        assertDeprecatedProtectedAccount("second protected account", iterator.next(), "uid=root,ou=Administrators,dc=example,dc=com", rAccount);
     }
 
     private void assertAttributeDefs(ResourceAttributeContainerDefinition attrsDef, ResourceType resourceType, LayerType sourceLayer, LayerType validationLayer) {
@@ -517,26 +488,27 @@ public class TestRefinedSchema {
         Assert.fail("Attribute " + name + " not found");
     }
     
-	private void assertProtectedAccount(String message, ResourceObjectPattern protectedAccount, String value) throws SchemaException {
-		Collection<ResourceAttribute<?>> identifiers = protectedAccount.getIdentifiers();
+	private void assertDeprecatedProtectedAccount(String message, ResourceObjectPattern protectedPattern, String identifierValue, RefinedObjectClassDefinition rAccount) throws SchemaException {
+		Collection<ResourceAttribute<?>> identifiers = protectedPattern.getIdentifiers();
 		assertNotNull("Null identifiers in "+message, identifiers);
 		assertEquals("Wrong number identifiers in "+message, 1, identifiers.size());
 		ResourceAttribute<?> identifier = identifiers.iterator().next();
 		assertNotNull("Null identifier in "+message, identifier);
-		assertEquals("Wrong identifier value in "+message, identifier.getRealValue(), value);
+		assertEquals("Wrong identifier value in "+message, identifier.getRealValue(), identifierValue);
 		
 		// Try matching	
-		Collection<ResourceAttribute<?>> testAttrs = new ArrayList<ResourceAttribute<?>>(3);
+		PrismObject<ShadowType> shadow = rAccount.getObjectDefinition().instantiate();
+		ResourceAttributeContainer attributesContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, rAccount);
 		ResourceAttribute<String> confusingAttr1 = createStringAttribute(new QName("http://whatever.com","confuseMe"), "HowMuchWoodWouldWoodchuckChuckIfWoodchuckCouldChudkWood");
-		testAttrs.add(confusingAttr1);
-		ResourceAttribute<String> nameAttr = createStringAttribute(SchemaTestConstants.ICFS_NAME, value);
-		testAttrs.add(nameAttr);
+		attributesContainer.add(confusingAttr1);
+		ResourceAttribute<String> nameAttr = createStringAttribute(SchemaTestConstants.ICFS_NAME, identifierValue);
+		attributesContainer.add(nameAttr);
 		ResourceAttribute<String> confusingAttr2 = createStringAttribute(new QName("http://whatever.com","confuseMeAgain"), "WoodchuckWouldChuckNoWoodAsWoodchuckCannotChuckWood");
-		testAttrs.add(confusingAttr2);
-		
-		assertTrue("Test attr not matched in "+message, protectedAccount.matches(testAttrs, null));
+		attributesContainer.add(confusingAttr2);
+				
+		assertTrue("Test attr not matched in "+message, protectedPattern.matches(shadow, null));
 		nameAttr.setRealValue("huhulumululul");
-		assertFalse("Test attr nonsense was matched in "+message, protectedAccount.matches(testAttrs, null));
+		assertFalse("Test attr nonsense was matched in "+message, protectedPattern.matches(shadow, null));
 	}
 
 	private ResourceAttribute<String> createStringAttribute(QName attrName, String value) {

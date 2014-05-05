@@ -26,7 +26,9 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -393,7 +395,8 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 		ResourceObjectPattern resourceObjectPattern = new ResourceObjectPattern(rAccountDef);
 		SearchFilterType filterType = patternType.getFilter();
 		if (filterType != null) {
-			resourceObjectPattern.addFilter(filterType);
+			ObjectFilter filter = QueryConvertor.parseFilter(filterType, rAccountDef.getObjectDefinition());
+			resourceObjectPattern.addFilter(filter);
 			return resourceObjectPattern;
 		}
 		
