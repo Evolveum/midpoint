@@ -214,20 +214,18 @@
         <m:primaryDelta>
             <t:changeType>add</t:changeType>
             <t:objectType>c:ShadowType</t:objectType>
-            <t:objectToAdd>
-                <c:account version="" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-                    <name>
+            <t:objectToAdd xsi:type="c:ShadowType" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                    <c:name>
                         <t:orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">jack</t:orig>
                         <t:norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">jack</t:norm>
-                    </name>
-                    <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
-                    <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:AccountObjectClass</objectClass>
-                    <intent>default</intent>
-                    <attributes>
+                    </c:name>
+                    <c:resourceRef oid="10000000-0000-0000-0000-000000000004"/>
+                    <c:objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:AccountObjectClass</c:objectClass>
+                    <c:intent>default</c:intent>
+                    <c:attributes>
                         <icfs:uid>jack</icfs:uid>
                         <icfs:name>jack</icfs:name>
-                    </attributes>
-                </c:account>
+                    </c:attributes>
             </t:objectToAdd>
         </m:primaryDelta>
         <m:secondaryDelta>

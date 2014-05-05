@@ -517,7 +517,7 @@
         <xsd:sequence>
         	<xsd:element name="changeType" type="tns:ChangeTypeType"/>
         	<xsd:element name="objectType" type="xsd:QName"/>
-        	<xsd:element name="objectToAdd" minOccurs="0">
+        	<xsd:element name="objectToAdd" type="tns:ObjectType" minOccurs="0">
         		<xsd:annotation>
         			<xsd:documentation>
         				Contains a single prism object.
@@ -526,11 +526,6 @@
         				Valid only if the changeType is "add".
         			</xsd:documentation>
         		</xsd:annotation>
-        		<xsd:complexType>
-        			<xsd:sequence>
-        				<xsd:any processContents="lax"/>
-        			</xsd:sequence>
-        		</xsd:complexType>
         	</xsd:element>
         	<xsd:element name="oid" type="xsd:string">
         	<xsd:annotation>

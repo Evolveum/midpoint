@@ -68,6 +68,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
+import org.apache.cxf.interceptor.LoggingOutInterceptor;
 import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
 import org.apache.ws.security.WSConstants;
 import org.apache.ws.security.handler.WSHandlerConstants;
@@ -250,13 +251,10 @@ public class Main {
 	}
 
 	private static String createUser(ModelPortType modelPort, UserType userType) throws FaultMessage {
-        ObjectDeltaType.ObjectToAdd objectToAdd = new ObjectDeltaType.ObjectToAdd();
-        objectToAdd.setAny(userType);
-
         ObjectDeltaType deltaType = new ObjectDeltaType();
         deltaType.setObjectType(ModelClientUtil.getTypeQName(UserType.class));
         deltaType.setChangeType(ChangeTypeType.ADD);
-        deltaType.setObjectToAdd(objectToAdd);
+        deltaType.setObjectToAdd(userType);
 
         ObjectDeltaListType deltaListType = new ObjectDeltaListType();
         deltaListType.getDelta().add(deltaType);
@@ -347,7 +345,7 @@ public class Main {
 	private static UserType searchUserByName(ModelPortType modelPort, String username) throws SAXException, IOException, FaultMessage {
 		// WARNING: in a real case make sure that the username is properly escaped before putting it in XML
 		SearchFilterType filter = ModelClientUtil.parseSearchFilterType(
-				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-2' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' >" +
+				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-3' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' >" +
 				  "<path>c:name</path>" +
 				  "<value>" + username + "</value>" +
 				"</equal>"
@@ -374,7 +372,7 @@ public class Main {
 	private static RoleType searchRoleByName(ModelPortType modelPort, String roleName) throws SAXException, IOException, FaultMessage {
 		// WARNING: in a real case make sure that the username is properly escaped before putting it in XML
 		SearchFilterType filter = ModelClientUtil.parseSearchFilterType(
-				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-2' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' >" +
+				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-3' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' >" +
 				  "<path>c:name</path>" +
 				  "<value>" + roleName + "</value>" +
 				"</equal>"
@@ -400,7 +398,7 @@ public class Main {
 
 	private static Collection<RoleType> listRequestableRoles(ModelPortType modelPort) throws SAXException, IOException, FaultMessage {
 		SearchFilterType filter = ModelClientUtil.parseSearchFilterType(
-				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-2' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' >" +
+				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-3' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' >" +
 				  "<path>c:requestable</path>" +
 				  "<value>true</value>" +
 				"</equal>"
@@ -455,6 +453,8 @@ public class Main {
 		
 		WSS4JOutInterceptor wssOut = new WSS4JOutInterceptor(outProps);
 		cxfEndpoint.getOutInterceptors().add(wssOut);
+        // enable the following to get client-side logging of outgoing requests
+        // cxfEndpoint.getOutInterceptors().add(new LoggingOutInterceptor());
 
 		return modelPort;
 	}

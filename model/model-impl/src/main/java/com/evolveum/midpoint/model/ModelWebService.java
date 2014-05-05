@@ -182,6 +182,9 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		OperationResult operationResult = task.getResult();
 		try {
 			Collection<ObjectDelta> deltas = DeltaConvertor.createObjectDeltas(deltaList, prismContext);
+            for (ObjectDelta delta : deltas) {
+                prismContext.adopt(delta);
+            }
             ModelExecuteOptions options = ModelExecuteOptions.fromModelExecutionOptionsType(optionsType);
             modelController.executeChanges((Collection) deltas, options, task, operationResult);        // brutally eliminating type-safety compiler barking
 			return handleOperationResult(operationResult);
