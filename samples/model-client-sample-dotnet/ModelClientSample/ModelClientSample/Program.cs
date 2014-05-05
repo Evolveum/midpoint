@@ -15,7 +15,7 @@ namespace ModelClientSample
         private const string LOGIN_USERNAME = "administrator";
         private const string LOGIN_PASSWORD = "5ecr3t";
 
-        private const string NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+        private const string NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
         private const string NS_Q = "http://prism.evolveum.com/xml/ns/public/query-2";
 
         private const string WS_URL = "http://localhost.:8080/midpoint/model/model-1?wsdl";   // when using fiddler, change "localhost" to "localhost."

@@ -20,12 +20,12 @@
      tests. -->
 
 <resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" 
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 	xmlns:my="http://myself.me/schemas/whatever"
-	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd
+	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
 	<!-- Resource printable name -->
@@ -35,7 +35,7 @@
 	     OID during import. -->
 	<connectorRef type="ConnectorType">
 		<and>
-	        <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-2a#ConnectorType"/>
+	        <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType"/>
 	        <equal>
 	          <value>
 	              <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
@@ -50,7 +50,7 @@
 	<!-- Resource configuration section -->
 	<connectorConfiguration
 		xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 					   
 		<!-- Configuration specific for the LDAP connector -->
 		<icfcldap:configurationProperties>
@@ -135,7 +135,7 @@
 				<c:outbound default="true">
 					<c:valueExpression>
 						<c:code>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 							concat('uid=',
 							$i:user/c:name, ',ou=people,dc=example,dc=com')
 						</c:code>
@@ -189,7 +189,7 @@
 				<c:outbound>
 					<c:valueExpression>
 						<c:code>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 							$i:user/i:fullName
 						</c:code>
 					</c:valueExpression>
@@ -202,7 +202,7 @@
                      -->
 				<c:inbound>
 					<c:target>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 							$i:user/i:fullName
 					</c:target>
 				</c:inbound>
@@ -218,7 +218,7 @@
 				<c:outbound>
 					<c:valueExpression>
 						<c:code>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 							$i:user/i:familyName
 						</c:code>
 					</c:valueExpression>
@@ -226,7 +226,7 @@
                     <!-- sn will be synchronized to user's familyName -->
 				<c:inbound>
 					<c:target>
-						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 						$i:user/i:familyName
 						</c:target>
 				</c:inbound>
@@ -241,7 +241,7 @@
 				<c:outbound>
 					<c:valueExpression>
 						<c:code>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 							$i:user/i:givenName
 						</c:code>
 					</c:valueExpression>
@@ -249,7 +249,7 @@
                     <!-- givenName will be synchronized to user's givenName -->
 				<c:inbound>
 					<c:target>
-						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 						$i:user/i:givenName
 						</c:target>
 				</c:inbound>
@@ -266,7 +266,7 @@
                              user. It is essentially a login name -->
 					<c:valueExpression>
 						<c:code>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 							$i:user/i:name
 						</c:code>
 					</c:valueExpression>
@@ -275,7 +275,7 @@
                              user. It is essentially a login name -->
 				<c:inbound>
 					<c:target>
-						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 						$i:user/i:name
                     </c:target>
 				</c:inbound>
@@ -301,7 +301,7 @@
 						</f:replace>
 					</c:valueFilter>
 					<c:target>
-						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 						declare namespace
 						my="http://whatever.com/my";
 						$i:user/i:extension/my:description
@@ -336,7 +336,7 @@
                              in the $my:config variable specified above. -->
 					<c:valueExpression>
 						<c:code>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 							declare namespace my="http://myself.me/schemas/whatever";
 							
 							if ($my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality]) then
@@ -355,7 +355,7 @@
 		</c:accountType>
 	</c:schemaHandling>
 	
-	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 			<cap:activation>
 				<cap:status>
 					<cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
@@ -385,7 +385,7 @@
                  It will be used to find appropriate user entry for an account.
               -->
 			<c:correlation> <!-- Correlation rule is a search query -->
-            <!-- The clause <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-2a#UserType"/> is implicit in correlation rules -->
+            <!-- The clause <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType"/> is implicit in correlation rules -->
                 <!-- Following search queury will look for users that have "name"
                      equal to the "uid" attribute of the account. Simply speaking,
                      it will look for match in usernames in the IDM and the resource. -->
@@ -411,33 +411,33 @@
              -->
 			<c:reaction>
 				<c:situation>confirmed</c:situation>
-				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
+				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
 			</c:reaction>
 			<c:reaction>
 				<c:situation>deleted</c:situation>
-				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
+				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
 			</c:reaction>
 			<c:reaction>
 				<c:situation>missing</c:situation>
-				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addAccount"/>
+				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addAccount"/>
 			</c:reaction>
 			<c:reaction>
 				<c:situation>found</c:situation>
-				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
 			</c:reaction>
 			<c:reaction>
 				<c:situation>unassigned</c:situation>
-				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
 			</c:reaction>
 			<c:reaction>
 				<c:situation>unmatched</c:situation>
-				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser">
+				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser">
                     <!-- Reference to the User Template is here. If the user would be
                          created as a result of this action, it will be created according
                          to this template. -->
 					<c:userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
 				</c:action>
-				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
 			</c:reaction>
 
 		</c:synchronization>

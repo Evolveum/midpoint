@@ -18,7 +18,7 @@
 <!--Reconciliation task definition for Derby resource -->
 
 <task oid="91919191-76e0-59e2-86d6-3d4f02d3dddd"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:my="http://whatever.com/my">
@@ -33,7 +33,7 @@
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<executionStatus>runnable</executionStatus>
 
-	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-2</handlerUri>
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
 	<objectRef oid="ef2bc95b-76e0-59e2-86d6-999902d3abab"/>
 	<recurrence>recurring</recurrence>
 	<binding>tight</binding>

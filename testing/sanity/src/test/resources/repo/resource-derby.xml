@@ -16,9 +16,9 @@
   -->
 
 <resource oid="ef2bc95b-76e0-59e2-86d6-999902d3abab"
-          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 								  
 	<name>Embedded Test Derby</name>
@@ -31,7 +31,7 @@
 	    </filter>
 	</connectorRef>
 	<connectorConfiguration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.databasetable-connector/org.identityconnectors.databasetable.DatabaseTableConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 					   
 		<icfc:configurationProperties>
 			<icfi:jdbcDriver>org.apache.derby.jdbc.ClientDriver</icfi:jdbcDriver>

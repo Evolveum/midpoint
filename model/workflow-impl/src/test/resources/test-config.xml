@@ -37,7 +37,7 @@
             <changeProcessors>
                 <generalChangeProcessor>
                     <enabled>true</enabled>
-                    <c:generalChangeProcessorConfiguration xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+                    <c:generalChangeProcessorConfiguration xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
                         <c:scenario>
                             <c:name>primaryScenario</c:name>
                             <c:activationCondition>
@@ -51,7 +51,7 @@
                                 <c:script>
                                     <c:code><![CDATA[
                                         context.getState() == com.evolveum.midpoint.model.api.context.ModelState.SECONDARY &&
-                                        context.findProjectionContext(new com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator("10000000-0000-0000-0000-000000000004", com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType.ACCOUNT, null)) != null
+                                        context.findProjectionContext(new com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator("10000000-0000-0000-0000-000000000004", com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType.ACCOUNT, null)) != null
                                         ]]></c:code>
                                 </c:script>
                             </c:activationCondition>

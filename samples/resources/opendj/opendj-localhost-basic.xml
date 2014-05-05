@@ -26,11 +26,11 @@ This resource definition contains only the very basic definitions for midPoint t
 
 -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
-    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2">
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 
 	<resource>
     
@@ -51,7 +51,7 @@ This resource definition contains only the very basic definitions for midPoint t
              such as hostnames and passwords -->
 		<connectorConfiguration
 			xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
             <!-- Configuration specific for the LDAP connector -->
 			<icfc:configurationProperties>

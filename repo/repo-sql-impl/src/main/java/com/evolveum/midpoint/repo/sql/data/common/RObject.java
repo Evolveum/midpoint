@@ -23,18 +23,22 @@ import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.container.RTrigger;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceOwner;
 import com.evolveum.midpoint.repo.sql.data.common.type.RCreateApproverRef;
 import com.evolveum.midpoint.repo.sql.data.common.type.RModifyApproverRef;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
+import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
+
+import javassist.ClassMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.*;
@@ -45,6 +49,7 @@ import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import javax.xml.datatype.XMLGregorianCalendar;
+
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashSet;
@@ -91,7 +96,9 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
     //org. closure table
     private Set<ROrgClosure> descendants;
     private Set<ROrgClosure> ancestors;
-    //ObjectType
+    //object type
+    private RObjectType objectTypeClass;
+    //ObjectType searchable fields
     private RPolyString name;
     private Set<RObjectReference> parentOrgRef;
     private Set<RTrigger> trigger;
@@ -305,6 +312,15 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return polysCount;
     }
 
+    @Enumerated
+    public RObjectType getObjectTypeClass() {
+        return objectTypeClass;
+    }
+
+    public void setObjectTypeClass(RObjectType objectTypeClass) {
+        this.objectTypeClass = objectTypeClass;
+    }
+
     public void setCreateApproverRef(Set<RObjectReference> createApproverRef) {
         this.createApproverRef = createApproverRef;
     }
@@ -493,6 +509,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         Validate.notNull(jaxb, "JAXB object must not be null.");
         Validate.notNull(repo, "Repo object must not be null.");
 
+        repo.setObjectTypeClass(RObjectType.getType(ClassMapper.getHQLTypeClass(jaxb.getClass())));
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
         repo.setOid(jaxb.getOid());
 

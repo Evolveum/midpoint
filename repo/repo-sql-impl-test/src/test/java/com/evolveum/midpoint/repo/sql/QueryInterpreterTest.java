@@ -35,7 +35,7 @@ import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
 import com.evolveum.midpoint.repo.sql.query.RQueryImpl;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
+
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.Query;
@@ -85,20 +85,21 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author lazyman
@@ -1175,6 +1176,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             c.add(Subqueries.propertyIn(mainAlias + ".oid", detached));
             main.add(c);
 
+
             main.addOrder(Order.asc("u.name.orig"));
 
             String expected = HibernateToSqlTranslator.toSql(main);
@@ -1191,6 +1193,52 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
             AssertJUnit.assertEquals(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test(enabled=false)
+    public void test320QueryEmployeeTypeAndOrgType() throws Exception {
+        Session session = open();
+
+        try {
+            Criteria main = session.createCriteria(RObject.class, "o");
+            main.add(Restrictions.or(
+               Restrictions.and(
+                       Restrictions.eq("o.name.orig", "some name"),
+                       Restrictions.eq("o.employeeNumber", "123")
+               ),
+                Restrictions.eq("o.identifier", "1234")
+            ));
+            ProjectionList list = Projections.projectionList();
+            addFullObjectProjectionList("o", list, false);
+            main.setProjection(list);
+
+            List l= main.list();
+            l.size();
+            String expected = HibernateToSqlTranslator.toSql(main);
+            LOGGER.info("expected query>\n{}", new Object[]{expected});
+
+
+//            EqualsFilter nameFilter = EqualsFilter.createEqual(ObjectType.F_NAME, ObjectType.class, prismContext,
+//                    null, new PolyString("cpt. Jack Sparrow", "cpt jack sparrow"));
+//
+//            EqualsFilter numberFilter = EqualsFilter.createEqual(UserType.F_EMPLOYEE_NUMBER, UserType.class, prismContext,
+//                    null, "123");
+//
+////            EqualsFilter orgTypeFilter = EqualsFilter.createEqual(OrgType.F_ORG_TYPE, OrgType.class, prismContext,
+////                    null, "orgtypevalue");
+//
+//            ObjectQuery query = ObjectQuery.createObjectQuery(OrFilter.createOr(
+//                    AndFilter.createAnd(nameFilter, numberFilter)//,
+////                    orgTypeFilter
+//            ));
+//            query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
+//
+//            String real = getInterpretedQuery(session, ObjectType.class, query);
+//
+//            LOGGER.info("real query>\n{}", new Object[]{real});
         } finally {
             close(session);
         }

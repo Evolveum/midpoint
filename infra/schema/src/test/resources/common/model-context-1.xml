@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<m:modelContext xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2" xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2" xmlns:m="http://midpoint.evolveum.com/xml/ns/public/model/model-context-2" xmlns:wfcf="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+<m:modelContext xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:m="http://midpoint.evolveum.com/xml/ns/public/model/model-context-3" xmlns:wfcf="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-3" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
     <m:state>secondary</m:state>
     <m:focusContext>
         <m:objectOld xsi:type="c:UserType" oid="c0c010c0-d34d-b33f-f00d-111111111111" version="0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
@@ -134,7 +134,7 @@
         <m:objectNewRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="c:UserType">
             <c:filter/>
         </m:objectNewRef>
-        <m:objectTypeClass>com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType</m:objectTypeClass>
+        <m:objectTypeClass>com.evolveum.midpoint.xml.ns._public.common.common_3.UserType</m:objectTypeClass>
         <m:oid>c0c010c0-d34d-b33f-f00d-111111111111</m:oid>
         <m:secondaryDeltas>
             <m:wave number="0">
@@ -153,7 +153,7 @@
                         <t:modificationType>replace</t:modificationType>
                         <t:path>c:activation</t:path>
                         <t:value>
-                            <c:enableTimestamp xsi:type="xsd:dateTime" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">2014-01-07T17:39:51.444+01:00</c:enableTimestamp>
+                            <c:enableTimestamp xsi:type="xsd:dateTime" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">2014-01-07T17:39:51.444+01:00</c:enableTimestamp>
                         </t:value>
                     </t:modification>
                 </m:delta>
@@ -177,8 +177,8 @@
             <c:iteration>0</c:iteration>
             <c:iterationToken></c:iterationToken>
             <c:attributes>
-                <icfs:uid xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" xmlns:xsd="http://www.w3.org/2001/XMLSchema">jack</icfs:uid>
-                <icfs:name xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" xmlns:xsd="http://www.w3.org/2001/XMLSchema">jack</icfs:name>
+                <icfs:uid xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema">jack</icfs:uid>
+                <icfs:name xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema">jack</icfs:name>
                 <ri:fullname xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">Jack Sparrow</ri:fullname>
                 <ri:location xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">Caribbean</ri:location>
                 <ri:weapon xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">mouth</ri:weapon>
@@ -214,10 +214,10 @@
             <t:changeType>add</t:changeType>
             <t:objectType>c:ShadowType</t:objectType>
             <t:objectToAdd>
-                <c:account version="" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+                <c:account version="" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
                     <name>
-                        <t:orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">jack</t:orig>
-                        <t:norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">jack</t:norm>
+                        <t:orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">jack</t:orig>
+                        <t:norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">jack</t:norm>
                     </name>
                     <resourceRef oid="10000000-0000-0000-0000-000000000004"/>
                     <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">ri:AccountObjectClass</objectClass>
@@ -243,7 +243,7 @@
                 <t:modificationType>replace</t:modificationType>
                 <t:path>c:activation</t:path>
                 <t:value>
-                    <c:enableTimestamp xsi:type="xsd:dateTime" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">2014-01-07T17:39:51.444+01:00</c:enableTimestamp>
+                    <c:enableTimestamp xsi:type="xsd:dateTime" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">2014-01-07T17:39:51.444+01:00</c:enableTimestamp>
                 </t:value>
             </t:modification>
             <t:modification>
@@ -286,14 +286,14 @@
                 <t:modificationType>replace</t:modificationType>
                 <t:path>.</t:path>
                 <t:value>
-                    <c:iteration xsi:type="xsd:int" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">0</c:iteration>
+                    <c:iteration xsi:type="xsd:int" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">0</c:iteration>
                 </t:value>
             </t:modification>
             <t:modification>
                 <t:modificationType>replace</t:modificationType>
                 <t:path>.</t:path>
                 <t:value>
-                    <c:iterationToken xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
+                    <c:iterationToken xsi:type="xsd:string" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"/>
                 </t:value>
             </t:modification>
             <t:modification>
@@ -315,7 +315,7 @@
                 </t:value>
             </t:modification>
         </m:secondaryDelta>
-        <m:objectTypeClass>com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType</m:objectTypeClass>
+        <m:objectTypeClass>com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType</m:objectTypeClass>
         <m:syncAbsoluteTrigger>false</m:syncAbsoluteTrigger>
         <m:wave>0</m:wave>
         <m:resourceShadowDiscriminator>
@@ -339,7 +339,7 @@
             <c:filter/>
         </m:accountPasswordPolicyRef>
     </m:projectionContext>
-    <m:focusClass>com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType</m:focusClass>
+    <m:focusClass>com.evolveum.midpoint.xml.ns._public.common.common_3.UserType</m:focusClass>
     <m:doReconciliationForAllProjections>false</m:doReconciliationForAllProjections>
     <m:projectionWave>2</m:projectionWave>
     <m:executionWave>0</m:executionWave>

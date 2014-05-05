@@ -18,16 +18,16 @@
 
 
 <definitions name="model"
-    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"
+    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"
     xmlns="http://schemas.xmlsoap.org/wsdl/"
     xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"
+    xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/model/model-3"
     xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
     <!-- WARNING! The CXF catalog resolver takes the content of "location" attribute and tries to use it as both systemId and publicId
                   therefore it has to be set to a namespace for the catalog resolution to work -->
-    <import namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl" 
-    		location="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
+    <import namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3" 
+    		location="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
     <service name="modelService">
         <port name="modelPort" binding="tns:modelBinding">
             <soap:address location="http://localhost:${HttpDefaultPort}/modelService/modelPort"/>

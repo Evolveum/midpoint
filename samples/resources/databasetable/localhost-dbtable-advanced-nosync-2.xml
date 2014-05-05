@@ -23,14 +23,14 @@ using an Identity Connector Framework DBTable connector.
 
 -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
 	xmlns:my="http://myself.me/schemas/whatever">
 
 	<resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d4eeee">
@@ -223,7 +223,7 @@ icfs:name = icfs:uid so this not yet possible -->
 			</accountType>
 				
 		</schemaHandling>
-		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 			<configured>
 				<cap:activation>
 					<cap:status>
@@ -238,7 +238,7 @@ icfs:name = icfs:uid so this not yet possible -->
 
 	</resource>
 
-	<valuePolicy oid="81818181-76e0-59e2-8888-3d4f02d3fffa" xsi:type="c:ValuePolicyType" version="0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	<valuePolicy oid="81818181-76e0-59e2-8888-3d4f02d3fffa" xsi:type="c:ValuePolicyType" version="0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<name>Numeric PIN Policy - first character not zero</name>
 	<description>A policy useful for generating PIN. The first character

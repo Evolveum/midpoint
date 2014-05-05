@@ -15,17 +15,17 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
-         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
          xmlns:my="http://myself.me/schemas/whatever"
-         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
+         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
 
-    <object xsi:type="UserType" version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+    <object xsi:type="UserType" version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 
             xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
@@ -82,7 +82,7 @@
 
     </object>
 
-    <object xsi:type="UserType" version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+    <object xsi:type="UserType" version="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 
             xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
@@ -138,7 +138,7 @@
                 OID during import.
             </description>
             <and>
-                <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-2a#ConnectorType"/>
+                <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType"/>
 
                 <equal>
                     <value>
@@ -152,7 +152,7 @@
              such as hostnames and passwords -->
         <connectorConfiguration
                 xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector"
-                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
+                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
             <!-- Configuration specific for the LDAP connector -->
             <icfc:configurationProperties>
@@ -224,14 +224,14 @@
             <definition>
             <xsd:schema elementFormDefault="qualified"
 					targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-					xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
-					xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
+					xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+					xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+					xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
 					xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" />
+					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
 
-					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2" />
+					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
 					<xsd:complexType name="GroupObjectClass">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -518,7 +518,7 @@
 			</accountType>
 		</schemaHandling>
 
-<!--         <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"> -->
+<!--         <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"> -->
 <!--             <cap:activation> -->
 
 <!--                 <cap:status> -->
@@ -579,30 +579,30 @@
 
             <reaction>
                 <situation>linked</situation>
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
-                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#disableAccount"/>-->
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
+                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#disableAccount"/>-->
             </reaction>
             <reaction>
                 <situation>deleted</situation>
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
-                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#disableUser"/>-->
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
+                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#disableUser"/>-->
             </reaction>
 
             <reaction>
                 <situation>unlinked</situation>
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
-                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#enableUser"/>-->
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#enableUser"/>-->
             </reaction>
             <reaction>
                 <situation>unmatched</situation>
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser">
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser">
                     <!-- Reference to the User Template is here. If the user would be
                          created as a result of this action, it will be created according
                          to this template. -->
 
                     <userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
                 </action>
-                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>-->
+                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>-->
             </reaction>
 
         </synchronization>
@@ -618,7 +618,7 @@
 
         <connectorConfiguration
                 xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap.ldap/org.identityconnectors.ldap.LdapConnector"
-                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
+                xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
             <!-- Configuration specific for the LDAP connector -->
             <icfc:configurationProperties>
@@ -757,7 +757,7 @@
         <executionStatus>runnable</executionStatus>
 
 
-        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-2</handlerUri>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
         <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
         <recurrence>recurring</recurrence>
         <binding>tight</binding>
@@ -767,20 +767,20 @@
         </schedule>
     </task>
 
-    <object xsi:type="AccountShadowType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:gen300="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd"  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+    <object xsi:type="AccountShadowType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:gen300="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd"  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
         <name>8daaeeae-f0c7-41c9-b258-2a3351aa8876</name>
         <resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>
         <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:AccountObjectClass</objectClass>
         <attributes>
-            <icfs:uid xsi:type="xsd:string" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:gen664="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd">8daaeeae-f0c7-41c9-b258-2a3351aa8876</icfs:uid>
+            <icfs:uid xsi:type="xsd:string" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:gen664="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd">8daaeeae-f0c7-41c9-b258-2a3351aa8876</icfs:uid>
         </attributes>
         <intent>aaa</intent>
         <activation>
             <administrativeStatus>enabled</administrativeStatus>
         </activation>
-        <result xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+        <result xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 
-                     xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
+                     xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
                      xmlns:gen160="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd"
                      xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
                      xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
@@ -802,14 +802,14 @@
                         </unknownJavaObject>
                     </entry>
                     <entry key="resourceOid">
-                        <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+                        <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                                  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                                  xsi:type="xsd:string">ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff
                         </c:value>
                     </entry>
                     <entry key="objectClass">
-                        <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+                        <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                                  xmlns:qn644="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
                                  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                                  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -828,7 +828,7 @@
                                    xsi:type="PropertyReferenceListType"/>
                         </entry>
                         <entry key="oid">
-                            <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+                            <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                                      xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                                      xsi:type="xsd:string">ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff
@@ -848,7 +848,7 @@
         </result>
     </object>
 
-    <object xsi:type="ConnectorType" oid="1234" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:gen300="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd"  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+    <object xsi:type="ConnectorType" oid="1234" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:gen300="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd"  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
         <name>ICF org.forgerock.openicf.csvfile.CSVFileConnector</name>
         <framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</framework>
         <connectorType>org.forgerock.openicf.csvfile.CSVFileConnector</connectorType>
@@ -858,14 +858,14 @@
         <schema>
         <definition>
             <xsd:schema elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/openicf-csvfile-connector/org.forgerock.openicf.csvfile.CSVFileConnector"
-            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
-            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
-            xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:gen366="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd" xmlns:gen538="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/openicf-csvfile-connector/org.forgerock.openicf.csvfile.CSVFileConnector">
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"/>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"/>
 
-                <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"/>
+                <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
                 <xsd:complexType name="ConfigurationType">
                     <xsd:annotation>
                         <xsd:appinfo>
@@ -968,7 +968,7 @@
     </object>
 
 <!--  it's commented because it will be tested separatelly in the test -->
-<!--     <object xsi:type="SystemConfigurationType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:gen300="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd"  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#"> -->
+<!--     <object xsi:type="SystemConfigurationType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:gen300="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd"  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#"> -->
 <!--         <name>SystemConfiguration</name> -->
 <!--         <logging> -->
 <!--             <subSystemLogger> -->
@@ -1020,15 +1020,15 @@
 <!--         </logging> -->
 <!--     </object> -->
 
-    <object xsi:type="ConnectorHostType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+    <object xsi:type="ConnectorHostType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
         <name>ICF Connector server on admachine:8759</name>
         <hostname>admachine.example.com</hostname>
         <port>8759</port>
         <sharedSecret>secret</sharedSecret>
     </object>
 
-    <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+    <role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
         <name>Judge</name>
         <assignment id="1">
             <construction>

@@ -61,9 +61,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * 
@@ -78,7 +78,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 	// Therefore it must not have task-specific fields. It can only contain fields specific to
 	// all tasks of a specified type
 	
-	public static final String HANDLER_URI = SchemaConstants.NS_MODEL + "/trigger/scanner/handler-2";
+	public static final String HANDLER_URI = SchemaConstants.NS_MODEL + "/trigger/scanner/handler-3";
         	
 	private static final transient Trace LOGGER = TraceManager.getTrace(TriggerScannerTaskHandler.class);
 	

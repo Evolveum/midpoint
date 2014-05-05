@@ -26,7 +26,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+
 import org.apache.commons.lang.Validate;
 import org.hibernate.SQLQuery;
 import org.hibernate.Session;
@@ -34,6 +35,7 @@ import org.hibernate.dialect.Dialect;
 import org.hibernate.jdbc.Work;
 
 import javax.xml.datatype.Duration;
+
 import java.sql.*;
 import java.util.Date;
 

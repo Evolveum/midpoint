@@ -25,16 +25,16 @@ This resource definition contains only the very basic definitions for midPoint t
 
 -->
 
-<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
-        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
-        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 	xmlns:my="http://myself.me/schemas/whatever"
-        xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd">
+        xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
 
 	<resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef">
 
@@ -233,7 +233,7 @@ to "false". The only way of resetting the flag is to change user's password.
 			</accountType>
 		</schemaHandling>
 		<!--
-                <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+                <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
                     <cap:credentials>
                         <cap:password/>
                     </cap:credentials>
@@ -348,15 +348,15 @@ to "false". The only way of resetting the flag is to change user's password.
 	             -->
 		<reaction>
 			<situation>linked</situation>
-			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
+			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
 		</reaction>
 		<reaction>
 			<situation>deleted</situation>
-			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
+			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
 		</reaction>
 		<reaction>
 			<situation>unlinked</situation>
-			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
 		</reaction>
 		<reaction>
 			<situation>unmatched</situation>
@@ -364,8 +364,8 @@ to "false". The only way of resetting the flag is to change user's password.
 	                         created as a result of this action, it will be created according
 	                         to this template. -->
 			<objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
-			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser"/>
-			<!--	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>-->
+			<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"/>
+			<!--	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>-->
 		</reaction>
 	</objectSynchronization>
 </synchronization>
@@ -415,7 +415,7 @@ to "false". The only way of resetting the flag is to change user's password.
 	<taskIdentifier>91919191-76e0-59e2-86d6-444f02d3ffff</taskIdentifier>
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<executionStatus>runnable</executionStatus>
-	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-2</handlerUri>
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
         <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eaef" type="c:ResourceType"/>
 	<recurrence>recurring</recurrence>
 	<binding>tight</binding>

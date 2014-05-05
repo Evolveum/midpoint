@@ -27,10 +27,10 @@ import com.evolveum.midpoint.util.QNameUtil;
 public class AuthorizationConstants {
 	
 	public static final String NS_SECURITY_PREFIX = SchemaConstants.NS_MIDPOINT_PUBLIC_PREFIX + "security/";
-	public static final String NS_AUTHORIZATION = NS_SECURITY_PREFIX + "authorization-2";
-	public static final String NS_AUTHORIZATION_UI = NS_SECURITY_PREFIX + "authorization-ui-2";
-	public static final String NS_AUTHORIZATION_WS = NS_SECURITY_PREFIX + "authorization-ws-2";
-	public static final String NS_AUTHORIZATION_MODEL = NS_SECURITY_PREFIX + "authorization-model-2";
+	public static final String NS_AUTHORIZATION = NS_SECURITY_PREFIX + "authorization-3";
+	public static final String NS_AUTHORIZATION_UI = NS_SECURITY_PREFIX + "authorization-ui-3";
+	public static final String NS_AUTHORIZATION_WS = NS_SECURITY_PREFIX + "authorization-ws-3";
+	public static final String NS_AUTHORIZATION_MODEL = NS_SECURITY_PREFIX + "authorization-model-3";
 	
 	public static final QName AUTZ_ALL_QNAME = new QName(NS_AUTHORIZATION, "all");
 	public static final String AUTZ_ALL_URL = QNameUtil.qNameToUri(AUTZ_ALL_QNAME);

@@ -31,6 +31,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.util.JaxbTestUtil;
+
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -41,8 +42,8 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author Radovan Semancik
@@ -61,7 +62,7 @@ public class XsdTypeConverterTest {
 	public void testConvertFromProtectedString() throws SchemaException {
 		Document document = DOMUtil.parseDocument(
 				"<password xmlns=\""+FOO_NAMESPACE+"\" "+
-				"xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-2a\" "+
+				"xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\" "+
 				"xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "+
 				"xsi:type=\"c:ProtectedStringType\">"+
 				"<c:clearValue>3lizab3th</c:clearValue></password>");

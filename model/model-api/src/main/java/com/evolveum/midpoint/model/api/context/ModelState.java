@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.model.api.context;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ModelStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelStateType;
 
 /**
  * @author semancik

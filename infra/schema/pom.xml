@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -106,7 +106,7 @@
         <dependency>
             <groupId>org.apache.ws.xmlschema</groupId>
             <artifactId>xmlschema-core</artifactId>
-            <version>2.0.1</version>
+            <version>2.0.3</version>
         </dependency>
         <dependency>
             <groupId>org.jvnet.jaxb2_commons</groupId>
@@ -171,7 +171,7 @@
                                 <wsdlOption>
                                     <!-- Ugly hack. The fake WSDL includes the XSD file we need to compile.
                                          This is the only way I found to skip generating java classes for included
-                                         schemas (namely, common-2a); we need to use -nexclude parameter that is
+                                         schemas (namely, common-3); we need to use -nexclude parameter that is
                                          available only in wsdl codegen plugin. -->
                                     <wsdl>src/main/resources/xml/ns/private/fake/fakeWrapper-model-context.wsdl</wsdl>
                                     <catalog>${basedir}/src/main/resources/META-INF/jax-ws-catalog-model-context.xml</catalog>
@@ -187,13 +187,13 @@
                                         </extraarg>
                                         <extraarg>-xjc-Xmidpoint</extraarg>
                                         <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-2</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-3</extraarg>
                                         <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-2</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-3</extraarg>
                                         <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-2</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
                                         <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://midpoint.evolveum.com/xml/ns/public/common/common-2a</extraarg>
+                                        <extraarg>http://midpoint.evolveum.com/xml/ns/public/common/common-3</extraarg>
                                         <extraarg>-nexclude</extraarg>
                                         <extraarg>http://www.w3.org/2001/04/xmlenc</extraarg>
                                         <extraarg>-nexclude</extraarg>
@@ -219,11 +219,11 @@
                                             -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy
                                         </extraarg>
                                         <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-2</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-3</extraarg>
                                         <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-2</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-3</extraarg>
                                         <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-2</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
                                         <!-- 										<extraargs>-version</extraargs> -->
 
                                         <extraarg>-xjc-Xmidpoint</extraarg>
@@ -249,11 +249,11 @@
                                             -xjc-Xequals-equalsStrategyClass=com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy
                                         </extraarg>
                                         <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-2</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/types-3</extraarg>
                                         <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-2</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/annotation-3</extraarg>
                                         <extraarg>-nexclude</extraarg>
-                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-2</extraarg>
+                                        <extraarg>http://prism.evolveum.com/xml/ns/public/query-3</extraarg>
                                         <!-- 										<extraargs>-version</extraargs> -->
 
                                         <extraarg>-xjc-Xmidpoint</extraarg>
@@ -262,7 +262,7 @@
                             </wsdlOptions>
                             <!--							<xsdOptions>
                                        <xsdOption>
-                                           <xsd>src/main/resources/xml/ns/public/common/common-2a.xsd</xsd>
+                                           <xsd>src/main/resources/xml/ns/public/common/common-3.xsd</xsd>
                                            <extensionArgs>
                                                <extensionArg>-Xts</extensionArg>
                                                <extensionArg>-Xequals</extensionArg>
@@ -271,7 +271,7 @@
                                            <extension>true</extension>
                                        </xsdOption>
                                        <xsdOption>
-                                           <xsd>src/main/resources/xml/ns/public/resource/capabilities-2.xsd</xsd>
+                                           <xsd>src/main/resources/xml/ns/public/resource/capabilities-3.xsd</xsd>
                                            <extensionArgs>
                                                <extensionArg>-Xts</extensionArg>
                                                <extensionArg>-Xequals</extensionArg>
@@ -280,7 +280,7 @@
                                            <extension>true</extension>
                                        </xsdOption>
                                        <xsdOption>
-                                           <xsd>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-2.xsd</xsd>
+                                           <xsd>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-3.xsd</xsd>
                                            <extensionArgs>
                                                <extensionArg>-Xts</extensionArg>
                                                <extensionArg>-Xequals</extensionArg>
@@ -289,7 +289,7 @@
                                            <extension>true</extension>
                                        </xsdOption>
                                        <xsdOption>
-                                           <xsd>src/main/resources/xml/ns/public/connector/icf-1/connector-schema-2.xsd</xsd>
+                                           <xsd>src/main/resources/xml/ns/public/connector/icf-1/connector-schema-3.xsd</xsd>
                                            <extensionArgs>
                                                <extensionArg>-Xts</extensionArg>
                                                <extensionArg>-Xequals</extensionArg>
@@ -357,10 +357,10 @@
                 <version>2.3-SNAPSHOT</version>
                 <configuration>
                     <schemaFiles>
-                        <schemaFile>src/main/resources/xml/ns/public/common/common-2a.xsd</schemaFile>
-                        <schemaFile>src/main/resources/xml/ns/public/common/api-types-2.xsd</schemaFile>
-                        <schemaFile>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-2.xsd</schemaFile>
-                        <schemaFile>src/main/resources/xml/ns/public/model/scripting/scripting-2.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/common/common-3.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/common/api-types-3.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-3.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/model/scripting/scripting-3.xsd</schemaFile>
                     </schemaFiles>
                     <templateDir>src/main/schemadoc/templates</templateDir>
                 </configuration>

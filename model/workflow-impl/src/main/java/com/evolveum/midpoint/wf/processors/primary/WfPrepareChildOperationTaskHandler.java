@@ -59,7 +59,7 @@ import java.util.List;
 public class WfPrepareChildOperationTaskHandler implements TaskHandler {
 
     // should be available only within the context of primary change processor
-    static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/workflow/prepare-child-operation/handler-2";
+    static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/workflow/prepare-child-operation/handler-3";
 
     private static final Trace LOGGER = TraceManager.getTrace(WfPrepareChildOperationTaskHandler.class);
 

@@ -18,17 +18,17 @@
 <!--Reconciliation task definition for CSV resource -->
 
 <task oid="91919191-76e0-59e2-86d6-3d4f02d30011"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:my="http://whatever.com/my"
-	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-2a.xsd
+	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd
 	  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
 	<!-- Resource printable name -->
 	<name>Reconciliation: CSV (dry-run)</name>
 	
-	<extension xmlns:sync="http://midpoint.evolveum.com/xml/ns/public/model/extension-2">
+	<extension xmlns:sync="http://midpoint.evolveum.com/xml/ns/public/model/extension-3">
           <sync:dryRun>true</sync:dryRun>
         </extension>
 
@@ -37,7 +37,7 @@
 	<executionStatus>runnable</executionStatus>
 
     <category>Reconciliation</category>
-	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-2</handlerUri>
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
 	<objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe" type="ResourceType"/>
 	<recurrence>recurring</recurrence>
 	<binding>loose</binding>

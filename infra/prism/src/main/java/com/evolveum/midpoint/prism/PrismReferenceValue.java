@@ -31,7 +31,7 @@ import java.io.Serializable;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.w3c.dom.Element;
 

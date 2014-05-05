@@ -24,7 +24,8 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -101,7 +102,7 @@ public class RAssignmentReference implements ObjectReference {
 
     /**
      * Represents {@link javax.xml.namespace.QName} type attribute in reference e.g.
-     * {@link com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType} represented
+     * {@link com.evolveum.midpoint.xml.ns._public.common.common_3.UserType} represented
      * as enum {@link com.evolveum.midpoint.repo.sql.data.common.other.RObjectType#USER}
      *
      * @return null if not defined, otherwise value from {@link com.evolveum.midpoint.repo.sql.data.common.other.RObjectType} enum

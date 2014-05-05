@@ -51,8 +51,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TransformExpressionEvaluatorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TransformExpressionRelativityModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionRelativityModeType;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;

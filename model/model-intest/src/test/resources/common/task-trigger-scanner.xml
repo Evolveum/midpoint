@@ -16,9 +16,9 @@
   -->
 
 <task oid="00000000-0000-0000-0000-000000000007"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-	xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-2"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 								  
@@ -28,7 +28,7 @@
 	<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 	<executionStatus>runnable</executionStatus>
 
-	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/trigger/scanner/handler-2</handlerUri>
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/trigger/scanner/handler-3</handlerUri>
 	<recurrence>recurring</recurrence>
 	<binding>tight</binding>
 	<schedule>

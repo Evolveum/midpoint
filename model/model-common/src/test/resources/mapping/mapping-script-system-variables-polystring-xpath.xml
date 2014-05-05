@@ -15,9 +15,9 @@
   ~ limitations under the License.
   -->
 
-<mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+<mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
 	<source>
     	<path>$user/name</path>
     </source>
@@ -25,7 +25,7 @@
 		<script>
 			<language>http://www.w3.org/TR/xpath/</language>
 			<code>
-                declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+                declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 				concat('Captain ',$user/c:fullName)
 			</code>
 		</script>

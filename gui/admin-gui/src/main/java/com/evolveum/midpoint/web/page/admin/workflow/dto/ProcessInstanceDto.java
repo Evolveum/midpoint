@@ -18,13 +18,15 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
+
 import org.apache.commons.lang3.Validate;
 
 import java.util.ArrayList;
@@ -35,15 +37,25 @@ import java.util.List;
  */
 public class ProcessInstanceDto extends Selectable {
 
-    public static final String F_WATCHING_TASK_OID = "watchingTaskOid";
+    public static final String F_SHADOW_TASK = "shadowTask";
+    public static final String F_SHADOW_TASK_EXISTING = "shadowTaskExisting";
 
     WfProcessInstanceType processInstance;
     ProcessInstanceState processInstanceState;
 
-    public ProcessInstanceDto(WfProcessInstanceType processInstance) {
+    private String shadowTaskName;
+    private boolean shadowTaskExisting;
+
+    public ProcessInstanceDto(WfProcessInstanceType processInstance, Task shadowTask) {
         Validate.notNull(processInstance);
         this.processInstance = processInstance;
         this.processInstanceState = (ProcessInstanceState) processInstance.getState();
+        if (shadowTask != null) {
+            shadowTaskName = PolyString.getOrig(shadowTask.getName());
+            shadowTaskExisting = true;
+        } else {
+            shadowTaskExisting = false;
+        }
     }
 
     public String getStartedTime() {
@@ -93,11 +105,24 @@ public class ProcessInstanceDto extends Selectable {
         return processInstance.isFinished();
     }
 
-    public String getWatchingTaskOid() {
-        return processInstanceState.getShadowTaskOid();
+    public boolean isShadowTaskExisting() {
+        return shadowTaskExisting;
+    }
+
+    public String getShadowTask() {
+        String oid = processInstanceState.getShadowTaskOid();
+        if (shadowTaskName != null) {
+            return shadowTaskName + " (" + oid + ")";
+        } else {
+            return oid;
+        }
     }
 
     public ProcessInstanceState getInstanceState() {
         return (ProcessInstanceState) processInstance.getState();
+    }
+
+    public String getShadowTaskOid() {
+        return processInstanceState.getShadowTaskOid();
     }
 }

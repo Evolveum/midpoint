@@ -16,16 +16,16 @@
   -->
 
 
-<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
+<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
-	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
+    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+	xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
 	xmlns:my="http://myself.me/schemas/whatever"
-        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+        xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 
 	<c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d420db">
 
@@ -95,15 +95,15 @@
 			<!-- Storing schema here and don't letting midpoint to generate it. ScriptedSQL does not support getting schema... -->
 			<definition>
 				<xsd:schema elementFormDefault="qualified"
-			targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
-			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
-			xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-2"
+			targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+			xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+			xmlns:ra="http://midpoint.evolveum.com/xml/ns/public/resource/annotation-3"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2" />
+					<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
 
-					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2" />
+					<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3" />
 					<xsd:complexType name="AccountObjectClass">
 						<xsd:annotation>
 							<xsd:appinfo>
@@ -340,15 +340,15 @@
 	             -->
 				<reaction>
 					<situation>linked</situation>
-					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
+					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
 				</reaction>
 				<reaction>
 					<situation>deleted</situation>
-					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
+					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
 				</reaction>
 				<reaction>
 					<situation>unlinked</situation>
-					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
 				</reaction>
 				<reaction>
 					<situation>unmatched</situation>
@@ -356,8 +356,8 @@
 	                         created as a result of this action, it will be created according
 	                         to this template. -->
 					<objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
-					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser"/>
-					<!--	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>-->
+					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"/>
+					<!--	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>-->
 				</reaction>
 			</objectSynchronization>
 		</synchronization>
@@ -372,7 +372,7 @@
 		<taskIdentifier>91919191-76e0-59e2-8787-3d4f03d8ffff</taskIdentifier>
 		<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 		<executionStatus>runnable</executionStatus>
-		<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-2</handlerUri>
+		<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
         <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d420db" type="c:ResourceType"/>
 		<recurrence>recurring</recurrence>
 		<binding>tight</binding>

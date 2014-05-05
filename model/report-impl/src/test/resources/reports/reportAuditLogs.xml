@@ -13,9 +13,9 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 		oid="AUDITLOG-3333-3333-TEST-10000000000"
         version="0">
@@ -362,15 +362,15 @@
 		<definition>
 			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-                    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+                    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
                     xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report"
                     elementFormDefault="qualified"
                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/report">
 
-				<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"/>
-				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"/>
-				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-2"/>
+				<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
+				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
 
 				<xsd:complexType name="ConfigurationType">
 					<xsd:annotation>

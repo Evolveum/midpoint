@@ -18,8 +18,8 @@
 <!-- Testing cycle task -->
 
 <task oid="91919191-76e0-59e2-86d6-556655660013"
-    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" 
-	xmlns:noop="http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-2"
+    xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+	xmlns:noop="http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	
@@ -32,7 +32,7 @@
     <ownerRef oid="c0c010c0-d34d-b33f-f00d-111111111111"/>
     <executionStatus>suspended</executionStatus>
 
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-2</handlerUri>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3</handlerUri>
     <recurrence>recurring</recurrence>
     <binding>loose</binding>
     <schedule>

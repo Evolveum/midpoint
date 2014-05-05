@@ -16,12 +16,12 @@
   -->
 
 <script
-		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-		xmlns:basic="http://midpoint.evolveum.com/xml/ns/public/function/basic-2">
+		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+		xmlns:basic="http://midpoint.evolveum.com/xml/ns/public/function/basic-3">
 	<language>http://www.w3.org/TR/xpath/</language>
 	<code>
-        declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+        declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
         basic:stringify($c:user/c:fullName)
 	</code>
 </script>

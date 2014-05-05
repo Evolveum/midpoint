@@ -35,7 +35,8 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
+
 import org.hibernate.annotations.ForeignKey;
 
 import javax.persistence.Embedded;

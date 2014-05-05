@@ -27,10 +27,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CharacterClassType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.LimitationsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringLimitType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CharacterClassType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LimitationsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.StringLimitType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
 
 /**
  * 

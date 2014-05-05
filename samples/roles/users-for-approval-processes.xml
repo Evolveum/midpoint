@@ -15,32 +15,32 @@
   ~ limitations under the License.
   -->
 
-<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
-         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
-         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-2'>
-	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+         xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
+	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       oid="0e030e0c-a37d-47b2-bde8-f8e61e4a2bfb"
       version="2">
    <name>
-      <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">boss2</orig>
-      <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">boss2</norm>
+      <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">boss2</orig>
+      <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">boss2</norm>
    </name>
    <activation>
       <administrativeStatus>enabled</administrativeStatus>
    </activation>
    <fullName>
-      <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Boss2</orig>
-      <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">boss2</norm>
+      <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">Boss2</orig>
+      <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">boss2</norm>
    </fullName>
    <credentials>
       <password>
-         <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-                  xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-                  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-                  xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
-                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-                  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
-                  xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2"
+         <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                  xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+                  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                  xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+                  xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                   xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
@@ -58,29 +58,29 @@
       </password>
    </credentials>
 </user>
-	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       oid="c168470c-bfef-414f-88b5-5d144f4f3d6c"
       version="2">
    <name>
-      <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">security</orig>
-      <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">security</norm>
+      <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">security</orig>
+      <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">security</norm>
    </name>
    <activation>
       <administrativeStatus>enabled</administrativeStatus>
    </activation>
    <fullName>
-      <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Security Manager</orig>
-      <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">security manager</norm>
+      <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">Security Manager</orig>
+      <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">security manager</norm>
    </fullName>
    <credentials>
       <password>
-         <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-                  xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-                  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-                  xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
-                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-                  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
-                  xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2"
+         <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                  xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+                  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                  xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+                  xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                   xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
@@ -98,29 +98,29 @@
       </password>
    </credentials>
 </user>
-	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       oid="75f2806d-e31b-40c9-8133-85ed4d9e6252"
       version="5">
    <name>
-      <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">boss1</orig>
-      <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">boss1</norm>
+      <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">boss1</orig>
+      <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">boss1</norm>
    </name>
    <activation>
       <administrativeStatus>enabled</administrativeStatus>
    </activation>
    <fullName>
-      <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Boss1</orig>
-      <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">boss1</norm>
+      <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">Boss1</orig>
+      <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">boss1</norm>
    </fullName>
    <credentials>
       <password>
-         <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-                  xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-                  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-                  xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"
-                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-                  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
-                  xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2"
+         <c:value xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                  xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+                  xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                  xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+                  xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
                   xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   xmlns:enc="http://www.w3.org/2001/04/xmlenc#"

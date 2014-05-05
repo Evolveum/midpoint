@@ -14,9 +14,9 @@
   ~ limitations under the License.
   -->
 <role oid="12345678-d34d-b33f-f00d-55555555dddd"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <name>Dummies</name>    
     <inducement>
     	<construction xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004">
@@ -41,7 +41,7 @@
     	</construction>
     </inducement>    
     <inducement>
-    	<construction xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2">
+    	<construction xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
     		<resourceRef oid="10000000-0000-0000-0000-000000000504" type="c:ResourceType"/>
     		<attribute>
                 <ref>ri:weapon</ref>

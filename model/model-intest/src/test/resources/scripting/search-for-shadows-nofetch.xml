@@ -15,10 +15,10 @@
   ~ limitations under the License.
   -->
 
-<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-2"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+<s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <s:type>c:ShadowType</s:type>
-    <and xmlns="http://prism.evolveum.com/xml/ns/public/query-2">
+    <and xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
         <ref>
             <path>c:resourceRef</path>
             <oid>10000000-0000-0000-0000-000000000004</oid>

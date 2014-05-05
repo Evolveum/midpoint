@@ -16,8 +16,8 @@
   -->
  
 <org oid="80808080-8888-6666-0000-100000000001"
-		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
-        xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-2'>
+		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+        xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
 
 	<name>T0000</name>
 	<description>Top-level org</description>

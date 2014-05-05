@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <task oid="00000000-0000-0000-0000-000000000007"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 
     <name>Trigger Scanner</name>
     <description>A system task that executes triggers attached to objects.</description>
@@ -23,7 +23,7 @@
     <executionStatus>runnable</executionStatus>
 
     <category>System</category>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/trigger/scanner/handler-2</handlerUri>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/trigger/scanner/handler-3</handlerUri>
     <recurrence>recurring</recurrence>
     <binding>loose</binding>
     <schedule>

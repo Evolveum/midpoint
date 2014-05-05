@@ -18,15 +18,15 @@
 <!-- Resource definition for an embedded OpenDJ instance. -->
 
 <resource oid="10000000-0000-0000-0000-000000000003"
-          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-2"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
-          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-          xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-2"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-3"
           xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
 
     <name>Embedded Test OpenDJ</name>
@@ -43,7 +43,7 @@
 
     <connectorConfiguration
             xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector"
-            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties>
             <icfcldap:port>10389</icfcldap:port>
             <icfcldap:host>localhost</icfcldap:host>
@@ -209,7 +209,7 @@
         
     </schemaHandling>
 
-    <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+    <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
     	<configured>
 	        <cap:activation>
 	            <cap:status>
@@ -244,21 +244,21 @@
 	            <situation>deleted</situation>
 	            <synchronize>true</synchronize>
 	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlink</handlerUri>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
 	            </action>
 	        </reaction>
 	        <reaction>
 	            <situation>unlinked</situation>
 	            <synchronize>true</synchronize>
 	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#link</handlerUri>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
 	            </action>
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
 	            <synchronize>true</synchronize>
 	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#addFocus</handlerUri>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
 	            </action>
 	        </reaction>
 		</objectSynchronization>

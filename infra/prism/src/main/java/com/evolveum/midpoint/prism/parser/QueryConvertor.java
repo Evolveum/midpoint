@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.query.ExpressionWrapper;
-import com.evolveum.prism.xml.ns._public.query_2.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
@@ -71,7 +71,7 @@ public class QueryConvertor {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(QueryConvertor.class);
 	
-	public static final String NS_QUERY = "http://prism.evolveum.com/xml/ns/public/query-2";
+	public static final String NS_QUERY = "http://prism.evolveum.com/xml/ns/public/query-3";
 	public static final QName FILTER_ELEMENT_NAME = new QName(NS_QUERY, "filter");
 
 	public static QName KEY_FILTER = new QName(NS_QUERY, "filter");

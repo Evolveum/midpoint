@@ -250,6 +250,7 @@ CREATE TABLE m_object (
   modifyTimestamp       TIMESTAMP,
   name_norm             VARCHAR(255),
   name_orig             VARCHAR(255),
+  objectTypeClass       INT4,
   polysCount            INT2,
   referencesCount       INT2,
   stringsCount          INT2,

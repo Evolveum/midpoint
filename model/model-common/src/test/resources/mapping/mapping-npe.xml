@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 
-<mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+<mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 	<name>NPE</name>
 	<description>This mapping will fail with NPE if it is evaluated with condition being false</description>
 	<source>

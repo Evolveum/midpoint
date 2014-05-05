@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://model.midpoint.evolveum.com/" xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl" xmlns:ns3="http://schemas.xmlsoap.org/soap/http" name="ModelWebServiceService" targetNamespace="http://model.midpoint.evolveum.com/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
-  <wsdl:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl" location="http://localhost:8080/midpoint/model/model-1?wsdl=modelPortType.wsdl" />
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://model.midpoint.evolveum.com/" xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/model/model-3" xmlns:ns3="http://schemas.xmlsoap.org/soap/http" name="ModelWebServiceService" targetNamespace="http://model.midpoint.evolveum.com/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3" location="http://localhost:8080/midpoint/model/model-3.wsdl=modelPortType.wsdl" />
   <wsdl:types />
   <wsdl:binding name="ModelWebServiceServiceSoapBinding" type="ns1:modelPortType">
     <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />

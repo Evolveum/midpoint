@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <task oid="00000000-0000-0000-0000-000000000006"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 
     <name>Validity Scanner</name>
     <description>A system task that maintains effective status of objects, based on their validity time constraints.</description>
@@ -23,7 +23,7 @@
     <executionStatus>runnable</executionStatus>
 
     <category>System</category>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/focus-validation-scanner/handler-2</handlerUri>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/focus-validation-scanner/handler-3</handlerUri>
     <recurrence>recurring</recurrence>
     <binding>loose</binding>
     <schedule>

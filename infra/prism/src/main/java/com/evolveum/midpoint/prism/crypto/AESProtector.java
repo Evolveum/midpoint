@@ -40,7 +40,6 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
-import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.xml.security.Init;
@@ -52,10 +51,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.prism.xml.ns._public.types_2.CipherDataType;
-import com.evolveum.prism.xml.ns._public.types_2.EncryptedDataType;
-import com.evolveum.prism.xml.ns._public.types_2.EncryptionMethodType;
-import com.evolveum.prism.xml.ns._public.types_2.KeyInfoType;
+import com.evolveum.prism.xml.ns._public.types_3.CipherDataType;
+import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
+import com.evolveum.prism.xml.ns._public.types_3.EncryptionMethodType;
+import com.evolveum.prism.xml.ns._public.types_3.KeyInfoType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * Class that manages encrypted string values. Java Cryptography Extension is

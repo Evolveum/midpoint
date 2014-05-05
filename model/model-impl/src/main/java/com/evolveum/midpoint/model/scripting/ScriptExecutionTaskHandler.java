@@ -27,7 +27,7 @@ import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.model.scripting_2.ExecuteScriptType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -45,7 +45,7 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
 
     private static final String DOT_CLASS = ScriptExecutionTaskHandler.class.getName() + ".";
 
-    public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-2";
+    public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-3";
 
     @Autowired
 	private TaskManager taskManager;

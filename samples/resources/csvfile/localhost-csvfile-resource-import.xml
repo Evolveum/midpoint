@@ -24,15 +24,15 @@ This definition is tailored for import from the CSV File.
 
 -->
 
-<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-	   xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+	   xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
-           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
+           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
            xmlns:my="http://myself.me/schemas/whatever"
-           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
-           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
+           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+           xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
     <c:resource oid="4e2e5dee-7aa1-11e2-a914-001e8c717e5b">
 
@@ -142,7 +142,7 @@ This definition is tailored for import from the CSV File.
                 
             </accountType>
         </schemaHandling>
-     	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+     	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
             <configured>
 				<cap:activation>
 					<cap:status>
@@ -167,20 +167,20 @@ This definition is tailored for import from the CSV File.
 	
 	            <reaction>
 	                <situation>linked</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
 	            </reaction>
 	            <reaction>
 	                <situation>deleted</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
 	            </reaction>
 	            <reaction>
 	                <situation>unlinked</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
 	            </reaction>
 	            <reaction>
 	                <situation>unmatched</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser"/>
-	                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>-->
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"/>
+	                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>-->
 	            </reaction>
 			</objectSynchronization>
         </synchronization>
