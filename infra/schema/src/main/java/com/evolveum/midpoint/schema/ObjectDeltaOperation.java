@@ -42,8 +42,14 @@ public class ObjectDeltaOperation<T extends ObjectType> implements DebugDumpable
 		super();
 		this.objectDelta = objectDelta;
 	}
-	
-	public ObjectDelta<T> getObjectDelta() {
+
+    public ObjectDeltaOperation(ObjectDelta<T> objectDelta, OperationResult executionResult) {
+        super();
+        this.objectDelta = objectDelta;
+        this.executionResult = executionResult;
+    }
+
+    public ObjectDelta<T> getObjectDelta() {
 		return objectDelta;
 	}
 	

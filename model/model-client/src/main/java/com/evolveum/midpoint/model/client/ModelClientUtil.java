@@ -28,14 +28,19 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.ws.BindingProvider;
 
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.Validate;
 import org.apache.cxf.frontend.ClientProxy;
 import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
 import org.apache.ws.security.WSConstants;
@@ -171,6 +176,37 @@ public class ModelClientUtil {
 
 		return null;
 	}
+
+    /**
+     * Retrieves OID created by model Web Service from the returned list of ObjectDeltaOperations.
+     *
+     * @param operationListType result of the model web service executeChanges call
+     * @param originalDelta original request used to find corresponding ObjectDeltaOperationType instance. Must be of ADD type.
+     * @return OID if found
+     *
+     * PRELIMINARY IMPLEMENTATION. Currently the first returned ADD delta with the same object type as original delta is returned.
+     */
+    public static String getOidFromDeltaOperationList(ObjectDeltaOperationListType operationListType, ObjectDeltaType originalDelta) {
+        Validate.notNull(operationListType);
+        Validate.notNull(originalDelta);
+        if (originalDelta.getChangeType() != ChangeTypeType.ADD) {
+            throw new IllegalArgumentException("Original delta is not of ADD type");
+        }
+        if (originalDelta.getObjectToAdd() == null) {
+            throw new IllegalArgumentException("Original delta contains no object-to-be-added");
+        }
+        for (ObjectDeltaOperationType operationType : operationListType.getDeltaOperation()) {
+            ObjectDeltaType objectDeltaType = operationType.getObjectDelta();
+            if (objectDeltaType.getChangeType() == ChangeTypeType.ADD &&
+                    objectDeltaType.getObjectToAdd() != null) {
+                ObjectType objectAdded = (ObjectType) objectDeltaType.getObjectToAdd();
+                if (objectAdded.getClass().equals(originalDelta.getObjectToAdd().getClass())) {
+                    return objectAdded.getOid();
+                }
+            }
+        }
+        return null;
+    }
 	
 	static {
 		try {

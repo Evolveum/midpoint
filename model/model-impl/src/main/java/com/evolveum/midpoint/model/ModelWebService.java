@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -55,12 +56,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteScriptsOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.OutputFormatType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ScriptOutputsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SelectorQualifiedGetOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SingleScriptOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectShadowChangeDescriptionType;
@@ -174,7 +177,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	}
 
     @Override
-    public OperationResultType executeChanges(ObjectDeltaListType deltaList, ModelExecuteOptionsType optionsType) throws FaultMessage {
+    public ObjectDeltaOperationListType executeChanges(ObjectDeltaListType deltaList, ModelExecuteOptionsType optionsType) throws FaultMessage {
 		notNullArgument(deltaList, "Object delta list must not be null.");
 
 		Task task = createTaskInstance(EXECUTE_CHANGES);
@@ -186,8 +189,15 @@ public class ModelWebService implements ModelPortType, ModelPort {
                 prismContext.adopt(delta);
             }
             ModelExecuteOptions options = ModelExecuteOptions.fromModelExecutionOptionsType(optionsType);
-            modelController.executeChanges((Collection) deltas, options, task, operationResult);        // brutally eliminating type-safety compiler barking
-			return handleOperationResult(operationResult);
+            Collection<ObjectDeltaOperation<? extends ObjectType>> objectDeltaOperations = modelController.executeChanges((Collection) deltas, options, task, operationResult);        // brutally eliminating type-safety compiler barking
+			ObjectDeltaOperationListType retval = new ObjectDeltaOperationListType();
+            for (ObjectDeltaOperation objectDeltaOperation : objectDeltaOperations) {
+                ObjectDeltaOperationType objectDeltaOperationType = new ObjectDeltaOperationType();
+                objectDeltaOperationType.setObjectDelta(DeltaConvertor.toObjectDeltaType(objectDeltaOperation.getObjectDelta()));
+                objectDeltaOperationType.setExecutionResult(objectDeltaOperation.getExecutionResult().createOperationResultType());
+                retval.getDeltaOperation().add(objectDeltaOperationType);
+            }
+            return retval;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL executeChanges() failed", ex);
 			auditLogout(task);

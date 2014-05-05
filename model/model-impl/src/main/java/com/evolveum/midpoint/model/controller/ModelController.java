@@ -30,6 +30,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
+import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
@@ -357,10 +358,12 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	 * @see com.evolveum.midpoint.model.api.ModelService#executeChanges(java.util.Collection, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public void executeChanges(final Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
+	public Collection<ObjectDeltaOperation<? extends ObjectType>> executeChanges(final Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
 			Task task, OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
 			PolicyViolationException, SecurityViolationException {
+
+        Collection<ObjectDeltaOperation<? extends ObjectType>> retval = new ArrayList<>();
 
 		OperationResult result = parentResult.createSubresult(EXECUTE_CHANGES);
 		result.addParam(OperationResult.PARAM_OPTIONS, options);
@@ -401,6 +404,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				auditRecord.addDeltas(ObjectDeltaOperation.cloneDeltaCollection(deltas));
 				auditService.audit(auditRecord, task);
 				for(ObjectDelta<? extends ObjectType> delta: deltas) {
+                    OperationResult result1 = result.createSubresult(EXECUTE_CHANGE);
 					if (delta.isAdd()) {
 						RepoAddOptions repoOptions = new RepoAddOptions();
 						if (ModelExecuteOptions.isNoCrypt(options)) {
@@ -409,28 +413,30 @@ public class ModelController implements ModelService, ModelInteractionService, T
 						if (ModelExecuteOptions.isOverwrite(options)) {
 							repoOptions.setOverwrite(true);
 						}
-						securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(), null, delta.getObjectToAdd(), null, null, null, result);
-						String oid = cacheRepositoryService.addObject(delta.getObjectToAdd(), repoOptions, result);
+						securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(), null, delta.getObjectToAdd(), null, null, null, result1);
+						String oid = cacheRepositoryService.addObject(delta.getObjectToAdd(), repoOptions, result1);
 						delta.setOid(oid);
 					} else if (delta.isDelete()) {
-						PrismObject<? extends ObjectType> existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result);
-						securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), null, existingObject, null, null, null, result);
+						PrismObject<? extends ObjectType> existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
+						securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), null, existingObject, null, null, null, result1);
 						if (ObjectTypes.isClassManagedByProvisioning(delta.getObjectTypeClass())) {
                             Utils.clearRequestee(task);
 							provisioning.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
-									ProvisioningOperationOptions.createRaw(), null, task, result);
+									ProvisioningOperationOptions.createRaw(), null, task, result1);
 						} else {
 							cacheRepositoryService.deleteObject(delta.getObjectTypeClass(), delta.getOid(),
-									result);
+									result1);
 						}
 					} else if (delta.isModify()) {
-						PrismObject existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result);
-						securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, existingObject, delta, null, null, result);
+						PrismObject existingObject = cacheRepositoryService.getObject(delta.getObjectTypeClass(), delta.getOid(), null, result1);
+						securityEnforcer.authorize(ModelAuthorizationAction.MODIFY.getUrl(), null, existingObject, delta, null, null, result1);
 						cacheRepositoryService.modifyObject(delta.getObjectTypeClass(), delta.getOid(), 
-								delta.getModifications(), result);
+								delta.getModifications(), result1);
 					} else {
 						throw new IllegalArgumentException("Wrong delta type "+delta.getChangeType()+" in "+delta);
 					}
+                    result1.computeStatusIfUnknown();
+                    retval.add(new ObjectDeltaOperation<>(delta, result1));
 				}
 				auditRecord.setTimestamp(null);
 				auditRecord.setOutcome(OperationResultStatus.SUCCESS);
@@ -442,7 +448,14 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, options, task, result);
 				// Note: Request authorization happens inside clockwork
 				clockwork.run(context, task, result);
-						
+
+                // prepare return value
+                if (context.getFocusContext() != null) {
+                    retval.addAll(context.getFocusContext().getExecutedDeltas());
+                }
+                for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
+                    retval.addAll(projectionContext.getExecutedDeltas());
+                }
 			}
 			
 			result.computeStatus();
@@ -485,6 +498,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		} finally {
 			RepositoryCache.exit();
 		}
+        return retval;
 	}
 	
 	@Override

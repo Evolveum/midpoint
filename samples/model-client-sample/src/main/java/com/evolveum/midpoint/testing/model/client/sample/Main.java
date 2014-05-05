@@ -33,6 +33,7 @@ import javax.xml.ws.Holder;
 import javax.xml.ws.BindingProvider;
 
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SelectorQualifiedGetOptionType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SelectorQualifiedGetOptionsType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -258,9 +259,8 @@ public class Main {
 
         ObjectDeltaListType deltaListType = new ObjectDeltaListType();
         deltaListType.getDelta().add(deltaType);
-		modelPort.executeChanges(deltaListType, null);
-		
-		throw new UnsupportedOperationException("Here we should return OID but first we have to change executeChanges method interface");
+		ObjectDeltaOperationListType operationListType = modelPort.executeChanges(deltaListType, null);
+		return ModelClientUtil.getOidFromDeltaOperationList(operationListType, deltaType);
 	}
 	
 	private static void changeUserPassword(ModelPortType modelPort, String oid, String newPassword) throws FaultMessage {
