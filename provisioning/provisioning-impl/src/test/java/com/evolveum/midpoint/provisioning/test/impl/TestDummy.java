@@ -3070,48 +3070,10 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
 	@Test
-	public void test500AddProtectedAccount() throws ObjectNotFoundException, CommunicationException, SchemaException,
-			ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException {
-		TestUtil.displayTestTile("test500AddProtectedAccount");
-		// GIVEN
-		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
-				+ ".test500AddProtectedAccount");
-		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test500AddProtectedAccount");
-		syncServiceMock.reset();
-
-		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
-		ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
-		ShadowType shadowType = new ShadowType();
-		PrismTestUtil.getPrismContext().adopt(shadowType);
-		shadowType.setName(PrismTestUtil.createPolyStringType(ACCOUNT_DAVIEJONES_USERNAME));
-		ObjectReferenceType resourceRef = new ObjectReferenceType();
-		resourceRef.setOid(resource.getOid());
-		shadowType.setResourceRef(resourceRef);
-		shadowType.setObjectClass(defaultAccountDefinition.getTypeName());
-		PrismObject<ShadowType> shadow = shadowType.asPrismObject();
-		PrismContainer<Containerable> attrsCont = shadow.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
-		PrismProperty<String> icfsNameProp = attrsCont.findOrCreateProperty(ConnectorFactoryIcfImpl.ICFS_NAME);
-		icfsNameProp.setRealValue(ACCOUNT_DAVIEJONES_USERNAME);
-
-		// WHEN
-		try {
-			provisioningService.addObject(shadow, null, null, syncTask, result);
-			AssertJUnit.fail("Expected security exception while adding 'daviejones' account");
-		} catch (SecurityViolationException e) {
-			// This is expected
-			display("Expected exception", e);
-		}
-		
-		result.computeStatus();
-		display("addObject result (expected failure)", result);
-		TestUtil.assertFailure(result);
-		
-		syncServiceMock.assertNotifyFailureOnly();
-
-//		checkConsistency();
-		
-		assertSteadyResource();
+	public void test500AddProtectedAccount() throws Exception {
+		final String TEST_NAME = "test500AddProtectedAccount";
+		TestUtil.displayTestTile(TEST_NAME);
+		testAddProtectedAccount(TEST_NAME, ACCOUNT_DAVIEJONES_USERNAME);
 	}
 
 	@Test
@@ -3234,6 +3196,82 @@ public class TestDummy extends AbstractDummyTest {
 		TestUtil.assertFailure(result);
 		
 		syncServiceMock.assertNotifyFailureOnly();
+
+//		checkConsistency();
+		
+		assertSteadyResource();
+	}
+	
+	@Test
+	public void test510AddProtectedAccounts() throws Exception {
+		final String TEST_NAME = "test510AddProtectedAccounts";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		testAddProtectedAccount(TEST_NAME, "Xavier");
+		testAddProtectedAccount(TEST_NAME, "Xenophobia");
+		testAddAccount(TEST_NAME, "piXel");
+		testAddAccount(TEST_NAME, "supernaturalius");
+	}
+	
+	private PrismObject<ShadowType> createAccountShadow(String username) throws SchemaException {
+		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+		ObjectClassComplexTypeDefinition defaultAccountDefinition = resourceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
+		ShadowType shadowType = new ShadowType();
+		PrismTestUtil.getPrismContext().adopt(shadowType);
+		shadowType.setName(PrismTestUtil.createPolyStringType(username));
+		ObjectReferenceType resourceRef = new ObjectReferenceType();
+		resourceRef.setOid(resource.getOid());
+		shadowType.setResourceRef(resourceRef);
+		shadowType.setObjectClass(defaultAccountDefinition.getTypeName());
+		PrismObject<ShadowType> shadow = shadowType.asPrismObject();
+		PrismContainer<Containerable> attrsCont = shadow.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
+		PrismProperty<String> icfsNameProp = attrsCont.findOrCreateProperty(ConnectorFactoryIcfImpl.ICFS_NAME);
+		icfsNameProp.setRealValue(username);
+		return shadow;
+	}
+	
+	private void testAddProtectedAccount(final String TEST_NAME, String username) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException {
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+		
+		PrismObject<ShadowType> shadow = createAccountShadow(username);
+
+		// WHEN
+		try {
+			provisioningService.addObject(shadow, null, null, task, result);
+			AssertJUnit.fail("Expected security exception while adding '"+username+"' account");
+		} catch (SecurityViolationException e) {
+			// This is expected
+			display("Expected exception", e);
+		}
+		
+		result.computeStatus();
+		display("addObject result (expected failure)", result);
+		TestUtil.assertFailure(result);
+		
+		syncServiceMock.assertNotifyFailureOnly();
+
+//		checkConsistency();
+		
+		assertSteadyResource();
+	}
+
+	private void testAddAccount(final String TEST_NAME, String username) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException {
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+		
+		PrismObject<ShadowType> shadow = createAccountShadow(username);
+
+		// WHEN
+		provisioningService.addObject(shadow, null, null, task, result);
+		
+		result.computeStatus();
+		display("addObject result (expected failure)", result);
+		TestUtil.assertSuccess(result);
+		
+		syncServiceMock.assertNotifySuccessOnly();
 
 //		checkConsistency();
 		
