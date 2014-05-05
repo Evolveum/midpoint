@@ -56,7 +56,7 @@ import java.util.List;
 @Component
 public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 
-    public static final String HANDLER_URI = ImportConstants.IMPORT_URI_TASK_PREFIX + "/file/handler-2";
+    public static final String HANDLER_URI = ImportConstants.IMPORT_URI_TASK_PREFIX + "/file/handler-3";
 
     @Autowired(required = true)
     private TaskManager taskManager;

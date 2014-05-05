@@ -966,7 +966,7 @@
                        xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
                        xmlns:enc="http://www.w3.org/2001/04/xmlenc#">waiting</c:executionStatus>
     <category>Workflow</category>
-    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/operation/handler-2</handlerUri>
+    <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/operation/handler-3</handlerUri>
     <c:result xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
               xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
               xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"

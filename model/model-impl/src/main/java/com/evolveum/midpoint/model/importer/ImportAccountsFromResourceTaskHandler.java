@@ -84,7 +84,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @Component
 public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterativeTaskHandler<ShadowType, SynchronizeAccountResultHandler> {
 
-    public static final String HANDLER_URI = ImportConstants.IMPORT_URI_TASK_PREFIX + "/accounts-resource/handler-2";
+    public static final String HANDLER_URI = ImportConstants.IMPORT_URI_TASK_PREFIX + "/accounts-resource/handler-3";
 
     // WARNING! This task handler is efficiently singleton!
  	// It is a spring bean and it is supposed to handle all search task instances

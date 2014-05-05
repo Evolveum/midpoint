@@ -545,11 +545,11 @@
             </correlation>
             <reaction>
                 <situation>linked</situation>
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
             </reaction>
             <reaction>
                 <situation>unmatched</situation>
-                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser">
+                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser">
                     <userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
                 </action>
             </reaction>
@@ -643,7 +643,7 @@
         <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <executionStatus>runnable</executionStatus>
-        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-2</handlerUri>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
         <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="c:ResourceType"/>
         <recurrence>recurring</recurrence>
         <binding>tight</binding>
@@ -1056,7 +1056,7 @@
 	<user oid="U1122334455" 
 			xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-2'
+            xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 		<name>elaine</name>
 		<parentOrgRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/> <!-- No "relation" in the ref means "member" -->

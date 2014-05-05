@@ -482,7 +482,7 @@ It also contains inbound mappings and definition to enable synchronization.
 	                <situation>deleted</situation>
 	                <synchronize>true</synchronize>
 		            <action>
-		            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlink</handlerUri>
+		            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
 		            </action>
 	            </reaction>
 	
@@ -490,14 +490,14 @@ It also contains inbound mappings and definition to enable synchronization.
 	                <situation>unlinked</situation>
 	                <synchronize>true</synchronize>
 		            <action>
-		            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#link</handlerUri>
+		            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
 		            </action>
 	            </reaction>
 	            <reaction>
 	                <situation>unmatched</situation>
 	                <synchronize>true</synchronize>
 		            <action>
-		            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#addFocus</handlerUri>
+		            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
 		            </action>
 	            </reaction>
 			</objectSynchronization>
@@ -514,7 +514,7 @@ It also contains inbound mappings and definition to enable synchronization.
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <executionStatus>runnable</executionStatus>
 
-        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-2</handlerUri>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
         <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType"/>
         <recurrence>recurring</recurrence>
         <binding>tight</binding>

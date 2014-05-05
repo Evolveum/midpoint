@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.component;
 
-import com.evolveum.midpoint.web.component.resource.img.ImgResources;
+import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.component.util.BaseSimplePanel;
 import com.evolveum.midpoint.web.component.util.FutureUpdateBehavior;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;

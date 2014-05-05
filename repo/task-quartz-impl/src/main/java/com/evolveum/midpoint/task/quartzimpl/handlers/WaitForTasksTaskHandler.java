@@ -40,7 +40,7 @@ import java.util.List;
 public class WaitForTasksTaskHandler implements TaskHandler {
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(WaitForTasksTaskHandler.class);
-	public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/wait-for-tasks/handler-2";
+	public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/task/wait-for-tasks/handler-3";
 
 	private static WaitForTasksTaskHandler instance = null;
 	private TaskManagerQuartzImpl taskManagerImpl;

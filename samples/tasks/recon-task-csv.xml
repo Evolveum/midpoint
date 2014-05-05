@@ -36,7 +36,7 @@
 	<executionStatus>runnable</executionStatus>
 
     <category>Reconciliation</category>
-	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-2</handlerUri>
+	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/reconciliation/handler-3</handlerUri>
 	<objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe" type="ResourceType"/>
 	<recurrence>recurring</recurrence>
 	<binding>loose</binding>

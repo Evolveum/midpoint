@@ -505,7 +505,7 @@ accounts feature
                     <password>
                         <outbound>
 <!-- Initial seed: The password is sent to resource only when changing from GUI -->
-                            <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-2#user</channel>
+                            <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</channel>
 			</outbound>
                         <inbound>
                             <strength>weak</strength>
@@ -603,22 +603,22 @@ else return '###ThisIsAnExpressionThatWillNeverMatchUserName2330587969###'
 	             -->
 	            <reaction>
 	                <situation>linked</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
 	            </reaction>
 	            <reaction>
 	                <situation>deleted</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
 	            </reaction>
 	            <reaction>
 	                <situation>unlinked</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
 	            </reaction>
 
 	            <reaction>
 <!-- FIXME: Production: change to disableAccount or something else -->
 	                <situation>unmatched</situation>
 <!--
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser">
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser">
 				<objectTemplateRef oid="10000000-0000-0000-0000-a000fe000002"/>
 	                </action>-->
 	            </reaction>

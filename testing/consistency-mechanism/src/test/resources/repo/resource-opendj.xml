@@ -566,21 +566,21 @@ always return at most one match, the confirmation rule is not needed. -->
             <c:situation>deleted</c:situation>
             <synchronize>true</synchronize>
             <action>
-            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlink</handlerUri>
+            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
             </action>
         </c:reaction>
         <c:reaction>
             <c:situation>unlinked</c:situation>
             <synchronize>true</synchronize>
             <action>
-            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#link</handlerUri>
+            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
             </action>
         </c:reaction>
         <c:reaction>
             <c:situation>unmatched</c:situation>
             <synchronize>true</synchronize>
             <action>
-            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#addFocus</handlerUri>
+            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
             </action>
         </c:reaction>
 </objectSynchronization>

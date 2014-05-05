@@ -485,20 +485,20 @@
 		
 	            <reaction>
 	                <situation>linked</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
 	            </reaction>
 	            <reaction>
 	                <situation>deleted</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
 	            </reaction>
 	
 	            <reaction>
 	                <situation>unlinked</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
 	            </reaction>
 	            <reaction>
 	                <situation>unmatched</situation>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser">
+	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser">
 	                </action>
 	            </reaction>
 			</objectSynchronization>
@@ -514,7 +514,7 @@
         <taskIdentifier>91919191-76e0-59e2-86d6-3d4f02d3ffff</taskIdentifier>
         <ownerRef oid="00000000-0000-0000-0000-000000000002"/>
         <executionStatus>runnable</executionStatus>
-        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-2</handlerUri>
+        <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
         <objectRef oid="12c78a70-76b7-11e2-9cb3-001e8c717e5b" type="ResourceType"/>
         <recurrence>recurring</recurrence>
         <binding>tight</binding>

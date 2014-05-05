@@ -118,7 +118,7 @@
 				</outbound>
 				<inbound>
 					<name>location inbound mapping</name>
-					<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-2#import</channel>
+					<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel>
 					<expression>
 						<script>
 							<code>'Came from ' + input</code>
@@ -155,7 +155,7 @@
 					</expression>
 				</outbound>
 				<inbound>
-					<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-2#liveSync</channel>
+					<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#liveSync</channel>
 					<target>
 						<path>costCenter</path>
 					</target>
@@ -408,15 +408,15 @@ return tmpSuffix
 	            <situation>unlinked</situation>
 	            <synchronize>true</synchronize>
 	            <action>
-	             	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#link</handlerUri>
+	             	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
              	</action>
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
 	            <synchronize>true</synchronize>
-<!-- 	        <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-2#import</channel> -->
+<!-- 	        <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel> -->
 	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#addFocus</handlerUri>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
 	            </action>
 	        </reaction>
         </objectSynchronization>
@@ -444,21 +444,21 @@ return tmpSuffix
 	            <situation>deleted</situation>
 	            <synchronize>true</synchronize>
 	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlink</handlerUri>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
 	            </action>
 	        </reaction>
 	        <reaction>
 	            <situation>unlinked</situation>
 	            <synchronize>true</synchronize>
 	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#link</handlerUri>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
 	            </action>
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
 	            <synchronize>true</synchronize>
 	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#addFocus</handlerUri>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
 	            </action>
 	        </reaction>
         </objectSynchronization>

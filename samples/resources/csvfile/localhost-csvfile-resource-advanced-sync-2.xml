@@ -252,15 +252,15 @@ object.
 	             -->
 				<reaction>
 					<situation>linked</situation>
-					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
+					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#modifyUser"/>
 				</reaction>
 				<reaction>
 					<situation>deleted</situation>
-					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
+					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlinkAccount"/>
 				</reaction>
 				<reaction>
 					<situation>unlinked</situation>
-					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
 				</reaction>
 				<reaction>
 					<situation>unmatched</situation>
@@ -268,8 +268,8 @@ object.
 	                         created as a result of this action, it will be created according
 	                         to this template. -->
 					<objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222333"/>
-					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser"/>
-					<!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>-->
+					<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"/>
+					<!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>-->
 				</reaction>
 			</objectSynchronization>
 		</synchronization>
@@ -343,7 +343,7 @@ object.
 		<taskIdentifier>91919191-76e0-59e2-8888-3d4f02d3ffff</taskIdentifier>
 		<ownerRef oid="00000000-0000-0000-0000-000000000002"/>
 		<executionStatus>runnable</executionStatus>
-		<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-2</handlerUri>
+		<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/live-sync/handler-3</handlerUri>
         <objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3fafe" type="c:ResourceType"/>
 		<recurrence>recurring</recurrence>
 		<binding>tight</binding>

@@ -87,7 +87,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @Component
 public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<UserType, AbstractSearchIterativeResultHandler<UserType>> {
 
-	public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/recompute/handler-2";
+	public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/recompute/handler-3";
 
     @Autowired(required=true)
 	private TaskManager taskManager;

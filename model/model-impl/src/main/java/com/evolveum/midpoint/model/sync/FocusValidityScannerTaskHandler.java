@@ -69,7 +69,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 	// Therefore it must not have task-specific fields. It can only contain fields specific to
 	// all tasks of a specified type
 	
-	public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/focus-validation-scanner/handler-2";
+	public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/focus-validation-scanner/handler-3";
 
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;

@@ -45,7 +45,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @Component
 public class MockTaskHandler implements TaskHandler {
 
-	public static final String HANDLER_URI = SchemaConstants.NS_MODEL + "/mock/handler-2";
+	public static final String HANDLER_URI = SchemaConstants.NS_MODEL + "/mock/handler-3";
 
 	@Autowired(required = true)
 	private TaskManager taskManager;

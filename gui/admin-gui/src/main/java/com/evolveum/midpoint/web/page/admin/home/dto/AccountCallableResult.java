@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.home.dto;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.web.component.async.CallableResult;
+import com.evolveum.midpoint.web.component.util.CallableResult;
 
 import java.util.ArrayList;
 import java.util.List;

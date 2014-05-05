@@ -45,7 +45,7 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
 
     private static final String DOT_CLASS = ScriptExecutionTaskHandler.class.getName() + ".";
 
-    public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-2";
+    public static final String HANDLER_URI = "http://midpoint.evolveum.com/xml/ns/public/model/scripting/handler-3";
 
     @Autowired
 	private TaskManager taskManager;

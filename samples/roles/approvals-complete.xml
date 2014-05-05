@@ -17,7 +17,7 @@
 
 <objects xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
          xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-2'>
+         xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'>
 	<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       oid="0e030e0c-a37d-47b2-bde8-f8e61e4a2bfb"
       version="2">

@@ -20,10 +20,10 @@
         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>Object Filter Modify Caribbean</name>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#read</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     </authorization>
     <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-2#modify</action>
+    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
     	<object>
     		<filter>
     			<q:equal>
