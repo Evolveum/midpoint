@@ -250,7 +250,7 @@ public class ResourceObjectConverter {
 
 		Collection<ResourceAttribute<?>> resourceAttributesAfterAdd = null;
 
-		if (isProtectedShadow(resource, shadowClone)) {
+		if (isProtectedShadow(resource, objectClassDefinition, shadowClone)) {
 			LOGGER.error("Attempt to add protected shadow " + shadowType + "; ignoring the request");
 			throw new SecurityViolationException("Cannot get protected shadow " + shadowType);
 		}
@@ -323,10 +323,8 @@ public class ResourceObjectConverter {
 		LOGGER.trace("Getting object identifiers");
 		Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil
 				.getIdentifiers(shadow);
-		Collection<? extends ResourceAttribute<?>> attributes = ShadowUtil
-				.getAttributes(shadow);
 
-		if (isProtectedShadow(resource, objectClassDefinition, attributes)) {
+		if (isProtectedShadow(resource, objectClassDefinition, shadow)) {
 			LOGGER.error("Attempt to delete protected resource object " + objectClassDefinition + ": "
 					+ identifiers + "; ignoring the request");
 			throw new SecurityViolationException("Cannot delete protected resource object "
@@ -391,9 +389,8 @@ public class ResourceObjectConverter {
 		Collection<Operation> operations = new ArrayList<Operation>();
 		
 		Collection<? extends ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(shadow);
-		Collection<? extends ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
 
-		if (isProtectedShadow(resource, objectClassDefinition, attributes)) {
+		if (isProtectedShadow(resource, objectClassDefinition, shadow)) {
 			if (hasChangesOnResource(itemDeltas)) {
 				LOGGER.error("Attempt to modify protected resource object " + objectClassDefinition + ": "
 						+ identifiers);
@@ -1012,7 +1009,7 @@ public class ResourceObjectConverter {
 			PrismObject<ShadowType> resourceObject, RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult) throws SchemaException, CommunicationException, GenericFrameworkException {
 		
 		ShadowType resourceObjectType = resourceObject.asObjectable();
-		setProtectedFlag(resourceType, resourceObject);
+		setProtectedFlag(resourceType, objectClassDefinition, resourceObject);
 		
 		// Simulated Activation
 		// FIXME??? when there are not native capabilities for activation, the
@@ -1035,8 +1032,8 @@ public class ResourceObjectConverter {
 		return resourceObject;
 	}
 	
-	public void setProtectedFlag(ResourceType resourceType, PrismObject<ShadowType> resourceObject) throws SchemaException {
-		if (isProtectedShadow(resourceType, resourceObject)) {
+	public void setProtectedFlag(ResourceType resourceType, RefinedObjectClassDefinition rOcDef, PrismObject<ShadowType> resourceObject) throws SchemaException {
+		if (isProtectedShadow(resourceType, rOcDef, resourceObject)) {
 			resourceObject.asObjectable().setProtectedObject(true);
 		}
 	}
@@ -1389,60 +1386,26 @@ public class ResourceObjectConverter {
 		}
 	}
 	
-	public boolean isProtectedShadow(ResourceType resource,
+	private boolean isProtectedShadow(ResourceType resource, RefinedObjectClassDefinition objectClassDefinition,
 			PrismObject<ShadowType> shadow) throws SchemaException {
-		ResourceAttributeContainer attributesContainer = ShadowUtil
-				.getAttributesContainer(shadow);
-		if (attributesContainer == null) {
-			return false;
-		}
-		QName objectClass = shadow.asObjectable().getObjectClass();
-		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
-		return isProtectedShadow(resource, objectClass, attributes);
-	}
-
-	public boolean isProtectedShadow(ResourceType resource,
-			ObjectClassComplexTypeDefinition objectClassDefinition,
-			Collection<? extends ResourceAttribute<?>> attributes) throws SchemaException {
-		return isProtectedShadow(resource, objectClassDefinition.getTypeName(), attributes);
-	}
-
-	private boolean isProtectedShadowChange(ResourceType resource, Change change) throws SchemaException {
-		PrismObject<ShadowType> currentShadow = change.getCurrentShadow();
-		if (currentShadow != null) {
-			return isProtectedShadow(resource, currentShadow);
-		}
-		Collection<ResourceAttribute<?>> identifiers = change.getIdentifiers();
-		return isProtectedShadow(resource, change.getObjectClassDefinition().getTypeName(), identifiers);
-	}
-
-	private boolean isProtectedShadow(ResourceType resource, QName objectClass,
-			Collection<? extends ResourceAttribute<?>> attributes) throws SchemaException {
-		// TODO: support also other types except account
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, prismContext);
-		// HACK FIXME
-		RefinedObjectClassDefinition refinedAccountDef = refinedSchema
-				.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT, objectClass);
 		boolean isProtected = false;
-		if (refinedAccountDef == null) {
+		if (objectClassDefinition == null) {
 			isProtected = false;
 		} else {
-			Collection<ResourceObjectPattern> protectedAccountPatterns = refinedAccountDef.getProtectedObjectPatterns();
+			ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
+			if (attributesContainer == null) {
+				return false;
+			}
+			Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
+			Collection<ResourceObjectPattern> protectedAccountPatterns = objectClassDefinition.getProtectedObjectPatterns();
 			if (protectedAccountPatterns == null) {
 				isProtected = false;
 			} else {
 				isProtected = ResourceObjectPattern.matches(attributes, protectedAccountPatterns, matchingRuleRegistry);
 			}
 		}
-		LOGGER.trace("isProtectedShadow: {} -> {}, {} = {}", new Object[] { objectClass, refinedAccountDef,
-				attributes, isProtected });
+		LOGGER.trace("isProtectedShadow: {}: {} = {}", new Object[] { objectClassDefinition,
+				shadow, isProtected });
 		return isProtected;
 	}
-
-	private PrismObjectDefinition<ShadowType> getShadowTypeDef() {
-		if (shadowTypeDefinition == null) {
-			shadowTypeDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
-		}
-		return shadowTypeDefinition;
-	}	
 }
