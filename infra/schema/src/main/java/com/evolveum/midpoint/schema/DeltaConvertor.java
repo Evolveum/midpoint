@@ -96,6 +96,9 @@ public class DeltaConvertor {
             PrismContext prismContext) throws SchemaException {
     	
     	QName objectType = objectDeltaType.getObjectType();
+        if (objectType == null) {
+            throw new SchemaException("No objectType specified");
+        }
     	PrismObjectDefinition<T> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(objectType);
     	Class<T> type = objDef.getCompileTimeClass();
 

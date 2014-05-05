@@ -66,19 +66,20 @@ public class ModelClientUtil {
 	
 	public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-3";
 	private static final QName TYPES_POLYSTRING_ORIG = new QName(NS_TYPES, "orig");
-	
+    public static final QName TYPES_CLEAR_VALUE = new QName(NS_TYPES, "clearValue");
+
 	private static final DocumentBuilder domDocumentBuilder;
 	
 	public static JAXBContext instantiateJaxbContext() throws JAXBException {
-		return JAXBContext.newInstance("com.evolveum.midpoint.xml.ns._public.common.api_types_2:" +
+		return JAXBContext.newInstance("com.evolveum.midpoint.xml.ns._public.common.api_types_3:" +
 				"com.evolveum.midpoint.xml.ns._public.common.common_3:" +
-				"com.evolveum.midpoint.xml.ns._public.common.fault_1:" +
+				"com.evolveum.midpoint.xml.ns._public.common.fault_3:" +
 				"com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3:" +
 				"com.evolveum.midpoint.xml.ns._public.connector.icf_1.resource_schema_3:" +
 				"com.evolveum.midpoint.xml.ns._public.resource.capabilities_3:" +
 				"com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3:" +
                 "com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3:" +
-				"com.evolveum.prism.xml.ns._public.annotation_2:" +
+				"com.evolveum.prism.xml.ns._public.annotation_3:" +
 				"com.evolveum.prism.xml.ns._public.query_3:" +
 				"com.evolveum.prism.xml.ns._public.types_3:" +
 				"org.w3._2000._09.xmldsig:" +
@@ -131,7 +132,8 @@ public class ModelClientUtil {
 
 	public static ProtectedStringType createProtectedString(String clearValue) {
 		ProtectedStringType protectedString = new ProtectedStringType();
-		protectedString.getContent().add(clearValue);
+        // this is a bit of workaround: it should be possible to add clearValue by itself, but there seems to be a parsing bug on the server side that needs to be fixed first (TODO)
+		protectedString.getContent().add(toJaxbElement(TYPES_CLEAR_VALUE, clearValue));
 		return protectedString;
 	}
 

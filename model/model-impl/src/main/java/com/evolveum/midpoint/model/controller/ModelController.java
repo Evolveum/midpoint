@@ -603,6 +603,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				}
 			} else {
 				PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(delta.getObjectTypeClass());
+                if (objDef == null) {
+                    throw new SchemaException("No definition for delta object type class: " + delta.getObjectTypeClass());
+                }
 				delta.applyDefinition(objDef);
 			}
 		}
