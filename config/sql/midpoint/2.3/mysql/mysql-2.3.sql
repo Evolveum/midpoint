@@ -317,6 +317,7 @@ CREATE TABLE m_object (
   modifyTimestamp       DATETIME(6),
   name_norm             VARCHAR(255),
   name_orig             VARCHAR(255),
+  objectTypeClass       INTEGER,
   polysCount            SMALLINT,
   referencesCount       SMALLINT,
   stringsCount          SMALLINT,
