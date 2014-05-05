@@ -731,18 +731,19 @@ public class TestSanity extends AbstractModelIntegrationTest {
     private static ObjectDeltaOperationType getOdoFromDeltaOperationList(ObjectDeltaOperationListType operationListType, ObjectDeltaType originalDelta) {
         Validate.notNull(operationListType);
         Validate.notNull(originalDelta);
-        if (originalDelta.getChangeType() != ChangeTypeType.ADD) {
-            throw new IllegalArgumentException("Original delta is not of ADD type");
-        }
-        if (originalDelta.getObjectToAdd() == null) {
-            throw new IllegalArgumentException("Original delta contains no object-to-be-added");
-        }
         for (ObjectDeltaOperationType operationType : operationListType.getDeltaOperation()) {
             ObjectDeltaType objectDeltaType = operationType.getObjectDelta();
-            if (objectDeltaType.getChangeType() == ChangeTypeType.ADD &&
+            if (originalDelta.getChangeType() == ChangeTypeType.ADD) {
+                if (objectDeltaType.getChangeType() == originalDelta.getChangeType() &&
                     objectDeltaType.getObjectToAdd() != null) {
-                ObjectType objectAdded = (ObjectType) objectDeltaType.getObjectToAdd();
-                if (objectAdded.getClass().equals(originalDelta.getObjectToAdd().getClass())) {
+                    ObjectType objectAdded = (ObjectType) objectDeltaType.getObjectToAdd();
+                    if (objectAdded.getClass().equals(originalDelta.getObjectToAdd().getClass())) {
+                        return operationType;
+                    }
+                }
+            } else {
+                if (objectDeltaType.getChangeType() == originalDelta.getChangeType() &&
+                        originalDelta.getOid().equals(objectDeltaType.getOid())) {
                     return operationType;
                 }
             }

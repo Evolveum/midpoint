@@ -73,9 +73,21 @@ public class Slf4jConnectorLogger implements LogSpi {
 		}
 	}
 
-	@Override
+    //@Override
+    // not using override to be able to work with both "old" and current version of connid
+    public void log(Class<?> clazz, StackTraceElement caller, Level level, String message, Throwable ex) {
+        log(clazz, caller.getMethodName(), level, message, ex);
+    }
+
+    @Override
 	public boolean isLoggable(Class<?> clazz, Level level) {
 		return true;
 	}
+
+    //@Override
+    // not using override to be able to work with both "old" and current version of connid
+    public boolean needToInferCaller(Class<?> clazz, Level level) {
+        return false;
+    }
 
 }

@@ -122,11 +122,9 @@ public class ModelClientUtil {
 	}
 
 	public static ProtectedStringType createProtectedString(String clearValue) {
-		ProtectedStringType protectedString = new ProtectedStringType();
-        // this is a bit of workaround: it should be possible to add clearValue by itself, but there seems to be a parsing bug on the server side that needs to be fixed first (TODO)
-		protectedString.getContent().add(toJaxbElement(TYPES_CLEAR_VALUE, clearValue));
-		return protectedString;
-	}
+        ProtectedStringType protectedString = new ProtectedStringType();
+        protectedString.setClearValue(clearValue);
+        return protectedString;	}
 
 	public static <T> JAXBElement<T> toJaxbElement(QName name, T value) {
 		return new JAXBElement<T>(name, (Class<T>) value.getClass(), value);
