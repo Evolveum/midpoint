@@ -1392,16 +1392,11 @@ public class ResourceObjectConverter {
 		if (objectClassDefinition == null) {
 			isProtected = false;
 		} else {
-			ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadow);
-			if (attributesContainer == null) {
-				return false;
-			}
-			Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
 			Collection<ResourceObjectPattern> protectedAccountPatterns = objectClassDefinition.getProtectedObjectPatterns();
 			if (protectedAccountPatterns == null) {
 				isProtected = false;
 			} else {
-				isProtected = ResourceObjectPattern.matches(attributes, protectedAccountPatterns, matchingRuleRegistry);
+				isProtected = ResourceObjectPattern.matches(shadow, protectedAccountPatterns, matchingRuleRegistry);
 			}
 		}
 		LOGGER.trace("isProtectedShadow: {}: {} = {}", new Object[] { objectClassDefinition,
