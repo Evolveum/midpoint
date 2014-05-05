@@ -51,7 +51,10 @@ import javax.xml.ws.Holder;
 
 import com.evolveum.midpoint.prism.PrismContext;
 
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.Attribute;
@@ -718,10 +721,33 @@ public class TestSanity extends AbstractModelIntegrationTest {
     	objectDelta.setObjectType(type);
     	objectDelta.setChangeType(ChangeTypeType.ADD);
     	deltaList.getDelta().add(objectDelta);
-    	resultHolder.value = modelWeb.executeChanges(deltaList, options);
-    	
-//    	return oid;
-//        throw new UnsupportedOperationException("Implement later");
+    	ObjectDeltaOperationListType objectDeltaOperationListType = modelWeb.executeChanges(deltaList, options);
+        ObjectDeltaOperationType objectDeltaOperationType = getOdoFromDeltaOperationList(objectDeltaOperationListType, objectDelta);
+        resultHolder.value = objectDeltaOperationType.getExecutionResult();
+        oidHolder.value = ((ObjectType) objectDeltaOperationType.getObjectDelta().getObjectToAdd()).getOid();
+    }
+
+    // ugly hack...
+    private static ObjectDeltaOperationType getOdoFromDeltaOperationList(ObjectDeltaOperationListType operationListType, ObjectDeltaType originalDelta) {
+        Validate.notNull(operationListType);
+        Validate.notNull(originalDelta);
+        if (originalDelta.getChangeType() != ChangeTypeType.ADD) {
+            throw new IllegalArgumentException("Original delta is not of ADD type");
+        }
+        if (originalDelta.getObjectToAdd() == null) {
+            throw new IllegalArgumentException("Original delta contains no object-to-be-added");
+        }
+        for (ObjectDeltaOperationType operationType : operationListType.getDeltaOperation()) {
+            ObjectDeltaType objectDeltaType = operationType.getObjectDelta();
+            if (objectDeltaType.getChangeType() == ChangeTypeType.ADD &&
+                    objectDeltaType.getObjectToAdd() != null) {
+                ObjectType objectAdded = (ObjectType) objectDeltaType.getObjectToAdd();
+                if (objectAdded.getClass().equals(originalDelta.getObjectToAdd().getClass())) {
+                    return operationType;
+                }
+            }
+        }
+        throw new IllegalStateException("No suitable ObjectDeltaOperationType found");
     }
 
     private void checkRepoDerbyResource() throws ObjectNotFoundException, SchemaException {
@@ -1114,7 +1140,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
 //    	objectDelta.setOid(oid);
 //    	objectDelta.setObjectType(typeQName);
     	deltaList.getDelta().add(objectChange);
-    	return modelWeb.executeChanges(deltaList, null);
+    	ObjectDeltaOperationListType list = modelWeb.executeChanges(deltaList, null);
+        return getOdoFromDeltaOperationList(list, objectChange).getExecutionResult();
     }
 
     /**
@@ -1834,8 +1861,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
     	objectDelta.setObjectType(typeQName);
     	objectDelta.setChangeType(ChangeTypeType.DELETE);
     	deltaList.getDelta().add(objectDelta);
-    	return modelWeb.executeChanges(deltaList, null);
-//        throw new UnsupportedOperationException("Implement later");
+    	ObjectDeltaOperationListType list = modelWeb.executeChanges(deltaList, null);
+        return getOdoFromDeltaOperationList(list, objectDelta).getExecutionResult();
     }
 
     @Test
