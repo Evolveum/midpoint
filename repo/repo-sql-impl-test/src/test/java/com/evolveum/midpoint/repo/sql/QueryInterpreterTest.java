@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
-import javax.xml.XMLConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -31,10 +30,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
-import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
-import com.evolveum.midpoint.repo.sql.query.RQueryImpl;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
-import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
@@ -45,6 +41,7 @@ import org.hibernate.sql.JoinType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
@@ -79,7 +76,6 @@ import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -115,6 +111,23 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void setup() throws SchemaException, SAXException, IOException {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+    }
+
+    @BeforeClass
+    public void beforeClass() throws Exception {
+        super.beforeClass();
+
+        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+
+        List<PrismObject<? extends Objectable>> objects = prismContext.parseObjects(
+                new File(FOLDER_BASIC, "objects.xml"));
+        OperationResult result = new OperationResult("add objects");
+        for (PrismObject object : objects) {
+            repositoryService.addObject(object, null, result);
+        }
+
+        result.recomputeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
     }
 
     @Test
@@ -1205,11 +1218,11 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         try {
             Criteria main = session.createCriteria(RObject.class, "o");
             main.add(Restrictions.or(
-               Restrictions.and(
-                       Restrictions.eq("o.name.orig", "some name"),
-                       Restrictions.eq("o.employeeNumber", "123")
-               ),
-                Restrictions.eq("o.identifier", "1234")
+                    Restrictions.and(
+                            Restrictions.eq("o.name.orig", "some name"),
+                            Restrictions.eq("o.employeeNumber", "123")
+                    ),
+                    Restrictions.eq("o.identifier", "1234")
             ));
             ProjectionList list = Projections.projectionList();
             addFullObjectProjectionList("o", list, false);

@@ -334,7 +334,14 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
             LessFilter lf = (LessFilter) filter;
             operation = lf.isEquals() ? ItemRestrictionOperation.LE : ItemRestrictionOperation.LT;
         } else if (filter instanceof SubstringFilter) {
-            operation = ItemRestrictionOperation.SUBSTRING;
+            SubstringFilter substring = (SubstringFilter) filter;
+            if (substring.isAnchorEnd()) {
+                operation = ItemRestrictionOperation.ENDS_WITH;
+            } else if (substring.isAnchorStart()) {
+                operation = ItemRestrictionOperation.STARTS_WITH;
+            } else {
+                operation = ItemRestrictionOperation.SUBSTRING;
+            }
         } else {
             throw new QueryException("Can't translate filter '" + filter + "' to operation.");
         }
