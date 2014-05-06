@@ -381,7 +381,7 @@ public class DeltaConvertor {
 //	            modValue.getContent().add(xmlValue);
 //	            mod.getValue().add(modValue);
 	        	XNode xnode = toXNode(delta, value);
-	        	RawType modValue = new RawType(xnode);
+	        	RawType modValue = new RawType(xnode, value.getPrismContext());
                 mod.getValue().add(modValue);
 	        }
         }

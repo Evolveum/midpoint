@@ -29,6 +29,7 @@ import com.evolveum.midpoint.model.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
@@ -272,10 +273,11 @@ public class ModelWebService implements ModelPortType, ModelPort {
             // here comes MSL script decoding (however with a quick hack to allow passing XML as text here)
             String scriptsAsString = parameters.getMslScripts();
             if (scriptsAsString.startsWith("<?xml")) {
-                // FIXME parse expressions
-                throw new UnsupportedOperationException("scripts couldn't be parsed yet");
-                //JAXBElement<?> expressionType = prismContext.parseAtomicValue(scriptsAsString, ExpressionType.COMPLEX_TYPE, PrismContext.LANG_XML);
-                //scriptsToExecute.add(expressionType);
+                PrismProperty expressionType = (PrismProperty) prismContext.parseAnyData(scriptsAsString, PrismContext.LANG_XML);
+                if (expressionType.size() != 1) {
+                    throw new IllegalArgumentException("Unexpected number of scripting expressions at input: " + expressionType.size() + " (expected 1)");
+                }
+                scriptsToExecute.add(expressionType.getAnyValue().toJaxbElement());
             }
         }
         return scriptsToExecute;
@@ -298,15 +300,15 @@ public class ModelWebService implements ModelPortType, ModelPort {
                 if (options == null || options.getOutputFormat() == null || options.getOutputFormat() == OutputFormatType.XML) {
                     output.setXmlData(prepareXmlData(outputContext.getFinalOutput()));
                 } else {
-                    throw new UnsupportedOperationException();
                     // temporarily we send serialized XML in the case of MSL output
-//                    ItemListType jaxbOutput = prepareXmlData(outputContext.getFinalOutput());
-//                    output.setMslData(prismContext.serializeAtomicValues(SchemaConstants.APIT_ITEM_LIST, PrismContext.LANG_XML, jaxbOutput));
+                    ItemListType jaxbOutput = prepareXmlData(outputContext.getFinalOutput());
+                    output.setMslData(prismContext.serializeAnyData(jaxbOutput, PrismContext.LANG_XML));
                 }
             }
             result.computeStatusIfUnknown();
         } catch (Exception e) {         // FIXME little bit brutal treatment
             result.recordFatalError(e.getMessage(), e);
+            LoggingUtils.logException(LOGGER, "Exception while executing script", e);
         }
         result.summarize();
         response.setResult(result.createOperationResultType());

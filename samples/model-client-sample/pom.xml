@@ -83,19 +83,19 @@
                 <artifactId>maven-dependency-plugin</artifactId>
                 <version>2.6</version>
                 <executions>
-<!--                     <execution> -->
-<!--                         <id>copy-dependencies</id> -->
-<!--                         <phase>package</phase> -->
-<!--                         <goals> -->
-<!--                             <goal>copy-dependencies</goal> -->
-<!--                         </goals> -->
-<!--                         <configuration> -->
-<!--                             <outputDirectory>${project.build.directory}/release/lib</outputDirectory> -->
-<!--                             <overWriteReleases>false</overWriteReleases> -->
-<!--                             <overWriteSnapshots>false</overWriteSnapshots> -->
-<!--                             <overWriteIfNewer>true</overWriteIfNewer> -->
-<!--                         </configuration> -->
-<!--                     </execution> -->
+                     <execution>
+                         <id>copy-dependencies</id>
+                         <phase>package</phase>
+                         <goals>
+                             <goal>copy-dependencies</goal>
+                         </goals>
+                         <configuration>
+                             <outputDirectory>${project.build.directory}/release/lib</outputDirectory>
+                             <overWriteReleases>false</overWriteReleases>
+                             <overWriteSnapshots>false</overWriteSnapshots>
+                             <overWriteIfNewer>true</overWriteIfNewer>
+                         </configuration>
+                     </execution>
                 </executions>
             </plugin>
             <plugin>

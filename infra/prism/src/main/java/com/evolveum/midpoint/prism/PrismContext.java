@@ -561,7 +561,7 @@ public class PrismContext {
      */
     public RawType toRawType(Item item) throws SchemaException {
         RootXNode rootXNode = xnodeProcessor.serializeItemAsRoot(item);
-        return new RawType(rootXNode);
+        return new RawType(rootXNode, this);
     }
 
     public <T extends Objectable> PrismObject<T> createObject(Class<T> clazz) {

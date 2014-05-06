@@ -137,7 +137,7 @@ public class StaticExpressionUtil {
 		List<JAXBElement<RawType>> elements = new ArrayList<>(item.size());
         for (PrismValue value : item.getValues()) {
             XNode xnode = xnodeProcessor.serializeItemValue(value);
-            RawType rawType = new RawType(xnode);
+            RawType rawType = new RawType(xnode, item.getPrismContext());
             JAXBElement<RawType> jaxbElement = new JAXBElement<>(SchemaConstants.C_VALUE, RawType.class, rawType);
             elements.add(jaxbElement);
         }

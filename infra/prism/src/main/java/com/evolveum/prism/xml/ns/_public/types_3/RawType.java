@@ -67,7 +67,12 @@ public class RawType implements Serializable, Cloneable, Equals {
 
     public RawType(XNode xnode) {
         this.xnode = xnode;
-        ((ContentList) content).fillIn();
+        ((ContentList) content).fillIn(null);
+    }
+
+    public RawType(XNode xnode, PrismContext prismContext) {
+        this.xnode = xnode;
+        ((ContentList) content).fillIn(prismContext);
     }
 
     /*
@@ -164,24 +169,27 @@ public class RawType implements Serializable, Cloneable, Equals {
             super.clear();
 	    }
 
-        void fillIn() {
+        void fillIn(PrismContext prismContext) {
             try {
-                fillInWithSchemaException();
+                fillInWithSchemaException(prismContext);
             } catch (SchemaException e) {
                 throw new SystemException("Couldn't prepare RawType contents: " + e.getMessage(), e);
             }
         }
 
-        private void fillInWithSchemaException() throws SchemaException {
+        // prismContext may be null
+        private void fillInWithSchemaException(PrismContext prismContext) throws SchemaException {
             DomParser domParser;
             XNode xnodeToSerialize;
             if (parsed != null) {
-                PrismContext prismContext = parsed.getPrismContext();
+                if (prismContext == null) {
+                    prismContext = parsed.getPrismContext();
+                }
                 xnodeToSerialize = prismContext.getXnodeProcessor().serializeItemValue(parsed);
                 domParser = prismContext.getParserDom();
             } else {
                 xnodeToSerialize = xnode;
-                domParser = new DomParser(null);
+                domParser = new DomParser(prismContext != null ? prismContext.getSchemaRegistry() : null);
             }
             if (xnode != null) {
                 Element rootElement = domParser.serializeToElement(xnodeToSerialize, new QName("dummy"));
