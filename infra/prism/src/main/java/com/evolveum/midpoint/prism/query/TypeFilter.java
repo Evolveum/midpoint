@@ -33,6 +33,10 @@ public class TypeFilter extends ObjectFilter {
         this.type = type;
     }
 
+    public QName getType() {
+        return type;
+    }
+
     @Override
     public ObjectFilter clone() {
         return new TypeFilter(type);
