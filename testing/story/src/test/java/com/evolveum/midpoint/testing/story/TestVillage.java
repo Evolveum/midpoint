@@ -397,16 +397,17 @@ public class TestVillage extends AbstractStoryTest {
         PrismObject<UserType> user = findUserByUsername(USER_HERMAN_NAME);
         
         // WHEN
-        unassignRole(user.getOid(), ROLE_SIMPLE_OID);
+        unassignRole(user.getOid(), ROLE_BASIC_OID);
         
         // THEN
         PrismObject<UserType> userAfter = getUser(user.getOid());
-        assertUserLdap(userAfter, ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME, ACCOUNT_HERMAN_ORG);
+        assertAssignedRole(userAfter, ROLE_SIMPLE_OID);
+//        assertUserLdap(userAfter, ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME, ACCOUNT_HERMAN_ORG);
         assertLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
         assertNoLdapLocGov(userAfter, ACCOUNT_HERMAN_LOC, ACCOUNT_HERMAN_ORG);
         
         // WHEN
-        unassignRole(user.getOid(), ROLE_BASIC_OID);
+        unassignRole(user.getOid(), ROLE_SIMPLE_OID);
         
         // THEN
         userAfter = getUser(user.getOid());

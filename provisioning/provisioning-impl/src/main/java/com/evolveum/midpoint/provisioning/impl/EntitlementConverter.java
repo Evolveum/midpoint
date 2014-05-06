@@ -39,6 +39,8 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -82,6 +84,9 @@ class EntitlementConverter {
 	
 	@Autowired(required=true)
 	private PrismContext prismContext;
+	
+	@Autowired(required = true)
+	private MatchingRuleRegistry matchingRuleRegistry;
 
 	//////////
 	// GET
@@ -194,8 +199,17 @@ class EntitlementConverter {
 			throw new SchemaException("Value attribute "+valueAttrName+" has no more than one value; attribute defined in entitlement association '"+associationName+"' in "+resourceType);
 		}
 		
-		ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef, valueAttr.getValue());
-		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		ObjectQuery query = createQuery(assocDefType, assocAttrDef, valueAttr);
+		
+//		MatchingRule matchingRule = matchingRuleRegistry.getMatchingRule(assocDefType.getResourceObjectAssociationType().getMatchingRule(), valueAttr.getDefinition().getTypeName());
+//		PrismPropertyValue normalized = valueAttr.getValue();
+//		if (matchingRule != null) {
+//			Object normalizedRealValue = matchingRule.normalize(valueAttr.getRealValue());
+//			normalized = new PrismPropertyValue(normalizedRealValue);
+//		}
+//		
+//		ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef, normalized);
+//		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 //		ObjectQuery query = new ObjectQuery();
 //		query.setFilter(filter);
 		
@@ -228,6 +242,21 @@ class EntitlementConverter {
 			throw (SchemaException)e.getCause();
 		}
 		
+	}
+
+	private <T> ObjectQuery createQuery(RefinedAssociationDefinition assocDefType, RefinedAttributeDefinition assocAttrDef, ResourceAttribute<T> valueAttr) throws SchemaException{
+		MatchingRule matchingRule = matchingRuleRegistry.getMatchingRule(assocDefType
+				.getResourceObjectAssociationType().getMatchingRule(), valueAttr.getDefinition()
+				.getTypeName());
+		PrismPropertyValue normalized = valueAttr.getValue();
+		if (matchingRule != null) {
+			Object normalizedRealValue = matchingRule.normalize(valueAttr.getRealValue());
+			normalized = new PrismPropertyValue(normalizedRealValue);
+		}
+		
+		ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef, normalized);
+		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		return query;
 	}
 	
 	//////////
@@ -358,10 +387,12 @@ class EntitlementConverter {
 				throw new SchemaException("Value attribute "+valueAttrName+" has no more than one value; attribute defined in entitlement association '"+associationName+"' in "+resourceType);
 			}
 			
+			ObjectQuery query = createQuery(assocDefType, assocAttrDef, valueAttr);
+			
 //			ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), assocAttrDef, valueAttr.getValue());
 //			ObjectFilter filter = InFilter.createIn(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef, valueAttr.getValue());
-			ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef, valueAttr.getValue());
-			ObjectQuery query = ObjectQuery.createObjectQuery(filter); 
+//			ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef, valueAttr.getValue());
+//			ObjectQuery query = ObjectQuery.createObjectQuery(filter); 
 //					new ObjectQuery();
 //			query.setFilter(filter);
 			
@@ -400,7 +431,7 @@ class EntitlementConverter {
 				}
 			};
 			try {
-				LOGGER.trace("Searching for associations in deleted shadow, query: {}", filter);
+				LOGGER.trace("Searching for associations in deleted shadow, query: {}", query);
 				connector.search(entitlementOcDef, query, handler, attributesToReturn, parentResult);
 			} catch (TunnelException e) {
 				throw (SchemaException)e.getCause();

@@ -1609,6 +1609,7 @@ public abstract class ShadowCache {
 					PrismObject<ShadowType> entitlementRepoShadow = lookupOrCreateShadowInRepository(connector, entitlementShadow, entitlementObjectClassDef, resource, parentResult);
 					ObjectReferenceType shadowRefType = new ObjectReferenceType();
 					shadowRefType.setOid(entitlementRepoShadow.getOid());
+					shadowRefType.setType(ShadowType.COMPLEX_TYPE);
 					shadowAssociationType.setShadowRef(shadowRefType);
 				}
 			}

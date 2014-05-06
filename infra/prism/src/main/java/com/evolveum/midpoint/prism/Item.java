@@ -316,6 +316,21 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
     	return contains(value, true);
     }
     
+    public boolean contains(V value, boolean ignoreMetadata, Comparator<V> comparator) {
+    	if (comparator == null){
+    		return contains(value, ignoreMetadata);
+    	} else{
+    		for (V myValue: getValues()) {
+        		if (comparator.compare(myValue, value) == 0) {
+        			return true;
+        		}
+        	}
+
+    	}
+    	
+    	return false;
+    }
+    
     public boolean contains(V value, boolean ignoreMetadata) {
     	for (V myValue: getValues()) {
     		if (myValue.equals(value, ignoreMetadata)) {
