@@ -77,7 +77,7 @@ public class ModifyExecutor extends BaseActionExecutor {
         if (deltaData.getData().size() != 1) {
             throw new ScriptExecutionException("Expected exactly one delta to apply, found "  + deltaData.getData().size() + " instead.");
         }
-        ObjectDeltaType deltaType = ((PrismProperty<ObjectDeltaType>) deltaData.getData().get(0)).getRealValue();
+        ObjectDeltaType deltaType = ((PrismProperty<ObjectDeltaType>) deltaData.getData().get(0)).getAnyRealValue();
         if (deltaType.getChangeType() == null) {
             deltaType.setChangeType(ChangeTypeType.MODIFY);
         }

@@ -350,6 +350,9 @@ public class PrismContext {
      * Parses (almost) anything: either an item with a definition, or an atomic (i.e. property-like) value.
      * Does not care for schemaless items!
      *
+     * CAUTION: EXPERIMENTAL - Avoid using this method if at all possible.
+     * Its result is not well defined, namely, whether it returns Item or a value.
+     *
      * @param node
      * @return either Item or an unmarshalled bean value
      * @throws SchemaException
@@ -358,6 +361,12 @@ public class PrismContext {
         XNode xnode = parseToXNode(dataString, language);
         return xnodeProcessor.parseAnyData(xnode);
     }
+
+    public Object parseAnyData(File file) throws SchemaException, IOException {
+        XNode xnode = parseToXNode(file);
+        return xnodeProcessor.parseAnyData(xnode);
+    }
+
     //endregion
 
     //region Parsing to XNode

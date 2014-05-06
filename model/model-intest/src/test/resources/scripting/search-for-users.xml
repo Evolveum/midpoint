@@ -18,14 +18,16 @@
 <s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <s:type>c:UserType</s:type>
-    <or xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
-        <equal>
-            <path>c:name</path>
-            <value>administrator</value>
-        </equal>
-        <equal>
-            <path>c:name</path>
-            <value>jack</value>
-        </equal>
-    </or>
+    <s:searchFilter>
+        <or xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+            <equal>
+                <path>c:name</path>
+                <value>administrator</value>
+            </equal>
+            <equal>
+                <path>c:name</path>
+                <value>jack</value>
+            </equal>
+        </or>
+    </s:searchFilter>
 </s:search>

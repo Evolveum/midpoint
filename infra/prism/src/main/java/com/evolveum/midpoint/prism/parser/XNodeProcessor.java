@@ -941,8 +941,11 @@ public class XNodeProcessor {
      * @throws SchemaException
      */
     public Object parseAnyData(XNode node) throws SchemaException {
-        // is the type name explicitly specified?
+        // is the type name explicitly specified? (if not, guess that we have a string)
         QName typeName = getExplicitType(node);
+        if (typeName == null && node instanceof PrimitiveXNode) {
+            typeName = DOMUtil.XSD_STRING;
+        }
         if (typeName != null) {
             ItemDefinition itemDefinition = getSchemaRegistry().findItemDefinitionByType(typeName);
             if (itemDefinition != null) {

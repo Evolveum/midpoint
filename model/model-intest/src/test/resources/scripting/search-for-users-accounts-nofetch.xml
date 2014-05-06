@@ -30,9 +30,7 @@
         <s:type>resolve</s:type>
         <s:parameter>
             <s:name>noFetch</s:name>
-            <s:constant>
-                <s:value>true</s:value>
-            </s:constant>
+            <s:constant>true</s:constant>
         </s:parameter>
     </s:action>
 </s:pipeline>
