@@ -335,6 +335,7 @@ CREATE TABLE m_org (
   costCenter       VARCHAR2(255 CHAR),
   displayName_norm VARCHAR2(255 CHAR),
   displayName_orig VARCHAR2(255 CHAR),
+  displayOrder     NUMBER(10, 0),
   identifier       VARCHAR2(255 CHAR),
   locality_norm    VARCHAR2(255 CHAR),
   locality_orig    VARCHAR2(255 CHAR),
@@ -376,13 +377,13 @@ CREATE TABLE m_reference (
 ) INITRANS 30;
 
 CREATE TABLE m_report (
-  export                   NUMBER(10, 0),
-  name_norm                VARCHAR2(255 CHAR),
-  name_orig                VARCHAR2(255 CHAR),
-  orientation              NUMBER(10, 0),
-  parent                   NUMBER(1, 0),
-  useHibernateSession      NUMBER(1, 0),
-  oid                      VARCHAR2(36 CHAR) NOT NULL,
+  export              NUMBER(10, 0),
+  name_norm           VARCHAR2(255 CHAR),
+  name_orig           VARCHAR2(255 CHAR),
+  orientation         NUMBER(10, 0),
+  parent              NUMBER(1, 0),
+  useHibernateSession NUMBER(1, 0),
+  oid                 VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (oid),
   UNIQUE (name_norm)
 ) INITRANS 30;
@@ -498,36 +499,36 @@ CREATE TABLE m_trigger (
 ) INITRANS 30;
 
 CREATE TABLE m_user (
-  additionalName_norm      VARCHAR2(255 CHAR),
-  additionalName_orig      VARCHAR2(255 CHAR),
-  costCenter               VARCHAR2(255 CHAR),
-  emailAddress             VARCHAR2(255 CHAR),
-  employeeNumber           VARCHAR2(255 CHAR),
-  familyName_norm          VARCHAR2(255 CHAR),
-  familyName_orig          VARCHAR2(255 CHAR),
-  fullName_norm            VARCHAR2(255 CHAR),
-  fullName_orig            VARCHAR2(255 CHAR),
-  givenName_norm           VARCHAR2(255 CHAR),
-  givenName_orig           VARCHAR2(255 CHAR),
-  hasPhoto                 NUMBER(1, 0)      NOT NULL,
-  honorificPrefix_norm     VARCHAR2(255 CHAR),
-  honorificPrefix_orig     VARCHAR2(255 CHAR),
-  honorificSuffix_norm     VARCHAR2(255 CHAR),
-  honorificSuffix_orig     VARCHAR2(255 CHAR),
-  locale                   VARCHAR2(255 CHAR),
-  locality_norm            VARCHAR2(255 CHAR),
-  locality_orig            VARCHAR2(255 CHAR),
-  name_norm                VARCHAR2(255 CHAR),
-  name_orig                VARCHAR2(255 CHAR),
-  nickName_norm            VARCHAR2(255 CHAR),
-  nickName_orig            VARCHAR2(255 CHAR),
-  preferredLanguage        VARCHAR2(255 CHAR),
-  status                   NUMBER(10, 0),
-  telephoneNumber          VARCHAR2(255 CHAR),
-  timezone                 VARCHAR2(255 CHAR),
-  title_norm               VARCHAR2(255 CHAR),
-  title_orig               VARCHAR2(255 CHAR),
-  oid                      VARCHAR2(36 CHAR) NOT NULL,
+  additionalName_norm  VARCHAR2(255 CHAR),
+  additionalName_orig  VARCHAR2(255 CHAR),
+  costCenter           VARCHAR2(255 CHAR),
+  emailAddress         VARCHAR2(255 CHAR),
+  employeeNumber       VARCHAR2(255 CHAR),
+  familyName_norm      VARCHAR2(255 CHAR),
+  familyName_orig      VARCHAR2(255 CHAR),
+  fullName_norm        VARCHAR2(255 CHAR),
+  fullName_orig        VARCHAR2(255 CHAR),
+  givenName_norm       VARCHAR2(255 CHAR),
+  givenName_orig       VARCHAR2(255 CHAR),
+  hasPhoto             NUMBER(1, 0)      NOT NULL,
+  honorificPrefix_norm VARCHAR2(255 CHAR),
+  honorificPrefix_orig VARCHAR2(255 CHAR),
+  honorificSuffix_norm VARCHAR2(255 CHAR),
+  honorificSuffix_orig VARCHAR2(255 CHAR),
+  locale               VARCHAR2(255 CHAR),
+  locality_norm        VARCHAR2(255 CHAR),
+  locality_orig        VARCHAR2(255 CHAR),
+  name_norm            VARCHAR2(255 CHAR),
+  name_orig            VARCHAR2(255 CHAR),
+  nickName_norm        VARCHAR2(255 CHAR),
+  nickName_orig        VARCHAR2(255 CHAR),
+  preferredLanguage    VARCHAR2(255 CHAR),
+  status               NUMBER(10, 0),
+  telephoneNumber      VARCHAR2(255 CHAR),
+  timezone             VARCHAR2(255 CHAR),
+  title_norm           VARCHAR2(255 CHAR),
+  title_orig           VARCHAR2(255 CHAR),
+  oid                  VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (oid),
   UNIQUE (name_norm)
 ) INITRANS 30;
@@ -665,6 +666,8 @@ ADD CONSTRAINT fk_node
 FOREIGN KEY (oid)
 REFERENCES m_object;
 
+CREATE INDEX iObjectTypeClass ON m_object (objectTypeClass) INITRANS 30;
+
 CREATE INDEX iObjectNameOrig ON m_object (name_orig) INITRANS 30;
 
 CREATE INDEX iObjectNameNorm ON m_object (name_norm) INITRANS 30;
@@ -718,6 +721,8 @@ ALTER TABLE m_object_template
 ADD CONSTRAINT fk_object_template
 FOREIGN KEY (oid)
 REFERENCES m_object;
+
+CREATE INDEX iDisplayOrder ON m_org (displayOrder) INITRANS 30;
 
 ALTER TABLE m_org
 ADD CONSTRAINT fk_org
