@@ -140,6 +140,7 @@ public class SelectorOptions<T> implements Serializable {
     private static final Set<ItemPath> PATHS_NOT_RETURNED_BY_DEFAULT = new HashSet<>(Arrays.asList(
             new ItemPath(UserType.F_JPEG_PHOTO),
             new ItemPath(TaskType.F_SUBTASK),
+            new ItemPath(TaskType.F_NODE_AS_OBSERVED),
             new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP)));
 
     public static boolean hasToLoadPath(ItemPath path, Collection<SelectorOptions<GetOperationOptions>> options) {
