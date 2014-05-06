@@ -19,14 +19,16 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -134,14 +136,16 @@ public class SelectorOptions<T> implements Serializable {
         return hasToLoadPath(new ItemPath(container), options);
     }
 
+    // TODO find a better way to specify this
+    private static final Set<ItemPath> PATHS_NOT_RETURNED_BY_DEFAULT = new HashSet<>(Arrays.asList(
+            new ItemPath(UserType.F_JPEG_PHOTO),
+            new ItemPath(TaskType.F_SUBTASK),
+            new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP)));
+
     public static boolean hasToLoadPath(ItemPath path, Collection<SelectorOptions<GetOperationOptions>> options) {
         List<SelectorOptions<GetOperationOptions>> retrieveOptions = filterRetrieveOptions(options);
-        if (retrieveOptions.isEmpty() && new ItemPath(UserType.F_JPEG_PHOTO).equals(path)) {
-            return false;
-        }
-
         if (retrieveOptions.isEmpty()) {
-            return true;
+            return !PATHS_NOT_RETURNED_BY_DEFAULT.contains(path);
         }
 
         for (SelectorOptions<GetOperationOptions> option : retrieveOptions) {
