@@ -28,6 +28,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
@@ -51,18 +53,6 @@ import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
-import com.evolveum.midpoint.prism.query.GreaterFilter;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.LessFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.prism.query.OrgFilter;
-import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -1252,6 +1242,41 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 //            String real = getInterpretedQuery(session, ObjectType.class, query);
 //
 //            LOGGER.info("real query>\n{}", new Object[]{real});
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test330queryUserSubstringName() throws Exception {
+        Session session = open();
+
+        try {
+            Criteria main = session.createCriteria(RObject.class, "o");
+            ProjectionList projections = Projections.projectionList();
+            addFullObjectProjectionList("o", projections, false);
+            main.setProjection(projections);
+
+            main.add(Restrictions.like("name.orig", "a%"));
+            String expected = HibernateToSqlTranslator.toSql(main);
+
+            SubstringFilter substring = SubstringFilter.createSubstring(ObjectType.F_NAME, ObjectType.class,
+                    prismContext, PolyStringOrigMatchingRule.NAME, "a");
+            substring.setAnchorStart(true);
+            String real = getInterpretedQuery(session, ObjectType.class, ObjectQuery.createObjectQuery(substring));
+
+            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+            AssertJUnit.assertEquals(expected, real);
+
+            OperationResult result = new OperationResult("test330queryUserSubstringName");
+            int count = repositoryService.countObjects(ObjectType.class, ObjectQuery.createObjectQuery(substring), result);
+            AssertJUnit.assertEquals(2, count);
+
+            substring = SubstringFilter.createSubstring(ObjectType.F_NAME, ObjectType.class,
+                    prismContext, PolyStringOrigMatchingRule.NAME, "a");
+            count = repositoryService.countObjects(ObjectType.class, ObjectQuery.createObjectQuery(substring), result);
+            AssertJUnit.assertEquals(13, count);
+
         } finally {
             close(session);
         }
