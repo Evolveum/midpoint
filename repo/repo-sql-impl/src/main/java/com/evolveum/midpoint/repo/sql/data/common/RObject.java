@@ -312,6 +312,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return polysCount;
     }
 
+    @Index(name = "iObjectTypeClass")
     @Enumerated
     public RObjectType getObjectTypeClass() {
         return objectTypeClass;
