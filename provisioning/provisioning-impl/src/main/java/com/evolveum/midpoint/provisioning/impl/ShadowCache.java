@@ -1259,7 +1259,7 @@ public abstract class ShadowCache {
 				return;
 			}
 
-			resouceObjectConverter.setProtectedFlag(resourceType, oldShadow);
+			resouceObjectConverter.setProtectedFlag(resourceType, refinedObjectClassDefinition, oldShadow);
 			change.setOldShadow(oldShadow);
 
 			if (change.getCurrentShadow() != null) {

@@ -27,6 +27,7 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import org.apache.commons.lang.StringUtils;
 import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.apache.xml.security.utils.Base64;
 import org.w3c.dom.Element;
@@ -181,6 +182,10 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
     
     private boolean addContent(Object newObject) {
     	if (newObject instanceof String){
+            String s = (String) newObject;
+            if (StringUtils.isNotBlank(s)) {
+                clearValue = (T) s;
+            }
     		return true;
     	} else
     	if (newObject instanceof JAXBElement<?>) {

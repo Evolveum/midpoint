@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,16 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
@@ -37,7 +43,7 @@ public class ResourceObjectPattern implements Serializable {
 	
 	private Collection<ResourceAttribute<?>> identifiers;
 	private RefinedObjectClassDefinition rOcDef;
-	private SearchFilterType filterType;
+	private ObjectFilter objectFilter;
 	
 	public ResourceObjectPattern(RefinedObjectClassDefinition rOcDef) {
 		this.rOcDef = rOcDef;
@@ -54,23 +60,33 @@ public class ResourceObjectPattern implements Serializable {
 		getIdentifiers().add(identifier);
 	}
 
-	public static boolean matches(Collection<? extends ResourceAttribute<?>> attributesToMatch,
+	public static boolean matches(PrismObject<ShadowType> shadowToMatch,
 			Collection<ResourceObjectPattern> protectedAccountPatterns, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 		for (ResourceObjectPattern pattern: protectedAccountPatterns) {
-			if (pattern.matches(attributesToMatch, matchingRuleRegistry)) {
+			if (pattern.matches(shadowToMatch, matchingRuleRegistry)) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	public boolean matches(Collection<? extends ResourceAttribute<?>> attributesToMatch, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-		for (ResourceAttribute<?> identifier: identifiers) {
-			if (!matches(identifier, attributesToMatch, matchingRuleRegistry)) {
+	public boolean matches(PrismObject<ShadowType> shadowToMatch, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+		if (objectFilter != null) {
+			return ObjectQuery.match(shadowToMatch, objectFilter, matchingRuleRegistry);
+		} else {
+			// Deprecated method
+			ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(shadowToMatch);
+			if (attributesContainer == null) {
 				return false;
 			}
+			Collection<ResourceAttribute<?>> attributesToMatch = attributesContainer.getAttributes();
+			for (ResourceAttribute<?> identifier: identifiers) {
+				if (!matches(identifier, attributesToMatch, matchingRuleRegistry)) {
+					return false;
+				}
+			}
+			return true;
 		}
-		return true;
 	}
 
 	private boolean matches(ResourceAttribute<?> identifier, Collection<? extends ResourceAttribute<?>> attributesToMatch, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
@@ -95,8 +111,8 @@ public class ResourceObjectPattern implements Serializable {
 		return matchingRule.match(identifier.getRealValue(), attributeToMatch.getRealValue());
 	}
 
-	public void addFilter(SearchFilterType filterType) {
-		this.filterType = filterType;
+	public void addFilter(ObjectFilter filter) {
+		this.objectFilter = filter;
 	}
 
 }

@@ -805,7 +805,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             if (TaskType.class.isAssignableFrom(type)) {
                 return (PrismObject<T>) getTaskAsObject(oid, options, result);
             } else if (NodeType.class.isAssignableFrom(type)) {
-                return (PrismObject<T>) repositoryService.getObject(NodeType.class, oid, options, result);
+                return (PrismObject<T>) repositoryService.getObject(NodeType.class, oid, options, result);      // TODO add transient attributes just like in searchObject
             } else {
                 throw new IllegalArgumentException("Unsupported object type: " + type);
             }
@@ -815,18 +815,38 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     private PrismObject<TaskType> getTaskAsObject(String oid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException, ObjectNotFoundException {
+
+        ClusterStatusInformation clusterStatusInformation = getClusterStatusInformation(options, TaskType.class, true, result); // returns null if noFetch is set
+
         Task task = getTask(oid, result);
-        if (options != null && !options.isEmpty() && SelectorOptions.hasToLoadPath(TaskType.F_SUBTASK, options)) {          // fixme this is ugly hack (by default, hasToLoadPath on empty options returns true, and we do not want to return subtasks by default
-            fillInSubtasks(task, options, result);
+        addTransientTaskInformation(task.getTaskPrismObject(),
+                clusterStatusInformation,
+                SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP), options),
+                SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NODE_AS_OBSERVED), options),
+                result);
+
+        if (SelectorOptions.hasToLoadPath(TaskType.F_SUBTASK, options)) {
+            fillInSubtasks(task, clusterStatusInformation, options, result);
         }
         return task.getTaskPrismObject();
     }
 
-    private void fillInSubtasks(Task task, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
+    private void fillInSubtasks(Task task, ClusterStatusInformation clusterStatusInformation, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
+
+        boolean retrieveNextRunStartTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP), options);
+        boolean retrieveNodeAsObserved = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NODE_AS_OBSERVED), options);
+
         List<Task> subtasks = task.listSubtasks(result);
+
         for (Task subtask : subtasks) {
 
-            fillInSubtasks(subtask, options, result);
+            addTransientTaskInformation(subtask.getTaskPrismObject(),
+                    clusterStatusInformation,
+                    retrieveNextRunStartTime,
+                    retrieveNodeAsObserved,
+                    result);
+
+            fillInSubtasks(subtask, clusterStatusInformation, options, result);
 
             TaskType subTaskType = subtask.getTaskPrismObject().asObjectable();
             task.getTaskPrismObject().asObjectable().getSubtask().add(subTaskType);
@@ -883,7 +903,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     private List<PrismObject<NodeType>> searchNodes(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
 
-        ClusterStatusInformation clusterStatusInformation = getClusterStatusInformation(options, true, result);
+        ClusterStatusInformation clusterStatusInformation = getClusterStatusInformation(options, NodeType.class, true, result);
 
         List<PrismObject<NodeType>> nodesInRepository;
         try {
@@ -922,20 +942,32 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         return list;
     }
 
-    private ClusterStatusInformation getClusterStatusInformation(Collection<SelectorOptions<GetOperationOptions>> options, boolean allowCached, OperationResult result) {
+    private ClusterStatusInformation getClusterStatusInformation(Collection<SelectorOptions<GetOperationOptions>> options, Class<? extends ObjectType> objectClass, boolean allowCached, OperationResult result) {
         boolean noFetch = GetOperationOptions.isNoFetch(SelectorOptions.findRootOptions(options));
-        ClusterStatusInformation clusterStatusInformation;
-        if (!noFetch) {
-            clusterStatusInformation = executionManager.getClusterStatusInformation(true, allowCached, result);
+        boolean retrieveStatus;
+
+        if (noFetch) {
+            retrieveStatus = false;
         } else {
-            clusterStatusInformation = null;
+            if (objectClass.equals(TaskType.class)) {
+                retrieveStatus = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NODE_AS_OBSERVED), options);
+            } else if (objectClass.equals(NodeType.class)) {
+                retrieveStatus = true;                          // implement some determination algorithm if needed
+            } else {
+                throw new IllegalArgumentException("object class: " + objectClass);
+            }
         }
-        return clusterStatusInformation;
+
+        if (retrieveStatus) {
+            return executionManager.getClusterStatusInformation(true, allowCached, result);
+        } else {
+            return null;
+        }
     }
 
     public List<PrismObject<TaskType>> searchTasks(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
 
-        ClusterStatusInformation clusterStatusInformation = getClusterStatusInformation(options, true, result);
+        ClusterStatusInformation clusterStatusInformation = getClusterStatusInformation(options, TaskType.class, true, result); // returns null if noFetch is set
 
         List<PrismObject<TaskType>> tasksInRepository;
         try {
@@ -946,33 +978,39 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         }
 
         boolean retrieveNextRunStartTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP), options);
+        boolean retrieveNodeAsObserved = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NODE_AS_OBSERVED), options);
 
-        List<PrismObject<TaskType>> retval = new ArrayList<PrismObject<TaskType>>();
+        List<PrismObject<TaskType>> retval = new ArrayList<>();
         for (PrismObject<TaskType> taskInRepository : tasksInRepository) {
-            TaskType taskInResult = taskInRepository.asObjectable();
-            if (clusterStatusInformation != null) {
-                NodeType runsAt = clusterStatusInformation.findNodeInfoForTask(taskInResult.getOid());
-                if (runsAt != null) {
-                    taskInResult.setNodeAsObserved(runsAt.getNodeIdentifier());
-                }
-            }
-            if (retrieveNextRunStartTime) {
-                Long nextRunStartTime = getNextRunStartTime(taskInResult.getOid(), result);
-                if (nextRunStartTime != null) {
-                    taskInResult.setNextRunStartTimestamp(XmlTypeConverter.createXMLGregorianCalendar(nextRunStartTime));
-                }
-            }
-            Long stalledSince = stalledTasksWatcher.getStalledSinceForTask(taskInResult);
-            if (stalledSince != null) {
-                taskInResult.setStalledSince(XmlTypeConverter.createXMLGregorianCalendar(stalledSince));
-            }
+            TaskType taskInResult = addTransientTaskInformation(taskInRepository, clusterStatusInformation, retrieveNextRunStartTime, retrieveNodeAsObserved, result);
             retval.add(taskInResult.asPrismObject());
         }
         result.computeStatus();
         return retval;
     }
 
-    
+    private TaskType addTransientTaskInformation(PrismObject<TaskType> taskInRepository, ClusterStatusInformation clusterStatusInformation, boolean retrieveNextRunStartTime, boolean retrieveNodeAsObserved, OperationResult result) {
+        TaskType taskInResult = taskInRepository.asObjectable();
+        if (clusterStatusInformation != null && retrieveNodeAsObserved) {
+            NodeType runsAt = clusterStatusInformation.findNodeInfoForTask(taskInResult.getOid());
+            if (runsAt != null) {
+                taskInResult.setNodeAsObserved(runsAt.getNodeIdentifier());
+            }
+        }
+        if (retrieveNextRunStartTime) {
+            Long nextRunStartTime = getNextRunStartTime(taskInResult.getOid(), result);
+            if (nextRunStartTime != null) {
+                taskInResult.setNextRunStartTimestamp(XmlTypeConverter.createXMLGregorianCalendar(nextRunStartTime));
+            }
+        }
+        Long stalledSince = stalledTasksWatcher.getStalledSinceForTask(taskInResult);
+        if (stalledSince != null) {
+            taskInResult.setStalledSince(XmlTypeConverter.createXMLGregorianCalendar(stalledSince));
+        }
+        return taskInResult;
+    }
+
+
 //    @Override
 //    public int countTasks(ObjectQuery query, OperationResult result) throws SchemaException {
 //        return repositoryService.countObjects(TaskType.class, query, result);

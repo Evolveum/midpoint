@@ -177,7 +177,7 @@ public class PageTaskEdit extends PageAdminTasks {
 
         TaskDto taskDto = null;
 		try {
-            Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.createRetrieveAttributesOptions(TaskType.F_SUBTASK);
+            Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.createRetrieveAttributesOptions(TaskType.F_SUBTASK, TaskType.F_NODE_AS_OBSERVED, TaskType.F_NEXT_RUN_START_TIMESTAMP);
             TaskType loadedTask = getModelService().getObject(TaskType.class, taskOid.toString(), options, operationTask, result).asObjectable();
             taskDto = prepareTaskDto(loadedTask, result);
 			result.computeStatus();

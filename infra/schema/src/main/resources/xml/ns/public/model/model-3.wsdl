@@ -90,7 +90,7 @@
             <xsd:element name="executeChangesResponse">
                 <xsd:complexType>
                     <xsd:sequence>
-                        <xsd:element name="result" type="c:OperationResultType" />
+                        <xsd:element name="deltaOperationList" type="apit:ObjectDeltaOperationListType" />
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>

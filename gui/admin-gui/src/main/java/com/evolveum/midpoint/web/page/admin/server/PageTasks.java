@@ -151,14 +151,12 @@ public class PageTasks extends PageAdminTasks {
         TaskDtoProvider provider = new TaskDtoProvider(PageTasks.this, options);
 
         provider.setQuery(createTaskQuery());
-        TablePanel<TaskDto> taskTable = new TablePanel<TaskDto>(ID_TASK_TABLE, provider,
-                taskColumns);
+        TablePanel<TaskDto> taskTable = new TablePanel<>(ID_TASK_TABLE, provider, taskColumns);
         taskTable.setOutputMarkupId(true);
         mainForm.add(taskTable);
 
         List<IColumn<NodeDto, String>> nodeColumns = initNodeColumns();
-        TablePanel nodeTable = new TablePanel<NodeDto>(ID_NODE_TABLE, new NodeDtoProvider(PageTasks.this),
-                nodeColumns);
+        TablePanel nodeTable = new TablePanel<>(ID_NODE_TABLE, new NodeDtoProvider(PageTasks.this), nodeColumns);
         nodeTable.setOutputMarkupId(true);
         nodeTable.setShowPaging(false);
         mainForm.add(nodeTable);

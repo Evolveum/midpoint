@@ -35,7 +35,7 @@
     <credentials>
         <password>
         	<value>
-	            <clearValue>4rrrrghhhghghgh!123</clearValue>
+	            <t:clearValue>4rrrrghhhghghgh!123</t:clearValue>
             </value>
         </password>
     </credentials>
