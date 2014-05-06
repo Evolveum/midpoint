@@ -184,7 +184,15 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 		return anchorEnd;
 	}
 
-	@Override
+    public void setAnchorStart(boolean anchorStart) {
+        this.anchorStart = anchorStart;
+    }
+
+    public void setAnchorEnd(boolean anchorEnd) {
+        this.anchorEnd = anchorEnd;
+    }
+
+    @Override
 	public SubstringFilter clone() {
 		return new SubstringFilter(getFullPath(),getDefinition(), getMatchingRule(), getValues());
 	}

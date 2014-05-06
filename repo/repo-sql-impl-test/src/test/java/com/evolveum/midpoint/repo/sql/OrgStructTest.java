@@ -279,21 +279,6 @@ public class OrgStructTest extends BaseSQLRepoTest {
 		}
 	}
 
-	private ObjectFilter createOrgNameFilter(String name) throws SchemaException {
-		return EqualsFilter.createEqual(OrgType.F_NAME, OrgType.class, prismContext, PrismTestUtil.createPolyString(name));
-	}
-    
-    private ObjectFilter createOrgDisplayNameFilter(String name) throws SchemaException {
-		return EqualsFilter.createEqual(OrgType.F_DISPLAY_NAME, OrgType.class, prismContext, PrismTestUtil.createPolyString(name));
-	}
-
-	private <O extends ObjectType> void assertMatch(PrismObject<O> obj, ObjectFilter filter, boolean expected) throws SchemaException {
-    	ObjectQuery query = new ObjectQuery();
-		query.setFilter(filter);
-		boolean actual = repositoryService.matchObject(obj, query);
-		assertEquals("Wrong match for "+obj+" and "+filter, expected, actual);
-    }
-
 	@SuppressWarnings({"unchecked"})
     @Test
     public void test001addOrgStructObjectsIncorrect() throws Exception {

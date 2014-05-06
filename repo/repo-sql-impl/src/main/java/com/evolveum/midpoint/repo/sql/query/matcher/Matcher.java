@@ -70,6 +70,12 @@ public abstract class Matcher<T> {
             case NULL:
                 criterion = Restrictions.isNull(propertyName);
                 break;
+            case STARTS_WITH:
+                criterion = Restrictions.like(propertyName, value + "%");
+                break;
+            case ENDS_WITH:
+                criterion = Restrictions.like(propertyName, "%" + value);
+                break;
             case SUBSTRING:
                 criterion = Restrictions.like(propertyName, "%" + value + "%");
                 break;

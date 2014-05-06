@@ -43,6 +43,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.parser.util.XNodeProcessorUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -51,11 +52,13 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.prism.query.OrgFilter.Scope;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
@@ -403,29 +406,34 @@ public class QueryConvertor {
 		if (orgOid == null || StringUtils.isBlank(orgOid)) {
 			throw new SchemaException("No oid attribute defined in the organization reference element.");
 		}
-
-		String minDepth = xmap.getParsedPrimitiveValue(KEY_FILTER_ORG_MIN_DEPTH, DOMUtil.XSD_STRING);
-		Integer min = null;
-		if (!StringUtils.isBlank(minDepth)) {
-			min = XsdTypeMapper.multiplicityToInteger(minDepth);
-		}
-
-		String maxDepth = xmap.getParsedPrimitiveValue(KEY_FILTER_ORG_MAX_DEPTH, DOMUtil.XSD_STRING);
-		Integer max = null;
-		if (!StringUtils.isBlank(maxDepth)) {
-			max = XsdTypeMapper.multiplicityToInteger(maxDepth);
-		}
+		
+		XsdTypeMapper.getTypeFromClass(Scope.class);
+		
+		String scopeString = xorgrefmap.getParsedPrimitiveValue(KEY_FILTER_ORG_SCOPE, DOMUtil.XSD_STRING);
+		Scope scope = Scope.valueOf(scopeString);
+		
+//		String minDepth = xmap.getParsedPrimitiveValue(KEY_FILTER_ORG_MIN_DEPTH, DOMUtil.XSD_STRING);
+//		Integer min = null;
+//		if (!StringUtils.isBlank(minDepth)) {
+//			min = XsdTypeMapper.multiplicityToInteger(minDepth);
+//		}
+//
+//		String maxDepth = xmap.getParsedPrimitiveValue(KEY_FILTER_ORG_MAX_DEPTH, DOMUtil.XSD_STRING);
+//		Integer max = null;
+//		if (!StringUtils.isBlank(maxDepth)) {
+//			max = XsdTypeMapper.multiplicityToInteger(maxDepth);
+//		}
 
         //todo fix scope handling properly
-        OrgFilter.Scope scope;
-        if (min == null && max == null) {
-            scope = OrgFilter.Scope.SUBTREE;
-        } else if (ObjectUtils.equals(min, max) && (min != null && min.intValue() == 1)) {
-            scope = OrgFilter.Scope.ONE_LEVEL;
-        } else {
-            throw new SchemaException("Unsupported min/max (" + min + "/" + max
-                    + ") depth, can't translate it to scope SUBTREE/ONE_LEVEL");
-        }
+//        OrgFilter.Scope scope;
+//        if (min == null && max == null) {
+//            scope = OrgFilter.Scope.SUBTREE;
+//        } else if (ObjectUtils.equals(min, max) && (min != null && min.intValue() == 1)) {
+//            scope = OrgFilter.Scope.ONE_LEVEL;
+//        } else {
+//            throw new SchemaException("Unsupported min/max (" + min + "/" + max
+//                    + ") depth, can't translate it to scope SUBTREE/ONE_LEVEL");
+//        }
 
 		return OrgFilter.createOrg(orgOid, scope);
 	}

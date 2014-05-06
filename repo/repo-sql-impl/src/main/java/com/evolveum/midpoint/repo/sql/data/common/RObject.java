@@ -89,6 +89,8 @@ import java.util.Set;
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class RObject<T extends ObjectType> implements Metadata<RObjectReference>, Serializable {
 
+    public static final String F_OBJECT_TYPE_CLASS = "objectTypeClass";
+
     private String oid;
     private int version;
     //full XML
@@ -312,6 +314,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return polysCount;
     }
 
+    @Index(name = "iObjectTypeClass")
     @Enumerated
     public RObjectType getObjectTypeClass() {
         return objectTypeClass;

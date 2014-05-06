@@ -194,7 +194,7 @@ public class LensUtil {
 	 */
 	public static <V extends PrismValue, I extends ItemValueWithOrigin<V>> ItemDelta<V> consolidateTripleToDelta(ItemPath itemPath, 
     		DeltaSetTriple<I> triple, ItemDefinition itemDefinition, 
-    		ItemDelta<V> aprioriItemDelta, PrismContainer<?> itemContainer, ValueMatcher<?> valueMatcher,
+    		ItemDelta<V> aprioriItemDelta, PrismContainer<?> itemContainer, ValueMatcher<?> valueMatcher, Comparator<V> comparator,
     		boolean addUnchangedValues, boolean filterExistingValues, boolean isExclusiveStrong, 
     		String contextDescription, boolean applyWeak) throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
     			
@@ -232,6 +232,7 @@ public class LensUtil {
         // a single item (e.g. attribute). But this loop iterates over every potential value of that item.
         for (V value : allValues) {
         	
+        	LOGGER.trace("item existing: {}, value: {}", itemExisting, value);
         	// Check what to do with the value using the usual "triple routine". It means that if a value is
         	// in zero set than we need no delta, plus set means add delta and minus set means delete delta.
         	// The first set that the value is present determines the result.
@@ -320,7 +321,7 @@ public class LensUtil {
                     		"skipping adding in {}", new Object[]{value, itemPath, contextDescription});
                     continue;
                 }
-                if (filterExistingValues && hasValue(itemExisting, value, valueMatcher)) {
+                if (filterExistingValues && hasValue(itemExisting, value, valueMatcher, comparator)) {
                 	LOGGER.trace("Value {} NOT added to delta for item {} because the item already has that value in {}",
                 			new Object[]{value, itemPath, contextDescription});
                 	continue;
@@ -374,7 +375,7 @@ public class LensUtil {
                     		new Object[]{value, itemPath, contextDescription});
                     continue;
                 }
-                if (filterExistingValues && !hasValue(itemExisting, value, valueMatcher)) {
+                if (filterExistingValues && !hasValue(itemExisting, value, valueMatcher, comparator)) {
                 	LOGGER.trace("Value {} NOT deleted to delta for item {} the item does not have that value in {}",
                 			new Object[]{value, itemPath, contextDescription});
                 	continue;
@@ -470,14 +471,14 @@ public class LensUtil {
 		return values;
 	}
 	
-	private static <V extends PrismValue> boolean hasValue(Item<V> existingUserItem, V newValue, ValueMatcher<?> valueMatcher) {
+	private static <V extends PrismValue> boolean hasValue(Item<V> existingUserItem, V newValue, ValueMatcher<?> valueMatcher, Comparator<V> comparator) {
 		if (existingUserItem == null) {
 			return false;
 		}
 		if (valueMatcher != null && newValue instanceof PrismPropertyValue) {
 			return valueMatcher.hasRealValue((PrismProperty)existingUserItem, (PrismPropertyValue)newValue);
 		} else {
-			return existingUserItem.contains(newValue, true);
+			return existingUserItem.contains(newValue, true, comparator);
 		}
 	}
 	

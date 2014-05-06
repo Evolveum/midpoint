@@ -1,0 +1,11 @@
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="10000000-0000-0000-0000-000000000602"
+      version="0">
+    <name>Simple account construction</name>
+    <inducement>
+        <construction>
+            <resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+        </construction>
+    </inducement>
+</role>
