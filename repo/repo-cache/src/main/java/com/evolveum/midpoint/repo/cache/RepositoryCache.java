@@ -306,12 +306,6 @@ public class RepositoryCache implements RepositoryService {
 	}
 
 	@Override
-	public <T extends ObjectType> boolean matchObject(PrismObject<T> object, ObjectQuery query)
-			throws SchemaException {
-		return repository.matchObject(object, query);
-	}
-
-	@Override
 	public boolean isAnySubordinate(String upperOrgOid, Collection<String> lowerObjectOids)
 			throws SchemaException {
 		return repository.isAnySubordinate(upperOrgOid, lowerObjectOids);
