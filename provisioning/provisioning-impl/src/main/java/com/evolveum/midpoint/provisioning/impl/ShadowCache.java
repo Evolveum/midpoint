@@ -352,6 +352,7 @@ public abstract class ShadowCache {
 		try {
 			objectClassDefinition = determineObjectClassDefinition(shadow, resource);
 			applyAttributesDefinition(shadow, resource);
+            shadowManager.setKindIfNecessary(shadow.asObjectable(), objectClassDefinition);
 			accessChecker.checkAdd(resource, shadow, objectClassDefinition, parentResult);
 			ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 			shadow = resouceObjectConverter.addResourceObject(connector, resource, shadow, objectClassDefinition, scripts, parentResult);

@@ -98,9 +98,9 @@ public class GeneralNotifier extends BaseHandler {
 
         logStart(getLogger(), event, eventHandlerType);
 
-        boolean retval = aggregatedEventHandler.processEvent(event, eventHandlerType, notificationManager, task, result);
+        boolean applies = aggregatedEventHandler.processEvent(event, eventHandlerType, notificationManager, task, result);
 
-        if (retval) {
+        if (applies) {
 
             GeneralNotifierType generalNotifierType = (GeneralNotifierType) eventHandlerType;
 
@@ -154,8 +154,8 @@ public class GeneralNotifier extends BaseHandler {
                 }
             }
         }
-        logEnd(getLogger(), event, eventHandlerType, retval);
-        return retval;
+        logEnd(getLogger(), event, eventHandlerType, applies);
+        return true;            // not-applicable notifiers do not stop processing of other notifiers
     }
 
     protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {

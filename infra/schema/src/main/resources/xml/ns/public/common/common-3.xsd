@@ -8726,6 +8726,7 @@
                         Focus types supported by this handler. (Default: all)
                         Types not listed are filtered out: not handled by this handler nor any of its successors.
                         (Relevant only for model-generated events.)
+                        NOT IMPLEMENTED YET.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
