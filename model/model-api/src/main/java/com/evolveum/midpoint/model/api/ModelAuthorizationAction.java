@@ -27,7 +27,10 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
 	 */
 	IMPORT_FROM_RESOURCE("importFromResource", "Import from Resource", "IMPORT_FROM_RESOURCE_HELP"),
 	
-	DISCOVER_CONNECTORS("discoverConnectors", "Discover Connectors", "DISCOVER_CONNECTORS_HELP");
+	DISCOVER_CONNECTORS("discoverConnectors", "Discover Connectors", "DISCOVER_CONNECTORS_HELP"), 
+	
+	ASSIGN("assign", "Assign", "ASSIGN_HELP"),
+	UNASSIGN("unassign", "Unassign", "UNASSIGN_HELP");
 	
 	private String url;
 	private String label;

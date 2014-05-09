@@ -99,6 +99,10 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         ItemPath propPath;
         for (ItemPathSegment segment : segments) {
             QName qname = ItemPath.getName(segment);
+            if (ObjectType.F_METADATA.equals(qname)) {
+                continue;
+            }
+
             // create new property path
             propPathSegments.add(new NameItemPathSegment(qname));
             propPath = new ItemPath(propPathSegments);
@@ -180,6 +184,9 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         ItemPath propPath;
         for (ItemPathSegment segment : segments) {
             QName qname = ItemPath.getName(segment);
+            if (ObjectType.F_METADATA.equals(qname)) {
+                continue;
+            }
             // create new property path
             propPathSegments.add(new NameItemPathSegment(qname));
             propPath = new ItemPath(propPathSegments);

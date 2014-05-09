@@ -406,6 +406,14 @@ public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitab
     	removeModification(itemName, ReferenceDelta.class);
     }
 
+    public void removeContainerModification(QName itemName) {
+    	removeModification(itemName, ContainerDelta.class);
+    }
+
+    public void removePropertyModification(QName itemName) {
+    	removeModification(itemName, PropertyDelta.class);
+    }
+    
     public boolean isEmpty() {
     	if (getChangeType() == ChangeType.DELETE) {
     		// Delete delta is never empty

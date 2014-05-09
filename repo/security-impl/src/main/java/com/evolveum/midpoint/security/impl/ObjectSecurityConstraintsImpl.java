@@ -42,7 +42,7 @@ public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints 
 	}
 	
 	@Override
-	public AuthorizationDecisionType getActionDecistion(String actionUrl, AuthorizationPhaseType phase) {
+	public AuthorizationDecisionType getActionDecision(String actionUrl, AuthorizationPhaseType phase) {
 		AuthorizationDecisionType actionDecision = getSimpleActionDecision(actionDecisionMap, actionUrl, phase);
 		AuthorizationDecisionType allDecision = getSimpleActionDecision(actionDecisionMap, AuthorizationConstants.AUTZ_ALL_URL, phase);
 		if (actionDecision == null && allDecision == null) {

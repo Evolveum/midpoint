@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelState;
@@ -49,8 +50,12 @@ import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFact
 import com.evolveum.midpoint.model.controller.ModelUtils;
 import com.evolveum.midpoint.model.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.lens.projector.Projector;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -61,6 +66,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
@@ -75,6 +81,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationDecisionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.HookListType;
@@ -758,16 +765,16 @@ public class Clockwork {
 					return (PrismObject<F>) focusContext.getObjectCurrent();
 				}
 			};
-			authorizeElementContext(focusContext, ownerResolver, task, result);
-			authorizeAssignmentRequest(focusContext, ownerResolver, task, result);
+			authorizeElementContext(context, focusContext, ownerResolver, true, task, result);
 		}
 		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
-			authorizeElementContext(projectionContext, ownerResolver, task, result);
+			authorizeElementContext(context, projectionContext, ownerResolver, false, task, result);
 		}
 		context.setRequestAuthorized(true);
 	}
 	
-	private <O extends ObjectType> void authorizeElementContext(LensElementContext<O> elementContext, OwnerResolver ownerResolver, Task task, OperationResult result) throws SecurityViolationException, SchemaException {
+	private <F extends ObjectType, O extends ObjectType> ObjectSecurityConstraints authorizeElementContext(LensContext<F> context, LensElementContext<O> elementContext,
+			OwnerResolver ownerResolver, boolean isFocus, Task task, OperationResult result) throws SecurityViolationException, SchemaException {
 		ObjectDelta<O> primaryDelta = elementContext.getPrimaryDelta();
 		// If there is no delta then there is no request to authorize
 		if (primaryDelta != null) {
@@ -776,12 +783,66 @@ public class Clockwork {
 				object = elementContext.getObjectCurrent();
 			}
 			String operationUrl = ModelUtils.getOperationUrlFromDelta(primaryDelta);
-			securityEnforcer.authorize(operationUrl, AuthorizationPhaseType.REQUEST, object, primaryDelta, null, ownerResolver, result);
+			ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(object, ownerResolver);
+
+			if (isFocus) {
+				// Process assignments first. If the assignments are allowed then we
+				// have to ignore the assignment item in subsequent security checks
+				ContainerDelta<Containerable> assignmentDelta = primaryDelta.findContainerDelta(FocusType.F_ASSIGNMENT);
+				if (assignmentDelta != null) {
+					AuthorizationDecisionType assignmentItemDecision = securityConstraints.findItemDecision(new ItemPath(FocusType.F_ASSIGNMENT),
+							operationUrl, AuthorizationPhaseType.REQUEST);
+					if (assignmentItemDecision == AuthorizationDecisionType.ALLOW) {
+						// Nothing to do, operation is allowed for all values
+					} else if (assignmentItemDecision == AuthorizationDecisionType.DENY) {
+						throw new SecurityViolationException("Access denied");
+					} else {
+						AuthorizationDecisionType actionDecision = securityConstraints.getActionDecision(operationUrl, AuthorizationPhaseType.REQUEST);
+						if (actionDecision == AuthorizationDecisionType.ALLOW) {
+							// Nothing to do, operation is allowed for all values
+						} else if (actionDecision == AuthorizationDecisionType.DENY) {
+							throw new SecurityViolationException("Access denied");
+						} else {
+							// No explicit decision for assignment modification yet
+							// process each assignment individually
+							DeltaSetTriple<EvaluatedAssignment> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+							authorizeAssignmentRequest(ModelAuthorizationAction.ASSIGN.getUrl(), object, ownerResolver, evaluatedAssignmentTriple.getPlusSet(), result);
+							authorizeAssignmentRequest(ModelAuthorizationAction.UNASSIGN.getUrl(), object, ownerResolver, evaluatedAssignmentTriple.getMinusSet(), result);
+						}
+					}
+					// assignments were authorized explicitly. Therefore we need to remove them from primary delta to avoid another
+					// authorization
+					primaryDelta = primaryDelta.clone();
+					if (primaryDelta.isAdd()) {
+						PrismObject<O> objectToAdd = primaryDelta.getObjectToAdd();
+						objectToAdd.removeContainer(FocusType.F_ASSIGNMENT);
+					} else if (primaryDelta.isModify()) {
+						primaryDelta.removeContainerModification(FocusType.F_ASSIGNMENT);
+					}
+				}
+			}
+			
+			if (primaryDelta != null && !primaryDelta.isEmpty()) {
+				// TODO: optimize, avoid evaluating the constraints twice
+				securityEnforcer.authorize(operationUrl, AuthorizationPhaseType.REQUEST, object, primaryDelta, null, ownerResolver, result);
+			}
+			
+			return securityConstraints;
+		} else {
+			return null;
+		}
+	}
+
+	private <F extends FocusType> void authorizeAssignmentRequest(String actionUrl, PrismObject object,
+			OwnerResolver ownerResolver, Collection<EvaluatedAssignment> evaluatedAssignments, OperationResult result) throws SecurityViolationException, SchemaException {
+		if (evaluatedAssignments == null) {
+			return;
+		}
+		for (EvaluatedAssignment<F> evaluatedAssignment: evaluatedAssignments) {
+			PrismObject target = evaluatedAssignment.getTarget();
+			securityEnforcer.authorize(actionUrl, AuthorizationPhaseType.REQUEST, object, null, target, ownerResolver, result);
 		}
 	}
 	
-	private <F extends ObjectType> void authorizeAssignmentRequest(LensFocusContext<F> focusContext, OwnerResolver ownerResolver, Task task, OperationResult result) throws SecurityViolationException, SchemaException {
-		//
-	}
 	
 }

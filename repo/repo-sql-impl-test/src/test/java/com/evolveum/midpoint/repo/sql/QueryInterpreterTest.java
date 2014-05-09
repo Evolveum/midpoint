@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
+import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -1309,6 +1310,34 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             TypeFilter type = new TypeFilter(AbstractRoleType.COMPLEX_TYPE);
             String real = getInterpretedQuery(session, ObjectType.class, ObjectQuery.createObjectQuery(type));
+
+            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+            AssertJUnit.assertEquals(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test360queryMetadataTimestamp() throws Exception {
+        Session session = open();
+
+        try {
+            Criteria main = session.createCriteria(RReportOutput.class, "r");
+            ProjectionList projections = Projections.projectionList();
+            addFullObjectProjectionList("r", projections, false);
+            main.setProjection(projections);
+
+            XMLGregorianCalendar timeXml = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
+
+            main.add(Restrictions.le("r.createTimestamp", timeXml));
+            String expected = HibernateToSqlTranslator.toSql(main);
+
+            LessFilter less = LessFilter.createLess(
+                    new ItemPath(ReportOutputType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP),
+                    ReportOutputType.class, prismContext, timeXml, true);
+
+            String real = getInterpretedQuery(session, ReportOutputType.class, ObjectQuery.createObjectQuery(less));
 
             LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
             AssertJUnit.assertEquals(expected, real);

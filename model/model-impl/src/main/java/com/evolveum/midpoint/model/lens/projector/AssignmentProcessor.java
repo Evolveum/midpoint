@@ -276,7 +276,7 @@ public class AssignmentProcessor {
                 if (evaluatedAssignment == null) {
                 	continue;
                 }
-            	collectToAccountMap(context, minusConstructionMap, evaluatedAssignment, forceRecon, result);
+            	collectToConstructionMap(context, minusConstructionMap, evaluatedAssignment, forceRecon, result);
                 evaluatedAssignmentTriple.addToMinusSet(evaluatedAssignment);
                 
             } else {
@@ -299,7 +299,7 @@ public class AssignmentProcessor {
                         if (evaluatedAssignment == null) {
                         	continue;
                         }
-            			collectToAccountMap(context, zeroConstructionMap, evaluatedAssignment, forceRecon, result);
+            			collectToConstructionMap(context, zeroConstructionMap, evaluatedAssignment, forceRecon, result);
     	                evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
             		} else if (willHaveValue) {
             			// add
@@ -307,7 +307,7 @@ public class AssignmentProcessor {
                         if (evaluatedAssignment == null) {
                         	continue;
                         }
-            			collectToAccountMap(context, plusConstructionMap, evaluatedAssignment, forceRecon, result);
+            			collectToConstructionMap(context, plusConstructionMap, evaluatedAssignment, forceRecon, result);
 	                    evaluatedAssignmentTriple.addToPlusSet(evaluatedAssignment);
             		} else if (hadValue) {
             			// delete
@@ -315,7 +315,7 @@ public class AssignmentProcessor {
                         if (evaluatedAssignment == null) {
                         	continue;
                         }
-            			collectToAccountMap(context, minusConstructionMap, evaluatedAssignment, forceRecon, result);
+            			collectToConstructionMap(context, minusConstructionMap, evaluatedAssignment, forceRecon, result);
 	                    evaluatedAssignmentTriple.addToMinusSet(evaluatedAssignment);
             		} else {
             			throw new SystemException("Whoops. Unexpected things happen. Assignment is not old nor new (replace delta)");
@@ -342,7 +342,7 @@ public class AssignmentProcessor {
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
-		                        collectToAccountMap(context, zeroConstructionMap, evaluatedAssignment, forceRecon, result);
+		                        collectToConstructionMap(context, zeroConstructionMap, evaluatedAssignment, forceRecon, result);
 		                        evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
 		                	} else {
 		                		if (LOGGER.isTraceEnabled()) {
@@ -352,7 +352,7 @@ public class AssignmentProcessor {
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
-			                    collectToAccountMap(context, plusConstructionMap, evaluatedAssignment, forceRecon, result);
+			                    collectToConstructionMap(context, plusConstructionMap, evaluatedAssignment, forceRecon, result);
 			                    evaluatedAssignmentTriple.addToPlusSet(evaluatedAssignment);
 		                	}
 		                	
@@ -365,7 +365,7 @@ public class AssignmentProcessor {
 		                    if (evaluatedAssignment == null) {
 		                    	continue;
 		                    }
-		                    collectToAccountMap(context, minusConstructionMap, evaluatedAssignment, forceRecon, result);
+		                    collectToConstructionMap(context, minusConstructionMap, evaluatedAssignment, forceRecon, result);
 		                    evaluatedAssignmentTriple.addToMinusSet(evaluatedAssignment);
 		                    
 		                } else {
@@ -385,7 +385,7 @@ public class AssignmentProcessor {
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
-			                	collectToAccountMap(context, zeroConstructionMap, evaluatedAssignment, true, result);
+			                	collectToConstructionMap(context, zeroConstructionMap, evaluatedAssignment, true, result);
 				                evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
 		                	} else if (isValid) {
 		                		// Assignment became valid. We need to place it in plus set to initiate provisioning
@@ -396,7 +396,7 @@ public class AssignmentProcessor {
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
-		                		collectToAccountMap(context, plusConstructionMap, evaluatedAssignment, true, result);
+		                		collectToConstructionMap(context, plusConstructionMap, evaluatedAssignment, true, result);
 			                    evaluatedAssignmentTriple.addToPlusSet(evaluatedAssignment);
 		                	} else {
 		                		// Assignment became invalid. We need to place is in minus set to initiate deprovisioning
@@ -407,7 +407,7 @@ public class AssignmentProcessor {
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
-			                    collectToAccountMap(context, minusConstructionMap, evaluatedAssignment, true, result);
+			                    collectToConstructionMap(context, minusConstructionMap, evaluatedAssignment, true, result);
 			                    evaluatedAssignmentTriple.addToMinusSet(evaluatedAssignment);
 		                	}
 		                }
@@ -422,13 +422,16 @@ public class AssignmentProcessor {
 		                if (evaluatedAssignment == null) {
 		                	continue;
 		                }
-		                collectToAccountMap(context, zeroConstructionMap, evaluatedAssignment, forceRecon, result);
+		                collectToConstructionMap(context, zeroConstructionMap, evaluatedAssignment, forceRecon, result);
 		                evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
 		            }
             	}
             }
         }
         
+        if (LOGGER.isTraceEnabled()) {
+        	LOGGER.trace("evaluatedAssignmentTriple:\n{}", evaluatedAssignmentTriple.debugDump());
+        }
         
         // PROCESSING POLICIES
         
@@ -963,7 +966,7 @@ public class AssignmentProcessor {
 		
     }
 
-    private <F extends FocusType> void collectToAccountMap(LensContext<F> context,
+    private <F extends FocusType> void collectToConstructionMap(LensContext<F> context,
             Map<ResourceShadowDiscriminator, ConstructionPack> accountMap, EvaluatedAssignment<F> evaluatedAssignment, 
             boolean forceRecon, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
     	if (LOGGER.isTraceEnabled()) {

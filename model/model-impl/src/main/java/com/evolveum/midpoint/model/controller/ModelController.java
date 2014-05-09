@@ -715,9 +715,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			return null;
 		}
 		PrismObjectDefinition<O> finalDefinition = applySecurityContraints(origDefinition, new ItemPath(), securityConstraints,
-				securityConstraints.getActionDecistion(ModelAuthorizationAction.READ.getUrl(), null),
-				securityConstraints.getActionDecistion(ModelAuthorizationAction.ADD.getUrl(), null),
-				securityConstraints.getActionDecistion(ModelAuthorizationAction.MODIFY.getUrl(), null));
+				securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), null),
+				securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), null),
+				securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), null));
 		return finalDefinition;
 	}
 	
@@ -802,11 +802,11 @@ public class ModelController implements ModelService, ModelInteractionService, T
     	
     	ItemPath attributesPath = new ItemPath(ShadowType.F_ATTRIBUTES);
 		AuthorizationDecisionType attributesReadDecision = computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.READ.getUrl(), 
-    			securityConstraints.getActionDecistion(ModelAuthorizationAction.READ.getUrl(), null));
+    			securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), null));
 		AuthorizationDecisionType attributesAddDecision = computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.ADD.getUrl(),
-				securityConstraints.getActionDecistion(ModelAuthorizationAction.ADD.getUrl(), null));
+				securityConstraints.getActionDecision(ModelAuthorizationAction.ADD.getUrl(), null));
 		AuthorizationDecisionType attributesModifyDecision = computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.MODIFY.getUrl(),
-				securityConstraints.getActionDecistion(ModelAuthorizationAction.MODIFY.getUrl(), null));
+				securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), null));
 		LOGGER.trace("Attributes container access read:{}, add:{}, modify:{}", new Object[]{attributesReadDecision, attributesAddDecision, attributesModifyDecision});
 		for (LayerRefinedAttributeDefinition rAttrDef: rOCDef.getAttributeDefinitions()) {
 			ItemPath attributePath = new ItemPath(ShadowType.F_ATTRIBUTES, rAttrDef.getName());
@@ -1066,6 +1066,14 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		OperationResult result = parentResult.createMinorSubresult(COUNT_OBJECTS);
 		result.addParams(new String[] { "query", "paging"},
                 query, (query != null ? query.getPaging() : "undefined"));
+		
+		query = preProcessQuerySecurity(type, query);
+		if (query != null && query.getFilter() != null && query.getFilter() instanceof NoneFilter) {
+			LOGGER.trace("Security denied the search");
+			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Denied");
+			RepositoryCache.exit();
+			return 0;
+		}
 
 		int count;
 		try {
@@ -1448,7 +1456,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			if (securityConstraints == null) {
 				throw new SecurityViolationException("Access denied");
 			}
-			AuthorizationDecisionType globalDecision = securityConstraints.getActionDecistion(ModelAuthorizationAction.READ.getUrl(), null);
+			AuthorizationDecisionType globalDecision = securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), null);
 			if (globalDecision == AuthorizationDecisionType.DENY) {
 				// shortcut
 				throw new SecurityViolationException("Access denied");
