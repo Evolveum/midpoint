@@ -623,7 +623,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteDeny();
 	}
 	
-	@Test
+	@Test(enabled=false) // MID-1881
     public void test207AutzJackObjectFilterCaribbeanRole() throws Exception {
 		final String TEST_NAME = "test207AutzJackObjectFilterCaribbeanfRole";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -641,10 +641,13 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertGetDeny(UserType.class, USER_GUYBRUSH_OID, SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         
         assertSearch(UserType.class, null, 2);
+        assertSearch(ObjectType.class, null, 2);
         assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), 1);
         assertSearch(UserType.class, createNameQuery(USER_JACK_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 1);
+        assertSearch(ObjectType.class, createNameQuery(USER_JACK_USERNAME), 1);
         assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
         assertSearch(UserType.class, createNameQuery(USER_GUYBRUSH_USERNAME), SelectorOptions.createCollection(GetOperationOptions.createRaw()), 0);
+        assertSearch(ObjectType.class, createNameQuery(USER_GUYBRUSH_USERNAME), 0);
 
         assertAddDeny();
         

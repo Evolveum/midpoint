@@ -23,6 +23,7 @@
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
     	<object>
+    		<type>UserType</type>
     		<filter>
     			<q:equal>
     				<q:path>locality</q:path>

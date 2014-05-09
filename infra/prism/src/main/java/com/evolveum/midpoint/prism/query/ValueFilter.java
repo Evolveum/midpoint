@@ -147,6 +147,8 @@ public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 		clone.definition = this.definition;
 		clone.matchingRule = this.matchingRule;
 	}
+	
+	public abstract boolean isRaw();
 
 	@Override
 	public int hashCode() {
