@@ -16,31 +16,43 @@
 
 package com.evolveum.midpoint.model.lens.projector;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.policy.PasswordPolicyUtils;
+import com.evolveum.midpoint.model.ModelObjectResolver;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -54,6 +66,9 @@ public class PasswordPolicyProcessor {
 	
 	@Autowired(required = true)
 	Protector protector;
+	
+	@Autowired(required = true)
+	ModelObjectResolver resolver;
 
 	void processPasswordPolicy(ValuePolicyType passwordPolicy, PrismProperty password, OperationResult result)
 			throws PolicyViolationException, SchemaException {
@@ -89,6 +104,11 @@ public class PasswordPolicyProcessor {
 			LOGGER.trace("Skipping processing password policies. User delta not specified.");
 			return;
 		}
+		
+		if (userDelta.isDelete()) {
+			LOGGER.trace("Skipping processing password policies. User will be deleted.");
+			return;
+		}
 
 		PrismProperty<PasswordType> password = null;
 		PrismObject<F> user = null;
@@ -119,16 +139,121 @@ public class PasswordPolicyProcessor {
 			}
 		}
 		
-		ValuePolicyType passwordPolicy = context.getGlobalPasswordPolicy();
+		ValuePolicyType passwordPolicy = determineValuePolicy(userDelta, focusContext.getObjectAny(), context, result);
 		
 		processPasswordPolicy(passwordPolicy, password, result);
+
+	}
+	
+	//TODO: maybe some caching of orgs?????
+	private <T extends ObjectType, F extends ObjectType> ValuePolicyType determineValuePolicy(ObjectDelta<UserType> userDelta, PrismObject<T> object, LensContext<F> context, OperationResult result) throws SchemaException{
+		//check the modification of organization first
+		ValuePolicyType valuePolicy = determineValuePolicy(userDelta, result);
+		
+		//if null, check the existing organization
+		if (valuePolicy == null){
+			valuePolicy = determineValuePolicy(object, result);
+		}
+		
+		//if still null, just use global policy
+		if (valuePolicy == null){
+			valuePolicy = context.getGlobalPasswordPolicy();
+		}
+		
+		return valuePolicy;
+	}
+	
+	private ValuePolicyType determineValuePolicy(ObjectDelta<UserType> userDelta, OperationResult result)
+			throws SchemaException {
+		ReferenceDelta orgDelta = userDelta.findReferenceModification(UserType.F_PARENT_ORG_REF);
+		ValuePolicyType passwordPolicy = null;
+		if (orgDelta != null) {
+			PrismReferenceValue orgRefValue = orgDelta.getAnyValue();
+
+			try {
+				PrismObject<OrgType> org = (PrismObject<OrgType>) resolver.resolve(orgRefValue,
+						"resolving parent org ref", null, null, result);
+				OrgType orgType = org.asObjectable();
+				ObjectReferenceType ref = orgType.getPasswordPolicyRef();
+				if (ref != null) {
+
+					passwordPolicy = resolver.resolve(ref, ValuePolicyType.class, null,
+							"resolving password policy for organization", result);
+				}
+
+				if (passwordPolicy == null) {
+					passwordPolicy = determineValuePolicy(org, result);
+				}
+
+			} catch (ObjectNotFoundException e) {
+				throw new IllegalStateException(e);
+			}
+
+		}
+		return passwordPolicy;
+	}
+	
+	private ValuePolicyType determineValuePolicy(PrismObject object, OperationResult result)
+			throws SchemaException {
+		PrismReference orgRef = object.findReference(ObjectType.F_PARENT_ORG_REF);
+		if (orgRef == null) {
+			return null;
+		}
+		List<PrismReferenceValue> values = orgRef.getValues();
+		ValuePolicyType valuePolicy = null;
+		List<PrismObject<OrgType>> orgs = new ArrayList<PrismObject<OrgType>>();
+		try {
+			for (PrismReferenceValue orgRefValue : values) {
+				if (orgRefValue != null) {
+
+					if (valuePolicy != null) {
+						throw new IllegalStateException(
+								"Found more than one policy while trying to validate user's password. Please check your configuration");
+					}
+
+					PrismObject<OrgType> org = (PrismObject<OrgType>) resolver.resolve(orgRefValue,
+							"resolving parent org ref", null, null, result);
+					orgs.add(org);
+					valuePolicy = resolvePolicy(org, result);
+
+				}
+			}
+		} catch (ObjectNotFoundException ex) {
+			throw new IllegalStateException(ex);
+		}
+		// go deeper
+		if (valuePolicy == null) {
+			for (PrismObject<OrgType> orgType : orgs) {
+				valuePolicy = determineValuePolicy(orgType, result);
+			}
+		}
+		return valuePolicy;
+	}
+	
+	private ValuePolicyType resolvePolicy(PrismObject<OrgType> org, OperationResult result)
+			throws SchemaException {
+		try {
+			OrgType orgType = org.asObjectable();
+			ObjectReferenceType ref = orgType.getPasswordPolicyRef();
+			if (ref == null) {
+				return null;
+			}
+
+			return resolver.resolve(ref, ValuePolicyType.class, null,
+					"resolving password policy for organization", result);
+
+		} catch (ObjectNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			throw new IllegalStateException(e);
+		}
 
 	}
 	
 	<F extends ObjectType> void processPasswordPolicy(LensProjectionContext projectionContext, 
 			LensContext<F> context, OperationResult result) throws SchemaException, PolicyViolationException{
 		
-ObjectDelta accountDelta = projectionContext.getDelta();
+		ObjectDelta accountDelta = projectionContext.getDelta();
 		
 		if (accountDelta == null){
 			LOGGER.trace("Skipping processing password policies. User delta not specified.");
@@ -171,84 +296,6 @@ ObjectDelta accountDelta = projectionContext.getDelta();
 		
 		processPasswordPolicy(passwordPolicy, password, result);
 	}
-
-//	private PrismProperty<PasswordType> getPassword(LensProjectionContext<AccountShadowType> projectionContext) throws SchemaException{
-//		ObjectDelta accountDelta = projectionContext.getDelta();
-//		
-//		if (accountDelta == null){
-//			LOGGER.trace("Skipping processing password policies. User delta not specified.");
-//			return null;
-//		}
-//		
-//		if (ChangeType.DELETE == accountDelta.getChangeType()){
-//			return null;
-//		}
-//		
-//		PrismObject<AccountShadowType> accountShadow = null;
-//		PrismProperty<PasswordType> password = null;
-//		if (ChangeType.ADD == accountDelta.getChangeType()){
-//			accountShadow = accountDelta.getObjectToAdd();
-//			if (accountShadow != null){
-//				password = accountShadow.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
-//				
-//			}
-//		}
-//		if (ChangeType.MODIFY == accountDelta.getChangeType() || password == null) {
-//			PropertyDelta<PasswordType> passwordValueDelta = null;
-//			if (accountDelta != null) {
-//				passwordValueDelta = accountDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
-//				// Modification sanity check
-//				if (accountDelta.getChangeType() == ChangeType.MODIFY && passwordValueDelta != null
-//						&& (passwordValueDelta.isAdd() || passwordValueDelta.isDelete())) {
-//					throw new SchemaException("User password value cannot be added or deleted, it can only be replaced");
-//				}
-//				if (passwordValueDelta == null) {
-//					LOGGER.trace("Skipping processing password policies. User delta does not contain password change.");
-//					return null;
-//				}
-//				password = passwordValueDelta.getPropertyNew();
-//			}
-//		}
-//
-//		return password;
-//	}
-	
-//	private PrismProperty<PasswordType> getPassword(LensFocusContext<UserType> focusContext)
-//			throws SchemaException {
-//		
-//
-//		ObjectDelta userDelta = focusContext.getDelta();
-//
-//		if (userDelta == null) {
-//			LOGGER.trace("Skipping processing password policies. User delta not specified.");
-//			return null;
-//		}
-//
-//		PrismProperty<PasswordType> password = null;
-//		PrismObject<UserType> user = null;
-//		if (ChangeType.ADD == userDelta.getChangeType()) {
-//			user = focusContext.getDelta().getObjectToAdd();
-//			if (user != null) {
-//				password = user.findProperty(SchemaConstants.PATH_PASSWORD_VALUE);
-//			}
-//		} else if (ChangeType.MODIFY == userDelta.getChangeType()) {
-//			PropertyDelta<PasswordType> passwordValueDelta = null;
-//			if (userDelta != null) {
-//				passwordValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
-//				// Modification sanity check
-//				if (userDelta.getChangeType() == ChangeType.MODIFY && passwordValueDelta != null
-//						&& (passwordValueDelta.isAdd() || passwordValueDelta.isDelete())) {
-//					throw new SchemaException("User password value cannot be added or deleted, it can only be replaced");
-//				}
-//				if (passwordValueDelta == null) {
-//					LOGGER.trace("Skipping processing password policies. User delta does not contain password change.");
-//					return null;
-//				}
-//				password = passwordValueDelta.getPropertyNew();
-//			}
-//		}
-//		return password;
-//	}
 
 
     // On missing password this returns empty string (""). It is then up to password policy whether it allows empty passwords or not.
