@@ -1241,6 +1241,26 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 			TestUtil.assertFailure(result);
 			failAllow("searchIterative", type, query, e);
 		}
+		
+		task = taskManager.createTaskInstance(TestSecurity.class.getName() + ".assertSearchObjects.count");
+        result = task.getResult();
+		try {
+			logAttempt("count", type, query);
+			int numObjects = modelService.countObjects(type, query, options, task, result);
+			display("Count returned", numObjects);
+			if (numObjects > expectedResults) {
+				failDeny("count", type, query, expectedResults, numObjects);
+			} else if (numObjects < expectedResults) {
+				failAllow("count", type, query, expectedResults, numObjects);
+			}
+			result.computeStatus();
+			TestUtil.assertSuccess(result);
+		} catch (SecurityViolationException e) {
+			// this should not happen
+			result.computeStatus();
+			TestUtil.assertFailure(result);
+			failAllow("search", type, query, e);
+		}
 	}
 	
 	private void assertAddDeny(File file) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, IOException {

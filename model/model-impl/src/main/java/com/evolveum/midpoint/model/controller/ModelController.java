@@ -1066,6 +1066,14 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		OperationResult result = parentResult.createMinorSubresult(COUNT_OBJECTS);
 		result.addParams(new String[] { "query", "paging"},
                 query, (query != null ? query.getPaging() : "undefined"));
+		
+		query = preProcessQuerySecurity(type, query);
+		if (query != null && query.getFilter() != null && query.getFilter() instanceof NoneFilter) {
+			LOGGER.trace("Security denied the search");
+			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Denied");
+			RepositoryCache.exit();
+			return 0;
+		}
 
 		int count;
 		try {
