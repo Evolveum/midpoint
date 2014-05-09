@@ -37,6 +37,10 @@ public class TypeFilter extends ObjectFilter {
         return type;
     }
 
+    public static TypeFilter createType(QName type) {
+    	return new TypeFilter(type);
+    }
+    
     @Override
     public ObjectFilter clone() {
         return new TypeFilter(type);

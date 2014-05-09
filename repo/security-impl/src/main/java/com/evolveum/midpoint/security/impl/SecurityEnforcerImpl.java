@@ -39,6 +39,7 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -59,6 +60,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
+import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -792,17 +794,24 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					if (objectSpecTypes != null && !objectSpecTypes.isEmpty()) {
 						applicable = false;
 						for (ObjectSpecificationType objectSpecType: objectSpecTypes) {
+							ObjectFilter objSpecSecurityFilter = null;
 							SearchFilterType specFilterType = objectSpecType.getFilter();
 							ObjectReferenceType specOrgRef = objectSpecType.getOrgRef();
 							QName specTypeQName = objectSpecType.getType();
-							PrismObjectDefinition<O> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectType);
-							ObjectFilter objSpecSecurityFilter = AllFilter.createAll();
 							
 							// Type
-							if (specTypeQName != null && !QNameUtil.match(specTypeQName, objectDefinition.getTypeName())) {
-								LOGGER.trace("  Authorization not applicable for object because of type mismatch, expected {}, was {}",
-										new Object[]{specTypeQName, objectDefinition.getTypeName()});
-								continue;
+							if (specTypeQName != null) {
+								PrismObjectDefinition<Objectable> specObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(specTypeQName);
+								Class<Objectable> specObjectClass = specObjectDef.getCompileTimeClass();
+								if (!objectType.isAssignableFrom(specObjectClass)) {
+									LOGGER.trace("  Authorization not applicable for object because of type mismatch, expected {}, was {}",
+											new Object[]{specObjectClass, objectType});
+									continue;
+								} else {
+									// The spec type is a subclass of requested type. So it might be returned from the search.
+									// We need to use type filter.
+									objSpecSecurityFilter = TypeFilter.createType(specTypeQName);
+								}
 							}
 							
 							// Owner
@@ -835,6 +844,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							
 							// Filter
 							if (specFilterType != null) {
+								PrismObjectDefinition<O> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectType);
 								ObjectFilter specFilter = QueryJaxbConvertor.createObjectFilter(objectDefinition, specFilterType, prismContext);
 								if (specFilter != null) {
 									ObjectQueryUtil.assertPropertyOnly(specFilter, "Filter in authorization object is not property-only filter");
