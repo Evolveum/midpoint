@@ -656,7 +656,7 @@ public class AssignmentProcessor {
 	
 	private <F extends FocusType> EvaluatedAssignment<F> evaluateAssignment(AssignmentType assignmentType, 
 			LensContext<F> context, ObjectType source, AssignmentEvaluator<F> assignmentEvaluator, 
-			String assignmentPlacementDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+			String assignmentPlacementDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
         try{
         	// Evaluate assignment. This follows to the assignment targets, follows to the inducements, 
         	// evaluates all the expressions, etc. 

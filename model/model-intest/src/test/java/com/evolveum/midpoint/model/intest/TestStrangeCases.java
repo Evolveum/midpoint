@@ -40,6 +40,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -93,6 +94,15 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 	private static final File USER_DEGHOULASH_FILE = new File(TEST_DIR, "user-deghoulash.xml");
 	private static final String USER_DEGHOULASH_OID = "c0c010c0-d34d-b33f-f00d-1d11dd11dd11";
 	private static final String USER_DEGHOULASH_NAME = "deghoulash";
+	
+	private static final File ROLE_IDIOT_FILE = new File(TEST_DIR, "role-idiot.xml");
+	private static final String ROLE_IDIOT_OID = "12345678-d34d-b33f-f00d-555555550001";
+
+	private static final File ROLE_STUPID_FILE = new File(TEST_DIR, "role-stupid.xml");
+	private static final String ROLE_STUPID_OID = "12345678-d34d-b33f-f00d-555555550002";
+
+	private static final File ROLE_RECURSION_FILE = new File(TEST_DIR, "role-recursion.xml");
+	private static final String ROLE_RECURSION_OID = "12345678-d34d-b33f-f00d-555555550003";
 
 	private static final String NON_EXISTENT_ACCOUNT_OID = "f000f000-f000-f000-f000-f000f000f000";
 
@@ -119,6 +129,10 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		accountGuybrushDummyRedOid = accountGuybrushDummyRed.getOid();
 		
 		treasureIsland = IOUtils.toString(new FileInputStream(TREASURE_ISLAND_FILE)).replace("\r\n", "\n");     // for Windows compatibility
+		
+		addObject(ROLE_IDIOT_FILE, initTask, initResult);
+		addObject(ROLE_STUPID_FILE, initTask, initResult);
+		addObject(ROLE_RECURSION_FILE, initTask, initResult);
 		
 		DebugUtil.setDetailedDebugDump(true);
 	}
@@ -496,6 +510,74 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assertExtension(userDeGhoulash, PIRACY_BAD_LUCK, 13L, 169L, 2197L, 28561L, 371293L, 131313131313131313L);
         assertExtension(userDeGhoulash, PIRACY_FUNERAL_TIMESTAMP, USER_DEGHOULASH_FUNERAL_TIMESTAMP);
     }
+    
+    /**
+     * Idiot and Stupid are cyclic roles. The assignment should fail.
+     */
+	@Test
+    public void test330AssignDeGhoulashIdiot() throws Exception {
+		final String TEST_NAME = "test330AssignDeGhoulashIdiot";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
+                                
+        try {
+			// WHEN
+	        assignRole(USER_DEGHOULASH_OID, ROLE_IDIOT_OID, task, result);
+	        
+	        AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+        	// This is expected
+        	display("Expected exception", e);
+        }
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertFailure(result);
+        
+		PrismObject<UserType> userDeGhoulash = getUser(USER_DEGHOULASH_OID);
+		display("User after change execution", userDeGhoulash);
+		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
+		assertAssignedNoRole(userDeGhoulash);                
+	}
+
+    /**
+     * Recursion role points to itself. The assignment should fail.
+     */
+	@Test
+    public void test332AssignDeGhoulashRecursion() throws Exception {
+		final String TEST_NAME = "test332AssignDeGhoulashRecursion";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        dummyAuditService.clear();
+                                
+        try {
+			// WHEN
+	        assignRole(USER_DEGHOULASH_OID, ROLE_RECURSION_OID, task, result);
+	        
+	        AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+        	// This is expected
+        	display("Expected exception", e);
+        }
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertFailure(result);
+        
+		PrismObject<UserType> userDeGhoulash = getUser(USER_DEGHOULASH_OID);
+		display("User after change execution", userDeGhoulash);
+		assertUser(userDeGhoulash, USER_DEGHOULASH_OID, "deghoulash", "Charles DeGhoulash", "Charles", "DeGhoulash");
+		assertAssignedNoRole(userDeGhoulash);                
+	}
 
     @Test
     public void test400ImportJackMockTask() throws Exception {

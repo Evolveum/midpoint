@@ -22,6 +22,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.ActivationComputer;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
@@ -162,7 +163,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 
 	public SimpleDelta<EvaluatedAssignment> evaluate(SimpleDelta<AssignmentType> assignmentTypeDelta, ObjectType source, String sourceDescription,
-			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		SimpleDelta<EvaluatedAssignment> delta = new SimpleDelta<EvaluatedAssignment>();
 		delta.setType(assignmentTypeDelta.getType());
 		for (AssignmentType assignmentType : assignmentTypeDelta.getChange()) {
@@ -175,7 +176,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	
 	public EvaluatedAssignment evaluate(AssignmentType assignmentType, ObjectType source, String sourceDescription, 
 			Task task, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, assignmentType);
 		EvaluatedAssignment evalAssignment = new EvaluatedAssignment();
 		AssignmentPath assignmentPath = new AssignmentPath();
@@ -195,10 +196,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 	
 	private void evaluateAssignment(EvaluatedAssignment evalAssignment, AssignmentPathSegment assignmentPathSegment, ObjectType source, String sourceDescription,
-			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, evalAssignment);
 		
-		assignmentPath.add(assignmentPathSegment);
 		LOGGER.trace("Evaluate assignment {} (eval costr: {})", assignmentPath, assignmentPathSegment.isEvaluateConstructions());
 		
 		AssignmentType assignmentType = assignmentPathSegment.getAssignmentType();
@@ -214,6 +214,17 @@ public class AssignmentEvaluator<F extends FocusType> {
 		if (target != null && evalAssignment.getTarget() == null) {
 			evalAssignment.setTarget(target);
 		}
+
+		if (target != null) {
+			if (target.getOid().equals(source.getOid())) {
+				throw new PolicyViolationException("The "+source+" refers to itself in assignment/inducement");
+			}
+			if (assignmentPath.containsTarget((ObjectType) target.asObjectable())) {
+				throw new PolicyViolationException("Attempt to assign "+target+" creates a role cycle");
+			}
+		}
+		
+		assignmentPath.add(assignmentPathSegment);
 		
 		boolean isValid = LensUtil.isValid(assignmentType, now, activationComputer);
 		if (isValid || assignmentPathSegment.isValidityOverride()) {
@@ -344,7 +355,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 	private void evaluateTarget(EvaluatedAssignment assignment, AssignmentPathSegment assignmentPathSegment, PrismObject<?> target, 
 			ObjectType source, QName relation, String sourceDescription,
-			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, assignment);
 		ObjectType targetType = (ObjectType) target.asObjectable();
 		assignmentPathSegment.setTarget(targetType);
@@ -364,8 +375,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 	private void evaluateAbstractRole(EvaluatedAssignment assignment, AssignmentPathSegment assignmentPathSegment, 
 			AbstractRoleType role, ObjectType source, String sourceDescription,
-			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, assignment);
+		
 		int evaluationOrder = assignmentPath.getEvaluationOrder();
 		ObjectType orderOneObject;
 		if (evaluationOrder == 1) {

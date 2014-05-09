@@ -19,6 +19,7 @@ package com.evolveum.midpoint.model.security;
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.UserComputer;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.lens.EvaluatedAssignment;
@@ -175,6 +176,9 @@ public class UserProfileServiceImpl implements UserProfileService {
 						new Object[]{userType, e.getMessage(), assignmentType, e});
 			} catch (ExpressionEvaluationException e) {
 				LOGGER.error("Evaluation error while processing assignment of {}: {}; assignment: {}", 
+						new Object[]{userType, e.getMessage(), assignmentType, e});
+			} catch (PolicyViolationException e) {
+				LOGGER.error("Policy violation while processing assignment of {}: {}; assignment: {}", 
 						new Object[]{userType, e.getMessage(), assignmentType, e});
 			}
         }
