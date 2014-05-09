@@ -938,12 +938,20 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertModifyDeny();
         assertDeleteDeny();
 
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        assertAssignments(user, 2);
+        assertAssignedRole(user, ROLE_ASSIGN_APPLICATION_ROLES_OID);
+        
         assertAllow("assign application role to jack", new Attempt() {
 			@Override
 			public void run(Task task, OperationResult result) throws Exception {
 				assignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result);
 			}
 		});
+        
+        user = getUser(USER_JACK_OID);
+        assertAssignments(user, 3);
+        assertAssignedRole(user, ROLE_APPLICATION_1_OID);
 
         assertDeny("assign business role to jack", new Attempt() {
 			@Override
@@ -952,6 +960,15 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 			}
 		});
 
+        assertAllow("unassign application role from jack", new Attempt() {
+			@Override
+			public void run(Task task, OperationResult result) throws Exception {
+				unassignRole(USER_JACK_OID, ROLE_APPLICATION_1_OID, task, result);
+			}
+		});
+
+        user = getUser(USER_JACK_OID);
+        assertAssignments(user, 2);
 	}
 
 	private void assertItemFlags(PrismObjectDefinition<UserType> editSchema, QName itemName, boolean expectedRead, boolean expectedAdd, boolean expectedModify) {
