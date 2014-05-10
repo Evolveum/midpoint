@@ -126,9 +126,15 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return SecurityUtil.getPrincipal();
 	}
 
+    @Override
+    public void setupPreAuthenticatedSecurityContext(Authentication authentication) {
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        securityContext.setAuthentication(authentication);
+    }
+
 	@Override
 	public void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user) {
-		MidPointPrincipal principal = null;
+		MidPointPrincipal principal;
 		if (userProfileService == null) {
 			LOGGER.warn("No user profile service set up in SecurityEnforcer. "
 					+ "This is OK in low-level tests but it is a serious problem in running system");
@@ -136,9 +142,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		} else {
 			principal = userProfileService.getPrincipal(user);
 		}
-		SecurityContext securityContext = SecurityContextHolder.getContext();
 		Authentication authentication = new PreAuthenticatedAuthenticationToken(principal, null);
-		securityContext.setAuthentication(authentication);
+        setupPreAuthenticatedSecurityContext(authentication);
 	}
 
 	@Override

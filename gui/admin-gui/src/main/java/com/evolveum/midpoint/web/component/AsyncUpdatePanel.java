@@ -29,6 +29,8 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.ResourceReference;
 import org.apache.wicket.util.time.Duration;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
@@ -58,7 +60,9 @@ public abstract class AsyncUpdatePanel<V, T> extends BaseSimplePanel {
 
     public AsyncUpdatePanel(String id, IModel<V> callableParameterModel, Duration durationSecs) {
         super(id, new Model());
-        future = GuiComponents.submitCallable(createCallable(callableParameterModel));
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        future = GuiComponents.submitCallable(createCallable(auth, callableParameterModel));
         FutureUpdateBehavior<T> behaviour = new FutureUpdateBehavior<T>(durationSecs, future) {
 
             @Override
@@ -120,8 +124,10 @@ public abstract class AsyncUpdatePanel<V, T> extends BaseSimplePanel {
      * Create a callable that encapsulates the actual fetching of the data needed
      * by the panel for rendering.
      *
+     * @param auth provides {@link org.springframework.security.core.Authentication} object (principal) for async
+     *             thread which will be used with callable
      * @param callableParameterModel Model providing access to parameters needed by the callable
      * @return A callable instance that encapsulates the logic needed to obtain the panel data
      */
-    protected abstract Callable<T> createCallable(IModel<V> callableParameterModel);
+    protected abstract Callable<T> createCallable(Authentication auth, IModel<V> callableParameterModel);
 }

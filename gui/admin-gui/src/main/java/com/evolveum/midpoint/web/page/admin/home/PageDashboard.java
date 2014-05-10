@@ -43,6 +43,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.springframework.security.core.Authentication;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -123,8 +124,8 @@ public class PageDashboard extends PageAdminHome {
 
         List<ObjectReferenceType> references = user.asObjectable().getLinkRef();
         for (ObjectReferenceType reference : references) {
-            PrismObject<ShadowType> account = WebModelUtils.loadObjectAsync(ShadowType.class, reference.getOid(),
-                    options, result, this, user);
+            PrismObject<ShadowType> account = WebModelUtils.loadObject(ShadowType.class, reference.getOid(),
+                    options, result, this);
             if (account == null) {
                 continue;
             }
@@ -205,7 +206,8 @@ public class PageDashboard extends PageAdminHome {
                         "fa fa-fw fa-tachometer", DashboardColor.GREEN) {
 
                     @Override
-                    protected Callable<CallableResult<SystemInfoDto>> createCallable(IModel callableParameterModel) {
+                    protected Callable<CallableResult<SystemInfoDto>> createCallable(final Authentication auth,
+                                                                                     IModel callableParameterModel) {
                         return new Callable<CallableResult<SystemInfoDto>>() {
 
                             @Override
@@ -241,7 +243,8 @@ public class PageDashboard extends PageAdminHome {
                         "fa fa-fw fa-tasks", DashboardColor.RED) {
 
                     @Override
-                    protected Callable<CallableResult<List<WorkItemDto>>> createCallable(IModel callableParameterModel) {
+                    protected Callable<CallableResult<List<WorkItemDto>>> createCallable(final Authentication auth,
+                                                                                         IModel callableParameterModel) {
                         return new Callable<CallableResult<List<WorkItemDto>>>() {
 
                             @Override
@@ -272,13 +275,15 @@ public class PageDashboard extends PageAdminHome {
                         "fa fa-fw fa-external-link", DashboardColor.BLUE) {
 
                     @Override
-                    protected Callable<CallableResult<List<SimpleAccountDto>>> createCallable(
+                    protected Callable<CallableResult<List<SimpleAccountDto>>> createCallable(final Authentication auth,
                             IModel<Object> callableParameterModel) {
 
                         return new Callable<CallableResult<List<SimpleAccountDto>>>() {
 
                             @Override
                             public AccountCallableResult<List<SimpleAccountDto>> call() throws Exception {
+//                                getSecurityEnforcer().setupPreAuthenticatedSecurityContext();
+
                                 return loadAccounts();
                             }
                         };
@@ -323,11 +328,14 @@ public class PageDashboard extends PageAdminHome {
                         "fa fa-fw fa-star", DashboardColor.YELLOW) {
 
                     @Override
-                    protected Callable<CallableResult<List<AssignmentItemDto>>> createCallable(IModel callableParameterModel) {
+                    protected Callable<CallableResult<List<AssignmentItemDto>>> createCallable(final Authentication auth,
+                                                                                               IModel callableParameterModel) {
                         return new Callable<CallableResult<List<AssignmentItemDto>>>() {
 
                             @Override
                             public CallableResult<List<AssignmentItemDto>> call() throws Exception {
+                                getSecurityEnforcer().setupPreAuthenticatedSecurityContext(auth);
+
                                 return loadAssignments();
                             }
                         };
@@ -389,8 +397,7 @@ public class PageDashboard extends PageAdminHome {
                 if (constr.getResourceRef() != null) {
                     ObjectReferenceType resourceRef = constr.getResourceRef();
 
-                    PrismObject resource = WebModelUtils.loadObjectAsync(
-                            ResourceType.class, resourceRef.getOid(), result, this, user);
+                    PrismObject resource = WebModelUtils.loadObject(ResourceType.class, resourceRef.getOid(), result, this);
                     name = WebMiscUtil.getName(resource);
                 }
             }
@@ -402,7 +409,7 @@ public class PageDashboard extends PageAdminHome {
         PrismObject value = refValue.getObject();
         if (value == null) {
             //resolve reference
-            value = WebModelUtils.loadObjectAsync(ObjectType.class, refValue.getOid(), result, this, user);
+            value = WebModelUtils.loadObject(ObjectType.class, refValue.getOid(), result, this);
         }
 
         if (value == null) {

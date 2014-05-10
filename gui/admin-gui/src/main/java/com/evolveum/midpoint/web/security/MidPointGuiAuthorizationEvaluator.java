@@ -64,7 +64,12 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
 		securityEnforcer.setUserProfileService(userProfileService);
 	}
 
-	public void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user) {
+    @Override
+    public void setupPreAuthenticatedSecurityContext(Authentication authentication) {
+        securityEnforcer.setupPreAuthenticatedSecurityContext(authentication);
+    }
+
+    public void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user) {
 		securityEnforcer.setupPreAuthenticatedSecurityContext(user);
 	}
 

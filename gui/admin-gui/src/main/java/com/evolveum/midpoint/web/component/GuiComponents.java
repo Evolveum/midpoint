@@ -45,12 +45,6 @@ public class GuiComponents {
         EXECUTOR.shutdownNow();
     }
 
-    public static Future<?> submitRunnable(Runnable runnable) {
-        Validate.notNull(runnable, "Runnable must not be null.");
-
-        return EXECUTOR.submit(runnable);
-    }
-
     public static <T> Future<T> submitCallable(Callable<T> callable) {
         Validate.notNull(callable, "Callable must not be null.");
 
