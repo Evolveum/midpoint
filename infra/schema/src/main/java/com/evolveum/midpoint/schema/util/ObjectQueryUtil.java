@@ -151,6 +151,22 @@ public class ObjectQueryUtil {
 		};
 		filter.accept(visitor);
 	}
+	
+	public static void assertNotRaw(ObjectFilter filter, final String message) {
+		Visitor visitor = new Visitor() {
+			@Override
+			public void visit(ObjectFilter filter) {
+				if (filter instanceof ValueFilter && ((ValueFilter)filter).isRaw()) {
+					if (message == null) {
+						throw new IllegalArgumentException(filter.toString());
+					} else {
+						throw new IllegalArgumentException(message+": "+filter);
+					}
+				}
+			}
+		};
+		filter.accept(visitor);
+	}
 
 	public static String dump(QueryType query) {
 		if (query == null) {

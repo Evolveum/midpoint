@@ -196,6 +196,18 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 	}
 
 	@Override
+	public boolean isRaw() {
+		if (values != null) {
+			for (T value: values) {
+				if (value.isRaw()) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	@Override
 	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry){
 //		if (getObjectItem(object) == null && getValues() == null) {
 //			return true;

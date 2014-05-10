@@ -803,19 +803,24 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							SearchFilterType specFilterType = objectSpecType.getFilter();
 							ObjectReferenceType specOrgRef = objectSpecType.getOrgRef();
 							QName specTypeQName = objectSpecType.getType();
+							PrismObjectDefinition<O> objectDefinition = null;
 							
 							// Type
 							if (specTypeQName != null) {
-								PrismObjectDefinition<Objectable> specObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(specTypeQName);
-								Class<Objectable> specObjectClass = specObjectDef.getCompileTimeClass();
+								PrismObjectDefinition<?> specObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(specTypeQName);
+								Class<?> specObjectClass = specObjectDef.getCompileTimeClass();
 								if (!objectType.isAssignableFrom(specObjectClass)) {
-									LOGGER.trace("  Authorization not applicable for object because of type mismatch, expected {}, was {}",
+									LOGGER.trace("  Authorization not applicable for object because of type mismatch, authorization {}, query {}",
 											new Object[]{specObjectClass, objectType});
 									continue;
 								} else {
+									LOGGER.trace("  Authorization is applicable for object because of type match, authorization {}, query {}",
+											new Object[]{specObjectClass, objectType});
 									// The spec type is a subclass of requested type. So it might be returned from the search.
 									// We need to use type filter.
 									objSpecSecurityFilter = TypeFilter.createType(specTypeQName);
+									// and now we have a more specific object definition to use later in filter processing
+									objectDefinition = (PrismObjectDefinition<O>) specObjectDef;
 								}
 							}
 							
@@ -849,9 +854,12 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 							
 							// Filter
 							if (specFilterType != null) {
-								PrismObjectDefinition<O> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectType);
+								if (objectDefinition == null) {
+									objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectType);
+								}
 								ObjectFilter specFilter = QueryJaxbConvertor.createObjectFilter(objectDefinition, specFilterType, prismContext);
 								if (specFilter != null) {
+									ObjectQueryUtil.assertNotRaw(specFilter, "Filter in authorization object has undefined items. Maybe a 'type' specification is missing in the authorization?");
 									ObjectQueryUtil.assertPropertyOnly(specFilter, "Filter in authorization object is not property-only filter");
 								}
 								LOGGER.trace("  applying property filter "+specFilter);
