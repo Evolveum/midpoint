@@ -36,6 +36,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.RepositoryObjectDataProvider;
@@ -86,8 +87,10 @@ import java.util.*;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/config/debugs", action = {
-        PageAdminConfiguration.AUTHORIZATION_CONFIGURATION_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#debugs"})
+        @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
+                label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#debugs",
+                label = "PageDebugList.auth.debugs.label", description = "PageDebugList.auth.debugs.description")})
 public class PageDebugList extends PageAdminConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageDebugList.class);

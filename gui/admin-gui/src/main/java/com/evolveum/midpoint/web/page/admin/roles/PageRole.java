@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.web.page.admin.roles;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
@@ -28,12 +27,14 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.component.form.*;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
+import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
@@ -45,10 +46,8 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.string.StringValue;
 
 import java.util.Collection;
@@ -58,8 +57,12 @@ import java.util.List;
  *  @author shood
  * */
 @PageDescriptor(url = "/admin/role", encoder = OnePageParameterEncoder.class, action = {
-        PageAdminRoles.AUTHORIZATION_ROLE_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#role"})
+        @AuthorizationAction(actionUri = PageAdminRoles.AUTH_ROLE_ALL,
+                label = PageAdminRoles.AUTH_ROLE_ALL_LABEL,
+                description = PageAdminRoles.AUTH_ROLE_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#role",
+                label = "PageRole.auth.role.label",
+                description = "PageRole.auth.role.description")})
 public class PageRole extends PageAdminRoles{
 
     private static final Trace LOGGER = TraceManager.getTrace(PageRole.class);

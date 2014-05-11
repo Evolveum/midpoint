@@ -24,6 +24,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.util.CallableResult;
@@ -55,8 +56,10 @@ import java.util.concurrent.Callable;
  * @author lazyman
  */
 @PageDescriptor(url = {"/admin/dashboard", "/admin"}, action = {
-        PageAdminHome.AUTHORIZATION_HOME_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#dashboard"})
+        @AuthorizationAction(actionUri = PageAdminHome.AUTH_HOME_ALL_URI,
+                label = PageAdminHome.AUTH_HOME_ALL_LABEL, description = PageAdminHome.AUTH_HOME_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#dashboard",
+                label = "PageDashboard.auth.dashboard.label", description = "PageDashboard.auth.dashboard.description")})
 public class PageDashboard extends PageAdminHome {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageDashboard.class);

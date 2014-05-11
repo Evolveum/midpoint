@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -35,6 +34,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.DropDownMultiChoice;
@@ -78,8 +78,12 @@ import java.util.Map;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/users", action = {
-        PageAdminUsers.AUTHORIZATION_USERS_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#users"})
+        @AuthorizationAction(actionUri = PageAdminUsers.AUTH_USERS_ALL,
+                label = PageAdminUsers.AUTH_USERS_ALL_LABEL,
+                description = PageAdminUsers.AUTH_USERS_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#users",
+                label = "PageUsers.auth.users.label",
+                description = "PageUsers.auth.users.description")})
 public class PageUsers extends PageAdminUsers {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUsers.class);

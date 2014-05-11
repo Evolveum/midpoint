@@ -37,6 +37,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
@@ -102,8 +103,12 @@ import java.util.*;
  * @author mserbak
  */
 @PageDescriptor(url = "/admin/task", encoder = OnePageParameterEncoder.class, action = {
-        PageAdminTasks.AUTHORIZATION_TASKS_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#task"})
+        @AuthorizationAction(actionUri = PageAdminTasks.AUTHORIZATION_TASKS_ALL,
+                label = PageAdminTasks.AUTH_TASKS_ALL_LABEL,
+                description = PageAdminTasks.AUTH_TASKS_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#task",
+                label = "PageTaskEdit.auth.task.label",
+                description = "PageTaskEdit.auth.task.description")})
 public class PageTaskEdit extends PageAdminTasks {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageTaskEdit.class);

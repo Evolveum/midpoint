@@ -33,6 +33,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
@@ -67,8 +68,10 @@ import java.util.List;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/myPasswords", action = {
-        PageAdminHome.AUTHORIZATION_HOME_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#myPasswords"})
+        @AuthorizationAction(actionUri = PageAdminHome.AUTH_HOME_ALL_URI,
+                label = PageAdminHome.AUTH_HOME_ALL_LABEL, description = PageAdminHome.AUTH_HOME_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#myPasswords",
+                label = "PageMyPasswords.auth.myPasswords.label", description = "PageMyPasswords.auth.myPasswords.description")})
 public class PageMyPasswords extends PageAdminHome {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageMyPasswords.class);

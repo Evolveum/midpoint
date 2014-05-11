@@ -19,14 +19,13 @@ package com.evolveum.midpoint.web.page.admin.users;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/users/find", action = {
-        PageAdminUsers.AUTHORIZATION_USERS_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#findUsers"})
+@PageDescriptor(url = "/admin/users/find", action = {@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_DENY_ALL)})
 public class PageFindUsers extends PageAdminUsers {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageFindUsers.class);

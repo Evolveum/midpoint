@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.page.admin.home;
+package com.evolveum.midpoint.web.application;
 
-import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 /**
  * @author lazyman
  */
-public class PageAdminHome extends PageAdmin {
+@Retention(RetentionPolicy.RUNTIME)
+public @interface AuthorizationAction {
 
-    public static final String AUTH_HOME_ALL_URI = AuthorizationConstants.NS_AUTHORIZATION + "#home";
-    public static final String AUTH_HOME_ALL_LABEL = "PageAdminHome.auth.homeAll.label";
-    public static final String AUTH_HOME_ALL_DESCRIPTION = "PageAdminHome.auth.homeAll.description";
+    String label() default "";
+
+    String description() default "";
+
+    String actionUri();
 }

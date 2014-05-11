@@ -25,6 +25,11 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
  */
 public class PageAdminUsers extends PageAdmin {
 
-    public static final String AUTHORIZATION_USERS_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#usersAll";
-    public static final String AUTHORIZATION_ORG_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#orgAll";
+    public static final String AUTH_USERS_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#usersAll";
+    public static final String AUTH_USERS_ALL_LABEL = "PageAdminUsers.auth.usersAll.label";
+    public static final String AUTH_USERS_ALL_DESCRIPTION = "PageAdminUsers.auth.usersAll.description";
+
+    public static final String AUTH_ORG_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#orgAll";
+    public static final String AUTH_ORG_ALL_LABEL = "PageAdminUsers.auth.orgAll.label";
+    public static final String AUTH_ORG_ALL_DESCRIPTION = "PageAdminUsers.auth.orgAll.description";
 }

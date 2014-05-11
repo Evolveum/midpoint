@@ -25,19 +25,18 @@ import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ResourceItemDto;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.reports.component.*;
-import com.evolveum.midpoint.web.page.admin.reports.dto.AuditReportDto;
-import com.evolveum.midpoint.web.page.admin.reports.dto.ReconciliationReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
-import com.evolveum.midpoint.web.page.admin.reports.dto.UserReportDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
@@ -52,7 +51,6 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.string.StringValue;
 
@@ -65,8 +63,12 @@ import java.util.List;
  * @author shood
  */
 @PageDescriptor(url = "/admin/report", encoder = OnePageParameterEncoder.class, action = {
-        PageAdminReports.AUTHORIZATION_REPORTS_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#report"})
+        @AuthorizationAction(actionUri = PageAdminReports.AUTH_REPORTS_ALL,
+                label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL,
+                description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#report",
+                label = "PageReport.auth.report.label",
+                description = "PageReport.auth.report.description")})
 public class PageReport<T extends Serializable> extends PageAdminReports {
 
     private static Trace LOGGER = TraceManager.getTrace(PageReport.class);

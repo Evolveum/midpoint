@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.wizard.resource.component.capability.CapabilityPanel;
@@ -32,7 +33,7 @@ import org.apache.wicket.model.IModel;
  *
  *  @author shood
  */
-@PageDescriptor(url = "/capability", action = {AuthorizationConstants.AUTZ_DENY_ALL})
+@PageDescriptor(url = "/capability", action = {@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_DENY_ALL)})
 public class PageTest2 extends PageBase {
 
     private static final String ID_CAPABILITY = "capability";
