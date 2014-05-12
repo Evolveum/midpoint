@@ -359,10 +359,8 @@ public class IntegrationTestTools {
 		throw new RuntimeException("Timeout while "+message);
 	}
 
-	public static void displayJaxb(String title, Object o, QName qname) throws JAXBException {
-		Document doc = DOMUtil.getDocument();
-		Element element = JaxbTestUtil.getInstance().marshalObjectToDom(o, qname, doc);
-		String serialized = DOMUtil.serializeDOMToString(element);
+	public static void displayJaxb(String title, Object o, QName qname) throws SchemaException {
+		String serialized = PrismTestUtil.serializeAnyData(o, qname);
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
 		System.out.println(serialized);
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title + "\n" + serialized);
@@ -440,7 +438,7 @@ public class IntegrationTestTools {
 				+ result.debugDump());
 	}
 	
-	public static void display(String title, OperationResultType result) throws JAXBException {
+	public static void display(String title, OperationResultType result) throws SchemaException {
 		displayJaxb(title, result, SchemaConstants.C_RESULT);
 	}
 

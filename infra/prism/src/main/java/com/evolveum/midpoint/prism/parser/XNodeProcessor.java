@@ -1063,10 +1063,19 @@ public class XNodeProcessor {
 	}
 
     public RootXNode serializeAnyData(Object object) throws SchemaException {
+        return serializeAnyData(object, null);
+    }
+
+    public RootXNode serializeAnyData(Object object, QName rootElementName) throws SchemaException {
         Validate.notNull(object);
         if (object instanceof Item) {
-            return serializeItemAsRoot((Item) object);
+            RootXNode root = serializeItemAsRoot((Item) object);
+            if (rootElementName != null) {
+                root.setRootElementName(rootElementName);
+            }
+            return root;
         } else {
+            Validate.notNull(rootElementName, "rootElementName must be specified for non-Item objects");
             XNode valueXNode = prismContext.getBeanConverter().marshall(object);
             QName typeQName = JAXBUtil.getTypeQName(object.getClass());
             if (typeQName != null) {
@@ -1074,9 +1083,10 @@ public class XNodeProcessor {
             } else {
                 throw new SchemaException("No type QName for class " + object.getClass());
             }
-            return new RootXNode(new QName(null, "value"), valueXNode);
+            return new RootXNode(rootElementName, valueXNode);
         }
     }
+
 
     // TODO: very preliminary implementation - does not care for special cases (e.g. PolyString etc)
     public RootXNode serializeAtomicValue(Object object, QName elementName) throws SchemaException {

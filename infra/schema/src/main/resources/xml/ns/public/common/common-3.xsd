@@ -4707,7 +4707,7 @@
 
     <xsd:element name="expressionEvaluator" abstract="true"/>
 
-    <xsd:element name="value" type="t:RawType" substitutionGroup="tns:expressionEvaluator" nillable="true">
+    <xsd:element name="value" type="xsd:anyType" substitutionGroup="tns:expressionEvaluator" nillable="true">
         <xsd:annotation>
             <xsd:documentation>
                 Static value for the attribute or property.
@@ -4731,6 +4731,9 @@
                 this to "nil" and also setting "authoritative" flag
                 may enforce removal of all attribute values (if used properly).
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:rawType/>
+            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
 
@@ -7050,7 +7053,7 @@
     
     <xsd:element name="entryValue" abstract="true"/>
     
-    <xsd:element name="paramValue" type="t:RawType" substitutionGroup="tns:entryValue" nillable="true">
+    <xsd:element name="paramValue" type="xsd:anyType" substitutionGroup="tns:entryValue" nillable="true">
         <xsd:annotation>
             <xsd:documentation>
                 Static value for the attribute or property.
@@ -7074,6 +7077,9 @@
                 this to "nil" and also setting "authoritative" flag
                 may enforce removal of all attribute values (if used properly).
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:rawType/>
+            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
 

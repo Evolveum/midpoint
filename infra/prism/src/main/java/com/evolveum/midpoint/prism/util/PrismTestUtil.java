@@ -133,6 +133,19 @@ public class PrismTestUtil {
         return getPrismContext().serializeObjectToString(object, PrismContext.LANG_XML);
     }
 
+    public static String marshalObjectToString(PrismObject prismObject) throws SchemaException {
+        return prismObject.getPrismContext().serializeObjectToString(prismObject, PrismContext.LANG_XML);
+    }
+
+    public static String serializeAtomicValue(Object object, QName elementName) throws SchemaException {
+        return getPrismContext().serializeAtomicValue(object, elementName, PrismContext.LANG_XML);
+    }
+
+    public static String serializeAnyData(Object o, QName qname) throws SchemaException {
+        return getPrismContext().serializeAnyData(o, qname, PrismContext.LANG_XML);
+    }
+
+
     // ==========================
     // == Here was parsing from JAXB.
     // == Now, for JAXB-related methods please call JaxbTestUtil.getInstance().<methodName> directly
@@ -190,7 +203,4 @@ public class PrismTestUtil {
 		LOGGER.info(DOMUtil.serializeDOMToString(queryType.getFilter().getFilterClause()));
 	}
 
-    public static String marshalObjectToString(PrismObject prismObject) throws SchemaException {
-        return prismObject.getPrismContext().serializeObjectToString(prismObject, PrismContext.LANG_XML);
-    }
 }

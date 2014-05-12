@@ -65,6 +65,16 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
+ * DEPRECATED as of May 12, 2014. MidPoint data structures are not to be processed by JAXB any more.
+ * (The last drop was the inability to hide RawType from externally-visible model service WSDL.
+ * The solution devised, based on @Raw type, prevents JAXB from correctly parsing any structures that
+ * contain RawType elements.)
+ *
+ * So, don't use JaxbTestUtil even for testing purposes. Use PrismTestUtil instead.
+ *
+ * ===
+ * Original description:
+ *
  * JAXB testing util. Only for use in tests. DO NOT USE IN PRODUCTION CODE.
  * This util is used to test the ablility of prism JAXB representation to be used by
  * native (Sun) JAXB code.
@@ -73,6 +83,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * 
  * @author Radovan Semancik
  */
+@Deprecated
 public class JaxbTestUtil {
 
     private static final QName DEFAULT_ELEMENT_NAME = new QName("http://midpoint.evolveum.com/xml/ns/test/whatever-1.xsd", "whatever");

@@ -513,6 +513,13 @@ public class PrismContext {
         return parser.serializeToString(xnode);
     }
 
+    public String serializeAnyData(Object object, QName rootElementName, String language) throws SchemaException {
+        Parser parser = getParserNotNull(language);
+        RootXNode xnode = xnodeProcessor.serializeAnyData(object, rootElementName);
+        return parser.serializeToString(xnode);
+    }
+
+
     public boolean canSerialize(Object value) {
         return xnodeProcessor.canSerialize(value);
     }

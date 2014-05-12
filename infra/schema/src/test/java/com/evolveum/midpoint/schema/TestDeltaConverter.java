@@ -437,7 +437,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     	System.out.println("Serialized");
     	System.out.println(itemDeltaTypes);
     	ItemDeltaType itemDeltaType = itemDeltaTypes.iterator().next();
-    	String xml = JaxbTestUtil.getInstance().marshalObjectToString(itemDeltaType, new QName("wherever","whatever"));
+    	String xml = PrismTestUtil.serializeAtomicValue(itemDeltaType, new QName("wherever","whatever"));
     	System.out.println(xml);
     	
     	// WHEN
