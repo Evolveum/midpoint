@@ -566,7 +566,11 @@ public class PageUser extends PageAdminUsers {
 
                         @Override
                         public void onShowMorePerformed(AjaxRequestTarget target){
-                            target.add(getFeedbackPanel());
+                            OperationResult fetchResult = dto.getResult();
+                            if (fetchResult != null) {
+                                showResult(fetchResult);
+                                target.add(getPageBase().getFeedbackPanel());
+                            }
                         }
                     };
                 }
@@ -601,10 +605,10 @@ public class PageUser extends PageAdminUsers {
         ObjectWrapper user = userModel.getObject();
         PrismObject<UserType> prismUser = user.getObject();
         List<ObjectReferenceType> references = prismUser.asObjectable().getLinkRef();
-        OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNTS);
+
         Task task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
         for (ObjectReferenceType reference : references) {
-            OperationResult subResult = result.createSubresult(OPERATION_LOAD_ACCOUNT);
+            OperationResult subResult = new OperationResult(OPERATION_LOAD_ACCOUNT);
             try {
                 Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
                         ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
@@ -618,20 +622,16 @@ public class PageUser extends PageAdminUsers {
                 ShadowType accountType = account.asObjectable();
 
                 OperationResultType fetchResult = accountType.getFetchResult();
-                if (fetchResult != null && !OperationResultStatusType.SUCCESS.equals(fetchResult.getStatus())) {
-                    showResult(OperationResult.createOperationResult(fetchResult));
-                }
 
                 ResourceType resource = accountType.getResource();
                 String resourceName = WebMiscUtil.getName(resource);
 
                 ObjectWrapper wrapper = new ObjectWrapper(resourceName, WebMiscUtil.getOrigStringFromPoly(accountType
                         .getName()), account, ContainerStatus.MODIFYING);
+                wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));
                 wrapper.setSelectable(true);
                 wrapper.setMinimalized(true);
-                if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-                    showResultInSession(wrapper.getResult());
-                }
+
                 list.add(new UserAccountDto(wrapper, UserDtoStatus.MODIFY));
 
                 subResult.recomputeStatus();
@@ -642,20 +642,13 @@ public class PageUser extends PageAdminUsers {
                 userModel.reset();
                 accountsModel.reset();
                 assignmentsModel.reset();
-
-//                return list;
             } catch (Exception ex) {
                 subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
                 LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
-                list.add(new UserAccountDto(false, getResourceName(reference.getOid())));
+                list.add(new UserAccountDto(false, getResourceName(reference.getOid()), subResult));
             } finally {
                 subResult.computeStatus();
             }
-        }
-        result.computeStatus();
-
-        if (WebMiscUtil.showResultInPage(result)) {
-            showResult(result);
         }
 
         return list;
@@ -666,17 +659,16 @@ public class PageUser extends PageAdminUsers {
         Task task = createSimpleTask(OPERATION_SEARCH_RESOURCE);
 
         try {
-
             Collection<SelectorOptions<GetOperationOptions>> options =
                     SelectorOptions.createCollection(GetOperationOptions.createRaw());
 
             PrismObject<ShadowType> shadow = getModelService().getObject(ShadowType.class, oid, options, task, result);
-            PrismObject<ResourceType> resource = getModelService().getObject(ResourceType.class, shadow.asObjectable().getResourceRef().getOid(), null, task, result);
+            PrismObject<ResourceType> resource = getModelService().getObject(ResourceType.class,
+                    shadow.asObjectable().getResourceRef().getOid(), null, task, result);
 
             if(resource != null){
                 return WebMiscUtil.getOrigStringFromPoly(resource.asObjectable().getName());
             }
-
         } catch (Exception e){
             result.recordFatalError("Account Resource was not found. " + e.getMessage());
             LoggingUtils.logException(LOGGER, "Account Resource was not found.", e);

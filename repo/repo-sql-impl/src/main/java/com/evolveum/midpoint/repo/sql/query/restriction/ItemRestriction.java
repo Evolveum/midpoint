@@ -24,13 +24,16 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.QueryContext;
 import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.query.definition.*;
 import com.evolveum.midpoint.repo.sql.query.matcher.Matcher;
+import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -86,12 +89,52 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
 
     public abstract Criterion interpretInternal(T filter) throws QueryException;
 
+    protected <T extends Definition> T findProperDefinition(ItemPath path, Class<T> clazz) {
+        QueryContext context = getContext();
+        QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
+        if (!ObjectType.class.equals(context.getType())) {
+            return registry.findDefinition(context.getType(), path, clazz);
+        }
+
+        //we should try to find property in descendant classes
+        for (RObjectType type : RObjectType.values()) {
+            ObjectTypes ot = ClassMapper.getObjectTypeForHQLType(type);
+
+            Definition def = registry.findDefinition(ot.getClassDefinition(), path, clazz);
+            if (def != null) {
+                return (T) def;
+            }
+        }
+
+        return null;
+    }
+
+    protected EntityDefinition findProperEntityDefinition(ItemPath path) {
+        QueryContext context = getContext();
+        QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
+        if (!ObjectType.class.equals(context.getType())) {
+            return registry.findDefinition(context.getType(), null, EntityDefinition.class);
+        }
+
+        EntityDefinition entity = null;
+        // we should try to find property in descendant classes
+        for (RObjectType type : RObjectType.values()) {
+            ObjectTypes ot = ClassMapper.getObjectTypeForHQLType(type);
+
+            entity = registry.findDefinition(ot.getClassDefinition(), null, EntityDefinition.class);
+            Definition def = entity.findDefinition(path, Definition.class);
+            if (def != null) {
+                break;
+            }
+        }
+
+        return entity;
+    }
+
     //todo reimplement, use DefinitionHandlers or maybe another great concept
     private void updateQueryContext(ItemPath path) throws QueryException {
         LOGGER.trace("Updating query context based on path {}", new Object[]{path.toString()});
-        Class<? extends ObjectType> type = getContext().getType();
-        QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
-        EntityDefinition definition = registry.findDefinition(type, null, EntityDefinition.class);
+        EntityDefinition definition =  findProperEntityDefinition(path);
 
         List<ItemPathSegment> segments = path.getSegments();
 
@@ -171,16 +214,14 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
      */
     private Criterion createVirtualCriterion(ItemPath path) throws QueryException {
         LOGGER.trace("Scanning path for virtual definitions to create criteria {}", new Object[]{path.toString()});
-        QueryContext context = getContext();
-        Class<? extends ObjectType> type = context.getType();
-        QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
-        EntityDefinition definition = registry.findDefinition(type, null, EntityDefinition.class);
+
+        EntityDefinition definition = findProperEntityDefinition(path);
 
         List<Criterion> criterions = new ArrayList<Criterion>();
 
         List<ItemPathSegment> segments = path.getSegments();
-
         List<ItemPathSegment> propPathSegments = new ArrayList<ItemPathSegment>();
+
         ItemPath propPath;
         for (ItemPathSegment segment : segments) {
             QName qname = ItemPath.getName(segment);
@@ -365,15 +406,13 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         return matcher.match(operation, propertyName, value, matchingRule);
     }
 
-    protected List<Definition> createDefinitionPath(ItemPath path, QueryContext context) throws QueryException {
+    protected List<Definition> createDefinitionPath(ItemPath path) throws QueryException {
         List<Definition> definitions = new ArrayList<Definition>();
         if (path == null) {
             return definitions;
         }
 
-        QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
-
-        EntityDefinition lastDefinition = registry.findDefinition(context.getType(), null, EntityDefinition.class);
+        EntityDefinition lastDefinition = findProperEntityDefinition(path);
         for (ItemPathSegment segment : path.getSegments()) {
             if (lastDefinition == null) {
                 break;
