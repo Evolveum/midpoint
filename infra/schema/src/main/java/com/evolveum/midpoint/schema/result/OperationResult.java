@@ -924,7 +924,9 @@ public class OperationResult implements Serializable, DebugDumpable {
 
 
 	public static OperationResult createOperationResult(OperationResultType result) {
-		Validate.notNull(result, "Result type must not be null.");
+		if (result == null) {
+            return null;
+        }
 
 		Map<String, Serializable> params = null;
 		if (result.getParams() != null) {

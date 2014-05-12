@@ -406,7 +406,9 @@ public final class WebMiscUtil {
     }
 
     public static boolean isSuccessOrHandledError(OperationResult result) {
-        Validate.notNull(result, "Operation result must not be null.");
+        if (result == null) {
+            return false;
+        }
 
         return result.isSuccess() || result.isHandledError();
     }

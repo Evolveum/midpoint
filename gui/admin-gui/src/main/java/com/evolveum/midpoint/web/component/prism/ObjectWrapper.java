@@ -86,6 +86,8 @@ public class ObjectWrapper implements Serializable {
     private OperationResult result;
     private boolean protectedAccount;
 
+    private OperationResult fetchResult;
+
     public ObjectWrapper(String displayName, String description, PrismObject object, ContainerStatus status) {
 		Validate.notNull(object, "Object must not be null.");
 		Validate.notNull(status, "Container status must not be null.");
@@ -97,6 +99,14 @@ public class ObjectWrapper implements Serializable {
 
         createContainers();
 	}
+
+    public OperationResult getFetchResult() {
+        return fetchResult;
+    }
+
+    public void setFetchResult(OperationResult fetchResult) {
+        this.fetchResult = fetchResult;
+    }
 
     public OperationResult getResult() {
         return result;

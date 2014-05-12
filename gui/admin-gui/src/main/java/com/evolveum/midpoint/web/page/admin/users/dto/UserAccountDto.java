@@ -30,17 +30,24 @@ public class UserAccountDto implements Serializable {
 
     private ObjectWrapper object;
     private UserDtoStatus status;
+
     private boolean loadedOK = true;
     private String description;
+    private OperationResult result;
 
     public UserAccountDto(ObjectWrapper object, UserDtoStatus status) {
         setObject(object);
         setStatus(status);
     }
 
-    public UserAccountDto(boolean loaded, String description){
+    public UserAccountDto(boolean loaded, String description, OperationResult result){
         setLoadedOK(loaded);
         setDescription(description);
+        this.result = result;
+    }
+
+    public OperationResult getResult() {
+        return result;
     }
 
     public String getDescription() {
