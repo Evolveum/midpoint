@@ -25,5 +25,7 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
  */
 public class PageAdminWorkItems extends PageAdmin {
 
-    public static final String AUTHORIZATION_WORK_ITEMS_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#workItemsAll";
+    public static final String AUTH_WORK_ITEMS_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#workItemsAll";
+    public static final String AUTH_WORK_ITEMS_ALL_LABEL = "PageAdminWorkItems.auth.workItemsAll.label";
+    public static final String AUTH_WORK_ITEMS_ALL_DESCRIPTION = "PageAdminWorkItems.auth.workItemsAll.description";
 }

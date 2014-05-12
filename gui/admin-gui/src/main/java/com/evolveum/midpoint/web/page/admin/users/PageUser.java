@@ -36,6 +36,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
@@ -73,7 +74,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -90,7 +90,6 @@ import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
 import org.apache.wicket.request.resource.ContextRelativeResource;
 import org.apache.wicket.request.resource.PackageResourceReference;
-import org.apache.wicket.util.lang.Bytes;
 import org.apache.wicket.util.string.StringValue;
 
 import javax.xml.namespace.QName;
@@ -102,8 +101,12 @@ import java.util.*;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/user", encoder = OnePageParameterEncoder.class, action = {
-        PageAdminUsers.AUTHORIZATION_USERS_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#user"})
+        @AuthorizationAction(actionUri = PageAdminUsers.AUTH_USERS_ALL,
+                label = PageAdminUsers.AUTH_USERS_ALL_LABEL,
+                description = PageAdminUsers.AUTH_USERS_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#user",
+                label = "PageUser.auth.user.label",
+                description = "PageUser.auth.user.description")})
 public class PageUser extends PageAdminUsers {
 
     public static final String PARAM_RETURN_PAGE = "returnPage";

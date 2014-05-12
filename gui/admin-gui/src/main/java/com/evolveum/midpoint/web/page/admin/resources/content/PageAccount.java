@@ -26,6 +26,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
@@ -59,8 +60,12 @@ import java.util.Collection;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/resources/account", encoder = OnePageParameterEncoder.class, action = {
-        PageAdminResources.AUTHORIZATION_RESOURCE_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#resourcesAccount"})
+        @AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL,
+                label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL,
+                description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#resourcesAccount",
+                label = "PageAccount.auth.resourcesAccount.label",
+                description = "PageAccount.auth.resourcesAccount.description")})
 public class PageAccount extends PageAdminResources {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageAccount.class);

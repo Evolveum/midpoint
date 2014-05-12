@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.application;
 
 import com.evolveum.midpoint.util.ClassPathUtil;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -45,13 +46,13 @@ public final class DescriptorLoader {
     private static final Trace LOGGER = TraceManager.getTrace(DescriptorLoader.class);
 
     private static List<MenuBarItem> menuBarItems = new ArrayList<>();
-    private static Map<String, String[]> actions = new HashMap<>();
+    private static Map<String, DisplayableValue<String>[]> actions = new HashMap<>();
 
     public static List<MenuBarItem> getMenuBarItems() {
         return menuBarItems;
     }
 
-    public static Map<String, String[]> getActions() {
+    public static Map<String, DisplayableValue<String>[]> getActions() {
         return actions;
     }
 
@@ -182,7 +183,11 @@ public final class DescriptorLoader {
 
     private void loadActions(PageDescriptor descriptor) {
         for (String url : descriptor.url()) {
-            actions.put(url, descriptor.action());
+            List<AuthorizationActionValue> actions = new ArrayList<>();
+            for (AuthorizationAction action : descriptor.action()) {
+                actions.add(new AuthorizationActionValue(action.actionUri(), action.label(), action.description()));
+            }
+            this.actions.put(url, actions.toArray(new DisplayableValue[actions.size()]));
         }
     }
 

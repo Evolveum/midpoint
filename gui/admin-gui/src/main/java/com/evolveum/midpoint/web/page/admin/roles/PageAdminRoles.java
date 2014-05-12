@@ -25,5 +25,7 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
  */
 public class PageAdminRoles extends PageAdmin {
 
-    public static final String AUTHORIZATION_ROLE_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#roleAll";
+    public static final String AUTH_ROLE_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#roleAll";
+    public static final String AUTH_ROLE_ALL_LABEL = "PageAdminRoles.auth.roleAll.label";
+    public static final String AUTH_ROLE_ALL_DESCRIPTION = "PageAdminRoles.auth.roleAll.description";
 }

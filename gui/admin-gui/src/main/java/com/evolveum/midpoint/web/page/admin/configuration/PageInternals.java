@@ -7,6 +7,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.CheckFormGroup;
@@ -23,8 +24,10 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 @PageDescriptor(url = "/admin/config/internals", action = {
-        PageAdminConfiguration.AUTHORIZATION_CONFIGURATION_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#configInternals"})
+        @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
+                label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#configInternals",
+                label = "PageInternals.auth.configInternals.label", description = "PageInternals.auth.configInternals.description")})
 public class PageInternals extends PageAdminConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageInternals.class);

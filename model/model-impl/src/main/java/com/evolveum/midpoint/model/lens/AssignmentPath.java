@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,9 @@ import java.util.List;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author semancik
@@ -80,6 +82,26 @@ public class AssignmentPath implements DebugDumpable {
 		}
 	}
 	
+	public boolean containsTarget(ObjectType target) {
+		if (target == null) {
+			return false;
+		}
+		for (AssignmentPathSegment segment: segments) {
+			ObjectType segmentTarget = segment.getTarget();
+			if (segmentTarget != null) {
+				if (segmentTarget.getOid() != null && target.getOid() != null && 
+						segmentTarget.getOid().equals(target.getOid())) {
+					return true;
+				}
+				if (segmentTarget.getOid() == null && target.getOid() == null &&
+						segmentTarget.equals(target)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
 	/**
 	 * Shallow clone.
 	 */
@@ -106,8 +128,7 @@ public class AssignmentPath implements DebugDumpable {
 		sb.append("\n");
 		DebugUtil.debugDump(segments, indent + 1);
 		return sb.toString();
-	}
-	
+	}	
 	
 
 }

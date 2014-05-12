@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql.query.matcher;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.restriction.ItemRestrictionOperation;
 import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.criterion.SimpleExpression;
 
@@ -71,13 +72,13 @@ public abstract class Matcher<T> {
                 criterion = Restrictions.isNull(propertyName);
                 break;
             case STARTS_WITH:
-                criterion = Restrictions.like(propertyName, value + "%");
+                criterion = Restrictions.like(propertyName, (String) value, MatchMode.START);
                 break;
             case ENDS_WITH:
-                criterion = Restrictions.like(propertyName, "%" + value);
+                criterion = Restrictions.like(propertyName, (String) value, MatchMode.END);
                 break;
             case SUBSTRING:
-                criterion = Restrictions.like(propertyName, "%" + value + "%");
+                criterion = Restrictions.like(propertyName, (String) value, MatchMode.ANYWHERE);
                 break;
             default:
                 throw new QueryException("Unknown operation '" + operation + "'.");

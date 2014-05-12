@@ -24,5 +24,7 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
  */
 public class PageAdminConfiguration extends PageAdmin {
 
-    public static final String AUTHORIZATION_CONFIGURATION_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#configurationAll";
+    public static final String AUTH_CONFIGURATION_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#configurationAll";
+    public static final String AUTH_CONFIGURATION_ALL_LABEL = "PageAdminConfiguration.auth.configurationAll.label";
+    public static final String AUTH_CONFIGURATION_ALL_DESCRIPTION = "PageAdminConfiguration.auth.configurationAll.description";
 }

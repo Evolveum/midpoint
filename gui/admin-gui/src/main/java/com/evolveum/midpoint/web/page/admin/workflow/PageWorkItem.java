@@ -21,17 +21,16 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
@@ -72,14 +71,16 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import java.util.List;
-
 /**
  * @author mederly
  */
 @PageDescriptor(url = "/admin/workItem", encoder = OnePageParameterEncoder.class, action = {
-        PageAdminWorkItems.AUTHORIZATION_WORK_ITEMS_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#workItem"})
+        @AuthorizationAction(actionUri = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL,
+                label = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL_LABEL,
+                description = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#workItem",
+                label = "PageWorkItem.auth.workItem.label",
+                description = "PageWorkItem.auth.workItem.description")})
 public class PageWorkItem extends PageAdminWorkItems {
 
     private static final String DOT_CLASS = PageWorkItem.class.getName() + ".";

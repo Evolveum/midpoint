@@ -13,23 +13,16 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role oid="00000000-0000-0000-0000-00000000aa07"
+<role oid="00000000-0000-0000-0000-00000000aa0d"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
-    <name>Object Filter Caribbean</name>
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <name>Read orgs in Ministry of Rum</name>
+    <description>Do NOT allow to read users</description>    
     <authorization>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
     	<object>
-    		<type>UserType</type>
-    		<filter>
-    			<q:equal>
-    				<q:path>locality</q:path>
-    				<q:value>Caribbean</q:value>
-    			</q:equal>
-    		</filter>
+    		<type>OrgType</type>
+    		<orgRef oid="00000000-8888-6666-0000-100000000004"/>
     	</object>
     </authorization>
 </role>

@@ -31,6 +31,7 @@ import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.Holder;
@@ -127,6 +128,8 @@ public abstract class PageBase extends WebPage {
     private MidpointConfiguration midpointConfiguration;
     @SpringBean(name = "reportManager")
     private ReportManager reportManager;
+    @SpringBean(name = "accessDecisionManager")
+    private SecurityEnforcer securityEnforcer;
 
     private PageBase previousPage;                  // experimental -- where to return e.g. when 'Back' button is clicked [NOT a class, in order to eliminate reinitialization when it is not needed]
     private boolean reinitializePreviousPages;      // experimental -- should we reinitialize all the chain of previous pages?
@@ -332,6 +335,10 @@ public abstract class PageBase extends WebPage {
 
     public TaskService getTaskService() {
         return taskService;
+    }
+
+    public SecurityEnforcer getSecurityEnforcer() {
+        return securityEnforcer;
     }
 
     protected ModelInteractionService getModelInteractionService() {

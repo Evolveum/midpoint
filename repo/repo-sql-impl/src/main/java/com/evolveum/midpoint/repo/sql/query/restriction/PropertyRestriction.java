@@ -96,6 +96,10 @@ public class PropertyRestriction extends ItemRestriction<ValueFilter> {
         List<ItemPathSegment> segments = path.getSegments();
         for (ItemPathSegment segment : segments) {
             QName qname = ItemPath.getName(segment);
+            if (ObjectType.F_METADATA.equals(qname)) {
+                continue;
+            }
+
             // get entity query definition
             Definition childDef = definition.findDefinition(qname, Definition.class);
 

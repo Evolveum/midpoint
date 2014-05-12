@@ -17,8 +17,10 @@
 package com.evolveum.midpoint.web.page;
 
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.page.admin.home.PageAdminHome;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -29,7 +31,7 @@ import org.apache.wicket.util.lang.Bytes;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/test", action = {AuthorizationConstants.AUTZ_DENY_ALL})
+@PageDescriptor(url = "/admin/test", action = {@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_DENY_ALL)})
 public class PageTest extends PageBase {
 
     public PageTest() {

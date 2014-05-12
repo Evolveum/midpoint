@@ -34,6 +34,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
@@ -61,8 +62,12 @@ import java.util.List;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/resource/edit", encoder = OnePageParameterEncoder.class, action = {
-        PageAdminResources.AUTHORIZATION_RESOURCE_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#resourceEdit"})
+        @AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL,
+                label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL,
+                description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#resourceEdit",
+                label = "PageResourceEdit.auth.resourceEdit.label",
+                description = "PageResourceEdit.auth.resourceEdit.description")})
 public class PageResourceEdit extends PageAdminResources {
 
     private static final String DOT_CLASS = PageResourceEdit.class.getName() + ".";

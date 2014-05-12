@@ -26,7 +26,9 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
  */
 public class PageAdminReports extends PageAdmin {
 
-    public static final String AUTHORIZATION_REPORTS_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#reportsAll";
+    public static final String AUTH_REPORTS_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#reportsAll";
+    public static final String AUTH_REPORTS_ALL_LABEL = "PageAdminReports.auth.reportsAll.label";
+    public static final String AUTH_REPORTS_ALL_DESCRIPTION = "PageAdminReports.auth.reportsAll.description";
 
     public PageAdminReports(){
         this(null);
