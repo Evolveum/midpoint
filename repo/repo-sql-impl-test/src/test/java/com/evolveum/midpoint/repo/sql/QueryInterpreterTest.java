@@ -31,8 +31,10 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sql.data.common.*;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
+import com.evolveum.midpoint.repo.sql.query.restriction.Restriction;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -415,7 +417,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     @Test
     public void queryUserSubstringFullName() throws Exception {
-        LOGGER.info("===[{}]===", new Object[]{"queryUserSubstringFullName"});
         Session session = open();
 
         try {
@@ -439,7 +440,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     @Test
     public void queryUserByName() throws Exception {
-        LOGGER.info("===[{}]===", new Object[]{"queryUserByName"});
         Session session = open();
 
         try {
@@ -525,7 +525,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     @Test
     public void queryUserAccountRef() throws Exception {
-        LOGGER.info("===[{}]===", new Object[]{"queryUserAccountRef"});
         Session session = open();
         try {
             Criteria main = session.createCriteria(RUser.class, "u");
@@ -1338,6 +1337,105 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     ReportOutputType.class, prismContext, timeXml, true);
 
             String real = getInterpretedQuery(session, ReportOutputType.class, ObjectQuery.createObjectQuery(less));
+
+            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+            AssertJUnit.assertEquals(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test370queryObjectypeByTypeAndLocality() throws Exception {
+        Session session = open();
+        try {
+            Criteria main = session.createCriteria(RObject.class, "o");
+            ProjectionList projections = Projections.projectionList();
+            addFullObjectProjectionList("o", projections, false);
+            main.setProjection(projections);
+
+            Conjunction c = Restrictions.conjunction();
+            main.add(c);
+            c.add(Restrictions.eq("o." + RObject.F_OBJECT_TYPE_CLASS, RObjectType.USER));
+            c.add(Restrictions.and(Restrictions.eq("o.locality.orig", "Caribbean"),
+                    Restrictions.eq("o.locality.norm", "caribbean")));
+
+            String expected = HibernateToSqlTranslator.toSql(main);
+
+            TypeFilter type = TypeFilter.createType(UserType.COMPLEX_TYPE);
+            EqualsFilter eq = EqualsFilter.createEqual(new ItemPath(OrgType.F_LOCALITY), OrgType.class, prismContext,
+                    new PolyString("Caribbean", "caribbean"));
+            AndFilter and = AndFilter.createAnd(type, eq);
+
+            String real = getInterpretedQuery(session, ObjectType.class, ObjectQuery.createObjectQuery(and));
+
+            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+            AssertJUnit.assertEquals(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test380queryObjectypeByTypeAndExtensionAttribute() throws Exception {
+        Session session = open();
+        try {
+            Criteria main = session.createCriteria(RObject.class, "o");
+            ProjectionList projections = Projections.projectionList();
+            addFullObjectProjectionList("o", projections, false);
+            main.setProjection(projections);
+
+            Conjunction c = Restrictions.conjunction();
+            main.add(c);
+            c.add(Restrictions.eq("o." + RObject.F_OBJECT_TYPE_CLASS, RObjectType.USER));
+
+            Conjunction c2 = Restrictions.conjunction();
+            main.createCriteria("strings", "s", JoinType.LEFT_OUTER_JOIN);
+            c2.add(Restrictions.eq("s.ownerType", RObjectExtensionType.EXTENSION));
+            c2.add(Restrictions.eq("s.name", new QName("http://example.com/p", "weapon")));
+            c2.add(Restrictions.eq("s.value", "some weapon name"));
+            c.add(c2);
+
+            String expected = HibernateToSqlTranslator.toSql(main);
+
+            TypeFilter type = TypeFilter.createType(UserType.COMPLEX_TYPE);
+            EqualsFilter eq = EqualsFilter.createEqual(
+                    new ItemPath(ObjectType.F_EXTENSION, new QName("http://example.com/p", "weapon")),
+                    UserType.class, prismContext, "some weapon name");
+            AndFilter and = AndFilter.createAnd(type, eq);
+
+            String real = getInterpretedQuery(session, ObjectType.class, ObjectQuery.createObjectQuery(and));
+
+            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+            AssertJUnit.assertEquals(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test390queryObjectypeByTypeAndReference() throws Exception {
+        Session session = open();
+        try {
+            Criteria main = session.createCriteria(RObject.class, "o");
+            ProjectionList projections = Projections.projectionList();
+            addFullObjectProjectionList("o", projections, false);
+            main.setProjection(projections);
+
+            Conjunction c = Restrictions.conjunction();
+            main.add(c);
+            c.add(Restrictions.eq("o." + RObject.F_OBJECT_TYPE_CLASS, RObjectType.USER));
+
+            Criteria refs = main.createCriteria("linkRef", "l", JoinType.LEFT_OUTER_JOIN);
+            c.add(Restrictions.and(Restrictions.eq("l.targetOid", "123")));
+
+            String expected = HibernateToSqlTranslator.toSql(main);
+
+            TypeFilter type = TypeFilter.createType(UserType.COMPLEX_TYPE);
+            RefFilter ref = RefFilter.createReferenceEqual(UserType.F_LINK_REF, UserType.class, prismContext, "123");
+            AndFilter and = AndFilter.createAnd(type, ref);
+
+            String real = getInterpretedQuery(session, ObjectType.class, ObjectQuery.createObjectQuery(and));
 
             LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
             AssertJUnit.assertEquals(expected, real);

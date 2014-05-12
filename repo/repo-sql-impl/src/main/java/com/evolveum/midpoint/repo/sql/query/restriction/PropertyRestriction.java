@@ -20,10 +20,13 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryContext;
 import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
 import com.evolveum.midpoint.repo.sql.query.definition.*;
+import com.evolveum.midpoint.repo.sql.util.ClassMapper;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -54,6 +57,16 @@ public class PropertyRestriction extends ItemRestriction<ValueFilter> {
         ItemPath fullPath = valFilter.getFullPath();
 
         PropertyDefinition def = registry.findDefinition(context.getType(), fullPath, PropertyDefinition.class);
+        if (ObjectType.class.equals(context.getType()) && def == null) {
+            //we should try to find property in descendant classes
+            for (RObjectType type : RObjectType.values()) {
+                ObjectTypes ot = ClassMapper.getObjectTypeForHQLType(type);
+                def = registry.findDefinition(ot.getClassDefinition(), fullPath, PropertyDefinition.class);
+                if (def != null) {
+                    break;
+                }
+            }
+        }
 
         return def != null;
     }
@@ -63,9 +76,8 @@ public class PropertyRestriction extends ItemRestriction<ValueFilter> {
             throws QueryException {
         QueryContext context = getContext();
 
-        QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
         ItemPath fullPath = filter.getFullPath();
-        PropertyDefinition def = registry.findDefinition(context.getType(), fullPath, PropertyDefinition.class);
+        PropertyDefinition def = findProperDefinition(fullPath, PropertyDefinition.class);
         if (def.isLob()) {
             throw new QueryException("Can't query based on clob property value '" + def + "'.");
         }
@@ -89,9 +101,7 @@ public class PropertyRestriction extends ItemRestriction<ValueFilter> {
     private String createPropertyNamePrefix(ItemPath path) throws QueryException {
         StringBuilder sb = new StringBuilder();
 
-        Class<? extends ObjectType> type = getContext().getType();
-        QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
-        EntityDefinition definition = registry.findDefinition(type, null, EntityDefinition.class);
+        EntityDefinition definition = findProperEntityDefinition(path);
 
         List<ItemPathSegment> segments = path.getSegments();
         for (ItemPathSegment segment : segments) {

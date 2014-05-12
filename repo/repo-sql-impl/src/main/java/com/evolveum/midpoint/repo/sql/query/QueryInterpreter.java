@@ -249,12 +249,13 @@ public class QueryInterpreter {
             throws QueryException {
 
         for (Restriction restriction : AVAILABLE_RESTRICTIONS) {
-            if (!restriction.canHandle(filter, context)) {
+            Restriction<T> res = restriction.cloneInstance();
+            res.setContext(context);
+
+            if (!res.canHandle(filter, context)) {
                 continue;
             }
 
-            Restriction<T> res = restriction.cloneInstance();
-            res.setContext(context);
             res.setParent(parent);
             res.setQuery(query);
 

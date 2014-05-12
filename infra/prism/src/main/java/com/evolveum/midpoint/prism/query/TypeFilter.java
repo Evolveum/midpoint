@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism.query;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.util.DebugUtil;
 
 import javax.xml.namespace.QName;
 
@@ -59,6 +60,7 @@ public class TypeFilter extends ObjectFilter {
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
+        DebugUtil.indentDebugDump(sb, indent);
         sb.append("TYPE: ");
         sb.append(type.getLocalPart());
 
