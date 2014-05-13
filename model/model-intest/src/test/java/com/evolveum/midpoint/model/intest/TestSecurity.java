@@ -623,7 +623,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteDeny();
 	}
 	
-	@Test
+	@Test(enabled=false) // MID-1881
     public void test207AutzJackObjectFilterCaribbeanRole() throws Exception {
 		final String TEST_NAME = "test207AutzJackObjectFilterCaribbeanfRole";
         TestUtil.displayTestTile(this, TEST_NAME);
