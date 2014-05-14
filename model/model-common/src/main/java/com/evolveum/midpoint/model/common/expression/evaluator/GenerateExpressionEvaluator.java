@@ -55,6 +55,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenerateExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
@@ -83,6 +84,17 @@ public class GenerateExpressionEvaluator<V extends PrismValue> implements Expres
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.common.expression.ExpressionEvaluator#evaluate(java.util.Collection, java.util.Map, boolean, java.lang.String, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
+	
+	private boolean isNotEmptyMinLength(StringPolicyType policy){
+		Integer minLength = policy.getLimitations().getMinLength();
+		if (minLength != null){
+			if (minLength.intValue() == 0){
+				return false;
+			}
+			return true;
+		}
+		return  false;
+	}
 	@Override
 	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext params) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
@@ -107,7 +119,7 @@ public class GenerateExpressionEvaluator<V extends PrismValue> implements Expres
 		// TODO: generate value based on stringPolicyType (if not null)
 		String stringValue = null;
 		if (stringPolicyType != null) {
-			if (stringPolicyType.getLimitations().getMinLength() != null) {
+			if (isNotEmptyMinLength(stringPolicyType)) {
 				stringValue = ValuePolicyGenerator.generate(stringPolicyType, DEFAULT_LENGTH, true, params.getResult());
 			} else{
 				stringValue = ValuePolicyGenerator.generate(stringPolicyType, DEFAULT_LENGTH, false, params.getResult());
