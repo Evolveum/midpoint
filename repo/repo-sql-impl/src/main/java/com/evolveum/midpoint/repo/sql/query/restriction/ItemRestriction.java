@@ -37,8 +37,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.lang.Validate;
@@ -49,8 +48,7 @@ import org.hibernate.sql.JoinType;
 
 import javax.xml.namespace.QName;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -89,6 +87,46 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
 
     public abstract Criterion interpretInternal(T filter) throws QueryException;
 
+    private TypeRestriction findTypeRestrictionParent(Restriction restriction) {
+        if (restriction == null) {
+            return null;
+        }
+
+        if (restriction instanceof TypeRestriction) {
+            return (TypeRestriction) restriction;
+        }
+
+        return findTypeRestrictionParent(restriction.getParent());
+    }
+
+    private Set<Class<? extends ObjectType>> findOtherPossibleParents() {
+        TypeRestriction typeRestriction = findTypeRestrictionParent(this);
+        ObjectTypes typeClass;
+        if (typeRestriction != null) {
+            TypeFilter filter = typeRestriction.getFilter();
+            typeClass = ObjectTypes.getObjectTypeFromTypeQName(filter.getType());
+        } else {
+            typeClass = ObjectTypes.getObjectType(getContext().getType());
+        }
+
+        Set<Class<? extends ObjectType>> classes = new HashSet<>();
+        classes.add(typeClass.getClassDefinition());
+
+        switch (typeClass) {
+            case OBJECT:
+                classes.addAll(ObjectTypes.getAllObjectTypes());
+                break;
+            case FOCUS_TYPE:
+                classes.add(UserType.class);
+            case ABSTRACT_ROLE:
+                classes.add(RoleType.class);
+                classes.add(OrgType.class);
+        }
+
+        LOGGER.debug("Found possible parents {} for entity definitions.", Arrays.toString(classes.toArray()));
+        return classes;
+    }
+
     protected <T extends Definition> T findProperDefinition(ItemPath path, Class<T> clazz) {
         QueryContext context = getContext();
         QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
@@ -97,10 +135,8 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         }
 
         //we should try to find property in descendant classes
-        for (RObjectType type : RObjectType.values()) {
-            ObjectTypes ot = ClassMapper.getObjectTypeForHQLType(type);
-
-            Definition def = registry.findDefinition(ot.getClassDefinition(), path, clazz);
+        for (Class type : findOtherPossibleParents()) {
+            Definition def = registry.findDefinition(type, path, clazz);
             if (def != null) {
                 return (T) def;
             }
@@ -118,16 +154,14 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
 
         EntityDefinition entity = null;
         // we should try to find property in descendant classes
-        for (RObjectType type : RObjectType.values()) {
-            ObjectTypes ot = ClassMapper.getObjectTypeForHQLType(type);
-
-            entity = registry.findDefinition(ot.getClassDefinition(), null, EntityDefinition.class);
+        for (Class type : findOtherPossibleParents()) {
+            entity = registry.findDefinition(type, null, EntityDefinition.class);
             Definition def = entity.findDefinition(path, Definition.class);
             if (def != null) {
                 break;
             }
         }
-
+         LOGGER.info("Found proper entity definition for path {}, {}", path, entity.toString());
         return entity;
     }
 

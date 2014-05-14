@@ -16,19 +16,11 @@
 
 package com.evolveum.midpoint.repo.sql.query.restriction;
 
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.ValueFilter;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryContext;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
 import org.hibernate.criterion.Criterion;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author lazyman
@@ -37,7 +29,15 @@ public abstract class Restriction<T extends ObjectFilter> {
 
     private QueryContext context;
     private Restriction parent;
-    private ObjectQuery query;
+    private T filter;
+
+    public T getFilter() {
+        return filter;
+    }
+
+    public void setFilter(T filter) {
+        this.filter = filter;
+    }
 
     public QueryContext getContext() {
         return context;
@@ -55,16 +55,9 @@ public abstract class Restriction<T extends ObjectFilter> {
         this.parent = parent;
     }
 
-    public ObjectQuery getQuery() {
-        return query;
-    }
-
-    public void setQuery(ObjectQuery query) {
-        this.query = query;
-    }
-
     public abstract Criterion interpret(T filter) throws QueryException;
 
+    //todo remove both params, they are already in restriction
     public abstract boolean canHandle(ObjectFilter filter, QueryContext context) throws QueryException;
 
     // todo don't know if cloning is necessary.. [lazyman]

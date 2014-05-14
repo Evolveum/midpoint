@@ -22,6 +22,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -283,5 +285,13 @@ public enum ObjectTypes {
         throw new IllegalArgumentException("Not suitable class found for rest type: " + restType);
     }
 
+    public static List<Class<? extends ObjectType>> getAllObjectTypes() {
+        List<Class<? extends ObjectType>> list = new ArrayList<>();
+        for (ObjectTypes t : ObjectTypes.values()) {
+            list.add(t.getClassDefinition());
+        }
+
+        return list;
+    }
 }
 

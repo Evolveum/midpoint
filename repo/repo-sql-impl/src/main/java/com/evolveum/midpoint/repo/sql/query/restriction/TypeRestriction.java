@@ -22,30 +22,44 @@ import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.QueryContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 
 import javax.xml.namespace.QName;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author lazyman
  */
-public class TypeRestriction extends Restriction {
+public class TypeRestriction extends Restriction<TypeFilter> {
 
     @Override
-    public Criterion interpret(ObjectFilter filter) throws QueryException {
+    public Criterion interpret(TypeFilter filter) throws QueryException {
         String property = getContext().getAlias(null) + "." + RObject.F_OBJECT_TYPE_CLASS;
 
-        TypeFilter typeFilter = (TypeFilter) filter;
-        Set<RObjectType> values = getValues(typeFilter.getType());
+        Set<RObjectType> values = getValues(filter.getType());
 
+        Criterion basedOnType;
         if (values.size() > 1) {
-            return Restrictions.in(property, values);
+            basedOnType = Restrictions.in(property, values);
+        } else {
+            basedOnType = Restrictions.eq(property, values.iterator().next());
         }
 
-        return Restrictions.eq(property, values.iterator().next());
+        if (filter.getFilter() == null) {
+            return basedOnType;
+        }
+
+        QueryContext context = getContext();
+        QueryInterpreter interpreter = context.getInterpreter();
+        Restriction restriction = interpreter.findAndCreateRestriction(filter.getFilter(), context, this);
+        Criterion basedOnFilter = restriction.interpret(filter.getFilter());
+
+        return Restrictions.and(basedOnType, basedOnFilter);
     }
 
     private Set<RObjectType> getValues(QName typeQName) {

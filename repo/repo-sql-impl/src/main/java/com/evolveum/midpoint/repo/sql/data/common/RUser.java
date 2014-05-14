@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.Columns;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
 
@@ -61,7 +63,7 @@ public class RUser extends RFocus<UserType> implements OperationResult {
     private String employeeNumber;
     private Set<String> employeeType;
     private Set<RPolyString> organizationalUnit;
-    private RPolyString locality;
+    private RPolyString localityUser;
     private String costCenter;
     private String locale;
     private String timezone;
@@ -133,9 +135,14 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         return givenName;
     }
 
+    @JaxbName(localPart = "locality")
     @Embedded
-    public RPolyString getLocality() {
-        return locality;
+    @AttributeOverrides({
+            @AttributeOverride(name = "orig", column = @Column(name = "locality_orig")),
+            @AttributeOverride(name = "norm", column = @Column(name = "locality_norm"))
+    })
+    public RPolyString getLocalityUser() {
+        return localityUser;
     }
 
     @Index(name = "iEmployeeNumber")
@@ -278,8 +285,8 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         this.honorificSuffix = honorificSuffix;
     }
 
-    public void setLocality(RPolyString locality) {
-        this.locality = locality;
+    public void setLocalityUser(RPolyString locality) {
+        this.localityUser = locality;
     }
 
     public void setOrganizationalUnit(Set<RPolyString> organizationalUnit) {
@@ -316,7 +323,7 @@ public class RUser extends RFocus<UserType> implements OperationResult {
             return false;
         if (honorificSuffix != null ? !honorificSuffix.equals(rUser.honorificSuffix) : rUser.honorificSuffix != null)
             return false;
-        if (locality != null ? !locality.equals(rUser.locality) : rUser.locality != null) return false;
+        if (localityUser != null ? !localityUser.equals(rUser.localityUser) : rUser.localityUser != null) return false;
         if (organizationalUnit != null ? !organizationalUnit.equals(rUser.organizationalUnit) : rUser.organizationalUnit != null)
             return false;
         if (telephoneNumber != null ? !telephoneNumber.equals(rUser.telephoneNumber) : rUser.telephoneNumber != null)
@@ -344,7 +351,7 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         result = 31 * result + (honorificPrefix != null ? honorificPrefix.hashCode() : 0);
         result = 31 * result + (honorificSuffix != null ? honorificSuffix.hashCode() : 0);
         result = 31 * result + (employeeNumber != null ? employeeNumber.hashCode() : 0);
-        result = 31 * result + (locality != null ? locality.hashCode() : 0);
+        result = 31 * result + (localityUser != null ? localityUser.hashCode() : 0);
         result = 31 * result + (costCenter != null ? costCenter.hashCode() : 0);
         result = 31 * result + (locale != null ? locale.hashCode() : 0);
         result = 31 * result + (title != null ? title.hashCode() : 0);
@@ -367,7 +374,7 @@ public class RUser extends RFocus<UserType> implements OperationResult {
         repo.setHonorificPrefix(RPolyString.copyFromJAXB(jaxb.getHonorificPrefix()));
         repo.setHonorificSuffix(RPolyString.copyFromJAXB(jaxb.getHonorificSuffix()));
         repo.setEmployeeNumber(jaxb.getEmployeeNumber());
-        repo.setLocality(RPolyString.copyFromJAXB(jaxb.getLocality()));
+        repo.setLocalityUser(RPolyString.copyFromJAXB(jaxb.getLocality()));
         repo.setAdditionalName(RPolyString.copyFromJAXB(jaxb.getAdditionalName()));
         repo.setEmailAddress(jaxb.getEmailAddress());
         repo.setTelephoneNumber(jaxb.getTelephoneNumber());

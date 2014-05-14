@@ -18,8 +18,8 @@ package com.evolveum.midpoint.repo.sql.query.restriction;
 
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryContext;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -48,7 +48,7 @@ public abstract class NaryLogicalRestriction<T extends NaryLogicalFilter> extend
 
     public List<Restriction> getRestrictions() {
         if (restrictions == null) {
-            restrictions = new ArrayList<Restriction>();
+            restrictions = new ArrayList<>();
         }
         return restrictions;
     }
@@ -69,7 +69,7 @@ public abstract class NaryLogicalRestriction<T extends NaryLogicalFilter> extend
         QueryInterpreter interpreter = context.getInterpreter();
 
         for (ObjectFilter condition : conditions) {
-            Restriction restriction = interpreter.findAndCreateRestriction(condition, context, this, getQuery());
+            Restriction restriction = interpreter.findAndCreateRestriction(condition, context, this);
             Criterion criterion = restriction.interpret(condition);
             junction.add(criterion);
         }

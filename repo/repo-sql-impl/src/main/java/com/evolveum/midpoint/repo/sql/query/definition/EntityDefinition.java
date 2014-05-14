@@ -83,7 +83,7 @@ public class EntityDefinition extends Definition {
         List<Definition> definitions = getDefinitions();
         for (Definition definition : definitions) {
             builder.append(definition.getDebugDumpClassName());
-            builder.append('(').append(dumpQName(getJaxbName())).append(')');
+            builder.append('(').append(dumpQName(definition.getJaxbName())).append(')');
         }
         builder.append(']');
     }
