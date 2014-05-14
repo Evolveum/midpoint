@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<valuePolicy xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+             oid="81818181-76e0-59e2-8888-3d4f02d3fffb"
+             version="10">
+   <name>
+      <orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">Numeric PIN Policy</orig>
+      <norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">numeric pin policy</norm>
+   </name>
+   <description>A policy useful for generating PIN.</description>
+   <c:lifetime xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+               xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+               xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+               xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+               xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+               xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
+               xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+               xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+      <c:expiration>999</c:expiration>
+      <c:warnBeforeExpiration>9</c:warnBeforeExpiration>
+      <c:lockAfterExpiration>0</c:lockAfterExpiration>
+      <c:minPasswordAge>0</c:minPasswordAge>
+      <c:passwordHistoryLength>0</c:passwordHistoryLength>
+   </c:lifetime>
+   <c:stringPolicy xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                   xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+                   xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+                   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                   xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
+                   xmlns:apti="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
+                   xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+                   xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+      <c:description>String validation policy</c:description>
+      <c:limitations>
+         <c:minLength>0</c:minLength>
+         <c:minUniqueChars>0</c:minUniqueChars>
+         <c:checkAgainstDictionary>true</c:checkAgainstDictionary>
+         <c:checkPattern/>
+      </c:limitations>
+   </c:stringPolicy>
+</valuePolicy>
