@@ -55,11 +55,15 @@ public abstract class Restriction<T extends ObjectFilter> {
         this.parent = parent;
     }
 
+    // todo parameter can be removed
     public abstract Criterion interpret(T filter) throws QueryException;
 
     //todo remove both params, they are already in restriction
+    // when called this we don't really know if filter class matches T as can be seen in QueryInterpreter
+    // therefore filter should stay here as paramtere probably
     public abstract boolean canHandle(ObjectFilter filter, QueryContext context) throws QueryException;
 
-    // todo don't know if cloning is necessary.. [lazyman]
+    // todo don't know if cloning is necessary... [lazyman]
+    // this can be replaced probably by simple java reflection call
     public abstract Restriction cloneInstance();
 }

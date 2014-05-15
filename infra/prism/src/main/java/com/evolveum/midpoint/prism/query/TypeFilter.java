@@ -54,7 +54,8 @@ public class TypeFilter extends ObjectFilter {
 
     @Override
     public ObjectFilter clone() {
-        return new TypeFilter(type, filter.clone());
+        ObjectFilter f = filter != null ? filter.clone() : null;
+        return new TypeFilter(type, f);
     }
 
     @Override
