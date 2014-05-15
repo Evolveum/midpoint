@@ -26,6 +26,7 @@ import com.evolveum.midpoint.security.api.ObjectSecurityConstraints;
 import com.evolveum.midpoint.security.api.OwnerResolver;
 import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.security.api.UserProfileService;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.web.application.DescriptorLoader;
@@ -64,7 +65,12 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
 		securityEnforcer.setUserProfileService(userProfileService);
 	}
 
-	public void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user) {
+    @Override
+    public void setupPreAuthenticatedSecurityContext(Authentication authentication) {
+        securityEnforcer.setupPreAuthenticatedSecurityContext(authentication);
+    }
+
+    public void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user) {
 		securityEnforcer.setupPreAuthenticatedSecurityContext(user);
 	}
 
@@ -107,8 +113,8 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
             addSecurityConfig(filterInvocation, guiConfigAttr, urlMapping.getUrl(), urlMapping.getAction());
         }
 
-        Map<String, String[]> actions = DescriptorLoader.getActions();
-        for (Map.Entry<String, String[]> entry : actions.entrySet()) {
+        Map<String, DisplayableValue<String>[]> actions = DescriptorLoader.getActions();
+        for (Map.Entry<String, DisplayableValue<String>[]> entry : actions.entrySet()) {
             addSecurityConfig(filterInvocation, guiConfigAttr, entry.getKey(), entry.getValue());
         }
 
@@ -120,15 +126,16 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
     }
 
     private void addSecurityConfig(FilterInvocation filterInvocation, Collection<ConfigAttribute> guiConfigAttr,
-                      String url, String[] actions) {
+                      String url, DisplayableValue<String>[] actions) {
 
         AntPathRequestMatcher matcher = new AntPathRequestMatcher(url);
         if (!matcher.matches(filterInvocation.getRequest()) || actions == null) {
             return;
         }
 
-        for (String action : actions) {
-            if (StringUtils.isBlank(action)) {
+        for (DisplayableValue<String> action : actions) {
+            String actionUri = action.getValue();
+            if (StringUtils.isBlank(actionUri)) {
                 continue;
             }
 
@@ -137,7 +144,7 @@ public class MidPointGuiAuthorizationEvaluator implements SecurityEnforcer {
                 return;
             }
 
-            guiConfigAttr.add(new SecurityConfig(action));
+            guiConfigAttr.add(new SecurityConfig(actionUri));
         }
     }
 

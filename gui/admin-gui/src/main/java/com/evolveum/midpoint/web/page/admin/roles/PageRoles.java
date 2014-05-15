@@ -27,6 +27,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
@@ -65,8 +66,12 @@ import java.util.List;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/roles", action = {
-        PageAdminRoles.AUTHORIZATION_ROLE_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#roles"})
+        @AuthorizationAction(actionUri = PageAdminRoles.AUTH_ROLE_ALL,
+                label = PageAdminRoles.AUTH_ROLE_ALL_LABEL,
+                description = PageAdminRoles.AUTH_ROLE_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#roles",
+                label = "PageRoles.auth.roles.label",
+                description = "PageRoles.auth.roles.description")})
 public class PageRoles extends PageAdminRoles {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageRoles.class);

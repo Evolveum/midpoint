@@ -36,6 +36,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -84,8 +85,12 @@ import java.util.List;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/resources/content/accounts", encoder = OnePageParameterEncoder.class, action = {
-        PageAdminResources.AUTHORIZATION_RESOURCE_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#resourcesContentAccounts"})
+        @AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL,
+                label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL,
+                description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#resourcesContentAccounts",
+                label = "PageContentAccounts.auth.resourcesContentAccounts.label",
+                description = "PageContentAccounts.auth.resourcesContentAccounts.description")})
 public class PageContentAccounts extends PageAdminResources {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageContentAccounts.class);
@@ -477,13 +482,15 @@ public class PageContentAccounts extends PageAdminResources {
 
         OperationResult result = new OperationResult(OPERATION_CREATE_USER_FROM_ACCOUNTS);
         for (AccountContentDto dto : accounts) {
+            OperationResult subResult = result.createMinorSubresult(OPERATION_CREATE_USER_FROM_ACCOUNT);
             try {
-                OperationResult subResult = result.createMinorSubresult(OPERATION_CREATE_USER_FROM_ACCOUNT);
                 getModelService().importFromResource(dto.getAccountOid(),
                         createSimpleTask(OPERATION_CREATE_USER_FROM_ACCOUNT), subResult);
             } catch (Exception ex) {
-                result.computeStatus(getString("pageContentAccounts.message.cantImportAccount", dto.getAccountOid()));
-                LoggingUtils.logException(LOGGER, getString("pageContentAccounts.message.cantImportAccount", dto.getAccountName()), ex);
+                subResult.computeStatus(getString("pageContentAccounts.message.cantImportAccount", dto.getAccountOid()));
+                LoggingUtils.logException(LOGGER, "Can't import account {},oid={}", ex, dto.getAccountName(), dto.getAccountOid());
+            } finally {
+                subResult.computeStatusIfUnknown();
             }
         }
 

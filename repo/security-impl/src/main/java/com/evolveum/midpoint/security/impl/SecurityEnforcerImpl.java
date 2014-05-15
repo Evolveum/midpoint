@@ -39,6 +39,7 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -59,6 +60,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
+import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -124,9 +126,15 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		return SecurityUtil.getPrincipal();
 	}
 
+    @Override
+    public void setupPreAuthenticatedSecurityContext(Authentication authentication) {
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        securityContext.setAuthentication(authentication);
+    }
+
 	@Override
 	public void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user) {
-		MidPointPrincipal principal = null;
+		MidPointPrincipal principal;
 		if (userProfileService == null) {
 			LOGGER.warn("No user profile service set up in SecurityEnforcer. "
 					+ "This is OK in low-level tests but it is a serious problem in running system");
@@ -134,9 +142,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		} else {
 			principal = userProfileService.getPrincipal(user);
 		}
-		SecurityContext securityContext = SecurityContextHolder.getContext();
 		Authentication authentication = new PreAuthenticatedAuthenticationToken(principal, null);
-		securityContext.setAuthentication(authentication);
+        setupPreAuthenticatedSecurityContext(authentication);
 	}
 
 	@Override
@@ -792,17 +799,29 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 					if (objectSpecTypes != null && !objectSpecTypes.isEmpty()) {
 						applicable = false;
 						for (ObjectSpecificationType objectSpecType: objectSpecTypes) {
+							ObjectFilter objSpecSecurityFilter = null;
 							SearchFilterType specFilterType = objectSpecType.getFilter();
 							ObjectReferenceType specOrgRef = objectSpecType.getOrgRef();
 							QName specTypeQName = objectSpecType.getType();
-							PrismObjectDefinition<O> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectType);
-							ObjectFilter objSpecSecurityFilter = AllFilter.createAll();
+							PrismObjectDefinition<O> objectDefinition = null;
 							
 							// Type
-							if (specTypeQName != null && !QNameUtil.match(specTypeQName, objectDefinition.getTypeName())) {
-								LOGGER.trace("  Authorization not applicable for object because of type mismatch, expected {}, was {}",
-										new Object[]{specTypeQName, objectDefinition.getTypeName()});
-								continue;
+							if (specTypeQName != null) {
+								PrismObjectDefinition<?> specObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(specTypeQName);
+								Class<?> specObjectClass = specObjectDef.getCompileTimeClass();
+								if (!objectType.isAssignableFrom(specObjectClass)) {
+									LOGGER.trace("  Authorization not applicable for object because of type mismatch, authorization {}, query {}",
+											new Object[]{specObjectClass, objectType});
+									continue;
+								} else {
+									LOGGER.trace("  Authorization is applicable for object because of type match, authorization {}, query {}",
+											new Object[]{specObjectClass, objectType});
+									// The spec type is a subclass of requested type. So it might be returned from the search.
+									// We need to use type filter.
+									objSpecSecurityFilter = TypeFilter.createType(specTypeQName, null);
+									// and now we have a more specific object definition to use later in filter processing
+									objectDefinition = (PrismObjectDefinition<O>) specObjectDef;
+								}
 							}
 							
 							// Owner
@@ -828,15 +847,20 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 										throw new SchemaException("Unsupported special object specification specified in authorization: "+special);
 									}
 								}
-								objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, specialFilter);
+                                objSpecSecurityFilter = specTypeQName != null ?
+                                        TypeFilter.createType(specTypeQName, specialFilter) : specialFilter;
 							} else {
 								LOGGER.trace("  specials empty: {}", specSpecial);
 							}
 							
 							// Filter
 							if (specFilterType != null) {
+								if (objectDefinition == null) {
+									objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(objectType);
+								}
 								ObjectFilter specFilter = QueryJaxbConvertor.createObjectFilter(objectDefinition, specFilterType, prismContext);
 								if (specFilter != null) {
+									ObjectQueryUtil.assertNotRaw(specFilter, "Filter in authorization object has undefined items. Maybe a 'type' specification is missing in the authorization?");
 									ObjectQueryUtil.assertPropertyOnly(specFilter, "Filter in authorization object is not property-only filter");
 								}
 								LOGGER.trace("  applying property filter "+specFilter);

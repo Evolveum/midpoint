@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.home.component;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -59,6 +60,10 @@ public abstract class DashboardPanel<T extends Serializable> extends SimplePanel
         dashboardTitle.add(iconI);
     }
 
+    public String getDashboardBodyCss() {
+        return "padding: 0px;";
+    }
+
     @Override
     protected void initLayout() {
         WebMarkupContainer dashboardParent = new WebMarkupContainer(ID_DASHBOARD_PARENT);
@@ -71,6 +76,7 @@ public abstract class DashboardPanel<T extends Serializable> extends SimplePanel
         dashboardTitle.add(title);
 
         WebMarkupContainer dashboardContent = new WebMarkupContainer(ID_DASHBOARD_CONTENT);
+        dashboardContent.add(AttributeModifier.append("style", getDashboardBodyCss()));
         dashboardContent.add(getMainComponent(ID_CONTENT));
         dashboardParent.add(dashboardContent);
     }

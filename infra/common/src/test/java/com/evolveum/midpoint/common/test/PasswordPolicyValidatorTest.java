@@ -190,6 +190,29 @@ public class PasswordPolicyValidatorTest {
 			assertPassword(psswd, pp);
 	
 	}
+	
+	@Test
+	public void testValueGenerateEmpty() throws Exception {
+		LOGGER.info("===[ {} ]===", "testValueGenerateEmpty");
+		String pathname = BASE_PATH + "value-policy-generate-empty.xml";
+		File file = new File(pathname);
+		LOGGER.info("Positive testing {}: {}", "testValueGenerate", "value-policy-generate-empty.xml");
+		ValuePolicyType pp = (ValuePolicyType) PrismTestUtil.parseObject(file).asObjectable();
+		OperationResult op = new OperationResult("testValueGenerateEmpty");
+		
+		String psswd;
+			psswd = ValuePolicyGenerator.generate(pp.getStringPolicy(), 10, true, op);
+			LOGGER.info("Generated password:" + psswd);
+			System.out.println("Generated password: " + psswd);
+			op.computeStatus();
+			if (!op.isSuccess()) {
+				LOGGER.info("Result:" + op.debugDump());
+				AssertJUnit.fail("Password generator failed:\n"+op.debugDump());
+			}
+			assertNotNull(psswd);
+			assertPassword(psswd, pp);
+	
+	}
 
 	public void passwordGeneratorTest(final String TEST_NAME, String policyFilename) throws JAXBException, SchemaException, IOException {
 		LOGGER.info("===[ {} ]===", TEST_NAME);

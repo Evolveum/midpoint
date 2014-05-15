@@ -31,13 +31,13 @@ import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -60,8 +60,10 @@ import javax.xml.namespace.QName;
 import java.util.Collection;
 
 @PageDescriptor(url = "/admin/config/debug", action = {
-        PageAdminConfiguration.AUTHORIZATION_CONFIGURATION_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#debug"})
+        @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
+                label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#debug",
+                label = "PageDebugView.auth.debug.label", description = "PageDebugView.auth.debug.description")})
 public class PageDebugView extends PageAdminConfiguration {
 
     private static final String DOT_CLASS = PageDebugView.class.getName() + ".";

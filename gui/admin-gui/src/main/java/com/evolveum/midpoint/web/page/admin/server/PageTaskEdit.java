@@ -37,6 +37,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
@@ -58,8 +59,8 @@ import com.evolveum.midpoint.web.page.admin.server.subtasks.SubtasksPanel;
 import com.evolveum.midpoint.web.page.admin.server.workflowInformation.WorkflowInformationPanel;
 import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MisfireActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -102,8 +103,12 @@ import java.util.*;
  * @author mserbak
  */
 @PageDescriptor(url = "/admin/task", encoder = OnePageParameterEncoder.class, action = {
-        PageAdminTasks.AUTHORIZATION_TASKS_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#task"})
+        @AuthorizationAction(actionUri = PageAdminTasks.AUTHORIZATION_TASKS_ALL,
+                label = PageAdminTasks.AUTH_TASKS_ALL_LABEL,
+                description = PageAdminTasks.AUTH_TASKS_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#task",
+                label = "PageTaskEdit.auth.task.label",
+                description = "PageTaskEdit.auth.task.description")})
 public class PageTaskEdit extends PageAdminTasks {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageTaskEdit.class);
@@ -177,7 +182,7 @@ public class PageTaskEdit extends PageAdminTasks {
 
         TaskDto taskDto = null;
 		try {
-            Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.createRetrieveAttributesOptions(TaskType.F_SUBTASK);
+            Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.createRetrieveAttributesOptions(TaskType.F_SUBTASK, TaskType.F_NODE_AS_OBSERVED, TaskType.F_NEXT_RUN_START_TIMESTAMP);
             TaskType loadedTask = getModelService().getObject(TaskType.class, taskOid.toString(), options, operationTask, result).asObjectable();
             taskDto = prepareTaskDto(loadedTask, result);
 			result.computeStatus();
@@ -518,7 +523,7 @@ public class PageTaskEdit extends PageAdminTasks {
 		boundContainer.add(bound);
 
         Label boundHelp = new Label("boundHelp");
-        boundHelp.add(new TooltipBehavior());
+        boundHelp.add(new InfoTooltipBehavior());
         boundContainer.add(boundHelp);
 
 		TextField<Integer> interval = new TextField<Integer>("interval",
@@ -544,7 +549,7 @@ public class PageTaskEdit extends PageAdminTasks {
 		cronContainer.add(cron);
 
         Label cronHelp = new Label("cronHelp");
-        cronHelp.add(new TooltipBehavior());
+        cronHelp.add(new InfoTooltipBehavior());
 		cronContainer.add(cronHelp);
 
         DateInput notStartBefore = new DateInput("notStartBeforeField", new PropertyModel<Date>(model, "notStartBefore"));

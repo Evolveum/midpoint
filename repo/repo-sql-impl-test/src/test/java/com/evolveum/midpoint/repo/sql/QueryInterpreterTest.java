@@ -16,26 +16,36 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import java.io.File;
-import java.io.IOException;
-import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-
-import javax.xml.XMLConstants;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
+import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.data.common.*;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RTaskExecutionStatus;
+import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
-import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
-import com.evolveum.midpoint.repo.sql.query.RQueryImpl;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
-import com.evolveum.midpoint.repo.sql.util.ClassMapper;
-
+import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
+import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.Query;
@@ -45,61 +55,20 @@ import org.hibernate.sql.JoinType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
-import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
-import com.evolveum.midpoint.prism.query.GreaterFilter;
-import com.evolveum.midpoint.prism.query.InOidFilter;
-import com.evolveum.midpoint.prism.query.LessFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.prism.query.OrgFilter;
-import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RTaskExecutionStatus;
-import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
-import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.GenericObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+import java.io.File;
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -115,6 +84,23 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void setup() throws SchemaException, SAXException, IOException {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+    }
+
+    @BeforeClass
+    public void beforeClass() throws Exception {
+        super.beforeClass();
+
+        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
+
+        List<PrismObject<? extends Objectable>> objects = prismContext.parseObjects(
+                new File(FOLDER_BASIC, "objects.xml"));
+        OperationResult result = new OperationResult("add objects");
+        for (PrismObject object : objects) {
+            repositoryService.addObject(object, null, result);
+        }
+
+        result.recomputeStatus();
+        AssertJUnit.assertTrue(result.isSuccess());
     }
 
     @Test
@@ -425,7 +411,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     @Test
     public void queryUserSubstringFullName() throws Exception {
-        LOGGER.info("===[{}]===", new Object[]{"queryUserSubstringFullName"});
         Session session = open();
 
         try {
@@ -449,7 +434,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     @Test
     public void queryUserByName() throws Exception {
-        LOGGER.info("===[{}]===", new Object[]{"queryUserByName"});
         Session session = open();
 
         try {
@@ -535,7 +519,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
     @Test
     public void queryUserAccountRef() throws Exception {
-        LOGGER.info("===[{}]===", new Object[]{"queryUserAccountRef"});
         Session session = open();
         try {
             Criteria main = session.createCriteria(RUser.class, "u");
@@ -958,8 +941,8 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         try {
             Query query = session.createQuery(
                     "select o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount from " +
-                    "ROrg as o where o.oid in (select distinct p.ownerOid from RParentOrgRef p where p.targetOid=:oid)"
-                );
+                            "ROrg as o where o.oid in (select distinct p.ownerOid from RParentOrgRef p where p.targetOid=:oid)"
+            );
             query.setString("oid", "1234");
 
             String expected = HibernateToSqlTranslator.toSql(factory, query.getQueryString());
@@ -1171,8 +1154,8 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             Conjunction c = Restrictions.conjunction();
             c.add(Restrictions.and(
-                            Restrictions.eq("u.name.orig", "cpt. Jack Sparrow"),
-                            Restrictions.eq("u.name.norm", "cpt jack sparrow")));
+                    Restrictions.eq("u.name.orig", "cpt. Jack Sparrow"),
+                    Restrictions.eq("u.name.norm", "cpt jack sparrow")));
             c.add(Subqueries.propertyIn(mainAlias + ".oid", detached));
             main.add(c);
 
@@ -1198,24 +1181,24 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled=false)
+    @Test(enabled = false)
     public void test320QueryEmployeeTypeAndOrgType() throws Exception {
         Session session = open();
 
         try {
             Criteria main = session.createCriteria(RObject.class, "o");
             main.add(Restrictions.or(
-               Restrictions.and(
-                       Restrictions.eq("o.name.orig", "some name"),
-                       Restrictions.eq("o.employeeNumber", "123")
-               ),
-                Restrictions.eq("o.identifier", "1234")
+                    Restrictions.and(
+                            Restrictions.eq("o.name.orig", "some name"),
+                            Restrictions.eq("o.employeeNumber", "123")
+                    ),
+                    Restrictions.eq("o.identifier", "1234")
             ));
             ProjectionList list = Projections.projectionList();
             addFullObjectProjectionList("o", list, false);
             main.setProjection(list);
 
-            List l= main.list();
+            List l = main.list();
             l.size();
             String expected = HibernateToSqlTranslator.toSql(main);
             LOGGER.info("expected query>\n{}", new Object[]{expected});
@@ -1239,6 +1222,277 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 //            String real = getInterpretedQuery(session, ObjectType.class, query);
 //
 //            LOGGER.info("real query>\n{}", new Object[]{real});
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test330queryUserSubstringName() throws Exception {
+        Session session = open();
+
+        try {
+            Criteria main = session.createCriteria(RObject.class, "o");
+            ProjectionList projections = Projections.projectionList();
+            addFullObjectProjectionList("o", projections, false);
+            main.setProjection(projections);
+
+            main.add(Restrictions.like("name.orig", "a%"));
+            String expected = HibernateToSqlTranslator.toSql(main);
+
+            SubstringFilter substring = SubstringFilter.createSubstring(ObjectType.F_NAME, ObjectType.class,
+                    prismContext, PolyStringOrigMatchingRule.NAME, "a");
+            substring.setAnchorStart(true);
+            String real = getInterpretedQuery(session, ObjectType.class, ObjectQuery.createObjectQuery(substring));
+
+            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+            AssertJUnit.assertEquals(expected, real);
+
+            OperationResult result = new OperationResult("test330queryUserSubstringName");
+            int count = repositoryService.countObjects(ObjectType.class, ObjectQuery.createObjectQuery(substring), result);
+            AssertJUnit.assertEquals(2, count);
+
+            substring = SubstringFilter.createSubstring(ObjectType.F_NAME, ObjectType.class,
+                    prismContext, PolyStringOrigMatchingRule.NAME, "a");
+            count = repositoryService.countObjects(ObjectType.class, ObjectQuery.createObjectQuery(substring), result);
+            AssertJUnit.assertEquals(16, count);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test340queryObjectClassTypeUser() throws Exception {
+        Session session = open();
+
+        try {
+            Criteria main = session.createCriteria(RObject.class, "o");
+            ProjectionList projections = Projections.projectionList();
+            addFullObjectProjectionList("o", projections, false);
+            main.setProjection(projections);
+
+            main.add(Restrictions.eq("o." + RObject.F_OBJECT_TYPE_CLASS, RObjectType.USER));
+            String expected = HibernateToSqlTranslator.toSql(main);
+
+            TypeFilter type = TypeFilter.createType(UserType.COMPLEX_TYPE, null);
+            String real = getInterpretedQuery(session, ObjectType.class, ObjectQuery.createObjectQuery(type));
+
+            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+            AssertJUnit.assertEquals(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test350queryObjectClassTypeAbstractRole() throws Exception {
+        Session session = open();
+
+        try {
+            Criteria main = session.createCriteria(RObject.class, "o");
+            ProjectionList projections = Projections.projectionList();
+            addFullObjectProjectionList("o", projections, false);
+            main.setProjection(projections);
+
+            List<RObjectType> list = new ArrayList<>();
+            list.add(RObjectType.ABSTRACT_ROLE);
+            list.add(RObjectType.ORG);
+            list.add(RObjectType.ROLE);
+            main.add(Restrictions.in("o." + RObject.F_OBJECT_TYPE_CLASS, list));
+            String expected = HibernateToSqlTranslator.toSql(main);
+
+            TypeFilter type = TypeFilter.createType(AbstractRoleType.COMPLEX_TYPE, null);
+            String real = getInterpretedQuery(session, ObjectType.class, ObjectQuery.createObjectQuery(type));
+
+            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+            AssertJUnit.assertEquals(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test360queryMetadataTimestamp() throws Exception {
+        Session session = open();
+
+        try {
+            Criteria main = session.createCriteria(RReportOutput.class, "r");
+            ProjectionList projections = Projections.projectionList();
+            addFullObjectProjectionList("r", projections, false);
+            main.setProjection(projections);
+
+            XMLGregorianCalendar timeXml = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
+
+            main.add(Restrictions.le("r.createTimestamp", timeXml));
+            String expected = HibernateToSqlTranslator.toSql(main);
+
+            LessFilter less = LessFilter.createLess(
+                    new ItemPath(ReportOutputType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP),
+                    ReportOutputType.class, prismContext, timeXml, true);
+
+            String real = getInterpretedQuery(session, ReportOutputType.class, ObjectQuery.createObjectQuery(less));
+
+            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+            AssertJUnit.assertEquals(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test370queryObjectypeByTypeUserAndLocality() throws Exception {
+        Session session = open();
+        try {
+            Criteria main = session.createCriteria(RObject.class, "o");
+            ProjectionList projections = Projections.projectionList();
+            addFullObjectProjectionList("o", projections, false);
+            main.setProjection(projections);
+
+            Conjunction c = Restrictions.conjunction();
+            main.add(c);
+            c.add(Restrictions.eq("o." + RObject.F_OBJECT_TYPE_CLASS, RObjectType.USER));
+            c.add(Restrictions.and(Restrictions.eq("o.localityUser.orig", "Caribbean"),
+                    Restrictions.eq("o.localityUser.norm", "caribbean")));
+
+            String expected = HibernateToSqlTranslator.toSql(main);
+
+            EqualsFilter eq = EqualsFilter.createEqual(new ItemPath(UserType.F_LOCALITY), UserType.class, prismContext,
+                    new PolyString("Caribbean", "caribbean"));
+            TypeFilter type = TypeFilter.createType(UserType.COMPLEX_TYPE, eq);
+
+            String real = getInterpretedQuery(session, ObjectType.class, ObjectQuery.createObjectQuery(type));
+
+            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+            AssertJUnit.assertEquals(expected, real);
+
+            checkQueryTypeAlias(real, "m_user", "locality_orig", "locality_norm");
+        } finally {
+            close(session);
+        }
+    }
+
+    /**
+     * This checks aliases, if they were generated correctly for query. Alias for table as "table" parameter
+     * must be used for columns in "properties" parameter.
+     *
+     * @param query
+     * @param table
+     * @param properties
+     */
+    private void checkQueryTypeAlias(String query, String table, String... properties) {
+        String[] array = query.split(" ");
+        String alias = null;
+        for (int i = 0; i < array.length; i++) {
+            if (table.equals(array[i])) {
+                alias = array[i + 1];
+                break;
+            }
+        }
+        AssertJUnit.assertNotNull(alias);
+
+        for (String property : properties) {
+            for (String token : array) {
+                if (token.endsWith(property + "=?") && !token.startsWith("(" + alias + ".")) {
+                    AssertJUnit.fail("Property '" + property + "' doesn't have proper alias '"
+                            + alias + "' in token '" + token + "'");
+                }
+            }
+        }
+    }
+
+    @Test
+    public void test375queryObjectypeByTypeOrgAndLocality() throws Exception {
+        Session session = open();
+        try {
+            Criteria main = session.createCriteria(RObject.class, "o");
+            ProjectionList projections = Projections.projectionList();
+            addFullObjectProjectionList("o", projections, false);
+            main.setProjection(projections);
+
+            Conjunction c = Restrictions.conjunction();
+            main.add(c);
+            c.add(Restrictions.eq("o." + RObject.F_OBJECT_TYPE_CLASS, RObjectType.ORG));
+            c.add(Restrictions.and(Restrictions.eq("o.locality.orig", "Caribbean"),
+                    Restrictions.eq("o.locality.norm", "caribbean")));
+
+            String expected = HibernateToSqlTranslator.toSql(main);
+
+            EqualsFilter eq = EqualsFilter.createEqual(new ItemPath(OrgType.F_LOCALITY), OrgType.class, prismContext,
+                    new PolyString("Caribbean", "caribbean"));
+            TypeFilter type = TypeFilter.createType(OrgType.COMPLEX_TYPE, eq);
+
+            String real = getInterpretedQuery(session, ObjectType.class, ObjectQuery.createObjectQuery(type));
+
+            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+            AssertJUnit.assertEquals(expected, real);
+
+            checkQueryTypeAlias(real, "m_org", "locality_orig", "locality_norm");
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test380queryObjectypeByTypeAndExtensionAttribute() throws Exception {
+        Session session = open();
+        try {
+            Criteria main = session.createCriteria(RObject.class, "o");
+            ProjectionList projections = Projections.projectionList();
+            addFullObjectProjectionList("o", projections, false);
+            main.setProjection(projections);
+
+            Conjunction c = Restrictions.conjunction();
+            main.add(c);
+            c.add(Restrictions.eq("o." + RObject.F_OBJECT_TYPE_CLASS, RObjectType.USER));
+
+            Conjunction c2 = Restrictions.conjunction();
+            main.createCriteria("strings", "s", JoinType.LEFT_OUTER_JOIN);
+            c2.add(Restrictions.eq("s.ownerType", RObjectExtensionType.EXTENSION));
+            c2.add(Restrictions.eq("s.name", new QName("http://example.com/p", "weapon")));
+            c2.add(Restrictions.eq("s.value", "some weapon name"));
+            c.add(c2);
+
+            String expected = HibernateToSqlTranslator.toSql(main);
+
+            EqualsFilter eq = EqualsFilter.createEqual(
+                    new ItemPath(ObjectType.F_EXTENSION, new QName("http://example.com/p", "weapon")),
+                    UserType.class, prismContext, "some weapon name");
+            TypeFilter type = TypeFilter.createType(UserType.COMPLEX_TYPE, eq);
+
+            String real = getInterpretedQuery(session, ObjectType.class, ObjectQuery.createObjectQuery(type));
+
+            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+            AssertJUnit.assertEquals(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test390queryObjectypeByTypeAndReference() throws Exception {
+        Session session = open();
+        try {
+            Criteria main = session.createCriteria(RObject.class, "o");
+            ProjectionList projections = Projections.projectionList();
+            addFullObjectProjectionList("o", projections, false);
+            main.setProjection(projections);
+
+            Conjunction c = Restrictions.conjunction();
+            main.add(c);
+            c.add(Restrictions.eq("o." + RObject.F_OBJECT_TYPE_CLASS, RObjectType.USER));
+
+            Criteria refs = main.createCriteria("linkRef", "l", JoinType.LEFT_OUTER_JOIN);
+            c.add(Restrictions.and(Restrictions.eq("l.targetOid", "123")));
+
+            String expected = HibernateToSqlTranslator.toSql(main);
+
+            RefFilter ref = RefFilter.createReferenceEqual(UserType.F_LINK_REF, UserType.class, prismContext, "123");
+            TypeFilter type = TypeFilter.createType(UserType.COMPLEX_TYPE, ref);
+
+            String real = getInterpretedQuery(session, ObjectType.class, ObjectQuery.createObjectQuery(type));
+
+            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+            AssertJUnit.assertEquals(expected, real);
         } finally {
             close(session);
         }

@@ -89,7 +89,6 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
     private String createPropertyNamePrefix(RefFilter filter) throws QueryException {
         QueryContext context = getContext();
 
-//        ItemPath path = RUtil.createFullPath(filter);
         ItemPath path = filter.getFullPath();
 
         StringBuilder sb = new StringBuilder();
@@ -99,7 +98,7 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
             sb.append('.');
         }
 
-        List<Definition> definitions = createDefinitionPath(path, context);
+        List<Definition> definitions = createDefinitionPath(path);
         ReferenceDefinition refDefinition = getReferenceDefinition(definitions, filter);
         if (refDefinition.isEmbedded()) {
             sb.append(refDefinition.getJpaName());

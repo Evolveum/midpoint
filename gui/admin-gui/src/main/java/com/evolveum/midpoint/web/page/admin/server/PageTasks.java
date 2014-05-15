@@ -29,6 +29,7 @@ import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
@@ -73,8 +74,12 @@ import java.util.*;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/tasks", action = {
-        PageAdminTasks.AUTHORIZATION_TASKS_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#tasks"})
+        @AuthorizationAction(actionUri = PageAdminTasks.AUTHORIZATION_TASKS_ALL,
+                label = PageAdminTasks.AUTH_TASKS_ALL_LABEL,
+                description = PageAdminTasks.AUTH_TASKS_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#tasks",
+                label = "PageTasks.auth.tasks.label",
+                description = "PageTasks.auth.tasks.description")})
 public class PageTasks extends PageAdminTasks {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageTasks.class);
@@ -151,14 +156,12 @@ public class PageTasks extends PageAdminTasks {
         TaskDtoProvider provider = new TaskDtoProvider(PageTasks.this, options);
 
         provider.setQuery(createTaskQuery());
-        TablePanel<TaskDto> taskTable = new TablePanel<TaskDto>(ID_TASK_TABLE, provider,
-                taskColumns);
+        TablePanel<TaskDto> taskTable = new TablePanel<>(ID_TASK_TABLE, provider, taskColumns);
         taskTable.setOutputMarkupId(true);
         mainForm.add(taskTable);
 
         List<IColumn<NodeDto, String>> nodeColumns = initNodeColumns();
-        TablePanel nodeTable = new TablePanel<NodeDto>(ID_NODE_TABLE, new NodeDtoProvider(PageTasks.this),
-                nodeColumns);
+        TablePanel nodeTable = new TablePanel<>(ID_NODE_TABLE, new NodeDtoProvider(PageTasks.this), nodeColumns);
         nodeTable.setOutputMarkupId(true);
         nodeTable.setShowPaging(false);
         mainForm.add(nodeTable);

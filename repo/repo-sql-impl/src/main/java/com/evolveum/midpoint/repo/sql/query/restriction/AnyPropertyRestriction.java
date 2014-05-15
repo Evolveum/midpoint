@@ -64,7 +64,7 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
         ValueFilter valFilter = (ValueFilter) filter;
         ItemPath fullPath = valFilter.getFullPath();
 
-        List<Definition> defPath = createDefinitionPath(fullPath, context);
+        List<Definition> defPath = createDefinitionPath(fullPath);
         return containsAnyDefinition(defPath)
                 || (fullPath.first().equals(new NameItemPathSegment(ObjectType.F_EXTENSION)))
                 || (fullPath.first().equals(new NameItemPathSegment(ShadowType.F_ATTRIBUTES)));

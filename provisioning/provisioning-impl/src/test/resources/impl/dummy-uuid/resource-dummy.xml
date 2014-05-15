@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2013 Evolveum
+  ~ Copyright (c) 2013-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 <resource oid="ef2bc95b-76e0-59e2-86d6-9999dddddddd"
 		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
@@ -85,7 +86,27 @@
 				<icfs:name>daemon</icfs:name>
 			</protected>
 			<protected>
-				<icfs:name>daviejones</icfs:name>
+				<filter>
+					<q:equal>
+						<q:path>
+							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+							attributes/icfs:name
+						</q:path>
+						<q:value>daviejones</q:value>
+					</q:equal>
+				</filter>
+			</protected>
+			<protected>
+				<filter>
+					<q:substring>
+						<q:path>
+							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+							attributes/icfs:name
+						</q:path>
+						<q:value>X</q:value>
+						<q:anchorStart>true</q:anchorStart>
+					</q:substring>
+				</filter>
 			</protected>
 		</objectType>
 		<objectType>

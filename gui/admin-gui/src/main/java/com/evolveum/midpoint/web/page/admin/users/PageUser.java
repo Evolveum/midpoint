@@ -36,6 +36,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
@@ -73,7 +74,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -90,7 +90,6 @@ import org.apache.wicket.request.resource.AbstractResource;
 import org.apache.wicket.request.resource.ByteArrayResource;
 import org.apache.wicket.request.resource.ContextRelativeResource;
 import org.apache.wicket.request.resource.PackageResourceReference;
-import org.apache.wicket.util.lang.Bytes;
 import org.apache.wicket.util.string.StringValue;
 
 import javax.xml.namespace.QName;
@@ -102,8 +101,12 @@ import java.util.*;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/user", encoder = OnePageParameterEncoder.class, action = {
-        PageAdminUsers.AUTHORIZATION_USERS_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#user"})
+        @AuthorizationAction(actionUri = PageAdminUsers.AUTH_USERS_ALL,
+                label = PageAdminUsers.AUTH_USERS_ALL_LABEL,
+                description = PageAdminUsers.AUTH_USERS_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#user",
+                label = "PageUser.auth.user.label",
+                description = "PageUser.auth.user.description")})
 public class PageUser extends PageAdminUsers {
 
     public static final String PARAM_RETURN_PAGE = "returnPage";
@@ -563,7 +566,11 @@ public class PageUser extends PageAdminUsers {
 
                         @Override
                         public void onShowMorePerformed(AjaxRequestTarget target){
-                            target.add(getFeedbackPanel());
+                            OperationResult fetchResult = dto.getResult();
+                            if (fetchResult != null) {
+                                showResult(fetchResult);
+                                target.add(getPageBase().getFeedbackPanel());
+                            }
                         }
                     };
                 }
@@ -598,10 +605,10 @@ public class PageUser extends PageAdminUsers {
         ObjectWrapper user = userModel.getObject();
         PrismObject<UserType> prismUser = user.getObject();
         List<ObjectReferenceType> references = prismUser.asObjectable().getLinkRef();
-        OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNTS);
+
         Task task = createSimpleTask(OPERATION_LOAD_ACCOUNT);
         for (ObjectReferenceType reference : references) {
-            OperationResult subResult = result.createSubresult(OPERATION_LOAD_ACCOUNT);
+            OperationResult subResult = new OperationResult(OPERATION_LOAD_ACCOUNT);
             try {
                 Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
                         ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
@@ -615,20 +622,16 @@ public class PageUser extends PageAdminUsers {
                 ShadowType accountType = account.asObjectable();
 
                 OperationResultType fetchResult = accountType.getFetchResult();
-                if (fetchResult != null && !OperationResultStatusType.SUCCESS.equals(fetchResult.getStatus())) {
-                    showResult(OperationResult.createOperationResult(fetchResult));
-                }
 
                 ResourceType resource = accountType.getResource();
                 String resourceName = WebMiscUtil.getName(resource);
 
                 ObjectWrapper wrapper = new ObjectWrapper(resourceName, WebMiscUtil.getOrigStringFromPoly(accountType
                         .getName()), account, ContainerStatus.MODIFYING);
+                wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));
                 wrapper.setSelectable(true);
                 wrapper.setMinimalized(true);
-                if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-                    showResultInSession(wrapper.getResult());
-                }
+
                 list.add(new UserAccountDto(wrapper, UserDtoStatus.MODIFY));
 
                 subResult.recomputeStatus();
@@ -639,20 +642,13 @@ public class PageUser extends PageAdminUsers {
                 userModel.reset();
                 accountsModel.reset();
                 assignmentsModel.reset();
-
-//                return list;
             } catch (Exception ex) {
                 subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
                 LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
-                list.add(new UserAccountDto(false, getResourceName(reference.getOid())));
+                list.add(new UserAccountDto(false, getResourceName(reference.getOid()), subResult));
             } finally {
                 subResult.computeStatus();
             }
-        }
-        result.computeStatus();
-
-        if (WebMiscUtil.showResultInPage(result)) {
-            showResult(result);
         }
 
         return list;
@@ -663,17 +659,16 @@ public class PageUser extends PageAdminUsers {
         Task task = createSimpleTask(OPERATION_SEARCH_RESOURCE);
 
         try {
-
             Collection<SelectorOptions<GetOperationOptions>> options =
                     SelectorOptions.createCollection(GetOperationOptions.createRaw());
 
             PrismObject<ShadowType> shadow = getModelService().getObject(ShadowType.class, oid, options, task, result);
-            PrismObject<ResourceType> resource = getModelService().getObject(ResourceType.class, shadow.asObjectable().getResourceRef().getOid(), null, task, result);
+            PrismObject<ResourceType> resource = getModelService().getObject(ResourceType.class,
+                    shadow.asObjectable().getResourceRef().getOid(), null, task, result);
 
             if(resource != null){
                 return WebMiscUtil.getOrigStringFromPoly(resource.asObjectable().getName());
             }
-
         } catch (Exception e){
             result.recordFatalError("Account Resource was not found. " + e.getMessage());
             LoggingUtils.logException(LOGGER, "Account Resource was not found.", e);

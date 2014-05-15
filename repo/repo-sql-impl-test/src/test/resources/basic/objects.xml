@@ -1042,8 +1042,8 @@
         </automaticallyApproved>
     </role>
 
-	<org oid="00000000-8888-6666-0000-100000000001">
-		<name>F0001</name>
+	<org oid="00000000-8888-6666-0000-100000000085">
+		<name>F0085</name>
 		<description>The office of the most respectful Governor.</description>
 		<displayName>Governor Office</displayName>
 		<identifier>0001</identifier>
@@ -1058,10 +1058,10 @@
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:org='http://midpoint.evolveum.com/xml/ns/public/common/org-3'
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-		<name>elaine</name>
-		<parentOrgRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType"/> <!-- No "relation" in the ref means "member" -->
-		<parentOrgRef oid="00000000-8888-6666-0000-100000000001" type="c:OrgType" relation="org:manager"/>
-		<tenantRef oid="00000000-8888-6666-0000-100000000001"/>
+		<name>elaine123</name>
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000085" type="c:OrgType"/> <!-- No "relation" in the ref means "member" -->
+		<parentOrgRef oid="00000000-8888-6666-0000-100000000085" type="c:OrgType" relation="org:manager"/>
+		<tenantRef oid="00000000-8888-6666-0000-100000000085"/>
 		<fullName>Elaine Marley</fullName>
 		<givenName>Elaine</givenName>
 		<familyName>Marley</familyName>

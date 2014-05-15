@@ -352,6 +352,7 @@ public abstract class ShadowCache {
 		try {
 			objectClassDefinition = determineObjectClassDefinition(shadow, resource);
 			applyAttributesDefinition(shadow, resource);
+            shadowManager.setKindIfNecessary(shadow.asObjectable(), objectClassDefinition);
 			accessChecker.checkAdd(resource, shadow, objectClassDefinition, parentResult);
 			ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 			shadow = resouceObjectConverter.addResourceObject(connector, resource, shadow, objectClassDefinition, scripts, parentResult);
@@ -1259,7 +1260,7 @@ public abstract class ShadowCache {
 				return;
 			}
 
-			resouceObjectConverter.setProtectedFlag(resourceType, oldShadow);
+			resouceObjectConverter.setProtectedFlag(resourceType, refinedObjectClassDefinition, oldShadow);
 			change.setOldShadow(oldShadow);
 
 			if (change.getCurrentShadow() != null) {
@@ -1609,6 +1610,7 @@ public abstract class ShadowCache {
 					PrismObject<ShadowType> entitlementRepoShadow = lookupOrCreateShadowInRepository(connector, entitlementShadow, entitlementObjectClassDef, resource, parentResult);
 					ObjectReferenceType shadowRefType = new ObjectReferenceType();
 					shadowRefType.setOid(entitlementRepoShadow.getOid());
+					shadowRefType.setType(ShadowType.COMPLEX_TYPE);
 					shadowAssociationType.setShadowRef(shadowRefType);
 				}
 			}

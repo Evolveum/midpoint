@@ -444,7 +444,7 @@ public class PrismBeanConverter {
 		if (paramType.equals(XNode.class)) {
 			propValue = xsubnode;
 		} else if (paramType.equals(RawType.class)) {
-            propValue = new RawType(xsubnode);
+            propValue = new RawType(xsubnode, prismContext);
         } else {
             // paramType is what we expect e.g. based on parent definition
             // but actual type (given by xsi:type/@typeDef) may be different, e.g. more specific
@@ -496,7 +496,7 @@ public class PrismBeanConverter {
 		}
 		
 		if (RawType.class.isAssignableFrom(classType)) {
-			RawType rawType = new RawType(xprim);
+			RawType rawType = new RawType(xprim, prismContext);
 			return (T) rawType;
 		}
 		

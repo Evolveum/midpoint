@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -40,7 +41,6 @@ import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
@@ -68,8 +68,12 @@ import java.util.List;
  * @author Michal Serbak
  */
 @PageDescriptor(url = "/admin/resource", encoder = OnePageParameterEncoder.class, action = {
-        PageAdminResources.AUTHORIZATION_RESOURCE_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#resource"})
+        @AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL,
+                label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL,
+                description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#resource",
+                label = "PageResource.auth.resource.label",
+                description = "PageResource.auth.resource.description")})
 public class PageResource extends PageAdminResources {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageResource.class);
@@ -170,7 +174,8 @@ public class PageResource extends PageAdminResources {
                     public String getObject() {
                         return OperationResultStatusIcon.parseOperationalResultStatus(model.getObject().getState().getOverall()).getIcon();
                     }
-                }));
+                }
+        ));
         container.add(createImageLabel("confValidation", createTestConnectionStateTooltip("state.confValidation"),
                 new AbstractReadOnlyModel<String>() {
 
@@ -178,7 +183,8 @@ public class PageResource extends PageAdminResources {
                     public String getObject() {
                         return OperationResultStatusIcon.parseOperationalResultStatus(model.getObject().getState().getConfValidation()).getIcon();
                     }
-                }));
+                }
+        ));
         container.add(createImageLabel("conInitialization", createTestConnectionStateTooltip("state.conInitialization"),
                 new AbstractReadOnlyModel<String>() {
 
@@ -186,7 +192,8 @@ public class PageResource extends PageAdminResources {
                     public String getObject() {
                         return OperationResultStatusIcon.parseOperationalResultStatus(model.getObject().getState().getConInitialization()).getIcon();
                     }
-                }));
+                }
+        ));
         container.add(createImageLabel("conConnection", createTestConnectionStateTooltip("state.conConnection"),
                 new AbstractReadOnlyModel<String>() {
 
@@ -194,7 +201,8 @@ public class PageResource extends PageAdminResources {
                     public String getObject() {
                         return OperationResultStatusIcon.parseOperationalResultStatus(model.getObject().getState().getConConnection()).getIcon();
                     }
-                }));
+                }
+        ));
 
         container.add(createImageLabel("conSchema", createTestConnectionStateTooltip("state.conSchema"),
                 new AbstractReadOnlyModel<String>() {
@@ -203,7 +211,8 @@ public class PageResource extends PageAdminResources {
                     public String getObject() {
                         return OperationResultStatusIcon.parseOperationalResultStatus(model.getObject().getState().getConSchema()).getIcon();
                     }
-                }));
+                }
+        ));
     }
 
     private List<String> initCapabilities(ResourceType resource) {

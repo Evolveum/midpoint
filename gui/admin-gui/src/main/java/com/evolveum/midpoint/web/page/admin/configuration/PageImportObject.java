@@ -23,6 +23,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
@@ -59,8 +60,10 @@ import java.io.InputStreamReader;
  * @author mserbak
  */
 @PageDescriptor(url = "/admin/config/import", action = {
-        PageAdminConfiguration.AUTHORIZATION_CONFIGURATION_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#configImport"})
+        @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
+                label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#configImport",
+                label = "PageImportObject.auth.configImport.label", description = "PageImportObject.auth.configImport.description")})
 public class PageImportObject extends PageAdminConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageImportObject.class);

@@ -86,6 +86,19 @@
 
     <xsd:element name="expression" abstract="true" />
 
+    <xsd:complexType name="ScriptingExpressionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                General wrapping element (TEMPORARY).
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="tns:expression"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:element name="scriptingExpression" />
+
     <xsd:complexType name="ExpressionSequenceType">
         <xsd:annotation>
             <xsd:documentation>

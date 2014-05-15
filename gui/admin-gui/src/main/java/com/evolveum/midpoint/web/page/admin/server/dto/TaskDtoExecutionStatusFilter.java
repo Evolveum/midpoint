@@ -20,14 +20,10 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 /**
  * Possible values that can be used to filter tasks by their execution status.
@@ -40,7 +36,7 @@ public enum TaskDtoExecutionStatusFilter {
     ALL,
     RUNNING_OR_RUNNABLE,
     WAITING,
-    SUSPENDED,
+    SUSPENDED_OR_SUSPENDING,
     CLOSED,
     NOT_CLOSED;
 
@@ -49,7 +45,7 @@ public enum TaskDtoExecutionStatusFilter {
             case ALL: return null;
             case RUNNING_OR_RUNNABLE: return createExecutionStatusFilter(clazz, prismContext, TaskExecutionStatusType.RUNNABLE);
             case WAITING: return createExecutionStatusFilter(clazz, prismContext, TaskExecutionStatusType.WAITING);
-            case SUSPENDED: return createExecutionStatusFilter(clazz, prismContext, TaskExecutionStatusType.SUSPENDED);
+            case SUSPENDED_OR_SUSPENDING: return createExecutionStatusFilter(clazz, prismContext, TaskExecutionStatusType.SUSPENDED);
             case CLOSED: return createExecutionStatusFilter(clazz, prismContext, TaskExecutionStatusType.CLOSED);
             case NOT_CLOSED: return NotFilter.createNot(createExecutionStatusFilter(clazz, prismContext, TaskExecutionStatusType.CLOSED));
             default: throw new SystemException("Unknown value for TaskDtoExecutionStatusFilter: " + this);

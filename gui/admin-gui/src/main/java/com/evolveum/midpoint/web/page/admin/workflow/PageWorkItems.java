@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -54,8 +55,12 @@ import java.util.List;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/workItems", action = {
-        PageAdminWorkItems.AUTHORIZATION_WORK_ITEMS_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#workItems"})
+        @AuthorizationAction(actionUri = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL,
+                label = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL_LABEL,
+                description = PageAdminWorkItems.AUTH_WORK_ITEMS_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#workItems",
+                label = "PageWorkItems.auth.workItems.label",
+                description = "PageWorkItems.auth.workItems.description")})
 public class PageWorkItems extends PageAdminWorkItems {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageWorkItems.class);

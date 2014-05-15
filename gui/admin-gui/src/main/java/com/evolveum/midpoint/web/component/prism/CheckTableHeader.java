@@ -16,18 +16,29 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.web.component.BootstrapLabel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.*;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +54,9 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_MENU = "menu";
     private static final String ID_LINK = "link";
+    private static final String ID_STATUS = "status";
+    private static final String ID_SHOW_MORE = "showMore";
+    private static final String ID_TRIGGER = "trigger";
 
     public CheckTableHeader(String id, IModel<ObjectWrapper> model) {
         super(id, model);
@@ -63,6 +77,38 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
 
         Label icon = new Label(ID_ICON);
         add(icon);
+
+        Label trigger = new Label(ID_TRIGGER);
+        trigger.add(AttributeModifier.replace("title", new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                return createTriggerTooltip();
+            }
+        }));
+        trigger.add(new TooltipBehavior());
+        trigger.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return hasTriggers();
+            }
+        });
+        add(trigger);
+
+        BootstrapLabel status = new BootstrapLabel(ID_STATUS, createStringResource("CheckTableHeader.label.error"),
+                new Model(BootstrapLabel.State.DANGER));
+        status.add(createFetchErrorVisibleBehaviour());
+        add(status);
+        AjaxLink showMore = new AjaxLink(ID_SHOW_MORE) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                onShowMorePerformed(target);
+            }
+        };
+        showMore.add(createFetchErrorVisibleBehaviour());
+        add(showMore);
 
         AjaxLink link = new AjaxLink(ID_LINK) {
 
@@ -104,6 +150,49 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
         add(menu);
     }
 
+    private String createTriggerTooltip() {
+        ObjectWrapper wrapper = getModelObject();
+        PrismObject obj = wrapper.getObject();
+        PrismContainer container = obj.findContainer(ObjectType.F_TRIGGER);
+        if (container == null || container.isEmpty()) {
+            return null;
+        }
+
+        List<String> triggers = new ArrayList<>();
+        for (PrismContainerValue val : (List<PrismContainerValue>) container.getValues()) {
+            XMLGregorianCalendar time = (XMLGregorianCalendar) val.getPropertyRealValue(TriggerType.F_TIMESTAMP,
+                    XMLGregorianCalendar.class);
+
+            if (time == null) {
+                triggers.add(getString("CheckTableHeader.triggerUnknownTime"));
+            } else {
+                triggers.add(getString("CheckTableHeader.triggerPlanned", WebMiscUtil.formatDate(time)));
+            }
+        }
+
+        return StringUtils.join(triggers, '\n');
+    }
+
+    private boolean hasTriggers() {
+        ObjectWrapper wrapper = getModelObject();
+        PrismObject obj = wrapper.getObject();
+        PrismContainer container = obj.findContainer(ObjectType.F_TRIGGER);
+        return container != null && !container.isEmpty();
+    }
+
+    private VisibleEnableBehaviour createFetchErrorVisibleBehaviour() {
+        return new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                OperationResult fetchResult = getModelObject().getFetchResult();
+                OperationResult result = getModelObject().getResult();
+                return !WebMiscUtil.isSuccessOrHandledError(fetchResult)
+                        || !WebMiscUtil.isSuccessOrHandledError(result);
+            }
+        };
+    }
+
     private String getDisplayName() {
         ObjectWrapper wrapper = getModel().getObject();
         String key = wrapper.getDisplayName();
@@ -133,5 +222,19 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
         wrapper.setMinimalized(!wrapper.isMinimalized());
 
         target.add(findParent(PrismObjectPanel.class));
+    }
+
+    protected void onShowMorePerformed(AjaxRequestTarget target){
+        showResult(getModelObject().getFetchResult());
+        showResult(getModelObject().getResult());
+
+        target.add(getPageBase().getFeedbackPanel());
+    }
+
+    private void showResult(OperationResult result) {
+        PageBase page = getPageBase();
+        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+            page.showResult(result);
+        }
     }
 }

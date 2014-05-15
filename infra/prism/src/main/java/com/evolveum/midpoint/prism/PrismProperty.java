@@ -148,8 +148,15 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
 		return values.iterator().next();
 	}
 
-	
-	public T getRealValue() {
+    public PrismPropertyValue<T> getAnyValue() {
+        Collection<PrismPropertyValue<T>> values = getValues();
+        if (values.isEmpty()) {
+            return null;
+        }
+        return values.iterator().next();
+    }
+
+    public T getRealValue() {
 		if (getValue() == null) {
             return null;
         }

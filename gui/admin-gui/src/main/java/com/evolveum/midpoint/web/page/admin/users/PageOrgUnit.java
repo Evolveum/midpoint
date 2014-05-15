@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -32,6 +31,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
@@ -64,8 +64,12 @@ import java.util.List;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/org/unit", encoder = OnePageParameterEncoder.class, action = {
-        PageAdminUsers.AUTHORIZATION_ORG_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#orgUnit"})
+        @AuthorizationAction(actionUri = PageAdminUsers.AUTH_ORG_ALL,
+                label = PageAdminUsers.AUTH_ORG_ALL_LABEL,
+                description = PageAdminUsers.AUTH_ORG_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#orgUnit",
+                label = "PageOrgUnit.auth.orgUnit.label",
+                description = "PageOrgUnit.auth.orgUnit.description")})
 public class PageOrgUnit extends PageAdminUsers {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageOrgUnit.class);

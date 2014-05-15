@@ -54,17 +54,6 @@ public class WebModelUtils {
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
     private static final String OPERATION_SAVE_OBJECT = DOT_CLASS + "saveObject";
 
-    public static <T extends ObjectType> PrismObject<T> loadObjectAsync(Class<T> type, String oid, OperationResult result,
-                                                                        PageBase page, PrismObject<UserType> principal) {
-        return loadObject(type, oid, null, result, page, principal);
-    }
-
-    public static <T extends ObjectType> PrismObject<T> loadObjectAsync(Class<T> type, String oid,
-                                                                        Collection<SelectorOptions<GetOperationOptions>> options,
-                                                                        OperationResult result, PageBase page, PrismObject<UserType> principal) {
-        return loadObject(type, oid, options, result, page, principal);
-    }
-
     public static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid, OperationResult result,
                                                                    PageBase page) {
         return loadObject(type, oid, null, result, page);

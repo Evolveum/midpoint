@@ -134,11 +134,13 @@ public class StaticExpressionUtil {
 			return null;
 		}
 		XNodeProcessor xnodeProcessor = item.getPrismContext().getXnodeProcessor();
-		List<JAXBElement<RawType>> elements = new ArrayList<>(1);
-		XNode xnode = xnodeProcessor.serializeItem(item);
-		RawType rawType = new RawType(xnode);
-		JAXBElement<RawType> jaxbElement = new JAXBElement<RawType>(SchemaConstants.C_VALUE, RawType.class, rawType);
-		elements.add(jaxbElement);
+		List<JAXBElement<RawType>> elements = new ArrayList<>(item.size());
+        for (PrismValue value : item.getValues()) {
+            XNode xnode = xnodeProcessor.serializeItemValue(value);
+            RawType rawType = new RawType(xnode, item.getPrismContext());
+            JAXBElement<RawType> jaxbElement = new JAXBElement<>(SchemaConstants.C_VALUE, RawType.class, rawType);
+            elements.add(jaxbElement);
+        }
 		return elements;
 	}
 

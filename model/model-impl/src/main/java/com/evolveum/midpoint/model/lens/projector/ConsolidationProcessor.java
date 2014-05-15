@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -82,6 +83,7 @@ import javax.xml.namespace.QName;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -274,7 +276,7 @@ public class ConsolidationProcessor {
         ValueMatcher<T> valueMatcher = ValueMatcher.createMatcher(attributeDefinition, matchingRuleRegistry); 
        
         return (PropertyDelta<T>) consolidateItem(rOcDef, discr, existingDelta, projCtx, addUnchangedValues, completeShadow, 
-        		attributeDefinition.isExlusiveStrong(), itemPath, attributeDefinition, triple, valueMatcher, "attribute "+itemName);
+        		attributeDefinition.isExlusiveStrong(), itemPath, attributeDefinition, triple, valueMatcher, null, "attribute "+itemName);
     }
 
     private <V extends PrismValue> ContainerDelta<ShadowAssociationType> consolidateAssociation(RefinedObjectClassDefinition rOcDef,
@@ -286,9 +288,34 @@ public class ConsolidationProcessor {
     	PrismContainerDefinition<ShadowAssociationType> asspcContainerDef = getAssociationDefinition();
     	RefinedAssociationDefinition associationDef = rOcDef.findAssociation(associationName);
        
+    	Comparator<PrismContainerValue<ShadowAssociationType>> comparator = new Comparator<PrismContainerValue<ShadowAssociationType>>() {
+    		
+    		@Override
+    		public int compare(PrismContainerValue<ShadowAssociationType> o1,
+    				PrismContainerValue<ShadowAssociationType> o2) {
+    			
+    			if (o1 == null && o2 == null){
+    				return 0;
+    			} 
+    			
+    			if (o1 == null || o2 == null){
+    				return 1;
+    			}
+    			
+    			PrismReference ref1 = o1.findReference(ShadowAssociationType.F_SHADOW_REF);
+    			PrismReference ref2 = o2.findReference(ShadowAssociationType.F_SHADOW_REF);
+    			
+    			if (ref1.equals(ref2)){
+    				return 0;
+    			}
+    			
+    			return 1;
+    		}
+		};
+    	
 		ContainerDelta<ShadowAssociationType> delta = (ContainerDelta<ShadowAssociationType>) consolidateItem(rOcDef, discr, existingDelta,
     			projCtx, addUnchangedValues, completeShadow, associationDef.isExclusiveStrong(), itemPath, 
-        		asspcContainerDef, triple, null, "association "+associationName);
+        		asspcContainerDef, triple, null, comparator, "association "+associationName);
     	
     	if (delta != null) {
 	    	setAssociationName(delta.getValuesToAdd(), associationName);
@@ -320,7 +347,7 @@ public class ConsolidationProcessor {
 			ResourceShadowDiscriminator discr, ObjectDelta<ShadowType> existingDelta, LensProjectionContext projCtx,
 			boolean addUnchangedValues, boolean completeShadow, boolean isExclusiveStrong, 
 			ItemPath itemPath, ItemDefinition itemDefinition, 
-			DeltaSetTriple<ItemValueWithOrigin<V>> triple, ValueMatcher<?> valueMatcher, String itemDesc) 
+			DeltaSetTriple<ItemValueWithOrigin<V>> triple, ValueMatcher<?> valueMatcher, Comparator<V> comparator, String itemDesc) 
 					throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
 
         boolean forceAddUnchangedValues = false;
@@ -340,7 +367,7 @@ public class ConsolidationProcessor {
         // Use this common utility method to do the computation. It does most of the work.
 		ItemDelta<V> itemDelta = LensUtil.consolidateTripleToDelta(
 				itemPath, (DeltaSetTriple)triple, itemDefinition, existingItemDelta, projCtx.getObjectNew(), 
-				valueMatcher, addUnchangedValues || forceAddUnchangedValues, completeShadow, isExclusiveStrong,
+				valueMatcher, comparator, addUnchangedValues || forceAddUnchangedValues, completeShadow, isExclusiveStrong,
 				discr.toHumanReadableString(), completeShadow);
 		
 		if (LOGGER.isTraceEnabled()) {

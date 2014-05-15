@@ -26,4 +26,6 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
 public class PageAdminTasks extends PageAdmin {
 
     public static final String AUTHORIZATION_TASKS_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#tasksAll";
+    public static final String AUTH_TASKS_ALL_LABEL = "PageAdminTasks.auth.tasksAll.label";
+    public static final String AUTH_TASKS_ALL_DESCRIPTION = "PageAdminTasks.auth.tasksAll.description";
 }

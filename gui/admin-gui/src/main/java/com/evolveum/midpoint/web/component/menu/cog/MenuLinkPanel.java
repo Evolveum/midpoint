@@ -2,6 +2,7 @@ package com.evolveum.midpoint.web.component.menu.cog;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.markup.html.basic.Label;
@@ -40,6 +41,12 @@ public class MenuLinkPanel extends Panel {
                 protected void onError(AjaxRequestTarget target, Form<?> form) {
                     MenuLinkPanel.this.onError(target, form, dto.getAction());
                 }
+
+                @Override
+                protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                    super.updateAjaxAttributes(attributes);
+                    attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.BUBBLE);
+                }
             };
         } else {
             a = new AjaxLink(ID_MENU_ITEM_LINK) {
@@ -47,6 +54,12 @@ public class MenuLinkPanel extends Panel {
                 @Override
                 public void onClick(AjaxRequestTarget target) {
                     MenuLinkPanel.this.onClick(target, dto.getAction());
+                }
+
+                @Override
+                protected void updateAjaxAttributes(AjaxRequestAttributes attributes) {
+                    super.updateAjaxAttributes(attributes);
+                    attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.BUBBLE);
                 }
             };
         }

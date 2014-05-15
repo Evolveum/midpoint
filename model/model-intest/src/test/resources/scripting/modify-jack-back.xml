@@ -17,29 +17,28 @@
 
 <s:pipeline xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <s:search>
         <s:type>c:UserType</s:type>
-        <equal xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
-            <path>c:name</path>
-            <value>jack</value>
-        </equal>
+        <s:searchFilter>
+            <equal xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+                <path>c:name</path>
+                <value>jack</value>
+            </equal>
+        </s:searchFilter>
     </s:search>
     <s:action>
         <s:type>modify</s:type>
         <s:parameter>
             <s:name>delta</s:name>
-            <s:constant>
-                <s:value>
-                    <t:objectDelta>         <!-- object type and oid will be filled-in from the input; change type is 'modify' by default -->
-                        <t:modification>
-                            <t:modificationType>replace</t:modificationType>
-                            <t:value>
-                                <c:locality>Caribbean</c:locality>
-                            </t:value>
-                        </t:modification>
-                    </t:objectDelta>
-                </s:value>
+            <s:constant xsi:type="t:ObjectDeltaType">
+                <!-- object type and oid will be filled-in from the input; change type is 'modify' by default -->
+                <t:itemDelta>
+                    <t:modificationType>replace</t:modificationType>
+                    <t:path>c:locality</t:path>
+                    <t:value>Caribbean</t:value>
+                </t:itemDelta>
             </s:constant>
         </s:parameter>
     </s:action>

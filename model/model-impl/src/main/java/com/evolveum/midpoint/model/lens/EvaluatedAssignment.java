@@ -44,6 +44,7 @@ public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
 	private Collection<PrismReferenceValue> orgRefVals;
 	private Collection<Authorization> authorizations;
 	private Collection<Mapping<? extends PrismPropertyValue<?>>> focusMappings;
+	private PrismObject<?> target;
 	private boolean isValid;
 
 	public EvaluatedAssignment() {
@@ -83,6 +84,14 @@ public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
 
 	public void addFocusMapping(Mapping<? extends PrismPropertyValue<?>> focusMapping) {
 		this.focusMappings.add(focusMapping);
+	}
+
+	public PrismObject<?> getTarget() {
+		return target;
+	}
+
+	public void setTarget(PrismObject<?> target) {
+		this.target = target;
 	}
 
 	public boolean isValid() {
@@ -146,6 +155,10 @@ public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
 				DebugUtil.indentDebugDump(sb, indent+2);
 				sb.append(mapping.toString());
 			}
+		}
+		if (target != null) {
+			sb.append("\n");
+			DebugUtil.debugDumpWithLabel(sb, "Target", target.toString(), indent+1);
 		}
 		return sb.toString();
 	}

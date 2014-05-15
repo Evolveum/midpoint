@@ -28,6 +28,7 @@ import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportOutputSearchDto;
@@ -46,7 +48,6 @@ import com.evolveum.midpoint.web.session.CreatedReportsStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
@@ -70,15 +71,18 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 /**
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/reports/created", action = {
-        PageAdminReports.AUTHORIZATION_REPORTS_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#createdReports"})
+        @AuthorizationAction(actionUri = PageAdminReports.AUTH_REPORTS_ALL,
+                label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL,
+                description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#createdReports",
+                label = "PageCreatedReports.auth.createdReports.label",
+                description = "PageCreatedReports.auth.createdReports.description")})
 public class PageCreatedReports extends PageAdminReports {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageCreatedReports.class);

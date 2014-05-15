@@ -35,38 +35,30 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
-import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.web.util.TooltipBehavior;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.resource.PackageResourceReference;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -77,8 +69,12 @@ import java.util.List;
  * @author mserbak
  */
 @PageDescriptor(url = "/admin/tasks/addTask", action = {
-        PageAdminTasks.AUTHORIZATION_TASKS_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#taskAdd"})
+        @AuthorizationAction(actionUri = PageAdminTasks.AUTHORIZATION_TASKS_ALL,
+                label = PageAdminTasks.AUTH_TASKS_ALL_LABEL,
+                description = PageAdminTasks.AUTH_TASKS_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#taskAdd",
+                label = "PageTaskAdd.auth.taskAdd.label",
+                description = "PageTaskAdd.auth.taskAdd.description")})
 public class PageTaskAdd extends PageAdminTasks {
 
     private static final long serialVersionUID = 2317887071933841581L;
@@ -251,7 +247,7 @@ public class PageTaskAdd extends PageAdminTasks {
         boundContainer.add(bound);
 
         Label boundHelp = new Label("boundHelp");
-        boundHelp.add(new TooltipBehavior());
+        boundHelp.add(new InfoTooltipBehavior());
         boundContainer.add(boundHelp);
 
         TextField<Integer> interval = new TextField<Integer>("interval",
@@ -268,7 +264,7 @@ public class PageTaskAdd extends PageAdminTasks {
         cronContainer.add(cron);
 
         Label cronHelp = new Label("cronHelp");
-        cronHelp.add(new TooltipBehavior());
+        cronHelp.add(new InfoTooltipBehavior());
         cronContainer.add(cronHelp);
 
         final DateTimeField notStartBefore = new DateTimeField("notStartBeforeField",

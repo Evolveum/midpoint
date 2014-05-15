@@ -575,11 +575,9 @@ public class ShadowManager {
 
 		ShadowType repoShadowType = repoShadow.asObjectable();
 
-		if (repoShadowType.getKind() == null) {
-			repoShadowType.setKind(objectClassDefinition.getKind());
-		}
+        setKindIfNecessary(repoShadowType, objectClassDefinition);
 
-		// We don't want to store credentials in the repo
+        // We don't want to store credentials in the repo
 		repoShadowType.setCredentials(null);
 
 		// additional check if the shadow doesn't contain resource, if yes,
@@ -607,8 +605,14 @@ public class ShadowManager {
 
 		return repoShadow;
 	}
-	
-	private void normalizeAttributes(PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
+
+    public void setKindIfNecessary(ShadowType repoShadowType, RefinedObjectClassDefinition objectClassDefinition) {
+        if (repoShadowType.getKind() == null && objectClassDefinition != null) {
+            repoShadowType.setKind(objectClassDefinition.getKind());
+        }
+    }
+
+    private void normalizeAttributes(PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
 		for (ResourceAttribute<?> attribute: ShadowUtil.getAttributes(shadow)) {
 			RefinedAttributeDefinition rAttrDef = objectClassDefinition.findAttributeDefinition(attribute.getElementName());
 			normalizeAttribute(attribute, rAttrDef);			

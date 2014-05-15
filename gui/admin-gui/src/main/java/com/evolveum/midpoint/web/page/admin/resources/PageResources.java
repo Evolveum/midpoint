@@ -37,6 +37,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
@@ -83,8 +84,12 @@ import java.util.List;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/resources", action = {
-        PageAdminResources.AUTHORIZATION_RESOURCE_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#resources"})
+        @AuthorizationAction(actionUri = PageAdminResources.AUTH_RESOURCE_ALL,
+                label = PageAdminResources.AUTH_RESOURCE_ALL_LABEL,
+                description = PageAdminResources.AUTH_RESOURCE_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#resources",
+                label = "PageResources.auth.resources.label",
+                description = "PageResources.auth.resources.description")})
 public class PageResources extends PageAdminResources {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageResources.class);

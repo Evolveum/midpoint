@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import org.springframework.security.core.Authentication;
 
 /**
  * @author Radovan Semancik
@@ -36,6 +37,8 @@ public interface SecurityEnforcer extends AccessDecisionManager {
 	UserProfileService getUserProfileService();
 
 	void setUserProfileService(UserProfileService userProfileService);
+
+    void setupPreAuthenticatedSecurityContext(Authentication authentication);
 
 	void setupPreAuthenticatedSecurityContext(PrismObject<UserType> user);
 	

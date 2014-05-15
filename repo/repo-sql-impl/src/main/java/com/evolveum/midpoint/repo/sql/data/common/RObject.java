@@ -38,7 +38,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 
-import javassist.ClassMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.*;
@@ -88,6 +87,8 @@ import java.util.Set;
 @ForeignKey(name = "fk_object")
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class RObject<T extends ObjectType> implements Metadata<RObjectReference>, Serializable {
+
+    public static final String F_OBJECT_TYPE_CLASS = "objectTypeClass";
 
     private String oid;
     private int version;
@@ -312,6 +313,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return polysCount;
     }
 
+    @Index(name = "iObjectTypeClass")
     @Enumerated
     public RObjectType getObjectTypeClass() {
         return objectTypeClass;

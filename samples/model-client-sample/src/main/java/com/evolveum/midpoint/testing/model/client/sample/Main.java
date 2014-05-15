@@ -15,6 +15,54 @@
  */
 package com.evolveum.midpoint.testing.model.client.sample;
 
+import com.evolveum.midpoint.model.client.ModelClientUtil;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.GetOperationOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectSelectorType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.RetrieveOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SelectorQualifiedGetOptionType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SelectorQualifiedGetOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelService;
+import com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType;
+import com.evolveum.prism.xml.ns._public.query_3.PagingType;
+import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import org.apache.commons.io.IOUtils;
+import org.apache.cxf.frontend.ClientProxy;
+import org.apache.cxf.interceptor.LoggingOutInterceptor;
+import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
+import org.apache.ws.security.WSConstants;
+import org.apache.ws.security.handler.WSHandlerConstants;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.ws.BindingProvider;
+import javax.xml.ws.Holder;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -25,62 +73,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.ws.Holder;
-import javax.xml.ws.BindingProvider;
-
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SelectorQualifiedGetOptionType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SelectorQualifiedGetOptionsType;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
-import com.ibm.wsdl.extensions.schema.SchemaConstants;
-import org.apache.commons.io.IOUtils;
-import org.apache.cxf.frontend.ClientProxy;
-
-import com.evolveum.midpoint.model.client.ModelClientUtil;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 //import com.evolveum.midpoint.util.JAXBUtil;
 //import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelService;
-import com.evolveum.prism.xml.ns._public.query_3.PagingType;
-import com.evolveum.prism.xml.ns._public.query_3.QueryType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
-import org.apache.ws.security.WSConstants;
-import org.apache.ws.security.handler.WSHandlerConstants;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 
 /**
  * @author semancik
@@ -117,11 +111,23 @@ public class Main {
 			System.out.println("Got Sailor role");
 			System.out.println(sailorRole);
 	
-			Collection<ResourceType> resouces = listResources(modelPort);
+			Collection<ResourceType> resources = listResources(modelPort);
 			System.out.println("Resources");
-			System.out.println(resouces);
-			
-			String userGuybrushoid = createUserGuybrush(modelPort, sailorRole);
+			dump(resources);
+
+            Collection<UserType> users = listUsers(modelPort);
+            System.out.println("Users");
+            dump(users);
+
+            Collection<TaskType> tasks = listTasks(modelPort);
+            System.out.println("Tasks");
+            dump(tasks);
+            System.out.println("Next scheduled times: ");
+            for (TaskType taskType : tasks) {
+                System.out.println(" - " + getOrig(taskType.getName()) + ": " + taskType.getNextRunStartTimestamp());
+            }
+
+            String userGuybrushoid = createUserGuybrush(modelPort, sailorRole);
 			System.out.println("Created user guybrush, OID: "+userGuybrushoid);
 			
 			String userLeChuckOid = createUserFromSystemResource(modelPort, "user-lechuck.xml");
@@ -147,7 +153,7 @@ public class Main {
 			// ... because deleting the user will delete also all the traces (except logs and audit of course).
 			deleteUser(modelPort, userGuybrushoid);
             deleteUser(modelPort, userLeChuckOid);
-			System.out.println("Deleted user");
+			System.out.println("Deleted user(s)");
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -155,7 +161,38 @@ public class Main {
 		}
 	}
 
-	private static SystemConfigurationType getConfiguration(ModelPortType modelPort) throws FaultMessage {
+    // TODO move to ModelClientUtil
+    private static String getOrig(PolyStringType polyStringType) {
+        if (polyStringType == null) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (Object o : polyStringType.getContent()) {
+            if (o instanceof String) {
+                sb.append(o);
+            } else if (o instanceof Element) {
+                Element e = (Element) o;
+                if ("orig".equals(e.getLocalName())) {
+                    return e.getTextContent();
+                }
+            } else if (o instanceof JAXBElement) {
+                JAXBElement je = (JAXBElement) o;
+                if ("orig".equals(je.getName().getLocalPart())) {
+                    return (String) je.getValue();
+                }
+            }
+        }
+        return sb.toString();
+    }
+
+    private static void dump(Collection<? extends ObjectType> objects) {
+        System.out.println("Objects returned: " + objects.size());
+        for (ObjectType objectType : objects) {
+            System.out.println(" - " + getOrig(objectType.getName()) + ": " + objectType);
+        }
+    }
+
+    private static SystemConfigurationType getConfiguration(ModelPortType modelPort) throws FaultMessage {
 
 		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
@@ -178,7 +215,53 @@ public class Main {
 		return (Collection) objectList.getObject();
 	}
 
-	private static String createUserGuybrush(ModelPortType modelPort, RoleType role) throws FaultMessage {
+    private static Collection<UserType> listUsers(ModelPortType modelPort) throws SAXException, IOException, FaultMessage {
+        SelectorQualifiedGetOptionsType options = new SelectorQualifiedGetOptionsType();
+        Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
+        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+
+        // let's say we want to get first 3 users, sorted alphabetically by user name
+        QueryType queryType = new QueryType();          // holds search query + paging options
+        PagingType pagingType = new PagingType();
+        pagingType.setMaxSize(3);
+        pagingType.setOrderBy(ModelClientUtil.createItemPathType("name"));
+        pagingType.setOrderDirection(OrderDirectionType.ASCENDING);
+        queryType.setPaging(pagingType);
+
+        modelPort.searchObjects(ModelClientUtil.getTypeQName(UserType.class), queryType, options, objectListHolder, resultHolder);
+
+        ObjectListType objectList = objectListHolder.value;
+        return (Collection) objectList.getObject();
+    }
+
+    private static Collection<TaskType> listTasks(ModelPortType modelPort) throws SAXException, IOException, FaultMessage {
+        SelectorQualifiedGetOptionsType operationOptions = new SelectorQualifiedGetOptionsType();
+
+        // Let's say we want to retrieve tasks' next scheduled time (because this may be a costly operation if
+        // JDBC based quartz scheduler is used, the fetching of this attribute has to be explicitly requested)
+        SelectorQualifiedGetOptionType getNextScheduledTimeOption = new SelectorQualifiedGetOptionType();
+
+        // prepare a selector (described by path) + options (saying to retrieve that attribute)
+        ObjectSelectorType selector = new ObjectSelectorType();
+        selector.setPath(ModelClientUtil.createItemPathType("nextRunStartTimestamp"));
+        getNextScheduledTimeOption.setSelector(selector);
+        GetOperationOptionsType selectorOptions = new GetOperationOptionsType();
+        selectorOptions.setRetrieve(RetrieveOptionType.INCLUDE);
+        getNextScheduledTimeOption.setOptions(selectorOptions);
+
+        // add newly created option to the list of operation options
+        operationOptions.getOption().add(getNextScheduledTimeOption);
+
+        Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
+        Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+
+        modelPort.searchObjects(ModelClientUtil.getTypeQName(TaskType.class), null, operationOptions, objectListHolder, resultHolder);
+
+        ObjectListType objectList = objectListHolder.value;
+        return (Collection) objectList.getObject();
+    }
+
+    private static String createUserGuybrush(ModelPortType modelPort, RoleType role) throws FaultMessage {
 		Document doc = ModelClientUtil.getDocumnent();
 		
 		UserType user = new UserType();
@@ -250,28 +333,22 @@ public class Main {
 	}
 
 	private static String createUser(ModelPortType modelPort, UserType userType) throws FaultMessage {
-        ObjectDeltaType.ObjectToAdd objectToAdd = new ObjectDeltaType.ObjectToAdd();
-        objectToAdd.setAny(userType);
-
         ObjectDeltaType deltaType = new ObjectDeltaType();
         deltaType.setObjectType(ModelClientUtil.getTypeQName(UserType.class));
         deltaType.setChangeType(ChangeTypeType.ADD);
-        deltaType.setObjectToAdd(objectToAdd);
+        deltaType.setObjectToAdd(userType);
 
         ObjectDeltaListType deltaListType = new ObjectDeltaListType();
         deltaListType.getDelta().add(deltaType);
-		modelPort.executeChanges(deltaListType, null);
-		
-		throw new UnsupportedOperationException("Here we should return OID but first we have to change executeChanges method interface");
+		ObjectDeltaOperationListType operationListType = modelPort.executeChanges(deltaListType, null);
+		return ModelClientUtil.getOidFromDeltaOperationList(operationListType, deltaType);
 	}
 	
 	private static void changeUserPassword(ModelPortType modelPort, String oid, String newPassword) throws FaultMessage {
 		ItemDeltaType passwordDelta = new ItemDeltaType();
 		passwordDelta.setModificationType(ModificationTypeType.REPLACE);
-		passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password"));
-        RawType newValue = new RawType();
-        newValue.getContent().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_VALUE, ModelClientUtil.createProtectedString(newPassword)));
-        passwordDelta.getValue().add(newValue);
+		passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password/value"));
+        passwordDelta.getValue().add(ModelClientUtil.createProtectedString(newPassword));
 
         ObjectDeltaType deltaType = new ObjectDeltaType();
         deltaType.setObjectType(ModelClientUtil.getTypeQName(UserType.class));
@@ -289,17 +366,17 @@ public class Main {
 
         ObjectDeltaType userDelta = new ObjectDeltaType();
         userDelta.setOid(oid);
+        userDelta.setObjectType(ModelClientUtil.getTypeQName(UserType.class));
+        userDelta.setChangeType(ChangeTypeType.MODIFY);
 
         ItemDeltaType itemDelta = new ItemDeltaType();
         itemDelta.setModificationType(ModificationTypeType.REPLACE);
-        RawType itemValue = new RawType();
-        itemValue.getContent().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_GIVEN_NAME, ModelClientUtil.createPolyStringType(newValue, doc)));
-        itemDelta.getValue().add(itemValue);
+        itemDelta.setPath(ModelClientUtil.createItemPathType("givenName"));
+        itemDelta.getValue().add(ModelClientUtil.createPolyStringType(newValue, doc));
         userDelta.getItemDelta().add(itemDelta);
         ObjectDeltaListType deltaList = new ObjectDeltaListType();
         deltaList.getDelta().add(userDelta);
         modelPort.executeChanges(deltaList, null);
-//        modelPort.modifyObject(ModelClientUtil.getTypeUri(UserType.class), userDelta);
     }
 
 	private static void assignRoles(ModelPortType modelPort, String userOid, String... roleOids) throws FaultMessage {
@@ -317,11 +394,10 @@ public class Main {
 		} else {
 			assignmentDelta.setModificationType(ModificationTypeType.DELETE);
 		}
-		RawType assignmentValue = new RawType();
+        assignmentDelta.setPath(ModelClientUtil.createItemPathType("assignment"));
 		for (String roleOid: roleOids) {
-			assignmentValue.getContent().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_ASSIGNMENT, createRoleAssignment(roleOid)));
+			assignmentDelta.getValue().add(createRoleAssignment(roleOid));
 		}
-		assignmentDelta.getValue().add(assignmentValue);
 
         ObjectDeltaType deltaType = new ObjectDeltaType();
         deltaType.setObjectType(ModelClientUtil.getTypeQName(UserType.class));
@@ -347,7 +423,7 @@ public class Main {
 	private static UserType searchUserByName(ModelPortType modelPort, String username) throws SAXException, IOException, FaultMessage {
 		// WARNING: in a real case make sure that the username is properly escaped before putting it in XML
 		SearchFilterType filter = ModelClientUtil.parseSearchFilterType(
-				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-2' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' >" +
+				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-3' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' >" +
 				  "<path>c:name</path>" +
 				  "<value>" + username + "</value>" +
 				"</equal>"
@@ -372,9 +448,9 @@ public class Main {
 	}
 	
 	private static RoleType searchRoleByName(ModelPortType modelPort, String roleName) throws SAXException, IOException, FaultMessage {
-		// WARNING: in a real case make sure that the username is properly escaped before putting it in XML
+		// WARNING: in a real case make sure that the role name is properly escaped before putting it in XML
 		SearchFilterType filter = ModelClientUtil.parseSearchFilterType(
-				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-2' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' >" +
+				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-3' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' >" +
 				  "<path>c:name</path>" +
 				  "<value>" + roleName + "</value>" +
 				"</equal>"
@@ -400,7 +476,7 @@ public class Main {
 
 	private static Collection<RoleType> listRequestableRoles(ModelPortType modelPort) throws SAXException, IOException, FaultMessage {
 		SearchFilterType filter = ModelClientUtil.parseSearchFilterType(
-				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-2' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' >" +
+				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-3' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3' >" +
 				  "<path>c:requestable</path>" +
 				  "<value>true</value>" +
 				"</equal>"
@@ -417,15 +493,18 @@ public class Main {
 		return (Collection) objectList.getObject();
 	}
 	
-	private static void deleteUser(ModelPortType modelPort, String userGuybrushoid) throws FaultMessage {
+	private static void deleteUser(ModelPortType modelPort, String oid) throws FaultMessage {
         ObjectDeltaType deltaType = new ObjectDeltaType();
         deltaType.setObjectType(ModelClientUtil.getTypeQName(UserType.class));
         deltaType.setChangeType(ChangeTypeType.DELETE);
-        deltaType.setOid(userGuybrushoid);
+        deltaType.setOid(oid);
 
         ObjectDeltaListType deltaListType = new ObjectDeltaListType();
         deltaListType.getDelta().add(deltaType);
-        modelPort.executeChanges(deltaListType, null);
+
+        ModelExecuteOptionsType executeOptionsType = new ModelExecuteOptionsType();
+        executeOptionsType.setRaw(true);
+        modelPort.executeChanges(deltaListType, executeOptionsType);
 	}
 	
 	public static ModelPortType createModelPort(String[] args) {
@@ -455,6 +534,8 @@ public class Main {
 		
 		WSS4JOutInterceptor wssOut = new WSS4JOutInterceptor(outProps);
 		cxfEndpoint.getOutInterceptors().add(wssOut);
+        // enable the following to get client-side logging of outgoing requests
+        //cxfEndpoint.getOutInterceptors().add(new LoggingOutInterceptor());
 
 		return modelPort;
 	}

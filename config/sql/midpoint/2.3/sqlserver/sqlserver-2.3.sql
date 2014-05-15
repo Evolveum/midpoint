@@ -332,6 +332,7 @@ CREATE TABLE m_org (
   costCenter       NVARCHAR(255) COLLATE database_default,
   displayName_norm NVARCHAR(255) COLLATE database_default,
   displayName_orig NVARCHAR(255) COLLATE database_default,
+  displayOrder     INT,
   identifier       NVARCHAR(255) COLLATE database_default,
   locality_norm    NVARCHAR(255) COLLATE database_default,
   locality_orig    NVARCHAR(255) COLLATE database_default,
@@ -373,13 +374,13 @@ CREATE TABLE m_reference (
 );
 
 CREATE TABLE m_report (
-  export                   INT,
-  name_norm                NVARCHAR(255) COLLATE database_default,
-  name_orig                NVARCHAR(255) COLLATE database_default,
-  orientation              INT,
-  parent                   BIT,
-  useHibernateSession      BIT,
-  oid                      NVARCHAR(36) COLLATE database_default NOT NULL,
+  export              INT,
+  name_norm           NVARCHAR(255) COLLATE database_default,
+  name_orig           NVARCHAR(255) COLLATE database_default,
+  orientation         INT,
+  parent              BIT,
+  useHibernateSession BIT,
+  oid                 NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid),
   UNIQUE (name_norm)
 );
@@ -495,36 +496,36 @@ CREATE TABLE m_trigger (
 );
 
 CREATE TABLE m_user (
-  additionalName_norm      NVARCHAR(255) COLLATE database_default,
-  additionalName_orig      NVARCHAR(255) COLLATE database_default,
-  costCenter               NVARCHAR(255) COLLATE database_default,
-  emailAddress             NVARCHAR(255) COLLATE database_default,
-  employeeNumber           NVARCHAR(255) COLLATE database_default,
-  familyName_norm          NVARCHAR(255) COLLATE database_default,
-  familyName_orig          NVARCHAR(255) COLLATE database_default,
-  fullName_norm            NVARCHAR(255) COLLATE database_default,
-  fullName_orig            NVARCHAR(255) COLLATE database_default,
-  givenName_norm           NVARCHAR(255) COLLATE database_default,
-  givenName_orig           NVARCHAR(255) COLLATE database_default,
-  hasPhoto                 BIT                                   NOT NULL,
-  honorificPrefix_norm     NVARCHAR(255) COLLATE database_default,
-  honorificPrefix_orig     NVARCHAR(255) COLLATE database_default,
-  honorificSuffix_norm     NVARCHAR(255) COLLATE database_default,
-  honorificSuffix_orig     NVARCHAR(255) COLLATE database_default,
-  locale                   NVARCHAR(255) COLLATE database_default,
-  locality_norm            NVARCHAR(255) COLLATE database_default,
-  locality_orig            NVARCHAR(255) COLLATE database_default,
-  name_norm                NVARCHAR(255) COLLATE database_default,
-  name_orig                NVARCHAR(255) COLLATE database_default,
-  nickName_norm            NVARCHAR(255) COLLATE database_default,
-  nickName_orig            NVARCHAR(255) COLLATE database_default,
-  preferredLanguage        NVARCHAR(255) COLLATE database_default,
-  status                   INT,
-  telephoneNumber          NVARCHAR(255) COLLATE database_default,
-  timezone                 NVARCHAR(255) COLLATE database_default,
-  title_norm               NVARCHAR(255) COLLATE database_default,
-  title_orig               NVARCHAR(255) COLLATE database_default,
-  oid                      NVARCHAR(36) COLLATE database_default NOT NULL,
+  additionalName_norm  NVARCHAR(255) COLLATE database_default,
+  additionalName_orig  NVARCHAR(255) COLLATE database_default,
+  costCenter           NVARCHAR(255) COLLATE database_default,
+  emailAddress         NVARCHAR(255) COLLATE database_default,
+  employeeNumber       NVARCHAR(255) COLLATE database_default,
+  familyName_norm      NVARCHAR(255) COLLATE database_default,
+  familyName_orig      NVARCHAR(255) COLLATE database_default,
+  fullName_norm        NVARCHAR(255) COLLATE database_default,
+  fullName_orig        NVARCHAR(255) COLLATE database_default,
+  givenName_norm       NVARCHAR(255) COLLATE database_default,
+  givenName_orig       NVARCHAR(255) COLLATE database_default,
+  hasPhoto             BIT                                   NOT NULL,
+  honorificPrefix_norm NVARCHAR(255) COLLATE database_default,
+  honorificPrefix_orig NVARCHAR(255) COLLATE database_default,
+  honorificSuffix_norm NVARCHAR(255) COLLATE database_default,
+  honorificSuffix_orig NVARCHAR(255) COLLATE database_default,
+  locale               NVARCHAR(255) COLLATE database_default,
+  locality_norm        NVARCHAR(255) COLLATE database_default,
+  locality_orig        NVARCHAR(255) COLLATE database_default,
+  name_norm            NVARCHAR(255) COLLATE database_default,
+  name_orig            NVARCHAR(255) COLLATE database_default,
+  nickName_norm        NVARCHAR(255) COLLATE database_default,
+  nickName_orig        NVARCHAR(255) COLLATE database_default,
+  preferredLanguage    NVARCHAR(255) COLLATE database_default,
+  status               INT,
+  telephoneNumber      NVARCHAR(255) COLLATE database_default,
+  timezone             NVARCHAR(255) COLLATE database_default,
+  title_norm           NVARCHAR(255) COLLATE database_default,
+  title_orig           NVARCHAR(255) COLLATE database_default,
+  oid                  NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid),
   UNIQUE (name_norm)
 );
@@ -662,6 +663,8 @@ ADD CONSTRAINT fk_node
 FOREIGN KEY (oid)
 REFERENCES m_object;
 
+CREATE INDEX iObjectTypeClass ON m_object (objectTypeClass);
+
 CREATE INDEX iObjectNameOrig ON m_object (name_orig);
 
 CREATE INDEX iObjectNameNorm ON m_object (name_norm);
@@ -715,6 +718,8 @@ ALTER TABLE m_object_template
 ADD CONSTRAINT fk_object_template
 FOREIGN KEY (oid)
 REFERENCES m_object;
+
+CREATE INDEX iDisplayOrder ON m_org (displayOrder);
 
 ALTER TABLE m_org
 ADD CONSTRAINT fk_org

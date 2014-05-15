@@ -15,12 +15,10 @@
   ~ limitations under the License.
   -->
 
-<s:action xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+<s:action xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <s:type>log</s:type>
     <s:parameter>
         <s:name>message</s:name>
-        <s:constant>
-            <s:value>Custom message: </s:value>
-        </s:constant>
+        <s:constant>Custom message: </s:constant>
     </s:parameter>
 </s:action>

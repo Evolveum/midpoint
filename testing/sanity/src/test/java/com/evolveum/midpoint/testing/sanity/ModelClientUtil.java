@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,9 +15,24 @@
  */
 package com.evolveum.midpoint.testing.sanity;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.Validate;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -26,27 +41,7 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.ws.BindingProvider;
-
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.cxf.frontend.ClientProxy;
-import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
-import org.apache.ws.security.WSConstants;
-import org.apache.ws.security.handler.WSHandlerConstants;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import java.io.IOException;
 
 /**
  * @author Radovan Semancik
@@ -58,23 +53,25 @@ public class ModelClientUtil {
 	public static final String NS_COMMON = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 	public static final QName COMMON_PATH = new QName(NS_COMMON, "path");
 	public static final QName COMMON_VALUE = new QName(NS_COMMON, "value");
+    public static final QName COMMON_GIVEN_NAME = new QName(NS_COMMON, "givenName");
 	public static final QName COMMON_ASSIGNMENT = new QName(NS_COMMON, "assignment");
 	
 	public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-3";
 	private static final QName TYPES_POLYSTRING_ORIG = new QName(NS_TYPES, "orig");
-	
+    public static final QName TYPES_CLEAR_VALUE = new QName(NS_TYPES, "clearValue");
+
 	private static final DocumentBuilder domDocumentBuilder;
 	
 	public static JAXBContext instantiateJaxbContext() throws JAXBException {
-		return JAXBContext.newInstance("com.evolveum.midpoint.xml.ns._public.common.api_types_2:" +
+		return JAXBContext.newInstance("com.evolveum.midpoint.xml.ns._public.common.api_types_3:" +
 				"com.evolveum.midpoint.xml.ns._public.common.common_3:" +
-				"com.evolveum.midpoint.xml.ns._public.common.fault_1:" +
-				"com.evolveum.midpoint.xml.ns._public.communication.workflow_1:" +
+				"com.evolveum.midpoint.xml.ns._public.common.fault_3:" +
 				"com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3:" +
 				"com.evolveum.midpoint.xml.ns._public.connector.icf_1.resource_schema_3:" +
 				"com.evolveum.midpoint.xml.ns._public.resource.capabilities_3:" +
 				"com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3:" +
-				"com.evolveum.prism.xml.ns._public.annotation_2:" +
+                "com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3:" +
+				"com.evolveum.prism.xml.ns._public.annotation_3:" +
 				"com.evolveum.prism.xml.ns._public.query_3:" +
 				"com.evolveum.prism.xml.ns._public.types_3:" +
 				"org.w3._2000._09.xmldsig:" +
@@ -102,8 +99,7 @@ public class ModelClientUtil {
 
     public static PolyStringType createPolyStringType(String string, Document doc) {
 		PolyStringType polyStringType = new PolyStringType();
-		Element origElement = createTextElement(TYPES_POLYSTRING_ORIG, string, doc);
-		polyStringType.getAny().add(origElement);
+		polyStringType.setOrig(string);
 		return polyStringType;
 	}
 	
@@ -126,10 +122,9 @@ public class ModelClientUtil {
 	}
 
 	public static ProtectedStringType createProtectedString(String clearValue) {
-		ProtectedStringType protectedString = new ProtectedStringType();
-		protectedString.setClearValue(clearValue);
-		return protectedString;
-	}
+        ProtectedStringType protectedString = new ProtectedStringType();
+        protectedString.setClearValue(clearValue);
+        return protectedString;	}
 
 	public static <T> JAXBElement<T> toJaxbElement(QName name, T value) {
 		return new JAXBElement<T>(name, (Class<T>) value.getClass(), value);
@@ -172,6 +167,37 @@ public class ModelClientUtil {
 
 		return null;
 	}
+
+    /**
+     * Retrieves OID created by model Web Service from the returned list of ObjectDeltaOperations.
+     *
+     * @param operationListType result of the model web service executeChanges call
+     * @param originalDelta original request used to find corresponding ObjectDeltaOperationType instance. Must be of ADD type.
+     * @return OID if found
+     *
+     * PRELIMINARY IMPLEMENTATION. Currently the first returned ADD delta with the same object type as original delta is returned.
+     */
+    public static String getOidFromDeltaOperationList(ObjectDeltaOperationListType operationListType, ObjectDeltaType originalDelta) {
+        Validate.notNull(operationListType);
+        Validate.notNull(originalDelta);
+        if (originalDelta.getChangeType() != ChangeTypeType.ADD) {
+            throw new IllegalArgumentException("Original delta is not of ADD type");
+        }
+        if (originalDelta.getObjectToAdd() == null) {
+            throw new IllegalArgumentException("Original delta contains no object-to-be-added");
+        }
+        for (ObjectDeltaOperationType operationType : operationListType.getDeltaOperation()) {
+            ObjectDeltaType objectDeltaType = operationType.getObjectDelta();
+            if (objectDeltaType.getChangeType() == ChangeTypeType.ADD &&
+                    objectDeltaType.getObjectToAdd() != null) {
+                ObjectType objectAdded = (ObjectType) objectDeltaType.getObjectToAdd();
+                if (objectAdded.getClass().equals(originalDelta.getObjectToAdd().getClass())) {
+                    return objectAdded.getOid();
+                }
+            }
+        }
+        return null;
+    }
 	
 	static {
 		try {

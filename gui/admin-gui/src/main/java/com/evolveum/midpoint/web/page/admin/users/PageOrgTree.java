@@ -26,10 +26,11 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.server.PageAdminTasks;
 import com.evolveum.midpoint.web.page.admin.users.component.TreeTablePanel;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -49,8 +50,12 @@ import java.util.List;
  * @author lazyman
  */
 @PageDescriptor(url = "/admin/org/tree", action = {
-        PageAdminUsers.AUTHORIZATION_ORG_ALL,
-        AuthorizationConstants.NS_AUTHORIZATION + "#orgTree"})
+        @AuthorizationAction(actionUri = PageAdminUsers.AUTH_ORG_ALL,
+                label = PageAdminUsers.AUTH_ORG_ALL_LABEL,
+                description = PageAdminUsers.AUTH_ORG_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#orgTree",
+                label = "PageOrgTree.auth.orgTree.label",
+                description = "PageOrgTree.auth.orgTree.description")})
 public class PageOrgTree extends PageAdminUsers {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageOrgTree.class);

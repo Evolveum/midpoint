@@ -28,14 +28,19 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.ws.BindingProvider;
 
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.Validate;
 import org.apache.cxf.frontend.ClientProxy;
 import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
 import org.apache.ws.security.WSConstants;
@@ -61,19 +66,20 @@ public class ModelClientUtil {
 	
 	public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-3";
 	private static final QName TYPES_POLYSTRING_ORIG = new QName(NS_TYPES, "orig");
-	
+    public static final QName TYPES_CLEAR_VALUE = new QName(NS_TYPES, "clearValue");
+
 	private static final DocumentBuilder domDocumentBuilder;
 	
 	public static JAXBContext instantiateJaxbContext() throws JAXBException {
-		return JAXBContext.newInstance("com.evolveum.midpoint.xml.ns._public.common.api_types_2:" +
+		return JAXBContext.newInstance("com.evolveum.midpoint.xml.ns._public.common.api_types_3:" +
 				"com.evolveum.midpoint.xml.ns._public.common.common_3:" +
-				"com.evolveum.midpoint.xml.ns._public.common.fault_1:" +
+				"com.evolveum.midpoint.xml.ns._public.common.fault_3:" +
 				"com.evolveum.midpoint.xml.ns._public.connector.icf_1.connector_schema_3:" +
 				"com.evolveum.midpoint.xml.ns._public.connector.icf_1.resource_schema_3:" +
 				"com.evolveum.midpoint.xml.ns._public.resource.capabilities_3:" +
 				"com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3:" +
                 "com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3:" +
-				"com.evolveum.prism.xml.ns._public.annotation_2:" +
+				"com.evolveum.prism.xml.ns._public.annotation_3:" +
 				"com.evolveum.prism.xml.ns._public.query_3:" +
 				"com.evolveum.prism.xml.ns._public.types_3:" +
 				"org.w3._2000._09.xmldsig:" +
@@ -126,7 +132,8 @@ public class ModelClientUtil {
 
 	public static ProtectedStringType createProtectedString(String clearValue) {
 		ProtectedStringType protectedString = new ProtectedStringType();
-		protectedString.getContent().add(clearValue);
+        // this is a bit of workaround: it should be possible to add clearValue by itself, but there seems to be a parsing bug on the server side that needs to be fixed first (TODO)
+		protectedString.getContent().add(toJaxbElement(TYPES_CLEAR_VALUE, clearValue));
 		return protectedString;
 	}
 
@@ -171,6 +178,37 @@ public class ModelClientUtil {
 
 		return null;
 	}
+
+    /**
+     * Retrieves OID created by model Web Service from the returned list of ObjectDeltaOperations.
+     *
+     * @param operationListType result of the model web service executeChanges call
+     * @param originalDelta original request used to find corresponding ObjectDeltaOperationType instance. Must be of ADD type.
+     * @return OID if found
+     *
+     * PRELIMINARY IMPLEMENTATION. Currently the first returned ADD delta with the same object type as original delta is returned.
+     */
+    public static String getOidFromDeltaOperationList(ObjectDeltaOperationListType operationListType, ObjectDeltaType originalDelta) {
+        Validate.notNull(operationListType);
+        Validate.notNull(originalDelta);
+        if (originalDelta.getChangeType() != ChangeTypeType.ADD) {
+            throw new IllegalArgumentException("Original delta is not of ADD type");
+        }
+        if (originalDelta.getObjectToAdd() == null) {
+            throw new IllegalArgumentException("Original delta contains no object-to-be-added");
+        }
+        for (ObjectDeltaOperationType operationType : operationListType.getDeltaOperation()) {
+            ObjectDeltaType objectDeltaType = operationType.getObjectDelta();
+            if (objectDeltaType.getChangeType() == ChangeTypeType.ADD &&
+                    objectDeltaType.getObjectToAdd() != null) {
+                ObjectType objectAdded = (ObjectType) objectDeltaType.getObjectToAdd();
+                if (objectAdded.getClass().equals(originalDelta.getObjectToAdd().getClass())) {
+                    return objectAdded.getOid();
+                }
+            }
+        }
+        return null;
+    }
 	
 	static {
 		try {

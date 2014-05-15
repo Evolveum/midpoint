@@ -6852,6 +6852,19 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    
+                    <xsd:element name="passwordPolicyRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Reference to the password policy settings which will be used for generate/validate password for this organization.
+
+                                TODO: better documentation
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                    			<a:objectReferenceTargetType>tns:ValuePolicyType</a:objectReferenceTargetType>
+                    		</xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
 
                 </xsd:sequence>
             </xsd:extension>
@@ -8726,6 +8739,7 @@
                         Focus types supported by this handler. (Default: all)
                         Types not listed are filtered out: not handled by this handler nor any of its successors.
                         (Relevant only for model-generated events.)
+                        NOT IMPLEMENTED YET.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

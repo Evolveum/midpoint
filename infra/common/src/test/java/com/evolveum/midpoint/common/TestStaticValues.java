@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -41,6 +43,8 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import static org.testng.AssertJUnit.*;
@@ -91,13 +95,13 @@ public class TestStaticValues {
     	doRoundtrip(origProperty, propDef, prismContext);
     }
 
-    private void doRoundtrip(PrismProperty<?> origProperty, ItemDefinition propDef, PrismContext prismContext) throws SchemaException {
+    private void doRoundtrip(PrismProperty<?> origProperty, ItemDefinition propDef, PrismContext prismContext) throws SchemaException, JAXBException {
     	// WHEN
-    	List<?> valueElements = StaticExpressionUtil.serializeValueElements(origProperty, "here somewhere");
+    	List<JAXBElement<RawType>> valueElements = StaticExpressionUtil.serializeValueElements(origProperty, "here somewhere");
     	
     	for (Object element: valueElements) {
-    		if (element instanceof Element) {
-    			System.out.println(DOMUtil.serializeDOMToString((Element)element));
+    		if (element instanceof JAXBElement) {
+    			System.out.println(JaxbTestUtil.getInstance().marshalElementToString((JAXBElement) element));
     		} else {
     			AssertJUnit.fail("Unexpected element type "+element.getClass());
     		}

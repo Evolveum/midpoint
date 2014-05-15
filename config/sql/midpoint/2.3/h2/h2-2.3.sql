@@ -332,6 +332,7 @@ CREATE TABLE m_org (
   costCenter       VARCHAR(255),
   displayName_norm VARCHAR(255),
   displayName_orig VARCHAR(255),
+  displayOrder     INTEGER,
   identifier       VARCHAR(255),
   locality_norm    VARCHAR(255),
   locality_orig    VARCHAR(255),
@@ -660,6 +661,8 @@ ADD CONSTRAINT fk_node
 FOREIGN KEY (oid)
 REFERENCES m_object;
 
+CREATE INDEX iObjectTypeClass ON m_object (objectTypeClass);
+
 CREATE INDEX iObjectNameOrig ON m_object (name_orig);
 
 CREATE INDEX iObjectNameNorm ON m_object (name_norm);
@@ -713,6 +716,8 @@ ALTER TABLE m_object_template
 ADD CONSTRAINT fk_object_template
 FOREIGN KEY (oid)
 REFERENCES m_object;
+
+CREATE INDEX iDisplayOrder ON m_org (displayOrder);
 
 ALTER TABLE m_org
 ADD CONSTRAINT fk_org

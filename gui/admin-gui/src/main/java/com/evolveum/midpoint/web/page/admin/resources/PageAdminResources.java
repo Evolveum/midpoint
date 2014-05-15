@@ -62,7 +62,10 @@ public class PageAdminResources extends PageAdmin {
     private static final String OPERATION_SAVE_SYNC_TASK = DOT_CLASS + "saveSyncTask";
 
     protected static final Trace LOGGER = TraceManager.getTrace(PageAdminResources.class);
-    public static final String AUTHORIZATION_RESOURCE_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#resourcesAll";
+
+    public static final String AUTH_RESOURCE_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#resourcesAll";
+    public static final String AUTH_RESOURCE_ALL_LABEL = "PageAdminResources.auth.resourcesAll.label";
+    public static final String AUTH_RESOURCE_ALL_DESCRIPTION = "PageAdminResources.auth.resourcesAll.description";
 
     protected boolean isResourceOidAvailable() {
         StringValue resourceOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);

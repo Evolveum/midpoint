@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.QNameUtil;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
@@ -82,7 +83,7 @@ public class EntityDefinition extends Definition {
         List<Definition> definitions = getDefinitions();
         for (Definition definition : definitions) {
             builder.append(definition.getDebugDumpClassName());
-            builder.append('(').append(dumpQName(getJaxbName())).append(')');
+            builder.append('(').append(dumpQName(definition.getJaxbName())).append(')');
         }
         builder.append(']');
     }
@@ -121,6 +122,11 @@ public class EntityDefinition extends Definition {
 
         NameItemPathSegment first = (NameItemPathSegment) path.first();
         ItemPath tail = path.tail();
+        if (ObjectType.F_METADATA.equals(first.getName())) {
+            //metadata is not an repository entity
+            first  = (NameItemPathSegment) tail.first();
+            tail = tail.tail();
+        }
 
         if (tail.isEmpty()) {
             return findDefinition(first.getName(), type);

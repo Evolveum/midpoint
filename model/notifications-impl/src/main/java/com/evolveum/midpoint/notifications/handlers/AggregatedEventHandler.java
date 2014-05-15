@@ -23,6 +23,7 @@ import com.evolveum.midpoint.notifications.helpers.CategoryFilterHelper;
 import com.evolveum.midpoint.notifications.helpers.ChainHelper;
 import com.evolveum.midpoint.notifications.helpers.ExpressionFilterHelper;
 import com.evolveum.midpoint.notifications.helpers.ForkHelper;
+import com.evolveum.midpoint.notifications.helpers.KindIntentFilterHelper;
 import com.evolveum.midpoint.notifications.helpers.OperationFilterHelper;
 import com.evolveum.midpoint.notifications.helpers.StatusFilterHelper;
 import com.evolveum.midpoint.notifications.notifiers.AccountPasswordNotifier;
@@ -68,6 +69,9 @@ public class AggregatedEventHandler extends BaseHandler {
     private StatusFilterHelper statusFilter;
 
     @Autowired
+    private KindIntentFilterHelper kindIntentFilter;
+
+    @Autowired
     private ExpressionFilterHelper expressionFilter;
 
     @Autowired
@@ -109,6 +113,7 @@ public class AggregatedEventHandler extends BaseHandler {
                 categoryFilter.processEvent(event, eventHandlerType, notificationManager, task, result) &&
                 operationFilter.processEvent(event, eventHandlerType, notificationManager, task, result) &&
                 statusFilter.processEvent(event, eventHandlerType, notificationManager, task, result) &&
+                kindIntentFilter.processEvent(event, eventHandlerType, notificationManager, task, result) &&
                 expressionFilter.processEvent(event, eventHandlerType, notificationManager, task, result) &&
                 chainHelper.processEvent(event, eventHandlerType, notificationManager, task, result) &&
                 forkHelper.processEvent(event, eventHandlerType, notificationManager, task, result);

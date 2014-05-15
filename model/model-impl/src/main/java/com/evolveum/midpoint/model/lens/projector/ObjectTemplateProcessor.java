@@ -216,7 +216,7 @@ public class ObjectTemplateProcessor {
 			// We need to add unchanged values otherwise the unconditional mappings will not be applies
 			boolean addUnchangedValues = true;
 			ItemDelta<? extends PrismValue> itemDelta = LensUtil.consolidateTripleToDelta(itemPath, (DeltaSetTriple)outputTriple,
-					focusDefinition.findItemDefinition(itemPath), apropriItemDelta, focusOdo.getNewObject(), null, 
+					focusDefinition.findItemDefinition(itemPath), apropriItemDelta, focusOdo.getNewObject(), null, null, 
 					addUnchangedValues, true, false, contextDesc, true);
 			
 			itemDelta.simplify();

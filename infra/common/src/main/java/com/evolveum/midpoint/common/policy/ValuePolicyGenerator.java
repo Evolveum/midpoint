@@ -95,7 +95,7 @@ public class ValuePolicyGenerator {
 		if (minLen != 0 && minLen > defaultLength) {
 			defaultLength = minLen;
 		}
-		int maxLen = (policy.getLimitations().getMaxLength() == null ? defaultLength : policy.getLimitations()
+		int maxLen = (policy.getLimitations().getMaxLength() == null ? 0 : policy.getLimitations()
 				.getMaxLength().intValue());
 		int unique = policy.getLimitations().getMinUniqueChars() == null ? minLen : policy.getLimitations()
 				.getMinUniqueChars().intValue();
@@ -110,6 +110,7 @@ public class ValuePolicyGenerator {
 
 		if (minLen == 0 && maxLen == 0) {
 			minLen = defaultLength;
+			maxLen = defaultLength;
 			generateMinimalSize = true;
 		}
 

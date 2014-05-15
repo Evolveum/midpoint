@@ -19,6 +19,7 @@ package com.evolveum.midpoint.model.scripting;
 import com.evolveum.midpoint.model.scripting.expressions.SearchEvaluator;
 import com.evolveum.midpoint.model.scripting.expressions.SelectEvaluator;
 import com.evolveum.midpoint.model.scripting.helpers.JaxbHelper;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -41,13 +42,16 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.SelectExpressionTy
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -231,39 +235,17 @@ public class ScriptingExpressionEvaluator {
     }
 
     private Data evaluateConstantExpression(RawType constant, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
-        throw new UnsupportedOperationException("Constant expression evaluation is not implemented yet, see also the RawType class.");
-//        Collection<Item> items = prismContext.parseItemCollection(constant.getXnode());
-//        if (xnode instanceof )
-//        if (expression.getValue() instanceof Element) {
-//            Element element = (Element) expression.getValue();              // this should be <s:value> element
-//            NodeList children = element.getChildNodes();
-//            JAXBElement jaxbValue = null;
-//            for (int i = 0; i < children.getLength(); i++) {
-//                Node child = children.item(i);
-//                if (child instanceof Element) {
-//                    if (jaxbValue != null) {
-//                        throw new ScriptExecutionException("More than one expression value is not supported for now");
-//                    }
-//                    try {
-//                        jaxbValue = prismContext.getJaxbDomHack(), Object.class);
-//                    } catch (JAXBException|SchemaException e) {
-//                        throw new ScriptExecutionException("Couldn't unmarshal value of element: " + element.getNodeName());
-//                    }
-//                }
-//            }
-//            if (jaxbValue != null) {
-//                return Data.createProperty(jaxbValue.getValue(), prismContext);
-//            } else {
-//                String text = element.getTextContent();
-//                if (StringUtils.isNotEmpty(text)) {             // todo what if there will be only LF's among child elements? this needs to be thought out...
-//                    return Data.createProperty(text, prismContext);
-//                } else {
-//                    return Data.createEmpty();
-//                }
-//            }
-//        } else {
-//            return Data.createProperty(expression.getValue(), prismContext);
-//        }
+
+        try {
+            Object value = prismContext.getXnodeProcessor().parseAnyData(constant.getXnode());
+            if (value instanceof Item) {
+                return Data.create((Item) value);
+            } else {
+                return Data.createProperty(value, prismContext);
+            }
+        } catch (SchemaException e) {
+            throw new ScriptExecutionException(e.getMessage(), e);
+        }
     }
 
     public void registerActionExecutor(String actionName, ActionExecutor executor) {

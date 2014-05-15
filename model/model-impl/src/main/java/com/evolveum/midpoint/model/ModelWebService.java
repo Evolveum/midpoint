@@ -29,11 +29,13 @@ import com.evolveum.midpoint.model.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -55,12 +57,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ExecuteScriptsOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaListType;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.OutputFormatType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ScriptOutputsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SelectorQualifiedGetOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SingleScriptOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectShadowChangeDescriptionType;
@@ -174,7 +178,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	}
 
     @Override
-    public OperationResultType executeChanges(ObjectDeltaListType deltaList, ModelExecuteOptionsType optionsType) throws FaultMessage {
+    public ObjectDeltaOperationListType executeChanges(ObjectDeltaListType deltaList, ModelExecuteOptionsType optionsType) throws FaultMessage {
 		notNullArgument(deltaList, "Object delta list must not be null.");
 
 		Task task = createTaskInstance(EXECUTE_CHANGES);
@@ -182,9 +186,19 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		OperationResult operationResult = task.getResult();
 		try {
 			Collection<ObjectDelta> deltas = DeltaConvertor.createObjectDeltas(deltaList, prismContext);
+            for (ObjectDelta delta : deltas) {
+                prismContext.adopt(delta);
+            }
             ModelExecuteOptions options = ModelExecuteOptions.fromModelExecutionOptionsType(optionsType);
-            modelController.executeChanges((Collection) deltas, options, task, operationResult);        // brutally eliminating type-safety compiler barking
-			return handleOperationResult(operationResult);
+            Collection<ObjectDeltaOperation<? extends ObjectType>> objectDeltaOperations = modelController.executeChanges((Collection) deltas, options, task, operationResult);        // brutally eliminating type-safety compiler barking
+			ObjectDeltaOperationListType retval = new ObjectDeltaOperationListType();
+            for (ObjectDeltaOperation objectDeltaOperation : objectDeltaOperations) {
+                ObjectDeltaOperationType objectDeltaOperationType = new ObjectDeltaOperationType();
+                objectDeltaOperationType.setObjectDelta(DeltaConvertor.toObjectDeltaType(objectDeltaOperation.getObjectDelta()));
+                objectDeltaOperationType.setExecutionResult(objectDeltaOperation.getExecutionResult().createOperationResultType());
+                retval.getDeltaOperation().add(objectDeltaOperationType);
+            }
+            return retval;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL executeChanges() failed", ex);
 			auditLogout(task);
@@ -259,10 +273,11 @@ public class ModelWebService implements ModelPortType, ModelPort {
             // here comes MSL script decoding (however with a quick hack to allow passing XML as text here)
             String scriptsAsString = parameters.getMslScripts();
             if (scriptsAsString.startsWith("<?xml")) {
-                // FIXME parse expressions
-                throw new UnsupportedOperationException("scripts couldn't be parsed yet");
-                //JAXBElement<?> expressionType = prismContext.parseAtomicValue(scriptsAsString, ExpressionType.COMPLEX_TYPE, PrismContext.LANG_XML);
-                //scriptsToExecute.add(expressionType);
+                PrismProperty expressionType = (PrismProperty) prismContext.parseAnyData(scriptsAsString, PrismContext.LANG_XML);
+                if (expressionType.size() != 1) {
+                    throw new IllegalArgumentException("Unexpected number of scripting expressions at input: " + expressionType.size() + " (expected 1)");
+                }
+                scriptsToExecute.add(expressionType.getAnyValue().toJaxbElement());
             }
         }
         return scriptsToExecute;
@@ -285,15 +300,15 @@ public class ModelWebService implements ModelPortType, ModelPort {
                 if (options == null || options.getOutputFormat() == null || options.getOutputFormat() == OutputFormatType.XML) {
                     output.setXmlData(prepareXmlData(outputContext.getFinalOutput()));
                 } else {
-                    throw new UnsupportedOperationException();
                     // temporarily we send serialized XML in the case of MSL output
-//                    ItemListType jaxbOutput = prepareXmlData(outputContext.getFinalOutput());
-//                    output.setMslData(prismContext.serializeAtomicValues(SchemaConstants.APIT_ITEM_LIST, PrismContext.LANG_XML, jaxbOutput));
+                    ItemListType jaxbOutput = prepareXmlData(outputContext.getFinalOutput());
+                    output.setMslData(prismContext.serializeAnyData(jaxbOutput, PrismContext.LANG_XML));
                 }
             }
             result.computeStatusIfUnknown();
         } catch (Exception e) {         // FIXME little bit brutal treatment
             result.recordFatalError(e.getMessage(), e);
+            LoggingUtils.logException(LOGGER, "Exception while executing script", e);
         }
         result.summarize();
         response.setResult(result.createOperationResultType());

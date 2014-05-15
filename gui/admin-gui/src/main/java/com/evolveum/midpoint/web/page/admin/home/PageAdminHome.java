@@ -24,5 +24,7 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
  */
 public class PageAdminHome extends PageAdmin {
 
-    public static final String AUTHORIZATION_HOME_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#home";
+    public static final String AUTH_HOME_ALL_URI = AuthorizationConstants.NS_AUTHORIZATION + "#home";
+    public static final String AUTH_HOME_ALL_LABEL = "PageAdminHome.auth.homeAll.label";
+    public static final String AUTH_HOME_ALL_DESCRIPTION = "PageAdminHome.auth.homeAll.description";
 }

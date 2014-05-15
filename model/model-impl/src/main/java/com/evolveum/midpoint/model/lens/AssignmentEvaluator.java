@@ -22,6 +22,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.ActivationComputer;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
@@ -162,7 +163,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 
 	public SimpleDelta<EvaluatedAssignment> evaluate(SimpleDelta<AssignmentType> assignmentTypeDelta, ObjectType source, String sourceDescription,
-			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		SimpleDelta<EvaluatedAssignment> delta = new SimpleDelta<EvaluatedAssignment>();
 		delta.setType(assignmentTypeDelta.getType());
 		for (AssignmentType assignmentType : assignmentTypeDelta.getChange()) {
@@ -175,7 +176,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	
 	public EvaluatedAssignment evaluate(AssignmentType assignmentType, ObjectType source, String sourceDescription, 
 			Task task, OperationResult result)
-			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, assignmentType);
 		EvaluatedAssignment evalAssignment = new EvaluatedAssignment();
 		AssignmentPath assignmentPath = new AssignmentPath();
@@ -195,15 +196,35 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 	
 	private void evaluateAssignment(EvaluatedAssignment evalAssignment, AssignmentPathSegment assignmentPathSegment, ObjectType source, String sourceDescription,
-			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, evalAssignment);
 		
-		assignmentPath.add(assignmentPathSegment);
 		LOGGER.trace("Evaluate assignment {} (eval costr: {})", assignmentPath, assignmentPathSegment.isEvaluateConstructions());
 		
 		AssignmentType assignmentType = assignmentPathSegment.getAssignmentType();
 		
 		checkSchema(assignmentType, sourceDescription);
+		
+		PrismObject<?> target = null;
+		if (assignmentType.getTarget() != null) {
+			target = assignmentType.getTarget().asPrismObject();
+		} else if (assignmentType.getTargetRef() != null) {
+			target = resolveTarget(assignmentType, source, sourceDescription, task, result);
+		}
+		if (target != null && evalAssignment.getTarget() == null) {
+			evalAssignment.setTarget(target);
+		}
+
+		if (target != null) {
+			if (target.getOid().equals(source.getOid())) {
+				throw new PolicyViolationException("The "+source+" refers to itself in assignment/inducement");
+			}
+			if (assignmentPath.containsTarget((ObjectType) target.asObjectable())) {
+				throw new PolicyViolationException("Attempt to assign "+target+" creates a role cycle");
+			}
+		}
+		
+		assignmentPath.add(assignmentPathSegment);
 		
 		boolean isValid = LensUtil.isValid(assignmentType, now, activationComputer);
 		if (isValid || assignmentPathSegment.isValidityOverride()) {
@@ -222,18 +243,15 @@ public class AssignmentEvaluator<F extends FocusType> {
 							assignmentPath, assignmentPathSegment.getOrderOneObject(), task, result);
 				}
 				
-			} else if (assignmentType.getTarget() != null) {
+			} else if (target != null) {
 				
-				evaluateTarget(evalAssignment, assignmentPathSegment, assignmentType.getTarget(), source, null, sourceDescription,
+				evaluateTarget(evalAssignment, assignmentPathSegment, target, source, assignmentType.getTargetRef().getRelation(), sourceDescription,
 						assignmentPath, task, result);
 				
-			} else if (assignmentType.getTargetRef() != null) {
-				
-				evaluateTargetRef(evalAssignment, assignmentPathSegment, assignmentType.getTargetRef(), source, sourceDescription, 
-						assignmentPath, task, result);
-	
 			} else {
-				throw new SchemaException("No target or construcion in assignment in " + source);
+				// Do not throw an exception. We don't have referential integrity. Therefore if a role is deleted then throwing
+				// an exception would prohibit any operations with the users that have the role, including removal of the reference.
+				LOGGER.debug("No target or construcion in assignment in {}, ignoring it", source);
 			}
 			
 		} else {
@@ -301,23 +319,21 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 
-	private void evaluateTargetRef(EvaluatedAssignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectReferenceType targetRef, ObjectType source,
-			String sourceDescription, AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-		assertSource(source, assignment);
-		
+	private PrismObject<?> resolveTarget(AssignmentType assignmentType, ObjectType source, String sourceDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+		ObjectReferenceType targetRef = assignmentType.getTargetRef();
 		String oid = targetRef.getOid();
 		if (oid == null) {
-			throw new SchemaException("The OID is null in assignment targetRef in "+ObjectTypeUtil.toShortString(source));
+			throw new SchemaException("The OID is null in assignment targetRef in "+source);
 		}
 		// Target is referenced, need to fetch it
 		Class<? extends ObjectType> clazz = null;
 		if (targetRef.getType() != null) {
 			clazz = (Class) prismContext.getSchemaRegistry().determineCompileTimeClass(targetRef.getType());
 			if (clazz == null) {
-				throw new SchemaException("Cannot determine type from " + targetRef.getType() + " in target reference in " + assignment + " in " + sourceDescription);
+				throw new SchemaException("Cannot determine type from " + targetRef.getType() + " in target reference in " + assignmentType + " in " + sourceDescription);
 			}
 		} else {
-			throw new SchemaException("Missing type in target reference in " + assignment + " in " + sourceDescription);
+			throw new SchemaException("Missing type in target reference in " + assignmentType + " in " + sourceDescription);
 		}
 		PrismObject<? extends ObjectType> target = null;
 		try {
@@ -333,36 +349,35 @@ public class AssignmentEvaluator<F extends FocusType> {
 //			throw new ObjectNotFoundException(ex.getMessage()+" in assignment target reference in "+sourceDescription,ex);
 		}
 		
-		if (target != null) {
-			evaluateTarget(assignment, assignmentPathSegment, target.asObjectable(), source, targetRef.getRelation(), 
-					sourceDescription, assignmentPath, task, result);
-		}
+		return target;
 	}
 
 
-	private void evaluateTarget(EvaluatedAssignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectType target, 
+	private void evaluateTarget(EvaluatedAssignment assignment, AssignmentPathSegment assignmentPathSegment, PrismObject<?> target, 
 			ObjectType source, QName relation, String sourceDescription,
-			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, assignment);
-		assignmentPathSegment.setTarget(target);
-		if (target instanceof AbstractRoleType) {
-			evaluateAbstractRole(assignment, assignmentPathSegment, (AbstractRoleType)target, source, sourceDescription, 
+		ObjectType targetType = (ObjectType) target.asObjectable();
+		assignmentPathSegment.setTarget(targetType);
+		if (targetType instanceof AbstractRoleType) {
+			evaluateAbstractRole(assignment, assignmentPathSegment, (AbstractRoleType)targetType, source, sourceDescription, 
 					assignmentPath, task, result);
-			if (target instanceof OrgType && assignmentPath.getEvaluationOrder() == 1) {
+			if (targetType instanceof OrgType && assignmentPath.getEvaluationOrder() == 1) {
 				PrismReferenceValue refVal = new PrismReferenceValue();
-				refVal.setObject(target.asPrismObject());
+				refVal.setObject(targetType.asPrismObject());
 				refVal.setRelation(relation);
 				assignment.addOrgRefVal(refVal);
 			} 
 		} else {
-			throw new SchemaException("Unknown assignment target type "+ObjectTypeUtil.toShortString(target)+" in "+sourceDescription);
+			throw new SchemaException("Unknown assignment target type "+ObjectTypeUtil.toShortString(targetType)+" in "+sourceDescription);
 		}
 	}
 
 	private void evaluateAbstractRole(EvaluatedAssignment assignment, AssignmentPathSegment assignmentPathSegment, 
 			AbstractRoleType role, ObjectType source, String sourceDescription,
-			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, assignment);
+		
 		int evaluationOrder = assignmentPath.getEvaluationOrder();
 		ObjectType orderOneObject;
 		if (evaluationOrder == 1) {

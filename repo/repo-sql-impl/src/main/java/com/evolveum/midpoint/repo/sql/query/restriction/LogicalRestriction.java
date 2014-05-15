@@ -18,8 +18,8 @@ package com.evolveum.midpoint.repo.sql.query.restriction;
 
 import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryContext;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import org.hibernate.criterion.Criterion;
 
@@ -40,7 +40,7 @@ public abstract class LogicalRestriction<T extends LogicalFilter> extends Restri
     protected Criterion interpretChildFilter(ObjectFilter filter) throws QueryException {
         QueryContext context = getContext();
         QueryInterpreter interpreter = context.getInterpreter();
-        Restriction restriction = interpreter.findAndCreateRestriction(filter, context, this, getQuery());
+        Restriction restriction = interpreter.findAndCreateRestriction(filter, context, this);
 
         return restriction.interpret(filter);
     }
