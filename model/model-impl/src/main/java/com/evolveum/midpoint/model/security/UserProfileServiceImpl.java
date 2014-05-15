@@ -97,11 +97,19 @@ public class UserProfileServiceImpl implements UserProfileService {
             throw new SystemException(ex.getMessage(), ex);
         }
 
+        if (user == null) {
+            return null;
+        }
+
         return getPrincipal(user);
     }
 
     @Override
     public MidPointPrincipal getPrincipal(PrismObject<UserType> user) {
+        if (user == null) {
+            return null;
+        }
+
     	userComputer.recompute(user);
         MidPointPrincipal principal = new MidPointPrincipal(user.asObjectable());
         addAuthorizations(principal);
