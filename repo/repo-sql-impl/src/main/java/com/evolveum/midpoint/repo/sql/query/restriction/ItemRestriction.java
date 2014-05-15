@@ -123,7 +123,7 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
                 classes.add(OrgType.class);
         }
 
-        LOGGER.debug("Found possible parents {} for entity definitions.", Arrays.toString(classes.toArray()));
+        LOGGER.trace("Found possible parents {} for entity definitions.", Arrays.toString(classes.toArray()));
         return classes;
     }
 
@@ -161,7 +161,7 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
                 break;
             }
         }
-         LOGGER.info("Found proper entity definition for path {}, {}", path, entity.toString());
+         LOGGER.trace("Found proper entity definition for path {}, {}", path, entity.toString());
         return entity;
     }
 
