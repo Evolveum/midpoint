@@ -1536,9 +1536,4 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         throw new SystemException("isAnySubordinateAttempt failed somehow, this really should not happen.");
     }
-
-    @Override
-    public <T extends ObjectType> boolean matchObject(PrismObject<T> object, ObjectQuery query) throws SchemaException {
-        throw new NotImplementedException("Not yet implemented.");
-    }
 }
