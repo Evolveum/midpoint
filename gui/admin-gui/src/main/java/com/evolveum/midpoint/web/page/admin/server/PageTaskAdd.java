@@ -43,7 +43,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.security.SecurityUtils;
-import com.evolveum.midpoint.web.util.TooltipBehavior;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -247,7 +247,7 @@ public class PageTaskAdd extends PageAdminTasks {
         boundContainer.add(bound);
 
         Label boundHelp = new Label("boundHelp");
-        boundHelp.add(new TooltipBehavior());
+        boundHelp.add(new InfoTooltipBehavior());
         boundContainer.add(boundHelp);
 
         TextField<Integer> interval = new TextField<Integer>("interval",
@@ -264,7 +264,7 @@ public class PageTaskAdd extends PageAdminTasks {
         cronContainer.add(cron);
 
         Label cronHelp = new Label("cronHelp");
-        cronHelp.add(new TooltipBehavior());
+        cronHelp.add(new InfoTooltipBehavior());
         cronContainer.add(cronHelp);
 
         final DateTimeField notStartBefore = new DateTimeField("notStartBeforeField",

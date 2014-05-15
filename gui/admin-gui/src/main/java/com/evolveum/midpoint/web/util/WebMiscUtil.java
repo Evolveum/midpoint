@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -66,6 +67,7 @@ import org.apache.wicket.util.visit.IVisitor;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import java.lang.management.ManagementFactory;
@@ -372,11 +374,23 @@ public final class WebMiscUtil {
         return !result.isSuccess() && !result.isHandledError() && !result.isInProgress();
     }
 
+    public static String formatDate(XMLGregorianCalendar calendar) {
+        if (calendar == null) {
+            return null;
+        }
+
+        return formatDate(XmlTypeConverter.toDate(calendar));
+    }
+
     public static String formatDate(Date date) {
         return formatDate(null, date);
     }
 
     public static String formatDate(String format, Date date) {
+        if (date == null) {
+            return null;
+        }
+
         if (StringUtils.isEmpty(format)) {
             format = "EEEE, d. MMM yyyy HH:mm:ss";
         }

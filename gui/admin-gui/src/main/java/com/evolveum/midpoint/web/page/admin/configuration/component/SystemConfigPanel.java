@@ -22,7 +22,7 @@ import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.AEPlevel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.web.util.TooltipBehavior;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -85,7 +85,7 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
 
     private void createTooltip(String id, WebMarkupContainer parent) {
         Label tooltip = new Label(id);
-        tooltip.add(new TooltipBehavior());
+        tooltip.add(new InfoTooltipBehavior());
         parent.add(tooltip);
     }
 }

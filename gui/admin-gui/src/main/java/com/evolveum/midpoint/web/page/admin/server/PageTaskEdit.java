@@ -59,8 +59,8 @@ import com.evolveum.midpoint.web.page.admin.server.subtasks.SubtasksPanel;
 import com.evolveum.midpoint.web.page.admin.server.workflowInformation.WorkflowInformationPanel;
 import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MisfireActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -523,7 +523,7 @@ public class PageTaskEdit extends PageAdminTasks {
 		boundContainer.add(bound);
 
         Label boundHelp = new Label("boundHelp");
-        boundHelp.add(new TooltipBehavior());
+        boundHelp.add(new InfoTooltipBehavior());
         boundContainer.add(boundHelp);
 
 		TextField<Integer> interval = new TextField<Integer>("interval",
@@ -549,7 +549,7 @@ public class PageTaskEdit extends PageAdminTasks {
 		cronContainer.add(cron);
 
         Label cronHelp = new Label("cronHelp");
-        cronHelp.add(new TooltipBehavior());
+        cronHelp.add(new InfoTooltipBehavior());
 		cronContainer.add(cronHelp);
 
         DateInput notStartBefore = new DateInput("notStartBeforeField", new PropertyModel<Date>(model, "notStartBefore"));
