@@ -41,34 +41,9 @@
     </c:activation>
     <c:credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
         <c:password>
-<!--         <c:value> -->
-<!--             <t:encryptedData xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"> -->
-<!--                <t:encryptionMethod> -->
-<!--                   <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes128-cbc</t:algorithm> -->
-<!--                </t:encryptionMethod> -->
-<!--                <t:keyInfo> -->
-<!--                   <t:keyName>4HXeUejV93Vd3JuIZz7sbs5bVko=</t:keyName> -->
-<!--                </t:keyInfo> -->
-<!--                <t:cipherData> -->
-<!--                   <t:cipherValue>Q27VymuHR348Vb9Ln5p06RT667FqZPSijEMxVDWw7D8=</t:cipherValue> -->
-<!--                </t:cipherData> -->
-<!--             </t:encryptedData> -->
-<!--          </c:value> -->
-<!--         	<c:value> -->
-<!--         		<t:clearValue>5ecr3t</t:clearValue> -->
-<!--         	</c:value> -->
-            <c:value xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
-                     xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
-                <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
-                    <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/>
-                    <ds:KeyInfo>
-                        <ds:KeyName>4HXeUejV93Vd3JuIZz7sbs5bVko=</ds:KeyName>
-                    </ds:KeyInfo>
-                    <enc:CipherData>
-                        <enc:CipherValue>R8JV6Bsf6Hjh1yodavjZ0cPshnGyHdspmANJmCQe2zXo7brYj1I/Bs5LGTZNI4k8</enc:CipherValue>
-                    </enc:CipherData>
-                </enc:EncryptedData>
-            </c:value>
+            <c:value>
+         		<t:clearValue>5ecr3t</t:clearValue>
+         	</c:value>
         </c:password>
     </c:credentials>
 </c:user>
