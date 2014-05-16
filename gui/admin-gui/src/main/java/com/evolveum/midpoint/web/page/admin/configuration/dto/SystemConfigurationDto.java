@@ -35,6 +35,7 @@ public class SystemConfigurationDto implements Serializable {
 
     private ObjectViewDto<ValuePolicyType> passPolicyDto;
     private ObjectViewDto<ObjectTemplateType> objectTemplateDto;
+    private NotificationConfigurationDto notificationConfig;
 
     public SystemConfigurationDto(){
         this(null);
@@ -62,6 +63,10 @@ public class SystemConfigurationDto implements Serializable {
 
         passPolicyDto = loadPasswordPolicy(config);
         objectTemplateDto = loadObjectTemplate(config);
+
+        if(config.getNotificationConfiguration() != null){
+            notificationConfig = new NotificationConfigurationDto(config.getNotificationConfiguration());
+        }
     }
 
     private ObjectViewDto<ValuePolicyType> loadPasswordPolicy(SystemConfigurationType config){
@@ -128,5 +133,13 @@ public class SystemConfigurationDto implements Serializable {
 
     public void setObjectTemplateDto(ObjectViewDto<ObjectTemplateType> objectTemplateDto) {
         this.objectTemplateDto = objectTemplateDto;
+    }
+
+    public NotificationConfigurationDto getNotificationConfig() {
+        return notificationConfig;
+    }
+
+    public void setNotificationConfig(NotificationConfigurationDto notificationConfig) {
+        this.notificationConfig = notificationConfig;
     }
 }
