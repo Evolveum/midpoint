@@ -34,7 +34,7 @@ public class TooltipBehavior extends Behavior {
     @Override
     public void onConfigure(final Component component) {
         component.setOutputMarkupId(true);
-        component.add(AttributeModifier.replace("class", "fa fa-fw fa-info-circle text-info"));
+
         component.add(AttributeModifier.replace("data-toggle", "tooltip"));
         component.add(new AttributeModifier("data-placement", "right") {
 

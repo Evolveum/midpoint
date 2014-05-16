@@ -23,7 +23,7 @@ import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.AEPlevel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.web.util.TooltipBehavior;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailTransportSecurityType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -121,7 +121,7 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
 
     private void createTooltip(String id, WebMarkupContainer parent) {
         Label tooltip = new Label(id);
-        tooltip.add(new TooltipBehavior());
+        tooltip.add(new InfoTooltipBehavior());
         parent.add(tooltip);
     }
 }

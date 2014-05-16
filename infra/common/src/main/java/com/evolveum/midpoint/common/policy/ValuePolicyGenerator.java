@@ -113,6 +113,10 @@ public class ValuePolicyGenerator {
 			maxLen = defaultLength;
 			generateMinimalSize = true;
 		}
+		
+		if (maxLen == 0){
+			maxLen = defaultLength;
+		}
 
 		// Initialize generator
 		StringBuilder password = new StringBuilder();
