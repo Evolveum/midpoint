@@ -47,6 +47,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.TypeFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
@@ -93,6 +94,7 @@ public class TestQueryConvertor {
 			"filter-account-by-attributes-and-resource-ref.xml");
 	private static final File FILTER_OR_COMPOSITE = new File(TEST_DIR, "filter-or-composite.xml");
 	private static final File FILTER_CONNECTOR_BY_TYPE_FILE = new File(TEST_DIR, "filter-connector-by-type.xml");
+	private static final File FILTER_BY_TYPE_FILE = new File(TEST_DIR, "filter-by-type.xml");
 
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
@@ -236,6 +238,43 @@ public class TestQueryConvertor {
 			PrismAsserts.assertEqualsFilter(query.getFilter(), ConnectorType.F_CONNECTOR_TYPE, DOMUtil.XSD_STRING,
 					new ItemPath(ConnectorType.F_CONNECTOR_TYPE));
 			PrismAsserts.assertEqualsFilterValue((EqualsFilter) filter, "org.identityconnectors.ldap.LdapConnector");
+
+			QueryType convertedQueryType = toQueryType(query);
+			displayQueryType(convertedQueryType);
+		} catch (SchemaException ex) {
+			LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
+			throw ex;
+		} catch (RuntimeException ex) {
+			LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
+			throw ex;
+		} catch (Exception ex) {
+			LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
+			throw ex;
+		}
+
+	}
+	
+	@Test
+	public void testTypeFilterQuery() throws Exception {
+		displayTestTitle("testConnectorQuery");
+		SearchFilterType filterType = PrismTestUtil.parseAtomicValue(FILTER_BY_TYPE_FILE, SearchFilterType.COMPLEX_TYPE);
+		ObjectQuery query = null;
+		try {
+			query = QueryJaxbConvertor.createObjectQuery(ConnectorType.class, filterType, getPrismContext());
+			displayQuery(query);
+
+			assertNotNull(query);
+			ObjectFilter filter = query.getFilter();
+			assertTrue("filter is not an instance of type filter", filter instanceof TypeFilter);
+			
+			TypeFilter typeFilter = (TypeFilter) filter;
+			assertEquals(typeFilter.getType(), UserType.COMPLEX_TYPE);
+			assertNotNull("filter in type filter must not be null", typeFilter.getFilter());
+			PrismAsserts.assertEqualsFilter(typeFilter.getFilter(), UserType.COMPLEX_TYPE, DOMUtil.XSD_QNAME, new ItemPath(UserType.F_NAME));
+			PrismAsserts.assertEqualsFilterValue((EqualsFilter) typeFilter.getFilter(), "some name identificator");
+//			PrismAsserts.assertEqualsFilter(query.getFilter(), ConnectorType.F_CONNECTOR_TYPE, DOMUtil.XSD_STRING,
+//					new ItemPath(ConnectorType.F_CONNECTOR_TYPE));
+//			PrismAsserts.assertEqualsFilterValue((EqualsFilter) filter, "org.identityconnectors.ldap.LdapConnector");
 
 			QueryType convertedQueryType = toQueryType(query);
 			displayQueryType(convertedQueryType);
