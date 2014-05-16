@@ -66,6 +66,8 @@ public class SystemConfigurationDto implements Serializable {
 
         if(config.getNotificationConfiguration() != null){
             notificationConfig = new NotificationConfigurationDto(config.getNotificationConfiguration());
+        } else {
+            notificationConfig = new NotificationConfigurationDto();
         }
     }
 

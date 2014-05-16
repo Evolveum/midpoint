@@ -26,7 +26,6 @@ import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MailTransportSecurityType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
@@ -101,6 +100,7 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
         TextField<Integer> portField = new TextField<Integer>(ID_PORT, new PropertyModel<Integer>(getModel(), "notificationConfig.port"));
         TextField<String> userNameField = new TextField<String>(ID_USERNAME, new PropertyModel<String>(getModel(), "notificationConfig.username"));
         PasswordTextField passwordField = new PasswordTextField(ID_PASSWORD, new PropertyModel<String>(getModel(), "notificationConfig.password"));
+        passwordField.setRequired(false);
         TextField<String> redirectToFileField = new TextField<String>(ID_REDIRECT_TO_FILE, new PropertyModel<String>(getModel(), "notificationConfig.redirectToFile"));
 
         IModel choices = WebMiscUtil.createReadonlyModelFromEnum(MailTransportSecurityType.class);

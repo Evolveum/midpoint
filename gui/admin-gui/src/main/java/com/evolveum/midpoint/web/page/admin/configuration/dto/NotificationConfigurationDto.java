@@ -31,15 +31,6 @@ import java.io.Serializable;
  * */
 public class NotificationConfigurationDto implements Serializable{
 
-//    public static final String F_DEFAULT_FROM = "defaultFrom";
-//    public static final String F_DEBUG = "debug";
-//    public static final String F_REDIRECT_TO_FILE = "redirectToFile";
-//    public static final String F_HOST = "host";
-//    public static final String F_PORT = "port";
-//    public static final String F_USERNAME = "username";
-//    public static final String F_PASSWORD = "password";
-//    public static final String F_MAILTST = "mailTransportSecurityType";
-
     private String defaultFrom;
     private boolean debug;
     private String redirectToFile;
@@ -48,6 +39,8 @@ public class NotificationConfigurationDto implements Serializable{
     private String username;
     private String password;
     private MailTransportSecurityType mailTransportSecurityType;
+
+    public NotificationConfigurationDto(){}
 
     public NotificationConfigurationDto(NotificationConfigurationType config){
 
@@ -68,6 +61,15 @@ public class NotificationConfigurationDto implements Serializable{
                 mailTransportSecurityType = serverConfig.getTransportSecurity();
             }
         }
+    }
+
+    public boolean isConfigured(){
+        if(defaultFrom == null && redirectToFile == null && host == null
+                && port == null && username == null && password == null && mailTransportSecurityType == null){
+            return false;
+        }
+
+        return true;
     }
 
     public String getDefaultFrom() {
