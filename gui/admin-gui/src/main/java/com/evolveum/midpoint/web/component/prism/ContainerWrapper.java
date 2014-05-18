@@ -210,7 +210,18 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
                 properties.add(new PropertyWrapper(this, temp, ValueStatus.NOT_CHANGED));
             }
 
-        } else {            // if not an assignment
+        }  else if (isShadowAssociation()){
+        	if (object.getAssociations() != null){
+        		for (PrismProperty property : object.getAssociations()){
+        			//TODO: fix this -> for now, read only is supported..
+        			PropertyWrapper propertyWrapper = new PropertyWrapper(this, property, ValueStatus.NOT_CHANGED);
+        			propertyWrapper.setReadonly(true);
+                	properties.add(propertyWrapper);
+        		}
+        	}
+        	
+                	
+       } else {            // if not an assignment
 
             if (container.getValues().size() == 1 ||
                     (container.getValues().isEmpty() && (container.getDefinition() == null || container.getDefinition().isSingleValue()))) {
@@ -231,6 +242,10 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
                     if (isShadowActivation() && !hasCapability(def)) {
                         continue;
                     }
+                    
+                    if (isShadowAssociation()){
+                    	continue;
+                    }
 
                     PrismProperty property = container.findProperty(def.getName());
                     if (property == null) {
@@ -238,8 +253,10 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
                     } else {
                         properties.add(new PropertyWrapper(this, property, ValueStatus.NOT_CHANGED));
                     }
+                    
+                   
                 }
-            }
+            } 
         }
 
         Collections.sort(properties, new ItemWrapperComparator());
@@ -249,7 +266,19 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         return properties;
     }
 
-    private boolean isShadowActivation() {
+    private boolean isShadowAssociation() {
+    	 if (!ShadowType.class.isAssignableFrom(getObject().getObject().getCompileTimeClass())) {
+             return false;
+         }
+
+         if (!ShadowType.F_ASSOCIATION.equals(container.getElementName())) {
+             return false;
+         }
+
+         return true;
+	}
+
+	private boolean isShadowActivation() {
         if (!ShadowType.class.isAssignableFrom(getObject().getObject().getCompileTimeClass())) {
             return false;
         }
