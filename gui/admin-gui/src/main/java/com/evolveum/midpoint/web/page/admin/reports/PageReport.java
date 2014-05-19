@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ResourceItemDto;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.reports.component.*;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
@@ -51,6 +53,7 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.string.StringValue;
 
@@ -84,6 +87,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
     private static final String ID_SAVE_RUN_BUTTON = "runSave";
     private static final String ID_SAVE_BUTTON = "save";
     private static final String ID_CANCEL_BUTTON = "cancel";
+    private static final String ID_ACE_EDITOR = "aceEditor";
 
     private LoadableModel<ReportDto> model;
 
@@ -137,54 +141,57 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        List<ITab> tabs = new ArrayList<ITab>();
-        tabs.add(new AbstractTab(createStringResource("pageReport.tab.panelConfig")) {
+        AceEditor editor = new AceEditor(ID_ACE_EDITOR, new PropertyModel<String>(model, ReportDto.F_XML));
+        mainForm.add(editor);
 
-            @Override
-            public WebMarkupContainer getPanel(String panelId) {
-                return new ReportConfigurationPanel(panelId, model);
-            }
-        });
-
-        tabs.add(new AbstractTab(createStringResource("pageReport.tab.aceEditor")) {
-
-            @Override
-            public WebMarkupContainer getPanel(String panelId) {
-                return initAceEditorPanel(panelId);
-            }
-        });
-
-        mainForm.add(new TabbedPanel(ID_TAB_PANEL, tabs));
+//        List<ITab> tabs = new ArrayList<ITab>();
+//        tabs.add(new AbstractTab(createStringResource("pageReport.tab.panelConfig")) {
+//
+//            @Override
+//            public WebMarkupContainer getPanel(String panelId) {
+//                return new ReportConfigurationPanel(panelId, model);
+//            }
+//        });
+//
+//        tabs.add(new AbstractTab(createStringResource("pageReport.tab.aceEditor")) {
+//
+//            @Override
+//            public WebMarkupContainer getPanel(String panelId) {
+//                return initAceEditorPanel(panelId);
+//            }
+//        });
+//
+//        mainForm.add(new TabbedPanel(ID_TAB_PANEL, tabs));
 
         initButtons(mainForm);
     }
 
     private void initButtons(Form mainForm) {
-        AjaxSubmitButton saveAndRun = new AjaxSubmitButton(ID_SAVE_RUN_BUTTON, createStringResource("PageBase.button.saveAndRun")) {
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
-            }
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                onSaveAndRunPerformed(target);
-            }
-        };
-        saveAndRun.add(new VisibleEnableBehaviour(){
-
-            @Override
-            public boolean isVisible() {
-                if(model.getObject().isParent()){
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-
-        });
-        mainForm.add(saveAndRun);
+//        AjaxSubmitButton saveAndRun = new AjaxSubmitButton(ID_SAVE_RUN_BUTTON, createStringResource("PageBase.button.saveAndRun")) {
+//
+//            @Override
+//            protected void onError(AjaxRequestTarget target, Form<?> form) {
+//                target.add(getFeedbackPanel());
+//            }
+//
+//            @Override
+//            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+//                onSaveAndRunPerformed(target);
+//            }
+//        };
+//        saveAndRun.add(new VisibleEnableBehaviour() {
+//
+//            @Override
+//            public boolean isVisible() {
+//                if (model.getObject().isParent()) {
+//                    return true;
+//                } else {
+//                    return false;
+//                }
+//            }
+//
+//        });
+//        mainForm.add(saveAndRun);
 
         AjaxSubmitButton save = new AjaxSubmitButton(ID_SAVE_BUTTON, createStringResource("PageBase.button.save")) {
 
@@ -233,7 +240,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
     }
 
     private List<ResourceItemDto> loadResources() {
-        List<ResourceItemDto> resources = new ArrayList<ResourceItemDto>();
+        List<ResourceItemDto> resources = new ArrayList<>();
 
         OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCES);
         try {
@@ -298,7 +305,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
         } catch (Exception e) {
             result.recordFatalError("Couldn't save report.", e);
         }
-        result.recomputeStatus();
+        result.computeStatusIfUnknown();
 
         showResult(result);
         target.add(getFeedbackPanel());

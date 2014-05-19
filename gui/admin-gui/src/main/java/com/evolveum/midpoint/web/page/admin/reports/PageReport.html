@@ -18,13 +18,21 @@
 <body>
 <wicket:extend>
 
-    <div class="alert alert-warning"><wicket:message key="pageReport.message.editWarning" /></div>
-
     <form wicket:id="mainForm" class="form-horizontal">
-        <div wicket:id="tabPanel" class="tabbable" />
+        <wicket:remove>
+            <!--<div wicket:id="tabPanel" class="tabbable" />-->
+        </wicket:remove>
+
+        <div class="form-group">
+            <div class="col-lg-12">
+                <textarea wicket:id="aceEditor"></textarea>
+            </div>
+        </div>
 
         <div class="main-button-bar">
-            <a class="btn btn-primary" wicket:id="runSave"/>
+            <wicket:remove>
+                <!--<a class="btn btn-primary" wicket:id="runSave"/>-->
+            </wicket:remove>
             <a class="btn btn-info" wicket:id="save" />
             <a class="btn btn-danger" wicket:id="cancel" />
         </div>
