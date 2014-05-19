@@ -115,7 +115,11 @@ public class ValuePolicyGenerator {
 		}
 		
 		if (maxLen == 0){
-			maxLen = defaultLength;
+			if (minLen > defaultLength){
+				maxLen = minLen;
+			} else { 
+				maxLen = defaultLength;
+			}
 		}
 
 		// Initialize generator
