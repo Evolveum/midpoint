@@ -48,7 +48,14 @@ public class NotificationConfigurationDto implements Serializable{
             MailConfigurationType mailConfig = config.getMail();
 
             defaultFrom = mailConfig.getDefaultFrom();
-            debug = mailConfig.isDebug();
+
+            if(mailConfig.isDebug() != null){
+                debug = mailConfig.isDebug();
+            } else {
+                debug = false;
+            }
+
+
             redirectToFile = mailConfig.getRedirectToFile();
 
             if(!mailConfig.getServer().isEmpty() && mailConfig.getServer().get(0) != null){
