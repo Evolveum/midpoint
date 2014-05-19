@@ -243,11 +243,6 @@ public class FocusProcessor {
 		        if (consistencyChecks) context.checkConsistence();
 				
 				
-		        // PASSWORD POLICY
-				
-		        passwordPolicyProcessor.processPasswordPolicy(focusContext, context, result);
-				
-				
 		        // ACTIVATION
 		        
 		        processActivation(context, now, result);
@@ -273,6 +268,10 @@ public class FocusProcessor {
 		        objectTemplateProcessor.processTemplate(context, ObjectTemplateMappingEvaluationPhaseType.AFTER_ASSIGNMENTS,
 		        		now, task, result);
 		        context.recompute();
+		        
+		        // PASSWORD POLICY
+				
+		        passwordPolicyProcessor.processPasswordPolicy(focusContext, context, result);
 		        
 		        
 		        // Processing done, check for success
