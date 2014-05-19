@@ -830,6 +830,8 @@ ADD CONSTRAINT fk_node
 FOREIGN KEY (oid)
 REFERENCES m_object (oid);
 
+CREATE INDEX iObjectCreateTimestamp ON m_object (createTimestamp);
+
 CREATE INDEX iObjectTypeClass ON m_object (objectTypeClass);
 
 CREATE INDEX iObjectNameOrig ON m_object (name_orig);
