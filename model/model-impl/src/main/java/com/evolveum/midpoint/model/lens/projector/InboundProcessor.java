@@ -557,20 +557,8 @@ public class InboundProcessor {
         if (inboundMappingTypes == null || inboundMappingTypes.isEmpty() || newUser == null || !accContext.isFullShadow()) {
             return;
         }
-
-        ObjectDelta<F> userSecondaryDelta = context.getFocusContext().getProjectionWaveSecondaryDelta();
-        if (userSecondaryDelta != null) {
-	        PropertyDelta<?> delta = userSecondaryDelta.findPropertyDelta(sourcePath);
-	        if (delta != null) {
-	            //remove delta if exists, it will be handled by inbound
-	            userSecondaryDelta.getModifications().remove(delta);
-	        }
-        }
-//        
+        
         // TODO: fix multiple inbounds
-//        Collection<Mapping> mappings = getMappingApplicableToChannel(inboundMappingTypes, "inbound mapping for "+sourcePath+" in "+accContext.getResource(), context.getChannel());
-//        Mapping<PrismPropertyValue<?>> mapping = mappingFactory.createMapping(inboundMappingTypes.iterator().next(), 
-//        		"inbound mapping for "+sourcePath+" in "+accContext.getResource());
         
         int strongMappings = 0;
         final PrismProperty<?> property = newUser.findOrCreateProperty(sourcePath);
@@ -584,19 +572,7 @@ public class InboundProcessor {
         		return;
         	}
         }
-//        if (mappings.size() > 1){
-//        	// for password mapping, it should exists only one strong mapping..in other case we cannot reliable compute the value for the password
-//        	for (Mapping mapping : mappings){
-//        		if (mapping.getStrength() == MappingStrengthType.STRONG){
-//        			strongMappings++;
-//        		}
-//        		
-//        	}
-//        	
-//        	if (strongMappings > 1){
-//        		throw new IllegalStateException("Found more than one STRONG mapping for the "+ sourcePath +". Could not evaluate value, there should exist only one strong mapping for the channel.");
-//        	}
-//        }
+
         
         MappingInitializer initializer = new MappingInitializer() {
 			@Override
@@ -648,84 +624,19 @@ public class InboundProcessor {
         PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> outputTriple = mappingEvaluatorHelper.evaluateMappingSetProjection(
                 inboundMappingTypes, "inbound mapping for " + sourcePath + " in " + accContext.getResource(), now, initializer, property, primaryPropDelta, newUser, true, strongMappingWasUsed, context, accContext, task, opResult);
 		
-//        for (Mapping mapping : mappings){
-//        
-//        if (!mapping.isApplicableToChannel(context.getChannel())) {
-//        	return;
-//        }
-//        
-//        PrismProperty<?> property = newUser.findOrCreateProperty(sourcePath);
-//        if (mapping.getStrength() == MappingStrengthType.WEAK && !property.isEmpty()) {
-//            //inbound will be constructed only if initial == false or initial == true and value doesn't exist
-//            continue;
-//        }
-        
-       
 
-//        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getProjectionWaveSecondaryDelta();
-//        if (userSecondaryDelta != null) {
-//	        PropertyDelta<?> delta = userSecondaryDelta.findPropertyDelta(sourcePath);
-//	        if (delta != null) {
-//	            //remove delta if exists, it will be handled by inbound
-//	            userSecondaryDelta.getModifications().remove(delta);
-//	        }
-//        }
-
-//        if (accContext.getObjectNew() == null) {
-//            accContext.recompute();
-//            if (accContext.getObjectNew() == null) {
-//                // Still null? something must be really wrong here.
-//                String message = "Recomputing account " + accContext.getResourceShadowDiscriminator()
-//                        + " results in null new account. Something must be really broken.";
-//                LOGGER.error(message);
-//                if (LOGGER.isTraceEnabled()) {
-//                    LOGGER.trace("Account context:\n{}", accContext.dump());
-//                }
-//                throw new SystemException(message);
-//            }
-//        }
-//        
-//        ObjectDelta<ShadowType> aPrioriDelta = getAPrioriDelta(context, accContext);
-//        ItemDelta<PrismPropertyValue<?>> specialAttributeDelta = null;
-//        if (aPrioriDelta != null){
-//        	specialAttributeDelta = (ItemDelta<PrismPropertyValue<?>>) aPrioriDelta.findItemDelta(sourcePath);
-//        }
-//        ItemDeltaItem<PrismPropertyValue<?>> sourceIdi = accContext.getObjectDeltaObject().findIdi(sourcePath);
-//        if (specialAttributeDelta == null){
-//        	specialAttributeDelta = sourceIdi.getDelta();
-//        }
-//        Source<PrismPropertyValue<?>> source = new Source<PrismPropertyValue<?>>(sourceIdi.getItemOld(), specialAttributeDelta, 
-//        		sourceIdi.getItemOld(), ExpressionConstants.VAR_INPUT);
-//		mapping.setDefaultSource(source);
-//		
-//    	mapping.setDefaultTargetDefinition(property.getDefinition());
-//    	
-//    	mapping.addVariableDefinition(ExpressionConstants.VAR_USER, newUser);
-//    	mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, newUser);
-//    	
-//    	PrismObject<ShadowType> accountNew = accContext.getObjectNew();
-//    	mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew);
-//    	mapping.addVariableDefinition(ExpressionConstants.VAR_SHADOW, accountNew);
-//    	mapping.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, accContext.getResource());
-//    	
-//    	mapping.setStringPolicyResolver(createStringPolicyResolver(context));
-//    	mapping.setOriginType(OriginType.INBOUND);
-//    	mapping.setOriginObject(accContext.getResource());
-//    	
-//        PrismProperty result;
-//        try {
-//        	LensUtil.evaluateMapping(mapping, context, opResult);
-//            result = (PrismProperty) mapping.getOutput();
-//        } catch (SchemaException ex) {
-//            throw ex;
-//        } catch (Exception ex) {
-//            throw new SchemaException(ex.getMessage(), ex);
-//        }
-        
-//         result = null;
         if (outputTriple == null){
         	LOGGER.trace("Mapping for property {} evaluated to null. Skipping inboud processing for that property.", sourcePath);
         	return;
+        }
+        
+        ObjectDelta<F> userSecondaryDelta = context.getFocusContext().getProjectionWaveSecondaryDelta();
+        if (userSecondaryDelta != null) {
+	        PropertyDelta<?> delta = userSecondaryDelta.findPropertyDelta(sourcePath);
+	        if (delta != null) {
+	            //remove delta if exists, it will be handled by inbound
+	            userSecondaryDelta.getModifications().remove(delta);
+	        }
         }
         
         PrismProperty result = property.getDefinition().instantiate();
@@ -736,7 +647,6 @@ public class InboundProcessor {
         	delta.setParentPath(sourcePath.allExceptLast());
         	context.getFocusContext().swallowToProjectionWaveSecondaryDelta(delta);
         }
-//        }
     }
     
     private Collection<Mapping> getMappingApplicableToChannel(
