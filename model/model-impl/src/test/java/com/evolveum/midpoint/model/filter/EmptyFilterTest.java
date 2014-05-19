@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.filter;
 
 import static org.testng.AssertJUnit.assertEquals;
 
+import com.evolveum.midpoint.model.impl.filter.EmptyFilter;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 
 import org.testng.AssertJUnit;

@@ -17,13 +17,14 @@ package com.evolveum.midpoint.model.sync;
 
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertNotNull;
+
 import org.testng.annotations.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
-import com.evolveum.midpoint.model.sync.Action;
-import com.evolveum.midpoint.model.sync.ActionManager;
+import com.evolveum.midpoint.model.impl.sync.Action;
+import com.evolveum.midpoint.model.impl.sync.ActionManager;
 
 /**
  * 

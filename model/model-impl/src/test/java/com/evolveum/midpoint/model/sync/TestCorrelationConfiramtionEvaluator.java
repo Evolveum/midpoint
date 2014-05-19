@@ -32,6 +32,7 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.AbstractInternalModelIntegrationTest;
+import com.evolveum.midpoint.model.impl.sync.CorrelationConfirmationEvaluator;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;

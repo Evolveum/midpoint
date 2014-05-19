@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.controller;
 
+import com.evolveum.midpoint.model.impl.controller.ModelController;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;

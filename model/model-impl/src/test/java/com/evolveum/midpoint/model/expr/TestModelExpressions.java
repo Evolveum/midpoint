@@ -41,7 +41,7 @@ import com.evolveum.midpoint.model.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
-import com.evolveum.midpoint.model.controller.ModelController;
+import com.evolveum.midpoint.model.impl.controller.ModelController;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;

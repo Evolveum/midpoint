@@ -26,7 +26,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
-import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;

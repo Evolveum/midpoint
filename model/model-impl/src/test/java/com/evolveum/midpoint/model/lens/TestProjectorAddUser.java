@@ -16,9 +16,9 @@
 package com.evolveum.midpoint.model.lens;
 
 import com.evolveum.midpoint.model.AbstractInternalModelIntegrationTest;
-import com.evolveum.midpoint.model.lens.LensContext;
-import com.evolveum.midpoint.model.lens.LensFocusContext;
-import com.evolveum.midpoint.model.lens.projector.Projector;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;

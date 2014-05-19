@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.sync;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 
-import com.evolveum.midpoint.model.sync.SynchronizationSituation;
+import com.evolveum.midpoint.model.impl.sync.SynchronizationSituation;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 

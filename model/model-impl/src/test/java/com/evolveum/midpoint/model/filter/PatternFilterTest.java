@@ -16,8 +16,10 @@
 package com.evolveum.midpoint.model.filter;
 
 import com.evolveum.midpoint.common.filter.Filter;
+import com.evolveum.midpoint.model.impl.filter.PatternFilter;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.util.DOMUtil;
+
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -27,7 +29,7 @@ import org.w3c.dom.Element;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.evolveum.midpoint.model.filter.PatternFilter.*;
+import static com.evolveum.midpoint.model.impl.filter.PatternFilter.*;
 
 /**
  * @author lazyman

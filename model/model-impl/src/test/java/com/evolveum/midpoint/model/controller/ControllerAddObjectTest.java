@@ -41,8 +41,8 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.model.ModelCrudService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.impl.ModelCrudService;
 import com.evolveum.midpoint.model.util.ModelTUtil;
 import com.evolveum.midpoint.model.util.ObjectTypeNameMatcher;
 import com.evolveum.midpoint.prism.PrismObject;

@@ -39,7 +39,7 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.AbstractInternalModelIntegrationTest;
-import com.evolveum.midpoint.model.lens.projector.Projector;
+import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.task.api.TaskManager;
 
 /**

@@ -25,7 +25,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
-import com.evolveum.midpoint.model.ModelCrudService;
+import com.evolveum.midpoint.model.impl.ModelCrudService;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;

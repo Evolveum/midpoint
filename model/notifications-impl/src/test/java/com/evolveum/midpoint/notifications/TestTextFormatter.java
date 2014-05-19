@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.notifications;
 
-import com.evolveum.midpoint.notifications.formatters.TextFormatter;
+import com.evolveum.midpoint.notifications.impl.formatters.TextFormatter;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
