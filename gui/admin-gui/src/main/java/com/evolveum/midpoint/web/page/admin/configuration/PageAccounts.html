@@ -74,14 +74,19 @@
             <div wicket:id="accounts"/>
         </div>
 
-        <!-- todo remove-->
-        <div style="background-color: #fcc;">
-            <a wicket:id="clearExport">Clear export folder</a>
-            <div wicket:id="filesContainer" style="margin-bottom: 15px; margin-top: 10px;">
-                <span wicket:id="files">
-                    <a style="margin: 3px;" wicket:id="file"><span wicket:id="fileName"/></a>
-                </span>
-            </div>
+        <wicket:remove>
+            <!-- todo improve this, it's just a left-over from old gui -->
+        </wicket:remove>
+
+        <hr/>
+        <div class="main-button-bar">
+            <a class="btn btn-primary" wicket:id="clearExport">
+                <wicket:message key="PageAccounts.button.clearExportFolder"/></a>
+        </div>
+        <div wicket:id="filesContainer" style="margin-bottom: 15px; margin-top: 10px;">
+            <span wicket:id="files">
+                <a style="margin: 3px;" wicket:id="file"><span wicket:id="fileName"/></a>
+            </span>
         </div>
     </form>
 </wicket:extend>
