@@ -60,7 +60,7 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
@@ -818,8 +818,8 @@ public class PrismAsserts {
 	
 	public static void assertEqualsFilter(ObjectFilter objectFilter, QName expectedFilterDef,
 			QName expectedTypeName, ItemPath path) {
-		assertEquals("Wrong filter class", EqualsFilter.class, objectFilter.getClass());
-		EqualsFilter filter = (EqualsFilter) objectFilter;
+		assertEquals("Wrong filter class", EqualFilter.class, objectFilter.getClass());
+		EqualFilter filter = (EqualFilter) objectFilter;
 		//we don't have definition in all situation..this is almost OK..it will be computed dynamicaly
 		if (filter.getDefinition() != null){
 			assertEquals("Wrong filter definition element name", expectedFilterDef, filter.getDefinition().getName());
@@ -828,7 +828,7 @@ public class PrismAsserts {
 		assertEquals("Wrong filter path", path, filter.getFullPath());
 	}
 	
-	public static <T> void assertEqualsFilterValue(EqualsFilter filter, T value) {
+	public static <T> void assertEqualsFilterValue(EqualFilter filter, T value) {
 		List<? extends PrismValue> values = filter.getValues();
 		assertEquals("Wrong number of filter values", 1, values.size());
 		assertEquals("Wrong filter value class", PrismPropertyValue.class, values.get(0).getClass());

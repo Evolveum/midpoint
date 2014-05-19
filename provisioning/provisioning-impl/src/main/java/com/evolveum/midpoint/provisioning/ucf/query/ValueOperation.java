@@ -29,7 +29,7 @@ import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
 
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.InFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
@@ -60,8 +60,8 @@ public class ValueOperation extends Operation {
 				String icfName = icfNameMapper.convertAttributeNameToIcf(propName, getInterpreter()
 						.getResourceSchemaNamespace());
 				
-				if (objectFilter instanceof EqualsFilter) {
-					EqualsFilter<T> eq = (EqualsFilter<T>) objectFilter;
+				if (objectFilter instanceof EqualFilter) {
+					EqualFilter<T> eq = (EqualFilter<T>) objectFilter;
 					
 					Collection<Object> convertedValues = new ArrayList<Object>();
 					for (PrismValue value : eq.getValues()) {

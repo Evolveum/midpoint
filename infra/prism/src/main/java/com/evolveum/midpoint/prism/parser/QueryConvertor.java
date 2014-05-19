@@ -46,7 +46,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.parser.util.XNodeProcessorUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -275,7 +275,7 @@ public class QueryConvertor {
 		return NotFilter.createNot(subfilter);
 	}
 	
-	private static <T,C extends Containerable> EqualsFilter<PrismPropertyDefinition<T>> parseEqualFilter(XNode xnode, PrismContainerDefinition<C> pcd, PrismContext prismContext) throws SchemaException{
+	private static <T,C extends Containerable> EqualFilter<PrismPropertyDefinition<T>> parseEqualFilter(XNode xnode, PrismContainerDefinition<C> pcd, PrismContext prismContext) throws SchemaException{
 		LOGGER.trace("Start to parse EQUALS filter");
 		MapXNode xmap = toMap(xnode);
 		ItemPath itemPath = getPath(xmap, prismContext);
@@ -302,7 +302,7 @@ public class QueryConvertor {
 		if (valueXnode != null) {
 			
 			Item item = parseItem(valueXnode, itemName, itemDefinition, prismContext);
-			return EqualsFilter.createEqual(itemPath, (PrismProperty) item, matchingRule);
+			return EqualFilter.createEqual(itemPath, (PrismProperty) item, matchingRule);
 			
 		} else {
 			Entry<QName,XNode> expressionEntry = xmap.getSingleEntryThatDoesNotMatch(
@@ -311,7 +311,7 @@ public class QueryConvertor {
                 ExpressionWrapper expressionWrapper = new ExpressionWrapper();
                 PrismPropertyValue expressionPropertyValue = prismContext.getXnodeProcessor().parsePrismPropertyFromGlobalXNodeValue(expressionEntry);
                 expressionWrapper.setExpression(expressionPropertyValue.getValue());
-                return EqualsFilter.createEqual(itemPath, (PrismPropertyDefinition) itemDefinition, matchingRule, expressionWrapper);
+                return EqualFilter.createEqual(itemPath, (PrismPropertyDefinition) itemDefinition, matchingRule, expressionWrapper);
 			} else {
                 throw new SchemaException("No expression nor value in filter");
             }
@@ -559,8 +559,8 @@ public class QueryConvertor {
 		if (filter instanceof NotFilter) {
 			return serializeNotFilter((NotFilter) filter, xnodeSerilizer);
 		}
-		if (filter instanceof EqualsFilter) {
-			return serializeEqualsFilter((EqualsFilter) filter, xnodeSerilizer);
+		if (filter instanceof EqualFilter) {
+			return serializeEqualsFilter((EqualFilter) filter, xnodeSerilizer);
 		}
 		if (filter instanceof RefFilter) {
 			return serializeRefFilter((RefFilter) filter, xnodeSerilizer);
@@ -609,7 +609,7 @@ public class QueryConvertor {
 		return map;
 	}
 
-	private static <T> MapXNode serializeEqualsFilter(EqualsFilter<T> filter, XNodeSerializer xnodeSerializer) throws SchemaException{
+	private static <T> MapXNode serializeEqualsFilter(EqualFilter<T> filter, XNodeSerializer xnodeSerializer) throws SchemaException{
 
 		MapXNode map = new MapXNode();
 		map.put(KEY_FILTER_EQUAL, serializeValueFilter(filter, xnodeSerializer));

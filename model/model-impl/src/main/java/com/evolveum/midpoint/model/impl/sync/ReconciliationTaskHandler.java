@@ -44,7 +44,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.GreaterFilter;
 import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
@@ -607,7 +607,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	}
 
 	private ObjectFilter createFailedOpFilter(FailedOperationTypeType failedOp) throws SchemaException{
-		return EqualsFilter.createEqual(ShadowType.F_FAILED_OPERATION_TYPE, ShadowType.class, prismContext, null, failedOp);
+		return EqualFilter.createEqual(ShadowType.F_FAILED_OPERATION_TYPE, ShadowType.class, prismContext, null, failedOp);
 	}
 	
 	private ObjectQuery createAccountSearchQuery(PrismObject<ResourceType> resource,

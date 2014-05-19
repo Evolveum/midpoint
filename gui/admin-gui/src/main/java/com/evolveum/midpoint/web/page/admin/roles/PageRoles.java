@@ -321,16 +321,16 @@ public class PageRoles extends PageAdminRoles {
             if(requestable == null){
                 query.setFilter(substring);
             } else {
-                EqualsFilter boolFilter = EqualsFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
+                EqualFilter boolFilter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
                         null, requestable);
 
                 if (requestable == true){
                     query.setFilter(AndFilter.createAnd(substring, boolFilter));
 
                 } else {
-                    boolFilter = EqualsFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
+                    boolFilter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
                             null, false);
-                    EqualsFilter nullFilter = EqualsFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
+                    EqualFilter nullFilter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
                             null, null);
                     OrFilter or = OrFilter.createOr(boolFilter, nullFilter);
                     query.setFilter(AndFilter.createAnd(substring, or));
@@ -342,16 +342,16 @@ public class PageRoles extends PageAdminRoles {
             if(requestable == null){
                 query.setFilter(null);
             } else {
-                EqualsFilter boolFilter = EqualsFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
+                EqualFilter boolFilter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
                         null, requestable);
 
                 if (requestable == true){
                     query.setFilter(boolFilter);
                 }
                 else {
-                    boolFilter = EqualsFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
+                    boolFilter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
                             null, false);
-                    EqualsFilter nullFilter = EqualsFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
+                    EqualFilter nullFilter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, getPrismContext(),
                             null, null);
 
                     OrFilter or = OrFilter.createOr(boolFilter, nullFilter);

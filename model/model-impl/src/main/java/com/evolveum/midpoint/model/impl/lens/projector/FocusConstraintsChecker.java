@@ -22,7 +22,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -107,7 +107,7 @@ public class FocusConstraintsChecker<F extends FocusType> {
 		String oid = objectNew.getOid();
 		
 		ObjectQuery query = ObjectQuery.createObjectQuery(
-				EqualsFilter.createEqual(propPath, property.clone()));
+				EqualFilter.createEqual(propPath, property.clone()));
 		
 		List<PrismObject<F>> foundObjects = repositoryService.searchObjects(objectNew.getCompileTimeClass(), query, null, result);
 		if (LOGGER.isTraceEnabled()) {

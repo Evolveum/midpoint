@@ -59,7 +59,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -411,8 +411,8 @@ public class ExpressionUtil {
                 // TODO: log more context
                 LOGGER.trace("Search filter expression in the rule for {} evaluated to {}.", new Object[] {
                         shortDesc, expressionResult });
-                if (filter instanceof EqualsFilter) {
-                    ((EqualsFilter) filter).setValue(expressionResult);
+                if (filter instanceof EqualFilter) {
+                    ((EqualFilter) filter).setValue(expressionResult);
                     pvfilter.setExpression(null);
                 }
                 if (LOGGER.isTraceEnabled()) {

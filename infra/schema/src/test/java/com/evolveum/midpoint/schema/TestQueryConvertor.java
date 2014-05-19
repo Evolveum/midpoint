@@ -38,7 +38,7 @@ import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -118,12 +118,12 @@ public class TestQueryConvertor {
 		ObjectFilter first = getFilterCondition(filter, 0);
 		PrismAsserts.assertEqualsFilter(first, ShadowType.F_FAILED_OPERATION_TYPE, FAILED_OPERATION_TYPE_QNAME,
 				new ItemPath(ShadowType.F_FAILED_OPERATION_TYPE));
-		PrismAsserts.assertEqualsFilterValue((EqualsFilter) first, FailedOperationTypeType.ADD);
+		PrismAsserts.assertEqualsFilterValue((EqualFilter) first, FailedOperationTypeType.ADD);
 
 		ObjectFilter second = getFilterCondition(filter, 1);
 		PrismAsserts.assertEqualsFilter(second, ShadowType.F_NAME, PolyStringType.COMPLEX_TYPE, new ItemPath(
 				ShadowType.F_NAME));
-		PrismAsserts.assertEqualsFilterValue((EqualsFilter) second, createPolyString("someName"));
+		PrismAsserts.assertEqualsFilterValue((EqualFilter) second, createPolyString("someName"));
 
 		QueryType convertedQueryType = toQueryType(query);
 		System.out.println("Re-converted query type");
@@ -135,8 +135,8 @@ public class TestQueryConvertor {
 		PrismAsserts.assertSubnode(xFilter, AndFilter.ELEMENT_NAME, MapXNode.class);
 		MapXNode xandmap = (MapXNode) xFilter.get(AndFilter.ELEMENT_NAME);
 		PrismAsserts.assertSize(xandmap, 1);
-		PrismAsserts.assertSubnode(xandmap, EqualsFilter.ELEMENT_NAME, ListXNode.class);
-		ListXNode xequalsList = (ListXNode) xandmap.get(EqualsFilter.ELEMENT_NAME);
+		PrismAsserts.assertSubnode(xandmap, EqualFilter.ELEMENT_NAME, ListXNode.class);
+		ListXNode xequalsList = (ListXNode) xandmap.get(EqualFilter.ELEMENT_NAME);
 		PrismAsserts.assertSize(xequalsList, 2);
 		
 		Element filterClauseElement = convertedFilterType.getFilterClause();
@@ -147,12 +147,12 @@ public class TestQueryConvertor {
 		DomAsserts.assertSubElements(filterClauseElement, 2);
 		
 		Element firstSubelement = DOMUtil.getChildElement(filterClauseElement, 0);
-		DomAsserts.assertElementQName(firstSubelement, EqualsFilter.ELEMENT_NAME);
+		DomAsserts.assertElementQName(firstSubelement, EqualFilter.ELEMENT_NAME);
 		Element firstValueElement = DOMUtil.getChildElement(firstSubelement, PrismConstants.Q_VALUE);
 		DomAsserts.assertTextContent(firstValueElement, "add");
 		
 		Element secondSubelement = DOMUtil.getChildElement(filterClauseElement, 1);
-		DomAsserts.assertElementQName(secondSubelement, EqualsFilter.ELEMENT_NAME);
+		DomAsserts.assertElementQName(secondSubelement, EqualFilter.ELEMENT_NAME);
 		Element secondValueElement = DOMUtil.getChildElement(secondSubelement, PrismConstants.Q_VALUE);
 		DomAsserts.assertTextContent(secondValueElement, "someName");
 	}
@@ -178,7 +178,7 @@ public class TestQueryConvertor {
 		ObjectFilter second = getFilterCondition(filter, 1);
 		PrismAsserts.assertEqualsFilter(second, ICF_NAME, DOMUtil.XSD_STRING, new ItemPath(ShadowType.F_ATTRIBUTES,
 				ICF_NAME));
-		PrismAsserts.assertEqualsFilterValue((EqualsFilter) second, "uid=jbond,ou=People,dc=example,dc=com");
+		PrismAsserts.assertEqualsFilterValue((EqualFilter) second, "uid=jbond,ou=People,dc=example,dc=com");
 
 		QueryType convertedQueryType = toQueryType(query);
 		LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClause()));
@@ -201,17 +201,17 @@ public class TestQueryConvertor {
 
 		ObjectFilter first = getFilterCondition(filter, 0);
 		PrismAsserts.assertEqualsFilter(first, ShadowType.F_INTENT, DOMUtil.XSD_STRING, new ItemPath(ShadowType.F_INTENT));
-		PrismAsserts.assertEqualsFilterValue((EqualsFilter) first, "some account type");
+		PrismAsserts.assertEqualsFilterValue((EqualFilter) first, "some account type");
 
 		ObjectFilter second = getFilterCondition(filter, 1);
 		PrismAsserts.assertEqualsFilter(second, fooBlaDefinition, DOMUtil.XSD_STRING, new ItemPath(
 				ShadowType.F_ATTRIBUTES, fooBlaDefinition));
-		PrismAsserts.assertEqualsFilterValue((EqualsFilter) second, "foo value");
+		PrismAsserts.assertEqualsFilterValue((EqualFilter) second, "foo value");
 
 		ObjectFilter third = getFilterCondition(filter, 2);
 		PrismAsserts.assertEqualsFilter(third, stringExtensionDefinition, DOMUtil.XSD_STRING, new ItemPath(
 				ShadowType.F_EXTENSION, stringExtensionDefinition));
-		PrismAsserts.assertEqualsFilterValue((EqualsFilter) third, "uid=test,dc=example,dc=com");
+		PrismAsserts.assertEqualsFilterValue((EqualFilter) third, "uid=test,dc=example,dc=com");
 
 		ObjectFilter forth = getFilterCondition(filter, 3);
 		PrismAsserts.assertRefFilter(forth, ShadowType.F_RESOURCE_REF, ObjectReferenceType.COMPLEX_TYPE, new ItemPath(
@@ -237,7 +237,7 @@ public class TestQueryConvertor {
 			ObjectFilter filter = query.getFilter();
 			PrismAsserts.assertEqualsFilter(query.getFilter(), ConnectorType.F_CONNECTOR_TYPE, DOMUtil.XSD_STRING,
 					new ItemPath(ConnectorType.F_CONNECTOR_TYPE));
-			PrismAsserts.assertEqualsFilterValue((EqualsFilter) filter, "org.identityconnectors.ldap.LdapConnector");
+			PrismAsserts.assertEqualsFilterValue((EqualFilter) filter, "org.identityconnectors.ldap.LdapConnector");
 
 			QueryType convertedQueryType = toQueryType(query);
 			displayQueryType(convertedQueryType);
@@ -271,7 +271,7 @@ public class TestQueryConvertor {
 			assertEquals(typeFilter.getType(), UserType.COMPLEX_TYPE);
 			assertNotNull("filter in type filter must not be null", typeFilter.getFilter());
 			PrismAsserts.assertEqualsFilter(typeFilter.getFilter(), UserType.COMPLEX_TYPE, DOMUtil.XSD_QNAME, new ItemPath(UserType.F_NAME));
-			PrismAsserts.assertEqualsFilterValue((EqualsFilter) typeFilter.getFilter(), "some name identificator");
+			PrismAsserts.assertEqualsFilterValue((EqualFilter) typeFilter.getFilter(), "some name identificator");
 //			PrismAsserts.assertEqualsFilter(query.getFilter(), ConnectorType.F_CONNECTOR_TYPE, DOMUtil.XSD_STRING,
 //					new ItemPath(ConnectorType.F_CONNECTOR_TYPE));
 //			PrismAsserts.assertEqualsFilterValue((EqualsFilter) filter, "org.identityconnectors.ldap.LdapConnector");
@@ -335,12 +335,12 @@ public class TestQueryConvertor {
 		ObjectFilter first = getFilterCondition(filter, 0);
 		PrismAsserts.assertEqualsFilter(first, GenericObjectType.F_NAME, PolyStringType.COMPLEX_TYPE, new ItemPath(
 				GenericObjectType.F_NAME));
-		PrismAsserts.assertEqualsFilterValue((EqualsFilter) first, createPolyString("generic object"));
+		PrismAsserts.assertEqualsFilterValue((EqualFilter) first, createPolyString("generic object"));
 		// check second condition
 		ObjectFilter second = getFilterCondition(filter, 1);
 		PrismAsserts.assertEqualsFilter(second, intExtensionDefinition, DOMUtil.XSD_INT, new ItemPath(
 				ObjectType.F_EXTENSION, new QName(NS_EXTENSION, "intType")));
-		PrismAsserts.assertEqualsFilterValue((EqualsFilter) second, 123);
+		PrismAsserts.assertEqualsFilterValue((EqualFilter) second, 123);
 
 		QueryType convertedQueryType = toQueryType(query);
 		assertNotNull("Re-serialized query is null ", convertedQueryType);

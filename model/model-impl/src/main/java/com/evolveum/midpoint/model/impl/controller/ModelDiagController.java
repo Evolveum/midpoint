@@ -31,7 +31,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -191,7 +191,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 				try {
 					
 					ObjectQuery query = new ObjectQuery();
-					ObjectFilter filter = EqualsFilter.createEqual(UserType.F_FULL_NAME, UserType.class, prismContext, null,
+					ObjectFilter filter = EqualFilter.createEqual(UserType.F_FULL_NAME, UserType.class, prismContext, null,
 							toPolyString(USER_FULL_NAME));
 					query.setFilter(filter);
 					subresult.addParam("query", query);
@@ -220,7 +220,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 				try {
 					
 					ObjectQuery query = new ObjectQuery();
-					ObjectFilter filter = EqualsFilter.createEqual(UserType.F_EMPLOYEE_TYPE, UserType.class, prismContext, null,
+					ObjectFilter filter = EqualFilter.createEqual(UserType.F_EMPLOYEE_TYPE, UserType.class, prismContext, null,
 							USER_EMPLOYEE_TYPE[0]);
 					query.setFilter(filter);
 					subresult.addParam("query", query);
@@ -249,7 +249,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 				try {
 					
 					ObjectQuery query = new ObjectQuery();
-					ObjectFilter filter = EqualsFilter.createEqual(UserType.F_ORGANIZATION, UserType.class, prismContext, null,
+					ObjectFilter filter = EqualFilter.createEqual(UserType.F_ORGANIZATION, UserType.class, prismContext, null,
 							toPolyString(USER_ORGANIZATION[1]));
 					query.setFilter(filter);
 					subresult.addParam("query", query);

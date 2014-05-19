@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringStrictMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
@@ -83,7 +83,7 @@ public class SearchTest extends BaseSQLRepoTest {
             }
         };
 
-        EqualsFilter filter = EqualsFilter.createEqual(UserType.F_NAME, UserType.class, prismContext, 
+        EqualFilter filter = EqualFilter.createEqual(UserType.F_NAME, UserType.class, prismContext, 
         		PolyStringStrictMatchingRule.NAME, new PolyString("asdf", "asdf"));
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
@@ -163,7 +163,7 @@ public class SearchTest extends BaseSQLRepoTest {
         final String nonExistingNameOrig = "test UserX00003";
         final String nameNorm = "test userx00003";
 
-        EqualsFilter filter = EqualsFilter.createEqual(UserType.F_FULL_NAME, UserType.class, prismContext, 
+        EqualFilter filter = EqualFilter.createEqual(UserType.F_FULL_NAME, UserType.class, prismContext, 
         		PolyStringOrigMatchingRule.NAME, new PolyString(existingNameOrig, nameNorm));
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
@@ -173,7 +173,7 @@ public class SearchTest extends BaseSQLRepoTest {
         AssertJUnit.assertTrue(result.isSuccess());
         AssertJUnit.assertEquals("Should find one user", 1, users.size());
 
-        filter = EqualsFilter.createEqual(UserType.F_FULL_NAME, UserType.class, prismContext,
+        filter = EqualFilter.createEqual(UserType.F_FULL_NAME, UserType.class, prismContext,
         		PolyStringOrigMatchingRule.NAME, new PolyString(nonExistingNameOrig, nameNorm));
         query = ObjectQuery.createObjectQuery(filter);
 

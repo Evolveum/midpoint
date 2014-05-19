@@ -24,7 +24,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.parser.DomParser;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.parser.XNodeProcessor;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ExpressionWrapper;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -436,8 +436,8 @@ public class TestParseResource {
             PrismContext prismContext = PrismTestUtil.getPrismContext();
 
 			ObjectFilter objectFilter = QueryConvertor.parseFilter(correlationFilterType.serializeToXNode(prismContext), prismContext);
-			PrismAsserts.assertAssignableFrom(EqualsFilter.class, objectFilter);
-			EqualsFilter equalsFilter = (EqualsFilter)objectFilter;
+			PrismAsserts.assertAssignableFrom(EqualFilter.class, objectFilter);
+			EqualFilter equalsFilter = (EqualFilter)objectFilter;
 			equalsFilter.getFullPath();
 			assertNull("Unexpected values in correlation expression", equalsFilter.getValues());
 			ExpressionWrapper expression = equalsFilter.getExpression();

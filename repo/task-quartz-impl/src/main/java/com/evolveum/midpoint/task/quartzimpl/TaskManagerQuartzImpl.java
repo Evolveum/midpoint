@@ -22,7 +22,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -1429,7 +1429,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
         ObjectFilter filter = null;
 //        try {
-            filter = EqualsFilter.createEqual(TaskType.F_TASK_IDENTIFIER, TaskType.class, prismContext, null, identifier);
+            filter = EqualFilter.createEqual(TaskType.F_TASK_IDENTIFIER, TaskType.class, prismContext, null, identifier);
 //        } catch (SchemaException e) {
 //            throw new SystemException("Cannot create filter for identifier value due to schema exception", e);
 //        }
@@ -1479,7 +1479,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         try {
             ObjectQuery obsoleteTasksQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(
                     LessFilter.createLess(TaskType.F_COMPLETION_TIMESTAMP, TaskType.class, getPrismContext(), timeXml, true),
-                    EqualsFilter.createEqual(TaskType.F_PARENT, TaskType.class, getPrismContext(), null)));
+                    EqualFilter.createEqual(TaskType.F_PARENT, TaskType.class, getPrismContext(), null)));
 
             obsoleteTasks = repositoryService.searchObjects(TaskType.class, obsoleteTasksQuery, null, result);
         } catch (SchemaException e) {
@@ -1607,9 +1607,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
         ObjectFilter filter, filter1 = null, filter2 = null;
 //        try {
-            filter1 = EqualsFilter.createEqual(TaskType.F_EXECUTION_STATUS, TaskType.class, prismContext, null, TaskExecutionStatusType.WAITING);
+            filter1 = EqualFilter.createEqual(TaskType.F_EXECUTION_STATUS, TaskType.class, prismContext, null, TaskExecutionStatusType.WAITING);
             if (reason != null) {
-                filter2 = EqualsFilter.createEqual(TaskType.F_WAITING_REASON, TaskType.class, prismContext, null, reason.toTaskType());
+                filter2 = EqualFilter.createEqual(TaskType.F_WAITING_REASON, TaskType.class, prismContext, null, reason.toTaskType());
             }
 //        } catch (SchemaException e) {
 //            throw new SystemException("Cannot create filter for listing waiting tasks due to schema exception", e);

@@ -25,7 +25,7 @@ import com.evolveum.midpoint.prism.parser.XPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -215,8 +215,8 @@ public class ProvisioningUtil {
 	public static <T> T getValueFromFilter(List<? extends ObjectFilter> conditions, QName propertyName) throws SchemaException{
 			ItemPath propertyPath = new ItemPath(propertyName);
 			for (ObjectFilter f : conditions){
-				if (f instanceof EqualsFilter && propertyPath.equals(((EqualsFilter) f).getFullPath())){
-					List<? extends PrismValue> values = ((EqualsFilter) f).getValues();
+				if (f instanceof EqualFilter && propertyPath.equals(((EqualFilter) f).getFullPath())){
+					List<? extends PrismValue> values = ((EqualFilter) f).getValues();
 					if (values.size() > 1){
 						throw new SchemaException("More than one "+propertyName+" defined in the search query.");
 					}
