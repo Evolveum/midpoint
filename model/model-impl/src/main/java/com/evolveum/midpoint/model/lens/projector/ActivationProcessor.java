@@ -242,7 +242,7 @@ public class ActivationProcessor {
     		return;
     	}
     	
-    	ResourceObjectTypeDefinitionType resourceAccountDefType = accCtx.getResourceAccountTypeDefinitionType();
+    	ResourceObjectTypeDefinitionType resourceAccountDefType = accCtx.getResourceObjectTypeDefinitionType();
         if (resourceAccountDefType == null) {
             LOGGER.trace("No refined object definition, therefore also no activation outbound definition, skipping activation processing for account " + accCtxDesc);
             return;
@@ -357,7 +357,7 @@ public class ActivationProcessor {
             return;
         }
     	    	
-    	ResourceObjectTypeDefinitionType resourceAccountDefType = accCtx.getResourceAccountTypeDefinitionType();
+    	ResourceObjectTypeDefinitionType resourceAccountDefType = accCtx.getResourceObjectTypeDefinitionType();
         if (resourceAccountDefType == null) {
             return;
         }
@@ -408,7 +408,7 @@ public class ActivationProcessor {
     		throw new IllegalStateException("Null 'legal' for "+accCtxDesc);
     	}
     	
-    	ResourceObjectTypeDefinitionType resourceAccountDefType = accCtx.getResourceAccountTypeDefinitionType();
+    	ResourceObjectTypeDefinitionType resourceAccountDefType = accCtx.getResourceObjectTypeDefinitionType();
         if (resourceAccountDefType == null) {
             return legal;
         }

@@ -479,8 +479,8 @@ public class TestParseResource {
 	    	assertFalse("Empty element list in definition element in schema (JAXB)", anyElements.isEmpty());
 			
 			assertNotNull("No schema handling (JAXB)", schemaHandling);
-			for(ResourceObjectTypeDefinitionType accountType: schemaHandling.getAccountType()) {
-				String name = accountType.getName();
+			for(ResourceObjectTypeDefinitionType accountType: schemaHandling.getObjectType()) {
+				String name = accountType.getIntent();
 				assertNotNull("Account type without a name", name);
 				assertNotNull("Account type "+name+" does not have an objectClass", accountType.getObjectClass());
 			}

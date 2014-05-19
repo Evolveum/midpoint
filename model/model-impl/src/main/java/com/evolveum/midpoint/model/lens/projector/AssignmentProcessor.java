@@ -708,9 +708,6 @@ public class AssignmentProcessor {
 
 	private String determineResource(AssignmentType assignmentType) {
 		ConstructionType construction = assignmentType.getConstruction();
-		if (construction == null) {
-			construction = assignmentType.getAccountConstruction();
-		}
 		if (construction != null){
 			if (construction.getResource() != null){
 				return construction.getResource().getOid();
@@ -726,9 +723,6 @@ public class AssignmentProcessor {
 	
 	private String determineIntent(AssignmentType assignmentType) {
 		ConstructionType construction = assignmentType.getConstruction();
-		if (construction == null) {
-			construction = assignmentType.getAccountConstruction();
-		}
 		if (construction != null){
 			if (construction.getIntent() != null){
 				return construction.getIntent();
@@ -742,9 +736,6 @@ public class AssignmentProcessor {
 	
 	private ShadowKindType determineKind(AssignmentType assignmentType) {
 		ConstructionType construction = assignmentType.getConstruction();
-		if (construction == null) {
-			construction = assignmentType.getAccountConstruction();
-		}
 		if (construction != null){
 			if (construction.getKind() != null){
 				return construction.getKind();

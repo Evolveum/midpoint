@@ -628,9 +628,6 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		if (synchronizationPolicy.isReconcile() != null) {
 			return synchronizationPolicy.isReconcile();
 		}
-		if (synchronizationPolicy.isReconcileAttributes() != null) {
-			return synchronizationPolicy.isReconcileAttributes();
-		}
 		return null;
 	}
 

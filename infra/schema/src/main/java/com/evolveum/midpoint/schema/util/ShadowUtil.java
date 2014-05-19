@@ -276,9 +276,6 @@ public class ShadowUtil {
 		if (intent != null) {
 			return intent;
 		}
-		if (shadow instanceof AccountShadowType) {
-			return ((AccountShadowType)shadow).getAccountType();
-		}
 		return null;
 	}
 	

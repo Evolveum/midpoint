@@ -448,7 +448,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		this.squeezedAssociations = squeezedAssociations;
 	}
 
-	public ResourceObjectTypeDefinitionType getResourceAccountTypeDefinitionType() {
+	public ResourceObjectTypeDefinitionType getResourceObjectTypeDefinitionType() {
 		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN) {
 			return null;
 		}
@@ -478,7 +478,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 	
 	public Collection<ResourceObjectTypeDependencyType> getDependencies() {
 		if (dependencies == null) {
-			ResourceObjectTypeDefinitionType resourceAccountTypeDefinitionType = getResourceAccountTypeDefinitionType();
+			ResourceObjectTypeDefinitionType resourceAccountTypeDefinitionType = getResourceObjectTypeDefinitionType();
 			if (resourceAccountTypeDefinitionType == null) {
 				// No dependencies. But we cannot set null as that means "unknown". So let's set empty collection instead.
 				dependencies = new ArrayList<ResourceObjectTypeDependencyType>();

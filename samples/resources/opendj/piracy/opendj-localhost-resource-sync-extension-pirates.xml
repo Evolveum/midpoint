@@ -95,7 +95,7 @@ This resource definition contains also definition to enable synchronization.
         <schemaHandling>
             <!-- Definition of default account type.
                  This is now the only account type that OpenIDM can work with. -->
-            <accountType>
+            <objectType>
                 <name>default</name>
                 <!-- Readable name for the account type -->
                 <displayName>Default Account</displayName>
@@ -433,7 +433,7 @@ This resource definition contains also definition to enable synchronization.
                         </target>
                     </inbound>
                 </attribute>
-            </accountType>
+            </objectType>
         </schemaHandling>
         <!--
             Synchronization section describes the synchronization policy, timing,

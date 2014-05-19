@@ -89,37 +89,7 @@ public class Migrator {
 	}
 
 	private PrismObject<ResourceType> migrateResource(PrismObject<ResourceType> orig) {
-		ResourceType origResourceType = orig.asObjectable();
-		SchemaHandlingType origSchemaHandling = origResourceType.getSchemaHandling();
-		if (origSchemaHandling == null) {
-			return orig;
-		}
-		if (origSchemaHandling.getAccountType().isEmpty()) {
-			return orig;
-		}
-		
-		PrismObject<ResourceType> migrated = orig.clone();
-		ResourceType migratedResourceType = migrated.asObjectable();
-		SchemaHandlingType migratedSchemaHandling = migratedResourceType.getSchemaHandling();
-		for (ResourceObjectTypeDefinitionType accountType: origSchemaHandling.getAccountType()) {
-			accountType.setKind(ShadowKindType.ACCOUNT);
-			String intent = accountType.getName();
-			if (intent != null) {
-				accountType.setIntent(intent);
-				accountType.setName(null);
-			}
-			migratedSchemaHandling.getObjectType().add(accountType);
-		}
-		migratedSchemaHandling.getAccountType().clear();
-		
-		SynchronizationType synchronization = migratedResourceType.getSynchronization();
-		if (synchronization != null) {
-			for (ObjectSynchronizationType objectSynchronization: synchronization.getObjectSynchronization()) {
-				migrateObjectSynchronization(objectSynchronization);
-			}
-		}
-		
-		return migrated;
+		return orig;
 	}
 	
 	private void migrateObjectSynchronization(ObjectSynchronizationType sync) {
@@ -157,70 +127,11 @@ public class Migrator {
 	}
 	
 	private PrismObject<FocusType> migrateFocus(PrismObject<FocusType> orig) {
-		FocusType origFocusType = orig.asObjectable();
-		List<AssignmentType> origAssignments = origFocusType.getAssignment();
-		if (origAssignments.isEmpty()) {
-			return orig;
-		}
-		boolean hasAccountConstruction = false;
-		for (AssignmentType origAssignment: origFocusType.getAssignment()) {
-			if (origAssignment.getAccountConstruction() != null) {
-				hasAccountConstruction = true;
-			}
-		}
-		
-		if (!hasAccountConstruction) {
-			return orig;
-		}
-		
-		PrismObject<FocusType> migrated = orig.clone();
-		FocusType migratedFocusType = migrated.asObjectable();
-		
-		for (AssignmentType migAssignment: migratedFocusType.getAssignment()) {
-			if (migAssignment.getAccountConstruction() != null) {
-				ConstructionType accountConstruction = migAssignment.getAccountConstruction();
-				accountConstruction.setKind(ShadowKindType.ACCOUNT);
-				migAssignment.setConstruction(accountConstruction);
-				migAssignment.setAccountConstruction(null);
-			}
-		}
-		
-		return migrated;
+		return orig;
 	}
 	
 	private PrismObject<UserType> migrateUser(PrismObject<UserType> orig) {
-		UserType origUserType = orig.asObjectable();
-		
-		PrismObject<UserType> migrated = orig.clone();
-
-		UserType migratedUserType = migrated.asObjectable();
-		
-		// Activation
-		ActivationType origActivation = origUserType.getActivation();
-		if ((origActivation == null || origActivation.isEnabled() == null) && 
-				(origUserType.getAccountRef().isEmpty())) {
-			return migrated;
-		}
-		
-		ActivationType activationType = migratedUserType.getActivation();
-		if (activationType.getAdministrativeStatus() == null) {
-			if (activationType.isEnabled()) {
-				activationType.setAdministrativeStatus(ActivationStatusType.ENABLED);
-			} else {
-				activationType.setAdministrativeStatus(ActivationStatusType.DISABLED);
-			}
-		}
-		activationType.setEnabled(null);
-		
-		// accountRef
-		for (ObjectReferenceType accountRef: migratedUserType.getAccountRef()) {
-			ObjectReferenceType linkRef = new ObjectReferenceType();
-			linkRef.setOid(accountRef.getOid());
-			migratedUserType.getLinkRef().add(linkRef);
-		}
-		migratedUserType.getAccountRef().clear();
-		
-		return migrated;
+		return orig;
 	}
 
 }

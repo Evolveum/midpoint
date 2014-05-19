@@ -229,7 +229,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		boolean isValid = LensUtil.isValid(assignmentType, now, activationComputer);
 		if (isValid || assignmentPathSegment.isValidityOverride()) {
 		
-			if (assignmentType.getAccountConstruction() != null || assignmentType.getConstruction() != null) {
+			if (assignmentType.getConstruction() != null) {
 				
 				if (evaluateConstructions && assignmentPathSegment.isEvaluateConstructions()) {
 					evaluateConstruction(evalAssignment, assignmentPathSegment, source, sourceDescription, 
@@ -269,12 +269,6 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		AssignmentType assignmentType = assignmentPathSegment.getAssignmentType();
 		ConstructionType constructionType = assignmentType.getConstruction();
-		if (constructionType == null) {
-			constructionType = assignmentType.getAccountConstruction();
-			if (constructionType.getKind() == null) {
-				constructionType.setKind(ShadowKindType.ACCOUNT);
-			}
-		}
 		
 		LOGGER.trace("Evaluate construction '{}' in {}", constructionType.getDescription(), source);
 

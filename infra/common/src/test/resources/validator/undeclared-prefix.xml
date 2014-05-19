@@ -32,11 +32,11 @@
 
         <schemaHandling>
 
-            <accountType default="true">
-                <name>Default Account</name>
+            <objectType>
+                <intent>Default Account</intent>
                 <i:objectClass>ri:Account</i:objectClass>
 
-            </accountType>
+            </objectType>
         </schemaHandling>
     </resource>
 </objects>

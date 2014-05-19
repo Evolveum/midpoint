@@ -349,8 +349,8 @@
             </definition>
         </schema>
 		<schemaHandling>
-			<accountType>
-				<name>default</name>
+			<objectType>
+				<intent>default</intent>
 				<displayName>Default Account</displayName>
 				<default>true</default>
 				<objectClass>ri:AccountObjectClass</objectClass>
@@ -486,7 +486,7 @@
                    </password>
                 </credentials>
                 <activation>
-                   <enabled>
+                   <administrativeStatus>
                        <outbound/>
                        <inbound>
                         <strength>weak</strength>
@@ -494,7 +494,7 @@
                                <asIs/>
                            </expression>
                        </inbound>
-                   </enabled>
+                   </administrativeStatus>
                 </activation>
 				<iteration>
 					<maxIterations>5</maxIterations>
@@ -502,7 +502,7 @@
 				<protected>
 		               <icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
 		           </protected>
-			</accountType>
+			</objectType>
 		</schemaHandling>
         <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
             <native>

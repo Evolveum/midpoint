@@ -488,7 +488,7 @@ public class ProjectionValuesProcessor {
 	
 
 	private boolean hasIterationExpression(LensProjectionContext accountContext) {
-		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
+		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceObjectTypeDefinitionType();
 		if (accDef == null) {
 			return false;
 		}
@@ -509,7 +509,7 @@ public class ProjectionValuesProcessor {
 	}
 
 	private int determineMaxIterations(LensProjectionContext accountContext) {
-		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
+		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceObjectTypeDefinitionType();
 		if (accDef != null) {
 			IterationSpecificationType iteration = accDef.getIteration();
 			return LensUtil.determineMaxIterations(iteration);
@@ -521,7 +521,7 @@ public class ProjectionValuesProcessor {
 	private <F extends ObjectType> String formatIterationToken(LensContext<F> context, 
 			LensProjectionContext accountContext, int iteration, Task task, OperationResult result) 
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
+		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceObjectTypeDefinitionType();
 		if (accDef == null) {
 			return LensUtil.formatIterationTokenDefault(iteration);
 		}
@@ -541,7 +541,7 @@ public class ProjectionValuesProcessor {
 			LensProjectionContext accountContext, int iteration, String iterationToken, 
 			boolean beforeIteration, Task task, OperationResult result) 
 					throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
-		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
+		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceObjectTypeDefinitionType();
 		if (accDef == null) {
 			return true;
 		}

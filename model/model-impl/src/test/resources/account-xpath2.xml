@@ -73,10 +73,10 @@
                     <access>create</access>
                     <access>read</access>
                     <outbound default="true" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-                        <valueExpression xmlns:custom="http://midpoint.evolveum.com/custom"><code>if (2 &lt; 1) then $i:user/i:givenName else $i:user/i:fullName</code></valueExpression>
+                        <valueExpression xmlns:custom="http://midpoint.evolveum.com/custom"><code>if (2 &lt; 1) then $i:user/i:givenName else $i:user/i:fullName</code></expression>
                     </outbound>
                 </attribute>
-            </accountType>
+            </objectType>
         </schemaHandling>
     </resource>
     <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:Account</objectClass>

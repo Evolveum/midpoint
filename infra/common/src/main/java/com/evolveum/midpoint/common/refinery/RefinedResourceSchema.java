@@ -271,10 +271,6 @@ public class RefinedResourceSchema extends PrismSchema implements DebugDumpable 
 		
 		if (hasAnyObjectTypeDef(schemaHandling)) {
 			
-			// Compatibility. Parsing DEPRECATED section
-			parseObjectTypeDefsFromSchemaHandling(rSchema, resourceType, schemaHandling, 
-					schemaHandling.getAccountType(), ShadowKindType.ACCOUNT, prismContext, "definition of "+resourceType);
-			
 			parseObjectTypeDefsFromSchemaHandling(rSchema, resourceType, schemaHandling, 
 					schemaHandling.getObjectType(), null, prismContext, "definition of "+resourceType);
 					
@@ -289,9 +285,6 @@ public class RefinedResourceSchema extends PrismSchema implements DebugDumpable 
 	private static boolean hasAnyObjectTypeDef(SchemaHandlingType schemaHandling) {
 		if (schemaHandling == null) {
 			return false;
-		}
-		if (!schemaHandling.getAccountType().isEmpty()) {
-			return true;
 		}
 		if (!schemaHandling.getObjectType().isEmpty()) {
 			return true;

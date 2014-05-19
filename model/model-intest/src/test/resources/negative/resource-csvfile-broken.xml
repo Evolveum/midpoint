@@ -77,9 +77,7 @@
 
             <!-- Definition of default account type.
                  This is now the only account type that midPoint can work with. -->
-			<accountType>
-				<name>default</name>
-
+			<objectType>
                 <!-- Readable name for the account type -->
 				<displayName>Default Account</displayName>
 				<default>true</default>
@@ -153,7 +151,7 @@
 					</password>
 				</credentials>
 
-			</accountType>
+			</objectType>
 		</schemaHandling>
 
 		<!-- Resource capabilities. It defines a simulated enableDisable capability. -->

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1597,11 +1597,11 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
     // TODO: maybe we should move them to a common utility class
 
-    private void assertAttribute(AccountShadowType repoShadow, ResourceType resource, String name, String value) {
+    private void assertAttribute(ShadowType repoShadow, ResourceType resource, String name, String value) {
         assertAttribute(repoShadow, new QName(ResourceTypeUtil.getResourceNamespace(resource), name), value);
     }
 
-    private void assertAttribute(AccountShadowType repoShadow, QName name, String value) {
+    private void assertAttribute(ShadowType repoShadow, QName name, String value) {
         boolean found = false;
         List<Object> xmlAttributes = repoShadow.getAttributes().getAny();
         for (Object element : xmlAttributes) {

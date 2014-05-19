@@ -7,7 +7,6 @@ import com.evolveum.midpoint.repo.sql.data.common.*;
  */
 public enum RObjectType {
 
-    ACCOUNT(RShadow.class),
     CONNECTOR(RConnector.class),
     CONNECTOR_HOST(RConnectorHost.class),
     GENERIC_OBJECT(RGenericObject.class),

@@ -59,7 +59,7 @@
 
         <schemaHandling>
 
-            <accountType>
+            <objectType>
                 <name>default</name>
                 <displayName>Default Account</displayName>
                 <default>true</default>
@@ -516,7 +516,7 @@ accounts feature
 			<!--<passwordPolicyRef oid="81818181-76e0-59e2-8888-3d4f02d3ffff" type="c:ValuePolicyType"/>-->
                     </password>
                 </credentials>
-            </accountType>
+            </objectType>
         </schemaHandling>
        <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
             <configured>

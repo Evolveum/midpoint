@@ -128,7 +128,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         context.checkConsistence();
         
         // WHEN
-        projector.sortAccountsToWaves(context);
+        projector.sortProjectionsToWaves(context);
         
         // THEN
         display("Context after", context);
@@ -158,7 +158,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         context.checkConsistence();
         
         // WHEN
-        projector.sortAccountsToWaves(context);
+        projector.sortProjectionsToWaves(context);
         
         // THEN
         display("Context after", context);
@@ -191,7 +191,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         context.checkConsistence();
         
         // WHEN
-        projector.sortAccountsToWaves(context);
+        projector.sortProjectionsToWaves(context);
         
         // THEN
         display("Context after", context);
@@ -224,7 +224,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         
         try {
 	        // WHEN
-	        projector.sortAccountsToWaves(context);
+	        projector.sortProjectionsToWaves(context);
 
 	        display("Context after", context);
 	        AssertJUnit.fail("Unexpected success");
@@ -254,7 +254,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         context.checkConsistence();
         
         // WHEN
-        projector.sortAccountsToWaves(context);
+        projector.sortProjectionsToWaves(context);
         
         // THEN
         display("Context after", context);
@@ -288,7 +288,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         context.checkConsistence();
         
         // WHEN
-        projector.sortAccountsToWaves(context);
+        projector.sortProjectionsToWaves(context);
         
         // THEN
         display("Context after", context);
@@ -320,7 +320,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         
         try {
 	        // WHEN
-	        projector.sortAccountsToWaves(context);
+	        projector.sortProjectionsToWaves(context);
 	        
 	        AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {
