@@ -34,6 +34,7 @@ import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -239,8 +240,9 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
              }
              else
              {
-            	 String reportTemplate = reportType.getTemplate().getContentAsString();
-            	 InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate.getBytes());
+            	 byte[] reportTemplateBase64 = reportType.getTemplate();
+            	 byte[] reportTemplate = Base64.decodeBase64(reportTemplateBase64);
+            	 InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate);
             	 jasperDesign = JRXmlLoader.load(inputStreamJRXML);
             	 LOGGER.trace("load jasper design : {}", jasperDesign);
              }

@@ -9353,8 +9353,13 @@
                 <xsd:sequence>
                     <xsd:element name="parent" type="xsd:boolean" default="true" minOccurs="0"/>
                     <xsd:element name="subreport" type="tns:SubreportType" minOccurs="0" maxOccurs="unbounded"/>
-                   	<xsd:element name="template" type="t:XmlAsStringType" minOccurs="0"/>
-                	<xsd:element name="templateStyle" type="t:XmlAsStringType" minOccurs="0"/>
+                    
+
+                    <xsd:element name="template" type="xsd:base64Binary" minOccurs="0" maxOccurs="1" />
+                    <xsd:element name="templateStyle" type="xsd:base64Binary" minOccurs="0" maxOccurs="1" />
+                       
+<!--                    	<xsd:element name="template" type="t:XmlAsStringType" minOccurs="0"/> -->
+<!--                 	<xsd:element name="templateStyle" type="t:XmlAsStringType" minOccurs="0"/> -->
                     <xsd:element name="orientation" type="tns:OrientationType" minOccurs="0">
     				    <xsd:annotation>
                             <xsd:documentation>
