@@ -390,7 +390,7 @@ public final class Utils {
     }
     
     public static ExpressionVariables getDefaultExpressionVariables(ObjectType focusType,
-    		ShadowType shadowType, ResourceType resourceType) {
+    		ShadowType shadowType, ResourceType resourceType, SystemConfigurationType configurationType) {
     	PrismObject<? extends ObjectType> focus = null;
     	if (focusType != null) {
     		focus = focusType.asPrismObject();
@@ -403,12 +403,24 @@ public final class Utils {
     	if (resourceType != null) {
     		resource = resourceType.asPrismObject();
     	}
-    	return getDefaultExpressionVariables(focus, shadow, null, resource);
+    	PrismObject<SystemConfigurationType> configuration = null;
+    	if (configurationType != null) {
+    		configuration = configurationType.asPrismObject();
+    	}
+		return getDefaultExpressionVariables(focus, shadow, null, resource, configuration);
     }
     
     public static ExpressionVariables getDefaultExpressionVariables(PrismObject<? extends ObjectType> focus,
-    		PrismObject<? extends ShadowType> shadow, ResourceShadowDiscriminator discr, PrismObject<ResourceType> resource) {
+    		PrismObject<? extends ShadowType> shadow, ResourceShadowDiscriminator discr, 
+    		PrismObject<ResourceType> resource, PrismObject<SystemConfigurationType> configuration) {
     	ExpressionVariables variables = new ExpressionVariables();
+    	addDefaultExpressionVariables(variables, focus, shadow, discr, resource, configuration);
+    	return variables;
+    }
+    
+    public static void addDefaultExpressionVariables(ExpressionVariables variables, PrismObject<? extends ObjectType> focus,
+    		PrismObject<? extends ShadowType> shadow, ResourceShadowDiscriminator discr, 
+    		PrismObject<ResourceType> resource, PrismObject<SystemConfigurationType> configuration) {
 
         // Legacy. And convenience/understandability.
         if (focus == null || (focus != null && focus.canRepresent(UserType.class))
@@ -420,8 +432,7 @@ public final class Utils {
         variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focus);
 		variables.addVariableDefinition(ExpressionConstants.VAR_SHADOW, shadow);
 		variables.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource);
-
-        return variables;
+		variables.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, configuration);
 	}
 
 	public static String getPolicyDesc(ObjectSynchronizationType synchronizationPolicy) {
@@ -432,5 +443,23 @@ public final class Utils {
 			return synchronizationPolicy.getName();
 		}
 		return synchronizationPolicy.toString();
+	}
+
+	public static PrismObject<SystemConfigurationType> getSystemConfiguration(RepositoryService repositoryService, OperationResult result) throws SchemaException {
+		PrismObject<SystemConfigurationType> systemConfiguration = null;
+		try {
+				systemConfiguration = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+						null, result);
+		} catch (ObjectNotFoundException e) {
+			// just go on ... we will return and continue
+			// This is needed e.g. to set up new system configuration is the old one gets deleted
+		}
+		if (systemConfiguration == null) {
+		    // throw new SystemException("System configuration object is null (should not happen!)");
+		    // This should not happen, but it happens in tests. And it is a convenient short cut. Tolerate it for now.
+		    LOGGER.warn("System configuration object is null (should not happen!)");
+		    return null;
+		}
+		return systemConfiguration;
 	}
 }

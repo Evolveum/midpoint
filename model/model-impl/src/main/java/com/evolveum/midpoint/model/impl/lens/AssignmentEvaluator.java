@@ -61,6 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 
 /**
@@ -81,6 +82,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	private ActivationComputer activationComputer;
 	XMLGregorianCalendar now;
 	private boolean evaluateConstructions = true;
+	private PrismObject<SystemConfigurationType> systemConfiguration;
 	
 	public RepositoryService getRepository() {
 		return repository;
@@ -160,6 +162,14 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 	public void setEvaluateConstructions(boolean evaluateConstructions) {
 		this.evaluateConstructions = evaluateConstructions;
+	}
+
+	public PrismObject<SystemConfigurationType> getSystemConfiguration() {
+		return systemConfiguration;
+	}
+
+	public void setSystemConfiguration(PrismObject<SystemConfigurationType> systemConfiguration) {
+		this.systemConfiguration = systemConfiguration;
 	}
 
 	public SimpleDelta<EvaluatedAssignment> evaluate(SimpleDelta<AssignmentType> assignmentTypeDelta, ObjectType source, String sourceDescription,
@@ -303,7 +313,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 
 		for (MappingType mappingType: mappingsType.getMapping()) {
 			Mapping mapping = LensUtil.createFocusMapping(mappingFactory, lensContext, mappingType, source, userOdo, 
-					assignmentPathVariables, now, sourceDescription, result);
+					assignmentPathVariables, systemConfiguration, now, sourceDescription, result);
 			if (mapping == null) {
 				continue;
 			}

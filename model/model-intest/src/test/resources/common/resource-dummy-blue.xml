@@ -180,6 +180,16 @@
 					</source>
 				</outbound>
 			</attribute>
+			<attribute>
+				<ref>ri:gossip</ref>
+				<tolerant>true</tolerant>
+				<outbound>
+					<strength>weak</strength>
+					<source>
+						<path>$configuration/name</path>
+					</source>
+				</outbound>
+			</attribute>
 			<iteration>
 				<maxIterations>5</maxIterations>
 			</iteration>

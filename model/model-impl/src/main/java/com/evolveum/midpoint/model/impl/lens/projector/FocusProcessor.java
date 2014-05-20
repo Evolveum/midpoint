@@ -206,7 +206,7 @@ public class FocusProcessor {
 		
 		while (true) {
 		
-			ExpressionVariables variables = Utils.getDefaultExpressionVariables(focusContext.getObjectNew(), null, null, null);
+			ExpressionVariables variables = Utils.getDefaultExpressionVariables(focusContext.getObjectNew(), null, null, null, context.getSystemConfiguration());
 			if (iterationToken == null) {
 				iterationToken = LensUtil.formatIterationToken(context, focusContext, 
 						iterationSpecificationType, iteration, expressionFactory, variables, task, result);

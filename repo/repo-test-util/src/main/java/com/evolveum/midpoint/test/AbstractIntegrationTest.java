@@ -373,10 +373,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected SystemConfigurationType getSystemConfiguration() throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".getSystemConfiguration");
-		PrismObject<SystemConfigurationType> sysConf = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);
-		result.computeStatus();
-		TestUtil.assertSuccess("getObject(systemConfig) not success", result);
-		return sysConf.asObjectable();
+		try {
+			PrismObject<SystemConfigurationType> sysConf = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, result);				
+			result.computeStatus();
+			TestUtil.assertSuccess("getObject(systemConfig) not success", result);
+			return sysConf.asObjectable();
+		} catch (ObjectNotFoundException e) {
+			// No big deal
+			return null;
+		}
 	}
 	
 	protected void assumeAssignmentPolicy(AssignmentPolicyEnforcementType policy) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {

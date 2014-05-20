@@ -962,7 +962,10 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assertNull("Unexpected account primary delta (blue)", accountPrimaryDelta);
 		
         accountSecondaryDelta = accContext.getSecondaryDelta();
-        assertNull("Unexpected account secondary delta (blue)", accountSecondaryDelta);
+        PrismAsserts.assertModifications(accountSecondaryDelta, 1);
+        PrismAsserts.assertPropertyAdd(accountSecondaryDelta, 
+				getAttributePath(resourceDummyBlue, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME),
+				"SystemConfiguration");
 		
 	}
 	
@@ -1150,7 +1153,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 
         accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNotNull("No account secondary delta (default)", accountSecondaryDelta);
-		PrismAsserts.assertModifications(accountSecondaryDelta, 5);
+		PrismAsserts.assertModifications(accountSecondaryDelta, 6);
 		PrismAsserts.assertNoItemDelta(accountSecondaryDelta, 
 				getAttributePath(resourceDummyBlue, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME));
 		
