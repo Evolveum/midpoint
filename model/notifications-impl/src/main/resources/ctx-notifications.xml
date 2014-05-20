@@ -24,7 +24,7 @@
        default-lazy-init="false" default-autowire="byName">
 
     <context:annotation-config/>
-    <context:component-scan base-package="com.evolveum.midpoint.notifications"/>
+    <context:component-scan base-package="com.evolveum.midpoint.notifications.impl"/>
     <context:spring-configured/>
 
 </beans>

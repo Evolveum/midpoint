@@ -475,13 +475,13 @@ object.
 	                <filter>
 	                <q:equal>
 	                    <q:path>.</q:path>
-	                    <valueExpression>
+	                    <expression>
 	                        <ref>name</ref>
 	
 	                        <code>
 	                            $c:account/c:attributes/ri:uid
 	                        </code>
-	                    </valueExpression>
+	                    </expression>
 	                </q:equal>
 	                </filter>
 	            </correlation>

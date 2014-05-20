@@ -25,12 +25,12 @@
 			i:fullName
 		</property>
 		<valueConstruction default="true">
-			<valueExpression>
+			<expression>
 				<code>
 					declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 					concat($i:user/i:givenName,' ',$i:user/i:familyName)
 				</code>
-			</valueExpression>			
+			</expression>			
 		</valueConstruction>
 	</propertyConstruction>
 	<propertyConstruction>
@@ -40,12 +40,12 @@
 			i:extension/e:mackoUsko
 		</property>
 		<valueConstruction default="true">
-			<valueExpression>
+			<expression>
 				<code>
 					declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 					concat($i:user/i:givenName,' ',$i:user/i:familyName)
 				</code>
-			</valueExpression>			
+			</expression>			
 		</valueConstruction>
 	</propertyConstruction>
 </object>

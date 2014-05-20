@@ -40,7 +40,6 @@ public final class ClassMapper {
     }
 
     static {
-        types.put(ObjectTypes.ACCOUNT, RObjectType.ACCOUNT);
         types.put(ObjectTypes.CONNECTOR, RObjectType.CONNECTOR);
         types.put(ObjectTypes.CONNECTOR_HOST, RObjectType.CONNECTOR_HOST);
         types.put(ObjectTypes.GENERIC_OBJECT, RObjectType.GENERIC_OBJECT);

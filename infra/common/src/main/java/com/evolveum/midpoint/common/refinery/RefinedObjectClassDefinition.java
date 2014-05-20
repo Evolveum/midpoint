@@ -374,10 +374,6 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     		kind = ShadowKindType.ACCOUNT;
     	}
     	String intent = entTypeDefType.getIntent();
-    	if (intent == null) {
-    		// Compatibility, DEPRECATED notation
-    		intent = entTypeDefType.getName();
-    	}
 		RefinedObjectClassDefinition rObjectClassDef = parseRefinedObjectClass(entTypeDefType, 
 				resourceType, rSchema, prismContext, kind, intent, kind.value(), kind.value() + " type definition '"+intent+"' in " + contextDescription);
 		return rObjectClassDef;
@@ -472,10 +468,10 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
             QName objectClass = schemaHandlingObjDefType.getObjectClass();
             objectClassDef = rSchema.getOriginalResourceSchema().findObjectClassDefinition(objectClass);
             if (objectClassDef == null) {
-                throw new SchemaException("Object class " + objectClass + " as specified in "+typeDesc+" type " + schemaHandlingObjDefType.getName() + " was not found in the resource schema of " + contextDescription);
+                throw new SchemaException("Object class " + objectClass + " as specified in "+typeDesc+" type " + schemaHandlingObjDefType.getIntent() + " was not found in the resource schema of " + contextDescription);
             }
         } else {
-            throw new SchemaException("Definition of "+typeDesc+" type " + schemaHandlingObjDefType.getName() + " does not have objectclass, in " + contextDescription);
+            throw new SchemaException("Definition of "+typeDesc+" type " + schemaHandlingObjDefType.getIntent() + " does not have objectclass, in " + contextDescription);
         }
         
         RefinedObjectClassDefinition rOcDef = new RefinedObjectClassDefinition(prismContext, resourceType, objectClassDef);
@@ -578,7 +574,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
                         foundAttrDefType = attrDefType;
                     } else {
                         throw new SchemaException("Duplicate definition of attribute " + attrDefType.getRef() + " in "+typeDesc+" type "
-                                + rOcDefType.getName() + ", in " + contextDescription);
+                                + rOcDefType.getIntent() + ", in " + contextDescription);
                     }
                 }
             } else {

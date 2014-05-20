@@ -63,14 +63,6 @@ public class ActivationComputer {
 			// Explicit administrative status overrides everything 
 			return administrativeStatus;
 		}
-		if (activationType.isEnabled() != null) {
-			// DEPRECATED legacy property
-			if (activationType.isEnabled()) {
-				return ActivationStatusType.ENABLED;
-			} else {
-				return ActivationStatusType.DISABLED;
-			}
-		}
 		if (validityStatus == null) {
 			// No administrative status, no validity. Return default.
 			return defaultStatus;
@@ -116,13 +108,6 @@ public class ActivationComputer {
 		if (administrativeStatus != null) {
 			// Explicit administrative status overrides everything 
 			effectiveStatus = administrativeStatus;
-		} else if (activationType.isEnabled() != null) {
-			// DEPRECATED legacy property
-			if (activationType.isEnabled()) {
-				effectiveStatus = ActivationStatusType.ENABLED;
-			} else {
-				effectiveStatus = ActivationStatusType.DISABLED;
-			}
 		}
 		TimeIntervalStatusType validityStatus = getValidityStatus(activationType);
 		if (effectiveStatus == null) {

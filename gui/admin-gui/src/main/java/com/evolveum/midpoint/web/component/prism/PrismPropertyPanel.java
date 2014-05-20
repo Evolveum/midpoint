@@ -27,7 +27,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.util.TooltipBehavior;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
@@ -35,7 +35,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -89,7 +88,7 @@ public class PrismPropertyPanel extends Panel {
         };
         Label help = new Label(ID_HELP);
         help.add(AttributeModifier.replace("title", helpText));
-        help.add(new TooltipBehavior());
+        help.add(new InfoTooltipBehavior());
         help.add(new VisibleEnableBehaviour() {
 
             @Override

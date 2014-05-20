@@ -268,7 +268,7 @@
    </schema>
       
 	<schemaHandling>
-		<accountType>
+		<objectType>
 			<name>default</name>
 			<displayName>Default Account</displayName>
 			<default>true</default>
@@ -446,7 +446,7 @@
                 </password>
             </credentials>
             
-		</accountType>
+		</objectType>
 	</schemaHandling>
 
 

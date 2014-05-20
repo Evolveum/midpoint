@@ -175,8 +175,7 @@
 	</schema>
 	
 	<schemaHandling>
-		<accountType>
-			<name>default</name>
+		<objectType>
 			<displayName>Default Account</displayName>
 			<default>true</default>
 			<objectClass>ri:AccountObjectClass</objectClass>
@@ -327,7 +326,7 @@
 					<outbound/>
 				</administrativeStatus>
 			</activation>
-		</accountType>
+		</objectType>
 	</schemaHandling>
 	
 	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
@@ -367,7 +366,7 @@
 				<q:and>
 					<q:equal>
 						<q:path>c:employeeNumber</q:path>
-						<valueExpression>
+						<expression>
 							<script>
 								<language>http://www.w3.org/TR/xpath/</language>
 								<code>
@@ -376,7 +375,7 @@
 									$c:account/c:attributes/ri:employeeNumber
 								</code>
 							</script>
-						</valueExpression>
+						</expression>
 					</q:equal>
 					<q:not>
 						<q:equal>

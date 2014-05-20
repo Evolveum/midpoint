@@ -67,13 +67,13 @@
         		<filter>
 					<q:equal>
 						<q:path>c:name</q:path>
-						<valueExpression>
+						<expression>
 							<script>
 								<code>
 									orgpath.tokenize('/')[0]
 								</code>
 							</script>
-						</valueExpression>
+						</expression>
 					</q:equal>
 				</filter>
 				<createOnDemand>true</createOnDemand>
@@ -139,9 +139,9 @@
         		<filter>
 					<q:equal>
 						<q:path>c:extension/ext:responsibility</q:path>
-						<valueExpression>
+						<expression>
 							<path>$ext:responsibility</path>
-						</valueExpression>
+						</expression>
 					</q:equal>
 				</filter>
 				<createOnDemand>true</createOnDemand>

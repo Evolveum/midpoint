@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.query.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query.definition.EntityDefinition;
@@ -31,7 +30,6 @@ import com.evolveum.midpoint.repo.sql.query.matcher.PolyStringMatcher;
 import com.evolveum.midpoint.repo.sql.query.matcher.StringMatcher;
 import com.evolveum.midpoint.repo.sql.query.restriction.Restriction;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.ClassPathUtil;
@@ -40,7 +38,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.reflect.ConstructorUtils;
 import org.hibernate.Criteria;
@@ -140,7 +137,7 @@ public class QueryInterpreter {
             criteria = updatePagingAndSorting(criteria, type, query.getPaging());
         }
 
-      if (!countingObjects) {
+        if (!countingObjects) {
             ProjectionList projections = Projections.projectionList();
             projections.add(Projections.property("fullObject"));
 
@@ -160,9 +157,9 @@ public class QueryInterpreter {
                                     Session session) throws QueryException {
         ObjectFilter filter = query.getFilter();
         try {
-            QueryContext context = new QueryContext(this, type, prismContext, session);
+            QueryContext context = new QueryContext(this, type, query, prismContext, session);
 
-            Restriction restriction = findAndCreateRestriction(filter, context, null, query);
+            Restriction restriction = findAndCreateRestriction(filter, context, null);
             Criterion criterion = restriction.interpret(filter);
 
             Criteria criteria = context.getCriteria(null);
@@ -245,19 +242,17 @@ public class QueryInterpreter {
     }
 
     public <T extends ObjectFilter> Restriction findAndCreateRestriction(T filter, QueryContext context,
-                                                                         Restriction parent, ObjectQuery query)
-            throws QueryException {
+                                                                         Restriction parent) throws QueryException {
 
         for (Restriction restriction : AVAILABLE_RESTRICTIONS) {
             Restriction<T> res = restriction.cloneInstance();
             res.setContext(context);
+            res.setParent(parent);
+            res.setFilter(filter);
 
             if (!res.canHandle(filter, context)) {
                 continue;
             }
-
-            res.setParent(parent);
-            res.setQuery(query);
 
             return res;
         }

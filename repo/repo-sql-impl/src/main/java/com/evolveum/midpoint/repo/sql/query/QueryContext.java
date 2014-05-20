@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.query;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.query.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
@@ -43,15 +44,18 @@ public class QueryContext {
     private PrismContext prismContext;
     private Session session;
 
+    private ObjectQuery query;
+
     private Class<? extends ObjectType> type;
 
     private final Map<ItemPath, Criteria> criterias = new HashMap<ItemPath, Criteria>();
     private final Map<ItemPath, String> aliases = new HashMap<ItemPath, String>();
 
-    public QueryContext(QueryInterpreter interpreter, Class<? extends ObjectType> type,
+    public QueryContext(QueryInterpreter interpreter, Class<? extends ObjectType> type, ObjectQuery query,
                         PrismContext prismContext, Session session) {
         this.interpreter = interpreter;
         this.type = type;
+        this.query = query;
         this.prismContext = prismContext;
         this.session = session;
 
@@ -59,6 +63,14 @@ public class QueryContext {
 
         String alias = addAlias(null, registry.findDefinition(type, null, EntityDefinition.class));
         addCriteria(null, session.createCriteria(ClassMapper.getHQLTypeClass(type), alias));
+    }
+
+    public ObjectQuery getQuery() {
+        return query;
+    }
+
+    public void setQuery(ObjectQuery query) {
+        this.query = query;
     }
 
     public PrismContext getPrismContext() {

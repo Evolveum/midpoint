@@ -101,8 +101,7 @@ This resource definition contains only the very basic definitions for midPoint t
         -->
 
 		<schemaHandling>
-			<accountType>
-				<name>default</name>
+			<objectType>
 				<displayName>Default Account</displayName>
 				<default>true</default>
 				<objectClass>ri:AccountObjectClass</objectClass>
@@ -230,7 +229,7 @@ to "false". The only way of resetting the flag is to change user's password.
 						<outbound/>
 					</password>
 				</credentials>                
-			</accountType>
+			</objectType>
 		</schemaHandling>
 		<!--
                 <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">

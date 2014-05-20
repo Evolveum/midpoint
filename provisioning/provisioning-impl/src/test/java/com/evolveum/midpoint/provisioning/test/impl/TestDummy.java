@@ -73,7 +73,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -2225,7 +2225,7 @@ public class TestDummy extends AbstractDummyTest {
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
 		ResourceAttributeDefinition attrDef = objectClassDef.findAttributeDefinition(attrQName);
-		ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()), attrDef, attrPVal);
+		ObjectFilter filter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()), attrDef, attrPVal);
 		
 		testSeachIterative(TEST_NAME, filter, rootOptions, fullShadow, expectedAccountNames);
 	}

@@ -80,12 +80,11 @@ connector server.
 
              This is the part where most of the customization takes place.
         -->
-		<c:schemaHandling>
+		<schemaHandling>
 
             <!-- Definition of default account type.
                  This is now the only account type that midPoint can work with. -->
-			<c:accountType>
-				<name>default</name>
+			<objectType>
                 <!-- Readable name for the account type -->
 				<displayName>Default Account</displayName>
 				<default>true</default>
@@ -122,8 +121,8 @@ connector server.
 						<outbound/>
 					</password>
 				</credentials>
-			</c:accountType>
-		</c:schemaHandling>
+			</objectType>
+		</schemaHandling>
 		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 			<configured>
 				<cap:activation>

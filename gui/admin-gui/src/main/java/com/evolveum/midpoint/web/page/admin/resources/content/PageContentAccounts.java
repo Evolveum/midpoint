@@ -482,13 +482,15 @@ public class PageContentAccounts extends PageAdminResources {
 
         OperationResult result = new OperationResult(OPERATION_CREATE_USER_FROM_ACCOUNTS);
         for (AccountContentDto dto : accounts) {
+            OperationResult subResult = result.createMinorSubresult(OPERATION_CREATE_USER_FROM_ACCOUNT);
             try {
-                OperationResult subResult = result.createMinorSubresult(OPERATION_CREATE_USER_FROM_ACCOUNT);
                 getModelService().importFromResource(dto.getAccountOid(),
                         createSimpleTask(OPERATION_CREATE_USER_FROM_ACCOUNT), subResult);
             } catch (Exception ex) {
-                result.computeStatus(getString("pageContentAccounts.message.cantImportAccount", dto.getAccountOid()));
-                LoggingUtils.logException(LOGGER, getString("pageContentAccounts.message.cantImportAccount", dto.getAccountName()), ex);
+                subResult.computeStatus(getString("pageContentAccounts.message.cantImportAccount", dto.getAccountOid()));
+                LoggingUtils.logException(LOGGER, "Can't import account {},oid={}", ex, dto.getAccountName(), dto.getAccountOid());
+            } finally {
+                subResult.computeStatusIfUnknown();
             }
         }
 
@@ -536,7 +538,7 @@ public class PageContentAccounts extends PageAdminResources {
 
                 //TODO set matching rule instead fo null
                 for (ResourceAttributeDefinition attrDef : identifiers) {
-                    conditions.add(EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), attrDef, dto.getSearchText()));
+                    conditions.add(EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), attrDef, dto.getSearchText()));
                 }
             }
 

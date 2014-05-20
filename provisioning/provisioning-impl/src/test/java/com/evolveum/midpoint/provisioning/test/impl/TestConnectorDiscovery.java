@@ -30,7 +30,7 @@ import org.w3c.dom.Document;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -147,8 +147,8 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 //		QueryType query = new QueryType();
 //		query.setFilter(filter);
 		AndFilter filter = AndFilter.createAnd(
-				EqualsFilter.createEqual(SchemaConstants.C_CONNECTOR_FRAMEWORK, ConnectorType.class, prismContext, null, ConnectorFactoryIcfImpl.ICF_FRAMEWORK_URI),
-				EqualsFilter.createEqual(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE, ConnectorType.class, prismContext, null, LDAP_CONNECTOR_TYPE));
+				EqualFilter.createEqual(SchemaConstants.C_CONNECTOR_FRAMEWORK, ConnectorType.class, prismContext, null, ConnectorFactoryIcfImpl.ICF_FRAMEWORK_URI),
+				EqualFilter.createEqual(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE, ConnectorType.class, prismContext, null, LDAP_CONNECTOR_TYPE));
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		
 		System.out.println("Query:\n"+query.debugDump());

@@ -39,7 +39,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -92,7 +92,7 @@ public class TestQueryConvertors {
 		ObjectFilter filter = query.getFilter();
 		PrismAsserts.assertEqualsFilter(filter, UserType.F_NAME, PolyStringType.COMPLEX_TYPE,
 				new ItemPath(new QName(null,UserType.F_NAME.getLocalPart())));
-		PrismAsserts.assertEqualsFilterValue((EqualsFilter) filter, createPolyString("jack"));
+		PrismAsserts.assertEqualsFilterValue((EqualFilter) filter, createPolyString("jack"));
 
 		QueryType convertedQueryType = toQueryType(query);
 		System.out.println("Re-converted query type");
@@ -102,7 +102,7 @@ public class TestQueryConvertors {
 		System.out.println("Serialized filter (JAXB->DOM)");
 		System.out.println(DOMUtil.serializeDOMToString(filterClauseElement));
 		
-		DomAsserts.assertElementQName(filterClauseElement, EqualsFilter.ELEMENT_NAME);
+		DomAsserts.assertElementQName(filterClauseElement, EqualFilter.ELEMENT_NAME);
 		DomAsserts.assertSubElements(filterClauseElement, 2);
 		
 		DomAsserts.assertSubElement(filterClauseElement, PrismConstants.Q_VALUE);
@@ -127,12 +127,12 @@ public class TestQueryConvertors {
 		ObjectFilter first = getFilterCondition(filter, 0);
 		PrismAsserts.assertEqualsFilter(first, UserType.F_GIVEN_NAME, DOMUtil.XSD_STRING,
 				new ItemPath(new QName(null,UserType.F_GIVEN_NAME.getLocalPart())));
-		PrismAsserts.assertEqualsFilterValue((EqualsFilter) first, "Jack");
+		PrismAsserts.assertEqualsFilterValue((EqualFilter) first, "Jack");
 		
 		ObjectFilter second = getFilterCondition(filter, 1);
 		PrismAsserts.assertEqualsFilter(second, UserType.F_LOCALITY, DOMUtil.XSD_STRING,
 				new ItemPath(new QName(null,UserType.F_LOCALITY.getLocalPart())));
-		PrismAsserts.assertEqualsFilterValue((EqualsFilter) second, "Caribbean");
+		PrismAsserts.assertEqualsFilterValue((EqualFilter) second, "Caribbean");
 
 		QueryType convertedQueryType = toQueryType(query);
 		System.out.println("Re-converted query type");
@@ -144,8 +144,8 @@ public class TestQueryConvertors {
 		PrismAsserts.assertSubnode(xFilter, AndFilter.ELEMENT_NAME, MapXNode.class);
 		MapXNode xandmap = (MapXNode) xFilter.get(AndFilter.ELEMENT_NAME);
 		PrismAsserts.assertSize(xandmap, 1);
-		PrismAsserts.assertSubnode(xandmap, EqualsFilter.ELEMENT_NAME, ListXNode.class);
-		ListXNode xequalsList = (ListXNode) xandmap.get(EqualsFilter.ELEMENT_NAME);
+		PrismAsserts.assertSubnode(xandmap, EqualFilter.ELEMENT_NAME, ListXNode.class);
+		ListXNode xequalsList = (ListXNode) xandmap.get(EqualFilter.ELEMENT_NAME);
 		PrismAsserts.assertSize(xequalsList, 2);
 		
 		Element filterClauseElement = convertedFilterType.getFilterClause();
@@ -156,12 +156,12 @@ public class TestQueryConvertors {
 		DomAsserts.assertSubElements(filterClauseElement, 2);
 		
 		Element firstSubelement = DOMUtil.getChildElement(filterClauseElement, 0);
-		DomAsserts.assertElementQName(firstSubelement, EqualsFilter.ELEMENT_NAME);
+		DomAsserts.assertElementQName(firstSubelement, EqualFilter.ELEMENT_NAME);
 		Element firstValueElement = DOMUtil.getChildElement(firstSubelement, PrismConstants.Q_VALUE);
 		DomAsserts.assertTextContent(firstValueElement, "Jack");
 		
 		Element secondSubelement = DOMUtil.getChildElement(filterClauseElement, 1);
-		DomAsserts.assertElementQName(secondSubelement, EqualsFilter.ELEMENT_NAME);
+		DomAsserts.assertElementQName(secondSubelement, EqualFilter.ELEMENT_NAME);
 		Element secondValueElement = DOMUtil.getChildElement(secondSubelement, PrismConstants.Q_VALUE);
 		DomAsserts.assertTextContent(secondValueElement, "Caribbean");
 	}

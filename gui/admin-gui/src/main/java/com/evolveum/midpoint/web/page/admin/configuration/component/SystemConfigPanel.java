@@ -18,17 +18,17 @@ package com.evolveum.midpoint.web.page.admin.configuration.component;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.AEPlevel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
-import com.evolveum.midpoint.web.util.TooltipBehavior;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MailTransportSecurityType;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
-import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -46,6 +46,18 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
     private static final String ID_CLEANUP_CLOSED_TASKS = "closedTasksCleanup";
     private static final String ID_CLEANUP_AUDIT_RECORDS_TOOLTIP = "auditRecordsCleanupTooltip";
     private static final String ID_CLEANUP_CLOSED_TASKS_TOOLTIP = "closedTasksCleanupTooltip";
+
+    private static final String ID_DEFAULT_FROM = "defaultFrom";
+    private static final String ID_DEBUG = "debugCheckbox";
+    private static final String ID_HOST = "host";
+    private static final String ID_PORT = "port";
+    private static final String ID_USERNAME = "username";
+    private static final String ID_PASSWORD = "password";
+    private static final String ID_TRANSPORT_SECURITY = "transportSecurity";
+    private static final String ID_REDIRECT_TO_FILE = "redirectToFile";
+
+    private static final String ID_LABEL_SIZE = "col-lg-4";
+    private static final String ID_INPUT_SIZE = "col-lg-4";
 
     private ChooseTypePanel passPolicyChoosePanel;
     private ChooseTypePanel userTemplateChoosePanel;
@@ -81,11 +93,35 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
 
         createTooltip(ID_CLEANUP_AUDIT_RECORDS_TOOLTIP, this);
         createTooltip(ID_CLEANUP_CLOSED_TASKS_TOOLTIP, this);
+
+        TextField<String> defaultFromField = new TextField<String>(ID_DEFAULT_FROM, new PropertyModel<String>(getModel(), "notificationConfig.defaultFrom"));
+        CheckBox debugCheck = new CheckBox(ID_DEBUG, new PropertyModel<Boolean>(getModel(), "notificationConfig.debug"));
+        TextField<String> hostField = new TextField<String>(ID_HOST, new PropertyModel<String>(getModel(), "notificationConfig.host"));
+        TextField<Integer> portField = new TextField<Integer>(ID_PORT, new PropertyModel<Integer>(getModel(), "notificationConfig.port"));
+        TextField<String> userNameField = new TextField<String>(ID_USERNAME, new PropertyModel<String>(getModel(), "notificationConfig.username"));
+        PasswordTextField passwordField = new PasswordTextField(ID_PASSWORD, new PropertyModel<String>(getModel(), "notificationConfig.password"));
+        passwordField.setRequired(false);
+        TextField<String> redirectToFileField = new TextField<String>(ID_REDIRECT_TO_FILE, new PropertyModel<String>(getModel(), "notificationConfig.redirectToFile"));
+
+        IModel choices = WebMiscUtil.createReadonlyModelFromEnum(MailTransportSecurityType.class);
+        IChoiceRenderer renderer = new EnumChoiceRenderer();
+        DropDownFormGroup transportSecurity = new DropDownFormGroup(ID_TRANSPORT_SECURITY, new PropertyModel(getModel(),
+                "notificationConfig.mailTransportSecurityType"), choices, renderer,
+                createStringResource("SystemConfigPanel.mail.transportSecurity"),ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+
+        add(defaultFromField);
+        add(debugCheck);
+        add(hostField);
+        add(portField);
+        add(userNameField);
+        add(passwordField);
+        add(redirectToFileField);
+        add(transportSecurity);
     }
 
     private void createTooltip(String id, WebMarkupContainer parent) {
         Label tooltip = new Label(id);
-        tooltip.add(new TooltipBehavior());
+        tooltip.add(new InfoTooltipBehavior());
         parent.add(tooltip);
     }
 }

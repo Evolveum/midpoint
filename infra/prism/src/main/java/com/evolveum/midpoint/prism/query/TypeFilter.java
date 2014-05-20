@@ -29,22 +29,33 @@ import javax.xml.namespace.QName;
 public class TypeFilter extends ObjectFilter {
 
     private QName type;
+    private ObjectFilter filter;
 
-    public TypeFilter(QName type) {
+    public TypeFilter(QName type, ObjectFilter filter) {
         this.type = type;
+        this.filter = filter;
     }
 
     public QName getType() {
         return type;
     }
 
-    public static TypeFilter createType(QName type) {
-    	return new TypeFilter(type);
+    public ObjectFilter getFilter() {
+        return filter;
     }
-    
+
+    public void setFilter(ObjectFilter filter) {
+        this.filter = filter;
+    }
+
+    public static TypeFilter createType(QName type, ObjectFilter filter) {
+        return new TypeFilter(type, filter);
+    }
+
     @Override
     public ObjectFilter clone() {
-        return new TypeFilter(type);
+        ObjectFilter f = filter != null ? filter.clone() : null;
+        return new TypeFilter(type, f);
     }
 
     @Override
@@ -63,6 +74,10 @@ public class TypeFilter extends ObjectFilter {
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("TYPE: ");
         sb.append(type.getLocalPart());
+        sb.append('\n');
+        if (filter != null) {
+            sb.append(filter.debugDump(indent + 1));
+        }
 
         return sb.toString();
     }

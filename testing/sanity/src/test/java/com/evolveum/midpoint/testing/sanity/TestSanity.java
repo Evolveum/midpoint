@@ -94,6 +94,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.parser.util.XNodeProcessorUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -997,8 +998,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * that happens in repo and in LDAP.
      */
     @Test
-    public void test013AddOpenDjAccountToUser() throws IOException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, DirectoryException, ObjectAlreadyExistsException {
+    public void test013AddOpenDjAccountToUser() throws Exception {
         TestUtil.displayTestTile("test013AddOpenDjAccountToUser");
         try{
         // GIVEN
@@ -3194,8 +3194,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
             	continue;
             }
             
-            assertTrue("User "+user.getName()+" is disabled", user.getActivation() == null || user.getActivation().isEnabled() == null ||
-            		user.getActivation().isEnabled());
+            assertTrue("User "+user.getName()+" is disabled", user.getActivation() == null || 
+            		user.getActivation().getAdministrativeStatus() != ActivationStatusType.ENABLED);
 
             List<ObjectReferenceType> accountRefs = user.getLinkRef();
             AssertJUnit.assertEquals("Wrong accountRef for user " + user.getName(), 1, accountRefs.size());

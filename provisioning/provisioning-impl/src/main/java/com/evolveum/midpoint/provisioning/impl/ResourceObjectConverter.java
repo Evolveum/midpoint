@@ -48,7 +48,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
@@ -191,7 +191,7 @@ public class ResourceObjectConverter {
 			
 			final ResourceAttribute<?> finalSecondaryIdentifier = secondaryIdentifier;
 			
-			ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getName()), secondaryIdentifierDef, secondaryIdentifier.getValue());
+			ObjectFilter filter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getName()), secondaryIdentifierDef, secondaryIdentifier.getValue());
 			ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 //			query.setFilter(filter);
 			final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<PrismObject<ShadowType>>();

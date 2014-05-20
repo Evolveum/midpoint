@@ -22,15 +22,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
  */
 public enum ObjectTypes {
-
-    @Deprecated
-    ACCOUNT(SchemaConstants.C_ACCOUNT_SHADOW_TYPE, SchemaConstants.C_ACCOUNT,
-            AccountShadowType.class, ObjectManager.PROVISIONING, "accounts"),
 
     CONNECTOR(SchemaConstants.C_CONNECTOR_TYPE, SchemaConstants.C_CONNECTOR,
             ConnectorType.class, ObjectManager.PROVISIONING, "connectors"),
@@ -283,5 +281,13 @@ public enum ObjectTypes {
         throw new IllegalArgumentException("Not suitable class found for rest type: " + restType);
     }
 
+    public static List<Class<? extends ObjectType>> getAllObjectTypes() {
+        List<Class<? extends ObjectType>> list = new ArrayList<>();
+        for (ObjectTypes t : ObjectTypes.values()) {
+            list.add(t.getClassDefinition());
+        }
+
+        return list;
+    }
 }
 

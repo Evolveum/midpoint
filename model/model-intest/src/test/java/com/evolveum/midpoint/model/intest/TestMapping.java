@@ -31,7 +31,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.trigger.RecomputeTriggerHandler;
+import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;

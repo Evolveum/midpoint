@@ -18,7 +18,7 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -1081,10 +1081,10 @@ public class PageTasks extends PageAdminTasks {
                 }
             }
             if (category != null && !ALL_CATEGORIES.equals(category)) {
-                filters.add(EqualsFilter.createEqual(TaskType.F_CATEGORY, TaskType.class, getPrismContext(), null, category));
+                filters.add(EqualFilter.createEqual(TaskType.F_CATEGORY, TaskType.class, getPrismContext(), null, category));
             }
             if (!Boolean.TRUE.equals(showSubtasks)) {
-                filters.add(EqualsFilter.createEqual(TaskType.F_PARENT, TaskType.class, getPrismContext(), null));
+                filters.add(EqualFilter.createEqual(TaskType.F_PARENT, TaskType.class, getPrismContext(), null));
             }
             if (!filters.isEmpty()) {
                 query = new ObjectQuery().createObjectQuery(AndFilter.createAnd(filters));

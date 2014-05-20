@@ -818,7 +818,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 											new Object[]{specObjectClass, objectType});
 									// The spec type is a subclass of requested type. So it might be returned from the search.
 									// We need to use type filter.
-									objSpecSecurityFilter = TypeFilter.createType(specTypeQName);
+									objSpecSecurityFilter = TypeFilter.createType(specTypeQName, null);
 									// and now we have a more specific object definition to use later in filter processing
 									objectDefinition = (PrismObjectDefinition<O>) specObjectDef;
 								}
@@ -847,7 +847,8 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 										throw new SchemaException("Unsupported special object specification specified in authorization: "+special);
 									}
 								}
-								objSpecSecurityFilter = ObjectQueryUtil.filterAnd(objSpecSecurityFilter, specialFilter);
+                                objSpecSecurityFilter = specTypeQName != null ?
+                                        TypeFilter.createType(specTypeQName, specialFilter) : specialFilter;
 							} else {
 								LOGGER.trace("  specials empty: {}", specSpecial);
 							}

@@ -34,7 +34,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -452,7 +452,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
         repositoryService.searchObjectsIterative(UserType.class,
                 ObjectQuery.createObjectQuery(
-                        EqualsFilter.createEqual(UserType.F_NAME, UserType.class, prismContext, PolyStringOrigMatchingRule.NAME, new PolyString(name))),
+                        EqualFilter.createEqual(UserType.F_NAME, UserType.class, prismContext, PolyStringOrigMatchingRule.NAME, new PolyString(name))),
                 new ResultHandler<UserType>() {
                     @Override
                     public boolean handle(PrismObject<UserType> object, OperationResult parentResult) {

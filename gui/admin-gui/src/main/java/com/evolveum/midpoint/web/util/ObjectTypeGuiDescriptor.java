@@ -23,9 +23,6 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
  */
 public enum ObjectTypeGuiDescriptor {
 
-    @Deprecated
-    ACCOUNT(ObjectTypes.ACCOUNT, "ObjectTypeGuiDescriptor.account", "silk-status_online"),
-
     CONNECTOR(ObjectTypes.CONNECTOR, "ObjectTypeGuiDescriptor.connector", "silk-link"),
 
     CONNECTOR_HOST(ObjectTypes.CONNECTOR_HOST, "ObjectTypeGuiDescriptor.connectorHost", "silk-driver_link"),

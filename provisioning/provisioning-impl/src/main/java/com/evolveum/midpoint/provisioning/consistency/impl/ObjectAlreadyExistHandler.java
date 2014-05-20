@@ -30,7 +30,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
@@ -119,10 +119,10 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 		// TODO: error handling TODO TODO TODO set matching rule instead of null in equlas filter
 		PrismProperty nameProperty = shadow.getAttributes().asPrismContainerValue()
 				.findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
-		EqualsFilter nameFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, nameProperty.getDefinition().getName()),nameProperty);
+		EqualFilter nameFilter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, nameProperty.getDefinition().getName()),nameProperty);
 		RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
 				prismContext, shadow.getResourceRef().getOid());
-		EqualsFilter objectClassFilter = EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext,
+		EqualFilter objectClassFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext,
 				null, shadow.getObjectClass());
 
 		ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(nameFilter, resourceRefFilter,
