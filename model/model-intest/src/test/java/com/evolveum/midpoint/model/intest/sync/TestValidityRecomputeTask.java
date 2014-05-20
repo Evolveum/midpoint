@@ -24,17 +24,18 @@ import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.intest.TestActivation;
 import com.evolveum.midpoint.model.intest.TestMapping;
 import com.evolveum.midpoint.model.intest.TestTriggerTask;
-import com.evolveum.midpoint.model.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
@@ -44,6 +45,9 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
+import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -79,8 +83,6 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 
 	private XMLGregorianCalendar drakeValidFrom;
 	private XMLGregorianCalendar drakeValidTo;
-	
-	
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -233,6 +235,9 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         assertLinks(user, 1);
         assert11xUserOk(user);
         
+        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        assertAuthorized(principal, AUTZ_PUNISH_URL);
+        
         // CLEANUP
         unassignAllRoles(USER_JACK_OID);
         assertNoDummyAccount(null, USER_JACK_USERNAME);
@@ -260,6 +265,9 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("User after", user);
         assertNoLinkedAccount(user);
         assert11xUserOk(user);
+        
+        MidPointPrincipal principal = userProfileService.getPrincipal(user);
+        assertNotAuthorized(principal, AUTZ_PUNISH_URL);
         
         // CLEANUP
         unassignAllRoles(USER_JACK_OID);

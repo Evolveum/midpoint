@@ -54,7 +54,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -985,11 +985,11 @@ public abstract class ShadowCache {
 		ItemPath objectClassPath = new ItemPath(ShadowType.F_OBJECT_CLASS);
 		ItemPath resourceRefPath = new ItemPath(ShadowType.F_RESOURCE_REF);
 		for (ObjectFilter f : conditions){
-			if (f instanceof EqualsFilter){
-				if (objectClassPath.equals(((EqualsFilter) f).getFullPath())){
+			if (f instanceof EqualFilter){
+				if (objectClassPath.equals(((EqualFilter) f).getFullPath())){
 					continue;
 				}
-				if (resourceRefPath.equals(((EqualsFilter) f).getFullPath())){
+				if (resourceRefPath.equals(((EqualFilter) f).getFullPath())){
 					continue;
 				}
 				

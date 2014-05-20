@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.model.IModel;
 
 import javax.xml.namespace.QName;
@@ -109,10 +111,13 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
         } catch (Exception ex) {
             result.recordFatalError("Couldn't list objects.", ex);
             LoggingUtils.logException(LOGGER, "Couldn't list objects", ex);
+        } finally {
+            result.computeStatusIfUnknown();
         }
 
-        if (!result.isSuccess()) {
+        if (WebMiscUtil.showResultInPage(result)) {
             getPage().showResultInSession(result);
+            throw new RestartResponseException(PageError.class);
         }
 
         LOGGER.trace("end::iterator()");

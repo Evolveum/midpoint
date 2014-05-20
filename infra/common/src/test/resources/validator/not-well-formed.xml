@@ -27,10 +27,10 @@
         <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
         <schema/>
         <schemaHandling>
-            <accountType default="true">
-                <name>Default Account</name>
+            <objectType>
+                <intent>Default Account</intent>
                 <objectClass>ri:Account</objectClass>
-            </accountType>
+            </objectType>
         </schemaHandliajsdh>
     </resource>
 </objects>

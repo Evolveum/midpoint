@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.intest;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
 
-import com.evolveum.midpoint.model.ModelWebService;
+import com.evolveum.midpoint.model.impl.ModelWebService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -320,6 +320,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String AUTZ_LOOT_URL = QNameUtil.qNameToUri(AUTZ_LOOT_QNAME);
 	protected static final QName AUTZ_COMMAND_QNAME = new QName(NS_TEST_AUTZ, "command");
 	protected static final String AUTZ_COMMAND_URL = QNameUtil.qNameToUri(AUTZ_COMMAND_QNAME);
+	protected static final QName AUTZ_PUNISH_QNAME = new QName(NS_TEST_AUTZ, "punish");
+	protected static final String AUTZ_PUNISH_URL = QNameUtil.qNameToUri(AUTZ_PUNISH_QNAME);
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractConfiguredModelIntegrationTest.class);
 	

@@ -53,8 +53,7 @@
 	</connectorConfiguration>
 	
 	<schemaHandling>
-		<accountType>
-			<name>default</name>
+		<objectType>
 			<displayName>Default Account</displayName>
 			<default>true</default>
 			<objectClass>ri:AccountObjectClass</objectClass>
@@ -104,7 +103,7 @@
             	</administrativeStatus>
             </activation>
 			            
-		</accountType>
+		</objectType>
 		
 	</schemaHandling>
 	
@@ -118,9 +117,9 @@
 			<correlation>
 				<q:equal>
 					<q:path>c:name</q:path>
-					<valueExpression>
+					<expression>
 						<path>$account/attributes/icfs:name</path>
-					</valueExpression>
+					</expression>
 				</q:equal>
 			</correlation>
 			<reaction>

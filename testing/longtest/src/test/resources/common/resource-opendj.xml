@@ -177,7 +177,7 @@
 	</schema>
 	
 	<schemaHandling>
-		<accountType>
+		<objectType>
 			<name>default</name>
 			<displayName>Default Account</displayName>
 			<default>true</default>
@@ -287,7 +287,7 @@
 					<inbound/>
 				</administrativeStatus>
 			</activation>
-		</accountType>
+		</objectType>
 	</schemaHandling>
 	
 	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">

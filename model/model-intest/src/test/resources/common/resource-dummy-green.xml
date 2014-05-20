@@ -429,9 +429,9 @@
 			<correlation>
 				<q:equal>
 					<q:path>c:name</q:path>
-					<valueExpression>
+					<expression>
 						<path>$account/attributes/icfs:name</path>
-					</valueExpression>
+					</expression>
 				</q:equal>
 			</correlation>
 			<reaction>
@@ -477,10 +477,10 @@
 			<correlation>
 				<q:equal>
 					<q:path>c:name</q:path>
-					<valueExpression>
+					<expression>
 						<path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
                             $account/attributes/icfs:name</path>
-					</valueExpression>
+					</expression>
 				</q:equal>
 			</correlation>
 			<reaction>

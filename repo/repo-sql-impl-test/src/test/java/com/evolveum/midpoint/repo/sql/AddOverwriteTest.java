@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -42,7 +42,6 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
@@ -129,7 +128,7 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
         final String CARLA_NAME = "carla";
         final ObjectQuery query = new ObjectQuery();
         PrismObjectDefinition userObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        query.setFilter(EqualsFilter.createEqual(ObjectType.F_NAME, userObjectDef.findPropertyDefinition(ObjectType.F_NAME), null, CARLA_NAME));
+        query.setFilter(EqualFilter.createEqual(ObjectType.F_NAME, userObjectDef.findPropertyDefinition(ObjectType.F_NAME), null, CARLA_NAME));
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, opResult);
         AssertJUnit.assertEquals(1, users.size());
         return users.get(0);

@@ -601,6 +601,6 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
             throw new IllegalStateException("Couldn't represent parent-less property value as a JAXBElement");
         }
         Object realValue = getValue();
-        return new JAXBElement<>(parent.getElementName(), (Class) realValue.getClass(), (T) realValue);
+        return new JAXBElement<T>(parent.getElementName(), (Class) realValue.getClass(), (T) realValue);
     }
 }

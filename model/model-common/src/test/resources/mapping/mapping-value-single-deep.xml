@@ -17,10 +17,6 @@
 
 <mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
 	<expression>
-		<ref>costCenter</ref>
 		<value>foobar</value>
-<!-- 		<value> -->
-<!-- 			<costCenter>foobar</costCenter> -->
-<!-- 		</value> -->
 	</expression>
 </mapping>

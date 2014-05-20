@@ -129,9 +129,9 @@
 			<correlation>
 				<q:equal>
 					<q:path>c:name</q:path>
-					<valueExpression>
+					<expression>
 						<path>$account/attributes/icfs:name</path>
-					</valueExpression>
+					</expression>
 				</q:equal>
 			</correlation>
 			<reaction>

@@ -115,8 +115,11 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
 		</dependency>
+		<dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+        </dependency>
 		
-
 		<dependency>
 			<groupId>com.evolveum.midpoint.provisioning</groupId>
 			<artifactId>provisioning-impl</artifactId>

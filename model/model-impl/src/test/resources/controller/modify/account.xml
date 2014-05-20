@@ -342,7 +342,7 @@
 						</c:valueExpression>
 					</outbound>
 				</attribute>
-			</accountType>
+			</objectType>
 		</schemaHandling>
 		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
 			<cap:activation>

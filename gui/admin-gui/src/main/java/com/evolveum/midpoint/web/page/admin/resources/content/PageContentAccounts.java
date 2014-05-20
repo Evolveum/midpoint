@@ -538,7 +538,7 @@ public class PageContentAccounts extends PageAdminResources {
 
                 //TODO set matching rule instead fo null
                 for (ResourceAttributeDefinition attrDef : identifiers) {
-                    conditions.add(EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), attrDef, dto.getSearchText()));
+                    conditions.add(EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), attrDef, dto.getSearchText()));
                 }
             }
 

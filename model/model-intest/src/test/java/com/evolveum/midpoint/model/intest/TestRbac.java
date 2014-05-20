@@ -43,7 +43,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -111,7 +111,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        ObjectFilter filter = EqualsFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, prismContext, null, true);
+        ObjectFilter filter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, prismContext, null, true);
         ObjectQuery query = new ObjectQuery();
 		query.setFilter(filter);
         
@@ -134,7 +134,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        ObjectFilter filter = EqualsFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, prismContext, null, true);
+        ObjectFilter filter = EqualFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, prismContext, null, true);
         ObjectQuery query = new ObjectQuery();
 		query.setFilter(filter);
         

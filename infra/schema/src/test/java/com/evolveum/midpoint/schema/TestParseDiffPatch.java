@@ -31,7 +31,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -238,7 +237,7 @@ public class TestParseDiffPatch {
 
         ObjectModificationType objectModificationType = DeltaConvertor.toObjectModificationType(userDelta);
         System.out.println("Modification XML:");
-        System.out.println(JaxbTestUtil.marshalWrap(objectModificationType));
+        System.out.println(PrismTestUtil.serializeAnyDataWrapped(objectModificationType));
         assertEquals("Wrong delta OID", userBefore.getOid(), objectModificationType.getOid());
         List<ItemDeltaType> propertyModifications = objectModificationType.getItemDelta();
         assertEquals("Unexpected number of modifications", 3, propertyModifications.size());
@@ -352,7 +351,7 @@ public class TestParseDiffPatch {
 
         ObjectModificationType objectModificationType =  DeltaConvertor.toObjectModificationType(diffDelta);
         System.out.println("Modification XML:");
-        System.out.println(JaxbTestUtil.marshalWrap(objectModificationType));
+        System.out.println(PrismTestUtil.serializeAnyDataWrapped(objectModificationType));
 
         // Check for xsi:type
 //        Element tokenElement = (Element) objectModificationType.getModification().get(0).getValue().getAny().get(0);

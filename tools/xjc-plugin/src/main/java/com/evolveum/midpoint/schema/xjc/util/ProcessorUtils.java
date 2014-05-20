@@ -266,6 +266,14 @@ public final class ProcessorUtils {
         return hasAnnotation(xsComponent.getAnnotation(false), qname) != null;
     }
 
+    public static boolean hasAnnotation(XSComponent xsComponent, QName qname) {
+        if (xsComponent == null) {
+            return false;
+        }
+        return hasAnnotation(xsComponent.getAnnotation(false), qname) != null;
+    }
+
+
     public static boolean hasParentAnnotation(ClassOutline classOutline, QName annotation) {
         if (classOutline.getSuperClass() == null) {
             return hasAnnotation(classOutline, annotation);

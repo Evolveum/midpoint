@@ -26,6 +26,5 @@
 	<itemDelta>
 		<t:modificationType>replace</t:modificationType>
 		<t:path>c:givenName</t:path>
-		<t:value/>
 	</itemDelta>
 </objectDelta>

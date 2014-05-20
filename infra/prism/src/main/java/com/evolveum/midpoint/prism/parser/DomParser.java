@@ -120,7 +120,7 @@ public class DomParser implements Parser {
 		return xroot;
 	}
 	
-	private RootXNode parse(Element rootElement) throws SchemaException{
+	public RootXNode parse(Element rootElement) throws SchemaException{
 		RootXNode xroot = new RootXNode(DOMUtil.getQName(rootElement));
 		extractCommonMetadata(rootElement, xroot);
 		XNode xnode = parseElementContent(rootElement);

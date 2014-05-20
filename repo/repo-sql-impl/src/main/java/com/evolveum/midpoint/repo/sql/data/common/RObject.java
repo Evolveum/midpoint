@@ -199,6 +199,7 @@ public abstract class RObject<T extends ObjectType> implements Metadata<RObjectR
         return createChannel;
     }
 
+    @Index(name = "iObjectCreateTimestamp")
     public XMLGregorianCalendar getCreateTimestamp() {
         return createTimestamp;
     }

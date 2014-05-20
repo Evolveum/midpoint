@@ -35,6 +35,7 @@
 	default-lazy-init="false" default-autowire="byName">
 
     <import resource="ctx-model.xml"/>
+    <import resource="ctx-model-test.xml"/>
     <import resource="ctx-provisioning.xml"/>
     <import resource="ctx-common.xml"/>
     <import resource="ctx-sanity-test.xml"/>

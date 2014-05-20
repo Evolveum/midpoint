@@ -407,7 +407,7 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
 
     protected Criterion createCriterion(String propertyName, Object value, ValueFilter filter) throws QueryException {
         ItemRestrictionOperation operation;
-        if (filter instanceof EqualsFilter) {
+        if (filter instanceof EqualFilter) {
             operation = ItemRestrictionOperation.EQ;
         } else if (filter instanceof GreaterFilter) {
             GreaterFilter gf = (GreaterFilter) filter;
@@ -488,8 +488,6 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         Object value;
         if (filter instanceof PropertyValueFilter) {
             value = getValue(((PropertyValueFilter) filter).getValues());
-        } else if (filter instanceof StringValueFilter) {
-            value = ((StringValueFilter) filter).getValue();
         } else {
             throw new QueryException("Unknown filter '" + filter + "', can't get value from it.");
         }

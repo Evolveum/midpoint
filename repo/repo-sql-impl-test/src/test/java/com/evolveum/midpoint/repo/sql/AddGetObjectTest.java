@@ -511,7 +511,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         OperationResult result = new OperationResult("testAddAccountShadow");
         File file = new File(FOLDER_BASIC, "account-accountTypeShadow.xml");
         try {
-            PrismObject<AccountShadowType> account = prismContext.parseObject(file);
+            PrismObject<ShadowType> account = prismContext.parseObject(file);
 
             // apply appropriate schema
             PrismObject<ResourceType> resource = prismContext.parseObject(new File(FOLDER_BASIC, "resource-opendj.xml"));

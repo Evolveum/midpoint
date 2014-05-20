@@ -15,49 +15,35 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
+import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.ResourceItemDto;
-import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
-import com.evolveum.midpoint.web.page.admin.reports.component.*;
-import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
+import com.evolveum.midpoint.web.util.Base64Model;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.string.StringValue;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author shood
@@ -74,24 +60,29 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
     private static Trace LOGGER = TraceManager.getTrace(PageReport.class);
 
     private static final String DOT_CLASS = PageReport.class.getName() + ".";
-    private static final String OPERATION_LOAD_RESOURCES = DOT_CLASS + "loadResources";
     private static final String OPERATION_LOAD_REPORT = DOT_CLASS + "loadReport";
     private static final String OPERATION_SAVE_REPORT = DOT_CLASS + "saveReport";
     private static final String OPERATION_RUN_REPORT = DOT_CLASS + "runReport";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TAB_PANEL = "tabPanel";
-    private static final String ID_SAVE_RUN_BUTTON = "runSave";
     private static final String ID_SAVE_BUTTON = "save";
     private static final String ID_CANCEL_BUTTON = "cancel";
+    private static final String ID_TEMPLATE_EDITOR = "templateEditor";
+    private static final String ID_TEMPLATE_STYLE_EDITOR = "templateStyleEditor";
+    private static final String ID_NAME = "name";
+    private static final String ID_DESCRIPTION = "description";
 
-    private LoadableModel<ReportDto> model;
+    private static final String ID_LABEL_SIZE = "col-md-4";
+    private static final String ID_INPUT_SIZE = "col-md-8";
+
+    private LoadableModel<PrismObject<ReportType>> model;
 
     public PageReport() {
-        model = new LoadableModel<ReportDto>(false) {
+        model = new LoadableModel<PrismObject<ReportType>>(false) {
 
             @Override
-            protected ReportDto load() {
+            protected PrismObject<ReportType> load() {
                 return loadReport();
             }
         };
@@ -99,93 +90,63 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
         initLayout();
     }
 
-    @Override
-    protected IModel<String> createPageTitleModel() {
-        return new LoadableModel<String>(false) {
-
-            @Override
-            protected String load() {
-                return new StringResourceModel("pageReport.title", PageReport.this, null, null).getString();
-            }
-        };
-    }
-
-    private ReportDto loadReport() {
+    private PrismObject<ReportType> loadReport() {
         StringValue reportOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
-
-        ReportDto dto = null;
 
         OperationResult result = new OperationResult(OPERATION_LOAD_REPORT);
         PrismObject<ReportType> prismReport = WebModelUtils.loadObject(ReportType.class, reportOid.toString(), result, this);
 
-        try {
-            ReportType report = prismReport.asObjectable();
-
-            String xml = getPrismContext().serializeObjectToString(prismReport, PrismContext.LANG_XML);
-            dto = new ReportDto(report.getName().getNorm(), report.getDescription(), xml, report.getExport(), report.isParent());
-            dto.setObject(prismReport);
-            result.recordSuccess();
-        } catch (Exception e) {
-            result.recordFatalError("Couldn't load report from repository.", e);
-            LoggingUtils.logException(LOGGER, "Couldn't load report from repository.", e);
+        if (prismReport == null) {
+            throw new RestartResponseException(PageReports.class);
         }
 
-        return dto;
+        return prismReport;
     }
 
     private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        List<ITab> tabs = new ArrayList<ITab>();
-        tabs.add(new AbstractTab(createStringResource("pageReport.tab.panelConfig")) {
+        TextFormGroup name = new TextFormGroup(ID_NAME, new PrismPropertyModel<>(model, ObjectType.F_NAME),
+                createStringResource("ObjectType.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
+        mainForm.add(name);
 
-            @Override
-            public WebMarkupContainer getPanel(String panelId) {
-                return new ReportConfigurationPanel(panelId, model);
-            }
-        });
+        TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION,
+                new PrismPropertyModel<>(model, ObjectType.F_DESCRIPTION),
+                createStringResource("ObjectType.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        mainForm.add(description);
 
-        tabs.add(new AbstractTab(createStringResource("pageReport.tab.aceEditor")) {
+		AceEditor templateEditor = new AceEditor(ID_TEMPLATE_EDITOR, new Base64Model(
+				new PrismPropertyModel<>(model, ReportType.F_TEMPLATE)));
+        mainForm.add(templateEditor);
 
-            @Override
-            public WebMarkupContainer getPanel(String panelId) {
-                return initAceEditorPanel(panelId);
-            }
-        });
+        AceEditor templateStyleEditor = new AceEditor(ID_TEMPLATE_STYLE_EDITOR, new Base64Model(
+                new PrismPropertyModel<>(model, ReportType.F_TEMPLATE_STYLE)));
+        mainForm.add(templateStyleEditor);
 
-        mainForm.add(new TabbedPanel(ID_TAB_PANEL, tabs));
+//        List<ITab> tabs = new ArrayList<ITab>();
+//        tabs.add(new AbstractTab(createStringResource("pageReport.tab.panelConfig")) {
+//
+//            @Override
+//            public WebMarkupContainer getPanel(String panelId) {
+//                return new ReportConfigurationPanel(panelId, model);
+//            }
+//        });
+//
+//        tabs.add(new AbstractTab(createStringResource("pageReport.tab.aceEditor")) {
+//
+//            @Override
+//            public WebMarkupContainer getPanel(String panelId) {
+//                return initAceEditorPanel(panelId);
+//            }
+//        });
+//
+//        mainForm.add(new TabbedPanel(ID_TAB_PANEL, tabs));
 
         initButtons(mainForm);
     }
 
     private void initButtons(Form mainForm) {
-        AjaxSubmitButton saveAndRun = new AjaxSubmitButton(ID_SAVE_RUN_BUTTON, createStringResource("PageBase.button.saveAndRun")) {
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
-            }
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                onSaveAndRunPerformed(target);
-            }
-        };
-        saveAndRun.add(new VisibleEnableBehaviour(){
-
-            @Override
-            public boolean isVisible() {
-                if(model.getObject().isParent()){
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-
-        });
-        mainForm.add(saveAndRun);
-
         AjaxSubmitButton save = new AjaxSubmitButton(ID_SAVE_BUTTON, createStringResource("PageBase.button.save")) {
 
             @Override
@@ -215,97 +176,31 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
         mainForm.add(cancel);
     }
 
-    private SimplePanel initAceEditorPanel(String panelId) {
-
-        return new AceEditorPanel<ReportDto>(panelId, model) {
-
-            @Override
-            public IModel<ReportDto> getEditorModel() {
-                return model;
-            }
-
-            @Override
-            public String getExpression() {
-                return ReportDto.F_XML;
-            }
-
-        };
-    }
-
-    private List<ResourceItemDto> loadResources() {
-        List<ResourceItemDto> resources = new ArrayList<ResourceItemDto>();
-
-        OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCES);
-        try {
-            List<PrismObject<ResourceType>> objects = getModelService().searchObjects(ResourceType.class, null, null,
-                    createSimpleTask(OPERATION_LOAD_RESOURCES), result);
-
-            if (objects != null) {
-                for (PrismObject<ResourceType> object : objects) {
-                    resources.add(new ResourceItemDto(object.getOid(), WebMiscUtil.getName(object)));
-                }
-            }
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't load resources", ex);
-            result.recordFatalError("Couldn't load resources, reason: " + ex.getMessage(), ex);
-        } finally {
-            if (result.isUnknown()) {
-                result.recomputeStatus();
-            }
-        }
-
-        Collections.sort(resources);
-
-        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
-            showResultInSession(result);
-            throw new RestartResponseException(PageDashboard.class);
-        }
-
-        return resources;
-    }
-
-    protected void onSaveAndRunPerformed(AjaxRequestTarget target) {
-        onSavePerformed(target);
-
-        //TODO - add functionality to run report
-    }
-
     protected void onSavePerformed(AjaxRequestTarget target) {
-        ReportDto dto = model.getObject();
-
-        if (StringUtils.isEmpty(dto.getXml())) {
-            error(getString("pageReport.message.emptyXml"));
-            target.add(getFeedbackPanel());
-            return;
-        }
-
         OperationResult result = new OperationResult(OPERATION_SAVE_REPORT);
-        Holder<PrismObject<ReportType>> objectHolder = new Holder<PrismObject<ReportType>>(null);
-        validateObject(dto.getXml(), objectHolder, true, result);
-
         try {
             Task task = createSimpleTask(OPERATION_SAVE_REPORT);
-            PrismObject<ReportType> newReport = objectHolder.getValue();
 
-            //newReport.asObjectable().setName(new PolyStringType(dto.getName()));
-            //newReport.asObjectable().setDescription(dto.getDescription());
-            //newReport.asObjectable().setReportExport(dto.getExportType());
+            PrismObject<ReportType> newReport = model.getObject();
+            PrismObject<ReportType> oldReport = WebModelUtils.loadObject(ReportType.class, newReport.getOid(),
+                    result, this);
 
-            PrismObject<ReportType> oldReport = dto.getObject();
-            ObjectDelta<ReportType> delta = oldReport.diff(newReport);
-            getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
-
+            if (oldReport != null) {
+                ObjectDelta<ReportType> delta = oldReport.diff(newReport);
+                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+            }
         } catch (Exception e) {
             result.recordFatalError("Couldn't save report.", e);
+        } finally {
+            result.computeStatusIfUnknown();
         }
-        result.recomputeStatus();
 
-        showResult(result);
-        target.add(getFeedbackPanel());
-
-        if (result.isSuccess()) {
+        if (WebMiscUtil.isSuccessOrHandledError(result)) {
             showResultInSession(result);
             setResponsePage(PageReports.class);
+        } else {
+            showResult(result);
+            target.add(getFeedbackPanel());
         }
     }
 

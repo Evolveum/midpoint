@@ -31,7 +31,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.trigger.RecomputeTriggerHandler;
+import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -114,6 +114,8 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, "jack", "Jack Sparrow", true);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, "jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
+        		"SystemConfiguration");
         
         // Check audit
         display("Audit", dummyAuditService);

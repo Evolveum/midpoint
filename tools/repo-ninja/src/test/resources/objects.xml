@@ -341,7 +341,7 @@
              This is the part where most of the customization takes place.
         -->
 		<schemaHandling>
-			<accountType>
+			<objectType>
 				<name>default</name>
 				<displayName>Default Account</displayName>
 				<default>true</default>
@@ -515,7 +515,7 @@
 				<protected>
 		               <icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
 		           </protected>
-			</accountType>
+			</objectType>
 		</schemaHandling>
 
 <!--         <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"> -->
@@ -557,13 +557,13 @@
                 </description>
                 <equal>
                     <path>.</path>
-                    <valueExpression>
+                    <expression>
                         <ref>name</ref>
 
                         <code>
                             $c:account/c:attributes/ri:uid
                         </code>
-                    </valueExpression>
+                    </expression>
                 </equal>
             </correlation>
 

@@ -163,11 +163,11 @@
             <artifactId>admin-gui-en-US</artifactId>
             <version>2.3-SNAPSHOT</version>
         </dependency>
-	    <dependency>
-            <groupId>com.evolveum.midpoint.gui</groupId>
-            <artifactId>admin-gui-sk-SK</artifactId>
-            <version>2.3-SNAPSHOT</version>
-        </dependency>
+	    <!--<dependency>-->
+            <!--<groupId>com.evolveum.midpoint.gui</groupId>-->
+            <!--<artifactId>admin-gui-sk-SK</artifactId>-->
+            <!--<version>2.3-SNAPSHOT</version>-->
+        <!--</dependency>-->
 
         <!-- JDBC DRIVERS -->
         <dependency>

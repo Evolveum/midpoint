@@ -43,7 +43,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -74,7 +73,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -528,7 +527,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// Check native capabilities
 		CapabilityCollectionType nativeCapabilities = resourceType.getCapabilities().getNative();
-		display("Native capabilities", JaxbTestUtil.marshalWrap(nativeCapabilities));
+		display("Native capabilities", PrismTestUtil.serializeAnyDataWrapped(nativeCapabilities));
 		display("Resource", resourceType);
 		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
 		assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
@@ -603,7 +602,7 @@ public class TestDummy extends AbstractDummyTest {
 		CapabilitiesType capabilitiesType = resourceType.getCapabilities();
 		assertNotNull("No capabilities in repo, the capabilities were not cached", capabilitiesType);
 		CapabilityCollectionType nativeCapabilities = capabilitiesType.getNative();
-		System.out.println("Native capabilities: " + JaxbTestUtil.marshalWrap(nativeCapabilities));
+		System.out.println("Native capabilities: " + PrismTestUtil.serializeAnyDataWrapped(nativeCapabilities));
 		System.out.println("resource: " + resourceType.asPrismObject().debugDump());
 		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
 		assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
@@ -1688,8 +1687,8 @@ public class TestDummy extends AbstractDummyTest {
 		ShadowType account = parseObjectTypeFromFile(FILENAME_ACCOUNT_SCRIPT, ShadowType.class);
 		display("Account before add", account);
 
-		OperationProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
-		display("Provisioning scripts", JaxbTestUtil.marshalWrap(scriptsType));
+		OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
+		display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 
 		// WHEN
 		String addedObjectOid = provisioningService.addObject(account.asPrismObject(), scriptsType, null, task, result);
@@ -1741,8 +1740,8 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 		dummyResource.purgeScriptHistory();
 
-		OperationProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
-		display("Provisioning scripts", JaxbTestUtil.marshalWrap(scriptsType));
+		OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
+		display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 		
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, 
 				ACCOUNT_NEW_SCRIPT_OID, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Will Turner");
@@ -1790,8 +1789,8 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 		dummyResource.purgeScriptHistory();
 
-		OperationProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
-		display("Provisioning scripts", JaxbTestUtil.marshalWrap(scriptsType));
+		OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
+		display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 		
 		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, 
 				ACCOUNT_NEW_SCRIPT_OID, ShadowType.F_DESCRIPTION, prismContext, "Blah blah");
@@ -1832,8 +1831,8 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 		dummyResource.purgeScriptHistory();
 
-		OperationProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
-		display("Provisioning scripts", JaxbTestUtil.marshalWrap(scriptsType));
+		OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
+		display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 		
 		// WHEN
 		provisioningService.deleteObject(ShadowType.class, ACCOUNT_NEW_SCRIPT_OID, null, scriptsType,
@@ -1869,8 +1868,8 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 		dummyResource.purgeScriptHistory();
 
-		OperationProvisioningScriptsType scriptsType = unmarshallJaxbFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
-		display("Provisioning scripts", JaxbTestUtil.marshalWrap(scriptsType));
+		OperationProvisioningScriptsType scriptsType = unmarshallValueFromFile(FILE_SCRIPTS, OperationProvisioningScriptsType.class);
+		display("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 		
 		ProvisioningScriptType script = scriptsType.getScript().get(0);
 		
@@ -2226,7 +2225,7 @@ public class TestDummy extends AbstractDummyTest {
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
 		ResourceAttributeDefinition attrDef = objectClassDef.findAttributeDefinition(attrQName);
-		ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()), attrDef, attrPVal);
+		ObjectFilter filter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()), attrDef, attrPVal);
 		
 		testSeachIterative(TEST_NAME, filter, rootOptions, fullShadow, expectedAccountNames);
 	}

@@ -52,8 +52,7 @@
 	</connectorConfiguration>
 	
 	<schemaHandling>
-		<accountType>
-			<name>default</name>
+		<objectType>
 			<displayName>Default Account</displayName>
 			<default>true</default>
 			<objectClass>ri:AccountObjectClass</objectClass>
@@ -96,7 +95,7 @@
                 </password>
             </credentials>
             
-		</accountType>
+		</objectType>
 		
 	</schemaHandling>
 	

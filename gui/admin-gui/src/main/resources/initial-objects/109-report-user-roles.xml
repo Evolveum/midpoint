@@ -17,7 +17,7 @@
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-		oid="USERROLE-3333-3333-TEST-10000000000"
+		oid="00000000-0000-0000-0000-000000000109"
         version="0">
 	<name>
 		<orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">User roles subreport</orig>
@@ -26,55 +26,7 @@
 	<description>User roles subreport for midpoint users.</description>
 	<!-- flag if this report is "parent" report, used for gui -->
 	<parent>false</parent>
-	<template>
-		<jasperReport 
-			xmlns="http://jasperreports.sourceforge.net/jasperreports" 
-			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-			xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" 
-			name="reportUserRoles" 
-			columnCount="2" 
-			pageWidth="110" 
-			pageHeight="18" 
-			whenNoDataType="AllSectionsNoDetail" 
-			columnWidth="54" 
-			columnSpacing="1" 
-			leftMargin="0" 
-			rightMargin="0" 
-			topMargin="0" 
-			bottomMargin="0" 
-			uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
-			<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
-			<property name="net.sf.jasperreports.export.pdf.force.linebreak.policy" value="true"/>
-			<style fontName="DejaVu Sans" fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="true" 
-				   name="Base" pdfEncoding="Identity-H" pdfFontName="DejaVuSans.ttf" vAlign="Middle">
-			</style>
-			<style isBold="false" isDefault="false" name="Detail" style="Base"/>
-			<parameter name="userOid" class="java.lang.String"/>
-			<parameter name="hqlQueryRoles" class="java.lang.String"/>
-			<queryString language="hql"><![CDATA[$P!{hqlQueryRoles}]]></queryString>
-			<field name="roleName" class="java.lang.String"/>
-			<detail>
-				<band height="18" splitType="Stretch">
-					<frame>
-						<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" positionType="Float" style="Detail" mode="Opaque" x="0" y="1" width="100" height="17"/>
-						<line>
-							<reportElement uuid="47f91801-cf5f-4bed-b19c-ca3931cbf98d" positionType="FixRelativeToTop" mode="Opaque" x="0" y="0" width="100" height="1" forecolor="#333333">
-								<printWhenExpression><![CDATA[new java.lang.Boolean((int)$V{REPORT_COUNT}.intValue()!=1)]]></printWhenExpression>
-							</reportElement>
-							<graphicElement>
-								<pen lineWidth="0.5" lineColor="#999999"/>
-							</graphicElement>
-						</line>
-						<textField isStretchWithOverflow="true">
-							<reportElement uuid="ebaef16d-2903-4029-9a6b-d4d244558ae9" style="Detail" x="0" y="2" width="100" height="13"/>
-							<textElement verticalAlignment="Middle"/>
-							<textFieldExpression><![CDATA[$F{roleName}]]></textFieldExpression>
-						</textField>
-					</frame>
-				</band>
-			</detail>
-		</jasperReport>
-	</template>
+	<template>UEdwaGMzQmxjbEpsY0c5eWRDQU5DaUFnSUNBSkNYaHRiRzV6UFNKb2RIUndPaTh2YW1GemNHVnljbVZ3YjNKMGN5NXpiM1Z5WTJWbWIzSm5aUzV1WlhRdmFtRnpjR1Z5Y21Wd2IzSjBjeUlnRFFvSkNRbDRiV3h1Y3pwNGMyazlJbWgwZEhBNkx5OTNkM2N1ZHpNdWIzSm5Mekl3TURFdldFMU1VMk5vWlcxaExXbHVjM1JoYm1ObElpQU5DZ2tKQ1hoemFUcHpZMmhsYldGTWIyTmhkR2x2YmowaWFIUjBjRG92TDJwaGMzQmxjbkpsY0c5eWRITXVjMjkxY21ObFptOXlaMlV1Ym1WMEwycGhjM0JsY25KbGNHOXlkSE1nYUhSMGNEb3ZMMnBoYzNCbGNuSmxjRzl5ZEhNdWMyOTFjbU5sWm05eVoyVXVibVYwTDNoelpDOXFZWE53WlhKeVpYQnZjblF1ZUhOa0lpQU5DZ2tKQ1c1aGJXVTlJbkpsY0c5eWRGVnpaWEpTYjJ4bGN5SWdEUW9KQ1FsamIyeDFiVzVEYjNWdWREMGlNaUlnRFFvSkNRbHdZV2RsVjJsa2RHZzlJakV4TUNJZ0RRb0pDUWx3WVdkbFNHVnBaMmgwUFNJeE9DSWdEUW9KQ1FsM2FHVnVUbTlFWVhSaFZIbHdaVDBpUVd4c1UyVmpkR2x2Ym5OT2IwUmxkR0ZwYkNJZ0RRb0pDUWxqYjJ4MWJXNVhhV1IwYUQwaU5UUWlJQTBLQ1FrSlkyOXNkVzF1VTNCaFkybHVaejBpTVNJZ0RRb0pDUWxzWldaMFRXRnlaMmx1UFNJd0lpQU5DZ2tKQ1hKcFoyaDBUV0Z5WjJsdVBTSXdJaUFOQ2drSkNYUnZjRTFoY21kcGJqMGlNQ0lnRFFvSkNRbGliM1IwYjIxTllYSm5hVzQ5SWpBaUlBMEtDUWtKZFhWcFpEMGlOamRsTkRZMVl6VXRORFpsWVMwME1HUXlMV0psWVRBdE5EWTVZelpqWmpNNE9UTTNJajROQ2drSkNUeHdjbTl3WlhKMGVTQnVZVzFsUFNKdVpYUXVjMll1YW1GemNHVnljbVZ3YjNKMGN5NWhkM1F1YVdkdWIzSmxMbTFwYzNOcGJtY3VabTl1ZENJZ2RtRnNkV1U5SW5SeWRXVWlMejROQ2drSkNUeHdjbTl3WlhKMGVTQnVZVzFsUFNKdVpYUXVjMll1YW1GemNHVnljbVZ3YjNKMGN5NWxlSEJ2Y25RdWNHUm1MbVp2Y21ObExteHBibVZpY21WaGF5NXdiMnhwWTNraUlIWmhiSFZsUFNKMGNuVmxJaTgrRFFvSkNRazhjM1I1YkdVZ1ptOXVkRTVoYldVOUlrUmxhbUZXZFNCVFlXNXpJaUJtYjI1MFUybDZaVDBpTVRBaUlHaEJiR2xuYmowaVRHVm1kQ0lnYVhORVpXWmhkV3gwUFNKMGNuVmxJaUJwYzFCa1prVnRZbVZrWkdWa1BTSjBjblZsSWlBTkNna0pDUWtnSUNCdVlXMWxQU0pDWVhObElpQndaR1pGYm1OdlpHbHVaejBpU1dSbGJuUnBkSGt0U0NJZ2NHUm1SbTl1ZEU1aGJXVTlJa1JsYW1GV2RWTmhibk11ZEhSbUlpQjJRV3hwWjI0OUlrMXBaR1JzWlNJK0RRb0pDUWs4TDNOMGVXeGxQZzBLQ1FrSlBITjBlV3hsSUdselFtOXNaRDBpWm1Gc2MyVWlJR2x6UkdWbVlYVnNkRDBpWm1Gc2MyVWlJRzVoYldVOUlrUmxkR0ZwYkNJZ2MzUjViR1U5SWtKaGMyVWlMejROQ2drSkNUeHdZWEpoYldWMFpYSWdibUZ0WlQwaWRYTmxjazlwWkNJZ1kyeGhjM005SW1waGRtRXViR0Z1Wnk1VGRISnBibWNpTHo0TkNna0pDVHh3WVhKaGJXVjBaWElnYm1GdFpUMGlhSEZzVVhWbGNubFNiMnhsY3lJZ1kyeGhjM005SW1waGRtRXViR0Z1Wnk1VGRISnBibWNpTHo0TkNna0pDVHh4ZFdWeWVWTjBjbWx1WnlCc1lXNW5kV0ZuWlQwaWFIRnNJajQ4SVZ0RFJFRlVRVnNrVUNGN2FIRnNVWFZsY25sU2IyeGxjMzFkWFQ0OEwzRjFaWEo1VTNSeWFXNW5QZzBLQ1FrSlBHWnBaV3hrSUc1aGJXVTlJbkp2YkdWT1lXMWxJaUJqYkdGemN6MGlhbUYyWVM1c1lXNW5MbE4wY21sdVp5SXZQZzBLQ1FrSlBHUmxkR0ZwYkQ0TkNna0pDUWs4WW1GdVpDQm9aV2xuYUhROUlqRTRJaUJ6Y0d4cGRGUjVjR1U5SWxOMGNtVjBZMmdpUGcwS0NRa0pDUWs4Wm5KaGJXVStEUW9KQ1FrSkNRazhjbVZ3YjNKMFJXeGxiV1Z1ZENCMWRXbGtQU0l6WlRobVpHUTJaQzFoTm1abUxUUTBNRGN0T1dFeFpTMDFaRFppTkRjd05qTXdNR0VpSUhCdmMybDBhVzl1Vkhsd1pUMGlSbXh2WVhRaUlITjBlV3hsUFNKRVpYUmhhV3dpSUcxdlpHVTlJazl3WVhGMVpTSWdlRDBpTUNJZ2VUMGlNU0lnZDJsa2RHZzlJakV3TUNJZ2FHVnBaMmgwUFNJeE55SXZQZzBLQ1FrSkNRa0pQR3hwYm1VK0RRb0pDUWtKQ1FrSlBISmxjRzl5ZEVWc1pXMWxiblFnZFhWcFpEMGlORGRtT1RFNE1ERXRZMlkxWmkwMFltVmtMV0l4T1dNdFkyRXpPVE14WTJKbU9UaGtJaUJ3YjNOcGRHbHZibFI1Y0dVOUlrWnBlRkpsYkdGMGFYWmxWRzlVYjNBaUlHMXZaR1U5SWs5d1lYRjFaU0lnZUQwaU1DSWdlVDBpTUNJZ2QybGtkR2c5SWpFd01DSWdhR1ZwWjJoMFBTSXhJaUJtYjNKbFkyOXNiM0k5SWlNek16TXpNek1pUGcwS0NRa0pDUWtKQ1FrOGNISnBiblJYYUdWdVJYaHdjbVZ6YzJsdmJqNDhJVnREUkVGVVFWdHVaWGNnYW1GMllTNXNZVzVuTGtKdmIyeGxZVzRvS0dsdWRDa2tWbnRTUlZCUFVsUmZRMDlWVGxSOUxtbHVkRlpoYkhWbEtDa2hQVEVwWFYwK1BDOXdjbWx1ZEZkb1pXNUZlSEJ5WlhOemFXOXVQZzBLQ1FrSkNRa0pDVHd2Y21Wd2IzSjBSV3hsYldWdWRENE5DZ2tKQ1FrSkNRazhaM0poY0docFkwVnNaVzFsYm5RK0RRb0pDUWtKQ1FrSkNUeHdaVzRnYkdsdVpWZHBaSFJvUFNJd0xqVWlJR3hwYm1WRGIyeHZjajBpSXprNU9UazVPU0l2UGcwS0NRa0pDUWtKQ1R3dlozSmhjR2hwWTBWc1pXMWxiblErRFFvSkNRa0pDUWs4TDJ4cGJtVStEUW9KQ1FrSkNRazhkR1Y0ZEVacFpXeGtJR2x6VTNSeVpYUmphRmRwZEdoUGRtVnlabXh2ZHowaWRISjFaU0krRFFvSkNRa0pDUWtKUEhKbGNHOXlkRVZzWlcxbGJuUWdkWFZwWkQwaVpXSmhaV1l4Tm1RdE1qa3dNeTAwTURJNUxUbGhObUl0WkRSa01qUTBOVFU0WVdVNUlpQnpkSGxzWlQwaVJHVjBZV2xzSWlCNFBTSXdJaUI1UFNJeUlpQjNhV1IwYUQwaU1UQXdJaUJvWldsbmFIUTlJakV6SWk4K0RRb0pDUWtKQ1FrSlBIUmxlSFJGYkdWdFpXNTBJSFpsY25ScFkyRnNRV3hwWjI1dFpXNTBQU0pOYVdSa2JHVWlMejROQ2drSkNRa0pDUWs4ZEdWNGRFWnBaV3hrUlhod2NtVnpjMmx2Ymo0OElWdERSRUZVUVZza1JudHliMnhsVG1GdFpYMWRYVDQ4TDNSbGVIUkdhV1ZzWkVWNGNISmxjM05wYjI0K0RRb0pDUWtKQ1FrOEwzUmxlSFJHYVdWc1pENE5DZ2tKQ1FrSlBDOW1jbUZ0WlQ0TkNna0pDUWs4TDJKaGJtUStEUW9KQ1FrOEwyUmxkR0ZwYkQ0TkNna0pQQzlxWVhOd1pYSlNaWEJ2Y25RKw==</template>
 	<orientation>landscape</orientation>
 	<export>pdf</export>
 	<!-- set to true if report needs hibernate session (e.g. hql query is used) -->

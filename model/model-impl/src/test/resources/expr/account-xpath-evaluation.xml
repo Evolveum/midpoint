@@ -170,16 +170,16 @@
 		</schema>
 
 		<schemaHandling>
-			<accountType>
-				<name>Default Account</name>
+			<objectType>
+				<intent>Default Account</intent>
 				<objectClass>ri:AccountObjectClass</objectClass>
 				<attribute>
 					<ref>icfs:name</ref>
 					<displayName>Distinguished Name</displayName>
 					<limitations>
 						<access>
-							<add>true</add>
 							<read>true</read>
+							<add>true</add>
 						</access>
 					</limitations>
 <!-- 					<access>create</access> -->
@@ -193,7 +193,7 @@
 	                        </code>
                         </script>
                     </expression>
-<!-- 						<valueExpression><code>concat('uid=', $c:user/c:name, ',ou=people,dc=example,dc=com')</code></valueExpression> -->
+<!-- 						<expression><code>concat('uid=', $c:user/c:name, ',ou=people,dc=example,dc=com')</code></expression> -->
 					</outbound>
 				</attribute>
 				<attribute>
@@ -211,8 +211,8 @@
 					<displayName>Common Name</displayName>
 					<limitations>
 						<access>
-							<add>true</add>
 							<read>true</read>
+							<add>true</add>
 							<modify>true</modify>
 						</access>
 					</limitations>
@@ -234,8 +234,8 @@
 					<displayName>Surname</displayName>
 					<limitations>
 						<access>
-							<add>true</add>
 							<read>true</read>
+							<add>true</add>
 							<modify>true</modify>
 						</access>
 					</limitations>
@@ -266,8 +266,8 @@
 					<displayName>Given Name</displayName>
 					<limitations>
 						<access>
-							<add>true</add>
 							<read>true</read>
+							<add>true</add>
 							<modify>true</modify>
 						</access>
 					</limitations>
@@ -294,8 +294,8 @@
 					<displayName>Title before name</displayName>
 					<limitations>
 						<access>
-							<add>true</add>
 							<read>true</read>
+							<add>true</add>
 							<modify>true</modify>
 						</access>
 					</limitations>
@@ -313,8 +313,8 @@
 					<displayName>Not defined attribute in the resource schema</displayName>
 					<limitations>
 						<access>
-							<add>true</add>
 							<read>true</read>
+							<add>true</add>
 							<modify>true</modify>
 						</access>
 					</limitations>
@@ -325,7 +325,7 @@
                         </target>
 					</inbound>
 				</attribute>
-			</accountType>
+			</objectType>
 		</schemaHandling>
 	</resource>
 	<objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:AccountObjectClass</objectClass>

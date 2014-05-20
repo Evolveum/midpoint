@@ -68,14 +68,11 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 import org.opends.server.util.ChangeRecordEntry;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -95,11 +92,9 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.parser.util.XNodeProcessorUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -110,7 +105,6 @@ import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -125,7 +119,6 @@ import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ObjectChecker;
@@ -135,7 +128,6 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -175,7 +167,6 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.ObjectAlreadyExistsFaultType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
-import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
@@ -185,7 +176,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType.ObjectToAdd;
 
 /**
  * Sanity test suite.
@@ -1008,8 +998,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * that happens in repo and in LDAP.
      */
     @Test
-    public void test013AddOpenDjAccountToUser() throws FileNotFoundException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, DirectoryException, ObjectAlreadyExistsException {
+    public void test013AddOpenDjAccountToUser() throws Exception {
         TestUtil.displayTestTile("test013AddOpenDjAccountToUser");
         try{
         // GIVEN
@@ -1021,7 +1010,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // This is not redundant. It checks that the previous command set the policy correctly
         assertSyncSettingsAssignmentPolicyEnforcement(AssignmentPolicyEnforcementType.NONE);
 
-        ObjectDeltaType objectChange = unmarshallJaxbFromFile(
+        ObjectDeltaType objectChange = unmarshallValueFromFile(
                 REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME, ObjectDeltaType.class);
         
         // WHEN
@@ -1150,7 +1139,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * that happens in repo and in Derby.
      */
     @Test
-    public void test014AddDerbyAccountToUser() throws FileNotFoundException, JAXBException, FaultMessage,
+    public void test014AddDerbyAccountToUser() throws IOException, JAXBException, FaultMessage,
             ObjectNotFoundException, SchemaException, DirectoryException, SQLException {
         TestUtil.displayTestTile("test014AddDerbyAccountToUser");
 
@@ -1159,7 +1148,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         checkRepoDerbyResource();
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallJaxbFromFile(
+        ObjectDeltaType objectChange = unmarshallValueFromFile(
                 REQUEST_USER_MODIFY_ADD_ACCOUNT_DERBY_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(), 
@@ -1353,7 +1342,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallJaxbFromFile(
+        ObjectDeltaType objectChange = unmarshallValueFromFile(
                 REQUEST_USER_MODIFY_FULLNAME_LOCALITY_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(), 
@@ -1449,7 +1438,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         TestUtil.displayTestTile(TEST_NAME);
         // GIVEN
 
-        ObjectDeltaType objectChange = unmarshallJaxbFromFile(
+        ObjectDeltaType objectChange = unmarshallValueFromFile(
                 REQUEST_USER_MODIFY_PASSWORD_FILENAME, ObjectDeltaType.class);
 
         System.out.println("In modification: " + objectChange.getItemDelta().get(0).getValue().get(0));
@@ -1553,12 +1542,12 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * Try to disable user. As the user has an account, the account should be disabled as well.
      */
     @Test
-    public void test030Disable() throws FileNotFoundException, JAXBException, FaultMessage,
+    public void test030Disable() throws IOException, JAXBException, FaultMessage,
             ObjectNotFoundException, SchemaException, DirectoryException {
         TestUtil.displayTestTile("test030Disable");
         // GIVEN
 
-        ObjectDeltaType objectChange = unmarshallJaxbFromFile(
+        ObjectDeltaType objectChange = unmarshallValueFromFile(
                 REQUEST_USER_MODIFY_ACTIVATION_DISABLE_FILENAME, ObjectDeltaType.class);
 
         SearchResultEntry entry = openDJController.searchByUid("jack");
@@ -1661,12 +1650,12 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * Try to enable user after it has been disabled. As the user has an account, the account should be enabled as well.
      */
     @Test
-    public void test031Enable() throws FileNotFoundException, JAXBException, FaultMessage,
+    public void test031Enable() throws IOException, JAXBException, FaultMessage,
             ObjectNotFoundException, SchemaException, DirectoryException {
         TestUtil.displayTestTile("test031Enable");
         // GIVEN
 
-        ObjectDeltaType objectChange = unmarshallJaxbFromFile(
+        ObjectDeltaType objectChange = unmarshallValueFromFile(
                 REQUEST_USER_MODIFY_ACTIVATION_ENABLE_FILENAME, ObjectDeltaType.class);
         assertNoRepoCache();
 
@@ -1874,8 +1863,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallJaxbFromFile(
-        		REQUEST_USER_MODIFY_NAME_FILENAME, ObjectDeltaType.class);
+        ObjectDeltaType objectChange = unmarshallValueFromFile(
+                REQUEST_USER_MODIFY_NAME_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(), 
         OperationResultType result = modifyObjectViaModelWS(objectChange);
@@ -1938,8 +1927,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
         
         // GIVEN
         assertNoRepoCache();
-        ObjectDeltaType objectChange = unmarshallJaxbFromFile(
+        ObjectDeltaType objectChange = unmarshallValueFromFile(
                 REQUEST_USER_MODIFY_GIVENNAME_FILENAME, ObjectDeltaType.class);
+        displayJaxb("objectChange:", objectChange, SchemaConstants.T_OBJECT_DELTA);
 
         // WHEN ObjectTypes.USER.getTypeQName(), 
         OperationResultType result = modifyObjectViaModelWS(objectChange);
@@ -2065,7 +2055,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         assertNoRepoCache();
         TestUtil.assertSuccess("addObject has failed", resultHolder.value);
 
-        ObjectDeltaType objectChange = unmarshallJaxbFromFile(
+        ObjectDeltaType objectChange = unmarshallValueFromFile(
                 REQUEST_USER_MODIFY_ADD_ROLE_PIRATE_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(), 
@@ -2160,13 +2150,13 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
 
     @Test
-    public void test052AssignRoleCaptain() throws FileNotFoundException, JAXBException, FaultMessage,
+    public void test052AssignRoleCaptain() throws IOException, JAXBException, FaultMessage,
             ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException {
         TestUtil.displayTestTile("test052AssignRoleCaptain");
 
         // GIVEN
 
-        ObjectDeltaType objectChange = unmarshallJaxbFromFile(
+        ObjectDeltaType objectChange = unmarshallValueFromFile(
                 REQUEST_USER_MODIFY_ADD_ROLE_CAPTAIN_1_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(), 
@@ -2242,13 +2232,13 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * Assign the same "captain" role again, this time with a slightly different assignment parameters.
      */
     @Test
-    public void test053AssignRoleCaptainAgain() throws FileNotFoundException, JAXBException, FaultMessage,
+    public void test053AssignRoleCaptainAgain() throws IOException, JAXBException, FaultMessage,
             ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException {
         TestUtil.displayTestTile("test053AssignRoleCaptain");
 
         // GIVEN
 
-        ObjectDeltaType objectChange = unmarshallJaxbFromFile(
+        ObjectDeltaType objectChange = unmarshallValueFromFile(
                 REQUEST_USER_MODIFY_ADD_ROLE_CAPTAIN_2_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(), 
@@ -2326,7 +2316,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // GIVEN
 
-        ObjectDeltaType objectChange = unmarshallJaxbFromFile(
+        ObjectDeltaType objectChange = unmarshallValueFromFile(
                 REQUEST_ACCOUNT_MODIFY_ATTRS_FILENAME, ObjectDeltaType.class);
         objectChange.setOid(accountShadowOidGuybrushOpendj);
 
@@ -2405,7 +2395,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * Judge role excludes pirate role. This assignment should fail. 
      */
     @Test
-    public void test054AssignRoleJudge() throws FileNotFoundException, JAXBException, FaultMessage,
+    public void test054AssignRoleJudge() throws IOException, JAXBException, FaultMessage,
             ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException {
         TestUtil.displayTestTile("test054AssignRoleJudge");
 
@@ -2416,7 +2406,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         Holder<String> oidHolder = new Holder<String>();
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallJaxbFromFile(
+        ObjectDeltaType objectChange = unmarshallValueFromFile(
                 REQUEST_USER_MODIFY_ADD_ROLE_JUDGE_FILENAME, ObjectDeltaType.class);
         try {
         	
@@ -2450,7 +2440,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
 
     @Test
-    public void test057UnassignRolePirate() throws FileNotFoundException, JAXBException, FaultMessage,
+    public void test057UnassignRolePirate() throws IOException, JAXBException, FaultMessage,
             ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException {
         TestUtil.displayTestTile("test057UnassignRolePirate");
 
@@ -2459,7 +2449,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         OperationResultType result = new OperationResultType();
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallJaxbFromFile(
+        ObjectDeltaType objectChange = unmarshallValueFromFile(
                 REQUEST_USER_MODIFY_DELETE_ROLE_PIRATE_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(), 
@@ -2533,7 +2523,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test058UnassignRoleCaptain() throws FileNotFoundException, JAXBException, FaultMessage,
+    public void test058UnassignRoleCaptain() throws IOException, JAXBException, FaultMessage,
             ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException {
         TestUtil.displayTestTile("test058UnassignRoleCaptain");
 
@@ -2542,7 +2532,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         OperationResultType result = new OperationResultType();
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallJaxbFromFile(
+        ObjectDeltaType objectChange = unmarshallValueFromFile(
                 REQUEST_USER_MODIFY_DELETE_ROLE_CAPTAIN_1_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(), 
@@ -2621,7 +2611,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * Captain role was assigned twice. It has to also be unassigned twice.
      */
     @Test
-    public void test059UnassignRoleCaptainAgain() throws FileNotFoundException, JAXBException, FaultMessage,
+    public void test059UnassignRoleCaptainAgain() throws IOException, JAXBException, FaultMessage,
             ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException {
         TestUtil.displayTestTile("test059UnassignRoleCaptain");
 
@@ -2630,7 +2620,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         OperationResultType result = new OperationResultType();
         assertNoRepoCache();
 
-        ObjectDeltaType objectChange = unmarshallJaxbFromFile(
+        ObjectDeltaType objectChange = unmarshallValueFromFile(
                 REQUEST_USER_MODIFY_DELETE_ROLE_CAPTAIN_2_FILENAME, ObjectDeltaType.class);
 
         // WHEN ObjectTypes.USER.getTypeQName(), 
@@ -3007,13 +2997,14 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     @Test
     public void test200ImportFromResource() throws Exception {
-        TestUtil.displayTestTile("test200ImportFromResource");
+    	final String TEST_NAME = "test200ImportFromResource";
+        TestUtil.displayTestTile(TEST_NAME);
         // GIVEN
         checkAllShadows();
         assertNoRepoCache();
 
         OperationResult result = new OperationResult(TestSanity.class.getName()
-                + ".test200ImportFromResource");
+                + "." + TEST_NAME);
         
         // Make sure Mr. Gibbs has "l" attribute set to the same value as an outbound expression is setting
         ChangeRecordEntry entry = openDJController.executeLdifChange(LDIF_GIBBS_MODIFY_FILENAME);
@@ -3107,33 +3098,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
         double usersPerSec = (task.getProgress() * 1000) / importDuration;
         display("Imported " + task.getProgress() + " users in " + importDuration + " milliseconds (" + usersPerSec + " users/sec)");
 
-//        waitFor("Waiting for task to get released", new Checker() {
-//            @Override
-//            public boolean check() throws Exception {
-//                Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-//                Holder<ObjectType> objectHolder = new Holder<ObjectType>();
-//                OperationResult opResult = new OperationResult("import check");
-//                assertCache();
-//                modelWeb.getObject(ObjectTypes.TASK.getTypeQName(), taskOid,
-//                        new PropertyReferenceListType(), objectHolder, resultHolder);
-//                assertCache();
-//                //				display("getObject result (wait loop)",resultHolder.value);
-//                assertSuccess("getObject has failed", resultHolder.value);
-//                Task task = taskManager.createTaskInstance(objectHolder.value.asPrismObject(), opResult);
-//                System.out.println("Import task status: " + task.getExecutionStatus());
-//                if (task.getExclusivityStatus() == TaskExclusivityStatus.RELEASED) {
-//                    // Task closed and released, wait finished
-//                    return true;
-//                }
-//                //				IntegrationTestTools.display("Task result while waiting: ", task.getResult());
-//                return false;
-//            }
-//
-//            public void timeout() {
-//                Assert.fail("The task was not released after closing");
-//            }
-//        }, 10000);
-
         OperationResult taskResult = task.getResult();
         AssertJUnit.assertNotNull("Task has no result", taskResult);
         TestUtil.assertSuccess("Import task result is not success", taskResult);
@@ -3172,13 +3136,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
         AssertJUnit.assertFalse("No users created", uobjects.getObject().isEmpty());
 
         // TODO: use another account, not guybrush
-//        try {
-//            ResourceObjectShadowType guybrushShadow = modelService.getObject(ResourceObjectShadowType.class, accountShadowOidGuybrushOpendj, null, new OperationResult("get shadow"));
-//            display("Guybrush shadow (" + accountShadowOidGuybrushOpendj + ")", guybrushShadow);
-//        } catch (ObjectNotFoundException e) {
-//            System.out.println("NO GUYBRUSH SHADOW");
-//            // TODO: fail
-//        }
         
         display("Users after import "+uobjects.getObject().size());
 
@@ -3204,8 +3161,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
             	continue;
             }
             
-            assertTrue("User "+user.getName()+" is disabled", user.getActivation() == null || user.getActivation().isEnabled() == null ||
-            		user.getActivation().isEnabled());
+            assertTrue("User "+user.getName()+" is disabled ("+user.getActivation().getAdministrativeStatus()+")", user.getActivation() == null || 
+            		user.getActivation().getAdministrativeStatus() == ActivationStatusType.ENABLED);
 
             List<ObjectReferenceType> accountRefs = user.getLinkRef();
             AssertJUnit.assertEquals("Wrong accountRef for user " + user.getName(), 1, accountRefs.size());
@@ -3255,7 +3212,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // Assign role to a user, but we do this using a repository instead of model.
         // The role assignment will not be executed and this created an inconsistent state.
-        ObjectDeltaType changeAddRoleCaptain = unmarshallJaxbFromFile(
+        ObjectDeltaType changeAddRoleCaptain = unmarshallValueFromFile(
                 REQUEST_USER_MODIFY_ADD_ROLE_CAPTAIN_1_FILENAME, ObjectDeltaType.class);
         Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(changeAddRoleCaptain.getItemDelta(),
         		getUserDefinition());

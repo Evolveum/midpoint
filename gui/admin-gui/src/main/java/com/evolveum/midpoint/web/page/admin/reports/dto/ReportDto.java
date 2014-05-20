@@ -27,15 +27,6 @@ import java.io.Serializable;
  */
 public class ReportDto implements Serializable {
 
-    public static enum Type {
-        USERS("User"), RECONCILIATION("Reconciliation"), AUDIT("Audit");
-
-        private final String name;
-
-        private Type(final String s){name = s;}
-        public String toString(){return name;}
-    }
-
     public static final String F_PARENT = "parent";
     public static final String F_OID = "oid";
     public static final String F_XML = "xml";
@@ -46,21 +37,20 @@ public class ReportDto implements Serializable {
     private boolean parent;
     private String oid;
     private String xml;
-    private Type type;
     private String name;
     private String description;
     private ExportType exportType;
     private PrismObject<ReportType> object;
 
-    public ReportDto(){}
+    public ReportDto() {
+    }
 
-    public ReportDto(Type type, String name, String description) {
-        this.type = type;
+    public ReportDto(String name, String description) {
         this.description = description;
         this.name = name;
     }
 
-    public ReportDto(String name, String description, String xml, ExportType export, boolean parent){
+    public ReportDto(String name, String description, String xml, ExportType export, boolean parent) {
         this.name = name;
         this.description = description;
         this.xml = xml;
@@ -98,14 +88,6 @@ public class ReportDto implements Serializable {
 
     public void setXml(String xml) {
         this.xml = xml;
-    }
-
-    public Type getType() {
-        return type;
-    }
-
-    public void setType(Type type) {
-        this.type = type;
     }
 
     public String getName() {
