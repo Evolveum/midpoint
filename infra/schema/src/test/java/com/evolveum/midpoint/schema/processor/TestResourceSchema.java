@@ -167,7 +167,7 @@ public class TestResourceSchema {
 		
 //		JAXBElement<ResourceType> resourceElement = new JAXBElement<ResourceType>(SchemaConstants.C_RESOURCE, ResourceType.class, resource);
 //		String marshalledResource = PrismTestUtil.marshalElementToString(resourceElement);
-        String marshalledResource = PrismTestUtil.marshalObjectToString(resource.asPrismObject());
+        String marshalledResource = PrismTestUtil.serializeObjectToString(resource.asPrismObject());
 
         System.out.println("Marshalled resource");
 		System.out.println(marshalledResource); 

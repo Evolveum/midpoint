@@ -29,7 +29,6 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -46,13 +45,10 @@ import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -60,7 +56,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -69,7 +64,6 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -86,14 +80,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
-import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -302,19 +294,19 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		return prismObject.asObjectable();
 	}
 	
-	protected static <T> T unmarshallJaxbFromFile(File file, Class<T> clazz)
-			throws FileNotFoundException, JAXBException, SchemaException {
-		return JaxbTestUtil.getInstance().unmarshalObject(file, clazz);
+	protected static <T> T unmarshallValueFromFile(File file, Class<T> clazz)
+            throws IOException, JAXBException, SchemaException {
+        return PrismTestUtil.parseAnyValue(file);
 	}
 
-	protected static <T> T unmarshallJaxbFromFile(String filePath, Class<T> clazz)
-			throws FileNotFoundException, JAXBException, SchemaException {
-		return JaxbTestUtil.getInstance().unmarshalObject(new File(filePath), clazz);
+	protected static <T> T unmarshallValueFromFile(String filePath, Class<T> clazz)
+            throws IOException, JAXBException, SchemaException {
+        return PrismTestUtil.parseAnyValue(new File(filePath));
 	}
 
-	protected static ObjectType unmarshallJaxbFromFile(String filePath) throws FileNotFoundException,
-			JAXBException, SchemaException {
-		return unmarshallJaxbFromFile(filePath, ObjectType.class);
+	protected static ObjectType unmarshallValueFromFile(String filePath) throws IOException,
+            JAXBException, SchemaException {
+		return unmarshallValueFromFile(filePath, ObjectType.class);
 	}
 
 	protected PrismObject<ResourceType> addResourceFromFile(String filePath, String connectorType, OperationResult result)

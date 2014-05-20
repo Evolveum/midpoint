@@ -24,22 +24,22 @@ import javax.xml.namespace.QName;
 @XmlRegistry
 public class ObjectFactory {
 
-    private final static QName _Extension_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-2", "extension");
-    private final static QName _Access_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-2", "access");
-    private final static QName _Deprecated_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-2", "deprecated");
-    private final static QName _Ignore_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-2", "ignore");
-    private final static QName _Indexed_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-2", "indexed");
-    private final static QName _Container_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-2", "container");
-    private final static QName _Operational_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-2", "operational");
-    private final static QName _Composite_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-2", "composite");
-    private final static QName _Help_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-2", "help");
-    private final static QName _ObjectReferenceTargetType_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-2", "objectReferenceTargetType");
-    private final static QName _DisplayOrder_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-2", "displayOrder");
-    private final static QName _DisplayName_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-2", "displayName");
-    private final static QName _MaxOccurs_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-2", "maxOccurs");
-    private final static QName _Object_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-2", "object");
-    private final static QName _ObjectReference_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-2", "objectReference");
-    private final static QName _Type_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-2", "type");
+    private final static QName _Extension_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-3", "extension");
+    private final static QName _Access_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-3", "access");
+    private final static QName _Deprecated_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-3", "deprecated");
+    private final static QName _Ignore_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-3", "ignore");
+    private final static QName _Indexed_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-3", "indexed");
+    private final static QName _Container_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-3", "container");
+    private final static QName _Operational_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-3", "operational");
+    private final static QName _Composite_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-3", "composite");
+    private final static QName _Help_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-3", "help");
+    private final static QName _ObjectReferenceTargetType_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-3", "objectReferenceTargetType");
+    private final static QName _DisplayOrder_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-3", "displayOrder");
+    private final static QName _DisplayName_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-3", "displayName");
+    private final static QName _MaxOccurs_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-3", "maxOccurs");
+    private final static QName _Object_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-3", "object");
+    private final static QName _ObjectReference_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-3", "objectReference");
+    private final static QName _Type_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/annotation-3", "type");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: com.evolveum.prism.xml.ns._public.annotation_2
@@ -52,7 +52,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link QName }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-2", name = "extension")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "extension")
     public JAXBElement<QName> createExtension(QName value) {
         return new JAXBElement<QName>(_Extension_QNAME, QName.class, null, value);
     }
@@ -61,7 +61,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link AccessAnnotationType }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-2", name = "access")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "access")
     public JAXBElement<AccessAnnotationType> createAccess(AccessAnnotationType value) {
         return new JAXBElement<AccessAnnotationType>(_Access_QNAME, AccessAnnotationType.class, null, value);
     }
@@ -70,7 +70,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link Boolean }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-2", name = "deprecated")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "deprecated")
     public JAXBElement<Boolean> createDeprecated(Boolean value) {
         return new JAXBElement<Boolean>(_Deprecated_QNAME, Boolean.class, null, value);
     }
@@ -79,7 +79,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link Boolean }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-2", name = "ignore")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "ignore")
     public JAXBElement<Boolean> createIgnore(Boolean value) {
         return new JAXBElement<Boolean>(_Ignore_QNAME, Boolean.class, null, value);
     }
@@ -88,7 +88,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link Boolean }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-2", name = "indexed")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "indexed")
     public JAXBElement<Boolean> createIndexed(Boolean value) {
         return new JAXBElement<Boolean>(_Indexed_QNAME, Boolean.class, null, value);
     }
@@ -97,7 +97,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link Object }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-2", name = "container")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "container")
     public JAXBElement<Object> createContainer(Object value) {
         return new JAXBElement<Object>(_Container_QNAME, Object.class, null, value);
     }
@@ -106,7 +106,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link Boolean }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-2", name = "operational")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "operational")
     public JAXBElement<Boolean> createOperational(Boolean value) {
         return new JAXBElement<Boolean>(_Operational_QNAME, Boolean.class, null, value);
     }
@@ -115,7 +115,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link Boolean }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-2", name = "composite")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "composite")
     public JAXBElement<Boolean> createComposite(Boolean value) {
         return new JAXBElement<Boolean>(_Composite_QNAME, Boolean.class, null, value);
     }
@@ -124,7 +124,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-2", name = "help")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "help")
     public JAXBElement<String> createHelp(String value) {
         return new JAXBElement<String>(_Help_QNAME, String.class, null, value);
     }
@@ -133,7 +133,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link QName }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-2", name = "objectReferenceTargetType")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "objectReferenceTargetType")
     public JAXBElement<QName> createObjectReferenceTargetType(QName value) {
         return new JAXBElement<QName>(_ObjectReferenceTargetType_QNAME, QName.class, null, value);
     }
@@ -142,7 +142,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link Integer }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-2", name = "displayOrder")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "displayOrder")
     public JAXBElement<Integer> createDisplayOrder(Integer value) {
         return new JAXBElement<Integer>(_DisplayOrder_QNAME, Integer.class, null, value);
     }
@@ -151,7 +151,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-2", name = "displayName")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "displayName")
     public JAXBElement<String> createDisplayName(String value) {
         return new JAXBElement<String>(_DisplayName_QNAME, String.class, null, value);
     }
@@ -160,7 +160,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-2", name = "maxOccurs")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "maxOccurs")
     public JAXBElement<String> createMaxOccurs(String value) {
         return new JAXBElement<String>(_MaxOccurs_QNAME, String.class, null, value);
     }
@@ -169,7 +169,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link Object }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-2", name = "object")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "object")
     public JAXBElement<Object> createObject(Object value) {
         return new JAXBElement<Object>(_Object_QNAME, Object.class, null, value);
     }
@@ -178,7 +178,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link Object }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-2", name = "objectReference")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "objectReference")
     public JAXBElement<Object> createObjectReference(Object value) {
         return new JAXBElement<Object>(_ObjectReference_QNAME, Object.class, null, value);
     }
@@ -187,7 +187,7 @@ public class ObjectFactory {
      * Create an instance of {@link JAXBElement }{@code <}{@link QName }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-2", name = "type")
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/annotation-3", name = "type")
     public JAXBElement<QName> createType(QName value) {
         return new JAXBElement<QName>(_Type_QNAME, QName.class, null, value);
     }

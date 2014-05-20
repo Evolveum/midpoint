@@ -16,7 +16,6 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -66,11 +65,8 @@ public class TestParseFilter {
 		System.out.println("Parsed filter:");
 		System.out.println(filter.debugDump());
 
-        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
-        Document document = DOMUtil.getDocument();
-        Element element = jaxbProcessor.marshalElementToDom(new JAXBElement<SearchFilterType>(
-                new QName(SchemaConstants.NS_QUERY, "filter"), SearchFilterType.class, filter), document);
-        String serialized = DOMUtil.serializeDOMToString(element);
+        String serialized = PrismTestUtil.serializeJaxbElementToString(new JAXBElement<SearchFilterType>(
+                new QName(SchemaConstants.NS_QUERY, "filter"), SearchFilterType.class, filter));
         System.out.println("JAXB serialization result:\n"+serialized);
 
         // WHEN2

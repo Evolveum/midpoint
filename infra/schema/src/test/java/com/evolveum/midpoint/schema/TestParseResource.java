@@ -42,9 +42,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
@@ -52,6 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 import org.testng.annotations.BeforeSuite;
@@ -164,7 +167,8 @@ public class TestParseResource {
 		assertResource(resource, true, true, true);
 	}
 
-	@Test
+    @Deprecated
+    @Test(enabled = false)
 	public void testPrismParseJaxb() throws Exception {
 		System.out.println("===[ testPrismParseJaxb ]===");
 		
@@ -179,8 +183,9 @@ public class TestParseResource {
 		// HACK: the JAXB parsing methods do not support filter yet, so avoid checking for it
 		assertResource(resourceType.asPrismObject(), false, true, false);
 	}
-	
-	@Test
+
+    @Deprecated
+    @Test(enabled = false)
 	public void testPrismParseJaxbSimple() throws Exception {
 		System.out.println("===[ testPrismParseJaxbSimple ]===");
 		
@@ -200,7 +205,8 @@ public class TestParseResource {
 	 * The definition should be set properly even if the declared type is ObjectType. The Prism should determine
 	 * the actual type.
 	 */
-	@Test
+    @Deprecated
+    @Test(enabled = false)
 	public void testPrismParseJaxbObjectType() throws JAXBException, SchemaException, SAXException, IOException {
 		System.out.println("===[ testPrismParseJaxbObjectType ]===");
 		
@@ -219,7 +225,8 @@ public class TestParseResource {
 	/**
 	 * Parsing in form of JAXBELement
 	 */
-	@Test
+    @Deprecated
+    @Test(enabled = false)
 	public void testPrismParseJaxbElement() throws JAXBException, SchemaException, SAXException, IOException {
 		System.out.println("===[ testPrismParseJaxbElement ]===");
 		
@@ -239,7 +246,8 @@ public class TestParseResource {
 	/**
 	 * Parsing in form of JAXBELement, with declared ObjectType
 	 */
-	@Test
+    @Deprecated
+    @Test(enabled = false)
 	public void testPrismParseJaxbElementObjectType() throws JAXBException, SchemaException, SAXException, IOException {
 		System.out.println("===[ testPrismParseJaxbElementObjectType ]===");
 		
@@ -364,7 +372,7 @@ public class TestParseResource {
 		
 		if (checkJaxb) {
 			serializeDom(resource);
-			serializeJaxb(resource);
+			//serializeJaxb(resource);
 		}
 	}
 
@@ -394,7 +402,7 @@ public class TestParseResource {
     	assertEquals("Wrong type in connectorRef value", ConnectorType.COMPLEX_TYPE, connectorRefVal.getTargetType());
     	SearchFilterType filter = connectorRefVal.getFilter();
     	assertNotNull("No filter in connectorRef value", filter);
-				
+
 		PrismContainer<?> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		assertContainerDefinition(configurationContainer, "configuration", ConnectorConfigurationType.COMPLEX_TYPE, 1, 1);
 		PrismContainerValue<?> configContainerValue = configurationContainer.getValue();
@@ -483,6 +491,20 @@ public class TestParseResource {
 				String name = accountType.getName();
 				assertNotNull("Account type without a name", name);
 				assertNotNull("Account type "+name+" does not have an objectClass", accountType.getObjectClass());
+                boolean found = false;
+                for (ResourceAttributeDefinitionType attributeDefinitionType : accountType.getAttribute()) {
+                    if ("description".equals(attributeDefinitionType.getRef().getLocalPart())) {
+                        found = true;
+                        MappingType outbound = attributeDefinitionType.getOutbound();
+                        JAXBElement<?> valueEvaluator = outbound.getExpression().getExpressionEvaluator().get(0);
+                        System.out.println("value evaluator = " + valueEvaluator);
+                        assertNotNull("no expression evaluator", valueEvaluator);
+                        assertEquals("wrong expression evaluator element name", SchemaConstantsGenerated.C_VALUE, valueEvaluator.getName());
+                        //assertEquals("wrong expression evaluator declared type", RawType.class, valueEvaluator.getDeclaredType());
+                        assertEquals("wrong expression evaluator actual type", RawType.class, valueEvaluator.getValue().getClass());
+                    }
+                }
+                assertTrue("ri:description attribute was not found", found);
 			}
     	}
 	}
@@ -497,6 +519,7 @@ public class TestParseResource {
 	}
 
 	// Try to serialize it to DOM using JAXB processor. See if it does not fail.
+    @Deprecated
 	private void serializeJaxb(PrismObject<ResourceType> resource) throws SchemaException, JAXBException {
         JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 		Document document = DOMUtil.getDocument();

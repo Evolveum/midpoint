@@ -149,6 +149,7 @@ public abstract class SchemaConstants {
 	public static final QName CHANGE_CHANNEL_IMPORT = new QName(NS_PROVISIONING_CHANNEL, "import");
 
 	public static final String NS_MODEL = NS_MIDPOINT_PUBLIC + "/model";
+    public static final String NS_MODEL_WS = NS_MODEL + "/model-3";
 	
 	public static final String NS_MODEL_CHANNEL = NS_MODEL + "/channels-3";
 	public static final QName CHANNEL_WEB_SERVICE_QNAME = new QName(NS_MODEL_CHANNEL, "webService");
@@ -214,4 +215,5 @@ public abstract class SchemaConstants {
 
     public static final QName APIT_ITEM_LIST = new QName(SchemaConstants.NS_API_TYPES, "itemList");
     public static final QName C_ASSIGNMENT = new QName(SchemaConstants.NS_C, "assignment");
+
 }

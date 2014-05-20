@@ -26,12 +26,12 @@
 	<!-- Let's honor Jack with a proper title -->
 	<itemDelta>
 		<modificationType>replace</modificationType>
-		<path>employeeType</path>
+		<path>c:employeeType</path>
 		<value>boss</value>
 	</itemDelta>
 	<itemDelta>
 		<modificationType>replace</modificationType>
-		<path>givenName</path>
+		<path>c:givenName</path>
 		<value>don</value>
 	</itemDelta>
 </objectDelta>

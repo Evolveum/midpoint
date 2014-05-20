@@ -107,7 +107,8 @@ public class TestParseGenericObject {
 		assertGenericObject(generic);
 	}
 
-	@Test
+    @Deprecated
+	@Test(enabled = false)
 	public void testPrismParseJaxb() throws JAXBException, SchemaException, SAXException, IOException, DatatypeConfigurationException {
 		System.out.println("===[ testPrismParseJaxb ]===");
 		
@@ -127,7 +128,8 @@ public class TestParseGenericObject {
 	 * the actual type.
 	 * @throws DatatypeConfigurationException 
 	 */
-	@Test
+    @Deprecated
+    @Test(enabled = false)
 	public void testPrismParseJaxbObjectType() throws JAXBException, SchemaException, SAXException, IOException, DatatypeConfigurationException {
 		System.out.println("===[ testPrismParseJaxbObjectType ]===");
 		
@@ -146,7 +148,8 @@ public class TestParseGenericObject {
 	 * Parsing in form of JAXBELement
 	 * @throws DatatypeConfigurationException 
 	 */
-	@Test
+    @Deprecated
+    @Test(enabled = false)
 	public void testPrismParseJaxbElement() throws JAXBException, SchemaException, SAXException, IOException, DatatypeConfigurationException {
 		System.out.println("===[ testPrismParseJaxbElement ]===");
 		
@@ -166,8 +169,9 @@ public class TestParseGenericObject {
 	 * Parsing in form of JAXBELement, with declared ObjectType
 	 * @throws DatatypeConfigurationException 
 	 */
-	@Test
-	public void testPrismParseJaxbElementObjectType() throws JAXBException, SchemaException, SAXException, IOException, DatatypeConfigurationException {
+    @Deprecated
+    @Test(enabled = false)
+    public void testPrismParseJaxbElementObjectType() throws JAXBException, SchemaException, SAXException, IOException, DatatypeConfigurationException {
 		System.out.println("===[ testPrismParseJaxbElementObjectType ]===");
 		
 		// GIVEN

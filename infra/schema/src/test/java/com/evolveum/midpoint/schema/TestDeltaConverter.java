@@ -29,7 +29,6 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
@@ -257,7 +256,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
 
     	// THEN
     	System.out.println("ObjectDeltaType (XML)");
-    	System.out.println(JaxbTestUtil.marshalWrap(objectDeltaType));
+    	System.out.println(PrismTestUtil.serializeAnyDataWrapped(objectDeltaType));
     	
     	assertEquals("Wrong changetype", ChangeTypeType.MODIFY, objectDeltaType.getChangeType());
     	assertEquals("Wrong OID", "12345", objectDeltaType.getOid());
@@ -356,16 +355,14 @@ public class TestDeltaConverter extends AbstractSchemaTest {
         final QName CUSTOM_OBJECT = new QName("http://delta.example.com", "object");
 
         PrismContext context = PrismTestUtil.getPrismContext();
-        JaxbTestUtil jaxbProcessor = JaxbTestUtil.getInstance();
 
         // WHEN
         ObjectDeltaType xmlDelta = DeltaConvertor.toObjectDeltaType(delta);
 
         // THEN
         Map<String, Object> properties = new HashMap<String, Object>();
-        properties.put(Marshaller.JAXB_FORMATTED_OUTPUT, false);
-        String result = jaxbProcessor.marshalElementToString(new JAXBElement<Object>(CUSTOM_OBJECT,
-                Object.class, xmlDelta), properties);
+        String result = PrismTestUtil.serializeJaxbElementToString(new JAXBElement<Object>(CUSTOM_OBJECT,
+                Object.class, xmlDelta));
         assertNotNull(result);
     }
     

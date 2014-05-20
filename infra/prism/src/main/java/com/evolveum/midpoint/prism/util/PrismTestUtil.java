@@ -36,6 +36,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import java.io.File;
@@ -55,6 +56,8 @@ import java.util.List;
 public class PrismTestUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismTestUtil.class);
+
+    private static final QName DEFAULT_ELEMENT_NAME = new QName("http://midpoint.evolveum.com/xml/ns/test/whatever-1.xsd", "whatever");
     
     private static PrismContext prismContext;
     private static PrismContextFactory prismContextFactory;
@@ -116,7 +119,12 @@ public class PrismTestUtil {
     public static <T extends Objectable> PrismObject<T> parseObject(Element element) throws SchemaException {
     	return getPrismContext().parseObject(element);
     }
-    
+
+    public static <T extends Objectable> T parseObjectable(File file, Class<T> clazz) throws SchemaException, IOException {
+        return (T) parseObject(file).asObjectable();
+    }
+
+
     public static List<PrismObject<? extends Objectable>> parseObjects(File file) throws SchemaException, IOException {
     	return getPrismContext().parseObjects(file);
     }
@@ -133,34 +141,41 @@ public class PrismTestUtil {
         return getPrismContext().serializeObjectToString(object, PrismContext.LANG_XML);
     }
 
-    public static String marshalObjectToString(PrismObject prismObject) throws SchemaException {
-        return prismObject.getPrismContext().serializeObjectToString(prismObject, PrismContext.LANG_XML);
-    }
-
     public static String serializeAtomicValue(Object object, QName elementName) throws SchemaException {
         return getPrismContext().serializeAtomicValue(object, elementName, PrismContext.LANG_XML);
     }
 
-    public static String serializeAnyData(Object o, QName qname) throws SchemaException {
-        return getPrismContext().serializeAnyData(o, qname, PrismContext.LANG_XML);
+    public static String serializeAnyData(Object o, QName defaultRootElementName) throws SchemaException {
+        return getPrismContext().serializeAnyData(o, defaultRootElementName, PrismContext.LANG_XML);
     }
+
+    public static String serializeJaxbElementToString(JAXBElement element) throws SchemaException {
+        return serializeAnyData(element.getValue(), element.getName());
+    }
+
+    public static String serializeAnyDataWrapped(Object o) throws SchemaException {
+        return serializeAnyData(o, DEFAULT_ELEMENT_NAME);
+    }
+
 
 
     // ==========================
     // == Here was parsing from JAXB.
-    // == Now, for JAXB-related methods please call JaxbTestUtil.getInstance().<methodName> directly
     // ==========================
 
     public static <T> T parseAtomicValue(File file, QName type) throws SchemaException, IOException {
-        return prismContext.parseAtomicValue(file, type);
+        return getPrismContext().parseAtomicValue(file, type);
     }
 
     public static <T> T parseAtomicValue(String data, QName type) throws SchemaException {
-        return prismContext.parseAtomicValue(data, type);
+        return getPrismContext().parseAtomicValue(data, type);
     }
 
+    public static <T> T parseAnyValue(File file) throws SchemaException, IOException {
+        return getPrismContext().parseAnyValue(file);
+    }
 
-	public static <T extends Objectable> PrismObjectDefinition<T> getObjectDefinition(Class<T> compileTimeClass) {
+    public static <T extends Objectable> PrismObjectDefinition<T> getObjectDefinition(Class<T> compileTimeClass) {
 		return getSchemaRegistry().findObjectDefinitionByCompileTimeClass(compileTimeClass);
 	}
 
@@ -202,5 +217,4 @@ public class PrismTestUtil {
 	public static void displayQueryType(QueryType queryType) {
 		LOGGER.info(DOMUtil.serializeDOMToString(queryType.getFilter().getFilterClause()));
 	}
-
 }

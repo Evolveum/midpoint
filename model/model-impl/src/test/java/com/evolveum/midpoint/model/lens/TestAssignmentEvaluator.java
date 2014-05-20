@@ -19,8 +19,6 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 
-import java.io.FileNotFoundException;
-
 import javax.xml.bind.JAXBException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,10 +29,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.common.Clock;
-import com.evolveum.midpoint.model.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
-import com.evolveum.midpoint.model.lens.EvaluatedAssignment;
-import com.evolveum.midpoint.model.lens.AssignmentEvaluator;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -44,7 +39,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -85,12 +79,12 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		AssignmentEvaluator assignmentEvaluator = createAssignmentEvaluator();
 		PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 		
-		AssignmentType assignmentType = unmarshallJaxbFromFile(ASSIGNMENT_DIRECT_FILE, AssignmentType.class);
+		AssignmentType assignmentType = unmarshallValueFromFile(ASSIGNMENT_DIRECT_FILE, AssignmentType.class);
 		
 		// We need to make sure that the assignment has a parent
 		PrismContainerDefinition assignmentContainerDefinition = userTypeJack.asPrismObject().getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
 		PrismContainer assignmentContainer = assignmentContainerDefinition.instantiate();
-		assignmentContainer.add(assignmentType.asPrismContainerValue());
+		assignmentContainer.add(assignmentType.asPrismContainerValue().clone());
 		
 		// WHEN
 		EvaluatedAssignment evaluatedAssignment = assignmentEvaluator.evaluate(assignmentType, userTypeJack, "testDirect", task, result);

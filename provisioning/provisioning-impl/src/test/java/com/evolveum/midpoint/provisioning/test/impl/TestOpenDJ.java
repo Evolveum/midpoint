@@ -605,7 +605,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		OperationResult result = new OperationResult(TestOpenDJ.class.getName()
 				+ "." + TEST_NAME);
 
-		ShadowType object = unmarshallJaxbFromFile(ACCOUNT_MODIFY_FILENAME, ShadowType.class);
+		ShadowType object = unmarshallValueFromFile(ACCOUNT_MODIFY_FILENAME, ShadowType.class);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(object));
 		System.out.println(object.asPrismObject().debugDump());

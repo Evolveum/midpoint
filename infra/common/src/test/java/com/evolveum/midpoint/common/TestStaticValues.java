@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -101,7 +100,7 @@ public class TestStaticValues {
     	
     	for (Object element: valueElements) {
     		if (element instanceof JAXBElement) {
-    			System.out.println(JaxbTestUtil.getInstance().marshalElementToString((JAXBElement) element));
+    			System.out.println(PrismTestUtil.serializeJaxbElementToString((JAXBElement) element));
     		} else {
     			AssertJUnit.fail("Unexpected element type "+element.getClass());
     		}
