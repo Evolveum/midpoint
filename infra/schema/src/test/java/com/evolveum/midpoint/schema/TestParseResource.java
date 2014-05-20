@@ -39,17 +39,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConditionalSearchFilterType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
@@ -277,8 +267,11 @@ public class TestParseResource {
 		
 		System.out.println("serialized resource:");
 		System.out.println(serializedResource);
-		
-		// RE-PARSE
+
+        // hack ... to make sure there's no "<clazz>" element there
+        assertFalse("<clazz> element is present in the serialized form!", serializedResource.contains("<clazz>"));
+
+        // RE-PARSE
 		
 		PrismObject<ResourceType> reparsedResource = prismContext.parseObject(serializedResource);
 		
@@ -298,8 +291,8 @@ public class TestParseResource {
 		System.out.println(objectDelta.debugDump());
 		assertTrue("Delta is not empty", objectDelta.isEmpty());
 		
-		PrismAsserts.assertEquivalent("Resource re-parsed quivalence", resource, reparsedResource);
-		
+		PrismAsserts.assertEquivalent("Resource re-parsed equivalence", resource, reparsedResource);
+
 //		// Compare schema container
 //		
 //		PrismContainer<?> originalSchemaContainer = resource.findContainer(ResourceType.F_SCHEMA);
@@ -484,6 +477,16 @@ public class TestParseResource {
 				assertNotNull("Account type without a name", name);
 				assertNotNull("Account type "+name+" does not have an objectClass", accountType.getObjectClass());
 			}
+
+            // checking <class> element in fetch result
+            OperationResultType fetchResult = resourceType.getFetchResult();
+            assertNotNull("No fetchResult (JAXB)", fetchResult);
+            JAXBElement<?> value = fetchResult.getParams().getEntry().get(0).getEntryValue();
+            assertNotNull("No fetchResult param value (JAXB)", value);
+            assertEquals("Wrong value class", UnknownJavaObjectType.class, value.getValue().getClass());
+            UnknownJavaObjectType unknownJavaObjectType = (UnknownJavaObjectType) value.getValue();
+            assertEquals("Wrong value class", "my.class", unknownJavaObjectType.getClazz());
+            assertEquals("Wrong value toString value", "my.value", unknownJavaObjectType.getToString());
     	}
 	}
 	

@@ -84,6 +84,7 @@
           "value" : [ "captain" ]
         }
       }
-    } ]
+    } ],
+    "special" : "got it!"
   }
 }

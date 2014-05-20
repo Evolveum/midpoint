@@ -631,7 +631,7 @@ public class PrismBeanConverter {
 		
 		List<String> propOrder = inspector.getPropOrder(beanClass);
 		for (String fieldName: propOrder) {
-			QName elementName = new QName(namespace, fieldName);
+			QName elementName = new QName(namespace, inspector.findFieldElementName(fieldName, beanClass));
 			Method getter = inspector.findPropertyGetter(beanClass, fieldName);
 			if (getter == null) {
 				throw new IllegalStateException("No getter for field "+fieldName+" in "+beanClass);
@@ -680,7 +680,7 @@ public class PrismBeanConverter {
 					setExplicitTypeDeclarationIfNeeded(getter, getterResultValue, marshalled, fieldTypeName);
 					xlist.add(marshalled);
 				}
-					xmap.put(elementName, xlist);
+                xmap.put(elementName, xlist);
 			} else {
 				QName fieldTypeName = inspector.findFieldTypeName(field, getterResult.getClass(), namespace);
 				Object valueToMarshall = null;
@@ -692,13 +692,13 @@ public class PrismBeanConverter {
 				}
 				XNode marshelled = marshallValue(valueToMarshall, fieldTypeName, isAttribute);
 				if (!getter.getReturnType().equals(valueToMarshall.getClass()) && getter.getReturnType().isAssignableFrom(valueToMarshall.getClass())){
-					if (prismContext != null){
-					PrismObjectDefinition def = prismContext.getSchemaRegistry().determineDefinitionFromClass(valueToMarshall.getClass());
-					if (def != null){
-						QName type = def.getTypeName();
-						marshelled.setTypeQName(type);
-						marshelled.setExplicitTypeDeclaration(true);
-					}
+					if (prismContext != null) {
+                        PrismObjectDefinition def = prismContext.getSchemaRegistry().determineDefinitionFromClass(valueToMarshall.getClass());
+                        if (def != null){
+                            QName type = def.getTypeName();
+                            marshelled.setTypeQName(type);
+                            marshelled.setExplicitTypeDeclaration(true);
+                        }
 					}
 				}
 				xmap.put(elementName, marshelled);

@@ -196,6 +196,17 @@ public class PrismBeanInspector {
         });
     }
 
+    private Map<String,Map<Class<? extends Object>,String>> _findFieldElementName = new HashMap<>();
+
+    String findFieldElementName(String fieldName, Class<? extends Object> beanClass) {
+        return find2(_findFieldElementName, fieldName, beanClass, new Getter2<String,String,Class<? extends Object>>() {
+            @Override
+            public String get(String fieldName, Class<? extends Object> beanClass) {
+                return findFieldElementNameUncached(fieldName, beanClass);
+            }
+        });
+    }
+
     private Map<Class,Map<String,Method>> _findPropertyGetter = new HashMap<>();
 
     public <T> Method findPropertyGetter(Class<T> beanClass, String propName) {
@@ -522,6 +533,26 @@ public class PrismBeanInspector {
         }
 
         return propTypeQname;
+    }
+
+    private String findFieldElementNameUncached(String fieldName, Class beanClass) {
+        Field field;
+        if (beanClass.getSimpleName().equals("UnknownJavaObjectType")) {
+            System.out.println("Here we are");
+        }
+        try {
+            field = beanClass.getDeclaredField(fieldName);
+        } catch (NoSuchFieldException e) {
+            return fieldName;               // TODO implement this if needed (lookup the getter method instead of the field)
+        }
+        XmlElement xmlElement = field.getAnnotation(XmlElement.class);
+        if (xmlElement != null) {
+            String name = xmlElement.name();
+            if (name != null && !name.startsWith("#")) {            // ##default is the default value
+                return name;
+            }
+        }
+        return fieldName;
     }
     //endregion
 }
