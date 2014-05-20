@@ -279,7 +279,7 @@ public class PageAccounts extends PageAdminConfiguration {
                 Task task = createSimpleTask(OPERATION_GET_TOTALS);
                 OperationResult result = new OperationResult(OPERATION_GET_TOTALS);
                 try {
-                    EqualsFilter situationFilter = EqualsFilter.createEqual(ShadowType.F_SYNCHRONIZATION_SITUATION, ShadowType.class,
+                    EqualFilter situationFilter = EqualFilter.createEqual(ShadowType.F_SYNCHRONIZATION_SITUATION, ShadowType.class,
                             getPrismContext(), null, situation);
 
                     AndFilter andFilter = AndFilter.createAnd(resourceFilter, situationFilter);
@@ -415,7 +415,7 @@ public class PageAccounts extends PageAdminConfiguration {
                 return null;
             }
 
-            EqualsFilter objectClass = EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, getPrismContext(),
+            EqualFilter objectClass = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, getPrismContext(),
                     null, qname);
 
             return AndFilter.createAnd(resourceRef, objectClass);

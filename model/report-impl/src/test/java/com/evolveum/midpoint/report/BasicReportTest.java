@@ -74,6 +74,8 @@ import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.report.api.ReportManager;
+import com.evolveum.midpoint.report.impl.ReportCreateTaskHandler;
+import com.evolveum.midpoint.report.impl.ReportUtils;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;

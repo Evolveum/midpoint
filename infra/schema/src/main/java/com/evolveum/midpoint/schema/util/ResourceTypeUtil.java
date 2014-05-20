@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 
 
 
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -352,29 +354,22 @@ public class ResourceTypeUtil {
         if (schemaHandling == null) {
             return null;
         }
-        for (ResourceObjectTypeDefinitionType acct: schemaHandling.getObjectType()) {
-			if (acct.getKind() == kind) {
-				if (intent == null && acct.isDefault()) {
-					return acct;
+        if (kind == null) {
+        	kind = ShadowKindType.ACCOUNT;
+        }
+        for (ResourceObjectTypeDefinitionType objType: schemaHandling.getObjectType()) {
+			if (objType.getKind() == kind || (objType.getKind() == null && kind == ShadowKindType.ACCOUNT)) {
+				if (intent == null && objType.isDefault()) {
+					return objType;
 				}
-				if (acct.getIntent() != null && acct.getIntent().equals(intent)) {
-					return acct;
+				if (objType.getIntent() != null && objType.getIntent().equals(intent)) {
+					return objType;
 				}
-				if (acct.getName() != null && acct.getName().equals(intent)) {
-					return acct;
+				if (objType.getIntent() == null && objType.isDefault() && intent != null && intent.equals(SchemaConstants.INTENT_DEFAULT)) {
+					return objType;
 				}
 			}
 		}
-        if (kind == ShadowKindType.ACCOUNT) {
-			for (ResourceObjectTypeDefinitionType acct: schemaHandling.getAccountType()) {
-				if (intent == null && acct.isDefault()) {
-					return acct;
-				}
-				if (acct.getName().equals(intent)) {
-					return acct;
-				}
-			}
-        }
 		return null;
 	}
 

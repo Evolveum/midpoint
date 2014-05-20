@@ -321,7 +321,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
             sb.append(assignment.getTargetRef().getOid());
         }
         if (assignment.getActivation() != null) {
-            if (Boolean.TRUE.equals(assignment.getActivation().isEnabled())) {
+            if (assignment.getActivation().getAdministrativeStatus() == ActivationStatusType.ENABLED) {
                 sb.append(", active");
             }
         }
@@ -458,7 +458,6 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         //activation
         names.add(ActivationType.F_EFFECTIVE_STATUS);
         names.add(ActivationType.F_VALIDITY_STATUS);
-        names.add(ActivationType.F_ENABLED);
         //user
         names.add(UserType.F_RESULT);
 

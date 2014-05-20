@@ -33,7 +33,7 @@ import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
@@ -508,7 +508,7 @@ public class IntegrationTestTools {
 	public static ObjectQuery createAllShadowsQuery(ResourceType resourceType, QName objectClass, PrismContext prismContext) throws SchemaException {
 		AndFilter and = AndFilter.createAnd(
 				RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, prismContext, resourceType.getOid()),
-				EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, objectClass));
+				EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, objectClass));
 		ObjectQuery query = ObjectQuery.createObjectQuery(and);
 		return query;
 	}
@@ -635,7 +635,7 @@ public class IntegrationTestTools {
 		PrismReferenceDefinition itemDef = resourceShadow.asPrismObject().getDefinition().findReferenceDefinition(ShadowType.F_RESOURCE_REF);
 		filter = AndFilter.createAnd(
 					RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, prismContext, ShadowUtil.getResourceOid(resourceShadow)),
-					EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, new PrismPropertyValue(uidValue)));
+					EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, new PrismPropertyValue(uidValue)));
 			
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 

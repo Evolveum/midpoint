@@ -30,9 +30,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.BreakMode;
+import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.intest.TestModelServiceContract;
-import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;

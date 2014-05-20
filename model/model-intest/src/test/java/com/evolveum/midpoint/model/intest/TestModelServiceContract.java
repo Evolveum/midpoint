@@ -37,7 +37,7 @@ import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
@@ -168,7 +168,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // opendj is not started, so we do not want to list it (it returns partial_error)
         ObjectQuery query = ObjectQuery.createObjectQuery(
                 new NotFilter(
-                        EqualsFilter.createEqual(ResourceType.F_NAME, ResourceType.class, prismContext, PolyStringOrigMatchingRule.NAME, new PolyString(RESOURCE_OPENDJ_NAME))));
+                        EqualFilter.createEqual(ResourceType.F_NAME, ResourceType.class, prismContext, PolyStringOrigMatchingRule.NAME, new PolyString(RESOURCE_OPENDJ_NAME))));
         List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, query, null, task, result);
 
 		// THEN
@@ -199,7 +199,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // opendj is not started, so we do not want to list it (it returns partial_error)
         ObjectQuery query = ObjectQuery.createObjectQuery(
                 new NotFilter(
-                        EqualsFilter.createEqual(ResourceType.F_NAME, ResourceType.class, prismContext, PolyStringOrigMatchingRule.NAME, new PolyString(RESOURCE_OPENDJ_NAME))));
+                        EqualFilter.createEqual(ResourceType.F_NAME, ResourceType.class, prismContext, PolyStringOrigMatchingRule.NAME, new PolyString(RESOURCE_OPENDJ_NAME))));
         
 
         final List<PrismObject<ResourceType>> resources = new ArrayList<PrismObject<ResourceType>>();

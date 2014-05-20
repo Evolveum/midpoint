@@ -30,10 +30,6 @@ import java.util.List;
  */
 public enum ObjectTypes {
 
-    @Deprecated
-    ACCOUNT(SchemaConstants.C_ACCOUNT_SHADOW_TYPE, SchemaConstants.C_ACCOUNT,
-            AccountShadowType.class, ObjectManager.PROVISIONING, "accounts"),
-
     CONNECTOR(SchemaConstants.C_CONNECTOR_TYPE, SchemaConstants.C_CONNECTOR,
             ConnectorType.class, ObjectManager.PROVISIONING, "connectors"),
 

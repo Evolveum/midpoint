@@ -23,8 +23,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.evolveum.midpoint.model.sync.ReconciliationTaskResult;
-import com.evolveum.midpoint.model.sync.ReconciliationTaskResultListener;
+import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskResult;
+import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskResultListener;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 
 public class DebugReconciliationTaskResultListener implements

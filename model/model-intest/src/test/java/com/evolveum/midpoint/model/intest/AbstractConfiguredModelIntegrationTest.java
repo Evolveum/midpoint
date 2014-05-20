@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.intest;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
 
-import com.evolveum.midpoint.model.ModelWebService;
+import com.evolveum.midpoint.model.impl.ModelWebService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;

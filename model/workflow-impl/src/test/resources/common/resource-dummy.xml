@@ -109,7 +109,7 @@
 	</schema>
 
 	<schemaHandling>
-		<accountType>
+		<objectType>
 			<name>default</name>
 			<displayName>Default Account</displayName>
 			<default>true</default>
@@ -275,7 +275,7 @@
                 </password>
             </credentials>
             
-		</accountType>
+		</objectType>
 		
 	</schemaHandling>
 	
@@ -289,9 +289,9 @@
 			<correlation>
 				<q:equal>
 					<q:path>c:name</q:path>
-					<valueExpression>
+					<expression>
 						<path>$account/attributes/icfs:name</path>
-					</valueExpression>
+					</expression>
 				</q:equal>
 			</correlation>
 			<reaction>

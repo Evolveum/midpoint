@@ -478,7 +478,7 @@ public class ObjectWrapper implements Serializable {
 
 						if (object.asObjectable() instanceof ShadowType
                                 && (((ShadowType) object.asObjectable()).getActivation() == null
-                                || ((ShadowType) object.asObjectable()).getActivation().isEnabled() == null)) {
+                                || ((ShadowType) object.asObjectable()).getActivation().getAdministrativeStatus() == null)) {
 
 							if (!hasResourceCapability(((ShadowType) object.asObjectable()).getResource(), ActivationCapabilityType.class)){
 								continue;

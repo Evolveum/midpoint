@@ -34,6 +34,6 @@
 
     <context:annotation-config />
     <!-- <context:spring-configured/> -->
-    <context:component-scan base-package="com.evolveum.midpoint.notifications" />
+    <context:component-scan base-package="com.evolveum.midpoint.notifications.impl" />
 
 </beans>

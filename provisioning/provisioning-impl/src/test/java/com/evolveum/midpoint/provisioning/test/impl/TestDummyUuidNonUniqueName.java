@@ -40,7 +40,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
@@ -199,9 +199,9 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 		
 		ObjectFilter filter = AndFilter.createAnd(
 					RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource), 
-					EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null,
+					EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null,
 							new QName(dummyResourceCtl.getNamespace(), "AccountObjectClass")),
-					EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, getIcfNameDefinition().getName()), 
+					EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, getIcfNameDefinition().getName()), 
 							getIcfNameDefinition(), new PrismPropertyValue(ACCOUNT_FETTUCINI_NAME)));
 		ObjectQuery query = new ObjectQuery();
 		query.setFilter(filter);

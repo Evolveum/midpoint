@@ -301,7 +301,7 @@ public class PageReports extends PageAdminReports {
                     getPrismContext(), PolyStringNormMatchingRule.NAME, normalizedText);
 
             if(parent == true){
-                EqualsFilter boolFilter = EqualsFilter.createEqual(ReportType.F_PARENT, ReportType.class,
+                EqualFilter boolFilter = EqualFilter.createEqual(ReportType.F_PARENT, ReportType.class,
                         getPrismContext(), null, parent);
 
                 query.setFilter(AndFilter.createAnd(substring, boolFilter));
@@ -310,7 +310,7 @@ public class PageReports extends PageAdminReports {
             }
         } else{
             if(parent == true){
-                EqualsFilter boolFilter = EqualsFilter.createEqual(ReportType.F_PARENT, ReportType.class,
+                EqualFilter boolFilter = EqualFilter.createEqual(ReportType.F_PARENT, ReportType.class,
                         getPrismContext(), null, parent);
 
                 query.setFilter(boolFilter);

@@ -36,7 +36,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
@@ -404,8 +404,8 @@ public class ConnectorManager {
 
 	private boolean isInRepo(ConnectorType connectorType, OperationResult result) throws SchemaException {
 		AndFilter filter = AndFilter.createAnd(
-				EqualsFilter.createEqual(SchemaConstants.C_CONNECTOR_FRAMEWORK, ConnectorType.class, prismContext, null, connectorType.getFramework()),
-				EqualsFilter.createEqual(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE, ConnectorType.class, prismContext, null, connectorType.getConnectorType()));
+				EqualFilter.createEqual(SchemaConstants.C_CONNECTOR_FRAMEWORK, ConnectorType.class, prismContext, null, connectorType.getFramework()),
+				EqualFilter.createEqual(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE, ConnectorType.class, prismContext, null, connectorType.getConnectorType()));
 	
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		

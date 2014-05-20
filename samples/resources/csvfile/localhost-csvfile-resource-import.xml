@@ -63,8 +63,7 @@ This definition is tailored for import from the CSV File.
         </c:connectorConfiguration>
 
         <schemaHandling>
-            <accountType>
-                <name>default</name>
+            <objectType>
                 <displayName>Default Account</displayName>
                 <default>true</default>
                 <objectClass>ri:AccountObjectClass</objectClass>
@@ -140,7 +139,7 @@ This definition is tailored for import from the CSV File.
 	                </password>
                 </credentials>
                 
-            </accountType>
+            </objectType>
         </schemaHandling>
      	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
             <configured>

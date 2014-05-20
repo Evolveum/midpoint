@@ -218,14 +218,14 @@
 			<correlation>
 				<q:equal>
 					<q:path>c:name</q:path>
-					<valueExpression>
+					<expression>
 						<script>
 							<code>
 								basic.getAttributeValue(account, 
 									'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name')
 							</code>
 						</script>
-					</valueExpression>
+					</expression>
 				</q:equal>
 			</correlation>
 			<reaction>

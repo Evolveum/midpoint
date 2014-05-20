@@ -123,7 +123,7 @@ public class PageAdminResources extends PageAdmin {
             ObjectFilter refFilter = RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF, TaskType.class,
                     getPrismContext(), resourceOid);
 
-            ObjectFilter filterHandleUri = EqualsFilter.createEqual(TaskType.F_HANDLER_URI, TaskType.class,
+            ObjectFilter filterHandleUri = EqualFilter.createEqual(TaskType.F_HANDLER_URI, TaskType.class,
                     getPrismContext(), null, handlerUri);
 
             query = new ObjectQuery();

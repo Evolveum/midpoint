@@ -43,7 +43,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.util.JaxbTestUtil;
@@ -341,7 +341,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected PrismObject<ConnectorType> findConnectorByType(String connectorType, OperationResult result)
 			throws SchemaException {
 
-		EqualsFilter equal = EqualsFilter.createEqual(ConnectorType.F_CONNECTOR_TYPE, ConnectorType.class, prismContext, null, connectorType);
+		EqualFilter equal = EqualFilter.createEqual(ConnectorType.F_CONNECTOR_TYPE, ConnectorType.class, prismContext, null, connectorType);
 		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
 		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, null, result);
 		if (connectors.size() != 1) {
@@ -354,8 +354,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected PrismObject<ConnectorType> findConnectorByTypeAndVersion(String connectorType, String connectorVersion, OperationResult result)
 			throws SchemaException {
 
-		EqualsFilter equalType = EqualsFilter.createEqual(ConnectorType.F_CONNECTOR_TYPE, ConnectorType.class, prismContext, null, connectorType);
-		EqualsFilter equalVersion = EqualsFilter.createEqual(ConnectorType.F_CONNECTOR_VERSION, ConnectorType.class, prismContext, null, connectorVersion);
+		EqualFilter equalType = EqualFilter.createEqual(ConnectorType.F_CONNECTOR_TYPE, ConnectorType.class, prismContext, null, connectorType);
+		EqualFilter equalVersion = EqualFilter.createEqual(ConnectorType.F_CONNECTOR_VERSION, ConnectorType.class, prismContext, null, connectorVersion);
 		AndFilter filter = AndFilter.createAnd(equalType, equalVersion);
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		List<PrismObject<ConnectorType>> connectors = repositoryService.searchObjects(ConnectorType.class, query, null, result);
@@ -765,8 +765,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
         //TODO: set matching rule instead of null
-        EqualsFilter idFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, identifier);
-        EqualsFilter ocFilter = EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, 
+        EqualFilter idFilter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, identifier);
+        EqualFilter ocFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, 
         		rAccount.getObjectClassDefinition().getTypeName());
         RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource);
         AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
@@ -780,8 +780,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
         //TODO: set matching rule instead of null
-        EqualsFilter idFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, identifier);
-        EqualsFilter ocFilter = EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, 
+        EqualFilter idFilter = EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, identifier);
+        EqualFilter ocFilter = EqualFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, 
         		rAccount.getObjectClassDefinition().getTypeName());
         RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource);
         AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);

@@ -25,9 +25,9 @@
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
             xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
             xmlns:xenc="http://www.w3.org/2001/04/xmlenc#"
+            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             elementFormDefault="qualified"
             jaxb:extensionBindingPrefixes="xjc"
             jaxb:version="2.0">
@@ -2323,30 +2323,6 @@
                         </xsd:annotation>
                     </xsd:element>
                     
-                    <xsd:element name="account" type="tns:ShadowType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	DEPRECATED: use link instead
-                            </xsd:documentation>
-                            <xsd:appinfo>
-		            			<a:deprecated>true</a:deprecated>
-                    			<a:objectReference>tns:accountRef</a:objectReference>
-                    		</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="accountRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                            	DEPRECATED: use linkRef instead
-                            </xsd:documentation>
-                            <xsd:appinfo>
-		            			<a:deprecated>true</a:deprecated>
-                    			<a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
-                    		</xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -2578,18 +2554,6 @@
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:element>
-
-                <xsd:element name="accountConstruction" type="tns:ConstructionType" minOccurs="0">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                        	DEPRECATED
-                        	Use "construction" element instead.
-                        </xsd:documentation>
-                        <xsd:appinfo>
-	            			<a:deprecated>true</a:deprecated>
-	            		</xsd:appinfo>
-                    </xsd:annotation>
-                </xsd:element>
                 
                 <xsd:element name="construction" type="tns:ConstructionType" minOccurs="0">
                     <xsd:annotation>
@@ -2670,24 +2634,6 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="enabled" type="xsd:boolean" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                    	DEPRECATED. Use administrativeStatus instead.
-                    
-                        Flag that indicates if the described concept is active.
-
-                        true => active, enabled
-                        flase => inactive, disabled
-
-                        This defines the "administrative state", i.e. the administrator's decision.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                    	<a:deprecated>true</a:deprecated>
-                        <a:displayName>Enabled</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="administrativeStatus" type="tns:ActivationStatusType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -3214,17 +3160,6 @@
         <xsd:sequence>
         <xsd:element name="objectType" type="tns:ResourceObjectTypeDefinitionType" minOccurs="0"
                          maxOccurs="unbounded"/>
-            <xsd:element name="accountType" type="tns:ResourceObjectTypeDefinitionType" minOccurs="0"
-                         maxOccurs="unbounded">
-            	<xsd:annotation>
-            		<xsd:documentation>
-            			DEPRECATED. Use objectType instead.
-            		</xsd:documentation>
-            		<xsd:appinfo>
-            			<a:deprecated>true</a:deprecated>
-            		</xsd:appinfo>
-            	</xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="schemaHandling" type="tns:SchemaHandlingType"/>
@@ -3240,16 +3175,6 @@
         <xsd:sequence>
         	<xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0"/>
         	<xsd:element name="intent" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="name" type="xsd:string" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:documentation>
-            			DEPRECATED. Use "intent" instead.
-            		</xsd:documentation>
-            		<xsd:appinfo>
-            			<a:deprecated>true</a:deprecated>
-            		</xsd:appinfo>
-            	</xsd:annotation>
-            </xsd:element>
             <xsd:element ref="tns:displayName" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0"/>
             <xsd:element name="default" type="xsd:boolean" minOccurs="0" default="false">
@@ -3849,16 +3774,6 @@
 		            <xsd:documentation>
 		                TODO
 		            </xsd:documentation>
-		        </xsd:annotation>                
-            </xsd:element>
-            <xsd:element name="enabled" type="tns:ResourceBidirectionalMappingType" minOccurs="0" maxOccurs="1">
-		    	<xsd:annotation>
-		            <xsd:documentation>
-		                DEPRECATED
-		            </xsd:documentation>
-		            <xsd:appinfo>
-            			<a:deprecated>true</a:deprecated>
-            		</xsd:appinfo>
 		        </xsd:annotation>                
             </xsd:element>
         </xsd:sequence>
@@ -4570,16 +4485,6 @@
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="ref" type="xsd:QName" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:documentation>
-            			DEPRECATED. Only for use in search filters. Can be removed once the filters are fixed.
-            		</xsd:documentation>
-            		<xsd:appinfo>
-            			<a:deprecated>true</a:deprecated>
-            		</xsd:appinfo>
-            	</xsd:annotation>
-            </xsd:element>
             <xsd:element name="stringFilter" type="tns:StringFilterType" minOccurs="0" maxOccurs="unbounded"/>
             <xsd:element name="variable" type="tns:ExpressionVariableDefinitionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
@@ -4611,17 +4516,6 @@
                 
                 It must be a top-level element so the processor of Query schema can find it. See prism query-2 schema.
             </xsd:documentation>
-        </xsd:annotation>
-    </xsd:element>
-    
-    <xsd:element name="valueExpression" type="tns:ExpressionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                DEPRECATED. For compatibility only (search filters).
-            </xsd:documentation>
-            <xsd:appinfo>
-            		<a:deprecated>true</a:deprecated>
-            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
     
@@ -5050,16 +4944,6 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
-        	<xsd:element name="type" type="xsd:QName" minOccurs="0" maxOccurs="1">
-        		<xsd:annotation>
-        			<xsd:documentation>
-        				DEPRECATED, not used, never been used
-        			</xsd:documentation>
-        			<xsd:appinfo>
-        				<a:deprecated/>
-        			</xsd:appinfo>
-        		</xsd:annotation>
-        	</xsd:element>
             <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -5153,16 +5037,6 @@
             			If not present the attribute values will only be reconciled if they are available ("automatic" mode).
             			No additional read will be executed. 
             		</xsd:documentation>
-            	</xsd:annotation>
-            </xsd:element>
-            <xsd:element name="reconcileAttributes" type="xsd:boolean" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:documentation>
-            			DEPRECATED. Use "reconcile" instead. 
-            		</xsd:documentation>
-            		<xsd:appinfo>
-            			<a:deprecated/>
-            		</xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
             <xsd:element name="opportunistic" type="xsd:boolean" minOccurs="0" default="true">
@@ -5810,16 +5684,6 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="resourceObjectShadow" type="tns:ShadowType" substitutionGroup="c:object">
-    	<xsd:annotation>
-    		<xsd:documentation>
-    			DEPRECATED. Use "shadow" element instead.
-    		</xsd:documentation>
-    		<xsd:appinfo>
-        			<a:deprecated>true</a:deprecated>
-       		</xsd:appinfo>
-    	</xsd:annotation>
-    </xsd:element>
     <xsd:element name="account" type="tns:ShadowType" substitutionGroup="c:object">
      	<xsd:annotation>
      		<xsd:documentation>
@@ -5973,42 +5837,6 @@
     		<xsd:element name="full" type="xsd:boolean" minOccurs="0"/>
     	</xsd:sequence>
     </xsd:complexType>
-
-    <xsd:complexType name="AccountShadowType">
-        <xsd:annotation>
-            <xsd:documentation>
-            	DEPRECATED
-            	
-                Account object type. Represents account on a target system. In the minimal form it
-                contains only identifiers and meta-data, but it may also be used for locally caching
-                the account data (in local repository).
-
-                This object is supposed to be stored in LOCAL REPOSITORY, it is NOT the object on
-                provisioning resource. For that please see the resource schema which is dynamic and may
-                be different for each resource.
-            </xsd:documentation>
-            <xsd:appinfo>
-         			<a:deprecated>true</a:deprecated>
-         		</xsd:appinfo>
-        </xsd:annotation>
-        <xsd:complexContent>
-            <xsd:extension base="tns:ShadowType">
-                <xsd:sequence>
-                    <xsd:element name="accountType" type="xsd:string" minOccurs="0">
-                    	<xsd:annotation>
-                    		<xsd:documentation>
-                    			DEPRECATED. Replaced by "intent" in tns:ShadowType.
-                    		</xsd:documentation>
-                    		<xsd:appinfo>
-		            			<a:deprecated>true</a:deprecated>
-		            		</xsd:appinfo>
-                    	</xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
-        </xsd:complexContent>
-    </xsd:complexType>
-
 
     <!-- CONVENIENCE ELEMENTS Following definitions are there to use in examples, 
 		import files, etc. These should not be used in the services -->
@@ -7357,7 +7185,6 @@
                      </xsd:documentation>
                      <xsd:appinfo>
              			<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
-             			<a:deprecated/>
              		</xsd:appinfo>
                  </xsd:annotation>
              </xsd:element>
