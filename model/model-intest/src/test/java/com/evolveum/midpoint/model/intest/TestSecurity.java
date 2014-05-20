@@ -189,12 +189,6 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 	
 	String userRumRogersOid;
 
-	@Autowired(required=true)
-	private UserProfileService userDetailsService;
-	
-	@Autowired(required=true)
-	private SecurityEnforcer securityEnforcer;
-
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -270,7 +264,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
 
         // WHEN
-        MidPointPrincipal principal = userDetailsService.getPrincipal(USER_ADMINISTRATOR_USERNAME);
+        MidPointPrincipal principal = userProfileService.getPrincipal(USER_ADMINISTRATOR_USERNAME);
         
         // THEN
         display("Administrator principal", principal);
@@ -288,7 +282,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
 
         // WHEN
-        MidPointPrincipal principal = userDetailsService.getPrincipal(USER_JACK_USERNAME);
+        MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
         
         // THEN
         assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
@@ -308,7 +302,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
 
         // WHEN
-        MidPointPrincipal principal = userDetailsService.getPrincipal(USER_BARBOSSA_USERNAME);
+        MidPointPrincipal principal = userProfileService.getPrincipal(USER_BARBOSSA_USERNAME);
         
         // THEN
         display("Principal barbossa", principal);
@@ -331,7 +325,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertLoggedInUser(USER_ADMINISTRATOR_USERNAME);
 
         // WHEN
-        MidPointPrincipal principal = userDetailsService.getPrincipal(USER_GUYBRUSH_USERNAME);
+        MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
         
         // THEN
         display("Principal guybrush", principal);
@@ -358,7 +352,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
         // WHEN
-        MidPointPrincipal principal = userDetailsService.getPrincipal(USER_JACK_USERNAME);
+        MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
         
         // THEN
         assertJack(principal);
@@ -383,7 +377,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         unassignRole(USER_JACK_OID, ROLE_PIRATE_OID, task, result);
         
         // WHEN
-        MidPointPrincipal principal = userDetailsService.getPrincipal(USER_JACK_USERNAME);
+        MidPointPrincipal principal = userProfileService.getPrincipal(USER_JACK_USERNAME);
         
         // THEN
         assertJack(principal);
@@ -405,7 +399,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assignRole(USER_GUYBRUSH_OID, ROLE_NICE_PIRATE_OID, task, result);
         
         // WHEN
-        MidPointPrincipal principal = userDetailsService.getPrincipal(USER_GUYBRUSH_USERNAME);
+        MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
         
         // THEN
         display("Principal guybrush", principal);
@@ -426,7 +420,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assignRole(USER_GUYBRUSH_OID, ROLE_CAPTAIN_OID, task, result);
         
         // WHEN
-        MidPointPrincipal principal = userDetailsService.getPrincipal(USER_GUYBRUSH_USERNAME);
+        MidPointPrincipal principal = userProfileService.getPrincipal(USER_GUYBRUSH_USERNAME);
         
         // THEN
         display("Principal guybrush", principal);
@@ -1441,58 +1435,6 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
 		assertNotNull("Null authorization", authorization);
 		assertEquals("Wrong decision in "+authorization, AuthorizationDecisionType.ALLOW, authorization.getDecision());
 		TestUtil.assertSetEquals("Wrong action in "+authorization, authorization.getAction(), action);
-	}
-	
-	private void assertAuthorized(MidPointPrincipal principal, String action) throws SchemaException {
-		assertAuthorized(principal, action, null);
-		assertAuthorized(principal, action, AuthorizationPhaseType.REQUEST);
-		assertAuthorized(principal, action, AuthorizationPhaseType.EXECUTION);
-	}
-
-	private void assertAuthorized(MidPointPrincipal principal, String action, AuthorizationPhaseType phase) throws SchemaException {
-		SecurityContext origContext = SecurityContextHolder.getContext();
-		createSecurityContext(principal);
-		try {
-			assertTrue("AuthorizationEvaluator.isAuthorized: Principal "+principal+" NOT authorized for action "+action, 
-					securityEnforcer.isAuthorized(action, phase, null, null, null, null));
-			if (phase == null) {
-				securityEnforcer.decide(SecurityContextHolder.getContext().getAuthentication(), createSecureObject(), 
-					createConfigAttributes(action));
-			}
-		} finally {
-			SecurityContextHolder.setContext(origContext);
-		}
-	}
-	
-	private void assertNotAuthorized(MidPointPrincipal principal, String action) throws SchemaException {
-		assertNotAuthorized(principal, action, null);
-		assertNotAuthorized(principal, action, AuthorizationPhaseType.REQUEST);
-		assertNotAuthorized(principal, action, AuthorizationPhaseType.EXECUTION);
-	}
-	
-	private void assertNotAuthorized(MidPointPrincipal principal, String action, AuthorizationPhaseType phase) throws SchemaException {
-		SecurityContext origContext = SecurityContextHolder.getContext();
-		createSecurityContext(principal);
-		boolean isAuthorized = securityEnforcer.isAuthorized(action, phase, null, null, null, null);
-		SecurityContextHolder.setContext(origContext);
-		assertFalse("AuthorizationEvaluator.isAuthorized: Principal "+principal+" IS authorized for action "+action+" ("+phase+") but he should not be", isAuthorized);
-	}
-
-	private void createSecurityContext(MidPointPrincipal principal) {
-		SecurityContext context = new SecurityContextImpl();
-		Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
-		context.setAuthentication(authentication);
-		SecurityContextHolder.setContext(context);
-	}
-	
-	private Object createSecureObject() {
-		return new FilterInvocation("/midpoint", "whateverServlet", "doSomething");
-	}
-
-	private Collection<ConfigAttribute> createConfigAttributes(String action) {
-		Collection<ConfigAttribute> attrs = new ArrayList<ConfigAttribute>();
-		attrs.add(new SecurityConfig(action));
-		return attrs;
 	}
 	
 	private <O extends ObjectType> void failDeny(String action, Class<O> type, ObjectQuery query, int expected, int actual) {

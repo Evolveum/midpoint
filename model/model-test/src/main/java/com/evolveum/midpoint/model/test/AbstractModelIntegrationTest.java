@@ -80,6 +80,7 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityEnforcer;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
@@ -104,6 +105,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
@@ -129,15 +131,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.aopalliance.intercept.MethodInvocation;
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.ConfigAttribute;
+import org.springframework.security.access.SecurityConfig;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
+import org.springframework.security.web.FilterInvocation;
 import org.testng.AssertJUnit;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -220,6 +227,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     
     @Autowired(required = false)
     protected UserProfileService userProfileService;
+    
+	@Autowired(required=true)
+	private SecurityEnforcer securityEnforcer;
 	
 	protected DummyAuditService dummyAuditService;
 	
@@ -2540,5 +2550,57 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
         
 		modelService.executeChanges(deltas, null, task, result);
+	}
+	
+	protected void assertAuthorized(MidPointPrincipal principal, String action) throws SchemaException {
+		assertAuthorized(principal, action, null);
+		assertAuthorized(principal, action, AuthorizationPhaseType.REQUEST);
+		assertAuthorized(principal, action, AuthorizationPhaseType.EXECUTION);
+	}
+
+	protected void assertAuthorized(MidPointPrincipal principal, String action, AuthorizationPhaseType phase) throws SchemaException {
+		SecurityContext origContext = SecurityContextHolder.getContext();
+		createSecurityContext(principal);
+		try {
+			assertTrue("AuthorizationEvaluator.isAuthorized: Principal "+principal+" NOT authorized for action "+action, 
+					securityEnforcer.isAuthorized(action, phase, null, null, null, null));
+			if (phase == null) {
+				securityEnforcer.decide(SecurityContextHolder.getContext().getAuthentication(), createSecureObject(), 
+					createConfigAttributes(action));
+			}
+		} finally {
+			SecurityContextHolder.setContext(origContext);
+		}
+	}
+	
+	protected void assertNotAuthorized(MidPointPrincipal principal, String action) throws SchemaException {
+		assertNotAuthorized(principal, action, null);
+		assertNotAuthorized(principal, action, AuthorizationPhaseType.REQUEST);
+		assertNotAuthorized(principal, action, AuthorizationPhaseType.EXECUTION);
+	}
+	
+	protected void assertNotAuthorized(MidPointPrincipal principal, String action, AuthorizationPhaseType phase) throws SchemaException {
+		SecurityContext origContext = SecurityContextHolder.getContext();
+		createSecurityContext(principal);
+		boolean isAuthorized = securityEnforcer.isAuthorized(action, phase, null, null, null, null);
+		SecurityContextHolder.setContext(origContext);
+		assertFalse("AuthorizationEvaluator.isAuthorized: Principal "+principal+" IS authorized for action "+action+" ("+phase+") but he should not be", isAuthorized);
+	}
+
+	protected void createSecurityContext(MidPointPrincipal principal) {
+		SecurityContext context = new SecurityContextImpl();
+		Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null);
+		context.setAuthentication(authentication);
+		SecurityContextHolder.setContext(context);
+	}
+	
+	protected Object createSecureObject() {
+		return new FilterInvocation("/midpoint", "whateverServlet", "doSomething");
+	}
+	
+	protected Collection<ConfigAttribute> createConfigAttributes(String action) {
+		Collection<ConfigAttribute> attrs = new ArrayList<ConfigAttribute>();
+		attrs.add(new SecurityConfig(action));
+		return attrs;
 	}
 }

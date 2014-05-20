@@ -175,7 +175,9 @@ public class UserProfileServiceImpl implements UserProfileService {
         for(AssignmentType assignmentType: userType.getAssignment()) {
         	try {
 				EvaluatedAssignment assignment = assignmentEvaluator.evaluate(assignmentType, userType, userType.toString(), null, result);
-				authorizations.addAll(assignment.getAuthorizations());
+				if (assignment.isValid()) {
+					authorizations.addAll(assignment.getAuthorizations());
+				}
 			} catch (SchemaException e) {
 				LOGGER.error("Schema violation while processing assignment of {}: {}; assignment: {}", 
 						new Object[]{userType, e.getMessage(), assignmentType, e});
