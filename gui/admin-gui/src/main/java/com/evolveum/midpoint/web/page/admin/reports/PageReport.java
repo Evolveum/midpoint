@@ -31,11 +31,13 @@ import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
+import com.evolveum.midpoint.web.util.Base64Model;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
@@ -114,12 +116,12 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
                 createStringResource("ObjectType.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         mainForm.add(description);
 
-        AceEditor templateEditor = new AceEditor(ID_TEMPLATE_EDITOR,
-                new PrismPropertyModel<>(model, ReportType.F_TEMPLATE));
+		AceEditor templateEditor = new AceEditor(ID_TEMPLATE_EDITOR, new Base64Model(
+				new PrismPropertyModel<>(model, ReportType.F_TEMPLATE)));
         mainForm.add(templateEditor);
 
-        AceEditor templateStyleEditor = new AceEditor(ID_TEMPLATE_STYLE_EDITOR,
-                new PrismPropertyModel<>(model, ReportType.F_TEMPLATE_STYLE));
+        AceEditor templateStyleEditor = new AceEditor(ID_TEMPLATE_STYLE_EDITOR, new Base64Model(
+                new PrismPropertyModel<>(model, ReportType.F_TEMPLATE_STYLE)));
         mainForm.add(templateStyleEditor);
 
 //        List<ITab> tabs = new ArrayList<ITab>();

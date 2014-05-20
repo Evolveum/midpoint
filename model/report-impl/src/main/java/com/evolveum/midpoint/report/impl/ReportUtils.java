@@ -4,6 +4,7 @@ package com.evolveum.midpoint.report.impl;
 import java.awt.Color;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -14,7 +15,9 @@ import java.util.Map;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.parser.DomParser;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
+import com.evolveum.midpoint.prism.parser.XNodeProcessor;
 
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRExpression;
@@ -47,6 +50,7 @@ import net.sf.jasperreports.engine.type.WhenNoDataTypeEnum;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 import net.sf.jasperreports.engine.xml.JRXmlTemplateLoader;
 
+import org.apache.commons.codec.binary.Base64;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -61,12 +65,18 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -76,6 +86,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.XmlSchemaType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 
@@ -235,8 +246,10 @@ public class ReportUtils {
 		 }
 		 else
 		 {
-    	 	String reportTemplate = reportType.getTemplate().getContentAsString();
-    	 	InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate.getBytes());
+    	 	byte[] reportTemplatebase64 = reportType.getTemplate();
+    	 	byte[] reportTemplate = Base64.decodeBase64(reportTemplatebase64);
+    	 	
+    	 	InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate);
     	 	jasperDesign = JRXmlLoader.load(inputStreamJRXML);
     	 	LOGGER.trace("load jasper design : {}", jasperDesign);
 		 }
@@ -269,24 +282,28 @@ public class ReportUtils {
 		Map<String, Object> params = new HashMap<String, Object>();
 		if (reportType.getTemplateStyle() != null)
 		{	 
-			String reportTemplateStyle = reportType.getTemplateStyle().getContentAsString();
+			byte[] reportTemplateStyleBase64 = reportType.getTemplateStyle();
+			byte[] reportTemplateStyle = Base64.decodeBase64(reportTemplateStyleBase64);
 			//TODO must be changed
 			//without replace strings, without xmlns namespace, with insert into schema special xml element DOCTYPE
-			int first = reportTemplateStyle.indexOf(">");
-			int last = reportTemplateStyle.lastIndexOf("<");
-			reportTemplateStyle = "<jasperTemplate>" + reportTemplateStyle.substring(first+1, last) + "</jasperTemplate>";
-			reportTemplateStyle = TEMPLATE_STYLE_SCHEMA + "\n" + reportTemplateStyle;  
-			LOGGER.trace("Style template string {}", reportTemplateStyle);
-	    	InputStream inputStreamJRTX = new ByteArrayInputStream(reportTemplateStyle.getBytes());
-	    	try
-			{    		
+//			int first = reportTemplateStyle.indexOf(">");
+//			int last = reportTemplateStyle.lastIndexOf("<");
+//			reportTemplateStyle = "<jasperTemplate>" + reportTemplateStyle.substring(first+1, last) + "</jasperTemplate>";
+//			StringBuilder templateStyleSb = new StringBuilder(TEMPLATE_STYLE_SCHEMA);
+			try{
+//				templateStyleSb.append("\n");
+//				templateStyleSb.append(new String(reportTemplateStyle, "utf-8"));
+	////			
+	//			reportTemplateStyle = TEMPLATE_STYLE_SCHEMA + "\n" + reportTemplateStyle;  
+				LOGGER.trace("Style template string {}", new String(reportTemplateStyle));
+		    	InputStream inputStreamJRTX = new ByteArrayInputStream(reportTemplateStyle);
 	    		JRTemplate templateStyle = JRXmlTemplateLoader.load(inputStreamJRTX);
 				params.put(PARAMETER_TEMPLATE_STYLES, templateStyle);
 				LOGGER.trace("Style template parameter {}", templateStyle);
 				
-			} catch(Exception ex)
-			{
+			} catch (Exception ex) {
 				LOGGER.error("Error create style template parameter {}", ex.getMessage());
+				throw new SystemException(ex);
 			}
 			
 		 } 
@@ -848,22 +865,50 @@ public class ReportUtils {
     	return output;
     }
     
-    // TODO is this used? 
-//    public static String getDeltaAudit(String delta)
-//    {
-//    	String deltaAudit = null;
-//    	try
-//    	{
+    // TODO is this used? YES :) But it needs re-implementation (I hope, for now this one is quite good)..
+    public static String getDeltaAudit(String delta)
+    {
+    	String deltaAudit = "fixed value";
+    	try
+    	{
 //    		SchemaRegistry schemaRegistry = new SchemaRegistry();
 //    		PrismContext prismContext = PrismContext.createEmptyContext(schemaRegistry);
 //    		ObjectDeltaType xmlDelta = prismContext.getPrismJaxbProcessor().unmarshalObject(delta, ObjectDeltaType.class);
 //    		deltaAudit = xmlDelta.getChangeType().toString() + " - " + xmlDelta.getObjectType().getLocalPart().toString();
-//    	} catch (Exception ex) {
-//    		return ex.getMessage();
-//    	}
-//
-//    	return deltaAudit;
-//    }
+    		
+    		DomParser domParser = new DomParser(null);
+    		XNode xnode = domParser.parse(delta);
+    		
+    		MapXNode deltaXnode = null; 
+    		if (xnode instanceof RootXNode){
+    			RootXNode root = (RootXNode) xnode;
+    			if (root.getSubnode() instanceof MapXNode){
+    				deltaXnode = (MapXNode) root.getSubnode();
+    			} else{
+    				throw new IllegalStateException("Error parsing delta for audit report. Expected map after parsing, but was: " + root.getSubnode());
+    			}
+    		} else if (xnode instanceof MapXNode){
+    			deltaXnode = (MapXNode) xnode;
+    		} else {
+    			throw new IllegalStateException("Error parsing delta for audit report " + xnode);
+    		}
+    		
+    		System.out.println("delta xnode : " + xnode.debugDump());
+    		
+    		QName objectTypeXnode = deltaXnode.getParsedPrimitiveValue(ObjectDeltaType.F_OBJECT_TYPE, DOMUtil.XSD_QNAME);
+    		String changeTypeXnode = deltaXnode.getParsedPrimitiveValue(ObjectDeltaType.F_CHANGE_TYPE, DOMUtil.XSD_STRING);
+    		StringBuilder sb = new StringBuilder(changeTypeXnode);
+    		sb.append("-");
+    		sb.append(objectTypeXnode.getLocalPart());
+    		
+    		deltaAudit = sb.toString();
+    		
+    	} catch (Exception ex) {
+    		return ex.getMessage();
+    	}
+
+    	return deltaAudit;
+    }
    /* 
     public static ObjectQuery getObjectQuery(PrismContainer<Containerable> parameterConfiguration, String namespace, PrismContext prismContext)
     {/*
