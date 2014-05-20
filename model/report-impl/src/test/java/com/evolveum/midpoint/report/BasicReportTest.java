@@ -401,12 +401,12 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		
 //		ReportTemplateType reportTemplate = new ReportTemplateType();
 //		reportTemplate.setAny(DOMUtil.parseDocument(template).getDocumentElement());
-		reportType.setTemplate(new XmlAsStringType(template));
+		reportType.setTemplate(template.getBytes());
 
 		String templateStyle = FileUtils.readFileToString(STYLE_TEMPLATE_DEFAULT, "UTF-8"); //readFile(STYLE_TEMPLATE_DEFAULT, StandardCharsets.UTF_8);
 //		ReportTemplateStyleType reportTemplateStyle = new ReportTemplateStyleType();
 //		reportTemplateStyle.setAny(DOMUtil.parseDocument(templateStyle).getDocumentElement());
-		reportType.setTemplateStyle(new XmlAsStringType(templateStyle));
+		reportType.setTemplateStyle(templateStyle.getBytes());
 /*
 		String config_schema = FileUtils.readFileToString(REPORT_DATASOURCE_TEST, "UTF-8");
 		
