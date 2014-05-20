@@ -3006,13 +3006,14 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
     @Test
     public void test200ImportFromResource() throws Exception {
-        TestUtil.displayTestTile("test200ImportFromResource");
+    	final String TEST_NAME = "test200ImportFromResource";
+        TestUtil.displayTestTile(TEST_NAME);
         // GIVEN
         checkAllShadows();
         assertNoRepoCache();
 
         OperationResult result = new OperationResult(TestSanity.class.getName()
-                + ".test200ImportFromResource");
+                + "." + TEST_NAME);
         
         // Make sure Mr. Gibbs has "l" attribute set to the same value as an outbound expression is setting
         ChangeRecordEntry entry = openDJController.executeLdifChange(LDIF_GIBBS_MODIFY_FILENAME);
@@ -3106,33 +3107,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
         double usersPerSec = (task.getProgress() * 1000) / importDuration;
         display("Imported " + task.getProgress() + " users in " + importDuration + " milliseconds (" + usersPerSec + " users/sec)");
 
-//        waitFor("Waiting for task to get released", new Checker() {
-//            @Override
-//            public boolean check() throws Exception {
-//                Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
-//                Holder<ObjectType> objectHolder = new Holder<ObjectType>();
-//                OperationResult opResult = new OperationResult("import check");
-//                assertCache();
-//                modelWeb.getObject(ObjectTypes.TASK.getTypeQName(), taskOid,
-//                        new PropertyReferenceListType(), objectHolder, resultHolder);
-//                assertCache();
-//                //				display("getObject result (wait loop)",resultHolder.value);
-//                assertSuccess("getObject has failed", resultHolder.value);
-//                Task task = taskManager.createTaskInstance(objectHolder.value.asPrismObject(), opResult);
-//                System.out.println("Import task status: " + task.getExecutionStatus());
-//                if (task.getExclusivityStatus() == TaskExclusivityStatus.RELEASED) {
-//                    // Task closed and released, wait finished
-//                    return true;
-//                }
-//                //				IntegrationTestTools.display("Task result while waiting: ", task.getResult());
-//                return false;
-//            }
-//
-//            public void timeout() {
-//                Assert.fail("The task was not released after closing");
-//            }
-//        }, 10000);
-
         OperationResult taskResult = task.getResult();
         AssertJUnit.assertNotNull("Task has no result", taskResult);
         TestUtil.assertSuccess("Import task result is not success", taskResult);
@@ -3171,13 +3145,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
         AssertJUnit.assertFalse("No users created", uobjects.getObject().isEmpty());
 
         // TODO: use another account, not guybrush
-//        try {
-//            ResourceObjectShadowType guybrushShadow = modelService.getObject(ResourceObjectShadowType.class, accountShadowOidGuybrushOpendj, null, new OperationResult("get shadow"));
-//            display("Guybrush shadow (" + accountShadowOidGuybrushOpendj + ")", guybrushShadow);
-//        } catch (ObjectNotFoundException e) {
-//            System.out.println("NO GUYBRUSH SHADOW");
-//            // TODO: fail
-//        }
         
         display("Users after import "+uobjects.getObject().size());
 
@@ -3203,8 +3170,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
             	continue;
             }
             
-            assertTrue("User "+user.getName()+" is disabled", user.getActivation() == null || 
-            		user.getActivation().getAdministrativeStatus() != ActivationStatusType.ENABLED);
+            assertTrue("User "+user.getName()+" is disabled ("+user.getActivation().getAdministrativeStatus()+")", user.getActivation() == null || 
+            		user.getActivation().getAdministrativeStatus() == ActivationStatusType.ENABLED);
 
             List<ObjectReferenceType> accountRefs = user.getLinkRef();
             AssertJUnit.assertEquals("Wrong accountRef for user " + user.getName(), 1, accountRefs.size());
