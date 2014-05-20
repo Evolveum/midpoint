@@ -203,6 +203,7 @@ public class AssignmentProcessor {
         assignmentEvaluator.setMappingFactory(mappingFactory);
         assignmentEvaluator.setActivationComputer(activationComputer);
         assignmentEvaluator.setNow(now);
+        assignmentEvaluator.setSystemConfiguration(context.getSystemConfiguration());
 
         // We will be collecting the evaluated account constructions into these three sets. 
         // It forms a kind of delta set triple for the account constructions.

@@ -60,6 +60,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.prism.xml.ns._public.query_3.PagingType;
 
 @Component
@@ -80,7 +81,7 @@ public class CorrelationConfirmationEvaluator {
 	private MatchingRuleRegistry matchingRuleRegistry;
 	
 	public <F extends FocusType> List<PrismObject<F>> findFocusesByCorrelationRule(Class<F> focusType, ShadowType currentShadow,
-			List<ConditionalSearchFilterType> conditionalFilters, ResourceType resourceType, Task task, OperationResult result)
+			List<ConditionalSearchFilterType> conditionalFilters, ResourceType resourceType, SystemConfigurationType configurationType, Task task, OperationResult result)
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
 		if (conditionalFilters == null || conditionalFilters.isEmpty()) {
@@ -91,19 +92,19 @@ public class CorrelationConfirmationEvaluator {
 
 		List<PrismObject<F>> users = null;
 		if (conditionalFilters.size() == 1){
-			if (satisfyCondition(currentShadow, conditionalFilters.get(0), resourceType, "Condition expression", task, result)){
+			if (satisfyCondition(currentShadow, conditionalFilters.get(0), resourceType, configurationType, "Condition expression", task, result)){
 				LOGGER.trace("Condition {} in correlation expression evaluated to true", conditionalFilters.get(0).getCondition());
-				users = findUsersByCorrelationRule(focusType, currentShadow, conditionalFilters.get(0), resourceType, task, result);
+				users = findUsersByCorrelationRule(focusType, currentShadow, conditionalFilters.get(0), resourceType, configurationType, task, result);
 			}
 			
 		} else {
 
 			for (ConditionalSearchFilterType conditionalFilter : conditionalFilters) {
 				//TODO: better description
-				if (satisfyCondition(currentShadow, conditionalFilter, resourceType, "Condition expression", task, result)) {
+				if (satisfyCondition(currentShadow, conditionalFilter, resourceType, configurationType, "Condition expression", task, result)) {
 					LOGGER.trace("Condition {} in correlation expression evaluated to true", conditionalFilter.getCondition());
 					List<PrismObject<F>> foundUsers = findUsersByCorrelationRule(focusType,
-							currentShadow, conditionalFilter, resourceType, task, result);
+							currentShadow, conditionalFilter, resourceType, configurationType, task, result);
 					if (foundUsers == null && users == null) {
 						continue;
 					}
@@ -135,7 +136,7 @@ public class CorrelationConfirmationEvaluator {
 	}
 	
 	private boolean satisfyCondition(ShadowType currentShadow, ConditionalSearchFilterType conditionalFilter,
-			ResourceType resourceType, String shortDesc, Task task,
+			ResourceType resourceType, SystemConfigurationType configurationType, String shortDesc, Task task,
 			OperationResult parentResult) throws SchemaException,
 			ObjectNotFoundException, ExpressionEvaluationException {
 		
@@ -144,7 +145,7 @@ public class CorrelationConfirmationEvaluator {
 		}
 		
 		ExpressionType condition = conditionalFilter.getCondition();
-		ExpressionVariables variables = Utils.getDefaultExpressionVariables(null,currentShadow, resourceType);
+		ExpressionVariables variables = Utils.getDefaultExpressionVariables(null,currentShadow, resourceType, configurationType);
 		ItemDefinition outputDefinition = new PrismPropertyDefinition(
 				ExpressionConstants.OUTPUT_ELMENT_NAME, DOMUtil.XSD_BOOLEAN,
 				prismContext);
@@ -169,7 +170,8 @@ public class CorrelationConfirmationEvaluator {
 	
 		
 		private <F extends FocusType> List<PrismObject<F>> findUsersByCorrelationRule(Class<F> focusType,
-				ShadowType currentShadow, ConditionalSearchFilterType conditionalFilter, ResourceType resourceType, Task task, OperationResult result)
+				ShadowType currentShadow, ConditionalSearchFilterType conditionalFilter, ResourceType resourceType, SystemConfigurationType configurationType, 
+				Task task, OperationResult result)
 						throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
 			if (!conditionalFilter.containsFilterClause()) {
 				LOGGER.warn("Correlation rule for resource '{}' doesn't contain filter clause, "
@@ -180,7 +182,7 @@ public class CorrelationConfirmationEvaluator {
 			ObjectQuery q = null;
 			try {
 				q = QueryJaxbConvertor.createObjectQuery(focusType, conditionalFilter, prismContext);
-				q = updateFilterWithAccountValues(currentShadow, resourceType, q, "Correlation expression", task, result);
+				q = updateFilterWithAccountValues(currentShadow, resourceType, configurationType, q, "Correlation expression", task, result);
 				if (q == null) {
 					// Null is OK here, it means that the value in the filter
 					// evaluated
@@ -231,7 +233,7 @@ public class CorrelationConfirmationEvaluator {
 
 
 private <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusType, PrismObject<ShadowType> currentShadow, 
-		PrismObject<F> userType, ResourceType resourceType, ConditionalSearchFilterType conditionalFilter, Task task, OperationResult result){
+		PrismObject<F> userType, ResourceType resourceType, SystemConfigurationType configurationType, ConditionalSearchFilterType conditionalFilter, Task task, OperationResult result){
 	if (conditionalFilter == null) {
 		LOGGER.warn("Correlation rule for resource '{}' doesn't contain query, "
 				+ "returning empty list of users.", resourceType);
@@ -247,7 +249,7 @@ private <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusTyp
 	ObjectQuery q = null;
 	try {
 		q = QueryJaxbConvertor.createObjectQuery(focusType, conditionalFilter, prismContext);
-		q = updateFilterWithAccountValues(currentShadow.asObjectable(), resourceType, q, "Correlation expression", task, result);
+		q = updateFilterWithAccountValues(currentShadow.asObjectable(), resourceType, configurationType, q, "Correlation expression", task, result);
 		LOGGER.debug("Start matching user {} with correlation eqpression {}", userType, q.debugDump());
 		if (q == null) {
 			// Null is OK here, it means that the value in the filter
@@ -282,7 +284,7 @@ private <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusTyp
 
 }
 	public <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusType, PrismObject<ShadowType> currentShadow, 
-			PrismObject<F> userType, ObjectSynchronizationType synchronization, ResourceType resourceType, Task task, OperationResult result){
+			PrismObject<F> userType, ObjectSynchronizationType synchronization, ResourceType resourceType, SystemConfigurationType configurationType, Task task, OperationResult result){
 
 		if (synchronization == null){
 			LOGGER.warn(
@@ -295,7 +297,7 @@ private <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusTyp
 		
 		for (ConditionalSearchFilterType conditionalFilter : conditionalFilters){
 			
-			if (true && matchUserCorrelationRule(focusType, currentShadow, userType, resourceType, conditionalFilter, task, result)){
+			if (true && matchUserCorrelationRule(focusType, currentShadow, userType, resourceType, configurationType, conditionalFilter, task, result)){
 				LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for {} match user: {}", new Object[] {
 						currentShadow, userType });
 				return true;
@@ -309,7 +311,7 @@ private <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusTyp
 	}
 
 		public <F extends FocusType> List<PrismObject<F>> findUserByConfirmationRule(Class<F> focusType, List<PrismObject<F>> users,
-			ShadowType currentShadow, ResourceType resource, ExpressionType expression, Task task, OperationResult result) 
+			ShadowType currentShadow, ResourceType resource, SystemConfigurationType configuration, ExpressionType expression, Task task, OperationResult result) 
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException
 			 {
 
@@ -318,7 +320,7 @@ private <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusTyp
 			try {
 				F userType = user.asObjectable();
 				boolean confirmedUser = evaluateConfirmationExpression(focusType, userType,
-						currentShadow, resource, expression, task, result);
+						currentShadow, resource, configuration, expression, task, result);
 				if (user != null && confirmedUser) {
 					list.add(user);
 				}
@@ -342,7 +344,7 @@ private <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusTyp
 		return list;
 	}
 
-	private ObjectQuery updateFilterWithAccountValues(ShadowType currentShadow, ResourceType resource,
+	private ObjectQuery updateFilterWithAccountValues(ShadowType currentShadow, ResourceType resource, SystemConfigurationType configuration,
 			ObjectQuery origQuery, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		
 		if (origQuery.getFilter() == null) {
@@ -350,24 +352,24 @@ private <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusTyp
 			return origQuery;
 		}
 		
-		return evaluateQueryExpressions(origQuery, currentShadow, resource, shortDesc, task, result);
+		return evaluateQueryExpressions(origQuery, currentShadow, resource, configuration, shortDesc, task, result);
 	}
 
-	private ObjectQuery evaluateQueryExpressions(ObjectQuery query, ShadowType currentShadow, ResourceType resource, String shortDesc, 
-			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-		ExpressionVariables variables = Utils.getDefaultExpressionVariables(null, currentShadow, resource);
+	private ObjectQuery evaluateQueryExpressions(ObjectQuery query, ShadowType currentShadow, ResourceType resource, SystemConfigurationType configuration,
+			String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+		ExpressionVariables variables = Utils.getDefaultExpressionVariables(null, currentShadow, resource, configuration);
 		return ExpressionUtil.evaluateQueryExpressions(query, variables, expressionFactory, prismContext, shortDesc, task, result);
 	}
 	
 	public <F extends FocusType> boolean evaluateConfirmationExpression(Class<F> focusType, F user, ShadowType shadow, ResourceType resource,
-			ExpressionType expressionType, Task task, OperationResult result) 
+			SystemConfigurationType configuration, ExpressionType expressionType, Task task, OperationResult result) 
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		Validate.notNull(user, "User must not be null.");
 		Validate.notNull(shadow, "Resource object shadow must not be null.");
 		Validate.notNull(expressionType, "Expression must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
 
-		ExpressionVariables variables = Utils.getDefaultExpressionVariables(user, shadow, resource);
+		ExpressionVariables variables = Utils.getDefaultExpressionVariables(user, shadow, resource, configuration);
 		String shortDesc = "confirmation expression for "+resource.asPrismObject();
 		
 		PrismPropertyDefinition outputDefinition = new PrismPropertyDefinition(ExpressionConstants.OUTPUT_ELMENT_NAME, 

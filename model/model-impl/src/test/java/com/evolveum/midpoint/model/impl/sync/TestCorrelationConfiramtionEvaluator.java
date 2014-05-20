@@ -101,7 +101,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		
 		// WHEN
 		List<PrismObject<UserType>> matchedUsers = evaluator.findFocusesByCorrelationRule(UserType.class,
-				shadow, filters, resourceType, task, result);
+				shadow, filters, resourceType, getSystemConfiguration(), task, result);
 		
 		// THEN
 		assertNotNull("Correlation evaluator returned null collection of matched users.", matchedUsers);
@@ -137,7 +137,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		
 		ResourceType resourceType = parseObjectType(new File(RESOURCE_DUMMY_FILENAME), ResourceType.class);
 		List<PrismObject<UserType>> matchedUsers = evaluator.findFocusesByCorrelationRule(UserType.class,
-				shadow, filters, resourceType, task, result);
+				shadow, filters, resourceType, getSystemConfiguration(), task, result);
 		
 		assertNotNull("Correlation evaluator returned null collection of matched users.", matchedUsers);
 		assertEquals("Found more than one user.", 1, matchedUsers.size());
@@ -172,7 +172,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		
 		ResourceType resourceType = parseObjectType(new File(RESOURCE_DUMMY_FILENAME), ResourceType.class);
 		List<PrismObject<UserType>> matchedUsers = evaluator.findFocusesByCorrelationRule(UserType.class,
-				shadow, queries, resourceType, task, result);
+				shadow, queries, resourceType, getSystemConfiguration(), task, result);
 		
 		assertNotNull("Correlation evaluator returned null collection of matched users.", matchedUsers);
 		assertEquals("Found more than one user.", 1, matchedUsers.size());
@@ -209,7 +209,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		ObjectSynchronizationType objectSynchronizationType = resourceType.getSynchronization().getObjectSynchronization().get(0);
 		try{
 		boolean matchedUsers = evaluator.matchUserCorrelationRule(UserType.class,
-				shadow.asPrismObject(), userType, objectSynchronizationType, resourceType, task, result);
+				shadow.asPrismObject(), userType, objectSynchronizationType, resourceType, getSystemConfiguration(), task, result);
 		
 		System.out.println("matched users " + matchedUsers);
 		
@@ -256,7 +256,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 
 		try{
 			boolean matchedUsers = evaluator.matchUserCorrelationRule(UserType.class,
-					shadow.asPrismObject(), userType, objectSynchronizationType, resourceType, task, result);
+					shadow.asPrismObject(), userType, objectSynchronizationType, resourceType, getSystemConfiguration(), task, result);
 		
 			System.out.println("matched users " + matchedUsers);
 		
@@ -301,7 +301,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		repositoryService.modifyObject(UserType.class, USER_JACK_OID, modifications, result);
 		
 		List<PrismObject<UserType>> matchedUsers = evaluator.findFocusesByCorrelationRule(UserType.class,
-				shadow, queries, resourceType, task, result);
+				shadow, queries, resourceType, getSystemConfiguration(), task, result);
 		
 		System.out.println("matched users " + matchedUsers);
 	

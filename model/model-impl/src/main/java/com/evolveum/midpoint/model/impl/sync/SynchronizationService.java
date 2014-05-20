@@ -111,6 +111,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationActio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationReactionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -194,8 +195,11 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				// We need this e.g. in case of delete
 				applicableShadow = change.getOldShadow();
 			}
-			ObjectSynchronizationType synchronizationPolicy = determineSynchronizationPolicy(resourceType, 
-					applicableShadow, task, subResult);
+			
+			PrismObject<SystemConfigurationType> configuration = Utils.getSystemConfiguration(repositoryService, subResult);
+			
+			ObjectSynchronizationType synchronizationPolicy = determineSynchronizationPolicy(resourceType,
+					applicableShadow, configuration, task, subResult);
 			
 			if (synchronizationPolicy == null) {
 				String message = "SYNCHRONIZATION no matching policy for " + resourceType
@@ -219,7 +223,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				LOGGER.trace("Synchronization is enabled, focus class: {}, found applicable policy: {}", focusType, Utils.getPolicyDesc(synchronizationPolicy));
 			}
 			
-			SynchronizationSituation situation = determineSituation(focusType, change, synchronizationPolicy, task, subResult);
+			SynchronizationSituation situation = determineSituation(focusType, change, synchronizationPolicy, configuration.asObjectable(), task, subResult);
 			if (logDebug) {
 				LOGGER.debug("SYNCHRONIZATION: SITUATION: '{}', {}", situation.getSituation().value(), situation.getCorrelatedOwner());
 			} else {
@@ -250,7 +254,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				change.setCurrentShadow(newCurrentShadow);
 			}
 			
-			reactToChange(focusType, change, synchronizationPolicy, situation, resourceType, logDebug, task, subResult);
+			reactToChange(focusType, change, synchronizationPolicy, situation, resourceType, logDebug, configuration, task, subResult);
 
 			subResult.computeStatus();
 		} catch (Exception ex) {
@@ -276,13 +280,13 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	}
 
 	public ObjectSynchronizationType determineSynchronizationPolicy(ResourceType resourceType, 
-			PrismObject<? extends ShadowType> currentShadow, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			PrismObject<? extends ShadowType> currentShadow, PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		SynchronizationType synchronization = resourceType.getSynchronization();
 		if (synchronization == null) {
 			return null;
 		}
 		for (ObjectSynchronizationType objectSynchronization: synchronization.getObjectSynchronization()) {
-			if (isPolicyApplicable(currentShadow, objectSynchronization, resourceType.asPrismObject(), task, result)) {
+			if (isPolicyApplicable(currentShadow, objectSynchronization, resourceType.asPrismObject(), configuration, task, result)) {
 				return objectSynchronization;
 			}
 		}
@@ -290,7 +294,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	}
 
 	private boolean isPolicyApplicable(PrismObject<? extends ShadowType> currentShadow, 
-			ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource, PrismObject<SystemConfigurationType> configuration,
+			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		ShadowType currentShadowType = currentShadow.asObjectable();
 		
 		// objectClass
@@ -320,7 +325,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		if (synchronizationPolicy.getCondition() != null) {
 			ExpressionType conditionExpressionType = synchronizationPolicy.getCondition();
 			String desc = "condition in object synchronization "+synchronizationPolicy.getName();
-			ExpressionVariables variables = Utils.getDefaultExpressionVariables(null, currentShadow, null, resource);
+			ExpressionVariables variables = Utils.getDefaultExpressionVariables(null, currentShadow, null, resource, configuration);
 			PrismPropertyValue<Boolean> evaluateCondition = ExpressionUtil.evaluateCondition(variables, conditionExpressionType, expressionFactory, desc, task, result);
 			return evaluateCondition.getValue();
 		}
@@ -383,7 +388,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	 */
 	private <F extends FocusType> SynchronizationSituation determineSituation(Class<F> focusType, 
 			ResourceObjectShadowChangeDescription change, ObjectSynchronizationType synchronizationPolicy, 
-			Task task, OperationResult result) {
+			SystemConfigurationType configurationType, Task task, OperationResult result) {
 
 		OperationResult subResult = result.createSubresult(CHECK_SITUATION);
 		LOGGER.trace("Determining situation for resource object shadow.");
@@ -418,7 +423,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				situation = new SynchronizationSituation<F>(ownerType, null, state);
 			} else {
 				LOGGER.trace("Resource object shadow doesn't have owner.");
-				situation = determineSituationWithCorrelation(focusType, change, synchronizationPolicy, owner, task, result);
+				situation = determineSituationWithCorrelation(focusType, change, synchronizationPolicy, owner, configurationType, task, result);
 			}
 		} catch (Exception ex) {
 			LOGGER.error("Error occurred during resource object shadow owner lookup.");
@@ -450,14 +455,14 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	}
 
 	/**
-	 * Tries to match specified focus and shadow. Return true if it matches, false otherwise.  
+	 * Tries to match specified focus and shadow. Return true if it matches, false otherwise.   
 	 */
 	public <F extends FocusType> boolean matchUserCorrelationRule(PrismObject<ShadowType> shadow, PrismObject<F> focus, 
-			ResourceType resourceType, Task task, OperationResult result) throws ConfigurationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
-		ObjectSynchronizationType synchronizationPolicy = determineSynchronizationPolicy(resourceType, shadow, task, result);
+			ResourceType resourceType, PrismObject<SystemConfigurationType> configuration, Task task, OperationResult result) throws ConfigurationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
+		ObjectSynchronizationType synchronizationPolicy = determineSynchronizationPolicy(resourceType, shadow, configuration, task, result);
 		Class<F> focusClass = determineFocusClass(synchronizationPolicy, resourceType);
 		return correlationConfirmationEvaluator.matchUserCorrelationRule(focusClass, shadow, focus, synchronizationPolicy, resourceType, 
-				task, result);
+				configuration==null?null:configuration.asObjectable(), task, result);
 	}
 	
 	/**
@@ -470,7 +475,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	 */
 	private <F extends FocusType> SynchronizationSituation determineSituationWithCorrelation(
 			Class<F> focusType, ResourceObjectShadowChangeDescription change, ObjectSynchronizationType synchronizationPolicy, 
-			PrismObject<F> owner, Task task, OperationResult result) 
+			PrismObject<F> owner, SystemConfigurationType configurationType, Task task, OperationResult result) 
 					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
 		if (ChangeType.DELETE.equals(getModificationType(change))) {
@@ -497,7 +502,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		SynchronizationSituationType state = null;
 		LOGGER.trace("SYNCHRONIZATION: CORRELATION: Looking for list of {} objects based on correlation rule.", focusType.getSimpleName());
 		List<PrismObject<F>> users = correlationConfirmationEvaluator.findFocusesByCorrelationRule(
-				focusType, resourceShadow.asObjectable(), synchronizationPolicy.getCorrelation(), resource, task, result);
+				focusType, resourceShadow.asObjectable(), synchronizationPolicy.getCorrelation(), resource, configurationType, task, result);
 		if (users == null) {
 			users = new ArrayList<PrismObject<F>>();
 		}
@@ -508,7 +513,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			} else {
 				LOGGER.debug("SYNCHRONIZATION: CONFIRMATION: Checking objects from correlation with confirmation rule.");
 				users = correlationConfirmationEvaluator.findUserByConfirmationRule(focusType, users, resourceShadow.asObjectable(), 
-						resource, synchronizationPolicy.getConfirmation(), task, result);
+						resource, configurationType, synchronizationPolicy.getConfirmation(), task, result);
 			}
 		}
 
@@ -564,7 +569,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
 	private <F extends FocusType> void reactToChange(Class<F> focusClass, ResourceObjectShadowChangeDescription change,
 			ObjectSynchronizationType synchronizationPolicy, SynchronizationSituation<F> situation,
-			ResourceType resource, boolean logDebug, Task task, OperationResult parentResult) throws ConfigurationException, ObjectNotFoundException, SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException, SecurityViolationException {
+			ResourceType resource, boolean logDebug, PrismObject<SystemConfigurationType> configuration, Task task, OperationResult parentResult) throws ConfigurationException, ObjectNotFoundException, SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException, SecurityViolationException {
 
 		SynchronizationReactionType reactionDefinition = findReactionDefinition(synchronizationPolicy, situation, 
 				change.getSourceChannel(), resource);
@@ -593,7 +598,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		LensContext<F> lensContext = null;
 		if (willSynchronize) {
 			lensContext = createLensContext(focusClass, change, reactionDefinition, synchronizationPolicy, situation, 
-					doReconciliation, parentResult);
+					doReconciliation, configuration, parentResult);
 		}
 		
 		if (LOGGER.isTraceEnabled() && lensContext != null) {
@@ -633,10 +638,12 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
 	private <F extends FocusType> LensContext<F> createLensContext(Class<F> focusClass, ResourceObjectShadowChangeDescription change,
 			SynchronizationReactionType reactionDefinition, ObjectSynchronizationType synchronizationPolicy,
-			SynchronizationSituation<F> situation, Boolean doReconciliation, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+			SynchronizationSituation<F> situation, Boolean doReconciliation, PrismObject<SystemConfigurationType> configuration,
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		
 		LensContext<F> context = contextFactory.createSyncContext(focusClass, change);
 		context.setLazyAuditRequest(true);
+		context.setSystemConfiguration(configuration);
 
         ResourceType resource = change.getResource().asObjectable();
         context.rememberResource(resource);

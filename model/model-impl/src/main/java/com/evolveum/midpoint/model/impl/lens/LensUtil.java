@@ -776,20 +776,7 @@ public class LensUtil {
 	public static PrismObject<SystemConfigurationType> getSystemConfiguration(LensContext context, RepositoryService repositoryService, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
 		if (systemConfiguration == null) {
-			try {
-				systemConfiguration = 
-					repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-							null, result);
-			} catch (ObjectNotFoundException e) {
-				// just go on ... we will return and continue
-				// This is needed e.g. to set up new system configuration is the old one gets deleted
-			}
-			if (systemConfiguration == null) {
-			    // throw new SystemException("System configuration object is null (should not happen!)");
-			    // This should not happen, but it happens in tests. And it is a convenient short cut. Tolerate it for now.
-			    LOGGER.warn("System configuration object is null (should not happen!)");
-			    return null;
-			}
+			systemConfiguration = Utils.getSystemConfiguration(repositoryService, result);
 			context.setSystemConfiguration(systemConfiguration);
 		}
 		return systemConfiguration;
@@ -918,7 +905,7 @@ public class LensUtil {
     
     public static <V extends PrismValue, F extends FocusType> Mapping<V> createFocusMapping(final MappingFactory mappingFactory,
     		final LensContext<F> context, final MappingType mappingType, ObjectType originObject, 
-			ObjectDeltaObject<F> focusOdo, AssignmentPathVariables assignmentPathVariables,
+			ObjectDeltaObject<F> focusOdo, AssignmentPathVariables assignmentPathVariables, PrismObject<SystemConfigurationType> configuration,
 			XMLGregorianCalendar now, String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
     	Integer iteration = null;
     	String iterationToken = null;
@@ -932,13 +919,14 @@ public class LensUtil {
     		iterationToken = focusOldType.getIterationToken();
     	}
     	return createFocusMapping(mappingFactory, context, mappingType, originObject, focusOdo, assignmentPathVariables,
-    			iteration, iterationToken, now, contextDesc, result);
+    			iteration, iterationToken, configuration, now, contextDesc, result);
     }
     
     public static <V extends PrismValue, F extends FocusType> Mapping<V> createFocusMapping(final MappingFactory mappingFactory,
     		final LensContext<F> context, final MappingType mappingType, ObjectType originObject, 
 			ObjectDeltaObject<F> focusOdo, AssignmentPathVariables assignmentPathVariables, 
-			Integer iteration, String iterationToken, XMLGregorianCalendar now, String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			Integer iteration, String iterationToken, PrismObject<SystemConfigurationType> configuration,
+			XMLGregorianCalendar now, String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		Mapping<V> mapping = mappingFactory.createMapping(mappingType, contextDesc);
 		
 		if (!mapping.isApplicableToChannel(context.getChannel())) {
@@ -952,6 +940,7 @@ public class LensUtil {
 		mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
 		mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION, iteration);
 		mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
+		mapping.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, configuration);
 		addAssignmentPathVariables(mapping, assignmentPathVariables);
 		mapping.setOriginType(OriginType.USER_POLICY);
 		mapping.setOriginObject(originObject);
