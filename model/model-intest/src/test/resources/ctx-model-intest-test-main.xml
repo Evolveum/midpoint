@@ -32,6 +32,11 @@
      https://jax-ws.dev.java.net/spring/core.xsd
      http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd"
 	default-lazy-init="false" default-autowire="byName">
+	
+	<!-- enabling annotation driven configuration -->
+    <context:annotation-config/>
+    <context:component-scan base-package="com.evolveum.midpoint.model.intest"/>
+    <context:spring-configured/>
 
     <import resource="ctx-model.xml"/>
     <import resource="ctx-model-test.xml"/>
