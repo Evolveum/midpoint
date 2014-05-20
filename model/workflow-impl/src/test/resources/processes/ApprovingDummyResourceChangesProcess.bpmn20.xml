@@ -23,7 +23,7 @@
 
         <!-- This is necessary for midPoint to know when the process ends (because this is a "smart" process that informs midPoint about its state). -->
         <extensionElements>
-            <activiti:executionListener event="end" class="com.evolveum.midpoint.wf.processes.common.MidPointProcessListener" />
+            <activiti:executionListener event="end" class="com.evolveum.midpoint.wf.impl.processes.common.MidPointProcessListener" />
         </extensionElements>
 
 
@@ -37,7 +37,7 @@
         <startEvent id="start" name="Start" />
         <sequenceFlow sourceRef="start" targetRef="start.1" />
 
-        <serviceTask id="start.1" activiti:class="com.evolveum.midpoint.wf.processes.common.DumpVariables" />
+        <serviceTask id="start.1" activiti:class="com.evolveum.midpoint.wf.impl.processes.common.DumpVariables" />
         <sequenceFlow sourceRef="start.1" targetRef="theScriptTask" />
 
         <scriptTask id="theScriptTask" name="Execute script" scriptFormat="groovy">
@@ -49,7 +49,7 @@
             dummyResourceDelta = util.midpoint().getResourceDelta(modelContextUnwrapped, "10000000-0000-0000-0000-000000000004")
             if (dummyResourceDelta != null) {
                 //println "dummyResourceDelta = " + com.evolveum.midpoint.schema.DeltaConvertor.createObjectDelta(dummyResourceDelta, util.getPrismContext()).dump()
-                execution.setVariable("dummyResourceDelta", new com.evolveum.midpoint.wf.util.JaxbValueContainer(dummyResourceDelta, util.getPrismContext()))
+                execution.setVariable("dummyResourceDelta", new com.evolveum.midpoint.wf.impl.util.JaxbValueContainer(dummyResourceDelta, util.getPrismContext()))
             } else {
                 println "WARNING! DummyResourceDelta is null"
             }
@@ -65,8 +65,8 @@
             <activiti:formProperty id="[Button]rejectDummyResource" name="Reject the operation on Dummy resource" type="boolean" required="false" readable="true" writable="true" />
             <activiti:formProperty id="[Button]rejectAll" name="Reject whole operation" type="boolean" required="false" readable="true" writable="true" />
             <activiti:formProperty id="[Delta]dummyResourceDelta" name="Attempted operation on Dummy resource" type="boolean" required="false" />
-            <activiti:taskListener event="create" class="com.evolveum.midpoint.wf.processes.common.MidPointTaskListener" />
-            <activiti:taskListener event="complete" class="com.evolveum.midpoint.wf.processes.common.MidPointTaskListener" />
+            <activiti:taskListener event="create" class="com.evolveum.midpoint.wf.impl.processes.common.MidPointTaskListener" />
+            <activiti:taskListener event="complete" class="com.evolveum.midpoint.wf.impl.processes.common.MidPointTaskListener" />
           </extensionElements>
         </userTask>
         
