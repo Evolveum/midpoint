@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model;
+package com.evolveum.midpoint.model.impl;
 
 import com.evolveum.midpoint.model.api.ModelPort;
-import com.evolveum.midpoint.model.impl.ModelWebService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -46,7 +45,6 @@ import com.evolveum.midpoint.xml.ns._public.model.model_3.SearchObjects;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.SearchObjectsResponse;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.TestResource;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.TestResourceResponse;
-import org.jcp.xml.dsig.internal.dom.DOMUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -57,6 +55,7 @@ import javax.xml.namespace.QName;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.ws.Holder;
 import javax.xml.ws.Provider;
+import javax.xml.ws.WebServiceProvider;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 

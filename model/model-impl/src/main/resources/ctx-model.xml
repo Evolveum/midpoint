@@ -340,9 +340,13 @@
     <import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
 
     <jaxws:endpoint id="modelWS"
-                    address="/model-1">
+                    address="/model-3"
+                    wsdlLocation="classpath:xml/ns/public/model/model-3.wsdl"
+                    serviceName="model:modelWebService"
+                    endpointName="model:modelPort"
+                    xmlns:model="http://midpoint.evolveum.com/xml/ns/public/model/model-3">
         <jaxws:implementor>
-            <bean parent="modelWebService"/>
+            <bean parent="modelWebServiceRaw"/>
         </jaxws:implementor>
         <jaxws:inInterceptors>
             <ref bean="authenticationInterceptor"/>
