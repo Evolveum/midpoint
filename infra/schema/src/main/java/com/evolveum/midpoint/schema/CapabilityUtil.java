@@ -15,22 +15,24 @@
  */
 package com.evolveum.midpoint.schema;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
-import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PasswordCapabilityType;
 
 /**
  * @author semancik
@@ -116,36 +118,15 @@ public class CapabilityUtil {
 
 	public static String getCapabilityDisplayName(Object capability) {
 		// TODO: look for schema annotation
-		String className;
+		String className = null;
 		if (capability instanceof JAXBElement) {
 			className = ((JAXBElement) capability).getDeclaredType().getSimpleName();
 		} else {
 			className = capability.getClass().getSimpleName();
 		}
-
 		if (className.endsWith("CapabilityType")) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(className.substring(0, className.length() - "CapabilityType".length()));
-
-            Object cap = capability;
-            if (cap instanceof JAXBElement) {
-                cap = ((JAXBElement) cap).getValue();
+			return className.substring(0, className.length() - "CapabilityType".length());
             }
-
-            if (cap instanceof ScriptCapabilityType) {
-                ScriptCapabilityType script = (ScriptCapabilityType) cap;
-                sb.append(" on ");
-                List<ProvisioningScriptHostType> hosts = new ArrayList<>();
-                for (ScriptCapabilityType.Host host : script.getHost()) {
-                    hosts.add(host.getType());
-                }
-
-                sb.append(StringUtils.join(hosts, ", "));
-            }
-
-			return sb.toString();
-		}
-
 		return className;
 	}
 	
