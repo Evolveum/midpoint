@@ -800,6 +800,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 						applicable = false;
 						for (ObjectSpecificationType objectSpecType: objectSpecTypes) {
 							ObjectFilter objSpecSecurityFilter = null;
+							TypeFilter objSpecTypeFilter = null;
 							SearchFilterType specFilterType = objectSpecType.getFilter();
 							ObjectReferenceType specOrgRef = objectSpecType.getOrgRef();
 							QName specTypeQName = objectSpecType.getType();
@@ -818,7 +819,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 											new Object[]{specObjectClass, objectType});
 									// The spec type is a subclass of requested type. So it might be returned from the search.
 									// We need to use type filter.
-									objSpecSecurityFilter = TypeFilter.createType(specTypeQName, null);
+									objSpecTypeFilter = TypeFilter.createType(specTypeQName, null);
 									// and now we have a more specific object definition to use later in filter processing
 									objectDefinition = (PrismObjectDefinition<O>) specObjectDef;
 								}
@@ -876,6 +877,11 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 								LOGGER.trace("  applying org filter "+orgFilter);
 							} else {
 								LOGGER.trace("  org empty");
+							}
+							
+							if (objSpecTypeFilter != null) {
+								objSpecTypeFilter.setFilter(objSpecSecurityFilter);
+								objSpecSecurityFilter = objSpecTypeFilter;
 							}
 							
 							autzObjSecurityFilter = ObjectQueryUtil.filterOr(autzObjSecurityFilter, objSpecSecurityFilter);
