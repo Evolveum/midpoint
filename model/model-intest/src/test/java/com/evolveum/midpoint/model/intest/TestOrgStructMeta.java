@@ -44,6 +44,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -72,7 +73,10 @@ public class TestOrgStructMeta extends TestOrgStruct {
 	
 	protected static final File ROLE_META_FUNCTIONAL_ORG_FILE = new File(TEST_DIR, "role-meta-functional-org.xml");
     protected static final String ROLE_META_FUNCTIONAL_ORG_OID = "74aac2c8-ca0f-11e3-bb29-001e8c717e5b";
-    
+
+	protected static final File ROLE_ORGANIZED_FILE = new File(TEST_DIR, "role-organized.xml");
+    protected static final String ROLE_ORGANIZED_OID = "12345111-1111-2222-1111-121212111001";
+
     @Override
 	protected boolean doAddOrgstruct() {
 		return false;
@@ -86,6 +90,7 @@ public class TestOrgStructMeta extends TestOrgStruct {
         setDefaultObjectTemplate(OrgType.COMPLEX_TYPE, OBJECT_TEMPLATE_ORG_OID);
         
         repoAddObjectFromFile(ROLE_META_FUNCTIONAL_ORG_FILE, RoleType.class, initResult);
+        repoAddObjectFromFile(ROLE_ORGANIZED_FILE, RoleType.class, initResult);
     }
 	
 	@Override
@@ -150,5 +155,147 @@ public class TestOrgStructMeta extends TestOrgStruct {
 
 	// test05x - test3xx inherited from superclass
 	
+	@Test
+    public void test400JackAssignScummBar() throws Exception {
+		final String TEST_NAME = "test400JackAssignScummBar";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        addObject(USER_JACK_FILE);
+        
+        // Precondition
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        // WHEN
+        assignOrg(USER_JACK_OID, ORG_SCUMM_BAR_OID, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        display("User after", user);
+        assertUserOrg(user, ORG_SCUMM_BAR_OID);
+        
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
+        
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+	}
+	
+	@Test
+    public void test402JackAssignOrganized() throws Exception {
+		final String TEST_NAME = "test402JackAssignOrganized";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        assignRole(USER_JACK_OID, ROLE_ORGANIZED_OID, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        display("User after", user);
+        assertUserOrg(user, ORG_SCUMM_BAR_OID);
+        assertAssignedRole(user, ROLE_ORGANIZED_OID);
+        
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Proud member of F0006");
+        
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+	}
+	
+	@Test
+    public void test404JackUnAssignOrganized() throws Exception {
+		final String TEST_NAME = "test404JackUnAssignOrganized";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        unassignRole(USER_JACK_OID, ROLE_ORGANIZED_OID, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        display("User after", user);
+        assertUserOrg(user, ORG_SCUMM_BAR_OID);
+        
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME);
+        
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+	}
+	
+	@Test
+    public void test409JackUnassignScummBar() throws Exception {
+		final String TEST_NAME = "test400JackAssignScummBar";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        unassignOrg(USER_JACK_OID, ORG_SCUMM_BAR_OID, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+        display("User jack after", userJack);
+        assertUserNoOrg(userJack);
+        
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+	}
+	
+	/**
+	 * Now do the same things as 40x but do it all at once.
+	 */
+	@Test
+    public void test410JackAssignScummBarOrganized() throws Exception {
+		final String TEST_NAME = "test410JackAssignScummBarOrganized";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestOrgStruct.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // Precondition
+        assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
+
+        Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
+		modifications.add((createAssignmentModification(ROLE_ORGANIZED_OID, RoleType.COMPLEX_TYPE, null, null, null, true)));
+		modifications.add((createAssignmentModification(ORG_SCUMM_BAR_OID, OrgType.COMPLEX_TYPE, null, null, null, true)));
+		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(USER_JACK_OID, modifications, UserType.class, prismContext);
+        
+        // WHEN
+		modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        
+        // THEN
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        display("User after", user);
+        assertUserOrg(user, ORG_SCUMM_BAR_OID);
+        assertAssignedRole(user, ROLE_ORGANIZED_OID);
+        
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, USER_JACK_FULL_NAME, true);
+        assertDummyAccountAttribute(null, ACCOUNT_JACK_DUMMY_USERNAME, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Proud member of F0006");
+        
+        // Postcondition
+        assertMonkeyIslandOrgSanity();
+	}
 	
 }
