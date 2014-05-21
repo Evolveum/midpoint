@@ -534,12 +534,17 @@ public class PageAccounts extends PageAdminConfiguration {
 
         MidpointConfiguration config = getMidpointConfiguration();
         File exportFolder = new File(config.getMidpointHome() + "/export/");
-        if (!exportFolder.exists() || !exportFolder.isDirectory()) {
-            exportFolder.mkdir();
-        }
-
         File file = new File(exportFolder, fileName);
-        file.createNewFile();
+        try {
+            if (!exportFolder.exists() || !exportFolder.isDirectory()) {
+                exportFolder.mkdir();
+            }
+
+            file.createNewFile();
+        } catch (Exception ex) {
+            error(getString("PageAccounts.exportFileDoesntExist", file.getAbsolutePath()));
+            throw ex;
+        }
 
         return new OutputStreamWriter(new FileOutputStream(file), "utf-8");
     }
