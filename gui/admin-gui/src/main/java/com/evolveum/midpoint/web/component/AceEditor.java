@@ -26,6 +26,7 @@ import org.apache.wicket.model.Model;
 public class AceEditor extends TextArea<String> {
 
     private IModel<Boolean> readonly = new Model(false);
+    private int minSize = 200;
 
     public AceEditor(String id, IModel<String> model) {
         super(id, model);
@@ -37,9 +38,20 @@ public class AceEditor extends TextArea<String> {
         super.renderHead(response);
 
         StringBuilder sb = new StringBuilder();
-        sb.append("initEditor('").append(getMarkupId()).append("',").append(readonly.getObject()).append(");");
+        sb.append("initEditor('").append(getMarkupId());
+        sb.append("',").append(readonly.getObject());
+        sb.append(",").append(minSize);
+        sb.append(");");
 
         response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
+    }
+
+    public int getMinSize() {
+        return minSize;
+    }
+
+    public void setMinSize(int minSize) {
+        this.minSize = minSize;
     }
 
     public void setReadonly(boolean readonly) {
