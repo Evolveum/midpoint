@@ -932,13 +932,17 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 		}
 
 		if (securityFilterDeny == null) {
-			LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: allow: {}", 
-					new Object[]{principal.getUsername(), operationUrl, origWithAllowFilter});
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: allow:\n{}", 
+					new Object[]{principal.getUsername(), operationUrl, origWithAllowFilter==null?"null":origWithAllowFilter.debugDump()});
+			}
 			return origWithAllowFilter;
 		} else {
 			ObjectFilter secFilter = ObjectQueryUtil.filterAnd(origWithAllowFilter, NotFilter.createNot(securityFilterDeny));
-			LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: allow (with deny clauses): {}", 
-					new Object[]{principal.getUsername(), operationUrl, secFilter});
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("AUTZ search pre-process: principal={}, operation={}: allow (with deny clauses):\n{}", 
+					new Object[]{principal.getUsername(), operationUrl, secFilter==null?"null":secFilter.debugDump()});
+			}
 			return secFilter;
 		}
 	}

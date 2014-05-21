@@ -70,12 +70,11 @@ public class NotFilter extends UnaryLogicalFilter {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("NOT: ");
-		sb.append("(");
+		sb.append("NOT(");
 		if (getFilter() != null){
 			sb.append(getFilter().toString());
 		}
-		sb.append("");
+		sb.append(")");
 		return sb.toString();
 	}
 
