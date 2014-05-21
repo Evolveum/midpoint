@@ -323,11 +323,7 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 	public String toString(StringBuilder sb){
 		if (getFullPath() != null){
 			sb.append(getFullPath().toString());
-			sb.append(", ");
-		}
-		if (getDefinition() != null){
-			sb.append(getDefinition().getName().getLocalPart());
-			sb.append(", ");
+			sb.append(",");
 		}
 		if (getValues() != null){
 			for (int i = 0; i< getValues().size() ; i++){
@@ -338,7 +334,7 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 					sb.append(value.toString());
 				}
 				if ( i != getValues().size() -1){
-					sb.append(", ");
+					sb.append(",");
 				}
 			}
 		}
