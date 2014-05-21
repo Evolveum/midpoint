@@ -530,10 +530,15 @@ public class PageAccounts extends PageAdminConfiguration {
     }
 
     private Writer createWriter(String fileName) throws IOException {
-        //todo improve!!!!
+        //todo improve!!!!!!!
 
         MidpointConfiguration config = getMidpointConfiguration();
-        File file = new File(config.getMidpointHome() + "/export/" + fileName);
+        File exportFolder = new File(config.getMidpointHome() + "/export/");
+        if (!exportFolder.exists() || !exportFolder.isDirectory()) {
+            exportFolder.mkdir();
+        }
+
+        File file = new File(exportFolder, fileName);
         file.createNewFile();
 
         return new OutputStreamWriter(new FileOutputStream(file), "utf-8");
