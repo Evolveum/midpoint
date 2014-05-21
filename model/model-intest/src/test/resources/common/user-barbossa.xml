@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -23,63 +23,15 @@
 		xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000003"
 		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>barbossa</name>
-
-    <assignment id="1001">
-		<construction>
-			<description>Brethren account construction</description>
-			<resourceRef oid="10000000-0000-0000-0000-000000000003"/>
-			<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
-			<attribute>
-				<ref>ri:o</ref>
-				<outbound>
-					<expression>
-						<value>Pirate Brethren, Inc.</value>
-					</expression>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:l</ref>
-				<outbound>
-					<source>
-						<path>$c:user/c:locality</path>
-					</source>
-					<expression>
-						<script>
-							<language>http://www.w3.org/TR/xpath/</language>
-							<code>
-								$c:locality/t:orig
-							</code>
-						</script>
-					</expression>
-				</outbound>
-			</attribute>
-		</construction>
-	</assignment>
-
-    <assignment>
-		<construction>
-			<description>Shipwreck account construction</description>
-			<resourceRef oid="10000000-0000-0000-0000-000000000003"/>
-			<!-- This is inconsistent with the actual resource value (by purpose, so we can test reconcile) -->
-			<attribute>
-				<ref>ri:l</ref>
-				<outbound>
-					<expression>
-						<value>Shipwreck cove</value>
-					</expression>
-				</outbound>
-			</attribute>
-		</construction>
-	</assignment>
+    
+    <activation>
+    	<administrativeStatus>enabled</administrativeStatus>
+    </activation>
     
     <fullName>Hector Barbossa</fullName>
     <givenName>Hector</givenName>
     <familyName>Barbossa</familyName>
     <locality>Caribbean</locality>
-    
-    <activation>
-    	<administrativeStatus>enabled</administrativeStatus>
-    </activation>
     
     <credentials>
         <password>

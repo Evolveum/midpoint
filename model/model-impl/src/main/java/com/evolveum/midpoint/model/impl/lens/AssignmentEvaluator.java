@@ -73,7 +73,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentEvaluator.class);
 
 	private RepositoryService repository;
-	private ObjectDeltaObject<F> userOdo;
+	private ObjectDeltaObject<F> focusOdo;
 	private LensContext<F> lensContext;
 	private String channel;
 	private ObjectResolver objectResolver;
@@ -92,12 +92,12 @@ public class AssignmentEvaluator<F extends FocusType> {
 		this.repository = repository;
 	}
 	
-	public ObjectDeltaObject<F> getUserOdo() {
-		return userOdo;
+	public ObjectDeltaObject<F> getFocusOdo() {
+		return focusOdo;
 	}
 
-	public void setUserOdo(ObjectDeltaObject<F> userOdo) {
-		this.userOdo = userOdo;
+	public void setFocusOdo(ObjectDeltaObject<F> userOdo) {
+		this.focusOdo = userOdo;
 	}
 
 	public LensContext<F> getLensContext() {
@@ -189,6 +189,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, assignmentType);
 		EvaluatedAssignment evalAssignment = new EvaluatedAssignment();
+		evalAssignment.setAssignmentType(assignmentType);
 		AssignmentPath assignmentPath = new AssignmentPath();
 		AssignmentPathSegment assignmentPathSegment = new AssignmentPathSegment(assignmentType, null);
 		assignmentPathSegment.setSource(source);
@@ -242,7 +243,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			if (assignmentType.getConstruction() != null) {
 				
 				if (evaluateConstructions && assignmentPathSegment.isEvaluateConstructions()) {
-					evaluateConstruction(evalAssignment, assignmentPathSegment, source, sourceDescription, 
+					prepareConstructionEvaluation(evalAssignment, assignmentPathSegment, source, sourceDescription, 
 							assignmentPath, assignmentPathSegment.getOrderOneObject(), task, result);
 				}
 				
@@ -272,7 +273,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		assignmentPath.remove(assignmentPathSegment);
 	}
 
-	private void evaluateConstruction(EvaluatedAssignment evaluatedAssignment, AssignmentPathSegment assignmentPathSegment, ObjectType source, String sourceDescription,
+	private void prepareConstructionEvaluation(EvaluatedAssignment evaluatedAssignment, AssignmentPathSegment assignmentPathSegment, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, ObjectType orderOneObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		assertSource(source, evaluatedAssignment);
 		
@@ -280,12 +281,12 @@ public class AssignmentEvaluator<F extends FocusType> {
 		AssignmentType assignmentType = assignmentPathSegment.getAssignmentType();
 		ConstructionType constructionType = assignmentType.getConstruction();
 		
-		LOGGER.trace("Evaluate construction '{}' in {}", constructionType.getDescription(), source);
+		LOGGER.trace("Preparing construction '{}' in {}", constructionType.getDescription(), source);
 
 		Construction<F> construction = new Construction<F>(constructionType, source);
 		// We have to clone here as the path is constantly changing during evaluation
 		construction.setAssignmentPath(assignmentPath.clone());
-		construction.setUserOdo(userOdo);
+		construction.setUserOdo(focusOdo);
 		construction.setLensContext(lensContext);
 		construction.setObjectResolver(objectResolver);
 		construction.setPrismContext(prismContext);
@@ -294,7 +295,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		construction.setChannel(channel);
 		construction.setOrderOneObject(orderOneObject);
 		
-		construction.evaluate(task, result);
+		// Do not evaluate the construction here. We will do it in the second pass. Just prepare everything to be evaluated.
 		
 		evaluatedAssignment.addConstruction(construction);
 	}
@@ -312,7 +313,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
 
 		for (MappingType mappingType: mappingsType.getMapping()) {
-			Mapping mapping = LensUtil.createFocusMapping(mappingFactory, lensContext, mappingType, source, userOdo, 
+			Mapping mapping = LensUtil.createFocusMapping(mappingFactory, lensContext, mappingType, source, focusOdo, 
 					assignmentPathVariables, systemConfiguration, now, sourceDescription, result);
 			if (mapping == null) {
 				continue;

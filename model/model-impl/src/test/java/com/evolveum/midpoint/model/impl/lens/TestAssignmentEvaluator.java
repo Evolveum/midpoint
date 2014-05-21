@@ -104,7 +104,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		assignmentEvaluator.setRepository(repositoryService);
 		
 		PrismObject<UserType> userJack = userTypeJack.asPrismObject();
-		assignmentEvaluator.setUserOdo(new ObjectDeltaObject<UserType>(userJack, null, null));
+		assignmentEvaluator.setFocusOdo(new ObjectDeltaObject<UserType>(userJack, null, null));
 		
 		assignmentEvaluator.setObjectResolver(objectResolver);
 		assignmentEvaluator.setPrismContext(prismContext);
