@@ -957,7 +957,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
 	}
 
-	@Test(enabled=false) // MID-1873
+	@Test
     public void test260AutzJackObjectFilterLocationShadowRole() throws Exception {
 		final String TEST_NAME = "test260AutzJackObjectFilterLocationShadowRole";
         TestUtil.displayTestTile(this, TEST_NAME);

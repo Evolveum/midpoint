@@ -20,22 +20,16 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.QueryContext;
-import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.definition.*;
-import com.evolveum.midpoint.repo.sql.util.ClassMapper;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.criterion.Criterion;
 
 import javax.xml.namespace.QName;
-
 import java.util.List;
 
 /**
@@ -52,22 +46,9 @@ public class PropertyRestriction extends ItemRestriction<ValueFilter> {
         }
 
         ValueFilter valFilter = (ValueFilter) filter;
-
-        QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
         ItemPath fullPath = valFilter.getFullPath();
 
-        PropertyDefinition def = registry.findDefinition(context.getType(), fullPath, PropertyDefinition.class);
-        if (ObjectType.class.equals(context.getType()) && def == null) {
-            //we should try to find property in descendant classes
-            for (RObjectType type : RObjectType.values()) {
-                ObjectTypes ot = ClassMapper.getObjectTypeForHQLType(type);
-                def = registry.findDefinition(ot.getClassDefinition(), fullPath, PropertyDefinition.class);
-                if (def != null) {
-                    break;
-                }
-            }
-        }
-
+        PropertyDefinition def = findProperDefinition(fullPath, PropertyDefinition.class);
         return def != null;
     }
 
