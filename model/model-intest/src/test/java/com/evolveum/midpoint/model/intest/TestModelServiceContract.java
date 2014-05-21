@@ -164,12 +164,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
         
 		// WHEN
-
-        // opendj is not started, so we do not want to list it (it returns partial_error)
-        ObjectQuery query = ObjectQuery.createObjectQuery(
-                new NotFilter(
-                        EqualFilter.createEqual(ResourceType.F_NAME, ResourceType.class, prismContext, PolyStringOrigMatchingRule.NAME, new PolyString(RESOURCE_OPENDJ_NAME))));
-        List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, query, null, task, result);
+        List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, null, null, task, result);
 
 		// THEN
         assertNotNull("null search return", resources);
@@ -194,13 +189,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
-        preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
-        
-        // opendj is not started, so we do not want to list it (it returns partial_error)
-        ObjectQuery query = ObjectQuery.createObjectQuery(
-                new NotFilter(
-                        EqualFilter.createEqual(ResourceType.F_NAME, ResourceType.class, prismContext, PolyStringOrigMatchingRule.NAME, new PolyString(RESOURCE_OPENDJ_NAME))));
-        
+        preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);        
 
         final List<PrismObject<ResourceType>> resources = new ArrayList<PrismObject<ResourceType>>();
         		
@@ -218,7 +207,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		};
         
 		// WHEN
-        modelService.searchObjectsIterative(ResourceType.class, query, handler, null, task, result);
+        modelService.searchObjectsIterative(ResourceType.class, null, handler, null, task, result);
 
 		// THEN
         result.computeStatus();
@@ -296,11 +285,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         TestUtil.assertSuccess("getObject result", result);
         
         userBarbossa.checkConsistence(true, true);
-        
-        PrismContainer<Containerable> assignmentContainer = userBarbossa.findContainer(UserType.F_ASSIGNMENT);
-        assertEquals("Unexpected number of assignment values", 2, assignmentContainer.size());
-        PrismAsserts.assertValueId(1001L,assignmentContainer);
-        
+                
         assertSteadyResources();
 	}
 

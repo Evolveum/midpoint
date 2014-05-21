@@ -92,11 +92,6 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	
 	protected static final String CONNECTOR_DUMMY_FILENAME = COMMON_DIR_NAME + "/connector-dummy.xml";
 	
-	protected static final String RESOURCE_OPENDJ_FILENAME = COMMON_DIR_NAME + "/resource-opendj.xml";
-    protected static final String RESOURCE_OPENDJ_NAME = "Localhost OpenDJ";
-	protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
-	protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
-	
 	protected static final File RESOURCE_DUMMY_FILE = new File(COMMON_DIR, "resource-dummy.xml");
 	protected static final File RESOURCE_DUMMY_DEPRECATED_FILE = new File(COMMON_DIR, "resource-dummy-deprecated.xml");
 	protected static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";

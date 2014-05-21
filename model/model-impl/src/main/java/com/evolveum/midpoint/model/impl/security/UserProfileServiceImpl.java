@@ -159,7 +159,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 		
 		AssignmentEvaluator assignmentEvaluator = new AssignmentEvaluator();
         assignmentEvaluator.setRepository(repositoryService);
-        assignmentEvaluator.setUserOdo(new ObjectDeltaObject<UserType>(userType.asPrismObject(), null, userType.asPrismObject()));
+        assignmentEvaluator.setFocusOdo(new ObjectDeltaObject<UserType>(userType.asPrismObject(), null, userType.asPrismObject()));
         assignmentEvaluator.setChannel(null);
         assignmentEvaluator.setObjectResolver(objectResolver);
         assignmentEvaluator.setPrismContext(prismContext);
