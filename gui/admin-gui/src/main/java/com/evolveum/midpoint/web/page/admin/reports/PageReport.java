@@ -118,10 +118,12 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
 
 		AceEditor templateEditor = new AceEditor(ID_TEMPLATE_EDITOR, new Base64Model(
 				new PrismPropertyModel<>(model, ReportType.F_TEMPLATE)));
+        templateEditor.setMinSize(450);
         mainForm.add(templateEditor);
 
         AceEditor templateStyleEditor = new AceEditor(ID_TEMPLATE_STYLE_EDITOR, new Base64Model(
                 new PrismPropertyModel<>(model, ReportType.F_TEMPLATE_STYLE)));
+        templateStyleEditor.setMinSize(450);
         mainForm.add(templateStyleEditor);
 
 //        List<ITab> tabs = new ArrayList<ITab>();

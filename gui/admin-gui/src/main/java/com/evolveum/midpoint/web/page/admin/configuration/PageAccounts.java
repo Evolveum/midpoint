@@ -530,11 +530,21 @@ public class PageAccounts extends PageAdminConfiguration {
     }
 
     private Writer createWriter(String fileName) throws IOException {
-        //todo improve!!!!
+        //todo improve!!!!!!!
 
         MidpointConfiguration config = getMidpointConfiguration();
-        File file = new File(config.getMidpointHome() + "/export/" + fileName);
-        file.createNewFile();
+        File exportFolder = new File(config.getMidpointHome() + "/export/");
+        File file = new File(exportFolder, fileName);
+        try {
+            if (!exportFolder.exists() || !exportFolder.isDirectory()) {
+                exportFolder.mkdir();
+            }
+
+            file.createNewFile();
+        } catch (Exception ex) {
+            error(getString("PageAccounts.exportFileDoesntExist", file.getAbsolutePath()));
+            throw ex;
+        }
 
         return new OutputStreamWriter(new FileOutputStream(file), "utf-8");
     }
