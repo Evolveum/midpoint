@@ -21,10 +21,13 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.BulkActionDto;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 /**
  * @author lazyman
@@ -42,7 +45,7 @@ public class PageBulkAction extends PageAdminConfiguration {
     private static final String ID_EDITOR = "editor";
     private static final String ID_ASYNC = "async";
 
-    private IModel<String> model = new Model<>();
+    private IModel<BulkActionDto> model = new Model<>(new BulkActionDto());
 
     public PageBulkAction() {
         initLayout();
@@ -52,9 +55,11 @@ public class PageBulkAction extends PageAdminConfiguration {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        AceEditor editor = new AceEditor(ID_EDITOR, model);
-        mainForm.add(editor);
+        CheckBox async = new CheckBox(ID_ASYNC, new PropertyModel<Boolean>(model, BulkActionDto.F_ASYNC));
+        mainForm.add(async);
 
+        AceEditor editor = new AceEditor(ID_EDITOR, new PropertyModel<String>(model, BulkActionDto.F_SCRIPT));
+        mainForm.add(editor);
 
         AjaxSubmitButton start = new AjaxSubmitButton(ID_START, createStringResource("PageBulkUsers.button.start")) {
 
@@ -72,6 +77,8 @@ public class PageBulkAction extends PageAdminConfiguration {
     }
 
     private void startPerformed(AjaxRequestTarget target) {
+        model.getObject();
+
         //todo implement
     }
 }
