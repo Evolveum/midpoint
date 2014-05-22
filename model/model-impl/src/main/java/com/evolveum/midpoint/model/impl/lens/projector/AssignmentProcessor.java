@@ -66,6 +66,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -195,7 +196,7 @@ public class AssignmentProcessor {
         // assignments (roles).
         AssignmentEvaluator<F> assignmentEvaluator = new AssignmentEvaluator<F>();
         assignmentEvaluator.setRepository(repositoryService);
-        assignmentEvaluator.setUserOdo(focusContext.getObjectDeltaObject());
+        assignmentEvaluator.setFocusOdo(focusContext.getObjectDeltaObject());
         assignmentEvaluator.setLensContext(context);
         assignmentEvaluator.setChannel(context.getChannel());
         assignmentEvaluator.setObjectResolver(objectResolver);
@@ -277,8 +278,7 @@ public class AssignmentProcessor {
                 if (evaluatedAssignment == null) {
                 	continue;
                 }
-            	collectToConstructionMap(context, minusConstructionMap, evaluatedAssignment, forceRecon, result);
-                evaluatedAssignmentTriple.addToMinusSet(evaluatedAssignment);
+                collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
                 
             } else {
             	if (assignmentDelta.isReplace()) {
@@ -300,24 +300,21 @@ public class AssignmentProcessor {
                         if (evaluatedAssignment == null) {
                         	continue;
                         }
-            			collectToConstructionMap(context, zeroConstructionMap, evaluatedAssignment, forceRecon, result);
-    	                evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
+    	                collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
             		} else if (willHaveValue) {
             			// add
             			EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentType, context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
                         if (evaluatedAssignment == null) {
                         	continue;
                         }
-            			collectToConstructionMap(context, plusConstructionMap, evaluatedAssignment, forceRecon, result);
-	                    evaluatedAssignmentTriple.addToPlusSet(evaluatedAssignment);
+	                    collectToPlus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
             		} else if (hadValue) {
             			// delete
             			EvaluatedAssignment<F> evaluatedAssignment = evaluateAssignment(assignmentCValOld.asContainerable(), context, source, assignmentEvaluator, assignmentPlacementDesc, task, result);
                         if (evaluatedAssignment == null) {
                         	continue;
                         }
-            			collectToConstructionMap(context, minusConstructionMap, evaluatedAssignment, forceRecon, result);
-	                    evaluatedAssignmentTriple.addToMinusSet(evaluatedAssignment);
+	                    collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
             		} else {
             			throw new SystemException("Whoops. Unexpected things happen. Assignment is not old nor new (replace delta)");
             		}
@@ -343,8 +340,7 @@ public class AssignmentProcessor {
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
-		                        collectToConstructionMap(context, zeroConstructionMap, evaluatedAssignment, forceRecon, result);
-		                        evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
+		                        collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
 		                	} else {
 		                		if (LOGGER.isTraceEnabled()) {
 				            		LOGGER.trace("Processing changed assignment, add: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
@@ -353,8 +349,7 @@ public class AssignmentProcessor {
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
-			                    collectToConstructionMap(context, plusConstructionMap, evaluatedAssignment, forceRecon, result);
-			                    evaluatedAssignmentTriple.addToPlusSet(evaluatedAssignment);
+			                    collectToPlus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
 		                	}
 		                	
 		                } else if (isDelete && !isAdd) {
@@ -366,8 +361,7 @@ public class AssignmentProcessor {
 		                    if (evaluatedAssignment == null) {
 		                    	continue;
 		                    }
-		                    collectToConstructionMap(context, minusConstructionMap, evaluatedAssignment, forceRecon, result);
-		                    evaluatedAssignmentTriple.addToMinusSet(evaluatedAssignment);
+		                    collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
 		                    
 		                } else {
 		                	// Small change inside an assignment
@@ -386,8 +380,7 @@ public class AssignmentProcessor {
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
-			                	collectToConstructionMap(context, zeroConstructionMap, evaluatedAssignment, true, result);
-				                evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
+				                collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, true);
 		                	} else if (isValid) {
 		                		// Assignment became valid. We need to place it in plus set to initiate provisioning
 		                		if (LOGGER.isTraceEnabled()) {
@@ -397,8 +390,7 @@ public class AssignmentProcessor {
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
-		                		collectToConstructionMap(context, plusConstructionMap, evaluatedAssignment, true, result);
-			                    evaluatedAssignmentTriple.addToPlusSet(evaluatedAssignment);
+			                    collectToPlus(evaluatedAssignmentTriple, evaluatedAssignment, true);
 		                	} else {
 		                		// Assignment became invalid. We need to place is in minus set to initiate deprovisioning
 		                		if (LOGGER.isTraceEnabled()) {
@@ -408,8 +400,7 @@ public class AssignmentProcessor {
 		                        if (evaluatedAssignment == null) {
 		                        	continue;
 		                        }
-			                    collectToConstructionMap(context, minusConstructionMap, evaluatedAssignment, true, result);
-			                    evaluatedAssignmentTriple.addToMinusSet(evaluatedAssignment);
+		                        collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, true);
 		                	}
 		                }
 		
@@ -423,8 +414,7 @@ public class AssignmentProcessor {
 		                if (evaluatedAssignment == null) {
 		                	continue;
 		                }
-		                collectToConstructionMap(context, zeroConstructionMap, evaluatedAssignment, forceRecon, result);
-		                evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
+		                collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
 		            }
             	}
             }
@@ -452,9 +442,18 @@ public class AssignmentProcessor {
 				focusOdo, focusContext.getObjectDefinition(), "focus mappings in assignments of "+focusContext.getHumanReadableName());
 		LOGGER.trace("Computed focus deltas: {}", focusDeltas);
 		focusContext.applyProjectionWaveSecondaryDeltas(focusDeltas);
+		focusContext.recompute();
 
 		
         // PROCESSING PROJECTIONS
+		
+		// Evaluate the constructions in assignements now. These were not evaluated in the first pass of AssignmentEvaluator
+		// because there may be interaction from focusMappings of some roles to outbound mappings of other roles.
+		// Now we have complete focus with all the focusMappings so we can evaluate the constructions
+		evaluateConstructions(context, evaluatedAssignmentTriple, task, result);
+		collectToConstructionMap(context, evaluatedAssignmentTriple.getZeroSet(), zeroConstructionMap, result);
+    	collectToConstructionMap(context, evaluatedAssignmentTriple.getPlusSet(), plusConstructionMap, result);
+    	collectToConstructionMap(context, evaluatedAssignmentTriple.getMinusSet(), minusConstructionMap, result);
         
         if (LOGGER.isTraceEnabled()) {
             // Dump the maps
@@ -633,6 +632,108 @@ public class AssignmentProcessor {
         removeIgnoredContexts(context);
         finishLegalDecisions(context);
         
+    }
+    
+    private <F extends FocusType> void collectToZero(DeltaSetTriple<EvaluatedAssignment<F>> evaluatedAssignmentTriple, 
+    		EvaluatedAssignment<F> evaluatedAssignment, boolean forceRecon) {
+    	evaluatedAssignment.setForceRecon(forceRecon);
+    	evaluatedAssignmentTriple.addToZeroSet(evaluatedAssignment);
+    }
+
+    private <F extends FocusType> void collectToPlus(DeltaSetTriple<EvaluatedAssignment<F>> evaluatedAssignmentTriple, 
+    		EvaluatedAssignment<F> evaluatedAssignment, boolean forceRecon) {
+    	evaluatedAssignment.setForceRecon(forceRecon);
+    	evaluatedAssignmentTriple.addToPlusSet(evaluatedAssignment);
+    }
+
+    private <F extends FocusType> void collectToMinus(DeltaSetTriple<EvaluatedAssignment<F>> evaluatedAssignmentTriple, 
+    		EvaluatedAssignment<F> evaluatedAssignment, boolean forceRecon) {
+    	evaluatedAssignment.setForceRecon(forceRecon);
+    	evaluatedAssignmentTriple.addToMinusSet(evaluatedAssignment);
+    }
+
+    private <F extends FocusType> void evaluateConstructions(LensContext<F> context, 
+    		DeltaSetTriple<EvaluatedAssignment<F>> evaluatedAssignmentTriple, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+    	evaluateConstructions(context, evaluatedAssignmentTriple.getZeroSet(), task, result);
+    	evaluateConstructions(context, evaluatedAssignmentTriple.getPlusSet(), task, result);
+    	evaluateConstructions(context, evaluatedAssignmentTriple.getMinusSet(), task, result);
+    }
+    
+    private <F extends FocusType> void evaluateConstructions(LensContext<F> context, 
+    		Collection<EvaluatedAssignment<F>> evaluatedAssignments, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+    	if (evaluatedAssignments == null) {
+    		return;
+    	}
+    	ObjectDeltaObject<F> focusOdo = null;
+    	LensFocusContext<F> focusContext = context.getFocusContext();
+    	if (focusContext != null) {
+    		focusOdo = focusContext.getObjectDeltaObject();
+    	}
+    	Iterator<EvaluatedAssignment<F>> iterator = evaluatedAssignments.iterator();
+    	while (iterator.hasNext()) {
+    		EvaluatedAssignment<F> evaluatedAssignment = iterator.next();
+    		try {
+				evaluatedAssignment.evaluateConstructions(focusOdo, task, result);
+    		} catch (ObjectNotFoundException ex){
+            	if (LOGGER.isTraceEnabled()) {
+                	LOGGER.trace("Processing of assignment resulted in error {}: {}", ex, SchemaDebugUtil.prettyPrint(evaluatedAssignment.getAssignmentType()));
+                }
+            	iterator.remove();
+            	if (!ModelExecuteOptions.isForce(context.getOptions())){
+            		ModelUtils.recordFatalError(result, ex);
+            	}
+            } catch (SchemaException ex){
+            	if (LOGGER.isTraceEnabled()) {
+                	LOGGER.trace("Processing of assignment resulted in error {}: {}", ex, SchemaDebugUtil.prettyPrint(evaluatedAssignment.getAssignmentType()));
+                }
+            	ModelUtils.recordFatalError(result, ex);
+            	String resourceOid = determineResource(evaluatedAssignment.getAssignmentType());
+            	if (resourceOid == null) {
+            		// This is a role assignment or something like that. Just throw the original exception for now.
+            		throw ex;
+            	}
+            	ResourceShadowDiscriminator rad = new ResourceShadowDiscriminator(resourceOid, 
+            			determineKind(evaluatedAssignment.getAssignmentType()), determineIntent(evaluatedAssignment.getAssignmentType()));
+    			LensProjectionContext accCtx = context.findProjectionContext(rad);
+    			if (accCtx != null) {
+    				accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+    			}
+    			iterator.remove();
+            }
+    	}
+    }
+    
+    private <F extends FocusType> void collectToConstructionMap(LensContext<F> context,
+    		Collection<EvaluatedAssignment<F>> evaluatedAssignments,
+    		Map<ResourceShadowDiscriminator, ConstructionPack> constructionMap, 
+    		OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
+		for (EvaluatedAssignment<F> evaluatedAssignment: evaluatedAssignments) {
+	    	if (LOGGER.isTraceEnabled()) {
+	    		LOGGER.trace("Collecting evaluated assignment:\n{}", evaluatedAssignment.debugDump());
+	    	}
+	        for (Construction<F> construction : evaluatedAssignment.getConstructions()) {
+	            String resourceOid = construction.getResource(result).getOid();
+	            String intent = construction.getIntent();
+	            ShadowKindType kind = construction.getKind();
+	            ResourceType resource = LensUtil.getResource(context, resourceOid, provisioningService, result);
+	            intent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
+	            ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, kind, intent);
+	            ConstructionPack constructionPack = null;
+	            if (constructionMap.containsKey(rat)) {
+	                constructionPack = constructionMap.get(rat);
+	            } else {
+	                constructionPack = new ConstructionPack();
+	                constructionMap.put(rat, constructionPack);
+	            }
+	            constructionPack.add(new PrismPropertyValue<Construction>(construction));
+	            if (evaluatedAssignment.isValid()) {
+	            	constructionPack.setHasValidAssignment(true);
+	            }
+	            if (evaluatedAssignment.isForceRecon()) {
+	            	constructionPack.setForceRecon(true);
+	            }
+	        }
+    	}
     }
     
 	private Collection<PrismContainerValue<AssignmentType>> mergeAssignments(
@@ -956,36 +1057,6 @@ public class AssignmentProcessor {
 		// This should re-evaluate all the constructions. They are evaluated already, evaluated in the assignment step before.
 		// But if there is any iteration counter that it will not be taken into account
 		
-    }
-
-    private <F extends FocusType> void collectToConstructionMap(LensContext<F> context,
-            Map<ResourceShadowDiscriminator, ConstructionPack> accountMap, EvaluatedAssignment<F> evaluatedAssignment, 
-            boolean forceRecon, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-    	if (LOGGER.isTraceEnabled()) {
-    		LOGGER.trace("Collecting evaluated assignment:\n{}", evaluatedAssignment.debugDump());
-    	}
-        for (Construction<F> construction : evaluatedAssignment.getConstructions()) {
-            String resourceOid = construction.getResource(result).getOid();
-            String intent = construction.getIntent();
-            ShadowKindType kind = construction.getKind();
-            ResourceType resource = LensUtil.getResource(context, resourceOid, provisioningService, result);
-            intent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
-            ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, kind, intent);
-            ConstructionPack constructionPack = null;
-            if (accountMap.containsKey(rat)) {
-                constructionPack = accountMap.get(rat);
-            } else {
-                constructionPack = new ConstructionPack();
-                accountMap.put(rat, constructionPack);
-            }
-            constructionPack.add(new PrismPropertyValue<Construction>(construction));
-            if (evaluatedAssignment.isValid()) {
-            	constructionPack.setHasValidAssignment(true);
-            }
-            if (forceRecon) {
-            	constructionPack.setForceRecon(true);
-            }
-        }
     }
 
     private String dumpAccountMap(Map<ResourceShadowDiscriminator, ConstructionPack> accountMap) {

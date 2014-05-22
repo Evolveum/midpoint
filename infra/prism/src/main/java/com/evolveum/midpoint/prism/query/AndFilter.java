@@ -76,12 +76,12 @@ public class AndFilter extends NaryLogicalFilter {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("AND: ");
+		sb.append("AND");
 		sb.append("(");
 		for (int i = 0; i < getConditions().size(); i++){
 			sb.append(getConditions().get(i));
 			if (i != getConditions().size() -1){
-				sb.append(", ");
+				sb.append(",");
 			}
 		}
 		sb.append(")");

@@ -224,11 +224,7 @@ public class PageReports extends PageAdminReports {
 
             @Override
             public boolean isFirstButtonEnabled(IModel<SelectableBean<ReportType>> rowModel){
-                if(rowModel.getObject().getValue().isParent()){
-                    return true;
-                } else {
-                    return false;
-                }
+                return rowModel.getObject().getValue().isParent();
             }
         };
         columns.add(column);
@@ -281,8 +277,10 @@ public class PageReports extends PageAdminReports {
 
         ReportsStorage storage = getSessionStorage().getReports();
         storage.setReportSearch(searchModel.getObject());
+        storage.setReportsPaging(null);
 
         TablePanel table = getReportTable();
+        table.setCurrentPage(null);
         target.add(table);
         target.add(getFeedbackPanel());
     }
@@ -332,7 +330,8 @@ public class PageReports extends PageAdminReports {
 
         ReportsStorage storage = getSessionStorage().getReports();
         storage.setReportSearch(searchModel.getObject());
-        panel.setCurrentPage(storage.getReportsPaging());
+        storage.setReportsPaging(null);
+        panel.setCurrentPage(null);
 
         target.add(get(ID_SEARCH_FORM));
         target.add(panel);

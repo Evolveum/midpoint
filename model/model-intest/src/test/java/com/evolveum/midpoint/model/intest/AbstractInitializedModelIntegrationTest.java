@@ -92,9 +92,6 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	protected UserType userTypeGuybrush;
 	protected UserType userTypeElaine;
 	
-	protected ResourceType resourceOpenDjType;
-	protected PrismObject<ResourceType> resourceOpenDj;
-	
 	protected DummyResource dummyResource;
 	protected DummyResourceContoller dummyResourceCtl;
 	protected ResourceType resourceDummyType;
@@ -147,12 +144,6 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		clockwork.setDebugListener(lensDebugListener);
 		
 		// Resources
-		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILENAME, RESOURCE_OPENDJ_OID, initTask, initResult);
-		resourceOpenDjType = resourceOpenDj.asObjectable();
-		openDJController.setResource(resourceOpenDj);
-		if (!openDJController.isRunning()) {
-			initResult.muteLastSubresultError();
-		}
 				
 		dummyResourceCtl = DummyResourceContoller.create(null);
 		dummyResourceCtl.extendSchemaPirate();

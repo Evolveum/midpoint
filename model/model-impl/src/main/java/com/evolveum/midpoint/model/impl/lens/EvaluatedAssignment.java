@@ -18,16 +18,22 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.Authorization;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -39,13 +45,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
  * @author Radovan Semancik
  */
 public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignment.class);
 
+	private AssignmentType assignmentType;
 	private Collection<Construction<F>> constructions;
 	private Collection<PrismReferenceValue> orgRefVals;
 	private Collection<Authorization> authorizations;
 	private Collection<Mapping<? extends PrismPropertyValue<?>>> focusMappings;
 	private PrismObject<?> target;
 	private boolean isValid;
+	private boolean forceRecon;
 
 	public EvaluatedAssignment() {
 		constructions = new ArrayList<>();
@@ -54,6 +64,14 @@ public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
 		focusMappings = new ArrayList<>();
 	}
 	
+	public AssignmentType getAssignmentType() {
+		return assignmentType;
+	}
+
+	public void setAssignmentType(AssignmentType assignmentType) {
+		this.assignmentType = assignmentType;
+	}
+
 	public Collection<Construction<F>> getConstructions() {
 		return constructions;
 	}
@@ -102,12 +120,28 @@ public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
 		this.isValid = isValid;
 	}
 
+	public boolean isForceRecon() {
+		return forceRecon;
+	}
+
+	public void setForceRecon(boolean forceRecon) {
+		this.forceRecon = forceRecon;
+	}
+
 	public Collection<ResourceType> getResources(OperationResult result) throws ObjectNotFoundException, SchemaException {
 		Collection<ResourceType> resources = new ArrayList<ResourceType>();
 		for (Construction<F> acctConstr: constructions) {
 			resources.add(acctConstr.getResource(result));
 		}
 		return resources;
+	}
+	
+	public void evaluateConstructions(ObjectDeltaObject<F> focusOdo, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		for (Construction<F> construction :constructions) {
+			construction.setUserOdo(focusOdo);
+			LOGGER.trace("Evaluating construction '{}' in {}", construction);
+			construction.evaluate(task, result);
+		}
 	}
 
 	@Override

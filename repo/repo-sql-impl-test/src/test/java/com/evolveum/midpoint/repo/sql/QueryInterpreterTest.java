@@ -1497,4 +1497,54 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             close(session);
         }
     }
+
+    @Test
+    public void test400queryObjectypeByTypeComplex() throws Exception {
+        Session session = open();
+        try {
+            Criteria main = session.createCriteria(RObject.class, "o");
+            ProjectionList projections = Projections.projectionList();
+            addFullObjectProjectionList("o", projections, false);
+            main.setProjection(projections);
+
+            Conjunction c1 = Restrictions.conjunction();
+            c1.add(Restrictions.eq("o." + RObject.F_OBJECT_TYPE_CLASS, RObjectType.USER));
+            Criterion e1 = Restrictions.and(Restrictions.eq("o.localityUser.orig", "Caribbean"),
+                    Restrictions.eq("o.localityUser.norm", "caribbean"));
+            Criterion e2 = Restrictions.and(Restrictions.eq("o.localityUser.orig", "Adriatic"),
+                    Restrictions.eq("o.localityUser.norm", "adriatic"));
+            c1.add(Restrictions.or(e1, e2));
+
+            Conjunction c2 = Restrictions.conjunction();
+            c2.add(Restrictions.eq("o." + RObject.F_OBJECT_TYPE_CLASS, RObjectType.ORG));
+            Criteria o1 = main.createCriteria("o.orgType", "o1", JoinType.LEFT_OUTER_JOIN);
+            c2.add(Restrictions.eq("o1.elements", "functional"));
+
+            Criterion c3 = Restrictions.eq("o." + RObject.F_OBJECT_TYPE_CLASS, RObjectType.REPORT);
+
+            main.add(Restrictions.or(c1, c2, c3));
+            String expected = HibernateToSqlTranslator.toSql(main);
+
+
+            EqualFilter eq1 = EqualFilter.createEqual(UserType.F_LOCALITY, UserType.class, prismContext,
+                    new PolyString("Caribbean", "caribbean"));
+            EqualFilter eq2 = EqualFilter.createEqual(UserType.F_LOCALITY, UserType.class, prismContext,
+                    new PolyString("Adriatic", "adriatic"));
+            TypeFilter type1 = TypeFilter.createType(UserType.COMPLEX_TYPE, OrFilter.createOr(eq1, eq2));
+
+            EqualFilter equal = EqualFilter.createEqual(OrgType.F_ORG_TYPE, OrgType.class, prismContext, "functional");
+            TypeFilter type2 = TypeFilter.createType(OrgType.COMPLEX_TYPE, equal);
+
+            TypeFilter type3 = TypeFilter.createType(ReportType.COMPLEX_TYPE, null);
+
+            OrFilter or = OrFilter.createOr(type1, type2, type3);
+
+            String real = getInterpretedQuery(session, ObjectType.class, ObjectQuery.createObjectQuery(or));
+
+            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+            AssertJUnit.assertEquals(expected, real);
+        } finally {
+            close(session);
+        }
+    }
 }

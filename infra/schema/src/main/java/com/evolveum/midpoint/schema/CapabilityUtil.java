@@ -126,7 +126,7 @@ public class CapabilityUtil {
 		}
 		if (className.endsWith("CapabilityType")) {
 			return className.substring(0, className.length() - "CapabilityType".length());
-		}
+            }
 		return className;
 	}
 	

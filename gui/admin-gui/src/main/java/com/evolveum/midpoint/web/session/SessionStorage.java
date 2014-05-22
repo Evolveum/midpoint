@@ -43,7 +43,6 @@ public class SessionStorage implements Serializable {
      * Store sessions information for "users" and other pages
      */
     private UsersStorage users;
-    private CreatedReportsStorage createdReports;
     private ReportsStorage reports;
     private ResourcesStorage resources;
     private RolesStorage roles;
@@ -81,50 +80,43 @@ public class SessionStorage implements Serializable {
         return users;
     }
 
-    public CreatedReportsStorage getCreatedReports(){
-        if(createdReports == null){
-            createdReports = new CreatedReportsStorage();
-        }
-        return createdReports;
-    }
-
-    public ResourcesStorage getResources(){
-        if(resources == null){
+    public ResourcesStorage getResources() {
+        if (resources == null) {
             resources = new ResourcesStorage();
         }
         return resources;
     }
 
-    public RolesStorage getRoles(){
-        if(roles == null){
+    public RolesStorage getRoles() {
+        if (roles == null) {
             roles = new RolesStorage();
         }
         return roles;
     }
 
-    public TasksStorage getTasks(){
-        if(tasks == null){
+    public TasksStorage getTasks() {
+        if (tasks == null) {
             tasks = new TasksStorage();
         }
         return tasks;
     }
 
-    public ResourceContentStorage getResourceContent(){
-        if(resourceContent == null){
+    public ResourceContentStorage getResourceContent() {
+        if (resourceContent == null) {
             resourceContent = new ResourceContentStorage();
         }
         return resourceContent;
     }
 
-    public ReportsStorage getReports(){
-        if(reports == null){
+    public ReportsStorage getReports() {
+        if (reports == null) {
             reports = new ReportsStorage();
         }
         return reports;
     }
 
-    public OrgUnitStorage getOrgUnits(){
-        if(orgUnitStorage == null){
+    public OrgUnitStorage getOrgUnits() {
+        if (orgUnitStorage == null) {
             orgUnitStorage = new OrgUnitStorage();
         }
         return orgUnitStorage;
