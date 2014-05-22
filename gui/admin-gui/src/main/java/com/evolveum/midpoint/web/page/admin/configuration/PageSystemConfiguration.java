@@ -354,7 +354,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
             LoggingUtils.logException(LOGGER,"Couldn't save system configuration.", e);
         }
 
-        showResult(result);
+        showResultInSession(result);
         target.add(getFeedbackPanel());
         resetPerformed(target);
     }
