@@ -55,16 +55,21 @@ public class NotificationConfigurationDto implements Serializable{
                 debug = false;
             }
 
-
             redirectToFile = mailConfig.getRedirectToFile();
 
-            if(!mailConfig.getServer().isEmpty() && mailConfig.getServer().get(0) != null){
+            if(mailConfig.getServer() != null && !mailConfig.getServer().isEmpty() && mailConfig.getServer().get(0) != null){
                 MailServerConfigurationType serverConfig = mailConfig.getServer().get(0);
 
                 host = serverConfig.getHost();
                 port = serverConfig.getPort();
                 username = serverConfig.getUsername();
-                password = serverConfig.getPassword().getClearValue();
+
+                if(serverConfig.getPassword() != null){
+                    password = serverConfig.getPassword().getClearValue();
+                } else {
+                    password = null;
+                }
+
                 mailTransportSecurityType = serverConfig.getTransportSecurity();
             }
         }
