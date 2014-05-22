@@ -1,11 +1,9 @@
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -43,9 +41,9 @@ public class PerformanceTest extends BaseSQLRepoTest {
             "Seewald", "Ahle", "Juhas", "Pugh", "Vanausdal", "Hollack", "Lindall", "Yglesias", "Buvens", "Weight",
             "Morocco", "Eroman"};
 
-    private static final int ORG_COUNT = 10;
-    private static final int USER_PER_ORG_COUNT = 10;
-    private static final int RESOURCE_COUNT = 5;
+    private static final int ORG_COUNT = 2;
+    private static final int USER_PER_ORG_COUNT = 3;
+    private static final int RESOURCE_COUNT = 4;
 
     @Test(enabled = false)
     public void test100Parsing() throws Exception {
@@ -61,7 +59,7 @@ public class PerformanceTest extends BaseSQLRepoTest {
         LOGGER.info("xxx>> time: {}", (System.currentTimeMillis() - time));
     }
 
-    @Test
+    @Test(enabled = false)
     public void test200PrepareBigXml() throws Exception {
         File file = new File("./target/big-test.xml");
         Writer writer = new OutputStreamWriter(new FileOutputStream(file), "utf-8");
@@ -114,12 +112,26 @@ public class PerformanceTest extends BaseSQLRepoTest {
         return resource;
     }
 
-    private ShadowType createShadow(UserType user, String resourceOid, int resourceId) {
-        ShadowType shadow = new ShadowType();    //todo get shadow from template
-        shadow.setName(createPoly("cn=" + user.getName().getOrig() + ",ou=resource" + resourceId + ",dc=example,dc=com"));
+    private ShadowType createShadow(UserType user, String resourceOid, int resourceId) throws SchemaException {
+        ShadowType shadow = new ShadowType();
+        shadow.setOid(UUID.randomUUID().toString());
+        final String DN = "cn=" + user.getName().getOrig() + ",ou=resource" + resourceId + ",dc=example,dc=com";
+        shadow.setName(createPoly(DN));
         shadow.setResourceRef(createRef(resourceOid, ResourceType.COMPLEX_TYPE));
+        shadow.setKind(ShadowKindType.ACCOUNT);
+        shadow.setIntent("standardAccount");
+        shadow.setObjectClass(new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instance/" + resourceOid,
+                "AccountObjectClass"));
 
-        //todo icfs uid and name
+        PrismObject<ShadowType> prism = shadow.asPrismObject();
+        prismContext.adopt(prism);
+
+        PrismContainer attributes = prism.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
+        PrismProperty property = attributes.findOrCreateProperty(SchemaConstants.ICFS_UID);
+        property.setRealValue(UUID.randomUUID().toString());
+
+        property = attributes.findOrCreateProperty(SchemaConstants.ICFS_NAME);
+        property.setRealValue(DN);
 
         return shadow;
     }
@@ -143,6 +155,7 @@ public class PerformanceTest extends BaseSQLRepoTest {
         user.setFamilyName(createPoly(family));
         user.setFullName(createPoly(given + " " + family));
         user.setEmployeeNumber(Integer.toString(userId));
+        user.getParentOrgRef().add(createRef(orgOid, OrgType.COMPLEX_TYPE));
 
         PrismObject<UserType> prism = user.asPrismObject();
         prismContext.adopt(prism);
@@ -203,11 +216,12 @@ public class PerformanceTest extends BaseSQLRepoTest {
         PrismObject prism = obj.asPrismObject();
         prismContext.adopt(prism);
         writer.write(prismContext.serializeObjectToString(prism, PrismContext.LANG_XML));
+        writer.write('\n');
     }
 
     private void writeHeader(Writer writer) throws IOException {
         writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n");
-        writer.write("<objects xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\">");
+        writer.write("<objects xmlns=\"http://midpoint.evolveum.com/xml/ns/public/common/common-3\">\n");
     }
 
     private void writeFooter(Writer writer) throws IOException {
