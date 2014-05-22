@@ -41,9 +41,9 @@ public class PerformanceTest extends BaseSQLRepoTest {
             "Seewald", "Ahle", "Juhas", "Pugh", "Vanausdal", "Hollack", "Lindall", "Yglesias", "Buvens", "Weight",
             "Morocco", "Eroman"};
 
-    private static final int ORG_COUNT = 2;
-    private static final int USER_PER_ORG_COUNT = 3;
-    private static final int RESOURCE_COUNT = 4;
+    private static final int ORG_COUNT = 10;
+    private static final int USER_PER_ORG_COUNT = 10000;
+    private static final int RESOURCE_COUNT = 5;
 
     @Test(enabled = false)
     public void test100Parsing() throws Exception {
@@ -104,8 +104,11 @@ public class PerformanceTest extends BaseSQLRepoTest {
         }
     }
 
-    private ResourceType createResource(int resourceId) {
-        ResourceType resource = new ResourceType();   //todo get resource from template
+    private ResourceType createResource(int resourceId) throws SchemaException, IOException {
+        PrismObject<ResourceType> prism = prismContext.parseObject(new File(FOLDER_BASIC, "resource-opendj.xml"));
+
+        ResourceType resource = new ResourceType();
+        resource.setupContainer(prism);
         resource.setName(createPoly("Resource " + resourceId));
         resource.setOid(UUID.randomUUID().toString());
 
