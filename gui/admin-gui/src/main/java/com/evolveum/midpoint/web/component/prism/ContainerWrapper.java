@@ -88,14 +88,12 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
     }
     
     protected PrismContainerDefinition getContainerDefinition(){
-    	if (object.getEditedDefinition() != null){
-    		if (main){
-    			return object.getEditedDefinition();
-    		}
-        	return object.getEditedDefinition().findContainerDefinition(path);
-        } else {
-        	return container.getDefinition();
-        }
+//    	if (object.getEditedDefinition() != null){
+    	if (main || new ItemPath(ShadowType.F_ATTRIBUTES).equals(path)){
+    		return object.getDefinition();
+    	} 
+        	return object.getDefinition().findContainerDefinition(path);
+        
     }
 
     OperationResult getResult() {
@@ -153,19 +151,20 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         	
             if (ShadowType.F_ATTRIBUTES.equals(name)) {
                 try {
-                    PrismReference resourceRef = parent.findReference(ShadowType.F_RESOURCE_REF);
-                    PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
-                    RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
-                            LayerType.PRESENTATION, parent.getPrismContext());
-
-                    PrismProperty<QName> objectClassProp = parent.findProperty(ShadowType.F_OBJECT_CLASS);
-                    QName objectClass = objectClassProp != null ? objectClassProp.getRealValue() : null;
-                    definition = refinedSchema.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT, objectClass)
-                            .toResourceAttributeContainerDefinition();
-
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Refined account def:\n{}", definition.debugDump());
-                    }
+                	definition = object.getDefinition();
+//                    PrismReference resourceRef = parent.findReference(ShadowType.F_RESOURCE_REF);
+//                    PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
+//                    RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
+//                            LayerType.PRESENTATION, parent.getPrismContext());
+//
+//                    PrismProperty<QName> objectClassProp = parent.findProperty(ShadowType.F_OBJECT_CLASS);
+//                    QName objectClass = objectClassProp != null ? objectClassProp.getRealValue() : null;
+//                    definition = refinedSchema.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT, objectClass)
+//                            .toResourceAttributeContainerDefinition();
+//
+//                    if (LOGGER.isTraceEnabled()) {
+//                        LOGGER.trace("Refined account def:\n{}", definition.debugDump());
+//                    }
                 } catch (Exception ex) {
                     LoggingUtils.logException(LOGGER, "Couldn't load definitions from refined schema for shadow", ex);
                     result.recordFatalError("Couldn't load definitions from refined schema for shadow, reason: "
