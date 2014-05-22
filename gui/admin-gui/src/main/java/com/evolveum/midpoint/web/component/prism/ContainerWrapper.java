@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -67,6 +68,8 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
     private boolean showInheritedObjectAttributes;
 
     private OperationResult result;
+    
+    private PrismContainerDefinition containerDefinition;
 
     public ContainerWrapper(ObjectWrapper object, T container, ContainerStatus status, ItemPath path) {
         Validate.notNull(container, "Prism object must not be null.");
@@ -79,8 +82,20 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         main = path == null;
         readonly = object.isReadonly();
         showInheritedObjectAttributes = object.isShowInheritedObjectAttributes();
-
+        //have to be after setting "main" property
+        containerDefinition = getContainerDefinition();
         createProperties();
+    }
+    
+    protected PrismContainerDefinition getContainerDefinition(){
+    	if (object.getEditedDefinition() != null){
+    		if (main){
+    			return object.getEditedDefinition();
+    		}
+        	return object.getEditedDefinition().findContainerDefinition(path);
+        } else {
+        	return container.getDefinition();
+        }
     }
 
     OperationResult getResult() {
@@ -133,7 +148,9 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         PrismObject parent = getObject().getObject();
         Class clazz = parent.getCompileTimeClass();
         if (ShadowType.class.isAssignableFrom(clazz)) {
-            QName name = container.getDefinition().getName();
+        	QName name = containerDefinition.getName();
+//        	QName name = container.getDefinition().getName();
+        	
             if (ShadowType.F_ATTRIBUTES.equals(name)) {
                 try {
                     PrismReference resourceRef = parent.findReference(ShadowType.F_RESOURCE_REF);
@@ -143,7 +160,6 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
                     PrismProperty<QName> objectClassProp = parent.findProperty(ShadowType.F_OBJECT_CLASS);
                     QName objectClass = objectClassProp != null ? objectClassProp.getRealValue() : null;
-
                     definition = refinedSchema.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT, objectClass)
                             .toResourceAttributeContainerDefinition();
 
@@ -158,10 +174,12 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
                     return properties;
                 }
             } else {
-                definition = container.getDefinition();
+            	definition = containerDefinition;
+//                definition = container.getDefinition();
             }
         } else {
-            definition = container.getDefinition();
+        	definition = containerDefinition;
+//            definition = container.getDefinition();
         }
 
         if (definition == null) {
@@ -224,7 +242,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
        } else {            // if not an assignment
 
             if (container.getValues().size() == 1 ||
-                    (container.getValues().isEmpty() && (container.getDefinition() == null || container.getDefinition().isSingleValue()))) {
+                    (container.getValues().isEmpty() && (containerDefinition== null || containerDefinition.isSingleValue()))) {
 
                 // there's no point in showing properties for non-single-valued parent containers,
                 // so we continue only if the parent is single-valued
@@ -359,9 +377,29 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
     }
 
     boolean isPropertyVisible(PropertyWrapper property) {
-        PrismPropertyDefinition def = property.getItem().getDefinition();
-        if (skipProperty(def) || !def.canRead() || def.isIgnored() || def.isOperational()) {
+        PrismPropertyDefinition def = property.getItemDefinition();
+        if (skipProperty(def) || def.isIgnored() || def.isOperational()) {
             return false;
+        }
+        
+        if (ContainerStatus.ADDING == getStatus() && def.canAdd()){
+        	return true;
+        }
+        
+        if (ContainerStatus.MODIFYING == getStatus() && def.canModify()){
+        	return true;
+        }
+        
+        if (ContainerStatus.MODIFYING == getStatus() && !def.canModify()){
+        	if (def.canRead()){
+        		property.setReadonly(true);
+        		return true;
+        	} 
+        	return false;
+        }
+        
+        if (!def.canRead()){
+        	return false;
         }
 
         ObjectWrapper object = getObject();
@@ -471,6 +509,9 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
     }
 
     public boolean isReadonly() {
+    	if (getContainerDefinition() != null){
+    		return getContainerDefinition().canRead();
+    	}
         return readonly;
     }
 

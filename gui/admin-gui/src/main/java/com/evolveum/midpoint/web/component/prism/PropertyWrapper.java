@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -45,6 +46,7 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
     private List<ValueWrapper> values;
     private String displayName;
     private boolean readonly;
+    private PrismPropertyDefinition itemDefinition;
 
     public PropertyWrapper(ContainerWrapper container, PrismProperty property, ValueStatus status) {
         Validate.notNull(property, "Property must not be null.");
@@ -54,6 +56,7 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
         this.property = property;
         this.status = status;
         this.readonly = container.isReadonly();
+        this.itemDefinition = getItemDefinition();
 
         ItemPath passwordPath = new ItemPath(SchemaConstantsGenerated.C_CREDENTIALS,
                 CredentialsType.F_PASSWORD);
@@ -63,6 +66,15 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
         }
     }
 
+    protected PrismPropertyDefinition getItemDefinition(){
+    	PrismPropertyDefinition propDef = container.getContainerDefinition().findPropertyDefinition(property.getDefinition().getName());
+    	if (propDef == null){
+    		propDef = property.getDefinition();
+    	}
+    	return propDef;
+    	
+    }
+    
     public boolean isVisible() {
         if (property.getDefinition().isOperational()) {
             return false;
@@ -70,6 +82,8 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
 
         return container.isPropertyVisible(this);
     }
+    
+    
 
     ContainerWrapper getContainer() {
         return container;

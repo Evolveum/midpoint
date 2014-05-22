@@ -297,6 +297,7 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		clone.canAdd = this.canAdd;
 		clone.canRead = this.canRead;
 		clone.canModify = this.canModify;
+		clone.operational = this.operational;
 	}
 
 	@Override

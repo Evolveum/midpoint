@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
@@ -111,7 +112,7 @@ public class PageAccount extends PageAdminResources {
             throw new RestartResponseException(PageResources.class);
         }
 
-        ObjectWrapper wrapper = new ObjectWrapper(null, null, account, ContainerStatus.MODIFYING);
+        ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(null, null, account, ContainerStatus.MODIFYING, this);
         if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
             showResultInSession(wrapper.getResult());
         }

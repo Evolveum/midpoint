@@ -43,6 +43,7 @@ import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
@@ -57,8 +58,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkItemType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_3.GeneralChangeApprovalWorkItemContents;
-
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_3.ProcessInstanceState;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -212,10 +213,10 @@ public class PageWorkItem extends PageAdminWorkItems {
         PrismObject<UserType> prism = workItemDtoModel.getObject().getWorkItem().getRequester().asPrismObject();
 
         ContainerStatus status = ContainerStatus.MODIFYING;
-        ObjectWrapper wrapper = new ObjectWrapper(
+        ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(
                 createStringResource("pageWorkItem.requester.description").getString(),     // name (large font)
                 PolyString.getOrig(prism.asObjectable().getName()),                         // description (smaller font)
-                prism, status);
+                prism, status, this);
         if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
             showResultInSession(wrapper.getResult());
         }
@@ -225,6 +226,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         wrapper.setReadonly(true);
 
         return wrapper;
+       
     }
 
     private ObjectWrapper getObjectOldWrapper() {
@@ -239,10 +241,10 @@ public class PageWorkItem extends PageAdminWorkItems {
         }
 
         ContainerStatus status = ContainerStatus.MODIFYING;
-        ObjectWrapper wrapper = new ObjectWrapper(
+        ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(
                 createStringResource("pageWorkItem.objectOld.description").getString(),     // name (large font)
                 PolyString.getOrig(prism.asObjectable().getName()),                         // description (smaller font)
-                prism, status);
+                prism, status, this);
         if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
             showResultInSession(wrapper.getResult());
         }
@@ -252,6 +254,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         wrapper.setReadonly(true);
 
         return wrapper;
+        
     }
 
     private GeneralChangeApprovalWorkItemContents getGeneralChangeApprovalWorkItemContents() {
@@ -275,10 +278,10 @@ public class PageWorkItem extends PageAdminWorkItems {
         }
 
         ContainerStatus status = ContainerStatus.MODIFYING;
-        ObjectWrapper wrapper = new ObjectWrapper(
+        ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(
                 createStringResource("pageWorkItem.objectNew.description").getString(),     // name (large font)
                 PolyString.getOrig(prism.asObjectable().getName()),                         // description (smaller font)
-                prism, status);
+                prism, status, this);
         if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
             showResultInSession(wrapper.getResult());
         }
@@ -303,10 +306,12 @@ public class PageWorkItem extends PageAdminWorkItems {
 
     private ObjectWrapper getRequestSpecificWrapper() {
         GeneralChangeApprovalWorkItemContents wic = getGeneralChangeApprovalWorkItemContents();
-        PrismObject<?> prism = wic.getQuestionForm().asPrismObject();
+        PrismObject prism = wic.getQuestionForm().asPrismObject();
 
         ContainerStatus status = ContainerStatus.MODIFYING;
-        ObjectWrapper wrapper = new ObjectWrapper("pageWorkItem.requestSpecifics", null, prism, status);
+        try{
+        ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper("pageWorkItem.requestSpecifics", null, prism, status, this);
+//        ObjectWrapper wrapper = new ObjectWrapper("pageWorkItem.requestSpecifics", null, prism, status);
         if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
             showResultInSession(wrapper.getResult());
         }
@@ -315,6 +320,9 @@ public class PageWorkItem extends PageAdminWorkItems {
         wrapper.setShowInheritedObjectAttributes(false);
 
         return wrapper;
+        } catch (Exception ex){
+        	throw new SystemException("Got schema exception when creating general change approval work item contents.", ex);
+        }
     }
 
     private ObjectWrapper getAdditionalDataWrapper() {
@@ -328,33 +336,50 @@ public class PageWorkItem extends PageAdminWorkItems {
         }
 
         ContainerStatus status = ContainerStatus.MODIFYING;
-        ObjectWrapper wrapper = new ObjectWrapper(
+        try{
+        ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(
                 createStringResource("pageWorkItem.additionalData.description").getString(),     // name (large font)
                 PolyString.getOrig(prism.asObjectable().getName()),                         // description (smaller font)
-                prism, status);
+                prism, status, this);
+//        ObjectWrapper wrapper = new ObjectWrapper(
+//                createStringResource("pageWorkItem.additionalData.description").getString(),     // name (large font)
+//                PolyString.getOrig(prism.asObjectable().getName()),                         // description (smaller font)
+//                prism, status);
         if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
             showResultInSession(wrapper.getResult());
         }
         wrapper.setShowEmpty(false);
         wrapper.setMinimalized(true);
         wrapper.setReadonly(true);
-
         return wrapper;
+        } catch (Exception ex){
+            LoggingUtils.logException(LOGGER, "Couldn't get work item.", ex);
+        }
+        return null;
+        
     }
 
     private ObjectWrapper getTrackingDataWrapper() {
         PrismObject<? extends ObjectType> prism = workItemDtoModel.getObject().getWorkItem().getTrackingData().asPrismObject();
 
         ContainerStatus status = ContainerStatus.MODIFYING;
-        ObjectWrapper wrapper = new ObjectWrapper("pageWorkItem.trackingData", null, prism, status);
-        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-            showResultInSession(wrapper.getResult());
-        }
-        wrapper.setShowEmpty(false);
-        wrapper.setMinimalized(true);
-        wrapper.setReadonly(true);
+		try {
+			ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper("pageWorkItem.trackingData", null,
+					prism, status, this);
+			// ObjectWrapper wrapper = new
+			// ObjectWrapper("pageWorkItem.trackingData", null, prism, status);
+			if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+				showResultInSession(wrapper.getResult());
+			}
+			wrapper.setShowEmpty(false);
+			wrapper.setMinimalized(true);
+			wrapper.setReadonly(true);
 
-        return wrapper;
+			return wrapper;
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't get work item.", ex);
+		}
+		return null;
     }
 
     private WorkItemDetailedDto loadWorkItemDetailedDtoIfNecessary() {

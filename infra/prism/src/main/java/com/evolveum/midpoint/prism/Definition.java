@@ -245,6 +245,7 @@ public abstract class Definition implements Serializable, DebugDumpable {
 		clone.displayName = this.displayName;
 		clone.displayOrder = this.displayOrder;
 		clone.help = this.help;
+		clone.inherited = this.inherited;
 	}
 	
 	@Override
