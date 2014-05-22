@@ -58,7 +58,7 @@ public class ObjectFactory implements Serializable {
     private final static QName _PolyStringTypeOrig_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "orig");
     private final static QName _ProtectedDataTypeEncryptedData_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "encryptedData");
     private final static QName _ItemPathType_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "path");
-    private final static QName _Object_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-3a", "object");
+    private final static QName _Object_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "object");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: com.evolveum.prism.xml.ns._public.types_3

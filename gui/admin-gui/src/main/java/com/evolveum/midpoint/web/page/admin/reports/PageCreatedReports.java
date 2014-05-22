@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.reports;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
@@ -47,7 +48,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportOutputSearchDto;
-import com.evolveum.midpoint.web.session.CreatedReportsStorage;
+import com.evolveum.midpoint.web.session.ReportsStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
@@ -121,8 +122,8 @@ public class PageCreatedReports extends PageAdminReports {
         searchModel = new LoadableModel<ReportOutputSearchDto>() {
             @Override
             protected ReportOutputSearchDto load() {
-                CreatedReportsStorage storage = getSessionStorage().getCreatedReports();
-                ReportOutputSearchDto dto = storage.getReportsSearch();
+                ReportsStorage storage = getSessionStorage().getReports();
+                ReportOutputSearchDto dto = storage.getReportOutputSearch();
 
                 if (dto == null) {
                     dto = new ReportOutputSearchDto();
@@ -162,7 +163,14 @@ public class PageCreatedReports extends PageAdminReports {
         ajaxDownloadBehavior.setContentType("application/pdf; charset=UTF-8");
         mainForm.add(ajaxDownloadBehavior);
 
-        ObjectDataProvider provider = new ObjectDataProvider(PageCreatedReports.this, ReportOutputType.class);
+        ObjectDataProvider provider = new ObjectDataProvider(PageCreatedReports.this, ReportOutputType.class) {
+
+            @Override
+            protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
+                ReportsStorage storage = getSessionStorage().getReports();
+                storage.setReportOutputsPaging(paging);
+            }
+        };
         ObjectQuery query;
 
         String oidValue = getPageParameters().get(OnePageParameterEncoder.PARAMETER).toString();
@@ -647,9 +655,10 @@ public class PageCreatedReports extends PageAdminReports {
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
         provider.setQuery(query);
 
-        CreatedReportsStorage storage = getSessionStorage().getCreatedReports();
-        storage.setReportsSearch(searchModel.getObject());
-        panel.setCurrentPage(storage.getReportsPaging());
+        ReportsStorage storage = getSessionStorage().getReports();
+        storage.setReportOutputSearch(searchModel.getObject());
+        storage.setReportsPaging(null);
+        panel.setCurrentPage(null);
 
         target.add(panel);
         target.add(getFeedbackPanel());
@@ -664,9 +673,10 @@ public class PageCreatedReports extends PageAdminReports {
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
         provider.setQuery(query);
 
-        CreatedReportsStorage storage = getSessionStorage().getCreatedReports();
-        storage.setReportsSearch(searchModel.getObject());
-        panel.setCurrentPage(storage.getReportsPaging());
+        ReportsStorage storage = getSessionStorage().getReports();
+        storage.setReportOutputSearch(searchModel.getObject());
+        storage.setReportOutputsPaging(null);
+        panel.setCurrentPage(null);
 
         target.add(panel);
     }
@@ -685,12 +695,12 @@ public class PageCreatedReports extends PageAdminReports {
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
         provider.setQuery(null);
 
-        CreatedReportsStorage storage = getSessionStorage().getCreatedReports();
-        storage.setReportsSearch(searchModel.getObject());
-        panel.setCurrentPage(storage.getReportsPaging());
+        ReportsStorage storage = getSessionStorage().getReports();
+        storage.setReportOutputSearch(searchModel.getObject());
+        storage.setReportOutputsPaging(null);
+        panel.setCurrentPage(null);
 
         target.add(get(ID_SEARCH_FORM));
         target.add(panel);
     }
-
 }

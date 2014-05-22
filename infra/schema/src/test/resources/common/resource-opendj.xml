@@ -38,6 +38,20 @@
     	<t:norm>embedded test opendj</t:norm>
     </name>
 
+    <!-- To check 'clazz' serialization -->
+    <fetchResult>
+        <operation>com.evolveum.midpoint.provisioning.api.ProvisioningService.getObject</operation>
+        <status>success</status>
+        <params>
+            <entry key="a-key">
+                <unknownJavaObject>
+                    <class>my.class</class>
+                    <toString>my.value</toString>
+                </unknownJavaObject>
+            </entry>
+        </params>
+    </fetchResult>
+
     <!-- Reference to the ICF LDAP connector. This is dynamic reference, it will be translated to
           OID during import. -->
     <connectorRef type="ConnectorType">

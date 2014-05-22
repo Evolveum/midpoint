@@ -295,7 +295,13 @@
         <!--</xsd:complexContent>-->
     <!--</xsd:complexType>-->
 
-    <xsd:element name="constant" type="t:RawType" substitutionGroup="tns:expression" nillable="true"/>
+    <xsd:element name="constant" type="xsd:anyType" substitutionGroup="tns:expression" nillable="true">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:rawType/>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 
     <xsd:complexType name="ExecuteScriptType">
         <xsd:sequence>
@@ -306,7 +312,13 @@
 
     <xsd:complexType name="ItemListType">
         <xsd:sequence>
-            <xsd:element name="item" type="t:RawType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="item" type="xsd:anyType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:rawType/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

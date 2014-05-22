@@ -36,6 +36,7 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.OriginType;
@@ -199,6 +200,7 @@ public class OutboundProcessor {
 		mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
 		mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, projectionOdo);
 		mapping.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, projectionOdo);
+		mapping.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration());
 		mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION, 
 				LensUtil.getIterationVariableValue(projCtx));
 		mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, 

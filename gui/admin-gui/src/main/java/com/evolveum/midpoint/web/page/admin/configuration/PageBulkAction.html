@@ -18,8 +18,25 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <form wicket:id="mainForm">
-        <!--todo implement-->
+    <form wicket:id="mainForm" class="form-horizontal">
+        <div class="form-group">
+            <label class="col-md-2 control-label"><wicket:message key="PageBulkAction.options"/></label>
+
+            <div class="col-md-8">
+                <div>
+                    <label class="col-md-2 checkbox-inline">
+                        <input type="checkbox" wicket:id="async">
+                        <wicket:message key="PageBulkAction.async"/>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-12">
+                <textarea wicket:id="editor"></textarea>
+            </div>
+        </div>
 
         <div class="main-button-bar">
             <a class="btn btn-primary" wicket:id="start"/>

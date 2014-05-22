@@ -14,32 +14,52 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.page.admin.users;
+package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-
+import com.evolveum.midpoint.web.page.admin.configuration.dto.BulkActionDto;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/users/bulk", action = {@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_DENY_ALL)})
-public class PageBulkUsers extends PageAdminUsers {
+@PageDescriptor(url = "/admin/config/bulk", action = {
+        @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
+                label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#bulkAction",
+                label = "PageBulkAction.auth.bulkAction.label", description = "PageBulkAction.auth.bulkAction.description")
+})
+public class PageBulkAction extends PageAdminConfiguration {
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_START = "start";
+    private static final String ID_EDITOR = "editor";
+    private static final String ID_ASYNC = "async";
 
-    public PageBulkUsers() {
+    private IModel<BulkActionDto> model = new Model<>(new BulkActionDto());
+
+    public PageBulkAction() {
         initLayout();
     }
 
     private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
+
+        CheckBox async = new CheckBox(ID_ASYNC, new PropertyModel<Boolean>(model, BulkActionDto.F_ASYNC));
+        mainForm.add(async);
+
+        AceEditor editor = new AceEditor(ID_EDITOR, new PropertyModel<String>(model, BulkActionDto.F_SCRIPT));
+        mainForm.add(editor);
 
         AjaxSubmitButton start = new AjaxSubmitButton(ID_START, createStringResource("PageBulkUsers.button.start")) {
 
@@ -57,6 +77,8 @@ public class PageBulkUsers extends PageAdminUsers {
     }
 
     private void startPerformed(AjaxRequestTarget target) {
+        model.getObject();
+
         //todo implement
     }
 }

@@ -16,11 +16,17 @@
 
 package com.evolveum.midpoint.web.component.prism;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.web.component.BootstrapLabel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -36,6 +42,8 @@ import java.util.List;
  */
 public class H3Header extends SimplePanel<ObjectWrapper> {
 
+    private static final String ID_STATUS = "status";
+    private static final String ID_SHOW_MORE = "showMore";
     private static final String ID_TITLE = "title";
     private static final String ID_MENU = "menu";
 
@@ -67,6 +75,54 @@ public class H3Header extends SimplePanel<ObjectWrapper> {
             }
         });
         add(menu);
+
+        BootstrapLabel status = new BootstrapLabel(ID_STATUS, createStringResource("H3Header.label.error"),
+                new Model(BootstrapLabel.State.DANGER));
+        status.add(createFetchErrorVisibleBehaviour());
+        add(status);
+        AjaxLink showMore = new AjaxLink(ID_SHOW_MORE) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                onShowMorePerformed(target);
+            }
+        };
+        showMore.add(createFetchErrorVisibleBehaviour());
+        add(showMore);
+    }
+
+    private VisibleEnableBehaviour createFetchErrorVisibleBehaviour() {
+        return new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                OperationResult fetchResult = getModelObject().getFetchResult();
+                if (fetchResult != null && !WebMiscUtil.isSuccessOrHandledError(fetchResult)) {
+                    return true;
+                }
+
+                OperationResult result = getModelObject().getResult();
+                if (result != null && !WebMiscUtil.isSuccessOrHandledError(result)) {
+                    return true;
+                }
+
+                return false;
+            }
+        };
+    }
+
+    protected void onShowMorePerformed(AjaxRequestTarget target){
+        showResult(getModelObject().getFetchResult());
+        showResult(getModelObject().getResult());
+
+        target.add(getPageBase().getFeedbackPanel());
+    }
+
+    private void showResult(OperationResult result) {
+        PageBase page = getPageBase();
+        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
+            page.showResult(result);
+        }
     }
 
     private String getDisplayName() {

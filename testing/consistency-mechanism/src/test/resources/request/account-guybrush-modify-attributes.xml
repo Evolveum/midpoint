@@ -26,12 +26,12 @@
 	<oid>will be replaced by the test code</oid>
 	<itemDelta>
 		<modificationType>replace</modificationType>
-		<path>declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";attributes/ri:roomNumber</path>
+		<path>c:attributes/ri:roomNumber</path>
 		<value>cabin</value>
 	</itemDelta>
 	<itemDelta>
 		<modificationType>add</modificationType>
-		<path>declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";attributes/ri:businessCategory</path>
+		<path>c:attributes/ri:businessCategory</path>
 		<value>capsize</value>
 		<value>fighting</value>
 	</itemDelta>

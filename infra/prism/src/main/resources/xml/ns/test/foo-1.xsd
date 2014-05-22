@@ -183,6 +183,8 @@
                     		</xsd:appinfo>
                     	</xsd:annotation>
                     </xsd:element>
+                    <!-- element that has different names in XML/JSON/YAML and in java bean -->
+                    <xsd:element name="special" type="xsd:string" minOccurs="0" maxOccurs="1"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

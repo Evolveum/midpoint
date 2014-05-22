@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.parser;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.Raw;
 import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.parser.util.XNodeProcessorUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -143,9 +144,6 @@ public class PrismBeanConverter {
             }
         } 
 
-		
-		
-		
 		if (ProtectedDataType.class.isAssignableFrom(beanClass)){
 			ProtectedDataType protectedDataType = null;
 			if (bean instanceof ProtectedStringType){
@@ -157,8 +155,8 @@ public class PrismBeanConverter {
 			}
         	XNodeProcessorUtil.parseProtectedType(protectedDataType, xnode, prismContext);
         	return (T) protectedDataType;
-    		
         }
+
 		for (Entry<QName,XNode> entry: xnode.entrySet()) {
 			QName key = entry.getKey();
             if (keysToParse != null && !keysToParse.contains(key.getLocalPart())) {
@@ -188,6 +186,16 @@ public class PrismBeanConverter {
 					throw new SchemaException("No field "+propName+" in class "+beanClass+" (and no suitable substitution too)");
 				}
 			}
+
+            boolean storeAsRawType;
+            if (elementMethod != null) {
+                storeAsRawType = elementMethod.getAnnotation(Raw.class) != null;
+            } else if (propertyGetter != null) {
+                storeAsRawType = propertyGetter.getAnnotation(Raw.class) != null;
+            } else {
+                storeAsRawType = field.getAnnotation(Raw.class) != null;
+            }
+
 			String fieldName;
 			if (field != null) {
 				fieldName = field.getName();
@@ -236,8 +244,8 @@ public class PrismBeanConverter {
 							if (factoryMethodTypeArgument instanceof Class) {
 								// This is the case of JAXBElement<Whatever>
 								paramType = (Class<?>) factoryMethodTypeArgument;
-								if (Object.class.equals(paramType)) {
-									throw new IllegalArgumentException("Factory method "+elementMethod+" type argument is Object for field "+
+								if (Object.class.equals(paramType) && !storeAsRawType) {
+									throw new IllegalArgumentException("Factory method "+elementMethod+" type argument is Object (and not @Raw) for field "+
 											fieldName+" in "+beanClass+", property "+propName);
 								}
 							} else {
@@ -284,8 +292,8 @@ public class PrismBeanConverter {
 								if (factoryMethodTypeArgument instanceof Class) {
 									// This is the case of JAXBElement<Whatever>
 									paramType = (Class<?>) factoryMethodTypeArgument;
-									if (Object.class.equals(paramType)) {
-										throw new IllegalArgumentException("Factory method "+elementMethod+" type argument is Object for field "+
+									if (Object.class.equals(paramType) && !storeAsRawType) {
+										throw new IllegalArgumentException("Factory method "+elementMethod+" type argument is Object (without @Raw) for field "+
 												fieldName+" in "+beanClass+", property "+propName);
 									}
 								} else {
@@ -297,8 +305,8 @@ public class PrismBeanConverter {
 //					Class clazz = paramType.getClass();
 //					Class declaring = paramType.getDeclaringClass();
 					wrapInJaxbElement = true;
-				} else{
-				paramType = setterType;
+				} else {
+                    paramType = setterType;
 				}
 			}
 			
@@ -306,16 +314,14 @@ public class PrismBeanConverter {
 				// DOM!
 				throw new IllegalArgumentException("DOM not supported in field "+fieldName+" in "+beanClass);
 			}
-			if (Object.class.equals(paramType)) {
-				throw new IllegalArgumentException("Object property not supported in field "+fieldName+" in "+beanClass);
+			if (Object.class.equals(paramType) && !storeAsRawType) {
+				throw new IllegalArgumentException("Object property (without @Raw) not supported in field "+fieldName+" in "+beanClass);
 			}
-			
-			
-						
+
 			String paramNamespace = inspector.determineNamespace(paramType);
 			
 			//check for subclasses???
-			if (!paramType.equals(RawType.class) && xsubnode.getTypeQName()!= null) {
+			if (!storeAsRawType && xsubnode.getTypeQName() != null) {
 				Class explicitParamType = getSchemaRegistry().determineCompileTimeClass(xsubnode.getTypeQName());
 				if (explicitParamType != null && explicitParamType != null){
 					paramType = explicitParamType; 
@@ -327,16 +333,16 @@ public class PrismBeanConverter {
 			if (xsubnode instanceof ListXNode) {
 				ListXNode xlist = (ListXNode)xsubnode;
 				if (setter != null) {
-					propValue = convertSinglePropValue(xsubnode, fieldName, paramType, beanClass, paramNamespace);
+					propValue = convertSinglePropValue(xsubnode, fieldName, paramType, storeAsRawType, beanClass, paramNamespace);
 				} else {
 					// No setter, we have to use collection getter
 					propValues = new ArrayList<>(xlist.size());
 					for(XNode xsubsubnode: xlist) {
-						propValues.add(convertSinglePropValue(xsubsubnode, fieldName, paramType, beanClass, paramNamespace));
+						propValues.add(convertSinglePropValue(xsubsubnode, fieldName, paramType, storeAsRawType, beanClass, paramNamespace));
 					}
 				}
 			} else {
-				propValue = convertSinglePropValue(xsubnode, fieldName, paramType, beanClass, paramNamespace);
+				propValue = convertSinglePropValue(xsubnode, fieldName, paramType, storeAsRawType, beanClass, paramNamespace);
 			}
 			
 			if (setter != null) {
@@ -368,7 +374,7 @@ public class PrismBeanConverter {
 					throw new IllegalStateException("Strange. Multival property "+propName+" in "+beanClass+" produced null values list, parsed from "+xnode);
 				}
 			} else {
-				throw new IllegalStateException("Uh?");
+				throw new IllegalStateException("Uh? No setter nor getter.");
 			}
 		}
 		
@@ -439,11 +445,11 @@ public class PrismBeanConverter {
 		}
 	}
 
-	private Object convertSinglePropValue(XNode xsubnode, String fieldName, Class paramType, Class classType, String schemaNamespace) throws SchemaException {
+	private Object convertSinglePropValue(XNode xsubnode, String fieldName, Class paramType, boolean storeAsRawType, Class classType, String schemaNamespace) throws SchemaException {
 		Object propValue;
 		if (paramType.equals(XNode.class)) {
 			propValue = xsubnode;
-		} else if (paramType.equals(RawType.class)) {
+		} else if (storeAsRawType || paramType.equals(RawType.class)) {
             propValue = new RawType(xsubnode, prismContext);
         } else {
             // paramType is what we expect e.g. based on parent definition
@@ -631,7 +637,7 @@ public class PrismBeanConverter {
 		
 		List<String> propOrder = inspector.getPropOrder(beanClass);
 		for (String fieldName: propOrder) {
-			QName elementName = new QName(namespace, fieldName);
+			QName elementName = new QName(namespace, inspector.findFieldElementName(fieldName, beanClass));
 			Method getter = inspector.findPropertyGetter(beanClass, fieldName);
 			if (getter == null) {
 				throw new IllegalStateException("No getter for field "+fieldName+" in "+beanClass);
@@ -680,7 +686,7 @@ public class PrismBeanConverter {
 					setExplicitTypeDeclarationIfNeeded(getter, getterResultValue, marshalled, fieldTypeName);
 					xlist.add(marshalled);
 				}
-					xmap.put(elementName, xlist);
+                xmap.put(elementName, xlist);
 			} else {
 				QName fieldTypeName = inspector.findFieldTypeName(field, getterResult.getClass(), namespace);
 				Object valueToMarshall = null;
@@ -692,13 +698,13 @@ public class PrismBeanConverter {
 				}
 				XNode marshelled = marshallValue(valueToMarshall, fieldTypeName, isAttribute);
 				if (!getter.getReturnType().equals(valueToMarshall.getClass()) && getter.getReturnType().isAssignableFrom(valueToMarshall.getClass())){
-					if (prismContext != null){
-					PrismObjectDefinition def = prismContext.getSchemaRegistry().determineDefinitionFromClass(valueToMarshall.getClass());
-					if (def != null){
-						QName type = def.getTypeName();
-						marshelled.setTypeQName(type);
-						marshelled.setExplicitTypeDeclaration(true);
-					}
+					if (prismContext != null) {
+                        PrismObjectDefinition def = prismContext.getSchemaRegistry().determineDefinitionFromClass(valueToMarshall.getClass());
+                        if (def != null){
+                            QName type = def.getTypeName();
+                            marshelled.setTypeQName(type);
+                            marshelled.setExplicitTypeDeclaration(true);
+                        }
 					}
 				}
 				xmap.put(elementName, marshelled);

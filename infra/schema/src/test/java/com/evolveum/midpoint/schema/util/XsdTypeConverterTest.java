@@ -25,6 +25,7 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -94,15 +95,15 @@ public class XsdTypeConverterTest {
 		assertTrue(value instanceof ProtectedStringType);
 		assertEquals("abra kadabra",((ProtectedStringType)value).getClearValue());
 	}
-	
+
+    @Deprecated // ... as it uses JAXB that is no more supported
 	@Test(enabled=false)
-	public void testAccountMarshall() throws JAXBException, SchemaException, FileNotFoundException {
+	public void testAccountMarshall() throws JAXBException, SchemaException, IOException {
 		System.out.println("===[ testAccountMarshall ]===");
-		JAXBElement<ShadowType> jaxbElement =
-                JaxbTestUtil.getInstance().unmarshalElement(new File("src/test/resources/converter/account-jack.xml"),                        ShadowType.class);
-		System.out.println("Object: "+jaxbElement.getValue());
-		ShadowType shadow = jaxbElement.getValue();
-		
+		ShadowType shadow =
+                PrismTestUtil.parseObjectable(new File("src/test/resources/converter/account-jack.xml"), ShadowType.class);
+		System.out.println("Object: "+shadow);
+
 		ProtectedStringType ps = new ProtectedStringType();
 		ps.setClearValue("foo");
 		JAXBElement<ProtectedStringType> pse = new JAXBElement<ProtectedStringType>(FOO_QNAME,ProtectedStringType.class,ps);

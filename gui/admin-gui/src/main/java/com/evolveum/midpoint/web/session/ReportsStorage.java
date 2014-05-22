@@ -16,24 +16,35 @@
 package com.evolveum.midpoint.web.session;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.web.page.admin.reports.dto.ReportOutputSearchDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportSearchDto;
 
 import java.io.Serializable;
 
 /**
- *  @author shood
- * */
-public class ReportsStorage implements Serializable{
+ * @author shood
+ */
+public class ReportsStorage implements Serializable {
 
     /**
-     *  DTO used for search purposes in {@link com.evolveum.midpoint.web.page.admin.reports.PageReports}
-     * */
+     * DTO used for search purposes in {@link com.evolveum.midpoint.web.page.admin.reports.PageReports}
+     */
     private ReportSearchDto reportSearch;
 
     /**
-     *  Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.admin.reports.PageReports}
-     * */
+     * Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.admin.reports.PageReports}
+     */
     private ObjectPaging reportsPaging;
+
+    /**
+     * DTO used for search purposes in {@link com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports}
+     */
+    private ReportOutputSearchDto reportOutputSearch;
+
+    /**
+     * Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.admin.reports.PageCreatedReports}
+     */
+    private ObjectPaging reportOutputsPaging;
 
     public ReportSearchDto getReportSearch() {
         return reportSearch;
@@ -49,5 +60,21 @@ public class ReportsStorage implements Serializable{
 
     public void setReportsPaging(ObjectPaging reportsPaging) {
         this.reportsPaging = reportsPaging;
+    }
+
+    public ObjectPaging getReportOutputsPaging() {
+        return reportOutputsPaging;
+    }
+
+    public void setReportOutputsPaging(ObjectPaging reportOutputsPaging) {
+        this.reportOutputsPaging = reportOutputsPaging;
+    }
+
+    public ReportOutputSearchDto getReportOutputSearch() {
+        return reportOutputSearch;
+    }
+
+    public void setReportOutputSearch(ReportOutputSearchDto reportOutputSearch) {
+        this.reportOutputSearch = reportOutputSearch;
     }
 }

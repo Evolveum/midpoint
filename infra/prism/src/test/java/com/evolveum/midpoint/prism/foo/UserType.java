@@ -68,7 +68,8 @@ import javax.xml.namespace.QName;
     "additionalNames",
     "locality",
     "assignment",
-    "activation"
+    "activation",
+    "specialWithInternalizedName"
 })
 public class UserType
     extends ObjectType
@@ -85,6 +86,7 @@ public class UserType
 	public final static QName F_ASSIGNMENT = new QName(NS_FOO, "assignment");
 	public final static QName F_LOCALITY = new QName(NS_FOO, "locality");
 	public final static QName F_ACCOUNT_REF = new QName(NS_FOO, "accountRef");
+    public final static QName F_SPECIAL = new QName(NS_FOO, "special");
 
     private final static long serialVersionUID = 201202081233L;
     @XmlElement(required = true)
@@ -97,6 +99,8 @@ public class UserType
     protected String locality;
     protected List<AssignmentType> assignment;
     protected ActivationType activation;
+    @XmlElement(name = "special")
+    protected String specialWithInternalizedName;               // internal name here differs from the one in serialized form
 
     /**
      * Gets the value of the fullName property.
@@ -274,5 +278,13 @@ public class UserType
      */
     public void setActivation(ActivationType value) {
         this.activation = value;
+    }
+
+    public String getSpecialWithInternalizedName() {
+        return specialWithInternalizedName;
+    }
+
+    public void setSpecialWithInternalizedName(String specialWithInternalizedName) {
+        this.specialWithInternalizedName = specialWithInternalizedName;
     }
 }

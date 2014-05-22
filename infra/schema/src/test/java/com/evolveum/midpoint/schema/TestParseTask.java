@@ -97,7 +97,8 @@ public class TestParseTask {
 		assertTask(task);
 	}
 
-	@Test
+    @Deprecated
+    @Test(enabled = false)
 	public void testPrismParseJaxb() throws JAXBException, SchemaException, SAXException, IOException {
 		System.out.println("===[ testPrismParseJaxb ]===");
 		
@@ -119,7 +120,8 @@ public class TestParseTask {
 	 * The definition should be set properly even if the declared type is ObjectType. The Prism should determine
 	 * the actual type.
 	 */
-	@Test
+    @Deprecated
+    @Test(enabled = false)
 	public void testPrismParseJaxbObjectType() throws JAXBException, SchemaException, SAXException, IOException {
 		System.out.println("===[ testPrismParseJaxbObjectType ]===");
 		
@@ -140,7 +142,8 @@ public class TestParseTask {
 	/**
 	 * Parsing in form of JAXBELement
 	 */
-	@Test
+    @Deprecated
+    @Test(enabled = false)
 	public void testPrismParseJaxbElement() throws JAXBException, SchemaException, SAXException, IOException {
 		System.out.println("===[ testPrismParseJaxbElement ]===");
 		
@@ -162,7 +165,8 @@ public class TestParseTask {
 	/**
 	 * Parsing in form of JAXBELement, with declared ObjectType
 	 */
-	@Test
+    @Deprecated
+    @Test(enabled = false)
 	public void testPrismParseJaxbElementObjectType() throws JAXBException, SchemaException, SAXException, IOException {
 		System.out.println("===[ testPrismParseJaxbElementObjectType ]===");
 		

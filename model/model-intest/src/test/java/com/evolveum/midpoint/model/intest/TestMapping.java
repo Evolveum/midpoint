@@ -114,6 +114,8 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, "jack", "Jack Sparrow", true);
+        assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, "jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
+        		"SystemConfiguration");
         
         // Check audit
         display("Audit", dummyAuditService);

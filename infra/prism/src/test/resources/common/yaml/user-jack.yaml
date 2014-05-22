@@ -66,3 +66,4 @@ user:
         path: "declare namespace c='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'; c:name"
         value:
         - "captain"
+  special: "got it!"

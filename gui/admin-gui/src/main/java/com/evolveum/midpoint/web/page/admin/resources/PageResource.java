@@ -40,7 +40,9 @@ import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
@@ -59,6 +61,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import javax.xml.bind.JAXBElement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -223,7 +226,7 @@ public class PageResource extends PageAdminResources {
 
             if (capabilitiesList != null && !capabilitiesList.isEmpty()) {
                 for (int i = 0; i < capabilitiesList.size(); i++) {
-                    capabilitiesName.add(CapabilityUtil.getCapabilityDisplayName(capabilitiesList.get(i)));
+                    capabilitiesName.add(getCapabilityName(capabilitiesList.get(i)));
                 }
             }
         } catch (Exception ex) {
@@ -232,6 +235,34 @@ public class PageResource extends PageAdminResources {
 
         }
         return capabilitiesName;
+    }
+
+    private String getCapabilityName(Object capability) {
+        if (capability instanceof JAXBElement) {
+            capability = ((JAXBElement) capability).getValue();
+        }
+
+        StringBuilder sb = new StringBuilder();
+
+        String className = capability.getClass().getSimpleName();
+        if (className.endsWith("CapabilityType")) {
+            sb.append(className.substring(0, className.length() - "CapabilityType".length()));
+        } else {
+            sb.append(className);
+        }
+
+        if (capability instanceof ScriptCapabilityType) {
+            ScriptCapabilityType script = (ScriptCapabilityType) capability;
+            sb.append(": ");
+            List<ProvisioningScriptHostType> hosts = new ArrayList<>();
+            for (ScriptCapabilityType.Host host : script.getHost()) {
+                hosts.add(host.getType());
+            }
+
+            sb.append(StringUtils.join(hosts, ", "));
+        }
+
+        return sb.toString();
     }
 
     private List<IColumn<ResourceObjectTypeDto, String>> initObjectTypesColumns() {

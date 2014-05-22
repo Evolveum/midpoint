@@ -396,16 +396,18 @@ public abstract class PageBase extends WebPage {
     }
 
     public void showResult(OperationResult result) {
-        Validate.notNull(result, "Operation result must not be null.");
-        Validate.notNull(result.getStatus(), "Operation result status must not be null.");
+        if (result == null) {
+            return;
+        }
 
         OpResult opResult = new OpResult(result);
         showResult(opResult, false);
     }
 
     public void showResultInSession(OperationResult result) {
-        Validate.notNull(result, "Operation result must not be null.");
-        Validate.notNull(result.getStatus(), "Operation result status must not be null.");
+        if (result == null) {
+            return;
+        }
 
         OpResult opResult = new OpResult(result);
         showResult(opResult, true);

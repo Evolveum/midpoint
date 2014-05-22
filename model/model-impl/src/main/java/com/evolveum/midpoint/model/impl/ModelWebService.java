@@ -364,12 +364,12 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		}
 	}
 
-	private FaultMessage createIllegalArgumentFault(String message) {
+	public FaultMessage createIllegalArgumentFault(String message) {
 		FaultType faultType = new IllegalArgumentFaultType();
 		return new FaultMessage(message, faultType);
 	}
 
-	private FaultMessage createSystemFault(Exception ex, OperationResult result) {
+    public FaultMessage createSystemFault(Exception ex, OperationResult result) {
 		if (result != null) {
 			result.recordFatalError(ex.getMessage(), ex);
 		}

@@ -18,7 +18,7 @@ var ACE_EDITOR_POSTFIX = "_editor";
 var DISABLED_CLASS = "disabled";
 $.aceEditors = {};
 
-function initEditor(textAreaId, readonly) {
+function initEditor(textAreaId, readonly, minSize) {
     var jqTextArea = '#' + textAreaId;
     var editorId = textAreaId + ACE_EDITOR_POSTFIX;
     var jqEditor = '#' + editorId;
@@ -52,8 +52,8 @@ function initEditor(textAreaId, readonly) {
     $(document).ready(function () {
         //38 + 1 + 21 is menu outer height
         var newHeight = $(document).innerHeight() - $('div.mainContainer').outerHeight(true) - 60;
-        if (newHeight < 200) {
-            newHeight = 200;
+        if (newHeight < minSize) {
+            newHeight = minSize;
         }
 
         $('#' + editorId).height(newHeight.toString() + "px");

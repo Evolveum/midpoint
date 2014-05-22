@@ -186,9 +186,16 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
             @Override
             public boolean isVisible() {
                 OperationResult fetchResult = getModelObject().getFetchResult();
+                if (fetchResult != null && !WebMiscUtil.isSuccessOrHandledError(fetchResult)) {
+                    return true;
+                }
+
                 OperationResult result = getModelObject().getResult();
-                return !WebMiscUtil.isSuccessOrHandledError(fetchResult)
-                        || !WebMiscUtil.isSuccessOrHandledError(result);
+                if (result != null && !WebMiscUtil.isSuccessOrHandledError(result)) {
+                    return true;
+                }
+
+                return false;
             }
         };
     }

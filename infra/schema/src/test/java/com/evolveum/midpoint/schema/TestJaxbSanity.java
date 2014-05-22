@@ -54,6 +54,7 @@ import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
  * @author semancik
  *
  */
+@Deprecated
 public class TestJaxbSanity {
 
 	public static final String TEST_DIR = "src/test/resources/common";
@@ -285,7 +286,7 @@ public class TestJaxbSanity {
 		assertNotNull(userAssignmentType);
 
 		System.out.println("\n*** user assignment");
-		System.out.println(JaxbTestUtil.marshalWrap(userAssignmentType));
+		System.out.println(PrismTestUtil.serializeAnyDataWrapped(userAssignmentType));
 
 		JAXBElement<ObjectModificationType> modEl = JaxbTestUtil.getInstance().unmarshalElement(new File(TEST_DIR, "user-barbossa-modify-delete-assignment-account-opendj-attr.xml"),ObjectModificationType.class);
 		ObjectModificationType mod = modEl.getValue();
@@ -300,7 +301,7 @@ public class TestJaxbSanity {
 		assertNotNull(assignmentType);
 		
 		System.out.println("\n*** assignment");
-		System.out.println(JaxbTestUtil.marshalWrap(assignmentType));
+		System.out.println(PrismTestUtil.serializeAnyDataWrapped(assignmentType));
 		
 		// WHEN, THEN
 		

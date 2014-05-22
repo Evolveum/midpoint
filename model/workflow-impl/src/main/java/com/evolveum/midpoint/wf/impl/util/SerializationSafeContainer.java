@@ -76,7 +76,7 @@ public class SerializationSafeContainer<T> implements Serializable {
         checkPrismContext();
         if (value != null && prismContext.canSerialize(value)) {
             try {
-                this.valueForStorageWhenEncoded = prismContext.serializeAnyData(value, PrismContext.LANG_XML);
+                this.valueForStorageWhenEncoded = prismContext.serializeAnyData(value, new QName("value"), PrismContext.LANG_XML);
             } catch (SchemaException e) {
                 throw new SystemException("Couldn't serialize value of type " + value.getClass() + ": " + e.getMessage(), e);
             }

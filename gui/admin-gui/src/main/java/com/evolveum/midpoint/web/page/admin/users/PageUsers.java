@@ -429,7 +429,8 @@ public class PageUsers extends PageAdminUsers {
 
         UsersStorage storage = getSessionStorage().getUsers();
         storage.setUsersSearch(model.getObject());
-        panel.setCurrentPage(storage.getUsersPaging());
+        storage.setUsersPaging(null);
+        panel.setCurrentPage(null);
 
         target.add(panel);
     }
@@ -652,7 +653,8 @@ public class PageUsers extends PageAdminUsers {
 
         UsersStorage storage = getSessionStorage().getUsers();
         storage.setUsersSearch(model.getObject());
-        panel.setCurrentPage(storage.getUsersPaging());
+        storage.setUsersPaging(null);
+        panel.setCurrentPage(null);
 
         target.add(get(ID_SEARCH_FORM));
         target.add(panel);

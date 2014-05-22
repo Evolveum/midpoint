@@ -26,8 +26,6 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.util.JaxbTestUtil;
-
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
@@ -85,8 +83,7 @@ public class TestQueryConvertors {
 	public void testFilterUserNameJaxb() throws Exception {
 		displayTestTitle("testFilterUserNameJaxb");
 
-        // or should be here parsing via prisms?
-        SearchFilterType filterType = JaxbTestUtil.getInstance().unmarshalObject(FILTER_USER_NAME_FILE, SearchFilterType.class);
+        SearchFilterType filterType = PrismTestUtil.parseAnyValue(FILTER_USER_NAME_FILE);
 		ObjectQuery query = toObjectQuery(UserType.class, filterType);
 		displayQuery(query);
 
@@ -118,8 +115,7 @@ public class TestQueryConvertors {
 	public void testFilterUserAndJaxb() throws Exception {
 		displayTestTitle("testFilterUserAndJaxb");
 
-        // or should be here parsing via prisms?
-		SearchFilterType filterType = JaxbTestUtil.getInstance().unmarshalObject(FILTER_USER_AND_FILE, SearchFilterType.class);
+		SearchFilterType filterType = PrismTestUtil.parseAnyValue(FILTER_USER_AND_FILE);
 		ObjectQuery query = toObjectQuery(UserType.class, filterType);
 		displayQuery(query);
 

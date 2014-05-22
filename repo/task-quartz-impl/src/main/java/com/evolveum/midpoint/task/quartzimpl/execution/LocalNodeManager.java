@@ -180,7 +180,7 @@ public class LocalNodeManager {
 
     private boolean doQuartzTablesExist(Connection connection) {
         try {
-            connection.prepareStatement("SELECT count(*) FROM qrtz_job_details").executeQuery().close();
+            connection.prepareStatement("SELECT count(*) FROM QRTZ_JOB_DETAILS").executeQuery().close();
             LOGGER.trace("Quartz tables seem to exist (at least QRTZ_JOB_DETAILS does).");
             return true;
         } catch (SQLException ignored) {

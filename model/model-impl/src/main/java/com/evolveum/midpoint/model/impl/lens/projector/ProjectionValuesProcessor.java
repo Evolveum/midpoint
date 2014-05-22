@@ -337,7 +337,7 @@ public class ProjectionValuesProcessor {
 					        		if (ResourceTypeUtil.isSynchronizationOpportunistic(resourceType)) {
 					        			LOGGER.trace("Trying to find owner using correlation expression.");
 										boolean match = synchronizationService.matchUserCorrelationRule(fullConflictingShadow, 
-												context.getFocusContext().getObjectNew(), resourceType, task, result);
+												context.getFocusContext().getObjectNew(), resourceType, context.getSystemConfiguration(), task, result);
 										
 										if (match){
 											//check if it is add account (primary delta contains add shadow deltu)..
@@ -534,7 +534,7 @@ public class ProjectionValuesProcessor {
 	private <F extends ObjectType> ExpressionVariables createExpressionVariables(LensContext<F> context, 
 			LensProjectionContext accountContext) {
 		return Utils.getDefaultExpressionVariables(context.getFocusContext().getObjectNew(), accountContext.getObjectNew(),
-				accountContext.getResourceShadowDiscriminator(), accountContext.getResource().asPrismObject());
+				accountContext.getResourceShadowDiscriminator(), accountContext.getResource().asPrismObject(), context.getSystemConfiguration());
 	}
 
 	private <F extends ObjectType> boolean evaluateIterationCondition(LensContext<F> context, 

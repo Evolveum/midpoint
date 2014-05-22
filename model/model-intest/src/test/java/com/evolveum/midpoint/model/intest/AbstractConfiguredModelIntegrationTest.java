@@ -92,11 +92,6 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	
 	protected static final String CONNECTOR_DUMMY_FILENAME = COMMON_DIR_NAME + "/connector-dummy.xml";
 	
-	protected static final String RESOURCE_OPENDJ_FILENAME = COMMON_DIR_NAME + "/resource-opendj.xml";
-    protected static final String RESOURCE_OPENDJ_NAME = "Localhost OpenDJ";
-	protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
-	protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
-	
 	protected static final File RESOURCE_DUMMY_FILE = new File(COMMON_DIR, "resource-dummy.xml");
 	protected static final File RESOURCE_DUMMY_DEPRECATED_FILE = new File(COMMON_DIR, "resource-dummy-deprecated.xml");
 	protected static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
@@ -194,6 +189,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final File USER_HERMAN_FILE = new File(COMMON_DIR_NAME, "user-herman.xml");
 	protected static final String USER_HERMAN_OID = "c0c010c0-d34d-b33f-f00d-111111111122";
 	protected static final String USER_HERMAN_USERNAME = "herman";
+	protected static final String USER_HERMAN_FULL_NAME = "Herman Toothrot";
 
 	// Has null name, doesn not have given name, no employeeType
 	protected static final String USER_THREE_HEADED_MONKEY_FILENAME = COMMON_DIR_NAME + "/user-three-headed-monkey.xml";
@@ -320,6 +316,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String AUTZ_LOOT_URL = QNameUtil.qNameToUri(AUTZ_LOOT_QNAME);
 	protected static final QName AUTZ_COMMAND_QNAME = new QName(NS_TEST_AUTZ, "command");
 	protected static final String AUTZ_COMMAND_URL = QNameUtil.qNameToUri(AUTZ_COMMAND_QNAME);
+	protected static final QName AUTZ_PUNISH_QNAME = new QName(NS_TEST_AUTZ, "punish");
+	protected static final String AUTZ_PUNISH_URL = QNameUtil.qNameToUri(AUTZ_PUNISH_QNAME);
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractConfiguredModelIntegrationTest.class);
 	

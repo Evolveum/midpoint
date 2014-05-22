@@ -202,15 +202,14 @@ public class EqualFilter<T extends Object> extends PropertyValueFilter<PrismProp
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("EQUALS:");
-		
+		sb.append("EQUAL:");
 		return debugDump(indent, sb);
 	}
 	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("EQUALS: ");
+		sb.append("EQUAL(");
 		return toString(sb);
 	}
 

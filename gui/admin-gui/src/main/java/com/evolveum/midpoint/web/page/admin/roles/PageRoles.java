@@ -42,6 +42,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.roles.dto.RolesSearchDto;
 import com.evolveum.midpoint.web.session.RolesStorage;
+import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -116,12 +117,22 @@ public class PageRoles extends PageAdminRoles {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        ObjectDataProvider provider = new ObjectDataProvider(PageRoles.this, RoleType.class);
+        ObjectDataProvider provider = new ObjectDataProvider(PageRoles.this, RoleType.class) {
+
+            @Override
+            protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
+                RolesStorage storage = getSessionStorage().getRoles();
+                storage.setRolesPaging(paging);
+            }
+        };
         provider.setQuery(createQuery());
 
         List<IColumn<RoleType, String>> columns = initColumns();
         TablePanel table = new TablePanel<>(ID_TABLE, provider, columns);
         table.setOutputMarkupId(true);
+        RolesStorage storage = getSessionStorage().getRoles();
+        table.setCurrentPage(storage.getRolesPaging());
+
         mainForm.add(table);
 
         add(new ConfirmationDialog(DIALOG_CONFIRM_DELETE, createStringResource("pageRoles.dialog.title.confirmDelete"),
@@ -299,8 +310,10 @@ public class PageRoles extends PageAdminRoles {
 
         RolesStorage storage = getSessionStorage().getRoles();
         storage.setRolesSearch(searchModel.getObject());
+        storage.setRolesPaging(null);
 
         TablePanel table = getRoleTable();
+        table.setCurrentPage(null);
         target.add(table);
         target.add(getFeedbackPanel());
     }
@@ -372,6 +385,8 @@ public class PageRoles extends PageAdminRoles {
 
         RolesStorage storage = getSessionStorage().getRoles();
         storage.setRolesSearch(searchModel.getObject());
+        storage.setRolesPaging(null);
+
         panel.setCurrentPage(storage.getRolesPaging());
 
         target.add(get(ID_SEARCH_FORM));
