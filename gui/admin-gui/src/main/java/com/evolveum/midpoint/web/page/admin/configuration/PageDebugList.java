@@ -318,14 +318,14 @@ public class PageDebugList extends PageAdminConfiguration {
                     }
                 }));
 
-        headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteAllType"), true,
-                new HeaderMenuAction(this) {
-
-                    @Override
-                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        deleteAllType(target);
-                    }
-                }));
+//        headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteAllType"), true,
+//                new HeaderMenuAction(this) {
+//
+//                    @Override
+//                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+//                        deleteAllType(target);
+//                    }
+//                }));
 
         headerMenuItems.add(new InlineMenuItem());
 
