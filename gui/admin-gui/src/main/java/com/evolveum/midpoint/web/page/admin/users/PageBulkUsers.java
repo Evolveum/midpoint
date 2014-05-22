@@ -19,10 +19,13 @@ package com.evolveum.midpoint.web.page.admin.users;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 /**
  * @author lazyman
@@ -32,6 +35,10 @@ public class PageBulkUsers extends PageAdminUsers {
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_START = "start";
+    private static final String ID_EDITOR = "editor";
+    private static final String ID_ASYNC = "async";
+
+    private IModel<String> model = new Model<>();
 
     public PageBulkUsers() {
         initLayout();
@@ -40,6 +47,10 @@ public class PageBulkUsers extends PageAdminUsers {
     private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
+
+        AceEditor editor = new AceEditor(ID_EDITOR, model);
+        mainForm.add(editor);
+
 
         AjaxSubmitButton start = new AjaxSubmitButton(ID_START, createStringResource("PageBulkUsers.button.start")) {
 
