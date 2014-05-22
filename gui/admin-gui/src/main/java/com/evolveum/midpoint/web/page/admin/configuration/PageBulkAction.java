@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.page.admin.users;
+package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
@@ -30,8 +29,13 @@ import org.apache.wicket.model.Model;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/users/bulk", action = {@AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_DENY_ALL)})
-public class PageBulkUsers extends PageAdminUsers {
+@PageDescriptor(url = "/admin/config/bulk", action = {
+        @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
+                label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
+        @AuthorizationAction(actionUri = AuthorizationConstants.NS_AUTHORIZATION + "#bulkAction",
+                label = "PageBulkAction.auth.bulkAction.label", description = "PageBulkAction.auth.bulkAction.description")
+})
+public class PageBulkAction extends PageAdminConfiguration {
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_START = "start";
@@ -40,7 +44,7 @@ public class PageBulkUsers extends PageAdminUsers {
 
     private IModel<String> model = new Model<>();
 
-    public PageBulkUsers() {
+    public PageBulkAction() {
         initLayout();
     }
 
