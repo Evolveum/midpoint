@@ -278,7 +278,7 @@ public class SchemaDocMojo extends AbstractMojo {
 	}
 
 	private SchemaRegistry createSchemaRegistry() throws SchemaException {
-		SchemaRegistry schemaRegistry = new SchemaRegistry();
+		SchemaRegistry schemaRegistry = new SchemaRegistry(true);
 		schemaRegistry.setNamespacePrefixMapper(new GlobalDynamicNamespacePrefixMapper());
 		return schemaRegistry;
 	}

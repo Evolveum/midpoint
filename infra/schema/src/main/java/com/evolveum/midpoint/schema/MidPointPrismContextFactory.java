@@ -20,6 +20,7 @@ import static javax.xml.XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.xml.sax.SAXException;
 
@@ -120,9 +121,11 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 		schemaRegistry.registerPrismDefaultSchemaResource("xml/ns/public/common/common-3.xsd", "c", 
 				com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory.class.getPackage());
 		
-		
-		schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/api-types-3.xsd", "apti", 
+		schemaRegistry.registerPrismSchemaResource("xml/ns/public/common/api-types-3.xsd", "apti",
 				com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectFactory.class.getPackage());
+
+        schemaRegistry.registerPrismSchemasFromWsdlResource("xml/ns/public/model/model-3.wsdl",
+                Arrays.asList(com.evolveum.midpoint.xml.ns._public.model.model_3.ObjectFactory.class.getPackage()));
 		
 		schemaRegistry.registerPrismSchemaResource("xml/ns/public/resource/annotation-3.xsd", "ra");
 		

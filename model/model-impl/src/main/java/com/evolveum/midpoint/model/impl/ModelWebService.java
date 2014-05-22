@@ -76,9 +76,9 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_3.IllegalArgumentFaultT
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.ObjectAlreadyExistsFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.SystemFaultType;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsResponseType;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScripts;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsResponse;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ItemListType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -125,7 +125,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	@Autowired(required = true)
 	private PrismContext prismContext;
 	
-    @Autowired
+    //@Autowired
     private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
 
 	@Override
@@ -245,7 +245,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	}
 
     @Override
-    public ExecuteScriptsResponse executeScripts(ExecuteScripts parameters) throws FaultMessage {
+    public ExecuteScriptsResponseType executeScripts(ExecuteScriptsType parameters) throws FaultMessage {
         Task task = createTaskInstance(EXECUTE_SCRIPTS);
         auditLogin(task);
         OperationResult result = task.getResult();
@@ -259,7 +259,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
         }
     }
 
-    private List<JAXBElement<?>> parseScripts(ExecuteScripts parameters) throws JAXBException, SchemaException {
+    private List<JAXBElement<?>> parseScripts(ExecuteScriptsType parameters) throws JAXBException, SchemaException {
         List<JAXBElement<?>> scriptsToExecute = new ArrayList<>();
         if (parameters.getXmlScripts() != null) {
             for (Object scriptAsObject : parameters.getXmlScripts().getAny()) {
@@ -283,8 +283,8 @@ public class ModelWebService implements ModelPortType, ModelPort {
         return scriptsToExecute;
     }
 
-    private ExecuteScriptsResponse doExecuteScripts(List<JAXBElement<?>> scriptsToExecute, ExecuteScriptsOptionsType options, Task task, OperationResult result) throws ScriptExecutionException, JAXBException, SchemaException {
-        ExecuteScriptsResponse response = new ExecuteScriptsResponse();
+    private ExecuteScriptsResponseType doExecuteScripts(List<JAXBElement<?>> scriptsToExecute, ExecuteScriptsOptionsType options, Task task, OperationResult result) throws ScriptExecutionException, JAXBException, SchemaException {
+        ExecuteScriptsResponseType response = new ExecuteScriptsResponseType();
         ScriptOutputsType outputs = new ScriptOutputsType();
         response.setOutputs(outputs);
 
@@ -316,14 +316,15 @@ public class ModelWebService implements ModelPortType, ModelPort {
     }
 
     private ItemListType prepareXmlData(Data output) throws JAXBException, SchemaException {
-        ItemListType itemListType = new ItemListType();
-        if (output != null) {
-            for (Item item : output.getData()) {
-                RawType rawType = prismContext.toRawType(item);
-                itemListType.getItem().add(rawType);
-            }
-        }
-        return itemListType;
+        throw new UnsupportedOperationException("uncomment and fix this code");
+//        ItemListType itemListType = new ItemListType();
+//        if (output != null) {
+//            for (Item item : output.getData()) {
+//                RawType rawType = prismContext.toRawType(item);
+//                itemListType.getItem().add(rawType);
+//            }
+//        }
+//        return itemListType;
     }
 
 

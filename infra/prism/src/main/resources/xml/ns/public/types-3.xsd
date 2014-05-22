@@ -111,7 +111,7 @@
 					<xsd:documentation>
 						Any additional form of normalized value. Any element present in this section
 						must be of xsd:string type and it must be single-value (in the prism sense).
-						Note: Some implementations may not be able to use them or even store them. 
+						Note: Some implementations may not be able to use them or even store them.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:any>
@@ -366,16 +366,17 @@
         <!--</xsd:annotation>-->
     <!--</xsd:complexType>-->
 
-    <xsd:complexType name="ItemPathType" mixed="true">
+    <!-- Here we use complexType to create a Java class named ItemPathType -->
+    <xsd:complexType name="ItemPathType">
         <xsd:annotation>
             <xsd:documentation>
                 Defines a type for XPath-like item pointer. It points to a specific part
                 of the prism object.
             </xsd:documentation>
         </xsd:annotation>
-        <xsd:sequence>
-        	<xsd:any minOccurs="0"/>
-        </xsd:sequence>
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string" />
+        </xsd:simpleContent>
     </xsd:complexType>
     
     <xsd:complexType name="SchemaDefinitionType">
