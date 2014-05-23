@@ -1589,7 +1589,7 @@ public abstract class ShadowCache {
 		if (resourceAssociationContainer != null) {
 			RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
 			PrismContainer<ShadowAssociationType> associationContainer = resourceAssociationContainer.clone();
-			resultShadow.add(associationContainer);
+			resultShadow.addReplaceExisting(associationContainer);
 			if (associationContainer != null) {
 				for (PrismContainerValue<ShadowAssociationType> associationCVal: associationContainer.getValues()) {
 					ResourceAttributeContainer identifierContainer = ShadowUtil.getAttributesContainer(associationCVal, ShadowAssociationType.F_IDENTIFIERS);
