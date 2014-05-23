@@ -124,7 +124,6 @@ public class XPathHolder {
 		// Continue parsing with Xpath without the "preamble"
 		xpath = parser.getPureXPathString();
 
-        // todo: fixme what if there's '/' within ID value we are looking for?
 		String[] segArray = xpath.split("/");
 		for (int i = 0; i < segArray.length; i++) {
 			if (segArray[i] == null || segArray[i].isEmpty()) {
@@ -221,6 +220,7 @@ public class XPathHolder {
 
 		if (domNode != null) {
 			if (prefix == null || prefix.isEmpty()) {
+                // here we should return null
 				ns = domNode.lookupNamespaceURI(null);
 			} else {
 				ns = domNode.lookupNamespaceURI(prefix);
