@@ -45,6 +45,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Service References\midpointModelService\Reference.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </Compile>
     <Compile Include="WsSecurityHeaders.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -53,28 +58,37 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Include="Service References\midpointModelService\Reference.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Reference.svcmap</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <None Include="Service References\midpointModelService\annotation-3.xsd" />
+    <None Include="Service References\midpointModelService\api-types-3.xsd" />
+    <None Include="Service References\midpointModelService\capabilities-3.xsd" />
+    <None Include="Service References\midpointModelService\common-3.xsd" />
+    <None Include="Service References\midpointModelService\connector-schema-3.xsd" />
+    <None Include="Service References\midpointModelService\fault.wsdl" />
+    <None Include="Service References\midpointModelService\model-3.xsd" />
+    <None Include="Service References\midpointModelService\model-31.xsd" />
+    <None Include="Service References\midpointModelService\model.wsdl" />
+    <None Include="Service References\midpointModelService\ModelClientSample.midpointModelService.ObjectDeltaOperationType.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
     <None Include="Service References\midpointModelService\ModelClientSample.midpointModelService.ObjectListType.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\midpointModelService\ModelClientSample.midpointModelService.ObjectType.datasource">
+    <None Include="Service References\midpointModelService\ModelClientSample.midpointModelService.ObjectType1.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
     <None Include="Service References\midpointModelService\ModelClientSample.midpointModelService.OperationResultType.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\midpointModelService\ModelClientSample.midpointModelService.ShadowType.datasource">
+    <None Include="Service References\midpointModelService\ModelClientSample.midpointModelService.SingleScriptOutputType.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
     <None Include="Service References\midpointModelService\ModelClientSample.midpointModelService.TaskType.datasource">
@@ -83,8 +97,12 @@
     <None Include="Service References\midpointModelService\ModelClientSample.midpointModelService.UserType.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
-    <None Include="Service References\midpointModelService\modelPortType.wsdl" />
-    <None Include="Service References\midpointModelService\ModelWebServiceService.wsdl" />
+    <None Include="Service References\midpointModelService\query-3.xsd" />
+    <None Include="Service References\midpointModelService\resource-schema-3.xsd" />
+    <None Include="Service References\midpointModelService\scripting-3.xsd" />
+    <None Include="Service References\midpointModelService\types-3.xsd" />
+    <None Include="Service References\midpointModelService\xenc-schema.xsd" />
+    <None Include="Service References\midpointModelService\XMLSchema.xsd" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="94c73a13-62ee-48f6-8836-9dcdff54f664" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
+<ReferenceGroup xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ID="8f5c54d2-6de9-4bcd-8088-9b5527e2cbcb" xmlns="urn:schemas-microsoft-com:xml-wcfservicemap">
   <ClientOptions>
     <GenerateAsynchronousMethods>false</GenerateAsynchronousMethods>
     <EnableDataBinding>true</EnableDataBinding>
@@ -18,11 +18,24 @@
     <ServiceContractMappings />
   </ClientOptions>
   <MetadataSources>
-    <MetadataSource Address="http://localhost:8080/midpoint/model/model-1?wsdl" Protocol="http" SourceId="1" />
+    <MetadataSource Address="http://localhost.:8080/midpoint/model/model-3?wsdl" Protocol="http" SourceId="1" />
   </MetadataSources>
   <Metadata>
-    <MetadataFile FileName="ModelWebServiceService.wsdl" MetadataType="Wsdl" ID="b3c08473-0948-4e0a-85b7-6f03e47e058f" SourceId="1" SourceUrl="http://localhost:8080/midpoint/model/model-1?wsdl" />
-    <MetadataFile FileName="modelPortType.wsdl" MetadataType="Wsdl" ID="f1e3bdf4-153c-414e-af4d-2148516f63d0" SourceId="1" SourceUrl="http://localhost:8080/midpoint/model/model-1?wsdl=modelPortType.wsdl" />
+    <MetadataFile FileName="scripting-3.xsd" MetadataType="Schema" ID="5a49d30f-6c71-4587-9fa8-71c7ed98e44b" SourceId="1" SourceUrl="http://localhost.:8080/midpoint/model/model-3?xsd=http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" />
+    <MetadataFile FileName="api-types-3.xsd" MetadataType="Schema" ID="424d074b-3a2a-4aff-8a32-77700cae734d" SourceId="1" SourceUrl="http://localhost.:8080/midpoint/model/model-3?xsd=http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" />
+    <MetadataFile FileName="model-3.xsd" MetadataType="Schema" ID="90a12d36-0056-4f9e-9fd7-5313248a3041" SourceId="1" SourceUrl="http://localhost.:8080/midpoint/model/model-3?xsd=xmldsig-core-schema.xsd" />
+    <MetadataFile FileName="annotation-3.xsd" MetadataType="Schema" ID="09fb80e1-78b8-4d08-886d-5847f6de1e78" SourceId="1" SourceUrl="http://localhost.:8080/midpoint/model/model-3?xsd=http://prism.evolveum.com/xml/ns/public/annotation-3" />
+    <MetadataFile FileName="capabilities-3.xsd" MetadataType="Schema" ID="f3890d04-8435-4e6c-b12d-46e6d7519734" SourceId="1" SourceUrl="http://localhost.:8080/midpoint/model/model-3?xsd=http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" />
+    <MetadataFile FileName="model-31.xsd" MetadataType="Schema" ID="d8b7f79d-6dbc-4222-9752-2b739e520755" SourceId="1" SourceUrl="http://localhost.:8080/midpoint/model/model-3?xsd=xml.xsd" />
+    <MetadataFile FileName="fault.wsdl" MetadataType="Wsdl" ID="d61fdfc1-32ba-4e14-9ea2-75cd15cc4c30" SourceId="1" SourceUrl="http://localhost.:8080/midpoint/model/model-3?wsdl=../common/fault-3.wsdl" />
+    <MetadataFile FileName="types-3.xsd" MetadataType="Schema" ID="2c45a5a1-9ba1-4680-a781-fd1a054a14c1" SourceId="1" SourceUrl="http://localhost.:8080/midpoint/model/model-3?xsd=jar:file:/D:/midpoint/tgit/midpoint/gui/admin-gui/target/midpoint/WEB-INF/lib/schema-2.3-SNAPSHOT.jar!/prism/xml/ns/public/types-3.xsd" />
+    <MetadataFile FileName="XMLSchema.xsd" MetadataType="Schema" ID="978dc457-975c-4dcf-bb23-eec57a8334a8" SourceId="1" SourceUrl="http://localhost.:8080/midpoint/model/model-3?xsd=jar:file:/D:/midpoint/tgit/midpoint/gui/admin-gui/target/midpoint/WEB-INF/lib/schema-2.3-SNAPSHOT.jar!/xml/ns/standard/XMLSchema.xsd" />
+    <MetadataFile FileName="model.wsdl" MetadataType="Wsdl" ID="f3b4aa0d-83eb-456a-82c8-4f967dec6db4" SourceId="1" SourceUrl="http://localhost.:8080/midpoint/model/model-3?wsdl" />
+    <MetadataFile FileName="query-3.xsd" MetadataType="Schema" ID="aefa5ebd-cff3-4c73-8aa6-705bd4a2a91e" SourceId="1" SourceUrl="http://localhost.:8080/midpoint/model/model-3?xsd=http://prism.evolveum.com/xml/ns/public/query-3" />
+    <MetadataFile FileName="connector-schema-3.xsd" MetadataType="Schema" ID="a1a208d4-f99f-4950-a41e-1beb377d2e4b" SourceId="1" SourceUrl="http://localhost.:8080/midpoint/model/model-3?xsd=http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" />
+    <MetadataFile FileName="resource-schema-3.xsd" MetadataType="Schema" ID="ebf1cedd-57d2-4b4e-a515-8c3c200d7ee6" SourceId="1" SourceUrl="http://localhost.:8080/midpoint/model/model-3?xsd=http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" />
+    <MetadataFile FileName="common-3.xsd" MetadataType="Schema" ID="c9e5b574-27d6-4199-9549-c842e906e6d8" SourceId="1" SourceUrl="http://localhost.:8080/midpoint/model/model-3?xsd=jar:file:/D:/midpoint/tgit/midpoint/gui/admin-gui/target/midpoint/WEB-INF/lib/schema-2.3-SNAPSHOT.jar!/xml/ns/public/common/common-3.xsd" />
+    <MetadataFile FileName="xenc-schema.xsd" MetadataType="Schema" ID="9141e392-09e6-4e92-b2f2-9831e1e12084" SourceId="1" SourceUrl="http://localhost.:8080/midpoint/model/model-3?xsd=jar:file:/D:/midpoint/tgit/midpoint/gui/admin-gui/target/midpoint/WEB-INF/lib/schema-2.3-SNAPSHOT.jar!/xml/ns/standard/xenc-schema.xsd" />
   </Metadata>
   <Extensions>
     <ExtensionFile FileName="configuration91.svcinfo" Name="configuration91.svcinfo" />
