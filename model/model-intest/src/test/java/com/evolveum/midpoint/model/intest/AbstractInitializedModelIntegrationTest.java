@@ -232,7 +232,8 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		repoAddObjectFromFile(ROLE_PIRATE_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_NICE_PIRATE_FILENAME, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_CAPTAIN_FILENAME, RoleType.class, initResult);
-		repoAddObjectFromFile(ROLE_JUDGE_FILENAME, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_JUDGE_FILE, RoleType.class, initResult);
+		repoAddObjectFromFile(ROLE_EMPTY_FILE, RoleType.class, initResult);
 		
 		// Orgstruct
 		if (doAddOrgstruct()) {
