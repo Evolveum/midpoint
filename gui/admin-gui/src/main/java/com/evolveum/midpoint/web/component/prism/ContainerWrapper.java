@@ -508,8 +508,9 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
     }
 
     public boolean isReadonly() {
-    	if (getContainerDefinition() != null){
-    		return getContainerDefinition().canRead();
+    	PrismContainerDefinition def = getContainerDefinition();
+    	if (def != null){
+    		return (def.canRead() && !def.canAdd() && !def.canModify());
     	}
         return readonly;
     }
