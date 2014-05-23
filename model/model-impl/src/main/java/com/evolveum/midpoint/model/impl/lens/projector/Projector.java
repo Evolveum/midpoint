@@ -152,13 +152,13 @@ public class Projector {
 	        	// object template and assignments.
 		        focusProcessor.processFocus(context, activityDescription, now, task, result);
 		        context.recomputeFocus();
-		        LensUtil.traceContext(LOGGER, activityDescription,"focus processing", false, context, false);
 		        if (consistencyChecks) context.checkConsistence();
 		
 		        sortProjectionsToWaves(context);
 		        maxWaves = computeMaxWaves(context);
 		        LOGGER.trace("Continuing wave {}, maxWaves={}", context.getProjectionWave(), maxWaves);
-		        LensUtil.traceContext(LOGGER, activityDescription,"assignments", false, context, true);
+
+		        LensUtil.traceContext(LOGGER, activityDescription,"focus processing", false, context, false);
 		        if (consistencyChecks) context.checkConsistence();
 		        LensUtil.checkContextSanity(context, "focus processing", result);
 		
@@ -366,12 +366,10 @@ public class Projector {
 	// TODO: check for circular dependencies
 	private <F extends ObjectType> LensProjectionContext determineProjectionWave(LensContext<F> context, 
 			LensProjectionContext projectionContext, ResourceObjectTypeDependencyType inDependency, List<ResourceObjectTypeDependencyType> depPath) throws PolicyViolationException {
-		LOGGER.trace("DEP1");
 		if (!projectionContext.isWaveIncomplete()) {
 			// This was already processed
 			return projectionContext;
 		}
-		LOGGER.trace("DEP2");
 		if (projectionContext.isDelete()) {
 			// Ignore dependencies if we are being removed
 			projectionContext.setWave(0);
@@ -380,13 +378,12 @@ public class Projector {
 		if (depPath == null) {
 			depPath = new ArrayList<ResourceObjectTypeDependencyType>();
 		}
-		LOGGER.trace("DEP3");
 		int determinedWave = 0;
 		int determinedOrder = 0;
 		for (ResourceObjectTypeDependencyType outDependency: projectionContext.getDependencies()) {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("DEP: {}", outDependency);
-			}
+//			if (LOGGER.isTraceEnabled()) {
+//				LOGGER.trace("DEP: {}", outDependency);
+//			}
 			if (inDependency != null && isHigerOrder(outDependency, inDependency)) {
 				// There is incomming dependency. Deal only with dependencies of this order and lower
 				// otherwise we can end up in endless loop even for legal dependencies.
@@ -396,9 +393,9 @@ public class Projector {
 			depPath.add(outDependency);
 			ResourceShadowDiscriminator refDiscr = new ResourceShadowDiscriminator(outDependency, projectionContext.getKind());
 			LensProjectionContext dependencyProjectionContext = findDependencyContext(context, projectionContext, outDependency);
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("DEP: {} -> {}", refDiscr, dependencyProjectionContext);
-			}
+//			if (LOGGER.isTraceEnabled()) {
+//				LOGGER.trace("DEP: {} -> {}", refDiscr, dependencyProjectionContext);
+//			}
 			if (dependencyProjectionContext == null) {
 				ResourceObjectTypeDependencyStrictnessType outDependencyStrictness = ResourceTypeUtil.getDependencyStrictness(outDependency);
 				if (outDependencyStrictness == ResourceObjectTypeDependencyStrictnessType.STRICT) {
