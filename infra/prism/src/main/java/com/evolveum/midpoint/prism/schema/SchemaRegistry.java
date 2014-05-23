@@ -79,7 +79,6 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	private static final QName DEFAULT_XSD_TYPE = DOMUtil.XSD_STRING;
 
     private static final String RUNTIME_CATALOG_RESOURCE = "META-INF/catalog-runtime.xml";
-    private static final String COMPILE_TIME_CATALOG_RESOURCE = "META-INF/catalog.xml";
 
     private String catalogResource;
 	
@@ -105,13 +104,6 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		this.extensionSchemas = new HashMap<QName, ComplexTypeDefinition>();
 	}
 
-    public SchemaRegistry(boolean useCompileTimeCatalog) {
-        this();
-        if (useCompileTimeCatalog) {
-            catalogResource = COMPILE_TIME_CATALOG_RESOURCE;
-        }
-    }
-	
 	public DynamicNamespacePrefixMapper getNamespacePrefixMapper() {
 		return namespacePrefixMapper;
 	}

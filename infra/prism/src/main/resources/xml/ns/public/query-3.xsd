@@ -67,6 +67,11 @@
     <!-- Filters & queries -->
 
     <xsd:complexType name="FilterClauseType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                 <jaxb:dom/>            <!-- this is necessary for the model-client -->
+            </xsd:appinfo>
+        </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="matching" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
@@ -178,7 +183,13 @@
     <xsd:complexType name="SearchFilterType">
     	<xsd:sequence>
     		<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-			<xsd:element ref="tns:filterClause" minOccurs="1" maxOccurs="1"/>
+			<xsd:element ref="tns:filterClause" minOccurs="1" maxOccurs="1">
+			    <xsd:annotation>
+			        <xsd:appinfo>
+			        	<jaxb:dom/>                 <!-- this is necessary for the model-client -->
+			        </xsd:appinfo>
+			    </xsd:annotation>
+			</xsd:element>
     	</xsd:sequence>
     </xsd:complexType>
 

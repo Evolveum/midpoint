@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.util.xml.DomAwareEqualsStrategy;
 import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
@@ -64,8 +65,7 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode
 {
 
     private final static long serialVersionUID = 201105211233L;
-    @XmlAnyElement
-    protected Element orderBy;
+    protected ItemPathType orderBy;
     @XmlElement(defaultValue = "ascending")
     protected OrderDirectionType orderDirection;
     @XmlElement(defaultValue = "0")
@@ -101,8 +101,7 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode
         if (o == null) {
             throw new NullPointerException("Cannot create a copy of 'PagingType' from 'null'.");
         }
-        // CWildcardTypeInfo: org.w3c.dom.Element
-        this.orderBy = ((o.orderBy == null)?null:((o.getOrderBy() == null)?null:((Element) o.getOrderBy().cloneNode(true))));
+        this.orderBy = (o.orderBy == null)?null:o.orderBy.clone();
         // CEnumLeafInfo: com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType
         this.orderDirection = ((o.orderDirection == null)?null:o.getOrderDirection());
         // CBuiltinLeafInfo: java.lang.Integer
@@ -119,7 +118,7 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode
      *     {@link Element }
      *     
      */
-    public Element getOrderBy() {
+    public ItemPathType getOrderBy() {
         return orderBy;
     }
 
@@ -131,7 +130,7 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode
      *     {@link Element }
      *     
      */
-    public void setOrderBy(Element value) {
+    public void setOrderBy(ItemPathType value) {
         this.orderBy = value;
     }
 
@@ -220,7 +219,7 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode
     public int hashCode(ObjectLocator locator, HashCodeStrategy strategy) {
         int currentHashCode = 1;
         {
-            Element theOrderBy;
+            ItemPathType theOrderBy;
             theOrderBy = this.getOrderBy();
             currentHashCode = strategy.hashCode(LocatorUtils.property(locator, "orderBy", theOrderBy), currentHashCode, theOrderBy);
         }
@@ -256,9 +255,9 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode
         }
         final PagingType that = ((PagingType) object);
         {
-            Element lhsOrderBy;
+            ItemPathType lhsOrderBy;
             lhsOrderBy = this.getOrderBy();
-            Element rhsOrderBy;
+            ItemPathType rhsOrderBy;
             rhsOrderBy = that.getOrderBy();
             if (!strategy.equals(LocatorUtils.property(thisLocator, "orderBy", lhsOrderBy), LocatorUtils.property(thatLocator, "orderBy", rhsOrderBy), lhsOrderBy, rhsOrderBy)) {
                 return false;
@@ -313,7 +312,7 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode
                 // CC-XJC Version 2.0 Build 2011-09-16T18:27:24+0000
                 final PagingType clone = ((PagingType) super.clone());
                 // CWildcardTypeInfo: org.w3c.dom.Element
-                clone.orderBy = ((this.orderBy == null)?null:((this.getOrderBy() == null)?null:((Element) this.getOrderBy().cloneNode(true))));
+                clone.orderBy = ((this.orderBy == null)?null:((this.getOrderBy() == null)?null:(this.getOrderBy().clone())));
                 // CEnumLeafInfo: com.evolveum.prism.xml.ns._public.query_3.OrderDirectionType
                 clone.orderDirection = ((this.orderDirection == null)?null:this.getOrderDirection());
                 // CBuiltinLeafInfo: java.lang.Integer

@@ -73,7 +73,7 @@
             <class name="com.evolveum.midpoint.model.intest.importer.BadImportTest"/>
         </classes>
     </test>
-    <test name="Scripting" preserve-order="true" parallel="false" verbose="10" enabled="true">
+    <test name="Scripting" preserve-order="true" parallel="false" verbose="10" enabled="false">
         <classes>
             <class name="com.evolveum.midpoint.model.intest.scripting.TestScriptingBasic"/>
         </classes>

@@ -1034,7 +1034,7 @@ public class ChangeExecutor {
 			// We need to create at least one evaluator. Otherwise the expression code will complain
 //			Element value = DOMUtil.createElement(SchemaConstants.C_VALUE);
 //			DOMUtil.setNill(value);
-			JAXBElement<RawType> el = new JAXBElement(SchemaConstants.C_VALUE, RawType.class, new RawType());
+			JAXBElement<RawType> el = new JAXBElement(SchemaConstants.C_VALUE, RawType.class, new RawType(prismContext));
 			argument.getExpressionEvaluator().add(el);
 			
 		} else {

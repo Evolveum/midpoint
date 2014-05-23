@@ -70,23 +70,24 @@ public class PrismBeanConverter {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismBeanConverter.class);
 
-    public static final String DEFAULT_NAMESPACE_PLACEHOLDER = "##default";
+    public static final String DEFAULT_PLACEHOLDER = "##default";
 
-    private PrismBeanInspector inspector = new PrismBeanInspector();
+    private PrismBeanInspector inspector;
 	
 	private PrismContext prismContext;
 
 	public PrismBeanConverter(PrismContext prismContext) {
 		this.prismContext = prismContext;
+        this.inspector = new PrismBeanInspector(prismContext);
 	}
 	
 	public PrismContext getPrismContext() {
 		return prismContext;
 	}
 
-	public void setPrismContext(PrismContext prismContext) {
-		this.prismContext = prismContext;
-	}
+//	public void setPrismContext(PrismContext prismContext) {
+//		this.prismContext = prismContext;
+//	}
 
 	private SchemaRegistry getSchemaRegistry() {
 		if (prismContext == null) {
@@ -100,7 +101,7 @@ public class PrismBeanConverter {
 	}
 	
 	public boolean canProcess(Class<?> clazz) {
-		return clazz.getAnnotation(XmlType.class) != null;
+		return RawType.class.equals(clazz) || clazz.getAnnotation(XmlType.class) != null;
 	}
 	
 	public <T> T unmarshall(MapXNode xnode, QName typeQName) throws SchemaException {
@@ -620,7 +621,7 @@ public class PrismBeanConverter {
 			if (StringUtils.isEmpty(enumValue)){
 				enumValue = bean.toString();
 			}
-			QName fieldTypeName = inspector.findFieldTypeName(null, beanClass, DEFAULT_NAMESPACE_PLACEHOLDER);
+			QName fieldTypeName = inspector.findFieldTypeName(null, beanClass, DEFAULT_PLACEHOLDER);
 			return createPrimitiveXNode(enumValue, fieldTypeName, false);
 //			return marshallValue(bean, fieldTypeName, false);
 		}
@@ -637,7 +638,7 @@ public class PrismBeanConverter {
 		
 		List<String> propOrder = inspector.getPropOrder(beanClass);
 		for (String fieldName: propOrder) {
-			QName elementName = new QName(namespace, inspector.findFieldElementName(fieldName, beanClass));
+			QName elementName = inspector.findFieldElementQName(fieldName, beanClass, namespace);
 			Method getter = inspector.findPropertyGetter(beanClass, fieldName);
 			if (getter == null) {
 				throw new IllegalStateException("No getter for field "+fieldName+" in "+beanClass);

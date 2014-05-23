@@ -21,8 +21,8 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_3.OutputFormatType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.SingleScriptOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScripts;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsResponse;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsResponseType;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelPortType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ModelService;
 import org.apache.commons.cli.CommandLine;
@@ -121,7 +121,7 @@ public class RunScript {
                 System.exit(0);
             }
 
-            ExecuteScripts request = new ExecuteScripts();
+            ExecuteScriptsType request = new ExecuteScriptsType();
             String script = readXmlFile(cmdline.getOptionValue(OPT_SCRIPT));
             script = replaceParameters(script, cmdline.getOptionProperties("D"));
             request.setMslScripts(script);          // todo fix this hack
@@ -136,7 +136,7 @@ public class RunScript {
 
             ModelPortType modelPort = createModelPort(cmdline);
 
-            ExecuteScriptsResponse response = modelPort.executeScripts(request);
+            ExecuteScriptsResponseType response = modelPort.executeScripts(request);
 
             System.out.println("=================================================================");
 

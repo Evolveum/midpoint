@@ -16,9 +16,12 @@
 
 package com.evolveum.midpoint.prism.parser;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.Handler;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.w3c.dom.Node;
 
 import javax.xml.XMLConstants;
@@ -42,6 +45,13 @@ import java.util.Map;
  * @author mederly
  */
 public class PrismBeanInspector {
+
+    private PrismContext prismContext;
+
+    public PrismBeanInspector(PrismContext prismContext) {
+        Validate.notNull(prismContext, "prismContext");
+        this.prismContext = prismContext;
+    }
 
     //region Caching mechanism (multiple dimensions)
 
@@ -196,13 +206,13 @@ public class PrismBeanInspector {
         });
     }
 
-    private Map<String,Map<Class<? extends Object>,String>> _findFieldElementName = new HashMap<>();
+    private Map<String,Map<Class<? extends Object>,Map<String,QName>>> _findFieldElementQName = new HashMap<>();
 
-    String findFieldElementName(String fieldName, Class<? extends Object> beanClass) {
-        return find2(_findFieldElementName, fieldName, beanClass, new Getter2<String,String,Class<? extends Object>>() {
+    QName findFieldElementQName(String fieldName, Class<? extends Object> beanClass, String defaultNamespace) {
+        return find3(_findFieldElementQName, fieldName, beanClass, defaultNamespace, new Getter3<QName, String, Class<? extends Object>, String>() {
             @Override
-            public String get(String fieldName, Class<? extends Object> beanClass) {
-                return findFieldElementNameUncached(fieldName, beanClass);
+            public QName get(String fieldName, Class<? extends Object> beanClass, String defaultNamespace) {
+                return findFieldElementQNameUncached(fieldName, beanClass, defaultNamespace);
             }
         });
     }
@@ -320,11 +330,11 @@ public class PrismBeanInspector {
         }
 
         String namespace = xmlType.namespace();
-        if (namespace == null || PrismBeanConverter.DEFAULT_NAMESPACE_PLACEHOLDER.equals(namespace)) {
+        if (namespace == null || PrismBeanConverter.DEFAULT_PLACEHOLDER.equals(namespace)) {
             XmlSchema xmlSchema = beanClass.getPackage().getAnnotation(XmlSchema.class);
             namespace = xmlSchema.namespace();
         }
-        if (StringUtils.isBlank(namespace) || PrismBeanConverter.DEFAULT_NAMESPACE_PLACEHOLDER.equals(namespace)) {
+        if (StringUtils.isBlank(namespace) || PrismBeanConverter.DEFAULT_PLACEHOLDER.equals(namespace)) {
             return null;
         }
 
@@ -524,8 +534,15 @@ public class PrismBeanInspector {
                 String propTypeLocalPart = xmlType.name();
                 if (propTypeLocalPart != null) {
                     String propTypeNamespace = xmlType.namespace();
-                    if (propTypeNamespace == null || propTypeNamespace.equals(PrismBeanConverter.DEFAULT_NAMESPACE_PLACEHOLDER)) {
-                        propTypeNamespace = schemaNamespace;
+                    if (propTypeNamespace == null || propTypeNamespace.equals(PrismBeanConverter.DEFAULT_PLACEHOLDER)) {
+                        PrismSchema schema = prismContext.getSchemaRegistry().findSchemaByCompileTimeClass(fieldType);
+                        if (schema != null && schema.getNamespace() != null) {
+                            propTypeNamespace = schema.getNamespace();
+                        } else {
+                            // schemaNamespace is only a poor indicator of required namespace (consider e.g. having c:UserType in apit:ObjectListType)
+                            // so we use it only if we couldn't find anything else
+                            propTypeNamespace = schemaNamespace;
+                        }
                     }
                     propTypeQname = new QName(propTypeNamespace, propTypeLocalPart);
                 }
@@ -535,24 +552,27 @@ public class PrismBeanInspector {
         return propTypeQname;
     }
 
-    private String findFieldElementNameUncached(String fieldName, Class beanClass) {
+    private QName findFieldElementQNameUncached(String fieldName, Class beanClass, String defaultNamespace) {
         Field field;
-        if (beanClass.getSimpleName().equals("UnknownJavaObjectType")) {
-            System.out.println("Here we are");
-        }
         try {
             field = beanClass.getDeclaredField(fieldName);
         } catch (NoSuchFieldException e) {
-            return fieldName;               // TODO implement this if needed (lookup the getter method instead of the field)
+            return new QName(defaultNamespace, fieldName);               // TODO implement this if needed (lookup the getter method instead of the field)
         }
+        String realLocalName = fieldName;
+        String realNamespace = defaultNamespace;
         XmlElement xmlElement = field.getAnnotation(XmlElement.class);
         if (xmlElement != null) {
             String name = xmlElement.name();
-            if (name != null && !name.startsWith("#")) {            // ##default is the default value
-                return name;
+            if (name != null && !PrismBeanConverter.DEFAULT_PLACEHOLDER.equals(name)) {
+                realLocalName = name;
+            }
+            String namespace = xmlElement.namespace();
+            if (namespace != null && !PrismBeanConverter.DEFAULT_PLACEHOLDER.equals(namespace)) {
+                realNamespace = namespace;
             }
         }
-        return fieldName;
+        return new QName(realNamespace, realLocalName);
     }
     //endregion
 }

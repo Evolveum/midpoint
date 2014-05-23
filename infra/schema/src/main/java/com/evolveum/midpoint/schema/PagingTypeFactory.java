@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.schema;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
@@ -55,8 +56,8 @@ public abstract class PagingTypeFactory {
 		return paging;
 	}
 
-	private static Element fillPropertyReference(String resolve) {
+	private static ItemPathType fillPropertyReference(String resolve) {
 		XPathHolder xpath = new XPathHolder(resolve);
-		return xpath.toElement(SchemaConstants.NS_C, "property");
+		return new ItemPathType(xpath.toItemPath());
 	}
 }
