@@ -69,7 +69,7 @@ This contains configuration for a managed (non federated) Office 365 domain
         <schemaHandling>
             <objectType>
 	        <kind>account</kind>
-                <name>default</name>
+                <intent>default</intent>
                 <displayName>Managed Account</displayName>
                 <default>true</default>
                 <objectClass>ri:AccountObjectClass</objectClass>
@@ -272,7 +272,6 @@ This contains configuration for a managed (non federated) Office 365 domain
                     <q:equal>
                         <q:path>c:name</q:path>
                         <expression>
-                            <ref>name</ref>
                             <script>
                                 <language>http://www.w3.org/TR/xpath/</language>
                                 <code>

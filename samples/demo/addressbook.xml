@@ -65,7 +65,7 @@
 		<schemaHandling>
 
 			<objectType>
-				<name>default</name>
+				<intent>default</intent>
 				<displayName>Default Account</displayName>
 				<default>true</default>
 				<objectClass>ri:AccountObjectClass</objectClass>
@@ -125,10 +125,10 @@
 					</outbound>
 				</attribute>
 				<activation>
-					<enabled>
-						<outbound/>
-					</enabled>
-				</activation>
+	                <administrativeStatus>
+	                    <outbound/>
+	                </administrativeStatus>
+            	</activation>
 				<credentials>
 					<password>
 						<outbound/>

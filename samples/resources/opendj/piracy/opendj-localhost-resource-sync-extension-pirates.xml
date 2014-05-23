@@ -96,7 +96,7 @@ This resource definition contains also definition to enable synchronization.
             <!-- Definition of default account type.
                  This is now the only account type that OpenIDM can work with. -->
             <objectType>
-                <name>default</name>
+                <intent>default</intent>
                 <!-- Readable name for the account type -->
                 <displayName>Default Account</displayName>
                 <default>true</default>
@@ -457,9 +457,8 @@ This resource definition contains also definition to enable synchronization.
 	                     equal to the "uid" attribute of the account. Simply speaking,
 	                     it will look for match in usernames in the IDM and the resource. -->
 	                <q:equal>
-	                    <q:path>.</q:path>
+	                    <q:path>name</q:path>
 	                    <expression>
-	                        <ref>name</ref>
 	                        <script>
 		                        <code>
 		                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
