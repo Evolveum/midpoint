@@ -330,7 +330,7 @@ public class XNodeProcessor {
                                                               PrismPropertyDefinition<T> propertyDefinition) throws SchemaException {
         PrismProperty prop = propertyDefinition.instantiate();
 
-        SchemaDefinitionType schemaDefType = parseSchemaDefinitionType((SchemaXNode) xnode);
+        SchemaDefinitionType schemaDefType = getPrismContext().getBeanConverter().unmarshalSchemaDefinitionType((SchemaXNode) xnode);
         PrismPropertyValue<SchemaDefinitionType> val = new PrismPropertyValue<>(schemaDefType);
         prop.add(val);
 
@@ -464,21 +464,7 @@ public class XNodeProcessor {
             }
             typeName = propertyDefinition.getTypeName();
         }
-        if (PolyStringType.COMPLEX_TYPE.equals(typeName)) {
-            PolyString polyString = parsePolyString(xmap);
-            return (T) polyString;
-        } else if (ProtectedStringType.COMPLEX_TYPE.equals(typeName)) {
-            ProtectedStringType protectedType = new ProtectedStringType();
-            XNodeProcessorUtil.parseProtectedType(protectedType, xmap, prismContext);
-            return (T) protectedType;
-        } else if (ProtectedByteArrayType.COMPLEX_TYPE.equals(typeName)) {
-            ProtectedByteArrayType protectedType = new ProtectedByteArrayType();
-            XNodeProcessorUtil.parseProtectedType(protectedType, xmap, prismContext);
-            return (T) protectedType;
-        } else if (SchemaDefinitionType.COMPLEX_TYPE.equals(typeName)) {
-            SchemaDefinitionType schemaDefType = parseSchemaDefinitionType(xmap);
-            return (T) schemaDefType;
-        } else if (prismContext.getBeanConverter().canProcess(typeName)) {
+        if (prismContext.getBeanConverter().canProcess(typeName)) {
             return prismContext.getBeanConverter().unmarshall(xmap, typeName);
         } else {
             if (propertyDefinition != null) {
@@ -577,47 +563,6 @@ public class XNodeProcessor {
 //        }
 //
 //    }
-
-    private PolyString parsePolyString(MapXNode xmap) throws SchemaException {
-        String orig = xmap.getParsedPrimitiveValue(QNameUtil.nullNamespace(PolyString.F_ORIG), DOMUtil.XSD_STRING);
-        if (orig == null) {
-            throw new SchemaException("Null polystring orig in "+xmap);
-        }
-        String norm = xmap.getParsedPrimitiveValue(QNameUtil.nullNamespace(PolyString.F_NORM), DOMUtil.XSD_STRING);
-        return new PolyString(orig, norm);
-    }
-
-    private SchemaDefinitionType parseSchemaDefinitionType(MapXNode xmap) throws SchemaException {
-        Entry<QName, XNode> subEntry = xmap.getSingleSubEntry("schema element");
-        if (subEntry == null) {
-            return null;
-        }
-        XNode xsub = subEntry.getValue();
-        if (xsub == null) {
-            return null;
-        }
-        if (!(xsub instanceof SchemaXNode)) {
-            throw new SchemaException("Cannot parse schema from "+xsub);
-        }
-//		Element schemaElement = ((SchemaXNode)xsub).getSchemaElement();
-//		if (schemaElement == null) {
-//			throw new SchemaException("Empty schema in "+xsub);
-//		}
-        SchemaDefinitionType schemaDefType = parseSchemaDefinitionType((SchemaXNode) xsub);
-//		new SchemaDefinitionType();
-//		schemaDefType.setSchema(schemaElement);
-        return schemaDefType;
-    }
-
-    private SchemaDefinitionType parseSchemaDefinitionType(SchemaXNode xsub) throws SchemaException{
-        Element schemaElement = ((SchemaXNode)xsub).getSchemaElement();
-        if (schemaElement == null) {
-            throw new SchemaException("Empty schema in "+xsub);
-        }
-        SchemaDefinitionType schemaDefType = new SchemaDefinitionType();
-        schemaDefType.setSchema(schemaElement);
-        return schemaDefType;
-    }
 
     public static <T> PrismProperty<T> parsePrismPropertyRaw(XNode xnode, QName itemName)
             throws SchemaException {

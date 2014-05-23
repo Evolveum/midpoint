@@ -51,6 +51,7 @@ import javax.xml.ws.Holder;
 import com.evolveum.midpoint.prism.PrismContext;
 
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import org.apache.commons.lang.StringUtils;
@@ -1472,7 +1473,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
         passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password/value"));
         ProtectedStringType pass = new ProtectedStringType();
         pass.setClearValue(NEW_PASSWORD);
-        RawType passwordValue = new RawType(prismContext.getBeanConverter().marshall(pass), prismContext);
+        XNode passValue = prismContext.getBeanConverter().marshall(pass);
+        System.out.println("PASSWORD VALUE: " + passValue.debugDump());
+        RawType passwordValue = new RawType(passValue, prismContext);
         passwordDelta.getValue().add(passwordValue);
         userDelta.getItemDelta().add(passwordDelta);
         

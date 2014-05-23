@@ -62,7 +62,7 @@ public class TestProtectedString {
 
         // WHEN
 
-        MapXNode protectedStringTypeXNode = prismContext.getXnodeProcessor().createSerializer().serializeProtectedDataType(protectedStringType);
+        MapXNode protectedStringTypeXNode = prismContext.getBeanConverter().marshalProtectedDataType(protectedStringType);
         System.out.println("Protected string type XNode: " + protectedStringTypeXNode.debugDump());
 
         // THEN
