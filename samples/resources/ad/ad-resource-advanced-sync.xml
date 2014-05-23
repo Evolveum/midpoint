@@ -325,7 +325,6 @@ to "false". The only way of resetting the flag is to change user's password.
 			<q:equal>
 				<q:path>c:name</q:path>
 				<expression>
-					<ref>name</ref>
 					<script>
 						<language>http://www.w3.org/TR/xpath/</language>
 						<code>

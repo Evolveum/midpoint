@@ -341,7 +341,7 @@ public abstract class PageBase extends WebPage {
         return securityEnforcer;
     }
 
-    protected ModelInteractionService getModelInteractionService() {
+    public ModelInteractionService getModelInteractionService() {
         return modelInteractionService;
     }
 

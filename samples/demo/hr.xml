@@ -58,7 +58,7 @@
         <schemaHandling>
 
             <objectType>
-                <name>default</name>
+                <intent>default</intent>
                 <displayName>Default Account</displayName>
                 <default>true</default>
                 <objectClass>ri:AccountObjectClass</objectClass>

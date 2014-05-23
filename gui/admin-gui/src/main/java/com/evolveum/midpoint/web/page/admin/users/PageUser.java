@@ -59,6 +59,7 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.prism.*;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
@@ -276,7 +277,15 @@ public class PageUser extends PageAdminUsers {
         }
 
         ContainerStatus status = isEditingUser() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
-        ObjectWrapper wrapper = new ObjectWrapper("pageUser.userDetails", null, user, status);
+        ObjectWrapper wrapper = null;
+        try{
+        	wrapper = ObjectWrapperUtil.createObjectWrapper("pageUser.userDetails", null, user, status, this);
+        } catch (Exception ex){
+        	result.recordFatalError("Couldn't get user.", ex);
+            LoggingUtils.logException(LOGGER, "Couldn't load user", ex);
+            wrapper = new ObjectWrapper("pageUser.userDetails", null, user, null, status);
+        }
+//        ObjectWrapper wrapper = new ObjectWrapper("pageUser.userDetails", null, user, status);
         if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
             showResultInSession(wrapper.getResult());
         }
@@ -632,8 +641,10 @@ public class PageUser extends PageAdminUsers {
                 ResourceType resource = accountType.getResource();
                 String resourceName = WebMiscUtil.getName(resource);
                 
-                ObjectWrapper wrapper = new ObjectWrapper(resourceName, WebMiscUtil.getOrigStringFromPoly(accountType
-                        .getName()), account, ContainerStatus.MODIFYING);
+                ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(resourceName, WebMiscUtil.getOrigStringFromPoly(accountType
+                        .getName()), account, ContainerStatus.MODIFYING, this);
+//                ObjectWrapper wrapper = new ObjectWrapper(resourceName, WebMiscUtil.getOrigStringFromPoly(accountType
+//                        .getName()), account, ContainerStatus.MODIFYING);
                 wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));
                 wrapper.setSelectable(true);
                 wrapper.setMinimalized(true);
@@ -1543,8 +1554,10 @@ public class PageUser extends PageAdminUsers {
 
                 getPrismContext().adopt(shadow);
 
-                ObjectWrapper wrapper = new ObjectWrapper(WebMiscUtil.getOrigStringFromPoly(resource.getName()), null,
-                        shadow.asPrismObject(), ContainerStatus.ADDING);
+                ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(WebMiscUtil.getOrigStringFromPoly(resource.getName()), null,
+                        shadow.asPrismObject(), ContainerStatus.ADDING, this);
+//                ObjectWrapper wrapper = new ObjectWrapper(WebMiscUtil.getOrigStringFromPoly(resource.getName()), null,
+//                        shadow.asPrismObject(), ContainerStatus.ADDING);
                 if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
                     showResultInSession(wrapper.getResult());
                 }

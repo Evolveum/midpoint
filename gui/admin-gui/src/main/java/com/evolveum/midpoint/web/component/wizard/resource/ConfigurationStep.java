@@ -30,6 +30,7 @@ import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -68,8 +69,10 @@ public class ConfigurationStep extends WizardStep {
 
             @Override
             protected ObjectWrapper load() {
-                ObjectWrapper wrapper = new ObjectWrapper(null, null, ConfigurationStep.this.resourceModel.getObject(),
-                        ContainerStatus.MODIFYING);
+            	ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(null, null, ConfigurationStep.this.resourceModel.getObject(),
+                        ContainerStatus.MODIFYING, getPageBase());
+//                ObjectWrapper wrapper = new ObjectWrapper(null, null, ConfigurationStep.this.resourceModel.getObject(),
+//                        ContainerStatus.MODIFYING);
                 wrapper.setMinimalized(false);
                 wrapper.setShowEmpty(true);
 
