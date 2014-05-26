@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
@@ -90,9 +91,11 @@ public class ObjectWrapper implements Serializable {
     private List<PrismProperty> associations;
 
     private OperationResult fetchResult;
-    private Definition editedDefinition;
+    private PrismContainerDefinition editedDefinition;
+    private RefinedObjectClassDefinition refinedObjectClassDefinition;
+    
 
-    public ObjectWrapper(String displayName, String description, PrismObject object, Definition editedDefinition, ContainerStatus status) {
+    public ObjectWrapper(String displayName, String description, PrismObject object, PrismContainerDefinition editedDefinition, ContainerStatus status) {
 		Validate.notNull(object, "Object must not be null.");
 		Validate.notNull(status, "Container status must not be null.");
 
@@ -103,6 +106,10 @@ public class ObjectWrapper implements Serializable {
 		this.editedDefinition = editedDefinition;
 
         createContainers();
+	}
+    public ObjectWrapper(String displayName, String description, PrismObject object, PrismContainerDefinition editedDefinition, RefinedObjectClassDefinition refinedObjectClassDefinition, ContainerStatus status) {
+		this(displayName, description, object, editedDefinition, status);
+        this.refinedObjectClassDefinition = refinedObjectClassDefinition;
 	}
 
     public List<PrismProperty> getAssociations() {
@@ -762,11 +769,16 @@ public class ObjectWrapper implements Serializable {
     }
     
     public PrismContainerDefinition getDefinition() {
-    	if (editedDefinition instanceof PrismContainerDefinition){
-    		return (PrismContainerDefinition) editedDefinition;
-    	} else if (editedDefinition instanceof RefinedObjectClassDefinition){
-    		return ((RefinedObjectClassDefinition) editedDefinition).toResourceAttributeContainerDefinition();
+    	if (editedDefinition != null){
+    		return editedDefinition;
     	}
 		return object.getDefinition();
+	}
+    
+    public PrismContainerDefinition getRefinedAttributeDefinition() {
+		if (refinedObjectClassDefinition != null){
+			return refinedObjectClassDefinition.toResourceAttributeContainerDefinition();
+		}
+    	return null;
 	}
 }
