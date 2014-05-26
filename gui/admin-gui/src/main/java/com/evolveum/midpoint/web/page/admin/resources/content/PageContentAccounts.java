@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -527,29 +528,30 @@ public class PageContentAccounts extends PageAdminResources {
         try {
             ObjectQuery query = null;
 
-            List<ObjectFilter> conditions = new ArrayList<ObjectFilter>();
+            List<ObjectFilter> conditions = new ArrayList<>();
             ObjectClassComplexTypeDefinition def = getAccountDefinition();
             if (dto.isIdentifiers()) {
 
-                List<ResourceAttributeDefinition> identifiers = new ArrayList<ResourceAttributeDefinition>();
+                List<ResourceAttributeDefinition> identifiers = new ArrayList<>();
                 if (def.getIdentifiers() != null) {
                     identifiers.addAll(def.getIdentifiers());
                 }
 
                 //TODO set matching rule instead fo null
                 for (ResourceAttributeDefinition attrDef : identifiers) {
-                    conditions.add(EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), attrDef, dto.getSearchText()));
+                    conditions.add(EqualFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()),
+                            attrDef, dto.getSearchText()));
                 }
             }
 
             if (dto.isName()) {
-                List<ResourceAttributeDefinition> secondaryIdentifiers = new ArrayList<ResourceAttributeDefinition>();
+                List<ResourceAttributeDefinition> secondaryIdentifiers = new ArrayList<>();
                 if (def.getSecondaryIdentifiers() != null) {
                     secondaryIdentifiers.addAll(def.getSecondaryIdentifiers());
                 }
                 for (ResourceAttributeDefinition attrDef : secondaryIdentifiers) {
-                    conditions.add(SubstringFilter.createSubstring(new ItemPath(ShadowType.F_ATTRIBUTES),
-                            attrDef, dto.getSearchText()));
+                    conditions.add(SubstringFilter.createSubstring(
+                            new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()), attrDef, dto.getSearchText()));
                 }
             }
 
@@ -711,7 +713,8 @@ public class PageContentAccounts extends PageAdminResources {
 
         ResourceContentStorage storage = getSessionStorage().getResourceContent();
         storage.setAccountContentSearch(searchModel.getObject());
-        panel.setCurrentPage(storage.getAccountContentPaging());
+        storage.setAccountContentPaging(null);
+        panel.setCurrentPage(null);
 
         target.add(get(ID_SEARCH_FORM));
         target.add(panel);

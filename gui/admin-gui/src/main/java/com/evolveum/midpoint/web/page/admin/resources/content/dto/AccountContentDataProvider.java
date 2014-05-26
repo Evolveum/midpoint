@@ -96,18 +96,19 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
             } else {
                 query = baseQuery;
             }
-
             query.setPaging(paging);
-            List<PrismObject<ShadowType>> list = getModel().searchObjects(ShadowType.class,
-                    query, null, task, result);
+
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Query filter:\n{}", query);
+            }
+
+            List<PrismObject<ShadowType>> list = getModel().searchObjects(ShadowType.class, query, null, task, result);
 
             AccountContentDto dto;
             for (PrismObject<ShadowType> object : list) {
                 dto = createAccountContentDto(object, result);
                 getAvailableData().add(dto);
             }
-
-            result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't list objects.", ex);
             LoggingUtils.logException(LOGGER, "Couldn't list objects", ex);
@@ -160,11 +161,12 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Account
     protected void addInlineMenuToDto(AccountContentDto dto) {
     }
 
-    private PrismObject<UserType> loadOwner(String accountOid, OperationResult result) throws SecurityViolationException, SchemaException {
-        OperationResult ownerResult = result.createSubresult(OPERATION_LOAD_OWNER);
+    private PrismObject<UserType> loadOwner(String accountOid, OperationResult result)
+            throws SecurityViolationException, SchemaException {
+
         Task task = getPage().createSimpleTask(OPERATION_LOAD_OWNER);
         try {
-            return getModel().findShadowOwner(accountOid, task, ownerResult);
+            return getModel().findShadowOwner(accountOid, task, result);
         } catch (ObjectNotFoundException ex) {
             //owner was not found, it's possible and it's ok on unlinked accounts
         }
