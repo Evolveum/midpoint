@@ -19,10 +19,7 @@
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 		oid="00000000-0000-0000-0000-000000000107"
         version="0">
-	<name>
-		<orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">User accounts subreport</orig>
-		<norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">user accounts subreport</norm>
-	</name>
+	<name>User accounts subreport</name>
 	<description>User accounts subreport for midpoint users.</description>
 	<!-- flag if this report is "parent" report, used for gui -->
 	<parent>false</parent>
@@ -46,7 +43,7 @@
 			from RObjectReference as o, 
 			RShadow as s, 
 			RResource as r 
-			where s.resourceRef.targetOid = r.oid and o.owner.oid = $P{userOid} and o.type = 7 and o.targetOid = s.oid and s.kind = 0 
+			where s.resourceRef.targetOid = r.oid and o.owner.oid = $P{userOid} and o.type = 6 and o.targetOid = s.oid and s.kind = 0 
 			order by r.name.orig, s.name.orig
 		</r:hqlQueryAccounts>
 	</configuration>			
