@@ -733,6 +733,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		AssertJUnit.assertEquals(REPORT_OID_002, objectDelta.getOid());
 	}
 	
+	
 	@Test
 	public void test004RunReport() throws Exception {
 		final String TEST_NAME = "test004RunReport";
@@ -763,6 +764,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         TestUtil.assertSuccess(reportTaskResult);
 	}
 
+	
 	@Test
 	public void test005ParseOutputReport() throws Exception {
 		final String TEST_NAME = "test005ParseOutputReport";
@@ -857,6 +859,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	 //parse output file
 	 
 	
+	
 	@Test
 	public void test006RunTask() throws Exception {
 		final String TEST_NAME = "test006RunTask";
@@ -948,6 +951,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         assertEquals("Unexpected number of users", countUsers, count-5);
 	}
 
+	
 		@Test
 		public void test007CountReport() throws Exception {
 			final String TEST_NAME = "test007CountReport";
@@ -970,6 +974,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	        TestUtil.assertSuccess(result);
 	        assertEquals("Unexpected number of reports", 4, count);
 		}
+
 
 		@Test
 		public void test008SearchReport() throws Exception {
@@ -995,6 +1000,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		}
 		
 
+	
 		@Test
 		public void test009ModifyReport() throws Exception {
 			final String TEST_NAME = "test009ModifyReport";
@@ -1027,6 +1033,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		}
 		
 		
+	
 		@Test
 		public void test010DeleteReport() throws Exception {
 			
@@ -1055,6 +1062,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			
 		}
 		
+	
 		@Test
 		public void test011CleanupReports() throws Exception {
 			
@@ -1145,6 +1153,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 
 	    }
 		
+	
 		@Test
 		public void test012AuditReportWithDeltas() throws Exception {
 			
@@ -1220,6 +1229,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	       session.close();			
 		}
 
+	
 		@Test 
 		public void test013CreateAuditLogsReportFromFile() throws Exception {
 			
@@ -1255,7 +1265,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	        OperationResultType reportTaskResult = reportTaskAfter.asObjectable().getResult();
 	        display("Report task result", reportTaskResult);
 	        TestUtil.assertSuccess(reportTaskResult);
-		}	
+		}
 /*
 		@Test 
 		public void test014CreateAuditLogsReportWithDatasource() throws Exception {
@@ -1364,6 +1374,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	
 		}				
 
+	
 		@Test 
 		public void test016CreateReconciliationReportFromFile() throws Exception {
 			
@@ -1427,6 +1438,6 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			TestUtil.assertSuccess("Read report data has failed (result)", result);
 			
 		}	
-		
+	
 
 }
