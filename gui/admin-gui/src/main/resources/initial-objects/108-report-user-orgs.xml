@@ -19,10 +19,7 @@
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 		oid="00000000-0000-0000-0000-000000000108"
         version="0">
-	<name>
-		<orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">User orgs subreport</orig>
-		<norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">user orgs subreport</norm>
-	</name>
+	<name>User orgs subreport</name>
 	<description>User orgs subreport for midpoint users.</description>
 	<!-- flag if this report is "parent" report, used for gui -->
 	<parent>false</parent>
@@ -44,7 +41,7 @@
 			select o.displayName.orig as orgName 
 			from RAssignment as a, 
 			ROrg as o 
-			where a.targetRef.type = 18 and a.targetRef.targetOid = o.oid and a.owner.oid = $P{userOid}
+			where a.targetRef.type = 15 and a.targetRef.targetOid = o.oid and a.owner.oid = $P{userOid}
 		</r:hqlQueryOrgs>
 	</configuration>
 	<!-- report parameters configuration schema sample with different options -->

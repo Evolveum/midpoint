@@ -19,10 +19,7 @@
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 		oid="00000000-0000-0000-0000-000000000110"
         version="0">
-	<name>
-		<orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">Users in MidPoint</orig>
-		<norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">users in midpoint</norm>
-	</name>
+	<name>Users in MidPoint</name>
 	<description>Users listed in MidPoint.</description>
 	<!-- flag if this report is "parent" report, used for gui -->
 	<parent>true</parent>
@@ -109,8 +106,6 @@
 			where $P{activation} = null or u.activation.administrativeStatus = $P{activation}
 			order by u.name.orig
 		</r:hqlQuery>
-		<!--<r:activation>nu</r:activation>
-		<r:activationDescription>Disabled</r:activationDescription>	-->
 	</configuration>
 	<!-- report parameters configuration schema sample with different options -->
 	<configurationSchema>
@@ -136,49 +131,8 @@
 					<xsd:sequence>
 						<!-- HQL query for jasper design (queryString element) -->
 						<xsd:element name="hqlQuery" type="xsd:string"/>
-
-						<xsd:element name="activation" type="r:ActivationStatus">
-							<xsd:annotation>
-								<xsd:appinfo>
-									<a:displayName>Activation ID:</a:displayName>
-								</xsd:appinfo>
-							</xsd:annotation>
-						</xsd:element>
-
-						<xsd:element name="activationDescription" type="xsd:string">
-							<xsd:annotation>
-								<xsd:appinfo>
-									<a:displayName>Activation description:</a:displayName>
-								</xsd:appinfo>
-							</xsd:annotation>
-						</xsd:element>
 					</xsd:sequence>
 				</xsd:complexType>
-
-				<xsd:simpleType name="ActivationStatus">
-					<xsd:restriction base="xsd:int">
-						<xsd:enumeration value="null">
-							<xsd:annotation>
-								<xsd:appinfo>All</xsd:appinfo>
-							</xsd:annotation>
-						</xsd:enumeration>
-						<xsd:enumeration value="0">
-							<xsd:annotation>
-								<xsd:appinfo>Enabled</xsd:appinfo>
-							</xsd:annotation>
-						</xsd:enumeration>
-						<xsd:enumeration value="1">
-							<xsd:annotation>
-								<xsd:appinfo>Disabled</xsd:appinfo>
-							</xsd:annotation>
-						</xsd:enumeration>
-						<xsd:enumeration value="2">
-							<xsd:annotation>
-								<xsd:appinfo>Archived</xsd:appinfo>
-							</xsd:annotation>
-						</xsd:enumeration>
-					</xsd:restriction>
-				</xsd:simpleType>
 				<xsd:element name="configuration" type="r:ConfigurationType"/>
 			</xsd:schema>
 		</definition>

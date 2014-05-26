@@ -19,10 +19,7 @@
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 		oid="00000000-0000-0000-0000-000000000109"
         version="0">
-	<name>
-		<orig xmlns="http://prism.evolveum.com/xml/ns/public/types-3">User roles subreport</orig>
-		<norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">user roles subreport</norm>
-	</name>
+	<name>User roles subreport</name>
 	<description>User roles subreport for midpoint users.</description>
 	<!-- flag if this report is "parent" report, used for gui -->
 	<parent>false</parent>
@@ -43,7 +40,7 @@
 		<r:hqlQueryRoles>
 			select r.name.orig as roleName 
 			from RAssignment as a, RRole as r 
-			where a.targetRef.type = 8 and a.targetRef.targetOid = r.oid and a.owner.oid = $P{userOid}
+			where a.targetRef.type = 7 and a.targetRef.targetOid = r.oid and a.owner.oid = $P{userOid}
 		</r:hqlQueryRoles>
 	</configuration>
 	<!-- report parameters configuration schema sample with different options -->

@@ -23,6 +23,8 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 
+import com.evolveum.midpoint.web.page.error.PageError;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -39,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
 
 /**
  * @author lazyman
@@ -83,15 +86,16 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
             for (PrismObject<T> object : list) {
                 getAvailableData().add(createDataObjectWrapper(object));
             }
-
-            result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't list objects.", ex);
             LoggingUtils.logException(LOGGER, "Couldn't list objects", ex);
+        } finally {
+            result.computeStatusIfUnknown();
         }
 
-        if (!result.isSuccess()) {
+        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
             getPage().showResultInSession(result);
+            throw new RestartResponseException(PageError.class);
         }
 
         LOGGER.trace("end::iterator()");
@@ -110,16 +114,18 @@ public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
         try {
             Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
             count = getModel().countObjects(type, getQuery(), options, task, result);
-
-            result.recordSuccess();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't count objects.", ex);
             LoggingUtils.logException(LOGGER, "Couldn't count objects", ex);
+        } finally {
+            result.computeStatusIfUnknown();
         }
 
-        if (!result.isSuccess()) {
+        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
             getPage().showResultInSession(result);
+            throw new RestartResponseException(PageError.class);
         }
+
         LOGGER.trace("end::internalSize()");
         return count;
     }
