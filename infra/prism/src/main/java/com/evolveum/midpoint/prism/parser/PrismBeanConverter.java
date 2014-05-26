@@ -783,7 +783,9 @@ public class PrismBeanConverter {
 			//nothing more to do
 			return;
 		}
-		
+
+        // TODO: implement special handling for RawType, if necessary (it has no XmlType annotation any more)
+
 		XmlType xmlType = beanClass.getAnnotation(XmlType.class);
 		if (xmlType == null) {
 			// no @XmlType annotation, we are not interested to go any deeper

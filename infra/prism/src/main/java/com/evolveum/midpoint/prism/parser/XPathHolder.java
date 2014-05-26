@@ -180,10 +180,11 @@ public class XPathHolder {
                 }
                 qname = new QName(namespace, qnameArray[1], qnameArray[0]);
             }
-            if (StringUtils.isEmpty(qname.getNamespaceURI())) {
-                LOGGER.debug("WARNING: Namespace was not defined for {} in xpath\n{}", new Object[] {
-                        segmentStr, xpath });
-            }
+            // currently it's OK to have no namespace in a path
+//            if (StringUtils.isEmpty(qname.getNamespaceURI())) {
+//                LOGGER.debug("WARNING: Namespace was not defined for {} in xpath\n{}", new Object[] {
+//                        segmentStr, xpath });
+//            }
 
             segments.add(new XPathSegment(qname, variable));
             if (idValueFilterSegment != null) {
@@ -219,11 +220,11 @@ public class XPathHolder {
 		}
 
 		if (domNode != null) {
-			if (prefix == null || prefix.isEmpty()) {
-                // here we should return null
-				ns = domNode.lookupNamespaceURI(null);
-			} else {
-				ns = domNode.lookupNamespaceURI(prefix);
+			if (prefix != null && prefix.isEmpty()) {
+                ns = domNode.lookupNamespaceURI(prefix);
+            } else {
+                // we don't want the default namespace declaration (xmlns="...") to propagate into path expressions
+                // so here we do not try to obtain the namespace from the document
 			}
 			if (ns != null) {
 				return ns;

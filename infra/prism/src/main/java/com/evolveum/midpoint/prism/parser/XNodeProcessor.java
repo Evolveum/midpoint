@@ -507,8 +507,7 @@ public class XNodeProcessor {
 
     private ItemPathType parseItemPathType(PrimitiveXNode itemPath) throws SchemaException{
         ItemPath path = (ItemPath) itemPath.getParsedValue(ItemPath.XSD_TYPE);
-        ItemPathType itemPathType = new ItemPathType();
-        itemPathType.setItemPath(path);
+        ItemPathType itemPathType = new ItemPathType(path);
         return itemPathType;
     }
 

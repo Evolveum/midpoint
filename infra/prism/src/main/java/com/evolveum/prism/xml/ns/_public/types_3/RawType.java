@@ -5,6 +5,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.parser.XNodeProcessor;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -15,18 +16,19 @@ import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
 import org.jvnet.jaxb2_commons.locator.ObjectLocator;
 
 import javax.xml.namespace.QName;
+import java.beans.Transient;
 import java.io.Serializable;
 
 /**
  * A class used to hold raw XNodes until the definition for such an object is known.
  */
-public class RawType implements Serializable, Cloneable, Equals {
+public class RawType implements Serializable, Cloneable, Equals, Revivable {
 	private static final long serialVersionUID = 4430291958902286779L;
 
     /**
      * This is obligatory.
      */
-    private PrismContext prismContext;
+    private transient PrismContext prismContext;
 
     /*
      *  At most one of these two values (xnode, parsed) should be set.
@@ -55,6 +57,14 @@ public class RawType implements Serializable, Cloneable, Equals {
     public RawType(XNode xnode, PrismContext prismContext) {
         this(prismContext);
         this.xnode = xnode;
+    }
+
+    @Override
+    public void revive(PrismContext prismContext) throws SchemaException {
+        this.prismContext = prismContext;
+        if (parsed != null) {
+            parsed.revive(prismContext);
+        }
     }
 
     //region General getters/setters
