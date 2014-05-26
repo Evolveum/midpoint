@@ -32,12 +32,12 @@ import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgUnitSearchDto;
 import com.evolveum.midpoint.web.session.OrgUnitStorage;
 import com.evolveum.midpoint.web.util.WebModelUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 import org.apache.commons.lang.StringUtils;
@@ -76,6 +76,7 @@ public class OrgUnitBrowser extends ModalWindow {
     private static final String ID_CREATE_ROOT = "createRoot";
     private static final String ID_FEEDBACK = "feedback";
 
+    private boolean movingRoot;
     private boolean initialized;
     private Operation operation;
     private IModel<OrgUnitSearchDto> searchModel;
@@ -116,6 +117,14 @@ public class OrgUnitBrowser extends ModalWindow {
 
         WebMarkupContainer content = new WebMarkupContainer(getContentId());
         setContent(content);
+    }
+
+    public boolean isMovingRoot() {
+        return movingRoot;
+    }
+
+    public void setMovingRoot(boolean movingRoot) {
+        this.movingRoot = movingRoot;
     }
 
     public Operation getOperation() {
@@ -192,10 +201,9 @@ public class OrgUnitBrowser extends ModalWindow {
 
             @Override
             public ObjectQuery getQuery() {
-                return createQueryFromSelected();
+                return createSearchQuery();
             }
         };
-        provider.setQuery(createQuery());
         List<IColumn<OrgTableDto, String>> columns = initColumns();
         TablePanel table = new TablePanel(ID_TABLE, provider, columns);
         table.setOutputMarkupId(true);
@@ -219,6 +227,12 @@ public class OrgUnitBrowser extends ModalWindow {
                 createRootPerformed(target);
             }
         };
+        createRoot.add(new VisibleEnableBehaviour(){
+            @Override
+            public boolean isVisible() {
+                return !isMovingRoot();
+            }
+        });
         container.add(createRoot);
     }
 
@@ -284,13 +298,16 @@ public class OrgUnitBrowser extends ModalWindow {
 
     }
 
-    //TODO - continue here - make sure that this query is not overwritten by query from createQueryFromSelected()
-    private ObjectQuery createQuery(){
+    private ObjectQuery createSearchQuery(){
         OrgUnitSearchDto dto = searchModel.getObject();
         ObjectQuery query = null;
 
         if(StringUtils.isEmpty(dto.getText())){
-            return null;
+            if(createRootQuery() != null){
+                return createRootQuery();
+            } else {
+                return null;
+            }
         }
 
         try{
@@ -300,10 +317,12 @@ public class OrgUnitBrowser extends ModalWindow {
             SubstringFilter substring = SubstringFilter.createSubstring(OrgType.F_NAME, OrgType.class,
                     getPageBase().getPrismContext(), PolyStringNormMatchingRule.NAME, normalized);
 
-            //AndFilter and = AndFilter.createAnd(org, substring);
-
-//            query = ObjectQuery.createObjectQuery(and);
-            query = ObjectQuery.createObjectQuery(substring);
+            if(createRootQuery() != null){
+                AndFilter and = AndFilter.createAnd(createRootQuery().getFilter(), substring);
+                query = ObjectQuery.createObjectQuery(and);
+            } else {
+                query = ObjectQuery.createObjectQuery(substring);
+            }
 
         } catch (Exception e){
             error(getString("OrgUnitBrowser.message.queryError") + " " + e.getMessage());
@@ -313,8 +332,12 @@ public class OrgUnitBrowser extends ModalWindow {
         return query;
     }
 
+    public ObjectQuery createRootQuery(){
+        return null;
+    }
+
     private void searchPerformed(AjaxRequestTarget target) {
-        ObjectQuery query = createQuery();
+        ObjectQuery query = createSearchQuery();
         target.add(get(ID_FEEDBACK));
 
         TablePanel panel = getOrgUnitTablePanel();
