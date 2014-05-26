@@ -747,6 +747,7 @@ public class TreeTablePanel extends SimplePanel<String> {
         basicSearch.getModel().setObject(null);
 
         TablePanel table = getTable();
+        table.setCurrentPage(null);
 
         target.add(table);
         target.add(get(ID_SEARCH_FORM));
@@ -757,7 +758,6 @@ public class TreeTablePanel extends SimplePanel<String> {
         String oid = dto != null ? dto.getOid() : getModel().getObject();
 
         OrgFilter org = OrgFilter.createOrg(oid, OrgFilter.Scope.ONE_LEVEL);
-//        return ObjectQuery.createObjectQuery(org);
 
         BasicSearchPanel<String> basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
         String object = basicSearch.getModelObject();
@@ -773,7 +773,6 @@ public class TreeTablePanel extends SimplePanel<String> {
         if (StringUtils.isEmpty(normalizedString)) {
             return ObjectQuery.createObjectQuery(org);
         }
-
 
         SubstringFilter substring =  SubstringFilter.createSubstring(ObjectType.F_NAME, ObjectType.class, context,
                 PolyStringNormMatchingRule.NAME, normalizedString);
