@@ -26,56 +26,7 @@
 	<description>User accounts subreport for midpoint users.</description>
 	<!-- flag if this report is "parent" report, used for gui -->
 	<parent>false</parent>
-	<template>
-		<jasperReport 
-			xmlns="http://jasperreports.sourceforge.net/jasperreports" 
-			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-			xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" 
-			name="reportUserAccounts" 
-			columnCount="2" 
-			pageWidth="180" 
-			pageHeight="18" 
-			whenNoDataType="AllSectionsNoDetail" 
-			columnWidth="89" 
-			columnSpacing="1" 
-			leftMargin="0" 
-			rightMargin="0" 
-			topMargin="0" 
-			bottomMargin="0" 
-			uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
-			<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
-			<property name="net.sf.jasperreports.export.pdf.force.linebreak.policy" value="true"/>
-			<style fontName="DejaVu Sans" fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="true" 
-				   name="Base" pdfEncoding="Identity-H" pdfFontName="DejaVuSans.ttf" vAlign="Middle">
-			</style>
-			<style isBold="false" isDefault="false" name="Detail" style="Base"/>
-			<parameter name="userOid" class="java.lang.String"/>
-			<parameter name="hqlQueryAccounts" class="java.lang.String"/>
-			<queryString language="hql"><![CDATA[$P!{hqlQueryAccounts}]]></queryString>
-			<field name="accountName" class="java.lang.String"/>
-			<field name="resourceName" class="java.lang.String"/>
-			<detail>
-				<band height="18" splitType="Stretch">
-					<frame>
-						<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" positionType="Float" style="Detail" mode="Opaque" x="0" y="1" width="180" height="17"/>
-						<line>
-							<reportElement uuid="47f91801-cf5f-4bed-b19c-ca3931cbf98d" positionType="FixRelativeToTop" x="0" y="0" width="180" height="1" forecolor="#333333">
-								<printWhenExpression><![CDATA[new java.lang.Boolean((int)$V{REPORT_COUNT}.intValue()!=1)]]></printWhenExpression>
-							</reportElement>
-							<graphicElement>
-								<pen lineWidth="0.5" lineColor="#999999"/>
-							</graphicElement>
-						</line>
-						<textField isStretchWithOverflow="true">
-							<reportElement uuid="ebaef16d-2903-4029-9a6b-d4d244558ae9" positionType="Float" stretchType="RelativeToTallestObject" style="Detail" x="0" y="2" width="180" height="13"/>
-							<textElement verticalAlignment="Middle"/> 
-							<textFieldExpression><![CDATA[$F{resourceName}+ ": " + $F{accountName}]]></textFieldExpression>
-						</textField>
-					</frame>
-				</band>
-			</detail>
-		</jasperReport>
-	</template>
+	<template>PGphc3BlclJlcG9ydCANCgkJCXhtbG5zPSJodHRwOi8vamFzcGVycmVwb3J0cy5zb3VyY2Vmb3JnZS5uZXQvamFzcGVycmVwb3J0cyIgDQoJCQl4bWxuczp4c2k9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZW1hLWluc3RhbmNlIiANCgkJCXhzaTpzY2hlbWFMb2NhdGlvbj0iaHR0cDovL2phc3BlcnJlcG9ydHMuc291cmNlZm9yZ2UubmV0L2phc3BlcnJlcG9ydHMgaHR0cDovL2phc3BlcnJlcG9ydHMuc291cmNlZm9yZ2UubmV0L3hzZC9qYXNwZXJyZXBvcnQueHNkIiANCgkJCW5hbWU9InJlcG9ydFVzZXJBY2NvdW50cyIgDQoJCQljb2x1bW5Db3VudD0iMiIgDQoJCQlwYWdlV2lkdGg9IjE4MCIgDQoJCQlwYWdlSGVpZ2h0PSIxOCIgDQoJCQl3aGVuTm9EYXRhVHlwZT0iQWxsU2VjdGlvbnNOb0RldGFpbCIgDQoJCQljb2x1bW5XaWR0aD0iODkiIA0KCQkJY29sdW1uU3BhY2luZz0iMSIgDQoJCQlsZWZ0TWFyZ2luPSIwIiANCgkJCXJpZ2h0TWFyZ2luPSIwIiANCgkJCXRvcE1hcmdpbj0iMCIgDQoJCQlib3R0b21NYXJnaW49IjAiIA0KCQkJdXVpZD0iNjdlNDY1YzUtNDZlYS00MGQyLWJlYTAtNDY5YzZjZjM4OTM3Ij4NCgkJCTxwcm9wZXJ0eSBuYW1lPSJuZXQuc2YuamFzcGVycmVwb3J0cy5hd3QuaWdub3JlLm1pc3NpbmcuZm9udCIgdmFsdWU9InRydWUiLz4NCgkJCTxwcm9wZXJ0eSBuYW1lPSJuZXQuc2YuamFzcGVycmVwb3J0cy5leHBvcnQucGRmLmZvcmNlLmxpbmVicmVhay5wb2xpY3kiIHZhbHVlPSJ0cnVlIi8+DQoJCQk8c3R5bGUgZm9udE5hbWU9IkRlamFWdSBTYW5zIiBmb250U2l6ZT0iMTAiIGhBbGlnbj0iTGVmdCIgaXNEZWZhdWx0PSJ0cnVlIiBpc1BkZkVtYmVkZGVkPSJ0cnVlIiANCgkJCQkgICBuYW1lPSJCYXNlIiBwZGZFbmNvZGluZz0iSWRlbnRpdHktSCIgcGRmRm9udE5hbWU9IkRlamFWdVNhbnMudHRmIiB2QWxpZ249Ik1pZGRsZSI+DQoJCQk8L3N0eWxlPg0KCQkJPHN0eWxlIGlzQm9sZD0iZmFsc2UiIGlzRGVmYXVsdD0iZmFsc2UiIG5hbWU9IkRldGFpbCIgc3R5bGU9IkJhc2UiLz4NCgkJCTxwYXJhbWV0ZXIgbmFtZT0idXNlck9pZCIgY2xhc3M9ImphdmEubGFuZy5TdHJpbmciLz4NCgkJCTxwYXJhbWV0ZXIgbmFtZT0iaHFsUXVlcnlBY2NvdW50cyIgY2xhc3M9ImphdmEubGFuZy5TdHJpbmciLz4NCgkJCTxxdWVyeVN0cmluZyBsYW5ndWFnZT0iaHFsIj48IVtDREFUQVskUCF7aHFsUXVlcnlBY2NvdW50c31dXT48L3F1ZXJ5U3RyaW5nPg0KCQkJPGZpZWxkIG5hbWU9ImFjY291bnROYW1lIiBjbGFzcz0iamF2YS5sYW5nLlN0cmluZyIvPg0KCQkJPGZpZWxkIG5hbWU9InJlc291cmNlTmFtZSIgY2xhc3M9ImphdmEubGFuZy5TdHJpbmciLz4NCgkJCTxkZXRhaWw+DQoJCQkJPGJhbmQgaGVpZ2h0PSIxOCIgc3BsaXRUeXBlPSJTdHJldGNoIj4NCgkJCQkJPGZyYW1lPg0KCQkJCQkJPHJlcG9ydEVsZW1lbnQgdXVpZD0iM2U4ZmRkNmQtYTZmZi00NDA3LTlhMWUtNWQ2YjQ3MDYzMDBhIiBwb3NpdGlvblR5cGU9IkZsb2F0IiBzdHlsZT0iRGV0YWlsIiBtb2RlPSJPcGFxdWUiIHg9IjAiIHk9IjEiIHdpZHRoPSIxODAiIGhlaWdodD0iMTciLz4NCgkJCQkJCTxsaW5lPg0KCQkJCQkJCTxyZXBvcnRFbGVtZW50IHV1aWQ9IjQ3ZjkxODAxLWNmNWYtNGJlZC1iMTljLWNhMzkzMWNiZjk4ZCIgcG9zaXRpb25UeXBlPSJGaXhSZWxhdGl2ZVRvVG9wIiB4PSIwIiB5PSIwIiB3aWR0aD0iMTgwIiBoZWlnaHQ9IjEiIGZvcmVjb2xvcj0iIzMzMzMzMyI+DQoJCQkJCQkJCTxwcmludFdoZW5FeHByZXNzaW9uPjwhW0NEQVRBW25ldyBqYXZhLmxhbmcuQm9vbGVhbigoaW50KSRWe1JFUE9SVF9DT1VOVH0uaW50VmFsdWUoKSE9MSldXT48L3ByaW50V2hlbkV4cHJlc3Npb24+DQoJCQkJCQkJPC9yZXBvcnRFbGVtZW50Pg0KCQkJCQkJCTxncmFwaGljRWxlbWVudD4NCgkJCQkJCQkJPHBlbiBsaW5lV2lkdGg9IjAuNSIgbGluZUNvbG9yPSIjOTk5OTk5Ii8+DQoJCQkJCQkJPC9ncmFwaGljRWxlbWVudD4NCgkJCQkJCTwvbGluZT4NCgkJCQkJCTx0ZXh0RmllbGQgaXNTdHJldGNoV2l0aE92ZXJmbG93PSJ0cnVlIj4NCgkJCQkJCQk8cmVwb3J0RWxlbWVudCB1dWlkPSJlYmFlZjE2ZC0yOTAzLTQwMjktOWE2Yi1kNGQyNDQ1NThhZTkiIHBvc2l0aW9uVHlwZT0iRmxvYXQiIHN0cmV0Y2hUeXBlPSJSZWxhdGl2ZVRvVGFsbGVzdE9iamVjdCIgc3R5bGU9IkRldGFpbCIgeD0iMCIgeT0iMiIgd2lkdGg9IjE4MCIgaGVpZ2h0PSIxMyIvPg0KCQkJCQkJCTx0ZXh0RWxlbWVudCB2ZXJ0aWNhbEFsaWdubWVudD0iTWlkZGxlIi8+IA0KCQkJCQkJCTx0ZXh0RmllbGRFeHByZXNzaW9uPjwhW0NEQVRBWyRGe3Jlc291cmNlTmFtZX0rICI6ICIgKyAkRnthY2NvdW50TmFtZX1dXT48L3RleHRGaWVsZEV4cHJlc3Npb24+DQoJCQkJCQk8L3RleHRGaWVsZD4NCgkJCQkJPC9mcmFtZT4NCgkJCQk8L2JhbmQ+DQoJCQk8L2RldGFpbD4NCgkJPC9qYXNwZXJSZXBvcnQ+</template>
 	<orientation>landscape</orientation>
 	<export>pdf</export>
 	<!-- set to true if report needs hibernate session (e.g. hql query is used) -->

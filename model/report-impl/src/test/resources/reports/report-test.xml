@@ -24,189 +24,8 @@
 		<norm xmlns="http://prism.evolveum.com/xml/ns/public/types-3">test report</norm>
 	</name>
 	<description>TEST Report with DataSource parameter.</description>
-	<template>
-		<jasperReport 
-			xmlns="http://jasperreports.sourceforge.net/jasperreports" 
-			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-			xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" 
-			name="reportUserTestDatasource" 
-			pageWidth="842" 
-			pageHeight="595" 
-			orientation="Landscape" 
-			whenNoDataType="AllSectionsNoDetail" 
-			columnWidth="802" 
-			leftMargin="20" 
-			rightMargin="20" 
-			topMargin="20" 
-			bottomMargin="20" 
-			uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
-			<parameter name="logoPath" class="java.lang.String"/>
-			<field name="name" class="java.lang.String"/>
-			<field name="firstName" class="java.lang.String"/>
-			<field name="lastName" class="java.lang.String"/>
-			<field name="activation" class="java.lang.String"/>
-			<background>
-				<band height="30" splitType="Stretch"/>
-			</background>
-			<title>
-				<band height="110" splitType="Stretch">
-					<frame>
-						<reportElement style="Title" mode="Opaque" x="1" y="0" width="799" height="67" backcolor="#267994" uuid="44bedacc-fa23-4fe1-b71f-e5afa943f553"/>
-						<staticText>
-							<reportElement style="Title" x="10" y="13" width="266" height="38" uuid="f2d99cad-9d84-4f50-b455-453c87f62c4c"/>
-							<textElement verticalAlignment="Middle"/>
-							<text><![CDATA[User Report]]></text>
-						</staticText>
-						<image>
-							<reportElement style="Title" x="589" y="13" width="203" height="45" uuid="b0a76e6a-8f61-4d60-8dcd-3e51adb4cd4c"/>
-							<imageExpression><![CDATA[$P{logoPath}]]></imageExpression>
-						</image>
-					</frame>
-					<staticText>
-						<reportElement style="Page header" x="400" y="87" width="150" height="20" uuid="3ff78fbf-8fce-4072-b691-7af047ea92a7"/>
-						<textElement verticalAlignment="Middle"/>
-						<text><![CDATA[Number of records:]]></text>
-					</staticText>
-					<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
-						<reportElement style="Page header" x="550" y="67" width="250" height="20" uuid="09a7e272-204e-4078-8a5e-e472757424c1"/>
-						<textElement textAlignment="Right" verticalAlignment="Middle">
-							<font isBold="false"/>
-						</textElement>
-						<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
-					</textField>
-					<staticText>
-						<reportElement style="Page header" x="400" y="67" width="150" height="20" uuid="b0b9714f-96f5-4f58-824b-c81fd4d321f7"/>
-						<textElement verticalAlignment="Middle"/>
-						<text><![CDATA[Report generated on:]]></text>
-					</staticText>
-					<textField evaluationTime="Report" isBlankWhenNull="true">
-						<reportElement style="Page header" x="550" y="87" width="250" height="20" uuid="89251211-3f49-471d-b88d-5564c1bd04d1"/>
-						<textElement textAlignment="Right" verticalAlignment="Middle">
-							<font isBold="false"/>
-						</textElement>
-						<textFieldExpression><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
-					</textField>
-				</band>
-			</title>
-			<pageHeader>
-				<band splitType="Stretch"/>
-			</pageHeader>
-			<columnHeader>
-				<band height="24" splitType="Stretch">
-					<frame>
-						<reportElement style="Column header" mode="Transparent" x="1" y="5" width="800" height="19" isRemoveLineWhenBlank="true" uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a"/>
-						<staticText>
-							<reportElement style="Column header" x="0" y="0" width="119" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
-							<textElement verticalAlignment="Middle"/>
-							<text><![CDATA[Name]]></text>
-						</staticText>
-						<staticText>
-							<reportElement style="Column header" x="119" y="0" width="100" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
-							<textElement verticalAlignment="Middle"/>
-							<text><![CDATA[First name]]></text>
-						</staticText>
-						<staticText>
-							<reportElement style="Column header" x="219" y="0" width="100" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
-							<textElement verticalAlignment="Middle"/>
-							<text><![CDATA[Last name]]></text>
-						</staticText>
-						<staticText>
-							<reportElement style="Column header" x="319" y="0" width="100" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
-							<textElement verticalAlignment="Middle"/>
-							<text><![CDATA[Activation]]></text>
-						</staticText>
-					</frame>
-				</band>
-			</columnHeader>
-			<detail>
-				<band height="20" splitType="Stretch">
-					<frame>
-						<reportElement style="Detail" x="0" y="1" width="800" height="19" uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a"/>
-						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-							<reportElement style="Detail" x="0" y="1" width="120" height="18" uuid="ebaef16d-2903-4029-9a6b-d4d244558ae9"/>
-							<textElement verticalAlignment="Middle"/>
-							<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
-						</textField>
-						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-							<reportElement style="Detail" x="120" y="1" width="100" height="18" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
-							<textElement verticalAlignment="Middle"/>
-							<textFieldExpression><![CDATA[$F{firstName}]]></textFieldExpression>
-						</textField>
-						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-							<reportElement style="Detail" x="220" y="1" width="100" height="18" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
-							<textElement verticalAlignment="Middle"/>
-							<textFieldExpression><![CDATA[$F{lastName}]]></textFieldExpression>
-						</textField>
-						<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-							<reportElement style="Detail" x="320" y="1" width="100" height="18" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
-							<textElement verticalAlignment="Middle"/>
-							<textFieldExpression><![CDATA[$F{activation}]]></textFieldExpression>
-						</textField>
-						<line>
-							<reportElement positionType="FixRelativeToBottom" x="0" y="17" width="800" height="1" uuid="a591d4c1-1cad-4da2-9f9d-081f539e9043"/>
-							<graphicElement>
-								<pen lineWidth="0.5" lineColor="#999999"/>
-							</graphicElement>
-						</line>
-					</frame>
-				</band>
-			</detail>
-			<columnFooter>
-				<band height="7" splitType="Stretch">
-					<line>
-						<reportElement positionType="FixRelativeToBottom" x="0" y="3" width="800" height="1" uuid="a591d4c1-1cad-4da2-9f9d-081f539e9043"/>
-						<graphicElement>
-							<pen lineWidth="0.5" lineColor="#999999"/>
-						</graphicElement>
-					</line>
-				</band>
-			</columnFooter>
-			<pageFooter>
-				<band height="32" splitType="Stretch">
-					<frame>
-						<reportElement style="Page footer" mode="Transparent" x="0" y="1" width="800" height="24" uuid="fbe8aae4-6500-468a-b1e8-700b569139a1"/>
-						<textField>
-							<reportElement style="Page footer" x="680" y="1" width="80" height="20" uuid="5c062c66-ba45-4288-9dcd-246e28c5af75"/>
-							<textElement textAlignment="Right" verticalAlignment="Middle"/>
-							<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
-						</textField>
-						<textField pattern="EEEEE dd MMMMM yyyy">
-							<reportElement style="Page footer" x="2" y="1" width="197" height="20" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
-							<textElement verticalAlignment="Middle"/>
-							<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
-						</textField>
-						<textField evaluationTime="Report">
-							<reportElement style="Page footer" x="760" y="1" width="40" height="20" uuid="934b16e8-c3eb-4017-866a-0b7735bf2917"/>
-							<textElement verticalAlignment="Middle"/>
-							<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
-						</textField>
-					</frame>
-				</band>
-			</pageFooter>
-		</jasperReport>
-	</template>
-	<templateStyle>
-		<jasperTemplate xmlns="http://jasperreports.sourceforge.net/dtds/jaspertemplate.dtd">
-			<style fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="false" name="Base"
-				   pdfEncoding="Cp1252"
-				   pdfFontName="Helvetica"
-                   vAlign="Middle"/>
-			<style backcolor="#267994" fontSize="26" forecolor="#FFFFFF" isDefault="false"
-                   mode="Opaque"
-                   name="Title"
-                   style="Base"/>
-			<style fontSize="12" forecolor="#000000" isDefault="false" name="Page header"
-                   style="Base"/>
-			<style backcolor="#333333" fontSize="12" forecolor="#FFFFFF" hAlign="Center"
-                   isDefault="false"
-                   mode="Opaque"
-                   name="Column header"
-                   style="Base"/>
-			<style isBold="false" isDefault="false" name="Detail" style="Base"/>
-			<style fontSize="9" forecolor="#000000" isDefault="false" name="Page footer"
-                   style="Base"/>
-		</jasperTemplate>
-	</templateStyle>
+	<template>PGphc3BlclJlcG9ydCANCgkJCXhtbG5zPSJodHRwOi8vamFzcGVycmVwb3J0cy5zb3VyY2Vmb3JnZS5uZXQvamFzcGVycmVwb3J0cyIgDQoJCQl4bWxuczp4c2k9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZW1hLWluc3RhbmNlIiANCgkJCXhzaTpzY2hlbWFMb2NhdGlvbj0iaHR0cDovL2phc3BlcnJlcG9ydHMuc291cmNlZm9yZ2UubmV0L2phc3BlcnJlcG9ydHMgaHR0cDovL2phc3BlcnJlcG9ydHMuc291cmNlZm9yZ2UubmV0L3hzZC9qYXNwZXJyZXBvcnQueHNkIiANCgkJCW5hbWU9InJlcG9ydFVzZXJUZXN0RGF0YXNvdXJjZSIgDQoJCQlwYWdlV2lkdGg9Ijg0MiIgDQoJCQlwYWdlSGVpZ2h0PSI1OTUiIA0KCQkJb3JpZW50YXRpb249IkxhbmRzY2FwZSIgDQoJCQl3aGVuTm9EYXRhVHlwZT0iQWxsU2VjdGlvbnNOb0RldGFpbCIgDQoJCQljb2x1bW5XaWR0aD0iODAyIiANCgkJCWxlZnRNYXJnaW49IjIwIiANCgkJCXJpZ2h0TWFyZ2luPSIyMCIgDQoJCQl0b3BNYXJnaW49IjIwIiANCgkJCWJvdHRvbU1hcmdpbj0iMjAiIA0KCQkJdXVpZD0iNjdlNDY1YzUtNDZlYS00MGQyLWJlYTAtNDY5YzZjZjM4OTM3Ij4NCgkJCTxwYXJhbWV0ZXIgbmFtZT0ibG9nb1BhdGgiIGNsYXNzPSJqYXZhLmxhbmcuU3RyaW5nIi8+DQoJCQk8ZmllbGQgbmFtZT0ibmFtZSIgY2xhc3M9ImphdmEubGFuZy5TdHJpbmciLz4NCgkJCTxmaWVsZCBuYW1lPSJmaXJzdE5hbWUiIGNsYXNzPSJqYXZhLmxhbmcuU3RyaW5nIi8+DQoJCQk8ZmllbGQgbmFtZT0ibGFzdE5hbWUiIGNsYXNzPSJqYXZhLmxhbmcuU3RyaW5nIi8+DQoJCQk8ZmllbGQgbmFtZT0iYWN0aXZhdGlvbiIgY2xhc3M9ImphdmEubGFuZy5TdHJpbmciLz4NCgkJCTxiYWNrZ3JvdW5kPg0KCQkJCTxiYW5kIGhlaWdodD0iMzAiIHNwbGl0VHlwZT0iU3RyZXRjaCIvPg0KCQkJPC9iYWNrZ3JvdW5kPg0KCQkJPHRpdGxlPg0KCQkJCTxiYW5kIGhlaWdodD0iMTEwIiBzcGxpdFR5cGU9IlN0cmV0Y2giPg0KCQkJCQk8ZnJhbWU+DQoJCQkJCQk8cmVwb3J0RWxlbWVudCBzdHlsZT0iVGl0bGUiIG1vZGU9Ik9wYXF1ZSIgeD0iMSIgeT0iMCIgd2lkdGg9Ijc5OSIgaGVpZ2h0PSI2NyIgYmFja2NvbG9yPSIjMjY3OTk0IiB1dWlkPSI0NGJlZGFjYy1mYTIzLTRmZTEtYjcxZi1lNWFmYTk0M2Y1NTMiLz4NCgkJCQkJCTxzdGF0aWNUZXh0Pg0KCQkJCQkJCTxyZXBvcnRFbGVtZW50IHN0eWxlPSJUaXRsZSIgeD0iMTAiIHk9IjEzIiB3aWR0aD0iMjY2IiBoZWlnaHQ9IjM4IiB1dWlkPSJmMmQ5OWNhZC05ZDg0LTRmNTAtYjQ1NS00NTNjODdmNjJjNGMiLz4NCgkJCQkJCQk8dGV4dEVsZW1lbnQgdmVydGljYWxBbGlnbm1lbnQ9Ik1pZGRsZSIvPg0KCQkJCQkJCTx0ZXh0PjwhW0NEQVRBW1VzZXIgUmVwb3J0XV0+PC90ZXh0Pg0KCQkJCQkJPC9zdGF0aWNUZXh0Pg0KCQkJCQkJPGltYWdlPg0KCQkJCQkJCTxyZXBvcnRFbGVtZW50IHN0eWxlPSJUaXRsZSIgeD0iNTg5IiB5PSIxMyIgd2lkdGg9IjIwMyIgaGVpZ2h0PSI0NSIgdXVpZD0iYjBhNzZlNmEtOGY2MS00ZDYwLThkY2QtM2U1MWFkYjRjZDRjIi8+DQoJCQkJCQkJPGltYWdlRXhwcmVzc2lvbj48IVtDREFUQVskUHtsb2dvUGF0aH1dXT48L2ltYWdlRXhwcmVzc2lvbj4NCgkJCQkJCTwvaW1hZ2U+DQoJCQkJCTwvZnJhbWU+DQoJCQkJCTxzdGF0aWNUZXh0Pg0KCQkJCQkJPHJlcG9ydEVsZW1lbnQgc3R5bGU9IlBhZ2UgaGVhZGVyIiB4PSI0MDAiIHk9Ijg3IiB3aWR0aD0iMTUwIiBoZWlnaHQ9IjIwIiB1dWlkPSIzZmY3OGZiZi04ZmNlLTQwNzItYjY5MS03YWYwNDdlYTkyYTciLz4NCgkJCQkJCTx0ZXh0RWxlbWVudCB2ZXJ0aWNhbEFsaWdubWVudD0iTWlkZGxlIi8+DQoJCQkJCQk8dGV4dD48IVtDREFUQVtOdW1iZXIgb2YgcmVjb3JkczpdXT48L3RleHQ+DQoJCQkJCTwvc3RhdGljVGV4dD4NCgkJCQkJPHRleHRGaWVsZCBwYXR0ZXJuPSJFRUVFRSBkZCBNTU1NTSB5eXl5LCBISDptbTpzcyI+DQoJCQkJCQk8cmVwb3J0RWxlbWVudCBzdHlsZT0iUGFnZSBoZWFkZXIiIHg9IjU1MCIgeT0iNjciIHdpZHRoPSIyNTAiIGhlaWdodD0iMjAiIHV1aWQ9IjA5YTdlMjcyLTIwNGUtNDA3OC04YTVlLWU0NzI3NTc0MjRjMSIvPg0KCQkJCQkJPHRleHRFbGVtZW50IHRleHRBbGlnbm1lbnQ9IlJpZ2h0IiB2ZXJ0aWNhbEFsaWdubWVudD0iTWlkZGxlIj4NCgkJCQkJCQk8Zm9udCBpc0JvbGQ9ImZhbHNlIi8+DQoJCQkJCQk8L3RleHRFbGVtZW50Pg0KCQkJCQkJPHRleHRGaWVsZEV4cHJlc3Npb24+PCFbQ0RBVEFbbmV3IGphdmEudXRpbC5EYXRlKCldXT48L3RleHRGaWVsZEV4cHJlc3Npb24+DQoJCQkJCTwvdGV4dEZpZWxkPg0KCQkJCQk8c3RhdGljVGV4dD4NCgkJCQkJCTxyZXBvcnRFbGVtZW50IHN0eWxlPSJQYWdlIGhlYWRlciIgeD0iNDAwIiB5PSI2NyIgd2lkdGg9IjE1MCIgaGVpZ2h0PSIyMCIgdXVpZD0iYjBiOTcxNGYtOTZmNS00ZjU4LTgyNGItYzgxZmQ0ZDMyMWY3Ii8+DQoJCQkJCQk8dGV4dEVsZW1lbnQgdmVydGljYWxBbGlnbm1lbnQ9Ik1pZGRsZSIvPg0KCQkJCQkJPHRleHQ+PCFbQ0RBVEFbUmVwb3J0IGdlbmVyYXRlZCBvbjpdXT48L3RleHQ+DQoJCQkJCTwvc3RhdGljVGV4dD4NCgkJCQkJPHRleHRGaWVsZCBldmFsdWF0aW9uVGltZT0iUmVwb3J0IiBpc0JsYW5rV2hlbk51bGw9InRydWUiPg0KCQkJCQkJPHJlcG9ydEVsZW1lbnQgc3R5bGU9IlBhZ2UgaGVhZGVyIiB4PSI1NTAiIHk9Ijg3IiB3aWR0aD0iMjUwIiBoZWlnaHQ9IjIwIiB1dWlkPSI4OTI1MTIxMS0zZjQ5LTQ3MWQtYjg4ZC01NTY0YzFiZDA0ZDEiLz4NCgkJCQkJCTx0ZXh0RWxlbWVudCB0ZXh0QWxpZ25tZW50PSJSaWdodCIgdmVydGljYWxBbGlnbm1lbnQ9Ik1pZGRsZSI+DQoJCQkJCQkJPGZvbnQgaXNCb2xkPSJmYWxzZSIvPg0KCQkJCQkJPC90ZXh0RWxlbWVudD4NCgkJCQkJCTx0ZXh0RmllbGRFeHByZXNzaW9uPjwhW0NEQVRBWyRWe1JFUE9SVF9DT1VOVH1dXT48L3RleHRGaWVsZEV4cHJlc3Npb24+DQoJCQkJCTwvdGV4dEZpZWxkPg0KCQkJCTwvYmFuZD4NCgkJCTwvdGl0bGU+DQoJCQk8cGFnZUhlYWRlcj4NCgkJCQk8YmFuZCBzcGxpdFR5cGU9IlN0cmV0Y2giLz4NCgkJCTwvcGFnZUhlYWRlcj4NCgkJCTxjb2x1bW5IZWFkZXI+DQoJCQkJPGJhbmQgaGVpZ2h0PSIyNCIgc3BsaXRUeXBlPSJTdHJldGNoIj4NCgkJCQkJPGZyYW1lPg0KCQkJCQkJPHJlcG9ydEVsZW1lbnQgc3R5bGU9IkNvbHVtbiBoZWFkZXIiIG1vZGU9IlRyYW5zcGFyZW50IiB4PSIxIiB5PSI1IiB3aWR0aD0iODAwIiBoZWlnaHQ9IjE5IiBpc1JlbW92ZUxpbmVXaGVuQmxhbms9InRydWUiIHV1aWQ9IjNlOGZkZDZkLWE2ZmYtNDQwNy05YTFlLTVkNmI0NzA2MzAwYSIvPg0KCQkJCQkJPHN0YXRpY1RleHQ+DQoJCQkJCQkJPHJlcG9ydEVsZW1lbnQgc3R5bGU9IkNvbHVtbiBoZWFkZXIiIHg9IjAiIHk9IjAiIHdpZHRoPSIxMTkiIGhlaWdodD0iMTgiIHV1aWQ9Ijg2Yzc0YmViLWJkZGQtNDhjYy05NDVhLTE2N2IyNjFiMWUwYiIvPg0KCQkJCQkJCTx0ZXh0RWxlbWVudCB2ZXJ0aWNhbEFsaWdubWVudD0iTWlkZGxlIi8+DQoJCQkJCQkJPHRleHQ+PCFbQ0RBVEFbTmFtZV1dPjwvdGV4dD4NCgkJCQkJCTwvc3RhdGljVGV4dD4NCgkJCQkJCTxzdGF0aWNUZXh0Pg0KCQkJCQkJCTxyZXBvcnRFbGVtZW50IHN0eWxlPSJDb2x1bW4gaGVhZGVyIiB4PSIxMTkiIHk9IjAiIHdpZHRoPSIxMDAiIGhlaWdodD0iMTgiIHV1aWQ9Ijg2Yzc0YmViLWJkZGQtNDhjYy05NDVhLTE2N2IyNjFiMWUwYiIvPg0KCQkJCQkJCTx0ZXh0RWxlbWVudCB2ZXJ0aWNhbEFsaWdubWVudD0iTWlkZGxlIi8+DQoJCQkJCQkJPHRleHQ+PCFbQ0RBVEFbRmlyc3QgbmFtZV1dPjwvdGV4dD4NCgkJCQkJCTwvc3RhdGljVGV4dD4NCgkJCQkJCTxzdGF0aWNUZXh0Pg0KCQkJCQkJCTxyZXBvcnRFbGVtZW50IHN0eWxlPSJDb2x1bW4gaGVhZGVyIiB4PSIyMTkiIHk9IjAiIHdpZHRoPSIxMDAiIGhlaWdodD0iMTgiIHV1aWQ9Ijg2Yzc0YmViLWJkZGQtNDhjYy05NDVhLTE2N2IyNjFiMWUwYiIvPg0KCQkJCQkJCTx0ZXh0RWxlbWVudCB2ZXJ0aWNhbEFsaWdubWVudD0iTWlkZGxlIi8+DQoJCQkJCQkJPHRleHQ+PCFbQ0RBVEFbTGFzdCBuYW1lXV0+PC90ZXh0Pg0KCQkJCQkJPC9zdGF0aWNUZXh0Pg0KCQkJCQkJPHN0YXRpY1RleHQ+DQoJCQkJCQkJPHJlcG9ydEVsZW1lbnQgc3R5bGU9IkNvbHVtbiBoZWFkZXIiIHg9IjMxOSIgeT0iMCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxOCIgdXVpZD0iODZjNzRiZWItYmRkZC00OGNjLTk0NWEtMTY3YjI2MWIxZTBiIi8+DQoJCQkJCQkJPHRleHRFbGVtZW50IHZlcnRpY2FsQWxpZ25tZW50PSJNaWRkbGUiLz4NCgkJCQkJCQk8dGV4dD48IVtDREFUQVtBY3RpdmF0aW9uXV0+PC90ZXh0Pg0KCQkJCQkJPC9zdGF0aWNUZXh0Pg0KCQkJCQk8L2ZyYW1lPg0KCQkJCTwvYmFuZD4NCgkJCTwvY29sdW1uSGVhZGVyPg0KCQkJPGRldGFpbD4NCgkJCQk8YmFuZCBoZWlnaHQ9IjIwIiBzcGxpdFR5cGU9IlN0cmV0Y2giPg0KCQkJCQk8ZnJhbWU+DQoJCQkJCQk8cmVwb3J0RWxlbWVudCBzdHlsZT0iRGV0YWlsIiB4PSIwIiB5PSIxIiB3aWR0aD0iODAwIiBoZWlnaHQ9IjE5IiB1dWlkPSIzZThmZGQ2ZC1hNmZmLTQ0MDctOWExZS01ZDZiNDcwNjMwMGEiLz4NCgkJCQkJCTx0ZXh0RmllbGQgaXNTdHJldGNoV2l0aE92ZXJmbG93PSJ0cnVlIiBpc0JsYW5rV2hlbk51bGw9InRydWUiPg0KCQkJCQkJCTxyZXBvcnRFbGVtZW50IHN0eWxlPSJEZXRhaWwiIHg9IjAiIHk9IjEiIHdpZHRoPSIxMjAiIGhlaWdodD0iMTgiIHV1aWQ9ImViYWVmMTZkLTI5MDMtNDAyOS05YTZiLWQ0ZDI0NDU1OGFlOSIvPg0KCQkJCQkJCTx0ZXh0RWxlbWVudCB2ZXJ0aWNhbEFsaWdubWVudD0iTWlkZGxlIi8+DQoJCQkJCQkJPHRleHRGaWVsZEV4cHJlc3Npb24+PCFbQ0RBVEFbJEZ7bmFtZX1dXT48L3RleHRGaWVsZEV4cHJlc3Npb24+DQoJCQkJCQk8L3RleHRGaWVsZD4NCgkJCQkJCTx0ZXh0RmllbGQgaXNTdHJldGNoV2l0aE92ZXJmbG93PSJ0cnVlIiBpc0JsYW5rV2hlbk51bGw9InRydWUiPg0KCQkJCQkJCTxyZXBvcnRFbGVtZW50IHN0eWxlPSJEZXRhaWwiIHg9IjEyMCIgeT0iMSIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxOCIgdXVpZD0iMjhiYjliNDctYTY5Yy00OGUxLTkwNzMtZDU0ZDkyNjI0MmU4Ii8+DQoJCQkJCQkJPHRleHRFbGVtZW50IHZlcnRpY2FsQWxpZ25tZW50PSJNaWRkbGUiLz4NCgkJCQkJCQk8dGV4dEZpZWxkRXhwcmVzc2lvbj48IVtDREFUQVskRntmaXJzdE5hbWV9XV0+PC90ZXh0RmllbGRFeHByZXNzaW9uPg0KCQkJCQkJPC90ZXh0RmllbGQ+DQoJCQkJCQk8dGV4dEZpZWxkIGlzU3RyZXRjaFdpdGhPdmVyZmxvdz0idHJ1ZSIgaXNCbGFua1doZW5OdWxsPSJ0cnVlIj4NCgkJCQkJCQk8cmVwb3J0RWxlbWVudCBzdHlsZT0iRGV0YWlsIiB4PSIyMjAiIHk9IjEiIHdpZHRoPSIxMDAiIGhlaWdodD0iMTgiIHV1aWQ9IjI4YmI5YjQ3LWE2OWMtNDhlMS05MDczLWQ1NGQ5MjYyNDJlOCIvPg0KCQkJCQkJCTx0ZXh0RWxlbWVudCB2ZXJ0aWNhbEFsaWdubWVudD0iTWlkZGxlIi8+DQoJCQkJCQkJPHRleHRGaWVsZEV4cHJlc3Npb24+PCFbQ0RBVEFbJEZ7bGFzdE5hbWV9XV0+PC90ZXh0RmllbGRFeHByZXNzaW9uPg0KCQkJCQkJPC90ZXh0RmllbGQ+DQoJCQkJCQk8dGV4dEZpZWxkIGlzU3RyZXRjaFdpdGhPdmVyZmxvdz0idHJ1ZSIgaXNCbGFua1doZW5OdWxsPSJ0cnVlIj4NCgkJCQkJCQk8cmVwb3J0RWxlbWVudCBzdHlsZT0iRGV0YWlsIiB4PSIzMjAiIHk9IjEiIHdpZHRoPSIxMDAiIGhlaWdodD0iMTgiIHV1aWQ9IjI4YmI5YjQ3LWE2OWMtNDhlMS05MDczLWQ1NGQ5MjYyNDJlOCIvPg0KCQkJCQkJCTx0ZXh0RWxlbWVudCB2ZXJ0aWNhbEFsaWdubWVudD0iTWlkZGxlIi8+DQoJCQkJCQkJPHRleHRGaWVsZEV4cHJlc3Npb24+PCFbQ0RBVEFbJEZ7YWN0aXZhdGlvbn1dXT48L3RleHRGaWVsZEV4cHJlc3Npb24+DQoJCQkJCQk8L3RleHRGaWVsZD4NCgkJCQkJCTxsaW5lPg0KCQkJCQkJCTxyZXBvcnRFbGVtZW50IHBvc2l0aW9uVHlwZT0iRml4UmVsYXRpdmVUb0JvdHRvbSIgeD0iMCIgeT0iMTciIHdpZHRoPSI4MDAiIGhlaWdodD0iMSIgdXVpZD0iYTU5MWQ0YzEtMWNhZC00ZGEyLTlmOWQtMDgxZjUzOWU5MDQzIi8+DQoJCQkJCQkJPGdyYXBoaWNFbGVtZW50Pg0KCQkJCQkJCQk8cGVuIGxpbmVXaWR0aD0iMC41IiBsaW5lQ29sb3I9IiM5OTk5OTkiLz4NCgkJCQkJCQk8L2dyYXBoaWNFbGVtZW50Pg0KCQkJCQkJPC9saW5lPg0KCQkJCQk8L2ZyYW1lPg0KCQkJCTwvYmFuZD4NCgkJCTwvZGV0YWlsPg0KCQkJPGNvbHVtbkZvb3Rlcj4NCgkJCQk8YmFuZCBoZWlnaHQ9IjciIHNwbGl0VHlwZT0iU3RyZXRjaCI+DQoJCQkJCTxsaW5lPg0KCQkJCQkJPHJlcG9ydEVsZW1lbnQgcG9zaXRpb25UeXBlPSJGaXhSZWxhdGl2ZVRvQm90dG9tIiB4PSIwIiB5PSIzIiB3aWR0aD0iODAwIiBoZWlnaHQ9IjEiIHV1aWQ9ImE1OTFkNGMxLTFjYWQtNGRhMi05ZjlkLTA4MWY1MzllOTA0MyIvPg0KCQkJCQkJPGdyYXBoaWNFbGVtZW50Pg0KCQkJCQkJCTxwZW4gbGluZVdpZHRoPSIwLjUiIGxpbmVDb2xvcj0iIzk5OTk5OSIvPg0KCQkJCQkJPC9ncmFwaGljRWxlbWVudD4NCgkJCQkJPC9saW5lPg0KCQkJCTwvYmFuZD4NCgkJCTwvY29sdW1uRm9vdGVyPg0KCQkJPHBhZ2VGb290ZXI+DQoJCQkJPGJhbmQgaGVpZ2h0PSIzMiIgc3BsaXRUeXBlPSJTdHJldGNoIj4NCgkJCQkJPGZyYW1lPg0KCQkJCQkJPHJlcG9ydEVsZW1lbnQgc3R5bGU9IlBhZ2UgZm9vdGVyIiBtb2RlPSJUcmFuc3BhcmVudCIgeD0iMCIgeT0iMSIgd2lkdGg9IjgwMCIgaGVpZ2h0PSIyNCIgdXVpZD0iZmJlOGFhZTQtNjUwMC00NjhhLWIxZTgtNzAwYjU2OTEzOWExIi8+DQoJCQkJCQk8dGV4dEZpZWxkPg0KCQkJCQkJCTxyZXBvcnRFbGVtZW50IHN0eWxlPSJQYWdlIGZvb3RlciIgeD0iNjgwIiB5PSIxIiB3aWR0aD0iODAiIGhlaWdodD0iMjAiIHV1aWQ9IjVjMDYyYzY2LWJhNDUtNDI4OC05ZGNkLTI0NmUyOGM1YWY3NSIvPg0KCQkJCQkJCTx0ZXh0RWxlbWVudCB0ZXh0QWxpZ25tZW50PSJSaWdodCIgdmVydGljYWxBbGlnbm1lbnQ9Ik1pZGRsZSIvPg0KCQkJCQkJCTx0ZXh0RmllbGRFeHByZXNzaW9uPjwhW0NEQVRBWyJQYWdlICIrJFZ7UEFHRV9OVU1CRVJ9KyIgb2YiXV0+PC90ZXh0RmllbGRFeHByZXNzaW9uPg0KCQkJCQkJPC90ZXh0RmllbGQ+DQoJCQkJCQk8dGV4dEZpZWxkIHBhdHRlcm49IkVFRUVFIGRkIE1NTU1NIHl5eXkiPg0KCQkJCQkJCTxyZXBvcnRFbGVtZW50IHN0eWxlPSJQYWdlIGZvb3RlciIgeD0iMiIgeT0iMSIgd2lkdGg9IjE5NyIgaGVpZ2h0PSIyMCIgdXVpZD0iMjhiYjliNDctYTY5Yy00OGUxLTkwNzMtZDU0ZDkyNjI0MmU4Ii8+DQoJCQkJCQkJPHRleHRFbGVtZW50IHZlcnRpY2FsQWxpZ25tZW50PSJNaWRkbGUiLz4NCgkJCQkJCQk8dGV4dEZpZWxkRXhwcmVzc2lvbj48IVtDREFUQVtuZXcgamF2YS51dGlsLkRhdGUoKV1dPjwvdGV4dEZpZWxkRXhwcmVzc2lvbj4NCgkJCQkJCTwvdGV4dEZpZWxkPg0KCQkJCQkJPHRleHRGaWVsZCBldmFsdWF0aW9uVGltZT0iUmVwb3J0Ij4NCgkJCQkJCQk8cmVwb3J0RWxlbWVudCBzdHlsZT0iUGFnZSBmb290ZXIiIHg9Ijc2MCIgeT0iMSIgd2lkdGg9IjQwIiBoZWlnaHQ9IjIwIiB1dWlkPSI5MzRiMTZlOC1jM2ViLTQwMTctODY2YS0wYjc3MzViZjI5MTciLz4NCgkJCQkJCQk8dGV4dEVsZW1lbnQgdmVydGljYWxBbGlnbm1lbnQ9Ik1pZGRsZSIvPg0KCQkJCQkJCTx0ZXh0RmllbGRFeHByZXNzaW9uPjwhW0NEQVRBWyIgIiArICRWe1BBR0VfTlVNQkVSfV1dPjwvdGV4dEZpZWxkRXhwcmVzc2lvbj4NCgkJCQkJCTwvdGV4dEZpZWxkPg0KCQkJCQk8L2ZyYW1lPg0KCQkJCTwvYmFuZD4NCgkJCTwvcGFnZUZvb3Rlcj4NCgkJPC9qYXNwZXJSZXBvcnQ+</template>
+	<templateStyle>PGphc3BlclRlbXBsYXRlIHhtbG5zPSJodHRwOi8vamFzcGVycmVwb3J0cy5zb3VyY2Vmb3JnZS5uZXQvZHRkcy9qYXNwZXJ0ZW1wbGF0ZS5kdGQiPg0KCQkJPHN0eWxlIGZvbnRTaXplPSIxMCIgaEFsaWduPSJMZWZ0IiBpc0RlZmF1bHQ9InRydWUiIGlzUGRmRW1iZWRkZWQ9ImZhbHNlIiBuYW1lPSJCYXNlIg0KCQkJCSAgIHBkZkVuY29kaW5nPSJDcDEyNTIiDQoJCQkJICAgcGRmRm9udE5hbWU9IkhlbHZldGljYSINCiAgICAgICAgICAgICAgICAgICB2QWxpZ249Ik1pZGRsZSIvPg0KCQkJPHN0eWxlIGJhY2tjb2xvcj0iIzI2Nzk5NCIgZm9udFNpemU9IjI2IiBmb3JlY29sb3I9IiNGRkZGRkYiIGlzRGVmYXVsdD0iZmFsc2UiDQogICAgICAgICAgICAgICAgICAgbW9kZT0iT3BhcXVlIg0KICAgICAgICAgICAgICAgICAgIG5hbWU9IlRpdGxlIg0KICAgICAgICAgICAgICAgICAgIHN0eWxlPSJCYXNlIi8+DQoJCQk8c3R5bGUgZm9udFNpemU9IjEyIiBmb3JlY29sb3I9IiMwMDAwMDAiIGlzRGVmYXVsdD0iZmFsc2UiIG5hbWU9IlBhZ2UgaGVhZGVyIg0KICAgICAgICAgICAgICAgICAgIHN0eWxlPSJCYXNlIi8+DQoJCQk8c3R5bGUgYmFja2NvbG9yPSIjMzMzMzMzIiBmb250U2l6ZT0iMTIiIGZvcmVjb2xvcj0iI0ZGRkZGRiIgaEFsaWduPSJDZW50ZXIiDQogICAgICAgICAgICAgICAgICAgaXNEZWZhdWx0PSJmYWxzZSINCiAgICAgICAgICAgICAgICAgICBtb2RlPSJPcGFxdWUiDQogICAgICAgICAgICAgICAgICAgbmFtZT0iQ29sdW1uIGhlYWRlciINCiAgICAgICAgICAgICAgICAgICBzdHlsZT0iQmFzZSIvPg0KCQkJPHN0eWxlIGlzQm9sZD0iZmFsc2UiIGlzRGVmYXVsdD0iZmFsc2UiIG5hbWU9IkRldGFpbCIgc3R5bGU9IkJhc2UiLz4NCgkJCTxzdHlsZSBmb250U2l6ZT0iOSIgZm9yZWNvbG9yPSIjMDAwMDAwIiBpc0RlZmF1bHQ9ImZhbHNlIiBuYW1lPSJQYWdlIGZvb3RlciINCiAgICAgICAgICAgICAgICAgICBzdHlsZT0iQmFzZSIvPg0KCQk8L2phc3BlclRlbXBsYXRlPg==</templateStyle>
 	<orientation>landscape</orientation>
 	<export>csv</export>
 	<!-- datasource sample, provider instance is obtained from spring context -->
@@ -249,13 +68,15 @@
 				   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 		<r:logoPath>src/test/resources/reports/logo.jpg</r:logoPath>
 		<r:type>c:UserType</r:type>
-		<r:filter>
-			<q:substring>
-				<q:matching>normIgnoreCase</q:matching>
-				<q:path>c:name</q:path>
-				<q:value>user</q:value>
-			</q:substring>
-		</r:filter>
+		<r:query>
+			<q:filter>
+				<q:substring>
+					<q:matching>normIgnoreCase</q:matching>
+					<q:path>c:name</q:path>
+					<q:value>user</q:value>
+				</q:substring>
+			</q:filter>
+		</r:query>
 	</configuration>
 	<!-- report parameters configuration schema sample with different options -->
 	<configurationSchema>
@@ -282,7 +103,7 @@
 					<xsd:sequence>
 						<!-- sample how query api datasource configuration should look like-->
 						<xsd:element name="type" type="xsd:QName"/>
-						<xsd:element name="filter" type="q:QueryType">
+						<xsd:element name="query" type="q:QueryType">
 							<xsd:annotation>
 								<xsd:appinfo>
 									<jaxb:dom/>

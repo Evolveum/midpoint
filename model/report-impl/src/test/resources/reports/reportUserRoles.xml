@@ -26,55 +26,7 @@
 	<description>User roles subreport for midpoint users.</description>
 	<!-- flag if this report is "parent" report, used for gui -->
 	<parent>false</parent>
-	<template>
-		<jasperReport 
-			xmlns="http://jasperreports.sourceforge.net/jasperreports" 
-			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-			xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" 
-			name="reportUserRoles" 
-			columnCount="2" 
-			pageWidth="110" 
-			pageHeight="18" 
-			whenNoDataType="AllSectionsNoDetail" 
-			columnWidth="54" 
-			columnSpacing="1" 
-			leftMargin="0" 
-			rightMargin="0" 
-			topMargin="0" 
-			bottomMargin="0" 
-			uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
-			<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
-			<property name="net.sf.jasperreports.export.pdf.force.linebreak.policy" value="true"/>
-			<style fontName="DejaVu Sans" fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="true" 
-				   name="Base" pdfEncoding="Identity-H" pdfFontName="DejaVuSans.ttf" vAlign="Middle">
-			</style>
-			<style isBold="false" isDefault="false" name="Detail" style="Base"/>
-			<parameter name="userOid" class="java.lang.String"/>
-			<parameter name="hqlQueryRoles" class="java.lang.String"/>
-			<queryString language="hql"><![CDATA[$P!{hqlQueryRoles}]]></queryString>
-			<field name="roleName" class="java.lang.String"/>
-			<detail>
-				<band height="18" splitType="Stretch">
-					<frame>
-						<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" positionType="Float" style="Detail" mode="Opaque" x="0" y="1" width="100" height="17"/>
-						<line>
-							<reportElement uuid="47f91801-cf5f-4bed-b19c-ca3931cbf98d" positionType="FixRelativeToTop" mode="Opaque" x="0" y="0" width="100" height="1" forecolor="#333333">
-								<printWhenExpression><![CDATA[new java.lang.Boolean((int)$V{REPORT_COUNT}.intValue()!=1)]]></printWhenExpression>
-							</reportElement>
-							<graphicElement>
-								<pen lineWidth="0.5" lineColor="#999999"/>
-							</graphicElement>
-						</line>
-						<textField isStretchWithOverflow="true">
-							<reportElement uuid="ebaef16d-2903-4029-9a6b-d4d244558ae9" style="Detail" x="0" y="2" width="100" height="13"/>
-							<textElement verticalAlignment="Middle"/>
-							<textFieldExpression><![CDATA[$F{roleName}]]></textFieldExpression>
-						</textField>
-					</frame>
-				</band>
-			</detail>
-		</jasperReport>
-	</template>
+	<template>PGphc3BlclJlcG9ydCANCgkJCXhtbG5zPSJodHRwOi8vamFzcGVycmVwb3J0cy5zb3VyY2Vmb3JnZS5uZXQvamFzcGVycmVwb3J0cyIgDQoJCQl4bWxuczp4c2k9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZW1hLWluc3RhbmNlIiANCgkJCXhzaTpzY2hlbWFMb2NhdGlvbj0iaHR0cDovL2phc3BlcnJlcG9ydHMuc291cmNlZm9yZ2UubmV0L2phc3BlcnJlcG9ydHMgaHR0cDovL2phc3BlcnJlcG9ydHMuc291cmNlZm9yZ2UubmV0L3hzZC9qYXNwZXJyZXBvcnQueHNkIiANCgkJCW5hbWU9InJlcG9ydFVzZXJSb2xlcyIgDQoJCQljb2x1bW5Db3VudD0iMiIgDQoJCQlwYWdlV2lkdGg9IjExMCIgDQoJCQlwYWdlSGVpZ2h0PSIxOCIgDQoJCQl3aGVuTm9EYXRhVHlwZT0iQWxsU2VjdGlvbnNOb0RldGFpbCIgDQoJCQljb2x1bW5XaWR0aD0iNTQiIA0KCQkJY29sdW1uU3BhY2luZz0iMSIgDQoJCQlsZWZ0TWFyZ2luPSIwIiANCgkJCXJpZ2h0TWFyZ2luPSIwIiANCgkJCXRvcE1hcmdpbj0iMCIgDQoJCQlib3R0b21NYXJnaW49IjAiIA0KCQkJdXVpZD0iNjdlNDY1YzUtNDZlYS00MGQyLWJlYTAtNDY5YzZjZjM4OTM3Ij4NCgkJCTxwcm9wZXJ0eSBuYW1lPSJuZXQuc2YuamFzcGVycmVwb3J0cy5hd3QuaWdub3JlLm1pc3NpbmcuZm9udCIgdmFsdWU9InRydWUiLz4NCgkJCTxwcm9wZXJ0eSBuYW1lPSJuZXQuc2YuamFzcGVycmVwb3J0cy5leHBvcnQucGRmLmZvcmNlLmxpbmVicmVhay5wb2xpY3kiIHZhbHVlPSJ0cnVlIi8+DQoJCQk8c3R5bGUgZm9udE5hbWU9IkRlamFWdSBTYW5zIiBmb250U2l6ZT0iMTAiIGhBbGlnbj0iTGVmdCIgaXNEZWZhdWx0PSJ0cnVlIiBpc1BkZkVtYmVkZGVkPSJ0cnVlIiANCgkJCQkgICBuYW1lPSJCYXNlIiBwZGZFbmNvZGluZz0iSWRlbnRpdHktSCIgcGRmRm9udE5hbWU9IkRlamFWdVNhbnMudHRmIiB2QWxpZ249Ik1pZGRsZSI+DQoJCQk8L3N0eWxlPg0KCQkJPHN0eWxlIGlzQm9sZD0iZmFsc2UiIGlzRGVmYXVsdD0iZmFsc2UiIG5hbWU9IkRldGFpbCIgc3R5bGU9IkJhc2UiLz4NCgkJCTxwYXJhbWV0ZXIgbmFtZT0idXNlck9pZCIgY2xhc3M9ImphdmEubGFuZy5TdHJpbmciLz4NCgkJCTxwYXJhbWV0ZXIgbmFtZT0iaHFsUXVlcnlSb2xlcyIgY2xhc3M9ImphdmEubGFuZy5TdHJpbmciLz4NCgkJCTxxdWVyeVN0cmluZyBsYW5ndWFnZT0iaHFsIj48IVtDREFUQVskUCF7aHFsUXVlcnlSb2xlc31dXT48L3F1ZXJ5U3RyaW5nPg0KCQkJPGZpZWxkIG5hbWU9InJvbGVOYW1lIiBjbGFzcz0iamF2YS5sYW5nLlN0cmluZyIvPg0KCQkJPGRldGFpbD4NCgkJCQk8YmFuZCBoZWlnaHQ9IjE4IiBzcGxpdFR5cGU9IlN0cmV0Y2giPg0KCQkJCQk8ZnJhbWU+DQoJCQkJCQk8cmVwb3J0RWxlbWVudCB1dWlkPSIzZThmZGQ2ZC1hNmZmLTQ0MDctOWExZS01ZDZiNDcwNjMwMGEiIHBvc2l0aW9uVHlwZT0iRmxvYXQiIHN0eWxlPSJEZXRhaWwiIG1vZGU9Ik9wYXF1ZSIgeD0iMCIgeT0iMSIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxNyIvPg0KCQkJCQkJPGxpbmU+DQoJCQkJCQkJPHJlcG9ydEVsZW1lbnQgdXVpZD0iNDdmOTE4MDEtY2Y1Zi00YmVkLWIxOWMtY2EzOTMxY2JmOThkIiBwb3NpdGlvblR5cGU9IkZpeFJlbGF0aXZlVG9Ub3AiIG1vZGU9Ik9wYXF1ZSIgeD0iMCIgeT0iMCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxIiBmb3JlY29sb3I9IiMzMzMzMzMiPg0KCQkJCQkJCQk8cHJpbnRXaGVuRXhwcmVzc2lvbj48IVtDREFUQVtuZXcgamF2YS5sYW5nLkJvb2xlYW4oKGludCkkVntSRVBPUlRfQ09VTlR9LmludFZhbHVlKCkhPTEpXV0+PC9wcmludFdoZW5FeHByZXNzaW9uPg0KCQkJCQkJCTwvcmVwb3J0RWxlbWVudD4NCgkJCQkJCQk8Z3JhcGhpY0VsZW1lbnQ+DQoJCQkJCQkJCTxwZW4gbGluZVdpZHRoPSIwLjUiIGxpbmVDb2xvcj0iIzk5OTk5OSIvPg0KCQkJCQkJCTwvZ3JhcGhpY0VsZW1lbnQ+DQoJCQkJCQk8L2xpbmU+DQoJCQkJCQk8dGV4dEZpZWxkIGlzU3RyZXRjaFdpdGhPdmVyZmxvdz0idHJ1ZSI+DQoJCQkJCQkJPHJlcG9ydEVsZW1lbnQgdXVpZD0iZWJhZWYxNmQtMjkwMy00MDI5LTlhNmItZDRkMjQ0NTU4YWU5IiBzdHlsZT0iRGV0YWlsIiB4PSIwIiB5PSIyIiB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEzIi8+DQoJCQkJCQkJPHRleHRFbGVtZW50IHZlcnRpY2FsQWxpZ25tZW50PSJNaWRkbGUiLz4NCgkJCQkJCQk8dGV4dEZpZWxkRXhwcmVzc2lvbj48IVtDREFUQVskRntyb2xlTmFtZX1dXT48L3RleHRGaWVsZEV4cHJlc3Npb24+DQoJCQkJCQk8L3RleHRGaWVsZD4NCgkJCQkJPC9mcmFtZT4NCgkJCQk8L2JhbmQ+DQoJCQk8L2RldGFpbD4NCgkJPC9qYXNwZXJSZXBvcnQ+</template>
 	<orientation>landscape</orientation>
 	<export>pdf</export>
 	<!-- set to true if report needs hibernate session (e.g. hql query is used) -->

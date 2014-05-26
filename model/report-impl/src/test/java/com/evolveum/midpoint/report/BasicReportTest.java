@@ -45,6 +45,7 @@ import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.query.JRHibernateQueryExecuterFactory;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
@@ -398,15 +399,23 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 
 		// file templates
 		String template = FileUtils.readFileToString(REPORT_DATASOURCE_TEST, "UTF-8");
-		
+		LOGGER.info("tempalte: " + template);
+		byte[] encodedTemplate = Base64.encodeBase64(template.getBytes());
+		LOGGER.info("encoded tempalte: " + encodedTemplate);
+		byte[] decoded = Base64.decodeBase64(encodedTemplate);
+		LOGGER.info("decided: " + new String(decoded));
+		assertEquals(template, new String(decoded));
 //		ReportTemplateType reportTemplate = new ReportTemplateType();
 //		reportTemplate.setAny(DOMUtil.parseDocument(template).getDocumentElement());
-		reportType.setTemplate(template.getBytes());
+		reportType.setTemplate(encodedTemplate);
 
 		String templateStyle = FileUtils.readFileToString(STYLE_TEMPLATE_DEFAULT, "UTF-8"); //readFile(STYLE_TEMPLATE_DEFAULT, StandardCharsets.UTF_8);
 //		ReportTemplateStyleType reportTemplateStyle = new ReportTemplateStyleType();
 //		reportTemplateStyle.setAny(DOMUtil.parseDocument(templateStyle).getDocumentElement());
-		reportType.setTemplateStyle(templateStyle.getBytes());
+		byte[] encodedTemplateStyle = Base64.encodeBase64(templateStyle.getBytes());
+		reportType.setTemplateStyle(encodedTemplateStyle);
+		LOGGER.info("tempalte style: " + templateStyle);
+		LOGGER.info("encoded tempalte style: " + encodedTemplateStyle);
 /*
 		String config_schema = FileUtils.readFileToString(REPORT_DATASOURCE_TEST, "UTF-8");
 		
@@ -647,6 +656,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	@Test 
 	public void test002CreateReportFromFile() throws Exception {
 		
+		try{
 		final String TEST_NAME = "test002CreateReportFromFile";
         TestUtil.displayTestTile(this, TEST_NAME);
 	
@@ -656,7 +666,28 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
       
 		//WHEN 	
 		TestUtil.displayWhen(TEST_NAME);
-		importObjectFromFile(TEST_REPORT_FILE);
+		PrismObject<ReportType> reportType = prismContext.parseObject(TEST_REPORT_FILE);
+		LOGGER.info("report template: " + new String(Base64.decodeBase64(reportType.asObjectable().getTemplate())));
+		LOGGER.info("report template style: " + new String(Base64.decodeBase64(reportType.asObjectable().getTemplateStyle())));
+		LOGGER.info("Parsed: " + reportType.debugDump());
+		repoAddObject(ReportType.class, reportType, result);
+//		importObjectFromFile(TEST_REPORT_FILE);
+		
+		PrismObject<ReportType> reportFromRepo = modelService.getObject(ReportType.class, TEST_REPORT_OID, null, task, result);
+		LOGGER.info("REPO: " + reportFromRepo.debugDump());
+		LOGGER.info("report template: " + new String(Base64.decodeBase64(reportFromRepo.asObjectable().getTemplate())));
+		LOGGER.info("report template style: " + new String(Base64.decodeBase64(reportFromRepo.asObjectable().getTemplateStyle())));
+		ObjectDelta delta = reportType.diff(reportFromRepo);
+		AssertJUnit.assertTrue("Delta must be null", delta.isEmpty());
+		LOGGER.info("delta: " + delta.debugDump());
+		
+		PrismObject<ReportType> reportFromutils = ReportUtils.getReport(TEST_REPORT_OID, result, modelService).asPrismObject();
+		LOGGER.info("UTILS: " + reportFromutils.debugDump());
+		LOGGER.info("report template: " + new String(Base64.decodeBase64(reportFromutils.asObjectable().getTemplate())));
+		LOGGER.info("report template style: " + new String(Base64.decodeBase64(reportFromutils.asObjectable().getTemplateStyle())));
+		ObjectDelta delta2 = reportFromRepo.diff(reportFromutils);
+		AssertJUnit.assertTrue("Delta must be null", delta2.isEmpty());
+		LOGGER.info("delta: " + delta2.debugDump());
 
 		
 		//THEN  
@@ -664,6 +695,10 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         result.computeStatus();
         display(result);
         TestUtil.assertSuccess(result);
+		} catch (Exception ex){
+			LOGGER.error("failed to create report: " + ex.getMessage(), ex);
+			throw ex;
+		}
 	}
 
 	@Test
@@ -708,7 +743,8 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		OperationResult result = task.getResult();
 		importUsers(1,10);
 		ReportType reportType = ReportUtils.getReport(TEST_REPORT_OID, result, modelService);
-		
+		LOGGER.info("jasper report: " + new String(Base64.decodeBase64(reportType.getTemplate()), "utf-8"));
+		LOGGER.info("jasper report template: " + new String(Base64.decodeBase64(reportType.getTemplateStyle())));
 		//WHEN 	
 		TestUtil.displayWhen(TEST_NAME);
 		reportManager.runReport(reportType.asPrismObject(), task, result);
