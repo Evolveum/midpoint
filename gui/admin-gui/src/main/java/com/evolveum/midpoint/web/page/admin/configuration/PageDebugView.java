@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import org.apache.commons.lang.StringUtils;
@@ -228,6 +230,18 @@ public class PageDebugView extends PageAdminConfiguration {
         editor.setReadonly(!editable);
         editor.refreshReadonly(target);
     }
+    
+    private boolean isReport(PrismObject object){
+    	if (object.getCompileTimeClass() != null && object.getCompileTimeClass() == ReportType.class){
+    		return true;
+    	}
+    	
+    	if (object.getDefinition() != null && object.getDefinition().getName().equals(ReportType.COMPLEX_TYPE)){
+    		return true;
+    	}
+    	
+    	return false;
+    }
 
     public void savePerformed(AjaxRequestTarget target) {
         ObjectViewDto dto = model.getObject();
@@ -258,6 +272,11 @@ public class PageDebugView extends PageAdminConfiguration {
                 if (delta.getPrismContext() == null) {
                 	LOGGER.warn("No prism context in delta {} after diff, adding it", delta);
                 	delta.setPrismContext(getPrismContext());
+                }
+                
+                //quick fix for now (MID-1910), maybe it should be somewhere in model..
+                if (isReport(oldObject)){
+                	ReportTypeUtil.applyConfigurationDefinition((PrismObject)newObject, delta, getPrismContext());
                 }
 
                 Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(delta);
