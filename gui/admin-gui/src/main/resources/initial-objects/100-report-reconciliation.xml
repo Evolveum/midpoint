@@ -73,7 +73,7 @@
 			s.synchronizationSituation as situation, 
 			s.synchronizationTimestamp as situationTimestamp 
 			from RShadow as s join s.resourceRef as resRef 
-			where resRef.type = 8 and resRef.targetOid = $P{resourceOid} and s.kind = 0 
+			where resRef.type = 5 and resRef.targetOid = $P{resourceOid} and s.kind = 0 
 			order by s.synchronizationSituation, s.name.orig
 		</r:hqlQuery>
 		<r:objectClass>ri:AccountObjectClass</r:objectClass>
