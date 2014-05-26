@@ -34,6 +34,7 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
+import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
@@ -790,48 +791,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         }
     }
 
-    @Test(enabled = false)    //TODO ENABLE [lazyman]
-    public void queryOrgStructure() throws Exception {
-        Session session = open();
-
-        try {
-            ProjectionList list = Projections.projectionList();
-            addFullObjectProjectionList("o", list, false);
-            addFullObjectProjectionList("o", list, true);
-            list.add(Projections.groupProperty("o.name.orig"));
-            list.add(Projections.groupProperty("closure.descendant"));
-
-
-            Criteria main = session.createCriteria(RObject.class, "o");
-            main.createCriteria("descendants", "closure").setFetchMode("closure.ancestor", FetchMode.DEFAULT)
-                    .createAlias("closure.ancestor", "anc").setProjection(list);
-            main.addOrder(Order.asc("o.name.orig"));
-
-            Conjunction conjunction = Restrictions.conjunction();
-            conjunction.add(Restrictions.eq("anc.oid", "some oid"));
-            conjunction.add(Restrictions.le("closure.depth", 1));
-            conjunction.add(Restrictions.gt("closure.depth", 0));
-            main.add(conjunction);
-
-            String expected = HibernateToSqlTranslator.toSql(main);
-
-            OrgFilter orgFilter = OrgFilter.createOrg("some oid", OrgFilter.Scope.ONE_LEVEL);
-            ObjectQuery query = ObjectQuery.createObjectQuery(orgFilter);
-            query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
-
-            String real = getInterpretedQuery(session, ObjectType.class, query);
-
-            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
-
-            OperationResult result = new OperationResult("query org structure");
-            repositoryService.searchObjects(ObjectType.class, query, null, result);
-
-            AssertJUnit.assertEquals(expected, real);
-        } finally {
-            close(session);
-        }
-    }
-
     @Test
     public void countObjectOrderByName() throws Exception {
         Session session = open();
@@ -939,13 +898,20 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
 
         try {
-            Query query = session.createQuery(
-                    "select o.fullObject,o.stringsCount,o.longsCount,o.datesCount,o.referencesCount,o.polysCount from " +
-                            "ROrg as o where o.oid in (select distinct p.ownerOid from RParentOrgRef p where p.targetOid=:oid)"
-            );
-            query.setString("oid", "1234");
 
-            String expected = HibernateToSqlTranslator.toSql(factory, query.getQueryString());
+            Criteria main = session.createCriteria(ROrg.class, "o");
+            ProjectionList projections = Projections.projectionList();
+            addFullObjectProjectionList("o", projections, false);
+            main.setProjection(projections);
+
+            DetachedCriteria detached = DetachedCriteria.forClass(RParentOrgRef.class, "p");
+            detached.setProjection(Projections.distinct(Projections.property("p.ownerOid")));
+            detached.add(Restrictions.eq("p.targetOid", "some oid"));
+
+            main.add(Subqueries.propertyIn("o.oid", detached));
+            main.addOrder(Order.asc("o.name.orig"));
+
+            String expected = HibernateToSqlTranslator.toSql(main);
 
             OrgFilter orgFilter = OrgFilter.createOrg("some oid", OrgFilter.Scope.ONE_LEVEL);
             ObjectQuery objectQuery = ObjectQuery.createObjectQuery(orgFilter);

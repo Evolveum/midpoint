@@ -87,7 +87,7 @@ public class PerformanceTest extends BaseSQLRepoTest {
                 String orgOID = org.getOid();
                 for (int j = 1; j <= USER_PER_ORG_COUNT; j++) {
                     UserType user = createUserType((i - 1) * USER_PER_ORG_COUNT + j, orgOID);
-                    for (int k = 1; k < RESOURCE_OIDS.size(); k++) {
+                    for (int k = 1; k <= RESOURCE_OIDS.size(); k++) {
                         ShadowType shadow = createShadow(user, RESOURCE_OIDS.get(k - 1), k);
                         writeObject(shadow, writer);
 
