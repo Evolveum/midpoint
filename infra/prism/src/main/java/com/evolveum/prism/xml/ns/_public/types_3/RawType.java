@@ -51,7 +51,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 	private PrismValue parsed;
 
     public RawType(PrismContext prismContext) {
-        Validate.notNull(prismContext, "prismContext");
+        Validate.notNull(prismContext, "prismContext is not set - perhaps a forgotten call to adopt() somewhere?");
         this.prismContext = prismContext;
     }
 
@@ -62,6 +62,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 
     @Override
     public void revive(PrismContext prismContext) throws SchemaException {
+        Validate.notNull(prismContext);
         this.prismContext = prismContext;
         if (parsed != null) {
             parsed.revive(prismContext);
@@ -91,6 +92,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
                 if (itemName == null) {
                     itemName = itemDefinition.getName();
                 }
+                checkPrismContext();
 				Item<V> subItem = PrismUtil.getXnodeProcessor(prismContext).parseItem(xnode, itemName, itemDefinition);
 				value = subItem.getValue(0);
 			} else {
@@ -125,6 +127,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
         if (xnode != null) {
             return xnode;
         } else if (parsed != null) {
+            checkPrismContext();
             return PrismUtil.getXnodeProcessor(prismContext).serializeItemValue(parsed);
         } else {
             return null;            // or an exception here?
@@ -185,4 +188,11 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
 		return equals(that);
 	}
     //endregion
+
+    private void checkPrismContext() {
+        if (prismContext != null) {
+            throw new IllegalStateException("prismContext is not set - perhaps a forgotten call to adopt() somewhere?");
+        }
+    }
+
 }
