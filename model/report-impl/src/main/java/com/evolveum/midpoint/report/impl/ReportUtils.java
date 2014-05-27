@@ -897,7 +897,7 @@ public class ReportUtils {
     			throw new IllegalStateException("Error parsing delta for audit report " + xnode);
     		}
     		
-    		System.out.println("delta xnode : " + xnode.debugDump());
+//    		System.out.println("delta xnode : " + xnode.debugDump());
     		
     		QName objectTypeXnode = deltaXnode.getParsedPrimitiveValue(ObjectDeltaType.F_OBJECT_TYPE, DOMUtil.XSD_QNAME);
     		String changeTypeXnode = deltaXnode.getParsedPrimitiveValue(ObjectDeltaType.F_CHANGE_TYPE, DOMUtil.XSD_STRING);
