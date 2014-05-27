@@ -76,6 +76,18 @@
     <None Include="Service References\midpointModelService\model-3.xsd" />
     <None Include="Service References\midpointModelService\model-31.xsd" />
     <None Include="Service References\midpointModelService\model.wsdl" />
+    <None Include="Service References\midpointModelService\ModelClientSample.midpointModelService.executeChangesResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\midpointModelService\ModelClientSample.midpointModelService.executeScriptsResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\midpointModelService\ModelClientSample.midpointModelService.findShadowOwnerResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\midpointModelService\ModelClientSample.midpointModelService.getObjectResponse.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
     <None Include="Service References\midpointModelService\ModelClientSample.midpointModelService.ObjectDeltaOperationType.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
@@ -86,6 +98,9 @@
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
     <None Include="Service References\midpointModelService\ModelClientSample.midpointModelService.OperationResultType.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </None>
+    <None Include="Service References\midpointModelService\ModelClientSample.midpointModelService.searchObjectsResponse.datasource">
       <DependentUpon>Reference.svcmap</DependentUpon>
     </None>
     <None Include="Service References\midpointModelService\ModelClientSample.midpointModelService.SingleScriptOutputType.datasource">

@@ -546,8 +546,8 @@ public class Main {
 		WSS4JOutInterceptor wssOut = new WSS4JOutInterceptor(outProps);
 		cxfEndpoint.getOutInterceptors().add(wssOut);
         // enable the following to get client-side logging of outgoing requests and incoming responses
-        cxfEndpoint.getOutInterceptors().add(new LoggingOutInterceptor());
-        cxfEndpoint.getInInterceptors().add(new LoggingInInterceptor());
+        //cxfEndpoint.getOutInterceptors().add(new LoggingOutInterceptor());
+        //cxfEndpoint.getInInterceptors().add(new LoggingInInterceptor());
 
 		return modelPort;
 	}

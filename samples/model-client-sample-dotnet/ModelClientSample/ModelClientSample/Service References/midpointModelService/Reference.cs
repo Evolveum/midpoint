@@ -15849,486 +15849,48 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
-    public partial class SignaturePropertyType : object, System.ComponentModel.INotifyPropertyChanged {
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3")]
+    public partial class ResourceObjectIdentificationType : object, System.ComponentModel.INotifyPropertyChanged {
         
-        private System.Xml.XmlElement[] itemsField;
+        private System.Xml.XmlElement[] anyField;
         
-        private string[] textField;
+        private long idField;
         
-        private string targetField;
-        
-        private string idField;
+        private bool idFieldSpecified;
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
-        public System.Xml.XmlElement[] Items {
-            get {
-                return this.itemsField;
-            }
-            set {
-                this.itemsField = value;
-                this.RaisePropertyChanged("Items");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlTextAttribute()]
-        public string[] Text {
-            get {
-                return this.textField;
-            }
-            set {
-                this.textField = value;
-                this.RaisePropertyChanged("Text");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
-        public string Target {
-            get {
-                return this.targetField;
-            }
-            set {
-                this.targetField = value;
-                this.RaisePropertyChanged("Target");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="ID")]
-        public string Id {
-            get {
-                return this.idField;
-            }
-            set {
-                this.idField = value;
-                this.RaisePropertyChanged("Id");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
-    public partial class SignaturePropertiesType : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private SignaturePropertyType[] signaturePropertyField;
-        
-        private string idField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("SignatureProperty", Order=0)]
-        public SignaturePropertyType[] SignatureProperty {
-            get {
-                return this.signaturePropertyField;
-            }
-            set {
-                this.signaturePropertyField = value;
-                this.RaisePropertyChanged("SignatureProperty");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="ID")]
-        public string Id {
-            get {
-                return this.idField;
-            }
-            set {
-                this.idField = value;
-                this.RaisePropertyChanged("Id");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
-    public partial class ManifestType : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private ReferenceType1[] referenceField;
-        
-        private string idField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("Reference", Order=0)]
-        public ReferenceType1[] Reference {
-            get {
-                return this.referenceField;
-            }
-            set {
-                this.referenceField = value;
-                this.RaisePropertyChanged("Reference");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="ID")]
-        public string Id {
-            get {
-                return this.idField;
-            }
-            set {
-                this.idField = value;
-                this.RaisePropertyChanged("Id");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(TypeName="ReferenceType", Namespace="http://www.w3.org/2000/09/xmldsig#")]
-    public partial class ReferenceType1 : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private TransformType[] transformsField;
-        
-        private DigestMethodType digestMethodField;
-        
-        private byte[] digestValueField;
-        
-        private string idField;
-        
-        private string uRIField;
-        
-        private string typeField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlArrayAttribute(Order=0)]
-        [System.Xml.Serialization.XmlArrayItemAttribute("Transform", IsNullable=false)]
-        public TransformType[] Transforms {
-            get {
-                return this.transformsField;
-            }
-            set {
-                this.transformsField = value;
-                this.RaisePropertyChanged("Transforms");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=1)]
-        public DigestMethodType DigestMethod {
-            get {
-                return this.digestMethodField;
-            }
-            set {
-                this.digestMethodField = value;
-                this.RaisePropertyChanged("DigestMethod");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(DataType="base64Binary", Order=2)]
-        public byte[] DigestValue {
-            get {
-                return this.digestValueField;
-            }
-            set {
-                this.digestValueField = value;
-                this.RaisePropertyChanged("DigestValue");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="ID")]
-        public string Id {
-            get {
-                return this.idField;
-            }
-            set {
-                this.idField = value;
-                this.RaisePropertyChanged("Id");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
-        public string URI {
-            get {
-                return this.uRIField;
-            }
-            set {
-                this.uRIField = value;
-                this.RaisePropertyChanged("URI");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
-        public string Type {
-            get {
-                return this.typeField;
-            }
-            set {
-                this.typeField = value;
-                this.RaisePropertyChanged("Type");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
-    public partial class TransformType : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private object[] itemsField;
-        
-        private string[] textField;
-        
-        private string algorithmField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
-        [System.Xml.Serialization.XmlElementAttribute("XPath", typeof(string), Order=0)]
-        public object[] Items {
-            get {
-                return this.itemsField;
-            }
-            set {
-                this.itemsField = value;
-                this.RaisePropertyChanged("Items");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlTextAttribute()]
-        public string[] Text {
-            get {
-                return this.textField;
-            }
-            set {
-                this.textField = value;
-                this.RaisePropertyChanged("Text");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
-        public string Algorithm {
-            get {
-                return this.algorithmField;
-            }
-            set {
-                this.algorithmField = value;
-                this.RaisePropertyChanged("Algorithm");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
-    public partial class DigestMethodType : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private System.Xml.XmlNode[] anyField;
-        
-        private string algorithmField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlTextAttribute()]
-        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
-        public System.Xml.XmlNode[] Any {
+        public System.Xml.XmlElement[] Any {
             get {
                 return this.anyField;
             }
             set {
                 this.anyField = value;
                 this.RaisePropertyChanged("Any");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
-        public string Algorithm {
-            get {
-                return this.algorithmField;
-            }
-            set {
-                this.algorithmField = value;
-                this.RaisePropertyChanged("Algorithm");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(TypeName="ObjectType", Namespace="http://www.w3.org/2000/09/xmldsig#")]
-    public partial class ObjectType2 : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private System.Xml.XmlNode[] anyField;
-        
-        private string idField;
-        
-        private string mimeTypeField;
-        
-        private string encodingField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlTextAttribute()]
-        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
-        public System.Xml.XmlNode[] Any {
-            get {
-                return this.anyField;
-            }
-            set {
-                this.anyField = value;
-                this.RaisePropertyChanged("Any");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="ID")]
-        public string Id {
-            get {
-                return this.idField;
-            }
-            set {
-                this.idField = value;
-                this.RaisePropertyChanged("Id");
             }
         }
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string MimeType {
-            get {
-                return this.mimeTypeField;
-            }
-            set {
-                this.mimeTypeField = value;
-                this.RaisePropertyChanged("MimeType");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
-        public string Encoding {
-            get {
-                return this.encodingField;
-            }
-            set {
-                this.encodingField = value;
-                this.RaisePropertyChanged("Encoding");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
-    public partial class SignatureValueType : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private string idField;
-        
-        private byte[] valueField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="ID")]
-        public string Id {
+        public long id {
             get {
                 return this.idField;
             }
             set {
                 this.idField = value;
-                this.RaisePropertyChanged("Id");
+                this.RaisePropertyChanged("id");
             }
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlTextAttribute(DataType="base64Binary")]
-        public byte[] Value {
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool idSpecified {
             get {
-                return this.valueField;
+                return this.idFieldSpecified;
             }
             set {
-                this.valueField = value;
-                this.RaisePropertyChanged("Value");
+                this.idFieldSpecified = value;
+                this.RaisePropertyChanged("idSpecified");
             }
         }
         
@@ -16347,31 +15909,18 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
-    public partial class SignatureMethodType : object, System.ComponentModel.INotifyPropertyChanged {
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3")]
+    public partial class ResourceObjectType : object, System.ComponentModel.INotifyPropertyChanged {
         
-        private string hMACOutputLengthField;
+        private System.Xml.XmlElement[] anyField;
         
-        private System.Xml.XmlNode[] anyField;
+        private long idField;
         
-        private string algorithmField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(DataType="integer", Order=0)]
-        public string HMACOutputLength {
-            get {
-                return this.hMACOutputLengthField;
-            }
-            set {
-                this.hMACOutputLengthField = value;
-                this.RaisePropertyChanged("HMACOutputLength");
-            }
-        }
+        private bool idFieldSpecified;
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlTextAttribute()]
-        [System.Xml.Serialization.XmlAnyElementAttribute(Order=1)]
-        public System.Xml.XmlNode[] Any {
+        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
+        public System.Xml.XmlElement[] Any {
             get {
                 return this.anyField;
             }
@@ -16382,306 +15931,26 @@ namespace ModelClientSample.midpointModelService {
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
-        public string Algorithm {
-            get {
-                return this.algorithmField;
-            }
-            set {
-                this.algorithmField = value;
-                this.RaisePropertyChanged("Algorithm");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
-    public partial class CanonicalizationMethodType : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private System.Xml.XmlNode[] anyField;
-        
-        private string algorithmField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlTextAttribute()]
-        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
-        public System.Xml.XmlNode[] Any {
-            get {
-                return this.anyField;
-            }
-            set {
-                this.anyField = value;
-                this.RaisePropertyChanged("Any");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
-        public string Algorithm {
-            get {
-                return this.algorithmField;
-            }
-            set {
-                this.algorithmField = value;
-                this.RaisePropertyChanged("Algorithm");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
-    public partial class SignedInfoType : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private CanonicalizationMethodType canonicalizationMethodField;
-        
-        private SignatureMethodType signatureMethodField;
-        
-        private ReferenceType1[] referenceField;
-        
-        private string idField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=0)]
-        public CanonicalizationMethodType CanonicalizationMethod {
-            get {
-                return this.canonicalizationMethodField;
-            }
-            set {
-                this.canonicalizationMethodField = value;
-                this.RaisePropertyChanged("CanonicalizationMethod");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=1)]
-        public SignatureMethodType SignatureMethod {
-            get {
-                return this.signatureMethodField;
-            }
-            set {
-                this.signatureMethodField = value;
-                this.RaisePropertyChanged("SignatureMethod");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("Reference", Order=2)]
-        public ReferenceType1[] Reference {
-            get {
-                return this.referenceField;
-            }
-            set {
-                this.referenceField = value;
-                this.RaisePropertyChanged("Reference");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="ID")]
-        public string Id {
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public long id {
             get {
                 return this.idField;
             }
             set {
                 this.idField = value;
-                this.RaisePropertyChanged("Id");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
-    public partial class SignatureType : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private SignedInfoType signedInfoField;
-        
-        private SignatureValueType signatureValueField;
-        
-        private KeyInfoType1 keyInfoField;
-        
-        private ObjectType2[] objectField;
-        
-        private string idField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=0)]
-        public SignedInfoType SignedInfo {
-            get {
-                return this.signedInfoField;
-            }
-            set {
-                this.signedInfoField = value;
-                this.RaisePropertyChanged("SignedInfo");
+                this.RaisePropertyChanged("id");
             }
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=1)]
-        public SignatureValueType SignatureValue {
-            get {
-                return this.signatureValueField;
-            }
-            set {
-                this.signatureValueField = value;
-                this.RaisePropertyChanged("SignatureValue");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=2)]
-        public KeyInfoType1 KeyInfo {
-            get {
-                return this.keyInfoField;
-            }
-            set {
-                this.keyInfoField = value;
-                this.RaisePropertyChanged("KeyInfo");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("Object", Order=3)]
-        public ObjectType2[] Object {
-            get {
-                return this.objectField;
-            }
-            set {
-                this.objectField = value;
-                this.RaisePropertyChanged("Object");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="ID")]
-        public string Id {
-            get {
-                return this.idField;
-            }
-            set {
-                this.idField = value;
-                this.RaisePropertyChanged("Id");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(TypeName="KeyInfoType", Namespace="http://www.w3.org/2000/09/xmldsig#")]
-    public partial class KeyInfoType1 : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private object[] itemsField;
-        
-        private ItemsChoiceType4[] itemsElementNameField;
-        
-        private string[] textField;
-        
-        private string idField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
-        [System.Xml.Serialization.XmlElementAttribute("KeyName", typeof(string), Order=0)]
-        [System.Xml.Serialization.XmlElementAttribute("KeyValue", typeof(KeyValueType), Order=0)]
-        [System.Xml.Serialization.XmlElementAttribute("MgmtData", typeof(string), Order=0)]
-        [System.Xml.Serialization.XmlElementAttribute("PGPData", typeof(PGPDataType), Order=0)]
-        [System.Xml.Serialization.XmlElementAttribute("RetrievalMethod", typeof(RetrievalMethodType), Order=0)]
-        [System.Xml.Serialization.XmlElementAttribute("SPKIData", typeof(SPKIDataType), Order=0)]
-        [System.Xml.Serialization.XmlElementAttribute("X509Data", typeof(X509DataType), Order=0)]
-        [System.Xml.Serialization.XmlChoiceIdentifierAttribute("ItemsElementName")]
-        public object[] Items {
-            get {
-                return this.itemsField;
-            }
-            set {
-                this.itemsField = value;
-                this.RaisePropertyChanged("Items");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("ItemsElementName", Order=1)]
         [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public ItemsChoiceType4[] ItemsElementName {
+        public bool idSpecified {
             get {
-                return this.itemsElementNameField;
+                return this.idFieldSpecified;
             }
             set {
-                this.itemsElementNameField = value;
-                this.RaisePropertyChanged("ItemsElementName");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlTextAttribute()]
-        public string[] Text {
-            get {
-                return this.textField;
-            }
-            set {
-                this.textField = value;
-                this.RaisePropertyChanged("Text");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="ID")]
-        public string Id {
-            get {
-                return this.idField;
-            }
-            set {
-                this.idField = value;
-                this.RaisePropertyChanged("Id");
+                this.idFieldSpecified = value;
+                this.RaisePropertyChanged("idSpecified");
             }
         }
         
@@ -16700,604 +15969,15 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
-    public partial class KeyValueType : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private object itemField;
-        
-        private string[] textField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
-        [System.Xml.Serialization.XmlElementAttribute("DSAKeyValue", typeof(DSAKeyValueType), Order=0)]
-        [System.Xml.Serialization.XmlElementAttribute("RSAKeyValue", typeof(RSAKeyValueType), Order=0)]
-        public object Item {
-            get {
-                return this.itemField;
-            }
-            set {
-                this.itemField = value;
-                this.RaisePropertyChanged("Item");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlTextAttribute()]
-        public string[] Text {
-            get {
-                return this.textField;
-            }
-            set {
-                this.textField = value;
-                this.RaisePropertyChanged("Text");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
-    public partial class DSAKeyValueType : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private byte[] pField;
-        
-        private byte[] qField;
-        
-        private byte[] jField;
-        
-        private byte[] gField;
-        
-        private byte[] yField;
-        
-        private byte[] seedField;
-        
-        private byte[] pgenCounterField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(DataType="base64Binary", Order=0)]
-        public byte[] P {
-            get {
-                return this.pField;
-            }
-            set {
-                this.pField = value;
-                this.RaisePropertyChanged("P");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(DataType="base64Binary", Order=1)]
-        public byte[] Q {
-            get {
-                return this.qField;
-            }
-            set {
-                this.qField = value;
-                this.RaisePropertyChanged("Q");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(DataType="base64Binary", Order=2)]
-        public byte[] J {
-            get {
-                return this.jField;
-            }
-            set {
-                this.jField = value;
-                this.RaisePropertyChanged("J");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(DataType="base64Binary", Order=3)]
-        public byte[] G {
-            get {
-                return this.gField;
-            }
-            set {
-                this.gField = value;
-                this.RaisePropertyChanged("G");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(DataType="base64Binary", Order=4)]
-        public byte[] Y {
-            get {
-                return this.yField;
-            }
-            set {
-                this.yField = value;
-                this.RaisePropertyChanged("Y");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(DataType="base64Binary", Order=5)]
-        public byte[] Seed {
-            get {
-                return this.seedField;
-            }
-            set {
-                this.seedField = value;
-                this.RaisePropertyChanged("Seed");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(DataType="base64Binary", Order=6)]
-        public byte[] PgenCounter {
-            get {
-                return this.pgenCounterField;
-            }
-            set {
-                this.pgenCounterField = value;
-                this.RaisePropertyChanged("PgenCounter");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
-    public partial class RSAKeyValueType : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private byte[] modulusField;
-        
-        private byte[] exponentField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(DataType="base64Binary", Order=0)]
-        public byte[] Modulus {
-            get {
-                return this.modulusField;
-            }
-            set {
-                this.modulusField = value;
-                this.RaisePropertyChanged("Modulus");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(DataType="base64Binary", Order=1)]
-        public byte[] Exponent {
-            get {
-                return this.exponentField;
-            }
-            set {
-                this.exponentField = value;
-                this.RaisePropertyChanged("Exponent");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
-    public partial class PGPDataType : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private object[] itemsField;
-        
-        private ItemsChoiceType3[] itemsElementNameField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
-        [System.Xml.Serialization.XmlElementAttribute("PGPKeyID", typeof(byte[]), DataType="base64Binary", Order=0)]
-        [System.Xml.Serialization.XmlElementAttribute("PGPKeyPacket", typeof(byte[]), DataType="base64Binary", Order=0)]
-        [System.Xml.Serialization.XmlChoiceIdentifierAttribute("ItemsElementName")]
-        public object[] Items {
-            get {
-                return this.itemsField;
-            }
-            set {
-                this.itemsField = value;
-                this.RaisePropertyChanged("Items");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("ItemsElementName", Order=1)]
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public ItemsChoiceType3[] ItemsElementName {
-            get {
-                return this.itemsElementNameField;
-            }
-            set {
-                this.itemsElementNameField = value;
-                this.RaisePropertyChanged("ItemsElementName");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#", IncludeInSchema=false)]
-    public enum ItemsChoiceType3 {
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlEnumAttribute("##any:")]
-        Item,
-        
-        /// <remarks/>
-        PGPKeyID,
-        
-        /// <remarks/>
-        PGPKeyPacket,
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
-    public partial class RetrievalMethodType : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private TransformType[] transformsField;
-        
-        private string uRIField;
-        
-        private string typeField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlArrayAttribute(Order=0)]
-        [System.Xml.Serialization.XmlArrayItemAttribute("Transform", IsNullable=false)]
-        public TransformType[] Transforms {
-            get {
-                return this.transformsField;
-            }
-            set {
-                this.transformsField = value;
-                this.RaisePropertyChanged("Transforms");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
-        public string URI {
-            get {
-                return this.uRIField;
-            }
-            set {
-                this.uRIField = value;
-                this.RaisePropertyChanged("URI");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
-        public string Type {
-            get {
-                return this.typeField;
-            }
-            set {
-                this.typeField = value;
-                this.RaisePropertyChanged("Type");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
-    public partial class SPKIDataType : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private object[] itemsField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
-        [System.Xml.Serialization.XmlElementAttribute("SPKISexp", typeof(byte[]), DataType="base64Binary", Order=0)]
-        public object[] Items {
-            get {
-                return this.itemsField;
-            }
-            set {
-                this.itemsField = value;
-                this.RaisePropertyChanged("Items");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
-    public partial class X509DataType : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private object[] itemsField;
-        
-        private ItemsChoiceType2[] itemsElementNameField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
-        [System.Xml.Serialization.XmlElementAttribute("X509CRL", typeof(byte[]), DataType="base64Binary", Order=0)]
-        [System.Xml.Serialization.XmlElementAttribute("X509Certificate", typeof(byte[]), DataType="base64Binary", Order=0)]
-        [System.Xml.Serialization.XmlElementAttribute("X509IssuerSerial", typeof(X509IssuerSerialType), Order=0)]
-        [System.Xml.Serialization.XmlElementAttribute("X509SKI", typeof(byte[]), DataType="base64Binary", Order=0)]
-        [System.Xml.Serialization.XmlElementAttribute("X509SubjectName", typeof(string), Order=0)]
-        [System.Xml.Serialization.XmlChoiceIdentifierAttribute("ItemsElementName")]
-        public object[] Items {
-            get {
-                return this.itemsField;
-            }
-            set {
-                this.itemsField = value;
-                this.RaisePropertyChanged("Items");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("ItemsElementName", Order=1)]
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public ItemsChoiceType2[] ItemsElementName {
-            get {
-                return this.itemsElementNameField;
-            }
-            set {
-                this.itemsElementNameField = value;
-                this.RaisePropertyChanged("ItemsElementName");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
-    public partial class X509IssuerSerialType : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private string x509IssuerNameField;
-        
-        private string x509SerialNumberField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=0)]
-        public string X509IssuerName {
-            get {
-                return this.x509IssuerNameField;
-            }
-            set {
-                this.x509IssuerNameField = value;
-                this.RaisePropertyChanged("X509IssuerName");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(DataType="integer", Order=1)]
-        public string X509SerialNumber {
-            get {
-                return this.x509SerialNumberField;
-            }
-            set {
-                this.x509SerialNumberField = value;
-                this.RaisePropertyChanged("X509SerialNumber");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#", IncludeInSchema=false)]
-    public enum ItemsChoiceType2 {
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlEnumAttribute("##any:")]
-        Item,
-        
-        /// <remarks/>
-        X509CRL,
-        
-        /// <remarks/>
-        X509Certificate,
-        
-        /// <remarks/>
-        X509IssuerSerial,
-        
-        /// <remarks/>
-        X509SKI,
-        
-        /// <remarks/>
-        X509SubjectName,
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#", IncludeInSchema=false)]
-    public enum ItemsChoiceType4 {
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlEnumAttribute("##any:")]
-        Item,
-        
-        /// <remarks/>
-        KeyName,
-        
-        /// <remarks/>
-        KeyValue,
-        
-        /// <remarks/>
-        MgmtData,
-        
-        /// <remarks/>
-        PGPData,
-        
-        /// <remarks/>
-        RetrievalMethod,
-        
-        /// <remarks/>
-        SPKIData,
-        
-        /// <remarks/>
-        X509Data,
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://prism.evolveum.com/xml/ns/public/types-3")]
-    public partial class XmlAsStringType : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private System.Xml.XmlNode[] anyField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlTextAttribute()]
-        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
-        public System.Xml.XmlNode[] Any {
-            get {
-                return this.anyField;
-            }
-            set {
-                this.anyField = value;
-                this.RaisePropertyChanged("Any");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(TypeName="ObjectReferenceType", Namespace="http://prism.evolveum.com/xml/ns/public/types-3")]
-    public partial class ObjectReferenceType1 : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private string descriptionField;
-        
-        private ObjectReferenceTypeFilter filterField;
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3")]
+    public partial class ObjectModificationType : object, System.ComponentModel.INotifyPropertyChanged {
         
         private string oidField;
         
-        private System.Xml.XmlQualifiedName typeField;
+        private ItemDeltaType[] itemDeltaField;
         
         /// <remarks/>
         [System.Xml.Serialization.XmlElementAttribute(Order=0)]
-        public string description {
-            get {
-                return this.descriptionField;
-            }
-            set {
-                this.descriptionField = value;
-                this.RaisePropertyChanged("description");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=1)]
-        public ObjectReferenceTypeFilter filter {
-            get {
-                return this.filterField;
-            }
-            set {
-                this.filterField = value;
-                this.RaisePropertyChanged("filter");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
         public string oid {
             get {
                 return this.oidField;
@@ -17309,14 +15989,14 @@ namespace ModelClientSample.midpointModelService {
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public System.Xml.XmlQualifiedName type {
+        [System.Xml.Serialization.XmlElementAttribute("itemDelta", Order=1)]
+        public ItemDeltaType[] itemDelta {
             get {
-                return this.typeField;
+                return this.itemDeltaField;
             }
             set {
-                this.typeField = value;
-                this.RaisePropertyChanged("type");
+                this.itemDeltaField = value;
+                this.RaisePropertyChanged("itemDelta");
             }
         }
         
@@ -17335,739 +16015,205 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true, Namespace="http://prism.evolveum.com/xml/ns/public/types-3")]
-    public partial class ObjectReferenceTypeFilter : object, System.ComponentModel.INotifyPropertyChanged {
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3")]
+    public partial class ImportOptionsType : object, System.ComponentModel.INotifyPropertyChanged {
         
-        private System.Xml.XmlElement[] anyField;
+        private bool overwriteField;
         
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
-        public System.Xml.XmlElement[] Any {
-            get {
-                return this.anyField;
-            }
-            set {
-                this.anyField = value;
-                this.RaisePropertyChanged("Any");
-            }
+        private bool overwriteFieldSpecified;
+        
+        private bool keepOidField;
+        
+        private bool keepOidFieldSpecified;
+        
+        private int stopAfterErrorsField;
+        
+        private bool stopAfterErrorsFieldSpecified;
+        
+        private bool summarizeSuccesesField;
+        
+        private bool summarizeErrorsField;
+        
+        private bool referentialIntegrityField;
+        
+        private bool validateStaticSchemaField;
+        
+        private bool validateDynamicSchemaField;
+        
+        private bool encryptProtectedValuesField;
+        
+        private bool fetchResourceSchemaField;
+        
+        public ImportOptionsType() {
+            this.summarizeSuccesesField = true;
+            this.summarizeErrorsField = false;
+            this.referentialIntegrityField = false;
+            this.validateStaticSchemaField = true;
+            this.validateDynamicSchemaField = true;
+            this.encryptProtectedValuesField = true;
+            this.fetchResourceSchemaField = false;
         }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://prism.evolveum.com/xml/ns/public/types-3")]
-    public partial class extension : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private System.Xml.XmlElement[] anyField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
-        public System.Xml.XmlElement[] Any {
-            get {
-                return this.anyField;
-            }
-            set {
-                this.anyField = value;
-                this.RaisePropertyChanged("Any");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2001/04/xmlenc#")]
-    public partial class AgreementMethodType : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private byte[] kANonceField;
-        
-        private System.Xml.XmlNode[] anyField;
-        
-        private KeyInfoType1 originatorKeyInfoField;
-        
-        private KeyInfoType1 recipientKeyInfoField;
-        
-        private string algorithmField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("KA-Nonce", DataType="base64Binary", Order=0)]
-        public byte[] KANonce {
-            get {
-                return this.kANonceField;
-            }
-            set {
-                this.kANonceField = value;
-                this.RaisePropertyChanged("KANonce");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlTextAttribute()]
-        [System.Xml.Serialization.XmlAnyElementAttribute(Order=1)]
-        public System.Xml.XmlNode[] Any {
-            get {
-                return this.anyField;
-            }
-            set {
-                this.anyField = value;
-                this.RaisePropertyChanged("Any");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=2)]
-        public KeyInfoType1 OriginatorKeyInfo {
-            get {
-                return this.originatorKeyInfoField;
-            }
-            set {
-                this.originatorKeyInfoField = value;
-                this.RaisePropertyChanged("OriginatorKeyInfo");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=3)]
-        public KeyInfoType1 RecipientKeyInfo {
-            get {
-                return this.recipientKeyInfoField;
-            }
-            set {
-                this.recipientKeyInfoField = value;
-                this.RaisePropertyChanged("RecipientKeyInfo");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
-        public string Algorithm {
-            get {
-                return this.algorithmField;
-            }
-            set {
-                this.algorithmField = value;
-                this.RaisePropertyChanged("Algorithm");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2001/04/xmlenc#")]
-    public partial class ReferenceType : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private System.Xml.XmlElement[] anyField;
-        
-        private string uRIField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
-        public System.Xml.XmlElement[] Any {
-            get {
-                return this.anyField;
-            }
-            set {
-                this.anyField = value;
-                this.RaisePropertyChanged("Any");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
-        public string URI {
-            get {
-                return this.uRIField;
-            }
-            set {
-                this.uRIField = value;
-                this.RaisePropertyChanged("URI");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2001/04/xmlenc#")]
-    public partial class EncryptionPropertyType : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private System.Xml.XmlElement[] itemsField;
-        
-        private string[] textField;
-        
-        private string targetField;
-        
-        private string idField;
-        
-        private System.Xml.XmlAttribute[] anyAttrField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
-        public System.Xml.XmlElement[] Items {
-            get {
-                return this.itemsField;
-            }
-            set {
-                this.itemsField = value;
-                this.RaisePropertyChanged("Items");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlTextAttribute()]
-        public string[] Text {
-            get {
-                return this.textField;
-            }
-            set {
-                this.textField = value;
-                this.RaisePropertyChanged("Text");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
-        public string Target {
-            get {
-                return this.targetField;
-            }
-            set {
-                this.targetField = value;
-                this.RaisePropertyChanged("Target");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="ID")]
-        public string Id {
-            get {
-                return this.idField;
-            }
-            set {
-                this.idField = value;
-                this.RaisePropertyChanged("Id");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAnyAttributeAttribute()]
-        public System.Xml.XmlAttribute[] AnyAttr {
-            get {
-                return this.anyAttrField;
-            }
-            set {
-                this.anyAttrField = value;
-                this.RaisePropertyChanged("AnyAttr");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2001/04/xmlenc#")]
-    public partial class EncryptionPropertiesType : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private EncryptionPropertyType[] encryptionPropertyField;
-        
-        private string idField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("EncryptionProperty", Order=0)]
-        public EncryptionPropertyType[] EncryptionProperty {
-            get {
-                return this.encryptionPropertyField;
-            }
-            set {
-                this.encryptionPropertyField = value;
-                this.RaisePropertyChanged("EncryptionProperty");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="ID")]
-        public string Id {
-            get {
-                return this.idField;
-            }
-            set {
-                this.idField = value;
-                this.RaisePropertyChanged("Id");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(TypeName="TransformsType", Namespace="http://www.w3.org/2001/04/xmlenc#")]
-    public partial class TransformsType1 : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private TransformType[] transformField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("Transform", Namespace="http://www.w3.org/2000/09/xmldsig#", Order=0)]
-        public TransformType[] Transform {
-            get {
-                return this.transformField;
-            }
-            set {
-                this.transformField = value;
-                this.RaisePropertyChanged("Transform");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2001/04/xmlenc#")]
-    public partial class CipherReferenceType : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private TransformsType1 itemField;
-        
-        private string uRIField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("Transforms", Order=0)]
-        public TransformsType1 Item {
-            get {
-                return this.itemField;
-            }
-            set {
-                this.itemField = value;
-                this.RaisePropertyChanged("Item");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
-        public string URI {
-            get {
-                return this.uRIField;
-            }
-            set {
-                this.uRIField = value;
-                this.RaisePropertyChanged("URI");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(TypeName="CipherDataType", Namespace="http://www.w3.org/2001/04/xmlenc#")]
-    public partial class CipherDataType1 : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private object itemField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("CipherReference", typeof(CipherReferenceType), Order=0)]
-        [System.Xml.Serialization.XmlElementAttribute("CipherValue", typeof(byte[]), DataType="base64Binary", Order=0)]
-        public object Item {
-            get {
-                return this.itemField;
-            }
-            set {
-                this.itemField = value;
-                this.RaisePropertyChanged("Item");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(TypeName="EncryptionMethodType", Namespace="http://www.w3.org/2001/04/xmlenc#")]
-    public partial class EncryptionMethodType1 : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private string keySizeField;
-        
-        private byte[] oAEPparamsField;
-        
-        private System.Xml.XmlNode[] anyField;
-        
-        private string algorithmField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(DataType="integer", Order=0)]
-        public string KeySize {
-            get {
-                return this.keySizeField;
-            }
-            set {
-                this.keySizeField = value;
-                this.RaisePropertyChanged("KeySize");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(DataType="base64Binary", Order=1)]
-        public byte[] OAEPparams {
-            get {
-                return this.oAEPparamsField;
-            }
-            set {
-                this.oAEPparamsField = value;
-                this.RaisePropertyChanged("OAEPparams");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlTextAttribute()]
-        [System.Xml.Serialization.XmlAnyElementAttribute(Order=2)]
-        public System.Xml.XmlNode[] Any {
-            get {
-                return this.anyField;
-            }
-            set {
-                this.anyField = value;
-                this.RaisePropertyChanged("Any");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
-        public string Algorithm {
-            get {
-                return this.algorithmField;
-            }
-            set {
-                this.algorithmField = value;
-                this.RaisePropertyChanged("Algorithm");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(EncryptedKeyType))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(EncryptedDataType1))]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2001/04/xmlenc#")]
-    public abstract partial class EncryptedType : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private EncryptionMethodType1 encryptionMethodField;
-        
-        private KeyInfoType1 keyInfoField;
-        
-        private CipherDataType1 cipherDataField;
-        
-        private EncryptionPropertiesType encryptionPropertiesField;
-        
-        private string idField;
-        
-        private string typeField;
-        
-        private string mimeTypeField;
-        
-        private string encodingField;
         
         /// <remarks/>
         [System.Xml.Serialization.XmlElementAttribute(Order=0)]
-        public EncryptionMethodType1 EncryptionMethod {
+        public bool overwrite {
             get {
-                return this.encryptionMethodField;
+                return this.overwriteField;
             }
             set {
-                this.encryptionMethodField = value;
-                this.RaisePropertyChanged("EncryptionMethod");
+                this.overwriteField = value;
+                this.RaisePropertyChanged("overwrite");
             }
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#", Order=1)]
-        public KeyInfoType1 KeyInfo {
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool overwriteSpecified {
             get {
-                return this.keyInfoField;
+                return this.overwriteFieldSpecified;
             }
             set {
-                this.keyInfoField = value;
-                this.RaisePropertyChanged("KeyInfo");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=2)]
-        public CipherDataType1 CipherData {
-            get {
-                return this.cipherDataField;
-            }
-            set {
-                this.cipherDataField = value;
-                this.RaisePropertyChanged("CipherData");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=3)]
-        public EncryptionPropertiesType EncryptionProperties {
-            get {
-                return this.encryptionPropertiesField;
-            }
-            set {
-                this.encryptionPropertiesField = value;
-                this.RaisePropertyChanged("EncryptionProperties");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="ID")]
-        public string Id {
-            get {
-                return this.idField;
-            }
-            set {
-                this.idField = value;
-                this.RaisePropertyChanged("Id");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
-        public string Type {
-            get {
-                return this.typeField;
-            }
-            set {
-                this.typeField = value;
-                this.RaisePropertyChanged("Type");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string MimeType {
-            get {
-                return this.mimeTypeField;
-            }
-            set {
-                this.mimeTypeField = value;
-                this.RaisePropertyChanged("MimeType");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
-        public string Encoding {
-            get {
-                return this.encodingField;
-            }
-            set {
-                this.encodingField = value;
-                this.RaisePropertyChanged("Encoding");
-            }
-        }
-        
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-        
-        protected void RaisePropertyChanged(string propertyName) {
-            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
-            if ((propertyChanged != null)) {
-                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2001/04/xmlenc#")]
-    public partial class EncryptedKeyType : EncryptedType {
-        
-        private ReferenceList referenceListField;
-        
-        private string carriedKeyNameField;
-        
-        private string recipientField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=0)]
-        public ReferenceList ReferenceList {
-            get {
-                return this.referenceListField;
-            }
-            set {
-                this.referenceListField = value;
-                this.RaisePropertyChanged("ReferenceList");
+                this.overwriteFieldSpecified = value;
+                this.RaisePropertyChanged("overwriteSpecified");
             }
         }
         
         /// <remarks/>
         [System.Xml.Serialization.XmlElementAttribute(Order=1)]
-        public string CarriedKeyName {
+        public bool keepOid {
             get {
-                return this.carriedKeyNameField;
+                return this.keepOidField;
             }
             set {
-                this.carriedKeyNameField = value;
-                this.RaisePropertyChanged("CarriedKeyName");
+                this.keepOidField = value;
+                this.RaisePropertyChanged("keepOid");
             }
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public string Recipient {
-            get {
-                return this.recipientField;
-            }
-            set {
-                this.recipientField = value;
-                this.RaisePropertyChanged("Recipient");
-            }
-        }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true, Namespace="http://www.w3.org/2001/04/xmlenc#")]
-    public partial class ReferenceList : object, System.ComponentModel.INotifyPropertyChanged {
-        
-        private ReferenceType[] itemsField;
-        
-        private ItemsChoiceType5[] itemsElementNameField;
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("DataReference", typeof(ReferenceType), Order=0)]
-        [System.Xml.Serialization.XmlElementAttribute("KeyReference", typeof(ReferenceType), Order=0)]
-        [System.Xml.Serialization.XmlChoiceIdentifierAttribute("ItemsElementName")]
-        public ReferenceType[] Items {
-            get {
-                return this.itemsField;
-            }
-            set {
-                this.itemsField = value;
-                this.RaisePropertyChanged("Items");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("ItemsElementName", Order=1)]
         [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public ItemsChoiceType5[] ItemsElementName {
+        public bool keepOidSpecified {
             get {
-                return this.itemsElementNameField;
+                return this.keepOidFieldSpecified;
             }
             set {
-                this.itemsElementNameField = value;
-                this.RaisePropertyChanged("ItemsElementName");
+                this.keepOidFieldSpecified = value;
+                this.RaisePropertyChanged("keepOidSpecified");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=2)]
+        public int stopAfterErrors {
+            get {
+                return this.stopAfterErrorsField;
+            }
+            set {
+                this.stopAfterErrorsField = value;
+                this.RaisePropertyChanged("stopAfterErrors");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool stopAfterErrorsSpecified {
+            get {
+                return this.stopAfterErrorsFieldSpecified;
+            }
+            set {
+                this.stopAfterErrorsFieldSpecified = value;
+                this.RaisePropertyChanged("stopAfterErrorsSpecified");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=3)]
+        [System.ComponentModel.DefaultValueAttribute(true)]
+        public bool summarizeSucceses {
+            get {
+                return this.summarizeSuccesesField;
+            }
+            set {
+                this.summarizeSuccesesField = value;
+                this.RaisePropertyChanged("summarizeSucceses");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=4)]
+        [System.ComponentModel.DefaultValueAttribute(false)]
+        public bool summarizeErrors {
+            get {
+                return this.summarizeErrorsField;
+            }
+            set {
+                this.summarizeErrorsField = value;
+                this.RaisePropertyChanged("summarizeErrors");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=5)]
+        [System.ComponentModel.DefaultValueAttribute(false)]
+        public bool referentialIntegrity {
+            get {
+                return this.referentialIntegrityField;
+            }
+            set {
+                this.referentialIntegrityField = value;
+                this.RaisePropertyChanged("referentialIntegrity");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=6)]
+        [System.ComponentModel.DefaultValueAttribute(true)]
+        public bool validateStaticSchema {
+            get {
+                return this.validateStaticSchemaField;
+            }
+            set {
+                this.validateStaticSchemaField = value;
+                this.RaisePropertyChanged("validateStaticSchema");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=7)]
+        [System.ComponentModel.DefaultValueAttribute(true)]
+        public bool validateDynamicSchema {
+            get {
+                return this.validateDynamicSchemaField;
+            }
+            set {
+                this.validateDynamicSchemaField = value;
+                this.RaisePropertyChanged("validateDynamicSchema");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=8)]
+        [System.ComponentModel.DefaultValueAttribute(true)]
+        public bool encryptProtectedValues {
+            get {
+                return this.encryptProtectedValuesField;
+            }
+            set {
+                this.encryptProtectedValuesField = value;
+                this.RaisePropertyChanged("encryptProtectedValues");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=9)]
+        [System.ComponentModel.DefaultValueAttribute(false)]
+        public bool fetchResourceSchema {
+            get {
+                return this.fetchResourceSchemaField;
+            }
+            set {
+                this.fetchResourceSchemaField = value;
+                this.RaisePropertyChanged("fetchResourceSchema");
             }
         }
         
@@ -18079,28 +16225,6 @@ namespace ModelClientSample.midpointModelService {
                 propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
             }
         }
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2001/04/xmlenc#", IncludeInSchema=false)]
-    public enum ItemsChoiceType5 {
-        
-        /// <remarks/>
-        DataReference,
-        
-        /// <remarks/>
-        KeyReference,
-    }
-    
-    /// <remarks/>
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
-    [System.SerializableAttribute()]
-    [System.Diagnostics.DebuggerStepThroughAttribute()]
-    [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(TypeName="EncryptedDataType", Namespace="http://www.w3.org/2001/04/xmlenc#")]
-    public partial class EncryptedDataType1 : EncryptedType {
     }
     
     /// <remarks/>
@@ -18778,6 +16902,177 @@ namespace ModelClientSample.midpointModelService {
     }
     
     /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://prism.evolveum.com/xml/ns/public/types-3")]
+    public partial class XmlAsStringType : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private System.Xml.XmlNode[] anyField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlTextAttribute()]
+        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
+        public System.Xml.XmlNode[] Any {
+            get {
+                return this.anyField;
+            }
+            set {
+                this.anyField = value;
+                this.RaisePropertyChanged("Any");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(TypeName="ObjectReferenceType", Namespace="http://prism.evolveum.com/xml/ns/public/types-3")]
+    public partial class ObjectReferenceType1 : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private string descriptionField;
+        
+        private ObjectReferenceTypeFilter filterField;
+        
+        private string oidField;
+        
+        private System.Xml.XmlQualifiedName typeField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=0)]
+        public string description {
+            get {
+                return this.descriptionField;
+            }
+            set {
+                this.descriptionField = value;
+                this.RaisePropertyChanged("description");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=1)]
+        public ObjectReferenceTypeFilter filter {
+            get {
+                return this.filterField;
+            }
+            set {
+                this.filterField = value;
+                this.RaisePropertyChanged("filter");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public string oid {
+            get {
+                return this.oidField;
+            }
+            set {
+                this.oidField = value;
+                this.RaisePropertyChanged("oid");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public System.Xml.XmlQualifiedName type {
+            get {
+                return this.typeField;
+            }
+            set {
+                this.typeField = value;
+                this.RaisePropertyChanged("type");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true, Namespace="http://prism.evolveum.com/xml/ns/public/types-3")]
+    public partial class ObjectReferenceTypeFilter : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private System.Xml.XmlElement[] anyField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
+        public System.Xml.XmlElement[] Any {
+            get {
+                return this.anyField;
+            }
+            set {
+                this.anyField = value;
+                this.RaisePropertyChanged("Any");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://prism.evolveum.com/xml/ns/public/types-3")]
+    public partial class extension : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private System.Xml.XmlElement[] anyField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
+        public System.Xml.XmlElement[] Any {
+            get {
+                return this.anyField;
+            }
+            set {
+                this.anyField = value;
+                this.RaisePropertyChanged("Any");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(ScriptCapabilityType))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(TestConnectionCapabilityType))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(DeleteCapabilityType))]
@@ -19197,6 +17492,1387 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2001/04/xmlenc#")]
+    public partial class AgreementMethodType : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private byte[] kANonceField;
+        
+        private System.Xml.XmlNode[] anyField;
+        
+        private KeyInfoType1 originatorKeyInfoField;
+        
+        private KeyInfoType1 recipientKeyInfoField;
+        
+        private string algorithmField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute("KA-Nonce", DataType="base64Binary", Order=0)]
+        public byte[] KANonce {
+            get {
+                return this.kANonceField;
+            }
+            set {
+                this.kANonceField = value;
+                this.RaisePropertyChanged("KANonce");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlTextAttribute()]
+        [System.Xml.Serialization.XmlAnyElementAttribute(Order=1)]
+        public System.Xml.XmlNode[] Any {
+            get {
+                return this.anyField;
+            }
+            set {
+                this.anyField = value;
+                this.RaisePropertyChanged("Any");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=2)]
+        public KeyInfoType1 OriginatorKeyInfo {
+            get {
+                return this.originatorKeyInfoField;
+            }
+            set {
+                this.originatorKeyInfoField = value;
+                this.RaisePropertyChanged("OriginatorKeyInfo");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=3)]
+        public KeyInfoType1 RecipientKeyInfo {
+            get {
+                return this.recipientKeyInfoField;
+            }
+            set {
+                this.recipientKeyInfoField = value;
+                this.RaisePropertyChanged("RecipientKeyInfo");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
+        public string Algorithm {
+            get {
+                return this.algorithmField;
+            }
+            set {
+                this.algorithmField = value;
+                this.RaisePropertyChanged("Algorithm");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(TypeName="KeyInfoType", Namespace="http://www.w3.org/2000/09/xmldsig#")]
+    public partial class KeyInfoType1 : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private object[] itemsField;
+        
+        private ItemsChoiceType4[] itemsElementNameField;
+        
+        private string[] textField;
+        
+        private string idField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("KeyName", typeof(string), Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("KeyValue", typeof(KeyValueType), Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("MgmtData", typeof(string), Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("PGPData", typeof(PGPDataType), Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("RetrievalMethod", typeof(RetrievalMethodType), Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("SPKIData", typeof(SPKIDataType), Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("X509Data", typeof(X509DataType), Order=0)]
+        [System.Xml.Serialization.XmlChoiceIdentifierAttribute("ItemsElementName")]
+        public object[] Items {
+            get {
+                return this.itemsField;
+            }
+            set {
+                this.itemsField = value;
+                this.RaisePropertyChanged("Items");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute("ItemsElementName", Order=1)]
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public ItemsChoiceType4[] ItemsElementName {
+            get {
+                return this.itemsElementNameField;
+            }
+            set {
+                this.itemsElementNameField = value;
+                this.RaisePropertyChanged("ItemsElementName");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlTextAttribute()]
+        public string[] Text {
+            get {
+                return this.textField;
+            }
+            set {
+                this.textField = value;
+                this.RaisePropertyChanged("Text");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="ID")]
+        public string Id {
+            get {
+                return this.idField;
+            }
+            set {
+                this.idField = value;
+                this.RaisePropertyChanged("Id");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
+    public partial class KeyValueType : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private object itemField;
+        
+        private string[] textField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("DSAKeyValue", typeof(DSAKeyValueType), Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("RSAKeyValue", typeof(RSAKeyValueType), Order=0)]
+        public object Item {
+            get {
+                return this.itemField;
+            }
+            set {
+                this.itemField = value;
+                this.RaisePropertyChanged("Item");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlTextAttribute()]
+        public string[] Text {
+            get {
+                return this.textField;
+            }
+            set {
+                this.textField = value;
+                this.RaisePropertyChanged("Text");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
+    public partial class DSAKeyValueType : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private byte[] pField;
+        
+        private byte[] qField;
+        
+        private byte[] jField;
+        
+        private byte[] gField;
+        
+        private byte[] yField;
+        
+        private byte[] seedField;
+        
+        private byte[] pgenCounterField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(DataType="base64Binary", Order=0)]
+        public byte[] P {
+            get {
+                return this.pField;
+            }
+            set {
+                this.pField = value;
+                this.RaisePropertyChanged("P");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(DataType="base64Binary", Order=1)]
+        public byte[] Q {
+            get {
+                return this.qField;
+            }
+            set {
+                this.qField = value;
+                this.RaisePropertyChanged("Q");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(DataType="base64Binary", Order=2)]
+        public byte[] J {
+            get {
+                return this.jField;
+            }
+            set {
+                this.jField = value;
+                this.RaisePropertyChanged("J");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(DataType="base64Binary", Order=3)]
+        public byte[] G {
+            get {
+                return this.gField;
+            }
+            set {
+                this.gField = value;
+                this.RaisePropertyChanged("G");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(DataType="base64Binary", Order=4)]
+        public byte[] Y {
+            get {
+                return this.yField;
+            }
+            set {
+                this.yField = value;
+                this.RaisePropertyChanged("Y");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(DataType="base64Binary", Order=5)]
+        public byte[] Seed {
+            get {
+                return this.seedField;
+            }
+            set {
+                this.seedField = value;
+                this.RaisePropertyChanged("Seed");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(DataType="base64Binary", Order=6)]
+        public byte[] PgenCounter {
+            get {
+                return this.pgenCounterField;
+            }
+            set {
+                this.pgenCounterField = value;
+                this.RaisePropertyChanged("PgenCounter");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
+    public partial class RSAKeyValueType : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private byte[] modulusField;
+        
+        private byte[] exponentField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(DataType="base64Binary", Order=0)]
+        public byte[] Modulus {
+            get {
+                return this.modulusField;
+            }
+            set {
+                this.modulusField = value;
+                this.RaisePropertyChanged("Modulus");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(DataType="base64Binary", Order=1)]
+        public byte[] Exponent {
+            get {
+                return this.exponentField;
+            }
+            set {
+                this.exponentField = value;
+                this.RaisePropertyChanged("Exponent");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
+    public partial class PGPDataType : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private object[] itemsField;
+        
+        private ItemsChoiceType3[] itemsElementNameField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("PGPKeyID", typeof(byte[]), DataType="base64Binary", Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("PGPKeyPacket", typeof(byte[]), DataType="base64Binary", Order=0)]
+        [System.Xml.Serialization.XmlChoiceIdentifierAttribute("ItemsElementName")]
+        public object[] Items {
+            get {
+                return this.itemsField;
+            }
+            set {
+                this.itemsField = value;
+                this.RaisePropertyChanged("Items");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute("ItemsElementName", Order=1)]
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public ItemsChoiceType3[] ItemsElementName {
+            get {
+                return this.itemsElementNameField;
+            }
+            set {
+                this.itemsElementNameField = value;
+                this.RaisePropertyChanged("ItemsElementName");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#", IncludeInSchema=false)]
+    public enum ItemsChoiceType3 {
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlEnumAttribute("##any:")]
+        Item,
+        
+        /// <remarks/>
+        PGPKeyID,
+        
+        /// <remarks/>
+        PGPKeyPacket,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
+    public partial class RetrievalMethodType : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private TransformType[] transformsField;
+        
+        private string uRIField;
+        
+        private string typeField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlArrayAttribute(Order=0)]
+        [System.Xml.Serialization.XmlArrayItemAttribute("Transform", IsNullable=false)]
+        public TransformType[] Transforms {
+            get {
+                return this.transformsField;
+            }
+            set {
+                this.transformsField = value;
+                this.RaisePropertyChanged("Transforms");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
+        public string URI {
+            get {
+                return this.uRIField;
+            }
+            set {
+                this.uRIField = value;
+                this.RaisePropertyChanged("URI");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
+        public string Type {
+            get {
+                return this.typeField;
+            }
+            set {
+                this.typeField = value;
+                this.RaisePropertyChanged("Type");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
+    public partial class TransformType : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private object[] itemsField;
+        
+        private string[] textField;
+        
+        private string algorithmField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("XPath", typeof(string), Order=0)]
+        public object[] Items {
+            get {
+                return this.itemsField;
+            }
+            set {
+                this.itemsField = value;
+                this.RaisePropertyChanged("Items");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlTextAttribute()]
+        public string[] Text {
+            get {
+                return this.textField;
+            }
+            set {
+                this.textField = value;
+                this.RaisePropertyChanged("Text");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
+        public string Algorithm {
+            get {
+                return this.algorithmField;
+            }
+            set {
+                this.algorithmField = value;
+                this.RaisePropertyChanged("Algorithm");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
+    public partial class SPKIDataType : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private object[] itemsField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("SPKISexp", typeof(byte[]), DataType="base64Binary", Order=0)]
+        public object[] Items {
+            get {
+                return this.itemsField;
+            }
+            set {
+                this.itemsField = value;
+                this.RaisePropertyChanged("Items");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
+    public partial class X509DataType : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private object[] itemsField;
+        
+        private ItemsChoiceType2[] itemsElementNameField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("X509CRL", typeof(byte[]), DataType="base64Binary", Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("X509Certificate", typeof(byte[]), DataType="base64Binary", Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("X509IssuerSerial", typeof(X509IssuerSerialType), Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("X509SKI", typeof(byte[]), DataType="base64Binary", Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("X509SubjectName", typeof(string), Order=0)]
+        [System.Xml.Serialization.XmlChoiceIdentifierAttribute("ItemsElementName")]
+        public object[] Items {
+            get {
+                return this.itemsField;
+            }
+            set {
+                this.itemsField = value;
+                this.RaisePropertyChanged("Items");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute("ItemsElementName", Order=1)]
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public ItemsChoiceType2[] ItemsElementName {
+            get {
+                return this.itemsElementNameField;
+            }
+            set {
+                this.itemsElementNameField = value;
+                this.RaisePropertyChanged("ItemsElementName");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
+    public partial class X509IssuerSerialType : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private string x509IssuerNameField;
+        
+        private string x509SerialNumberField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=0)]
+        public string X509IssuerName {
+            get {
+                return this.x509IssuerNameField;
+            }
+            set {
+                this.x509IssuerNameField = value;
+                this.RaisePropertyChanged("X509IssuerName");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(DataType="integer", Order=1)]
+        public string X509SerialNumber {
+            get {
+                return this.x509SerialNumberField;
+            }
+            set {
+                this.x509SerialNumberField = value;
+                this.RaisePropertyChanged("X509SerialNumber");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#", IncludeInSchema=false)]
+    public enum ItemsChoiceType2 {
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlEnumAttribute("##any:")]
+        Item,
+        
+        /// <remarks/>
+        X509CRL,
+        
+        /// <remarks/>
+        X509Certificate,
+        
+        /// <remarks/>
+        X509IssuerSerial,
+        
+        /// <remarks/>
+        X509SKI,
+        
+        /// <remarks/>
+        X509SubjectName,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#", IncludeInSchema=false)]
+    public enum ItemsChoiceType4 {
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlEnumAttribute("##any:")]
+        Item,
+        
+        /// <remarks/>
+        KeyName,
+        
+        /// <remarks/>
+        KeyValue,
+        
+        /// <remarks/>
+        MgmtData,
+        
+        /// <remarks/>
+        PGPData,
+        
+        /// <remarks/>
+        RetrievalMethod,
+        
+        /// <remarks/>
+        SPKIData,
+        
+        /// <remarks/>
+        X509Data,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(TypeName="ReferenceType", Namespace="http://www.w3.org/2001/04/xmlenc#")]
+    public partial class ReferenceType1 : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private System.Xml.XmlElement[] anyField;
+        
+        private string uRIField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
+        public System.Xml.XmlElement[] Any {
+            get {
+                return this.anyField;
+            }
+            set {
+                this.anyField = value;
+                this.RaisePropertyChanged("Any");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
+        public string URI {
+            get {
+                return this.uRIField;
+            }
+            set {
+                this.uRIField = value;
+                this.RaisePropertyChanged("URI");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2001/04/xmlenc#")]
+    public partial class EncryptionPropertyType : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private System.Xml.XmlElement[] itemsField;
+        
+        private string[] textField;
+        
+        private string targetField;
+        
+        private string idField;
+        
+        private System.Xml.XmlAttribute[] anyAttrField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
+        public System.Xml.XmlElement[] Items {
+            get {
+                return this.itemsField;
+            }
+            set {
+                this.itemsField = value;
+                this.RaisePropertyChanged("Items");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlTextAttribute()]
+        public string[] Text {
+            get {
+                return this.textField;
+            }
+            set {
+                this.textField = value;
+                this.RaisePropertyChanged("Text");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
+        public string Target {
+            get {
+                return this.targetField;
+            }
+            set {
+                this.targetField = value;
+                this.RaisePropertyChanged("Target");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="ID")]
+        public string Id {
+            get {
+                return this.idField;
+            }
+            set {
+                this.idField = value;
+                this.RaisePropertyChanged("Id");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAnyAttributeAttribute()]
+        public System.Xml.XmlAttribute[] AnyAttr {
+            get {
+                return this.anyAttrField;
+            }
+            set {
+                this.anyAttrField = value;
+                this.RaisePropertyChanged("AnyAttr");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2001/04/xmlenc#")]
+    public partial class EncryptionPropertiesType : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private EncryptionPropertyType[] encryptionPropertyField;
+        
+        private string idField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute("EncryptionProperty", Order=0)]
+        public EncryptionPropertyType[] EncryptionProperty {
+            get {
+                return this.encryptionPropertyField;
+            }
+            set {
+                this.encryptionPropertyField = value;
+                this.RaisePropertyChanged("EncryptionProperty");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="ID")]
+        public string Id {
+            get {
+                return this.idField;
+            }
+            set {
+                this.idField = value;
+                this.RaisePropertyChanged("Id");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(TypeName="TransformsType", Namespace="http://www.w3.org/2001/04/xmlenc#")]
+    public partial class TransformsType1 : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private TransformType[] transformField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute("Transform", Namespace="http://www.w3.org/2000/09/xmldsig#", Order=0)]
+        public TransformType[] Transform {
+            get {
+                return this.transformField;
+            }
+            set {
+                this.transformField = value;
+                this.RaisePropertyChanged("Transform");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2001/04/xmlenc#")]
+    public partial class CipherReferenceType : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private TransformsType1 itemField;
+        
+        private string uRIField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute("Transforms", Order=0)]
+        public TransformsType1 Item {
+            get {
+                return this.itemField;
+            }
+            set {
+                this.itemField = value;
+                this.RaisePropertyChanged("Item");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
+        public string URI {
+            get {
+                return this.uRIField;
+            }
+            set {
+                this.uRIField = value;
+                this.RaisePropertyChanged("URI");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(TypeName="CipherDataType", Namespace="http://www.w3.org/2001/04/xmlenc#")]
+    public partial class CipherDataType1 : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private object itemField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute("CipherReference", typeof(CipherReferenceType), Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("CipherValue", typeof(byte[]), DataType="base64Binary", Order=0)]
+        public object Item {
+            get {
+                return this.itemField;
+            }
+            set {
+                this.itemField = value;
+                this.RaisePropertyChanged("Item");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(TypeName="EncryptionMethodType", Namespace="http://www.w3.org/2001/04/xmlenc#")]
+    public partial class EncryptionMethodType1 : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private string keySizeField;
+        
+        private byte[] oAEPparamsField;
+        
+        private System.Xml.XmlNode[] anyField;
+        
+        private string algorithmField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(DataType="integer", Order=0)]
+        public string KeySize {
+            get {
+                return this.keySizeField;
+            }
+            set {
+                this.keySizeField = value;
+                this.RaisePropertyChanged("KeySize");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(DataType="base64Binary", Order=1)]
+        public byte[] OAEPparams {
+            get {
+                return this.oAEPparamsField;
+            }
+            set {
+                this.oAEPparamsField = value;
+                this.RaisePropertyChanged("OAEPparams");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlTextAttribute()]
+        [System.Xml.Serialization.XmlAnyElementAttribute(Order=2)]
+        public System.Xml.XmlNode[] Any {
+            get {
+                return this.anyField;
+            }
+            set {
+                this.anyField = value;
+                this.RaisePropertyChanged("Any");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
+        public string Algorithm {
+            get {
+                return this.algorithmField;
+            }
+            set {
+                this.algorithmField = value;
+                this.RaisePropertyChanged("Algorithm");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(EncryptedKeyType))]
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(EncryptedDataType1))]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2001/04/xmlenc#")]
+    public abstract partial class EncryptedType : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private EncryptionMethodType1 encryptionMethodField;
+        
+        private KeyInfoType1 keyInfoField;
+        
+        private CipherDataType1 cipherDataField;
+        
+        private EncryptionPropertiesType encryptionPropertiesField;
+        
+        private string idField;
+        
+        private string typeField;
+        
+        private string mimeTypeField;
+        
+        private string encodingField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=0)]
+        public EncryptionMethodType1 EncryptionMethod {
+            get {
+                return this.encryptionMethodField;
+            }
+            set {
+                this.encryptionMethodField = value;
+                this.RaisePropertyChanged("EncryptionMethod");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#", Order=1)]
+        public KeyInfoType1 KeyInfo {
+            get {
+                return this.keyInfoField;
+            }
+            set {
+                this.keyInfoField = value;
+                this.RaisePropertyChanged("KeyInfo");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=2)]
+        public CipherDataType1 CipherData {
+            get {
+                return this.cipherDataField;
+            }
+            set {
+                this.cipherDataField = value;
+                this.RaisePropertyChanged("CipherData");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=3)]
+        public EncryptionPropertiesType EncryptionProperties {
+            get {
+                return this.encryptionPropertiesField;
+            }
+            set {
+                this.encryptionPropertiesField = value;
+                this.RaisePropertyChanged("EncryptionProperties");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="ID")]
+        public string Id {
+            get {
+                return this.idField;
+            }
+            set {
+                this.idField = value;
+                this.RaisePropertyChanged("Id");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
+        public string Type {
+            get {
+                return this.typeField;
+            }
+            set {
+                this.typeField = value;
+                this.RaisePropertyChanged("Type");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public string MimeType {
+            get {
+                return this.mimeTypeField;
+            }
+            set {
+                this.mimeTypeField = value;
+                this.RaisePropertyChanged("MimeType");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
+        public string Encoding {
+            get {
+                return this.encodingField;
+            }
+            set {
+                this.encodingField = value;
+                this.RaisePropertyChanged("Encoding");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2001/04/xmlenc#")]
+    public partial class EncryptedKeyType : EncryptedType {
+        
+        private ReferenceList referenceListField;
+        
+        private string carriedKeyNameField;
+        
+        private string recipientField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=0)]
+        public ReferenceList ReferenceList {
+            get {
+                return this.referenceListField;
+            }
+            set {
+                this.referenceListField = value;
+                this.RaisePropertyChanged("ReferenceList");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=1)]
+        public string CarriedKeyName {
+            get {
+                return this.carriedKeyNameField;
+            }
+            set {
+                this.carriedKeyNameField = value;
+                this.RaisePropertyChanged("CarriedKeyName");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public string Recipient {
+            get {
+                return this.recipientField;
+            }
+            set {
+                this.recipientField = value;
+                this.RaisePropertyChanged("Recipient");
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(AnonymousType=true, Namespace="http://www.w3.org/2001/04/xmlenc#")]
+    public partial class ReferenceList : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private ReferenceType1[] itemsField;
+        
+        private ItemsChoiceType5[] itemsElementNameField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute("DataReference", typeof(ReferenceType1), Order=0)]
+        [System.Xml.Serialization.XmlElementAttribute("KeyReference", typeof(ReferenceType1), Order=0)]
+        [System.Xml.Serialization.XmlChoiceIdentifierAttribute("ItemsElementName")]
+        public ReferenceType1[] Items {
+            get {
+                return this.itemsField;
+            }
+            set {
+                this.itemsField = value;
+                this.RaisePropertyChanged("Items");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute("ItemsElementName", Order=1)]
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public ItemsChoiceType5[] ItemsElementName {
+            get {
+                return this.itemsElementNameField;
+            }
+            set {
+                this.itemsElementNameField = value;
+                this.RaisePropertyChanged("ItemsElementName");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2001/04/xmlenc#", IncludeInSchema=false)]
+    public enum ItemsChoiceType5 {
+        
+        /// <remarks/>
+        DataReference,
+        
+        /// <remarks/>
+        KeyReference,
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(TypeName="EncryptedDataType", Namespace="http://www.w3.org/2001/04/xmlenc#")]
+    public partial class EncryptedDataType1 : EncryptedType {
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
     [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3")]
     public partial class ExecuteScriptType : object, System.ComponentModel.INotifyPropertyChanged {
         
@@ -19251,48 +18927,62 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3")]
-    public partial class ResourceObjectIdentificationType : object, System.ComponentModel.INotifyPropertyChanged {
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
+    public partial class SignaturePropertyType : object, System.ComponentModel.INotifyPropertyChanged {
         
-        private System.Xml.XmlElement[] anyField;
+        private System.Xml.XmlElement[] itemsField;
         
-        private long idField;
+        private string[] textField;
         
-        private bool idFieldSpecified;
+        private string targetField;
+        
+        private string idField;
         
         /// <remarks/>
         [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
-        public System.Xml.XmlElement[] Any {
+        public System.Xml.XmlElement[] Items {
             get {
-                return this.anyField;
+                return this.itemsField;
             }
             set {
-                this.anyField = value;
-                this.RaisePropertyChanged("Any");
+                this.itemsField = value;
+                this.RaisePropertyChanged("Items");
             }
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public long id {
+        [System.Xml.Serialization.XmlTextAttribute()]
+        public string[] Text {
+            get {
+                return this.textField;
+            }
+            set {
+                this.textField = value;
+                this.RaisePropertyChanged("Text");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
+        public string Target {
+            get {
+                return this.targetField;
+            }
+            set {
+                this.targetField = value;
+                this.RaisePropertyChanged("Target");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="ID")]
+        public string Id {
             get {
                 return this.idField;
             }
             set {
                 this.idField = value;
-                this.RaisePropertyChanged("id");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool idSpecified {
-            get {
-                return this.idFieldSpecified;
-            }
-            set {
-                this.idFieldSpecified = value;
-                this.RaisePropertyChanged("idSpecified");
+                this.RaisePropertyChanged("Id");
             }
         }
         
@@ -19311,48 +19001,34 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3")]
-    public partial class ResourceObjectType : object, System.ComponentModel.INotifyPropertyChanged {
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
+    public partial class SignaturePropertiesType : object, System.ComponentModel.INotifyPropertyChanged {
         
-        private System.Xml.XmlElement[] anyField;
+        private SignaturePropertyType[] signaturePropertyField;
         
-        private long idField;
-        
-        private bool idFieldSpecified;
+        private string idField;
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
-        public System.Xml.XmlElement[] Any {
+        [System.Xml.Serialization.XmlElementAttribute("SignatureProperty", Order=0)]
+        public SignaturePropertyType[] SignatureProperty {
             get {
-                return this.anyField;
+                return this.signaturePropertyField;
             }
             set {
-                this.anyField = value;
-                this.RaisePropertyChanged("Any");
+                this.signaturePropertyField = value;
+                this.RaisePropertyChanged("SignatureProperty");
             }
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlAttributeAttribute()]
-        public long id {
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="ID")]
+        public string Id {
             get {
                 return this.idField;
             }
             set {
                 this.idField = value;
-                this.RaisePropertyChanged("id");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool idSpecified {
-            get {
-                return this.idFieldSpecified;
-            }
-            set {
-                this.idFieldSpecified = value;
-                this.RaisePropertyChanged("idSpecified");
+                this.RaisePropertyChanged("Id");
             }
         }
         
@@ -19371,34 +19047,34 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3")]
-    public partial class ObjectModificationType : object, System.ComponentModel.INotifyPropertyChanged {
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
+    public partial class ManifestType : object, System.ComponentModel.INotifyPropertyChanged {
         
-        private string oidField;
+        private ReferenceType[] referenceField;
         
-        private ItemDeltaType[] itemDeltaField;
+        private string idField;
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=0)]
-        public string oid {
+        [System.Xml.Serialization.XmlElementAttribute("Reference", Order=0)]
+        public ReferenceType[] Reference {
             get {
-                return this.oidField;
+                return this.referenceField;
             }
             set {
-                this.oidField = value;
-                this.RaisePropertyChanged("oid");
+                this.referenceField = value;
+                this.RaisePropertyChanged("Reference");
             }
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute("itemDelta", Order=1)]
-        public ItemDeltaType[] itemDelta {
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="ID")]
+        public string Id {
             get {
-                return this.itemDeltaField;
+                return this.idField;
             }
             set {
-                this.itemDeltaField = value;
-                this.RaisePropertyChanged("itemDelta");
+                this.idField = value;
+                this.RaisePropertyChanged("Id");
             }
         }
         
@@ -19417,205 +19093,529 @@ namespace ModelClientSample.midpointModelService {
     [System.SerializableAttribute()]
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.ComponentModel.DesignerCategoryAttribute("code")]
-    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3")]
-    public partial class ImportOptionsType : object, System.ComponentModel.INotifyPropertyChanged {
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
+    public partial class ReferenceType : object, System.ComponentModel.INotifyPropertyChanged {
         
-        private bool overwriteField;
+        private TransformType[] transformsField;
         
-        private bool overwriteFieldSpecified;
+        private DigestMethodType digestMethodField;
         
-        private bool keepOidField;
+        private byte[] digestValueField;
         
-        private bool keepOidFieldSpecified;
+        private string idField;
         
-        private int stopAfterErrorsField;
+        private string uRIField;
         
-        private bool stopAfterErrorsFieldSpecified;
-        
-        private bool summarizeSuccesesField;
-        
-        private bool summarizeErrorsField;
-        
-        private bool referentialIntegrityField;
-        
-        private bool validateStaticSchemaField;
-        
-        private bool validateDynamicSchemaField;
-        
-        private bool encryptProtectedValuesField;
-        
-        private bool fetchResourceSchemaField;
-        
-        public ImportOptionsType() {
-            this.summarizeSuccesesField = true;
-            this.summarizeErrorsField = false;
-            this.referentialIntegrityField = false;
-            this.validateStaticSchemaField = true;
-            this.validateDynamicSchemaField = true;
-            this.encryptProtectedValuesField = true;
-            this.fetchResourceSchemaField = false;
-        }
+        private string typeField;
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=0)]
-        public bool overwrite {
+        [System.Xml.Serialization.XmlArrayAttribute(Order=0)]
+        [System.Xml.Serialization.XmlArrayItemAttribute("Transform", IsNullable=false)]
+        public TransformType[] Transforms {
             get {
-                return this.overwriteField;
+                return this.transformsField;
             }
             set {
-                this.overwriteField = value;
-                this.RaisePropertyChanged("overwrite");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool overwriteSpecified {
-            get {
-                return this.overwriteFieldSpecified;
-            }
-            set {
-                this.overwriteFieldSpecified = value;
-                this.RaisePropertyChanged("overwriteSpecified");
+                this.transformsField = value;
+                this.RaisePropertyChanged("Transforms");
             }
         }
         
         /// <remarks/>
         [System.Xml.Serialization.XmlElementAttribute(Order=1)]
-        public bool keepOid {
+        public DigestMethodType DigestMethod {
             get {
-                return this.keepOidField;
+                return this.digestMethodField;
             }
             set {
-                this.keepOidField = value;
-                this.RaisePropertyChanged("keepOid");
+                this.digestMethodField = value;
+                this.RaisePropertyChanged("DigestMethod");
             }
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool keepOidSpecified {
+        [System.Xml.Serialization.XmlElementAttribute(DataType="base64Binary", Order=2)]
+        public byte[] DigestValue {
             get {
-                return this.keepOidFieldSpecified;
+                return this.digestValueField;
             }
             set {
-                this.keepOidFieldSpecified = value;
-                this.RaisePropertyChanged("keepOidSpecified");
+                this.digestValueField = value;
+                this.RaisePropertyChanged("DigestValue");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="ID")]
+        public string Id {
+            get {
+                return this.idField;
+            }
+            set {
+                this.idField = value;
+                this.RaisePropertyChanged("Id");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
+        public string URI {
+            get {
+                return this.uRIField;
+            }
+            set {
+                this.uRIField = value;
+                this.RaisePropertyChanged("URI");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
+        public string Type {
+            get {
+                return this.typeField;
+            }
+            set {
+                this.typeField = value;
+                this.RaisePropertyChanged("Type");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
+    public partial class DigestMethodType : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private System.Xml.XmlNode[] anyField;
+        
+        private string algorithmField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlTextAttribute()]
+        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
+        public System.Xml.XmlNode[] Any {
+            get {
+                return this.anyField;
+            }
+            set {
+                this.anyField = value;
+                this.RaisePropertyChanged("Any");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
+        public string Algorithm {
+            get {
+                return this.algorithmField;
+            }
+            set {
+                this.algorithmField = value;
+                this.RaisePropertyChanged("Algorithm");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(TypeName="ObjectType", Namespace="http://www.w3.org/2000/09/xmldsig#")]
+    public partial class ObjectType2 : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private System.Xml.XmlNode[] anyField;
+        
+        private string idField;
+        
+        private string mimeTypeField;
+        
+        private string encodingField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlTextAttribute()]
+        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
+        public System.Xml.XmlNode[] Any {
+            get {
+                return this.anyField;
+            }
+            set {
+                this.anyField = value;
+                this.RaisePropertyChanged("Any");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="ID")]
+        public string Id {
+            get {
+                return this.idField;
+            }
+            set {
+                this.idField = value;
+                this.RaisePropertyChanged("Id");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute()]
+        public string MimeType {
+            get {
+                return this.mimeTypeField;
+            }
+            set {
+                this.mimeTypeField = value;
+                this.RaisePropertyChanged("MimeType");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
+        public string Encoding {
+            get {
+                return this.encodingField;
+            }
+            set {
+                this.encodingField = value;
+                this.RaisePropertyChanged("Encoding");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
+    public partial class SignatureValueType : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private string idField;
+        
+        private byte[] valueField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="ID")]
+        public string Id {
+            get {
+                return this.idField;
+            }
+            set {
+                this.idField = value;
+                this.RaisePropertyChanged("Id");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlTextAttribute(DataType="base64Binary")]
+        public byte[] Value {
+            get {
+                return this.valueField;
+            }
+            set {
+                this.valueField = value;
+                this.RaisePropertyChanged("Value");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
+    public partial class SignatureMethodType : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private string hMACOutputLengthField;
+        
+        private System.Xml.XmlNode[] anyField;
+        
+        private string algorithmField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(DataType="integer", Order=0)]
+        public string HMACOutputLength {
+            get {
+                return this.hMACOutputLengthField;
+            }
+            set {
+                this.hMACOutputLengthField = value;
+                this.RaisePropertyChanged("HMACOutputLength");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlTextAttribute()]
+        [System.Xml.Serialization.XmlAnyElementAttribute(Order=1)]
+        public System.Xml.XmlNode[] Any {
+            get {
+                return this.anyField;
+            }
+            set {
+                this.anyField = value;
+                this.RaisePropertyChanged("Any");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
+        public string Algorithm {
+            get {
+                return this.algorithmField;
+            }
+            set {
+                this.algorithmField = value;
+                this.RaisePropertyChanged("Algorithm");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
+    public partial class CanonicalizationMethodType : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private System.Xml.XmlNode[] anyField;
+        
+        private string algorithmField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlTextAttribute()]
+        [System.Xml.Serialization.XmlAnyElementAttribute(Order=0)]
+        public System.Xml.XmlNode[] Any {
+            get {
+                return this.anyField;
+            }
+            set {
+                this.anyField = value;
+                this.RaisePropertyChanged("Any");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="anyURI")]
+        public string Algorithm {
+            get {
+                return this.algorithmField;
+            }
+            set {
+                this.algorithmField = value;
+                this.RaisePropertyChanged("Algorithm");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
+    public partial class SignedInfoType : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private CanonicalizationMethodType canonicalizationMethodField;
+        
+        private SignatureMethodType signatureMethodField;
+        
+        private ReferenceType[] referenceField;
+        
+        private string idField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=0)]
+        public CanonicalizationMethodType CanonicalizationMethod {
+            get {
+                return this.canonicalizationMethodField;
+            }
+            set {
+                this.canonicalizationMethodField = value;
+                this.RaisePropertyChanged("CanonicalizationMethod");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=1)]
+        public SignatureMethodType SignatureMethod {
+            get {
+                return this.signatureMethodField;
+            }
+            set {
+                this.signatureMethodField = value;
+                this.RaisePropertyChanged("SignatureMethod");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute("Reference", Order=2)]
+        public ReferenceType[] Reference {
+            get {
+                return this.referenceField;
+            }
+            set {
+                this.referenceField = value;
+                this.RaisePropertyChanged("Reference");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="ID")]
+        public string Id {
+            get {
+                return this.idField;
+            }
+            set {
+                this.idField = value;
+                this.RaisePropertyChanged("Id");
+            }
+        }
+        
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+        
+        protected void RaisePropertyChanged(string propertyName) {
+            System.ComponentModel.PropertyChangedEventHandler propertyChanged = this.PropertyChanged;
+            if ((propertyChanged != null)) {
+                propertyChanged(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            }
+        }
+    }
+    
+    /// <remarks/>
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.Xml", "4.0.30319.18408")]
+    [System.SerializableAttribute()]
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.ComponentModel.DesignerCategoryAttribute("code")]
+    [System.Xml.Serialization.XmlTypeAttribute(Namespace="http://www.w3.org/2000/09/xmldsig#")]
+    public partial class SignatureType : object, System.ComponentModel.INotifyPropertyChanged {
+        
+        private SignedInfoType signedInfoField;
+        
+        private SignatureValueType signatureValueField;
+        
+        private KeyInfoType1 keyInfoField;
+        
+        private ObjectType2[] objectField;
+        
+        private string idField;
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=0)]
+        public SignedInfoType SignedInfo {
+            get {
+                return this.signedInfoField;
+            }
+            set {
+                this.signedInfoField = value;
+                this.RaisePropertyChanged("SignedInfo");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=1)]
+        public SignatureValueType SignatureValue {
+            get {
+                return this.signatureValueField;
+            }
+            set {
+                this.signatureValueField = value;
+                this.RaisePropertyChanged("SignatureValue");
             }
         }
         
         /// <remarks/>
         [System.Xml.Serialization.XmlElementAttribute(Order=2)]
-        public int stopAfterErrors {
+        public KeyInfoType1 KeyInfo {
             get {
-                return this.stopAfterErrorsField;
+                return this.keyInfoField;
             }
             set {
-                this.stopAfterErrorsField = value;
-                this.RaisePropertyChanged("stopAfterErrors");
+                this.keyInfoField = value;
+                this.RaisePropertyChanged("KeyInfo");
             }
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlIgnoreAttribute()]
-        public bool stopAfterErrorsSpecified {
+        [System.Xml.Serialization.XmlElementAttribute("Object", Order=3)]
+        public ObjectType2[] Object {
             get {
-                return this.stopAfterErrorsFieldSpecified;
+                return this.objectField;
             }
             set {
-                this.stopAfterErrorsFieldSpecified = value;
-                this.RaisePropertyChanged("stopAfterErrorsSpecified");
+                this.objectField = value;
+                this.RaisePropertyChanged("Object");
             }
         }
         
         /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=3)]
-        [System.ComponentModel.DefaultValueAttribute(true)]
-        public bool summarizeSucceses {
+        [System.Xml.Serialization.XmlAttributeAttribute(DataType="ID")]
+        public string Id {
             get {
-                return this.summarizeSuccesesField;
+                return this.idField;
             }
             set {
-                this.summarizeSuccesesField = value;
-                this.RaisePropertyChanged("summarizeSucceses");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=4)]
-        [System.ComponentModel.DefaultValueAttribute(false)]
-        public bool summarizeErrors {
-            get {
-                return this.summarizeErrorsField;
-            }
-            set {
-                this.summarizeErrorsField = value;
-                this.RaisePropertyChanged("summarizeErrors");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=5)]
-        [System.ComponentModel.DefaultValueAttribute(false)]
-        public bool referentialIntegrity {
-            get {
-                return this.referentialIntegrityField;
-            }
-            set {
-                this.referentialIntegrityField = value;
-                this.RaisePropertyChanged("referentialIntegrity");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=6)]
-        [System.ComponentModel.DefaultValueAttribute(true)]
-        public bool validateStaticSchema {
-            get {
-                return this.validateStaticSchemaField;
-            }
-            set {
-                this.validateStaticSchemaField = value;
-                this.RaisePropertyChanged("validateStaticSchema");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=7)]
-        [System.ComponentModel.DefaultValueAttribute(true)]
-        public bool validateDynamicSchema {
-            get {
-                return this.validateDynamicSchemaField;
-            }
-            set {
-                this.validateDynamicSchemaField = value;
-                this.RaisePropertyChanged("validateDynamicSchema");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=8)]
-        [System.ComponentModel.DefaultValueAttribute(true)]
-        public bool encryptProtectedValues {
-            get {
-                return this.encryptProtectedValuesField;
-            }
-            set {
-                this.encryptProtectedValuesField = value;
-                this.RaisePropertyChanged("encryptProtectedValues");
-            }
-        }
-        
-        /// <remarks/>
-        [System.Xml.Serialization.XmlElementAttribute(Order=9)]
-        [System.ComponentModel.DefaultValueAttribute(false)]
-        public bool fetchResourceSchema {
-            get {
-                return this.fetchResourceSchemaField;
-            }
-            set {
-                this.fetchResourceSchemaField = value;
-                this.RaisePropertyChanged("fetchResourceSchema");
+                this.idField = value;
+                this.RaisePropertyChanged("Id");
             }
         }
         
@@ -19771,6 +19771,10 @@ namespace ModelClientSample.midpointModelService {
         
         private bool objectLimitFieldSpecified;
         
+        private bool executeAsynchronouslyField;
+        
+        private bool executeAsynchronouslyFieldSpecified;
+        
         /// <remarks/>
         [System.Xml.Serialization.XmlElementAttribute(Order=0)]
         public OutputFormatType outputFormat {
@@ -19816,6 +19820,30 @@ namespace ModelClientSample.midpointModelService {
             set {
                 this.objectLimitFieldSpecified = value;
                 this.RaisePropertyChanged("objectLimitSpecified");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlElementAttribute(Order=2)]
+        public bool executeAsynchronously {
+            get {
+                return this.executeAsynchronouslyField;
+            }
+            set {
+                this.executeAsynchronouslyField = value;
+                this.RaisePropertyChanged("executeAsynchronously");
+            }
+        }
+        
+        /// <remarks/>
+        [System.Xml.Serialization.XmlIgnoreAttribute()]
+        public bool executeAsynchronouslySpecified {
+            get {
+                return this.executeAsynchronouslyFieldSpecified;
+            }
+            set {
+                this.executeAsynchronouslyFieldSpecified = value;
+                this.RaisePropertyChanged("executeAsynchronouslySpecified");
             }
         }
         
@@ -21416,30 +21444,29 @@ namespace ModelClientSample.midpointModelService {
     [System.ServiceModel.ServiceContractAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3", ConfigurationName="midpointModelService.modelPortType")]
     public interface modelPortType {
         
-        // CODEGEN: Parameter 'options' requires additional schema information that cannot be captured using the parameter mode. The specific attribute is 'System.Xml.Serialization.XmlArrayItemAttribute'.
         [System.ServiceModel.OperationContractAttribute(Action="", ReplyAction="*")]
         [System.ServiceModel.FaultContractAttribute(typeof(ModelClientSample.midpointModelService.FaultType), Action="", Name="fault", Namespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-3")]
         [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(DecisionType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EmptyType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignaturePropertiesType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ManifestType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignatureType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(XmlAsStringType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ObjectReferenceType1))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(extension))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(AgreementMethodType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EncryptedType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResultsHandlerConfigurationType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(TimeoutsType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConnectorPoolConfigurationType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConfigurationPropertiesType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(CapabilityType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResourceObjectIdentificationType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResourceObjectType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ObjectModificationType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ImportOptionsType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResultsHandlerConfigurationType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(TimeoutsType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConnectorPoolConfigurationType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConfigurationPropertiesType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(XmlAsStringType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ObjectReferenceType1))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(extension))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(CapabilityType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(AgreementMethodType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EncryptedType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignaturePropertiesType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ManifestType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignatureType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptsResponseType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptsType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(NotifyChangeResponseType))]
@@ -21462,33 +21489,35 @@ namespace ModelClientSample.midpointModelService {
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteChangesType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(GetObjectResponseType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(GetObjectType))]
-        [return: System.ServiceModel.MessageParameterAttribute(Name="object")]
         ModelClientSample.midpointModelService.getObjectResponse getObject(ModelClientSample.midpointModelService.getObject request);
         
-        // CODEGEN: Parameter 'options' requires additional schema information that cannot be captured using the parameter mode. The specific attribute is 'System.Xml.Serialization.XmlArrayItemAttribute'.
+        // CODEGEN: Generating message contract since the operation has multiple return values.
+        [System.ServiceModel.OperationContractAttribute(Action="", ReplyAction="*")]
+        System.Threading.Tasks.Task<ModelClientSample.midpointModelService.getObjectResponse> getObjectAsync(ModelClientSample.midpointModelService.getObject request);
+        
         [System.ServiceModel.OperationContractAttribute(Action="", ReplyAction="*")]
         [System.ServiceModel.FaultContractAttribute(typeof(ModelClientSample.midpointModelService.FaultType), Action="", Name="fault", Namespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-3")]
         [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(DecisionType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EmptyType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignaturePropertiesType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ManifestType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignatureType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(XmlAsStringType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ObjectReferenceType1))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(extension))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(AgreementMethodType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EncryptedType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResultsHandlerConfigurationType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(TimeoutsType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConnectorPoolConfigurationType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConfigurationPropertiesType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(CapabilityType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResourceObjectIdentificationType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResourceObjectType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ObjectModificationType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ImportOptionsType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResultsHandlerConfigurationType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(TimeoutsType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConnectorPoolConfigurationType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConfigurationPropertiesType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(XmlAsStringType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ObjectReferenceType1))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(extension))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(CapabilityType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(AgreementMethodType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EncryptedType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignaturePropertiesType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ManifestType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignatureType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptsResponseType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptsType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(NotifyChangeResponseType))]
@@ -21511,8 +21540,11 @@ namespace ModelClientSample.midpointModelService {
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteChangesType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(GetObjectResponseType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(GetObjectType))]
-        [return: System.ServiceModel.MessageParameterAttribute(Name="objectList")]
         ModelClientSample.midpointModelService.searchObjectsResponse searchObjects(ModelClientSample.midpointModelService.searchObjects request);
+        
+        // CODEGEN: Generating message contract since the operation has multiple return values.
+        [System.ServiceModel.OperationContractAttribute(Action="", ReplyAction="*")]
+        System.Threading.Tasks.Task<ModelClientSample.midpointModelService.searchObjectsResponse> searchObjectsAsync(ModelClientSample.midpointModelService.searchObjects request);
         
         // CODEGEN: Parameter 'deltaOperationList' requires additional schema information that cannot be captured using the parameter mode. The specific attribute is 'System.Xml.Serialization.XmlArrayItemAttribute'.
         [System.ServiceModel.OperationContractAttribute(Action="", ReplyAction="*")]
@@ -21520,24 +21552,24 @@ namespace ModelClientSample.midpointModelService {
         [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(DecisionType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EmptyType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignaturePropertiesType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ManifestType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignatureType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(XmlAsStringType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ObjectReferenceType1))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(extension))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(AgreementMethodType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EncryptedType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResultsHandlerConfigurationType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(TimeoutsType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConnectorPoolConfigurationType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConfigurationPropertiesType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(CapabilityType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResourceObjectIdentificationType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResourceObjectType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ObjectModificationType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ImportOptionsType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResultsHandlerConfigurationType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(TimeoutsType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConnectorPoolConfigurationType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConfigurationPropertiesType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(XmlAsStringType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ObjectReferenceType1))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(extension))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(CapabilityType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(AgreementMethodType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EncryptedType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignaturePropertiesType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ManifestType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignatureType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptsResponseType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptsType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(NotifyChangeResponseType))]
@@ -21564,28 +21596,31 @@ namespace ModelClientSample.midpointModelService {
         ModelClientSample.midpointModelService.executeChangesResponse executeChanges(ModelClientSample.midpointModelService.executeChanges request);
         
         [System.ServiceModel.OperationContractAttribute(Action="", ReplyAction="*")]
+        System.Threading.Tasks.Task<ModelClientSample.midpointModelService.executeChangesResponse> executeChangesAsync(ModelClientSample.midpointModelService.executeChanges request);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="", ReplyAction="*")]
         [System.ServiceModel.FaultContractAttribute(typeof(ModelClientSample.midpointModelService.FaultType), Action="", Name="fault", Namespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-3")]
         [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(DecisionType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EmptyType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignaturePropertiesType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ManifestType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignatureType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(XmlAsStringType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ObjectReferenceType1))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(extension))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(AgreementMethodType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EncryptedType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResultsHandlerConfigurationType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(TimeoutsType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConnectorPoolConfigurationType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConfigurationPropertiesType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(CapabilityType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResourceObjectIdentificationType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResourceObjectType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ObjectModificationType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ImportOptionsType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResultsHandlerConfigurationType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(TimeoutsType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConnectorPoolConfigurationType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConfigurationPropertiesType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(XmlAsStringType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ObjectReferenceType1))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(extension))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(CapabilityType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(AgreementMethodType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EncryptedType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignaturePropertiesType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ManifestType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignatureType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptsResponseType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptsType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(NotifyChangeResponseType))]
@@ -21608,32 +21643,35 @@ namespace ModelClientSample.midpointModelService {
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteChangesType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(GetObjectResponseType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(GetObjectType))]
-        [return: System.ServiceModel.MessageParameterAttribute(Name="user")]
-        ModelClientSample.midpointModelService.UserType findShadowOwner(out ModelClientSample.midpointModelService.OperationResultType result, string shadowOid);
+        ModelClientSample.midpointModelService.findShadowOwnerResponse findShadowOwner(ModelClientSample.midpointModelService.findShadowOwner request);
+        
+        // CODEGEN: Generating message contract since the operation has multiple return values.
+        [System.ServiceModel.OperationContractAttribute(Action="", ReplyAction="*")]
+        System.Threading.Tasks.Task<ModelClientSample.midpointModelService.findShadowOwnerResponse> findShadowOwnerAsync(ModelClientSample.midpointModelService.findShadowOwner request);
         
         [System.ServiceModel.OperationContractAttribute(Action="", ReplyAction="*")]
         [System.ServiceModel.FaultContractAttribute(typeof(ModelClientSample.midpointModelService.FaultType), Action="", Name="fault", Namespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-3")]
         [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(DecisionType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EmptyType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignaturePropertiesType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ManifestType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignatureType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(XmlAsStringType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ObjectReferenceType1))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(extension))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(AgreementMethodType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EncryptedType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResultsHandlerConfigurationType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(TimeoutsType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConnectorPoolConfigurationType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConfigurationPropertiesType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(CapabilityType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResourceObjectIdentificationType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResourceObjectType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ObjectModificationType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ImportOptionsType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResultsHandlerConfigurationType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(TimeoutsType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConnectorPoolConfigurationType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConfigurationPropertiesType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(XmlAsStringType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ObjectReferenceType1))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(extension))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(CapabilityType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(AgreementMethodType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EncryptedType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignaturePropertiesType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ManifestType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignatureType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptsResponseType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptsType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(NotifyChangeResponseType))]
@@ -21660,28 +21698,32 @@ namespace ModelClientSample.midpointModelService {
         ModelClientSample.midpointModelService.OperationResultType testResource(string resourceOid);
         
         [System.ServiceModel.OperationContractAttribute(Action="", ReplyAction="*")]
+        [return: System.ServiceModel.MessageParameterAttribute(Name="result")]
+        System.Threading.Tasks.Task<ModelClientSample.midpointModelService.OperationResultType> testResourceAsync(string resourceOid);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="", ReplyAction="*")]
         [System.ServiceModel.FaultContractAttribute(typeof(ModelClientSample.midpointModelService.FaultType), Action="", Name="fault", Namespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-3")]
         [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(DecisionType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EmptyType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignaturePropertiesType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ManifestType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignatureType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(XmlAsStringType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ObjectReferenceType1))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(extension))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(AgreementMethodType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EncryptedType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResultsHandlerConfigurationType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(TimeoutsType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConnectorPoolConfigurationType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConfigurationPropertiesType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(CapabilityType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResourceObjectIdentificationType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResourceObjectType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ObjectModificationType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ImportOptionsType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResultsHandlerConfigurationType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(TimeoutsType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConnectorPoolConfigurationType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConfigurationPropertiesType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(XmlAsStringType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ObjectReferenceType1))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(extension))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(CapabilityType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(AgreementMethodType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EncryptedType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignaturePropertiesType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ManifestType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignatureType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptsResponseType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptsType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(NotifyChangeResponseType))]
@@ -21708,28 +21750,32 @@ namespace ModelClientSample.midpointModelService {
         ModelClientSample.midpointModelService.TaskType importFromResource(string resourceOid, System.Xml.XmlQualifiedName objectClass);
         
         [System.ServiceModel.OperationContractAttribute(Action="", ReplyAction="*")]
+        [return: System.ServiceModel.MessageParameterAttribute(Name="task")]
+        System.Threading.Tasks.Task<ModelClientSample.midpointModelService.TaskType> importFromResourceAsync(string resourceOid, System.Xml.XmlQualifiedName objectClass);
+        
+        [System.ServiceModel.OperationContractAttribute(Action="", ReplyAction="*")]
         [System.ServiceModel.FaultContractAttribute(typeof(ModelClientSample.midpointModelService.FaultType), Action="", Name="fault", Namespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-3")]
         [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(DecisionType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EmptyType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignaturePropertiesType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ManifestType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignatureType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(XmlAsStringType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ObjectReferenceType1))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(extension))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(AgreementMethodType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EncryptedType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResultsHandlerConfigurationType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(TimeoutsType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConnectorPoolConfigurationType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConfigurationPropertiesType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(CapabilityType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResourceObjectIdentificationType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResourceObjectType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ObjectModificationType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ImportOptionsType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResultsHandlerConfigurationType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(TimeoutsType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConnectorPoolConfigurationType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConfigurationPropertiesType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(XmlAsStringType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ObjectReferenceType1))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(extension))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(CapabilityType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(AgreementMethodType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EncryptedType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignaturePropertiesType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ManifestType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignatureType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptsResponseType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptsType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(NotifyChangeResponseType))]
@@ -21755,30 +21801,33 @@ namespace ModelClientSample.midpointModelService {
         [return: System.ServiceModel.MessageParameterAttribute(Name="task")]
         ModelClientSample.midpointModelService.TaskType notifyChange(ModelClientSample.midpointModelService.ResourceObjectShadowChangeDescriptionType changeDescription);
         
-        // CODEGEN: Parameter 'outputs' requires additional schema information that cannot be captured using the parameter mode. The specific attribute is 'System.Xml.Serialization.XmlArrayItemAttribute'.
+        [System.ServiceModel.OperationContractAttribute(Action="", ReplyAction="*")]
+        [return: System.ServiceModel.MessageParameterAttribute(Name="task")]
+        System.Threading.Tasks.Task<ModelClientSample.midpointModelService.TaskType> notifyChangeAsync(ModelClientSample.midpointModelService.ResourceObjectShadowChangeDescriptionType changeDescription);
+        
         [System.ServiceModel.OperationContractAttribute(Action="", ReplyAction="*")]
         [System.ServiceModel.FaultContractAttribute(typeof(ModelClientSample.midpointModelService.FaultType), Action="", Name="fault", Namespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-3")]
         [System.ServiceModel.XmlSerializerFormatAttribute(SupportFaults=true)]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(DecisionType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EmptyType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignaturePropertiesType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ManifestType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignatureType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(XmlAsStringType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ObjectReferenceType1))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(extension))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(AgreementMethodType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EncryptedType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResultsHandlerConfigurationType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(TimeoutsType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConnectorPoolConfigurationType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConfigurationPropertiesType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(CapabilityType))]
-        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResourceObjectIdentificationType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResourceObjectType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ObjectModificationType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ImportOptionsType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ResultsHandlerConfigurationType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(TimeoutsType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConnectorPoolConfigurationType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ConfigurationPropertiesType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(XmlAsStringType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ObjectReferenceType1))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(extension))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(CapabilityType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(AgreementMethodType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(EncryptedType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignaturePropertiesType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ManifestType))]
+        [System.ServiceModel.ServiceKnownTypeAttribute(typeof(SignatureType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptsResponseType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteScriptsType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(NotifyChangeResponseType))]
@@ -21801,13 +21850,15 @@ namespace ModelClientSample.midpointModelService {
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(ExecuteChangesType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(GetObjectResponseType))]
         [System.ServiceModel.ServiceKnownTypeAttribute(typeof(GetObjectType))]
-        [return: System.ServiceModel.MessageParameterAttribute(Name="outputs")]
         ModelClientSample.midpointModelService.executeScriptsResponse executeScripts(ModelClientSample.midpointModelService.executeScripts request);
+        
+        // CODEGEN: Generating message contract since the operation has multiple return values.
+        [System.ServiceModel.OperationContractAttribute(Action="", ReplyAction="*")]
+        System.Threading.Tasks.Task<ModelClientSample.midpointModelService.executeScriptsResponse> executeScriptsAsync(ModelClientSample.midpointModelService.executeScripts request);
     }
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
-    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(WrapperName="getObject", WrapperNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3", IsWrapped=true)]
     public partial class getObject {
         
@@ -21833,7 +21884,6 @@ namespace ModelClientSample.midpointModelService {
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
-    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(WrapperName="getObjectResponse", WrapperNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3", IsWrapped=true)]
     public partial class getObjectResponse {
         
@@ -21854,7 +21904,6 @@ namespace ModelClientSample.midpointModelService {
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
-    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(WrapperName="searchObjects", WrapperNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3", IsWrapped=true)]
     public partial class searchObjects {
         
@@ -21880,7 +21929,6 @@ namespace ModelClientSample.midpointModelService {
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
-    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(WrapperName="searchObjectsResponse", WrapperNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3", IsWrapped=true)]
     public partial class searchObjectsResponse {
         
@@ -21941,7 +21989,42 @@ namespace ModelClientSample.midpointModelService {
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
-    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+    [System.ServiceModel.MessageContractAttribute(WrapperName="findShadowOwner", WrapperNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3", IsWrapped=true)]
+    public partial class findShadowOwner {
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3", Order=0)]
+        public string shadowOid;
+        
+        public findShadowOwner() {
+        }
+        
+        public findShadowOwner(string shadowOid) {
+            this.shadowOid = shadowOid;
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
+    [System.ServiceModel.MessageContractAttribute(WrapperName="findShadowOwnerResponse", WrapperNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3", IsWrapped=true)]
+    public partial class findShadowOwnerResponse {
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3", Order=0)]
+        public ModelClientSample.midpointModelService.UserType user;
+        
+        [System.ServiceModel.MessageBodyMemberAttribute(Namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3", Order=1)]
+        public ModelClientSample.midpointModelService.OperationResultType result;
+        
+        public findShadowOwnerResponse() {
+        }
+        
+        public findShadowOwnerResponse(ModelClientSample.midpointModelService.UserType user, ModelClientSample.midpointModelService.OperationResultType result) {
+            this.user = user;
+            this.result = result;
+        }
+    }
+    
+    [System.Diagnostics.DebuggerStepThroughAttribute()]
+    [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
     [System.ServiceModel.MessageContractAttribute(WrapperName="executeScripts", WrapperNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3", IsWrapped=true)]
     public partial class executeScripts {
         
@@ -21964,7 +22047,6 @@ namespace ModelClientSample.midpointModelService {
     
     [System.Diagnostics.DebuggerStepThroughAttribute()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("System.ServiceModel", "4.0.0.0")]
-    [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
     [System.ServiceModel.MessageContractAttribute(WrapperName="executeScriptsResponse", WrapperNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3", IsWrapped=true)]
     public partial class executeScriptsResponse {
         
@@ -22026,6 +22108,10 @@ namespace ModelClientSample.midpointModelService {
             return retVal.@object;
         }
         
+        public System.Threading.Tasks.Task<ModelClientSample.midpointModelService.getObjectResponse> getObjectAsync(ModelClientSample.midpointModelService.getObject request) {
+            return base.Channel.getObjectAsync(request);
+        }
+        
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         ModelClientSample.midpointModelService.searchObjectsResponse ModelClientSample.midpointModelService.modelPortType.searchObjects(ModelClientSample.midpointModelService.searchObjects request) {
             return base.Channel.searchObjects(request);
@@ -22041,6 +22127,10 @@ namespace ModelClientSample.midpointModelService {
             return retVal.objectList;
         }
         
+        public System.Threading.Tasks.Task<ModelClientSample.midpointModelService.searchObjectsResponse> searchObjectsAsync(ModelClientSample.midpointModelService.searchObjects request) {
+            return base.Channel.searchObjectsAsync(request);
+        }
+        
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
         ModelClientSample.midpointModelService.executeChangesResponse ModelClientSample.midpointModelService.modelPortType.executeChanges(ModelClientSample.midpointModelService.executeChanges request) {
             return base.Channel.executeChanges(request);
@@ -22054,20 +22144,57 @@ namespace ModelClientSample.midpointModelService {
             return retVal.deltaOperationList;
         }
         
-        public ModelClientSample.midpointModelService.UserType findShadowOwner(out ModelClientSample.midpointModelService.OperationResultType result, string shadowOid) {
-            return base.Channel.findShadowOwner(out result, shadowOid);
+        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+        System.Threading.Tasks.Task<ModelClientSample.midpointModelService.executeChangesResponse> ModelClientSample.midpointModelService.modelPortType.executeChangesAsync(ModelClientSample.midpointModelService.executeChanges request) {
+            return base.Channel.executeChangesAsync(request);
+        }
+        
+        public System.Threading.Tasks.Task<ModelClientSample.midpointModelService.executeChangesResponse> executeChangesAsync(ModelClientSample.midpointModelService.ObjectDeltaType[] deltaList, ModelClientSample.midpointModelService.ModelExecuteOptionsType options) {
+            ModelClientSample.midpointModelService.executeChanges inValue = new ModelClientSample.midpointModelService.executeChanges();
+            inValue.deltaList = deltaList;
+            inValue.options = options;
+            return ((ModelClientSample.midpointModelService.modelPortType)(this)).executeChangesAsync(inValue);
+        }
+        
+        [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
+        ModelClientSample.midpointModelService.findShadowOwnerResponse ModelClientSample.midpointModelService.modelPortType.findShadowOwner(ModelClientSample.midpointModelService.findShadowOwner request) {
+            return base.Channel.findShadowOwner(request);
+        }
+        
+        public ModelClientSample.midpointModelService.UserType findShadowOwner(string shadowOid, out ModelClientSample.midpointModelService.OperationResultType result) {
+            ModelClientSample.midpointModelService.findShadowOwner inValue = new ModelClientSample.midpointModelService.findShadowOwner();
+            inValue.shadowOid = shadowOid;
+            ModelClientSample.midpointModelService.findShadowOwnerResponse retVal = ((ModelClientSample.midpointModelService.modelPortType)(this)).findShadowOwner(inValue);
+            result = retVal.result;
+            return retVal.user;
+        }
+        
+        public System.Threading.Tasks.Task<ModelClientSample.midpointModelService.findShadowOwnerResponse> findShadowOwnerAsync(ModelClientSample.midpointModelService.findShadowOwner request) {
+            return base.Channel.findShadowOwnerAsync(request);
         }
         
         public ModelClientSample.midpointModelService.OperationResultType testResource(string resourceOid) {
             return base.Channel.testResource(resourceOid);
         }
         
+        public System.Threading.Tasks.Task<ModelClientSample.midpointModelService.OperationResultType> testResourceAsync(string resourceOid) {
+            return base.Channel.testResourceAsync(resourceOid);
+        }
+        
         public ModelClientSample.midpointModelService.TaskType importFromResource(string resourceOid, System.Xml.XmlQualifiedName objectClass) {
             return base.Channel.importFromResource(resourceOid, objectClass);
         }
         
+        public System.Threading.Tasks.Task<ModelClientSample.midpointModelService.TaskType> importFromResourceAsync(string resourceOid, System.Xml.XmlQualifiedName objectClass) {
+            return base.Channel.importFromResourceAsync(resourceOid, objectClass);
+        }
+        
         public ModelClientSample.midpointModelService.TaskType notifyChange(ModelClientSample.midpointModelService.ResourceObjectShadowChangeDescriptionType changeDescription) {
             return base.Channel.notifyChange(changeDescription);
+        }
+        
+        public System.Threading.Tasks.Task<ModelClientSample.midpointModelService.TaskType> notifyChangeAsync(ModelClientSample.midpointModelService.ResourceObjectShadowChangeDescriptionType changeDescription) {
+            return base.Channel.notifyChangeAsync(changeDescription);
         }
         
         [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Advanced)]
@@ -22082,6 +22209,10 @@ namespace ModelClientSample.midpointModelService {
             ModelClientSample.midpointModelService.executeScriptsResponse retVal = ((ModelClientSample.midpointModelService.modelPortType)(this)).executeScripts(inValue);
             result = retVal.result;
             return retVal.outputs;
+        }
+        
+        public System.Threading.Tasks.Task<ModelClientSample.midpointModelService.executeScriptsResponse> executeScriptsAsync(ModelClientSample.midpointModelService.executeScripts request) {
+            return base.Channel.executeScriptsAsync(request);
         }
     }
 }

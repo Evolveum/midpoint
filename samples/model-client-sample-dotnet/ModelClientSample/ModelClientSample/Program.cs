@@ -29,7 +29,7 @@ namespace ModelClientSample
         private static XmlQualifiedName RESOURCE_TYPE = new XmlQualifiedName("ResourceType", NS_C);
         private static XmlQualifiedName SYSTEM_CONFIGURATION_TYPE = new XmlQualifiedName("SystemConfigurationType", NS_C);
 
-        private const string WS_URL = "http://localhost.:8080/midpoint/model/model-3?wsdl";   // when using fiddler, change "localhost" to "localhost."
+        private const string WS_URL = "http://localhost:8080/midpoint/model/model-3?wsdl";   // when using fiddler, change "localhost" to "localhost."
 
         private const string SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000001";
         private const string ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
@@ -623,7 +623,7 @@ namespace ModelClientSample
     
         private static modelPortType openConnection()
         {
-            WebRequest.DefaultWebProxy = new WebProxy("127.0.0.1", 8888);         // uncomment this line if you want to use fiddler
+            //WebRequest.DefaultWebProxy = new WebProxy("127.0.0.1", 8888);         // uncomment this line if you want to use fiddler
 
             modelPortTypeClient service = new modelPortTypeClient();
 
