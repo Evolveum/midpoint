@@ -39,6 +39,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensFocusContextType;
 
 import org.apache.commons.lang.StringUtils;
@@ -53,9 +54,20 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
 	private ObjectDeltaWaves<O> secondaryDeltas = new ObjectDeltaWaves<O>();
 	
+	transient private ValuePolicyType orgPasswordPolicy;
+	
 	private int getProjectionWave() {
 		return getLensContext().getProjectionWave();
 	}
+	
+	public void setOrgPasswordPolicy(ValuePolicyType orgPasswordPolicy) {
+		this.orgPasswordPolicy = orgPasswordPolicy;
+	}
+	
+	public ValuePolicyType getOrgPasswordPolicy() {
+		return orgPasswordPolicy;
+	}
+	
 
 	public LensFocusContext(Class<O> objectTypeClass, LensContext<O> lensContext) {
 		super(objectTypeClass, lensContext);

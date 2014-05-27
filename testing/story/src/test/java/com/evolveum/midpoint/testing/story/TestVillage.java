@@ -178,6 +178,7 @@ public class TestVillage extends AbstractStoryTest {
 	
 	private static final String USER_MIKE_FILENAME = COMMON_DIR_NAME + "/user-mike.xml";
 	private static final File USER_MIKE_FILE = new File(USER_MIKE_FILENAME);
+	private static final String USER_MIKE_OID = "c0c010c0-d34d-b33f-f00d-222333111111";
 	
 	private static final String ACCOUNT_HERMAN_USERNAME = "ht";
 	private static final String ACCOUNT_HERMAN_FIST_NAME = "Herman";
@@ -615,7 +616,7 @@ public class TestVillage extends AbstractStoryTest {
         assertNull("First renamed herman is not gone", userGone);
 	}
 	
-//	@Test
+	@Test
 	public void test200createUserAssignOrgPwdPolicy() throws Exception{
 		
 		final String TEST_NAME = "test200createUserAssignOrgPwdPolicy";
@@ -628,16 +629,26 @@ public class TestVillage extends AbstractStoryTest {
 		addObject(ORG_PASSWORD_POLICY_FILE);
 		
 		ObjectDelta orgPasswordPolicyRefDelta = ObjectDelta.createModificationAddReference(OrgType.class, ORG_INFRA_OID, OrgType.F_PASSWORD_POLICY_REF, prismContext, ORG_PASSWORD_POLICY_OID);
+		
+		Collection deltas = MiscUtil.createCollection(orgPasswordPolicyRefDelta);
+		modelService.executeChanges(deltas, null, task, result);
+		
 		ObjectDelta sysConfigPasswordPolicyRefDelta = ObjectDelta.createModificationAddReference(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, prismContext, GLOBAL_PASSWORD_POLICY_OID);
-		Collection deltas = MiscUtil.createCollection(orgPasswordPolicyRefDelta, sysConfigPasswordPolicyRefDelta);
+		deltas = MiscUtil.createCollection(sysConfigPasswordPolicyRefDelta);
 		modelService.executeChanges(deltas, null, task, result);
 		
 		//add user + assign role + assign org with the password policy specified
-		addObject(USER_MIKE_FILE);
+		PrismObject<UserType> objectToAdd = PrismTestUtil.parseObject(USER_MIKE_FILE);
+		ObjectDelta<UserType> addUser = ObjectDelta.createAddDelta(objectToAdd);
 		
-		//assert added user
+		deltas = MiscUtil.createCollection(addUser);
+		//The user's password has length 4..if the policy is not chosen correctly, it fails
+		modelService.executeChanges(deltas, null, task, result);
+
+		//TODO: assert added user
 		
 	}
+	
 	
 	private void assertLocGov(PrismObject<UserType> user, String expLoc, String expOrg) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		UserType userType = user.asObjectable();
