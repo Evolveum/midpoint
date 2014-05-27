@@ -167,8 +167,17 @@ public class TestVillage extends AbstractStoryTest {
 	public static final String ORG_EXEC_NAME = "Exec";
 	public static final String ORG_INFRA_NAME = "Infra";
 
+	public static final String ORG_INFRA_OID = "00000000-8888-6666-0000-100000000004";
+	private static final String GLOBAL_PASSWORD_POLICY_OID = "81818181-76e0-59e2-8888-3d4f02d3fffc";
+	private static final String ORG_PASSWORD_POLICY_OID = "81818181-76e0-59e2-8888-3d4f02d3fffe";
+	private static final File GLOBAL_PASSWORD_POLICY_FILE = new File(TEST_DIR, "global-password-policy.xml");
+	private static final File ORG_PASSWORD_POLICY_FILE = new File(TEST_DIR, "org-password-policy.xml");
+	
 	protected static final File TASK_LIVE_SYNC_DUMMY_SOURCE_FILE = new File(TEST_DIR, "task-dumy-source-livesync.xml");
 	protected static final String TASK_LIVE_SYNC_DUMMY_SOURCE_OID = "10000000-0000-0000-5555-555500000001";
+	
+	private static final String USER_MIKE_FILENAME = COMMON_DIR_NAME + "/user-mike.xml";
+	private static final File USER_MIKE_FILE = new File(USER_MIKE_FILENAME);
 	
 	private static final String ACCOUNT_HERMAN_USERNAME = "ht";
 	private static final String ACCOUNT_HERMAN_FIST_NAME = "Herman";
@@ -606,6 +615,30 @@ public class TestVillage extends AbstractStoryTest {
         assertNull("First renamed herman is not gone", userGone);
 	}
 	
+//	@Test
+	public void test200createUserAssignOrgPwdPolicy() throws Exception{
+		
+		final String TEST_NAME = "test200createUserAssignOrgPwdPolicy";
+        TestUtil.displayTestTile(this, TEST_NAME);
+		Task task = taskManager.createTaskInstance(TestVillage.class.getName() + "." + TEST_NAME);
+		OperationResult result = new OperationResult(TEST_NAME);
+		
+		//prepare password policies
+		addObject(GLOBAL_PASSWORD_POLICY_FILE);
+		addObject(ORG_PASSWORD_POLICY_FILE);
+		
+		ObjectDelta orgPasswordPolicyRefDelta = ObjectDelta.createModificationAddReference(OrgType.class, ORG_INFRA_OID, OrgType.F_PASSWORD_POLICY_REF, prismContext, ORG_PASSWORD_POLICY_OID);
+		ObjectDelta sysConfigPasswordPolicyRefDelta = ObjectDelta.createModificationAddReference(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, prismContext, GLOBAL_PASSWORD_POLICY_OID);
+		Collection deltas = MiscUtil.createCollection(orgPasswordPolicyRefDelta, sysConfigPasswordPolicyRefDelta);
+		modelService.executeChanges(deltas, null, task, result);
+		
+		//add user + assign role + assign org with the password policy specified
+		addObject(USER_MIKE_FILE);
+		
+		//assert added user
+		
+	}
+	
 	private void assertLocGov(PrismObject<UserType> user, String expLoc, String expOrg) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		UserType userType = user.asObjectable();
 		PrismAsserts.assertEqualsPolyString("Wrong locality in "+user, expLoc, userType.getLocality());
@@ -648,22 +681,6 @@ public class TestVillage extends AbstractStoryTest {
 	}
 
 	private void assertUserLdap(PrismObject<UserType> user, String firstName, String lastName, String orgName) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
-//		String username = getUsername(firstName, lastName, orgName);
-//		assertNotNull("No "+username+" user", user);
-//        display("User", user);
-//   		assertUser(user, user.getOid(), username, firstName+" "+lastName,
-//   				firstName, lastName);
-//        assertLinks(user, 2);
-//        assertAccount(user, RESOURCE_DUMMY_SOURCE_OID);
-//        
-//        assertAssignments(user, RoleType.class, 1);
-//        assertAssignedRole(user, ROLE_BASIC_OID);
-//        
-//        assertAccount(user, RESOURCE_OPENDJ_OID);
-//        PrismReferenceValue linkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
-//        PrismObject<ShadowType> shadow = getShadowModel(linkRef.getOid());
-//		display("OpenDJ shadow linked to "+user, shadow);
-//		IntegrationTestTools.assertIcfsNameAttribute(shadow, "uid="+username+",ou=people,dc=example,dc=com");
 		assertUserLdap(user, firstName, lastName, orgName, 1);
 	}
 	

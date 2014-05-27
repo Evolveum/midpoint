@@ -1851,7 +1851,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				LOGGER.trace("Start to convert filter: {}", query.getFilter().debugDump());
 				filter = interpreter.interpret(query.getFilter(), icfNameMapper);
 
-				LOGGER.trace("ICF filter: {}", filter.toString());
+				LOGGER.trace("ICF filter: {}", filter);
 			}
 			
 			icfConnectorFacade.search(icfObjectClass, filter, icfHandler, options);
