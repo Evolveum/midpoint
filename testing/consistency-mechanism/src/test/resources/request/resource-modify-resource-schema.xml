@@ -83,11 +83,11 @@ follows: uid=flastname,ou=people,dc=example,dc=ck</description>
 					<outbound>
 						<source>
 							<name>tmpGivenName</name>
-							<path>$user/givenName</path>
+							<path>$c:user/c:givenName</path>
 						</source>
 						<source>
 							<name>tmpFamilyName</name>
-							<path>$user/familyName</path>
+							<path>$c:user/c:familyName</path>
 						</source>
 						<expression>
 						<script>
@@ -142,12 +142,12 @@ else {
 
 				<outbound>
 					<source>
-						<path>$user/fullName</path>
+						<path>$c:user/fullName</path>
 					</source>
 				</outbound>
 				<inbound>
 					<target>
-						<path>$user/fullName</path>
+						<path>$c:user/fullName</path>
 					</target>
 				</inbound>
 
@@ -176,14 +176,14 @@ else {
                 <displayName>Given Name</displayName>
                 <outbound>
 					<source>
-						<path>givenName</path>
+						<path>c:givenName</path>
 					</source>
 					<expression>
 						<script>
 							<language>http://www.w3.org/TR/xpath/</language>
 							<code>
-								declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-								$givenName
+								declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+								$c:givenName
 							</code>
 						</script>
 					</expression>
@@ -205,11 +205,11 @@ else {
 					<strength>weak</strength>
 						<source>
 							<name>tmpGivenName</name>
-							<path>$user/givenName</path>
+							<path>$c:user/c:givenName</path>
 						</source>
 						<source>
 							<name>tmpFamilyName</name>
-							<path>$user/familyName</path>
+							<path>$c:user/c:familyName</path>
 						</source>
 						<expression>
 						<script>
@@ -304,7 +304,7 @@ else {
 				<outbound>
 <!-- 				<strength>weak</strength> -->
 					<source>
-						<path>$user/employeeType</path>
+						<path>$c:user/c:employeeType</path>
 					</source>
 				</outbound>
 			</attribute>
@@ -314,7 +314,8 @@ else {
 				<displayName>Employee Number</displayName>
 				<outbound>
 					<source>
-						<path>$user/employeeNumber</path>
+						<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                            $c:user/c:employeeNumber</path>
 					</source>
 				</outbound>
 			</attribute>

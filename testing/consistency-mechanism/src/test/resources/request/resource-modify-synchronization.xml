@@ -61,7 +61,8 @@
                           </script>
                         </condition>
 	                <q:equal>
-	                    <q:path>c:employeeNumber</q:path>
+	                    <q:path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+                            c:employeeNumber</q:path>
                               <expression>
                                 <path>
                                 declare default namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-3";

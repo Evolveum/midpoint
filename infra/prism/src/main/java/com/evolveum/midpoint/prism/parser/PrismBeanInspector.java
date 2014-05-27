@@ -535,10 +535,13 @@ public class PrismBeanInspector {
                 if (propTypeLocalPart != null) {
                     String propTypeNamespace = xmlType.namespace();
                     if (propTypeNamespace == null || propTypeNamespace.equals(PrismBeanConverter.DEFAULT_PLACEHOLDER)) {
-                        PrismSchema schema = prismContext.getSchemaRegistry().findSchemaByCompileTimeClass(fieldType);
-                        if (schema != null && schema.getNamespace() != null) {
-                            propTypeNamespace = schema.getNamespace();
-                        } else {
+                        if (prismContext != null) {     // hopefully this is always the case!
+                            PrismSchema schema = prismContext.getSchemaRegistry().findSchemaByCompileTimeClass(fieldType);
+                            if (schema != null && schema.getNamespace() != null) {
+                                propTypeNamespace = schema.getNamespace();
+                            }
+                        }
+                        if (propTypeNamespace == null) {
                             // schemaNamespace is only a poor indicator of required namespace (consider e.g. having c:UserType in apit:ObjectListType)
                             // so we use it only if we couldn't find anything else
                             propTypeNamespace = schemaNamespace;

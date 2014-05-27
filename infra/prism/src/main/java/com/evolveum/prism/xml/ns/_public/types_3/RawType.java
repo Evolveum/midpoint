@@ -7,6 +7,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.parser.XNodeProcessor;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -90,7 +91,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
                 if (itemName == null) {
                     itemName = itemDefinition.getName();
                 }
-				Item<V> subItem = prismContext.getXnodeProcessor().parseItem(xnode, itemName, itemDefinition);
+				Item<V> subItem = PrismUtil.getXnodeProcessor(prismContext).parseItem(xnode, itemName, itemDefinition);
 				value = subItem.getValue(0);
 			} else {
 				PrismProperty<V> subItem = XNodeProcessor.parsePrismPropertyRaw(xnode, itemName);
@@ -124,7 +125,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
         if (xnode != null) {
             return xnode;
         } else if (parsed != null) {
-            return prismContext.getXnodeProcessor().serializeItemValue(parsed);
+            return PrismUtil.getXnodeProcessor(prismContext).serializeItemValue(parsed);
         } else {
             return null;            // or an exception here?
         }
