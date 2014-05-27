@@ -3,6 +3,7 @@ package com.evolveum.midpoint.report.impl;
 
 import java.awt.Color;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.sql.Timestamp;
@@ -825,7 +826,10 @@ public class ReportUtils {
     }
        
     public static String getReportOutputFilePath(ReportType reportType){
-    	
+        File exportFolder = new File(EXPORT_DIR);
+        if (!exportFolder.exists() || !exportFolder.isDirectory()) {
+            exportFolder.mkdir();
+        }
     	
     	String output = EXPORT_DIR +  reportType.getName().getOrig() + " " + getDateTime();
     	switch (reportType.getExport())
