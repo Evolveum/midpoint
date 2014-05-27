@@ -75,7 +75,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	transient private ObjectTemplateType focusTemplate;
 	transient private ProjectionPolicyType accountSynchronizationSettings;
 	transient private ValuePolicyType globalPasswordPolicy;
-
+	
 	transient private DeltaSetTriple<EvaluatedAssignment> evaluatedAssignmentTriple;
 	
 	/**
@@ -880,6 +880,14 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	@Override
 	public String toString() {
 		return "LensContext(s=" + state + ", W(e=" + executionWave + ",p=" + projectionWave + "): "+focusContext+", "+projectionContexts+")";
+	}
+	
+	
+	public ValuePolicyType getEffectivePasswordPolicy(){
+		if (getFocusContext().getOrgPasswordPolicy() != null){
+			return getFocusContext().getOrgPasswordPolicy();
+		}
+		return globalPasswordPolicy;
 	}
 
 }
