@@ -975,7 +975,7 @@ public class LensUtil {
 			@Override
 			public StringPolicyType resolve() {
 				if (outputDefinition.getName().equals(PasswordType.F_VALUE)) {
-					ValuePolicyType passwordPolicy = context.getGlobalPasswordPolicy();
+					ValuePolicyType passwordPolicy = context.getEffectivePasswordPolicy();
 					if (passwordPolicy == null) {
 						return null;
 					}

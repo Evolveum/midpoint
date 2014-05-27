@@ -501,6 +501,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		if (accountPasswordPolicy != null) {
 			return accountPasswordPolicy;
 		}
+		
+		if (getLensContext().getFocusContext().getOrgPasswordPolicy() != null){
+			return getLensContext().getFocusContext().getOrgPasswordPolicy();
+		}
+		
 		return getLensContext().getGlobalPasswordPolicy();
 	}
 	
