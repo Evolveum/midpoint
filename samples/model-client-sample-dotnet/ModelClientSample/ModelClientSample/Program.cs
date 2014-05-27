@@ -141,8 +141,8 @@ namespace ModelClientSample
             // ... because deleting the user will delete also all the traces (except logs and audit of course).
             Console.WriteLine("=========================================================");
             Console.WriteLine("Deleting users guybrush and lechuck...");
-            //deleteUser(modelPort, userGuybrushoid);
-            //deleteUser(modelPort, userLeChuckOid);
+            deleteUser(modelPort, userGuybrushoid);
+            deleteUser(modelPort, userLeChuckOid);
             Console.WriteLine("Done.");
         }
 
