@@ -21,6 +21,8 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 import java.io.IOException;
 
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -49,6 +51,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizatio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
+import javax.xml.namespace.QName;
 
 /**
  * 
@@ -110,9 +114,11 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 
 		ObjectSynchronizationType synchronization = resourceType.getSynchronization().getObjectSynchronization().get(0);
 		for (ConditionalSearchFilterType filter : synchronization.getCorrelation()){
-            Element valueExpressionElement = findChildElement(filter.getFilterClause(), SchemaConstants.NS_C, "expression");
-            ExpressionType expression = PrismTestUtil.getPrismContext().getJaxbDomHack()
-                    .toJavaValue(valueExpressionElement, ExpressionType.class);
+            MapXNode clauseXNode = filter.getFilterClauseXNode(PrismTestUtil.getPrismContext());
+            // key = q:equal, value = map (path + expression)
+            XNode expressionNode = ((MapXNode) clauseXNode.getSingleSubEntry("filter value").getValue()).get(new QName(SchemaConstants.NS_C, "expression"));
+
+            ExpressionType expression = PrismTestUtil.getPrismContext().getXnodeProcessor().parseAtomicValue(expressionNode, ExpressionType.COMPLEX_TYPE);
             LOGGER.debug("Expression: {}",SchemaDebugUtil.prettyPrint(expression));
 
             OperationResult result = new OperationResult("testCorrelationRule");

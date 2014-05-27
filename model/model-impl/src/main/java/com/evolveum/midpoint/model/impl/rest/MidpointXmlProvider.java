@@ -117,7 +117,8 @@ public class MidpointXmlProvider<T> extends AbstractConfigurableProvider impleme
 			if (type.isAssignableFrom(PrismObject.class)){
 				object = (T) prismContext.parseObject(entityStream, PrismContext.LANG_XML);
 			} else {
-				object = (T) prismContext.getJaxbDomHack().unmarshalObject(entityStream);
+                object = prismContext.parseAnyValue(entityStream, PrismContext.LANG_XML);
+				//object = (T) prismContext.getJaxbDomHack().unmarshalObject(entityStream);
 			}
 			
 //			if (object instanceof ObjectModificationType){
@@ -132,8 +133,6 @@ public class MidpointXmlProvider<T> extends AbstractConfigurableProvider impleme
 			throw new WebApplicationException(ex);
 			
 		} catch (IOException ex){
-			throw new IOException(ex);
-		} catch (JAXBException ex){
 			throw new IOException(ex);
 		}
 		

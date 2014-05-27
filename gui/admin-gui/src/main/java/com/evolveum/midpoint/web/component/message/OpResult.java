@@ -16,8 +16,10 @@
 
 package com.evolveum.midpoint.web.component.message;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
@@ -101,10 +103,10 @@ public class OpResult extends PageAdmin implements Serializable {
         try {
         	OperationResultType resultType = result.createOperationResultType();
         	ObjectFactory of = new ObjectFactory();
-			xml = getPrismContext().getJaxbDomHack().marshalElementToString(of.createOperationResult(resultType));
-		} catch (JAXBException ex) {
+			xml = getPrismContext().serializeAtomicValue(of.createOperationResult(resultType), PrismContext.LANG_XML);
+		} catch (SchemaException ex) {
 			error("Can't create xml: " + ex);
-		}
+        }
     }
 
     public List<OpResult> getSubresults() {

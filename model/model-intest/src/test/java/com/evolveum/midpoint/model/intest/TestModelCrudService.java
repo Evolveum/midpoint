@@ -94,8 +94,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
-        // Make sure that plain JAXB parser is used ... this is what a webservice stack would do
-        ResourceType resourceType = prismContext.getJaxbDomHack().unmarshalObject(new FileInputStream(RESOURCE_MAROON_FILE));
+        ResourceType resourceType = (ResourceType) PrismTestUtil.parseObject(RESOURCE_MAROON_FILE).asObjectable();
         
         // WHEN
         PrismObject<ResourceType> object = resourceType.asPrismObject();

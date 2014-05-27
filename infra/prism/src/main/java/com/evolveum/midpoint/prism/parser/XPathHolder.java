@@ -220,7 +220,7 @@ public class XPathHolder {
 		}
 
 		if (domNode != null) {
-			if (prefix != null && prefix.isEmpty()) {
+			if (StringUtils.isNotEmpty(prefix)) {
                 ns = domNode.lookupNamespaceURI(prefix);
             } else {
                 // we don't want the default namespace declaration (xmlns="...") to propagate into path expressions
@@ -375,11 +375,13 @@ public class XPathHolder {
             if (qname != null) {
                 if (qname.getPrefix() != null && !qname.getPrefix().isEmpty()) {
                     namespaceMap.put(qname.getPrefix(), qname.getNamespaceURI());
-                } else {
-                    // Default namespace
-                    // HACK. See addPureXpath method
-                    namespaceMap.put(DEFAULT_PREFIX, qname.getNamespaceURI());
                 }
+                // this code seems to be currently of no use
+//                else {
+//                    // Default namespace
+//                    // HACK. See addPureXpath method
+//                    namespaceMap.put(DEFAULT_PREFIX, qname.getNamespaceURI());
+//                }
             }
 		}
 

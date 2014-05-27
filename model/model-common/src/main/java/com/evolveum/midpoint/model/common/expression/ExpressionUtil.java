@@ -442,24 +442,25 @@ public class ExpressionUtil {
         }
 		
 	}
-	
-	public static ExpressionType createExpression(Element valueExpressionElement, PrismContext prismContext) throws SchemaException {
-		ExpressionType valueExpression = null;
-		try {
-			valueExpression = prismContext.getJaxbDomHack().toJavaValue(
-					valueExpressionElement, ExpressionType.class);
 
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Filter transformed to expression\n{}", valueExpression);
-			}
-		} catch (JAXBException ex) {
-			LoggingUtils.logException(LOGGER, "Expression element couldn't be transformed.", ex);
-			throw new SchemaException("Expression element couldn't be transformed: " + ex.getMessage(), ex);
-		}
-
-		return valueExpression;
-
-	}
+    // seems to be unused [mederly]
+//	public static ExpressionType createExpression(Element valueExpressionElement, PrismContext prismContext) throws SchemaException {
+//		ExpressionType valueExpression = null;
+//		try {
+//			valueExpression = prismContext.getJaxbDomHack().toJavaValue(
+//					valueExpressionElement, ExpressionType.class);
+//
+//			if (LOGGER.isTraceEnabled()) {
+//				LOGGER.trace("Filter transformed to expression\n{}", valueExpression);
+//			}
+//		} catch (JAXBException ex) {
+//			LoggingUtils.logException(LOGGER, "Expression element couldn't be transformed.", ex);
+//			throw new SchemaException("Expression element couldn't be transformed: " + ex.getMessage(), ex);
+//		}
+//
+//		return valueExpression;
+//
+//	}
 
 	private static PrismPropertyValue evaluateExpression(ExpressionVariables variables, PrismContext prismContext,
 			ExpressionType expressionType, ObjectFilter filter, ExpressionFactory expressionFactory, 

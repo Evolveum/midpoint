@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.parser;
 import java.util.Collection;
 import java.util.Map.Entry;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -1102,6 +1103,12 @@ public class XNodeProcessor {
         }
         return new RootXNode(elementName, valueXNode);
     }
+
+    public RootXNode serializeAtomicValue(JAXBElement<?> element) throws SchemaException {
+        Validate.notNull(element);
+        return serializeAtomicValue(element.getValue(), element.getName());
+    }
+
 
     public boolean canSerialize(Object object) {
         if (object instanceof Item) {
