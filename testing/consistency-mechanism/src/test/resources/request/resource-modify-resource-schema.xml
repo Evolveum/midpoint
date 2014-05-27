@@ -83,11 +83,11 @@ follows: uid=flastname,ou=people,dc=example,dc=ck</description>
 					<outbound>
 						<source>
 							<name>tmpGivenName</name>
-							<path>$c:user/c:givenName</path>
+							<path>$user/givenName</path>
 						</source>
 						<source>
 							<name>tmpFamilyName</name>
-							<path>$c:user/c:familyName</path>
+							<path>$user/familyName</path>
 						</source>
 						<expression>
 						<script>
@@ -142,12 +142,12 @@ else {
 
 				<outbound>
 					<source>
-						<path>$c:user/fullName</path>
+						<path>$user/fullName</path>
 					</source>
 				</outbound>
 				<inbound>
 					<target>
-						<path>$c:user/fullName</path>
+						<path>$user/fullName</path>
 					</target>
 				</inbound>
 
@@ -205,11 +205,11 @@ else {
 					<strength>weak</strength>
 						<source>
 							<name>tmpGivenName</name>
-							<path>$c:user/c:givenName</path>
+							<path>$user/givenName</path>
 						</source>
 						<source>
 							<name>tmpFamilyName</name>
-							<path>$c:user/c:familyName</path>
+							<path>$user/familyName</path>
 						</source>
 						<expression>
 						<script>
@@ -304,7 +304,7 @@ else {
 				<outbound>
 <!-- 				<strength>weak</strength> -->
 					<source>
-						<path>$c:user/c:employeeType</path>
+						<path>$user/employeeType</path>
 					</source>
 				</outbound>
 			</attribute>
@@ -314,8 +314,7 @@ else {
 				<displayName>Employee Number</displayName>
 				<outbound>
 					<source>
-						<path>declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-                            $c:user/c:employeeNumber</path>
+						<path>$user/employeeNumber</path>
 					</source>
 				</outbound>
 			</attribute>

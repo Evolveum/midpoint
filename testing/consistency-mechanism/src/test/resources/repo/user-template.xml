@@ -38,10 +38,10 @@
 		<c:mapping>
 			<strength>weak</strength>
 			<source>
-				<path>$c:user/c:givenName</path>
+				<path>$user/givenName</path>
 			</source>
 			<source>
-				<path>$c:user/c:familyName</path>
+				<path>$user/familyName</path>
 			</source>
 			<expression>
 				<script>
@@ -49,7 +49,7 @@
 				</script>
 			</expression>
 			<target>
-				<path>c:fullName</path>
+				<path>fullName</path>
 			</target>
 		</c:mapping>
 

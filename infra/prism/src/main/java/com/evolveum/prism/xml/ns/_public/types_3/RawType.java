@@ -190,7 +190,7 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable {
     //endregion
 
     private void checkPrismContext() {
-        if (prismContext != null) {
+        if (prismContext == null) {
             throw new IllegalStateException("prismContext is not set - perhaps a forgotten call to adopt() somewhere?");
         }
     }
