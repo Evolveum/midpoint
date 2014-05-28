@@ -503,7 +503,7 @@ public class PrismContext {
 		Parser parser = getParserNotNull(language);
 		
 		RootXNode xroot = xnodeProcessor.serializeItemValueAsRoot(cval, elementName);
-		System.out.println("serialized to xnode: " + xroot.debugDump());
+		//System.out.println("serialized to xnode: " + xroot.debugDump());
 		return parser.serializeToString(xroot);
 	}
 

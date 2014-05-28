@@ -19,6 +19,8 @@ package com.evolveum.midpoint.web.page.admin.server.dto;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -29,6 +31,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.wicket.Component;
 
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -66,8 +71,17 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
         		query = new ObjectQuery();
         	}
         	query.setPaging(paging);
-        	
-            List<PrismObject<TaskType>> tasks = getModel().searchObjects(TaskType.class, query, null, operationTask, result);
+
+            List<QName> propertiesToGet = new ArrayList<>();
+            if (options.isUseClusterInformation()) {
+                propertiesToGet.add(TaskType.F_NODE_AS_OBSERVED);
+            }
+            if (options.isGetNextRunStartTime()) {
+                propertiesToGet.add(TaskType.F_NEXT_RUN_START_TIMESTAMP);
+            }
+            Collection<SelectorOptions<GetOperationOptions>> searchOptions =
+                    GetOperationOptions.createRetrieveAttributesOptions(propertiesToGet.toArray(new QName[0]));
+            List<PrismObject<TaskType>> tasks = getModel().searchObjects(TaskType.class, query, searchOptions, operationTask, result);
             for (PrismObject<TaskType> task : tasks) {
                 try {
                     TaskDto taskDto = new TaskDto(task.asObjectable(), getModel(), getTaskService(), getModelInteractionService(), getTaskManager(), options, result);

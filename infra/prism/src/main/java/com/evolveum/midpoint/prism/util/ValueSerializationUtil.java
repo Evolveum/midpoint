@@ -242,7 +242,7 @@ public class ValueSerializationUtil {
 		if (xnode instanceof RootXNode){
 			xnode = ((RootXNode) xnode).getSubnode();
 		}
-		System.out.println("value: " + value);
+		//System.out.println("value: " + value);
 		Item parsedItem = prismContext.getXnodeProcessor().parseItem(xnode, item.getElementName(), item.getDefinition());
 		return parsedItem.getValues();
 //		throw new UnsupportedOperationException("need to be implemented");
