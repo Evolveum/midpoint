@@ -65,7 +65,8 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
         }
 
         try {
-            scriptingExpressionEvaluator.evaluateExpression(executeScriptProperty.getRealValue(), task, result);
+            ExecutionContext resultingContext = scriptingExpressionEvaluator.evaluateExpression(executeScriptProperty.getRealValue(), task, result);
+            LOGGER.debug("Execution result:\n", resultingContext.getConsoleOutput());
             result.computeStatus();
             runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.FINISHED);
         } catch (ScriptExecutionException e) {
@@ -90,7 +91,7 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
 
     @Override
     public String getCategoryName(Task task) {
-        return TaskCategory.WORKFLOW;
+        return TaskCategory.BULK_ACTIONS;
     }
 
     @Override
