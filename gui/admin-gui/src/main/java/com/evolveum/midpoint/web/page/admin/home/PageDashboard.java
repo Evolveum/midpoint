@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.util.CallableResult;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -209,12 +210,14 @@ public class PageDashboard extends PageAdminHome {
                         "fa fa-fw fa-tachometer", DashboardColor.GREEN) {
 
                     @Override
-                    protected Callable<CallableResult<SystemInfoDto>> createCallable(final Authentication auth,
-                                                                                     IModel callableParameterModel) {
-                        return new Callable<CallableResult<SystemInfoDto>>() {
+                    protected SecurityContextAwareCallable<CallableResult<SystemInfoDto>> createCallable(
+                            Authentication auth, IModel callableParameterModel) {
+
+                        return new SecurityContextAwareCallable<CallableResult<SystemInfoDto>>(
+                                getSecurityEnforcer(), auth) {
 
                             @Override
-                            public CallableResult<SystemInfoDto> call() throws Exception {
+                            public CallableResult<SystemInfoDto> callWithContextPrepared() throws Exception {
                                 CallableResult callableResult = new CallableResult();
 
                                 //TODO - fill correct data in users and tasks graphs[shood]
@@ -246,12 +249,14 @@ public class PageDashboard extends PageAdminHome {
                         "fa fa-fw fa-tasks", DashboardColor.RED) {
 
                     @Override
-                    protected Callable<CallableResult<List<WorkItemDto>>> createCallable(final Authentication auth,
-                                                                                         IModel callableParameterModel) {
-                        return new Callable<CallableResult<List<WorkItemDto>>>() {
+                    protected SecurityContextAwareCallable<CallableResult<List<WorkItemDto>>> createCallable(
+                            Authentication auth, IModel callableParameterModel) {
+
+                        return new SecurityContextAwareCallable<CallableResult<List<WorkItemDto>>>(
+                                getSecurityEnforcer(), auth) {
 
                             @Override
-                            public CallableResult<List<WorkItemDto>> call() throws Exception {
+                            public CallableResult<List<WorkItemDto>> callWithContextPrepared() throws Exception {
                                 return loadWorkItems();
                             }
                         };
@@ -278,15 +283,15 @@ public class PageDashboard extends PageAdminHome {
                         "fa fa-fw fa-external-link", DashboardColor.BLUE) {
 
                     @Override
-                    protected Callable<CallableResult<List<SimpleAccountDto>>> createCallable(final Authentication auth,
-                            IModel<Object> callableParameterModel) {
+                    protected SecurityContextAwareCallable<CallableResult<List<SimpleAccountDto>>> createCallable(
+                            Authentication auth, IModel<Object> callableParameterModel) {
 
-                        return new Callable<CallableResult<List<SimpleAccountDto>>>() {
+                        return new SecurityContextAwareCallable<CallableResult<List<SimpleAccountDto>>>(
+                                getSecurityEnforcer(), auth) {
 
                             @Override
-                            public AccountCallableResult<List<SimpleAccountDto>> call() throws Exception {
-//                                getSecurityEnforcer().setupPreAuthenticatedSecurityContext();
-
+                            public AccountCallableResult<List<SimpleAccountDto>> callWithContextPrepared()
+                                    throws Exception {
                                 return loadAccounts();
                             }
                         };
@@ -331,14 +336,14 @@ public class PageDashboard extends PageAdminHome {
                         "fa fa-fw fa-star", DashboardColor.YELLOW) {
 
                     @Override
-                    protected Callable<CallableResult<List<AssignmentItemDto>>> createCallable(final Authentication auth,
-                                                                                               IModel callableParameterModel) {
-                        return new Callable<CallableResult<List<AssignmentItemDto>>>() {
+                    protected SecurityContextAwareCallable<CallableResult<List<AssignmentItemDto>>> createCallable(
+                            Authentication auth, IModel callableParameterModel) {
+
+                        return new SecurityContextAwareCallable<CallableResult<List<AssignmentItemDto>>>(
+                                getSecurityEnforcer(), auth) {
 
                             @Override
-                            public CallableResult<List<AssignmentItemDto>> call() throws Exception {
-                                getSecurityEnforcer().setupPreAuthenticatedSecurityContext(auth);
-
+                            public CallableResult<List<AssignmentItemDto>> callWithContextPrepared() throws Exception {
                                 return loadAssignments();
                             }
                         };
