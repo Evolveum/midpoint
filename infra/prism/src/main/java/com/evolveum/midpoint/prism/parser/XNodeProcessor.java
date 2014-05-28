@@ -786,7 +786,7 @@ public class XNodeProcessor {
         }
         // TODO: is this warning needed?
         if (xnode.isEmpty()){
-            System.out.println("Emplty filter. Skipping parsing.");
+            System.out.println("Empty filter. Skipping parsing.");
             return null;
         }
         return SearchFilterType.createFromXNode(xnode);
