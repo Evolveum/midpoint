@@ -518,7 +518,7 @@ public class ExecutionManager {
         }
 
         if (!task.isSingle()) {
-            String message = "Closed recurring task " + task + " cannot be re-run, because this operation is not available for recurring tasks.";
+            String message = "Closed recurring task " + task + " cannot be re-run, because this operation is not available for recurring tasks. Please use RESUME instead.";
             result.recordWarning(message);
             LOGGER.warn(message);
             return;
