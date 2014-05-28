@@ -202,7 +202,7 @@
 	            <reaction>
 	                <situation>unmatched</situation>
 	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#addUser"/>
-	                <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>
+	                <!--<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-3#linkAccount"/>-->
 	            </reaction>
 			</objectSynchronization>
         </synchronization>
