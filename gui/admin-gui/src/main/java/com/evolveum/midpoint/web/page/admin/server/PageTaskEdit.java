@@ -117,6 +117,7 @@ public class PageTaskEdit extends PageAdminTasks {
 	private static final String OPERATION_SAVE_TASK = DOT_CLASS + "saveTask";
     private static final String OPERATION_SUSPEND_TASKS = DOT_CLASS + "suspendTask";
     private static final String OPERATION_RESUME_TASK = DOT_CLASS + "resumeTask";
+    private static final String OPERATION_RUN_NOW_TASK = DOT_CLASS + "runNowTask";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_IDENTIFIER = "identifier";
@@ -136,6 +137,7 @@ public class PageTaskEdit extends PageAdminTasks {
     private static final String ID_OPERATION_RESULT_PANEL = "operationResultPanel";
     private static final String ID_SUSPEND = "suspend";
     private static final String ID_RESUME = "resume";
+    private static final String ID_RUN_NOW = "runNow";
     private static final String ID_DRY_RUN = "dryRun";
 
     private IModel<TaskDto> model;
@@ -169,9 +171,28 @@ public class PageTaskEdit extends PageAdminTasks {
         return TaskDtoExecutionStatus.RUNNABLE.equals(exec) || TaskDtoExecutionStatus.RUNNING.equals(exec);
     }
 
+    private boolean isRunnable() {
+        TaskDtoExecutionStatus exec = model.getObject().getExecution();
+        return TaskDtoExecutionStatus.RUNNABLE.equals(exec);
+    }
+
     private boolean isRunning() {
         TaskDtoExecutionStatus exec = model.getObject().getExecution();
         return TaskDtoExecutionStatus.RUNNING.equals(exec);
+    }
+
+    private boolean isClosed() {
+        TaskDtoExecutionStatus exec = model.getObject().getExecution();
+        return TaskDtoExecutionStatus.CLOSED.equals(exec);
+    }
+
+    private boolean isRecurring() {
+        return model.getObject().getRecurring();
+    }
+
+    private boolean isSuspended() {
+        TaskDtoExecutionStatus exec = model.getObject().getExecution();
+        return TaskDtoExecutionStatus.SUSPENDED.equals(exec);
     }
 
     private TaskDto loadTask() {
@@ -695,7 +716,7 @@ public class PageTaskEdit extends PageAdminTasks {
 
             @Override
             public boolean isVisible() {
-                return isRunnableOrRunning();
+                return !edit && isRunnableOrRunning();
             }
         });
         mainForm.add(suspend);
@@ -711,11 +732,27 @@ public class PageTaskEdit extends PageAdminTasks {
 
             @Override
             public boolean isVisible() {
-                return !isRunning();
+                return !edit && (isSuspended() || (isClosed() && isRecurring()));
             }
         });
         mainForm.add(resume);
-	}
+
+        AjaxButton runNow = new AjaxButton(ID_RUN_NOW, createStringResource("pageTaskEdit.button.runNow")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                runNowPerformed(target);
+            }
+        };
+        runNow.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return !edit && (isRunnable() || (isClosed() && !isRecurring()));
+            }
+        });
+        mainForm.add(runNow);
+    }
 
 	private List<IColumn<OperationResult, String>> initResultColumns() {
 		List<IColumn<OperationResult, String>> columns = new ArrayList<IColumn<OperationResult, String>>();
@@ -864,7 +901,25 @@ public class PageTaskEdit extends PageAdminTasks {
         setResponsePage(PageTasks.class);
     }
 
-	private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
+    private void runNowPerformed(AjaxRequestTarget target) {
+        String oid = model.getObject().getOid();
+        OperationResult result = new OperationResult(OPERATION_RUN_NOW_TASK);
+        try {
+            getTaskService().scheduleTasksNow(Arrays.asList(oid), result);
+            result.computeStatus();
+
+            if (result.isSuccess()) {
+                result.recordStatus(OperationResultStatus.SUCCESS, "The task has been successfully scheduled to run.");
+            }
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't schedule the task due to an unexpected exception", e);
+        }
+
+        showResultInSession(result);
+        setResponsePage(PageTasks.class);
+    }
+
+    private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
 
 		public EmptyOnBlurAjaxFormUpdatingBehaviour() {
 			super("onBlur");

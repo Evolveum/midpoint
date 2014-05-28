@@ -93,9 +93,10 @@ public class ScheduleValidator extends AbstractFormValidator {
                     error(interval, "pageTask.scheduleValidation.bothIntervalAndCron");
                 }
 
-                if (interval.getModelObject() == null && StringUtils.isEmpty(cron.getModelObject())) {
-                    error(interval, "pageTask.scheduleValidation.neitherIntervalNorCron");
-                }
+                // there can be recurring tasks that are started only on demand, so we allow specifying no timing information
+//                if (interval.getModelObject() == null && StringUtils.isEmpty(cron.getModelObject())) {
+//                    error(interval, "pageTask.scheduleValidation.neitherIntervalNorCron");
+//                }
 
                 if (!StringUtils.isEmpty(cron.getModelObject())) {
                     ParseException pe = taskManager.validateCronExpression(cron.getModelObject());

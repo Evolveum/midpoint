@@ -22,4 +22,31 @@
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#dashboard</action>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#myPasswords</action>
     </authorization>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <special>self</special>
+        </object>
+    </authorization>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>ShadowType</type>
+            <owner>
+                <special>self</special>
+            </owner>
+        </object>
+    </authorization>
+    <authorization>
+        <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
+        <object>
+            <type>OrgType</type>
+        </object>
+        <object>
+            <type>ResourceType</type>
+        </object>
+        <object>
+            <type>RoleType</type>
+        </object>
+    </authorization>
 </role>
