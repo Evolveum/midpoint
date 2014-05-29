@@ -117,7 +117,13 @@ public class SearchEvaluator extends BaseExpressionEvaluator {
         }
 
         if (atLeastOne.isFalse()) {
-            context.println("Warning: no " + searchExpression.getType().getLocalPart() + " object found");          // temporary hack, this will be configurable
+            String matching;
+            if (objectQuery != null) {
+                matching = "matching ";
+            } else {
+                matching = "";
+            }
+            context.println("Warning: no " + matching + searchExpression.getType().getLocalPart() + " object found");          // temporary hack, this will be configurable
         }
 
         if (variableName != null) {

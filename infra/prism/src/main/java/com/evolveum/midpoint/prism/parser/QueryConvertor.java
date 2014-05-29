@@ -313,7 +313,7 @@ public class QueryConvertor {
                 expressionWrapper.setExpression(expressionPropertyValue.getValue());
                 return EqualFilter.createEqual(itemPath, (PrismPropertyDefinition) itemDefinition, matchingRule, expressionWrapper);
 			} else {
-                throw new SchemaException("No expression nor value in filter");
+                return EqualFilter.createNullEqual(itemPath, (PrismPropertyDefinition) itemDefinition, matchingRule);
             }
 			
 		}

@@ -174,7 +174,7 @@ public class EqualFilter<T extends Object> extends PropertyValueFilter<PrismProp
 	}
 
    
-	private static EqualFilter createNullEqual(ItemPath itemPath, PrismPropertyDefinition propertyDef, QName matchingRule){
+	public static EqualFilter createNullEqual(ItemPath itemPath, PrismPropertyDefinition propertyDef, QName matchingRule){
 		return new EqualFilter(itemPath, propertyDef, matchingRule);
 		
 	}
