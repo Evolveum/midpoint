@@ -67,7 +67,7 @@ public class OperationsHelper {
     }
 
     public Collection<SelectorOptions<GetOperationOptions>> createGetOptions(boolean noFetch) {
-        LOGGER.info("noFetch = {}", noFetch);
+        LOGGER.trace("noFetch = {}", noFetch);
         return noFetch ? SelectorOptions.createCollection(GetOperationOptions.createNoFetch()) : null;
     }
 

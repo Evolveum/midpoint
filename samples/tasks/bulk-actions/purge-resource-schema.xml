@@ -20,21 +20,19 @@
          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 
     <task>
-        <name>Recompute users having names starting with 'a'</name>
+        <name>Purge schema on OpenDJ resources</name>
 		<extension>
             <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
                 <s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
-                    <s:type>c:UserType</s:type>
+                    <s:type>c:ResourceType</s:type>
                     <s:searchFilter>
-                        <q:substring>
-                            <q:matching>polyStringNorm</q:matching>
-                            <q:path>c:name</q:path>
-                            <q:value>a</q:value>
-                            <q:anchorStart>true</q:anchorStart>
-                        </q:substring>
+                        <substring xmlns="http://prism.evolveum.com/xml/ns/public/query-3">
+                            <path>c:name</path>
+                            <value>OpenDJ</value>
+                        </substring>
                     </s:searchFilter>
                     <s:action>
-                        <s:type>recompute</s:type>
+                        <s:type>purge-schema</s:type>
                     </s:action>
                 </s:search>
             </scext:executeScript>
