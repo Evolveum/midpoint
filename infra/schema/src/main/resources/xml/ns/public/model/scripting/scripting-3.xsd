@@ -323,7 +323,7 @@
     <xsd:complexType name="ExecuteScriptType">
         <xsd:sequence>
             <xsd:element ref="tns:expression"/>
-            <xsd:element name="input" type="tns:ItemListType"/>
+            <xsd:element name="input" type="tns:ItemListType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
