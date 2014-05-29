@@ -67,7 +67,7 @@ public class RunScript {
 	// Configuration
 	public static final String ADM_USERNAME = "administrator";
 	public static final String ADM_PASSWORD = "5ecr3t";
-    private static final String DEFAULT_ENDPOINT_URL = "http://localhost:8080/midpoint/model/model-1";
+    private static final String DEFAULT_ENDPOINT_URL = "http://localhost:8080/midpoint/model/model-3";
 
     private static final String PROPERTY_PREFIX = "[[!!";
     private static final String PROPERTY_SUFFIX = "!!]]";
