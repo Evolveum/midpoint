@@ -18,6 +18,7 @@ package com.evolveum.midpoint.wf.impl.processors.general;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -93,8 +94,8 @@ public class GcpConfigurationHelper {
             } catch (SchemaException e) {
                 throw new SystemException("Schema validation failed for " + KEY_GENERAL_CHANGE_PROCESSOR_CONFIGURATION + " element in " + beanName + " configuration: " + e.getMessage(), e);
             }
-            return prismContext.getJaxbDomHack().toJavaValue(processorConfig, GeneralChangeProcessorConfigurationType.class);
-        } catch (XPathExpressionException|JAXBException e) {
+            return prismContext.parseAnyValue(processorConfig);
+        } catch (XPathExpressionException|SchemaException e) {
             throw new SystemException("Couldn't read general workflow processor configuration in " + beanName, e);
         }
     }

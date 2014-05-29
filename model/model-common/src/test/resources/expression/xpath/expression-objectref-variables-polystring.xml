@@ -17,9 +17,7 @@
 
 <script xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
 		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" 
-		xmlns:x="http://example.com/xxx"
-		xmlns:y="http://example.com/yyy">
+		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
     <language>http://www.w3.org/TR/xpath/</language>
     <!--<variable>-->
     	<!--<name>x:foo</name>-->
@@ -29,10 +27,8 @@
     	<!--<name>y:jack</name>-->
     	<!--<objectRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType"/>-->
     <!--</variable>-->
-	<code xmlns:x="http://example.com/xxx">
-        declare namespace x="http://example.com/xxx";
-        declare namespace y="http://example.com/yyy";
+	<code>
         declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-3";
-        concat($x:foo,' ',$y:jack/c:fullName)
+        concat($foo,' ',$jack/c:fullName)
 	</code>
 </script>

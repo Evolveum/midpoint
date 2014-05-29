@@ -43,6 +43,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import java.io.File;
@@ -384,6 +385,12 @@ public class PrismContext {
         XNode xnode = parseToXNode(element);
         return xnodeProcessor.parseAnyValue(xnode);
     }
+
+    public <T> T parseAnyValue(InputStream inputStream, String language) throws SchemaException, IOException {
+        XNode xnode = parseToXNode(inputStream, language);
+        return xnodeProcessor.parseAnyValue(xnode);
+    }
+
     //endregion
 
     //region Parsing to XNode
@@ -496,7 +503,7 @@ public class PrismContext {
 		Parser parser = getParserNotNull(language);
 		
 		RootXNode xroot = xnodeProcessor.serializeItemValueAsRoot(cval, elementName);
-		System.out.println("serialized to xnode: " + xroot.debugDump());
+		//System.out.println("serialized to xnode: " + xroot.debugDump());
 		return parser.serializeToString(xroot);
 	}
 
@@ -517,6 +524,13 @@ public class PrismContext {
         RootXNode xnode = xnodeProcessor.serializeAtomicValue(value, elementName);
         return parser.serializeToString(xnode);
     }
+
+    public String serializeAtomicValue(JAXBElement<?> element, String language) throws SchemaException {
+        Parser parser = getParserNotNull(language);
+        RootXNode xnode = xnodeProcessor.serializeAtomicValue(element);
+        return parser.serializeToString(xnode);
+    }
+
 
     /**
      * Serializes any data - i.e. either Item or an atomic value.

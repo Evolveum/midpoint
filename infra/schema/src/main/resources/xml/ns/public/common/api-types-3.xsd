@@ -377,6 +377,7 @@
         <xsd:sequence>
             <xsd:element name="outputFormat" type="tns:OutputFormatType" minOccurs="0"/>
             <xsd:element name="objectLimit" type="xsd:int" minOccurs="0"/>
+            <xsd:element name="executeAsynchronously" type="xsd:boolean" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 

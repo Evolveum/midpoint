@@ -124,7 +124,6 @@ public class XPathHolder {
 		// Continue parsing with Xpath without the "preamble"
 		xpath = parser.getPureXPathString();
 
-        // todo: fixme what if there's '/' within ID value we are looking for?
 		String[] segArray = xpath.split("/");
 		for (int i = 0; i < segArray.length; i++) {
 			if (segArray[i] == null || segArray[i].isEmpty()) {
@@ -181,10 +180,11 @@ public class XPathHolder {
                 }
                 qname = new QName(namespace, qnameArray[1], qnameArray[0]);
             }
-            if (StringUtils.isEmpty(qname.getNamespaceURI())) {
-                LOGGER.debug("WARNING: Namespace was not defined for {} in xpath\n{}", new Object[] {
-                        segmentStr, xpath });
-            }
+            // currently it's OK to have no namespace in a path
+//            if (StringUtils.isEmpty(qname.getNamespaceURI())) {
+//                LOGGER.debug("WARNING: Namespace was not defined for {} in xpath\n{}", new Object[] {
+//                        segmentStr, xpath });
+//            }
 
             segments.add(new XPathSegment(qname, variable));
             if (idValueFilterSegment != null) {
@@ -220,10 +220,11 @@ public class XPathHolder {
 		}
 
 		if (domNode != null) {
-			if (prefix == null || prefix.isEmpty()) {
-				ns = domNode.lookupNamespaceURI(null);
-			} else {
-				ns = domNode.lookupNamespaceURI(prefix);
+			if (StringUtils.isNotEmpty(prefix)) {
+                ns = domNode.lookupNamespaceURI(prefix);
+            } else {
+                // we don't want the default namespace declaration (xmlns="...") to propagate into path expressions
+                // so here we do not try to obtain the namespace from the document
 			}
 			if (ns != null) {
 				return ns;
@@ -374,11 +375,13 @@ public class XPathHolder {
             if (qname != null) {
                 if (qname.getPrefix() != null && !qname.getPrefix().isEmpty()) {
                     namespaceMap.put(qname.getPrefix(), qname.getNamespaceURI());
-                } else {
-                    // Default namespace
-                    // HACK. See addPureXpath method
-                    namespaceMap.put(DEFAULT_PREFIX, qname.getNamespaceURI());
                 }
+                // this code seems to be currently of no use
+//                else {
+//                    // Default namespace
+//                    // HACK. See addPureXpath method
+//                    namespaceMap.put(DEFAULT_PREFIX, qname.getNamespaceURI());
+//                }
             }
 		}
 

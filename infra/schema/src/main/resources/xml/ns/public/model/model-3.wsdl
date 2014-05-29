@@ -49,10 +49,12 @@
 			location="../common/fault-3.wsdl"/>
 			
     <types>
-        <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3">
+        <!-- Element form name is QUALIFIED to prevent some problems with marshalling/unmarshalling. This deviates from RPC/Literal convention, but we
+             do not have to obey this convention -->
+        <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3" elementFormDefault="qualified">
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" 
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"
             			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3"/>
             <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"
             			schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3"/>
@@ -61,161 +63,153 @@
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
             			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"/>
 
-            <xsd:element name="getObject">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="objectType" type="xsd:QName"/>
-                        <xsd:element name="oid" type="xsd:string"/>
-                        <xsd:element name="options" type="apit:SelectorQualifiedGetOptionsType"/>
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="getObjectResponse">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="object" type="c:ObjectType"/>
-                        <xsd:element name="result" type="c:OperationResultType" />
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
+            <xsd:complexType name="GetObjectType">
+                <xsd:sequence>
+                    <xsd:element name="objectType" type="xsd:QName"/>
+                    <xsd:element name="oid" type="xsd:string"/>
+                    <xsd:element name="options" type="apit:SelectorQualifiedGetOptionsType"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="getObject" type="tns:GetObjectType"/>
 
-            <xsd:element name="executeChanges">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="deltaList" type="apit:ObjectDeltaListType"/>
-                        <xsd:element name="options" type="c:ModelExecuteOptionsType"/>
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="executeChangesResponse">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="deltaOperationList" type="apit:ObjectDeltaOperationListType" />
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
+            <xsd:complexType name="GetObjectResponseType">
+                <xsd:sequence>
+                    <xsd:element name="object" type="c:ObjectType"/>
+                    <xsd:element name="result" type="c:OperationResultType" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="getObjectResponse" type="tns:GetObjectResponseType"/>
+
+            <xsd:complexType name="ExecuteChangesType">
+                <xsd:sequence>
+                    <xsd:element name="deltaList" type="apit:ObjectDeltaListType"/>
+                    <xsd:element name="options" type="c:ModelExecuteOptionsType"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="executeChanges" type="tns:ExecuteChangesType"/>
+
+            <xsd:complexType name="ExecuteChangesResponseType">
+                <xsd:sequence>
+                    <xsd:element name="deltaOperationList" type="apit:ObjectDeltaOperationListType" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="executeChangesResponse" type="tns:ExecuteChangesResponseType" />
 
             <!-- TODO recompute -->
 
-            <xsd:element name="searchObjects">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="objectType" type="xsd:QName"/>
-                        <xsd:element name="query" type="q:QueryType">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    Search criteria (may be null).
-                                </xsd:documentation>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element name="options" type="apit:SelectorQualifiedGetOptionsType"/>
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="searchObjectsResponse">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="objectList" type="apit:ObjectListType"/>
-                        <xsd:element name="result" type="c:OperationResultType" />
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
+            <xsd:complexType name="SearchObjectsType">
+                <xsd:sequence>
+                    <xsd:element name="objectType" type="xsd:QName"/>
+                    <xsd:element name="query" type="q:QueryType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Search criteria (may be null).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="options" type="apit:SelectorQualifiedGetOptionsType"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="searchObjects" type="tns:SearchObjectsType"/>
+
+            <xsd:complexType name="SearchObjectsResponseType">
+                <xsd:sequence>
+                    <xsd:element name="objectList" type="apit:ObjectListType"/>
+                    <xsd:element name="result" type="c:OperationResultType" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="searchObjectsResponse" type="tns:SearchObjectsResponseType"/>
 
             <!-- TODO countObjects -->
 
-            <xsd:element name="findShadowOwner">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="shadowOid" type="xsd:string"/>
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="findShadowOwnerResponse">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="user" type="c:UserType"/>
-                        <xsd:element name="result" type="c:OperationResultType" />
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
+            <xsd:complexType name="FindShadowOwnerType">
+                <xsd:sequence>
+                    <xsd:element name="shadowOid" type="xsd:string"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="findShadowOwner" type="tns:FindShadowOwnerType"/>
 
-            <xsd:element name="testResource">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="resourceOid" type="xsd:string"/>
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="testResourceResponse">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="result" type="c:OperationResultType" />
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
+            <xsd:complexType name="FindShadowOwnerResponseType">
+                <xsd:sequence>
+                    <xsd:element name="user" type="c:UserType"/>
+                    <xsd:element name="result" type="c:OperationResultType" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="findShadowOwnerResponse" type="tns:FindShadowOwnerResponseType"/>
 
-            <xsd:element name="importFromResource">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="resourceOid" type="xsd:string"/>
-                        <xsd:element name="objectClass" type="xsd:QName">           <!-- TODO consistent naming with other resource-related object classes (resourceObjectShadowType above) -->
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    Object class to import.
-                                    Local name, assumed to be in the resource namespace.
-                                </xsd:documentation>
-                            </xsd:annotation>
-                        </xsd:element>
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="importFromResourceResponse">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="task" type="c:TaskType" />
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
+            <xsd:complexType name="TestResourceType">
+                <xsd:sequence>
+                    <xsd:element name="resourceOid" type="xsd:string"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="testResource" type="tns:TestResourceType"/>
+
+            <xsd:complexType name="testResourceResponseType">
+                <xsd:sequence>
+                    <xsd:element name="result" type="c:OperationResultType" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="testResourceResponse" type="tns:testResourceResponseType"/>
+
+            <xsd:complexType name="ImportFromResourceType">
+                <xsd:sequence>
+                    <xsd:element name="resourceOid" type="xsd:string"/>
+                    <xsd:element name="objectClass" type="xsd:QName">           <!-- TODO consistent naming with other resource-related object classes (resourceObjectShadowType above) -->
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Object class to import.
+                                Local name, assumed to be in the resource namespace.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="importFromResource" type="tns:ImportFromResourceType"/>
+
+            <xsd:complexType name="ImportFromResourceResponseType">
+                <xsd:sequence>
+                    <xsd:element name="task" type="c:TaskType" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="importFromResourceResponse" type="tns:ImportFromResourceResponseType"/>
 
             <!-- TODO importFromResource for single shadow -->
             <!-- TODO importObjectsFromFile -->
             <!-- TODO importObjectsFromStream -->
             <!-- TODO discoverConnectors -->
             
-            <xsd:element name="notifyChange">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="changeDescription" type="c:ResourceObjectShadowChangeDescriptionType"/>
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="notifyChangeResponse">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="task" type="c:TaskType" />
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
+            <xsd:complexType name="NotifyChangeType">
+                <xsd:sequence>
+                    <xsd:element name="changeDescription" type="c:ResourceObjectShadowChangeDescriptionType"/>
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="notifyChange" type="tns:NotifyChangeType"/>
 
-            <xsd:element name="executeScripts">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:choice>
-                            <xsd:element name="xmlScripts" type="apit:XmlScriptsType" />
-                            <xsd:element name="mslScripts" type="xsd:string"/>
-                        </xsd:choice>
-                        <xsd:element name="options" type="apit:ExecuteScriptsOptionsType" minOccurs="0" />
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
-            <xsd:element name="executeScriptsResponse">
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element name="outputs" type="apit:ScriptOutputsType" />
-                        <xsd:element name="result" type="c:OperationResultType" />
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
+            <xsd:complexType name="NotifyChangeResponseType">
+                <xsd:sequence>
+                    <xsd:element name="task" type="c:TaskType" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="notifyChangeResponse" type="tns:NotifyChangeResponseType"/>
+
+            <xsd:complexType name="ExecuteScriptsType">
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="xmlScripts" type="apit:XmlScriptsType" />
+                        <xsd:element name="mslScripts" type="xsd:string"/>
+                    </xsd:choice>
+                    <xsd:element name="options" type="apit:ExecuteScriptsOptionsType" minOccurs="0" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="executeScripts" type="tns:ExecuteScriptsType"/>
+
+            <xsd:complexType name="ExecuteScriptsResponseType">
+                <xsd:sequence>
+                    <xsd:element name="outputs" type="apit:ScriptOutputsType" />
+                    <xsd:element name="result" type="c:OperationResultType" />
+                </xsd:sequence>
+            </xsd:complexType>
+            <xsd:element name="executeScriptsResponse" type="tns:ExecuteScriptsResponseType"/>
 
             <!--<xsd:element name="getSchemas">-->
                 <!--<xsd:complexType>-->
@@ -327,8 +321,8 @@
                       IllegalArgumentFaultType: wrong OID format
                       ObjectNotFoundFaultType: object with specified OID does not exists
             </documentation>
-            <input name="getObjectInput" message="tns:getObject"/>
-            <output name="getObjectOutput" message="tns:getObjectResponse"/>
+            <input name="getObject" message="tns:getObject"/>
+            <output name="getObjectResponse" message="tns:getObjectResponse"/>
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
 
@@ -343,8 +337,8 @@
                       IllegalArgumentFaultType: wrong object type
                       SchemaViolationFaultType: unknown property used in search query
             </documentation>
-            <input name="searchObjectsInput" message="tns:searchObjects"/>
-            <output name="searchObjectsOutput" message="tns:searchObjectsResponse"/>
+            <input name="searchObjects" message="tns:searchObjects"/>
+            <output name="searchObjectsResponse" message="tns:searchObjectsResponse"/>
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
 
@@ -403,8 +397,8 @@
                       IllegalArgumentException: wrong OID format, etc.
 
             </documentation>
-            <input name="executeChangesInput" message="tns:executeChanges"/>
-            <output name="executeChangesOutput" message="tns:executeChangesResponse"/>
+            <input name="executeChanges" message="tns:executeChanges"/>
+            <output name="executeChangesResponse" message="tns:executeChangesResponse"/>
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
 
@@ -426,8 +420,8 @@
                       IllegalArgumentFaultType: wrong OID format
                       ObjectNotFoundFaultType: object with specified OID does not exists
             </documentation>
-            <input name="findShadowOwnerInput" message="tns:findShadowOwner"/>
-            <output name="findShadowOwnerOutput" message="tns:findShadowOwnerResponse"/>
+            <input name="findShadowOwner" message="tns:findShadowOwner"/>
+            <output name="findShadowOwnerResponse" message="tns:findShadowOwnerResponse"/>
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
 
@@ -452,8 +446,8 @@
                 any SystemFaultType
                 ObjectNotFoundFaultType: specified Resource definition does not exist
             </documentation>
-            <input name="testResourceInput" message="tns:testResource"/>
-            <output name="testResourceOutput" message="tns:testResourceResponse"/>
+            <input name="testResource" message="tns:testResource"/>
+            <output name="testResourceResponse" message="tns:testResourceResponse"/>
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
 
@@ -475,8 +469,8 @@
                       any SystemFaultType
                       ObjectNotFoundFaultType: specified Resource definition does not exist
             </documentation>
-            <input name="importFromResourceInput" message="tns:importFromResource"/>
-            <output name="importFromResourceOutput" message="tns:importFromResourceResponse"/>
+            <input name="importFromResource" message="tns:importFromResource"/>
+            <output name="importFromResourceResponse" message="tns:importFromResourceResponse"/>
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
 
@@ -486,24 +480,24 @@
             	
                Trigger change notification.
             </documentation>
-            <input name="notifyChangeInput" message="tns:notifyChange"/>
-            <output name="notifyChangeOutput" message="tns:notifyChangeResponse"/>
+            <input name="notifyChange" message="tns:notifyChange"/>
+            <output name="notifyChangeResponse" message="tns:notifyChangeResponse"/>
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
 
         <operation name="executeScripts">
             <documentation>
             </documentation>
-            <input name="executeScriptsInput" message="tns:executeScripts"/>
-            <output name="executeScriptsOutput" message="tns:executeScriptsResponse"/>
+            <input name="executeScripts" message="tns:executeScripts"/>
+            <output name="executeScriptsResponse" message="tns:executeScriptsResponse"/>
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
 
         <!--<operation name="getSchemas">-->
             <!--<documentation>-->
             <!--</documentation>-->
-            <!--<input name="getSchemasInput" message="tns:getSchemas"/>-->
-            <!--<output name="getSchemasOutput" message="tns:getSchemasResponse"/>-->
+            <!--<input name="getSchemas" message="tns:getSchemas"/>-->
+            <!--<output name="getSchemasResponse" message="tns:getSchemasResponse"/>-->
             <!--<fault name="fault" message="f:FaultMessage"/>-->
         <!--</operation>-->
 
@@ -513,11 +507,11 @@
         <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
         <operation name="getObject">
             <soap:operation/>
-            <input name="getObjectInput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
+            <input name="getObject">
+                <soap:body use="literal" />
             </input>
-            <output name="getObjectOutput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
+            <output name="getObjectResponse">
+                <soap:body use="literal" />
             </output>
             <fault name="fault">
                 <soap:fault name="fault" use="literal"/>
@@ -525,11 +519,11 @@
         </operation>
         <operation name="searchObjects">
             <soap:operation/>
-            <input name="searchObjectsInput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
+            <input name="searchObjects">
+                <soap:body use="literal" />
             </input>
-            <output name="searchObjectsOutput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
+            <output name="searchObjectsResponse">
+                <soap:body use="literal" />
             </output>
             <fault name="fault">
                 <soap:fault name="fault" use="literal"/>
@@ -537,11 +531,11 @@
         </operation>
         <operation name="executeChanges">
             <soap:operation/>
-            <input name="executeChangesInput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
+            <input name="executeChanges">
+                <soap:body use="literal" />
             </input>
-            <output name="executeChangesOutput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
+            <output name="executeChangesResponse">
+                <soap:body use="literal" />
             </output>
             <fault name="fault">
                 <soap:fault name="fault" use="literal"/>
@@ -549,11 +543,11 @@
         </operation>
         <operation name="findShadowOwner">
             <soap:operation/>
-            <input name="findShadowOwnerInput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
+            <input name="findShadowOwner">
+                <soap:body use="literal" />
             </input>
-            <output name="findShadowOwnerOutput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
+            <output name="findShadowOwnerResponse">
+                <soap:body use="literal" />
             </output>
             <fault name="fault">
                 <soap:fault name="fault" use="literal"/>
@@ -561,11 +555,11 @@
         </operation>
         <operation name="testResource">
             <soap:operation/>
-            <input name="testResourceInput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
+            <input name="testResource">
+                <soap:body use="literal" />
             </input>
-            <output name="testResourceOutput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
+            <output name="testResourceResponse">
+                <soap:body use="literal" />
             </output>
             <fault name="fault">
                 <soap:fault name="fault" use="literal"/>
@@ -573,11 +567,11 @@
         </operation>
         <operation name="importFromResource">
             <soap:operation/>
-            <input name="importFromResourceInput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
+            <input name="importFromResource">
+                <soap:body use="literal" />
             </input>
-            <output name="importFromResourceOutput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
+            <output name="importFromResourceResponse">
+                <soap:body use="literal" />
             </output>
             <fault name="fault">
                 <soap:fault name="fault" use="literal"/>
@@ -585,11 +579,11 @@
         </operation>
         <operation name="notifyChange">
             <soap:operation/>
-            <input name="notifyChangeInput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
+            <input name="notifyChange">
+                <soap:body use="literal" />
             </input>
-            <output name="notifyChangeOutput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
+            <output name="notifyChangeResponse">
+                <soap:body use="literal" />
             </output>
             <fault name="fault">
                 <soap:fault name="fault" use="literal"/>
@@ -597,11 +591,11 @@
         </operation>
         <operation name="executeScripts">
             <soap:operation/>
-            <input name="executeScriptsInput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
+            <input name="executeScripts">
+                <soap:body use="literal" />
             </input>
-            <output name="executeScriptsOutput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>
+            <output name="executeScriptsResponse">
+                <soap:body use="literal" />
             </output>
             <fault name="fault">
                 <soap:fault name="fault" use="literal"/>
@@ -610,15 +604,21 @@
 
         <!--<operation name="getSchemas">-->
             <!--<soap:operation/>-->
-            <!--<input name="getSchemasInput">-->
-                <!--<soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>-->
+            <!--<input name="getSchemas">-->
+                <!--<soap:body use="literal" />-->
             <!--</input>-->
-            <!--<output name="getSchemasOutput">-->
-                <!--<soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3"/>-->
+            <!--<output name="getSchemasResponse">-->
+                <!--<soap:body use="literal" />-->
             <!--</output>-->
             <!--<fault name="fault">-->
                 <!--<soap:fault name="fault" use="literal"/>-->
             <!--</fault>-->
         <!--</operation>-->
     </binding>
+    <service name="modelWebService">
+        <port name="modelPort"
+                   binding="tns:modelBinding">
+            <soap:address location="http://localhost:8080/dummy"/>
+        </port>
+    </service>
 </definitions>

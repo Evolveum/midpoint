@@ -16,12 +16,14 @@
 package com.evolveum.midpoint.model.client;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -33,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+import com.evolveum.prism.xml.ns._public.query_3.FilterClauseType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -94,11 +97,11 @@ public class ModelClientUtil {
     public static ItemPathType createItemPathType(String stringPath) {
         ItemPathType itemPathType = new ItemPathType();
         String pathDeclaration = "declare default namespace '" + NS_COMMON + "'; " + stringPath;
-        itemPathType.getContent().add(pathDeclaration);
+        itemPathType.setValue(pathDeclaration);
         return itemPathType;
     }
 
-    public static SearchFilterType parseSearchFilterType(String filterClauseAsXml) throws IOException, SAXException {
+    public static SearchFilterType parseSearchFilterType(String filterClauseAsXml) throws IOException, SAXException, JAXBException {
         Element filterClauseAsElement = parseElement(filterClauseAsXml);
         SearchFilterType searchFilterType = new SearchFilterType();
         searchFilterType.setFilterClause(filterClauseAsElement);
@@ -162,7 +165,7 @@ public class ModelClientUtil {
 		Document document = domDocumentBuilder.parse(IOUtils.toInputStream(stringXml, "utf-8"));
 		return getFirstChildElement(document);
 	}
-	
+
 	public static Element getFirstChildElement(Node parent) {
 		if (parent == null || parent.getChildNodes() == null) {
 			return null;

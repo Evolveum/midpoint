@@ -368,12 +368,12 @@ public class DeltaConvertor {
         	
 			//modValue.setXnode(null);
 
-            RawType modValue = new RawType();
+            RawType modValue = new RawType(delta.getPrismContext());
             mod.getValue().add(modValue);
 
         } else {
 	        for (PrismValue value : values) {
-	        	System.out.println("value: " + value.debugDump());
+	        	//System.out.println("value: " + value.debugDump());
 	        	//FIXME: serilaize to XNode instead of dom??
 //	        	Object xmlValue = toAny(delta, value, document);
 //	        	System.out.println("xmlValue " + xmlValue);

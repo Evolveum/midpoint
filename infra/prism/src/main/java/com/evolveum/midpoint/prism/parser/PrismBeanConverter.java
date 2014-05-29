@@ -22,26 +22,32 @@ import com.evolveum.midpoint.prism.Raw;
 import com.evolveum.midpoint.prism.Revivable;
 import com.evolveum.midpoint.prism.parser.util.XNodeProcessorUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.SchemaXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Handler;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedByteArrayType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 import com.evolveum.prism.xml.ns._public.types_3.XmlAsStringType;
 
 import org.apache.commons.lang.StringUtils;
@@ -70,23 +76,24 @@ public class PrismBeanConverter {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismBeanConverter.class);
 
-    public static final String DEFAULT_NAMESPACE_PLACEHOLDER = "##default";
+    public static final String DEFAULT_PLACEHOLDER = "##default";
 
-    private PrismBeanInspector inspector = new PrismBeanInspector();
+    private PrismBeanInspector inspector;
 	
 	private PrismContext prismContext;
 
 	public PrismBeanConverter(PrismContext prismContext) {
 		this.prismContext = prismContext;
+        this.inspector = new PrismBeanInspector(prismContext);
 	}
 	
 	public PrismContext getPrismContext() {
 		return prismContext;
 	}
 
-	public void setPrismContext(PrismContext prismContext) {
-		this.prismContext = prismContext;
-	}
+//	public void setPrismContext(PrismContext prismContext) {
+//		this.prismContext = prismContext;
+//	}
 
 	private SchemaRegistry getSchemaRegistry() {
 		if (prismContext == null) {
@@ -100,7 +107,7 @@ public class PrismBeanConverter {
 	}
 	
 	public boolean canProcess(Class<?> clazz) {
-		return clazz.getAnnotation(XmlType.class) != null;
+		return RawType.class.equals(clazz) || clazz.getAnnotation(XmlType.class) != null;
 	}
 	
 	public <T> T unmarshall(MapXNode xnode, QName typeQName) throws SchemaException {
@@ -109,11 +116,24 @@ public class PrismBeanConverter {
 	}
 
 	public <T> T unmarshall(MapXNode xnode, Class<T> beanClass) throws SchemaException {
-        
-		if (prismContext.getSchemaRegistry().determineDefinitionFromClass(beanClass) != null) {
+
+        if (PolyStringType.class.equals(beanClass)) {
+            PolyString polyString = unmarshalPolyString(xnode);
+            return (T) polyString;
+        } else if (ProtectedStringType.class.equals(beanClass)) {
+            ProtectedStringType protectedType = new ProtectedStringType();
+            XNodeProcessorUtil.parseProtectedType(protectedType, xnode, prismContext);
+            return (T) protectedType;
+        } else if (ProtectedByteArrayType.class.equals(beanClass)) {
+            ProtectedByteArrayType protectedType = new ProtectedByteArrayType();
+            XNodeProcessorUtil.parseProtectedType(protectedType, xnode, prismContext);
+            return (T) protectedType;
+        } else if (SchemaDefinitionType.class.equals(beanClass)) {
+            SchemaDefinitionType schemaDefType = unmarshalSchemaDefinitionType(xnode);
+            return (T) schemaDefType;
+        } else if (prismContext.getSchemaRegistry().determineDefinitionFromClass(beanClass) != null) {
 			return (T) prismContext.getXnodeProcessor().parseObject(xnode).asObjectable();			
-		}
-        if (XmlAsStringType.class.equals(beanClass)) {
+		} else if (XmlAsStringType.class.equals(beanClass)) {
             // reading a string represented a XML-style content
             // used e.g. when reading report templates (embedded XML)
             // A necessary condition: there may be only one map entry.
@@ -597,8 +617,13 @@ public class PrismBeanConverter {
 		if (bean == null) {
 			return null;
 		}
-        if (bean instanceof ItemPathType) {
-            return marshalItemPath((ItemPathType) bean);
+        if (bean instanceof SchemaDefinitionType) {
+            return marshalSchemaDefinition((SchemaDefinitionType) bean);
+        } else if (bean instanceof ProtectedDataType<?>) {
+            MapXNode xProtected = marshalProtectedDataType((ProtectedDataType<?>) bean);
+            return xProtected;
+        } else if (bean instanceof ItemPathType){
+            return marshalItemPathType((ItemPathType) bean);
         } else if (bean instanceof SearchFilterType) {
             return marshalSearchFilterType((SearchFilterType) bean);
         } else if (bean instanceof RawType) {
@@ -620,7 +645,7 @@ public class PrismBeanConverter {
 			if (StringUtils.isEmpty(enumValue)){
 				enumValue = bean.toString();
 			}
-			QName fieldTypeName = inspector.findFieldTypeName(null, beanClass, DEFAULT_NAMESPACE_PLACEHOLDER);
+			QName fieldTypeName = inspector.findFieldTypeName(null, beanClass, DEFAULT_PLACEHOLDER);
 			return createPrimitiveXNode(enumValue, fieldTypeName, false);
 //			return marshallValue(bean, fieldTypeName, false);
 		}
@@ -637,7 +662,7 @@ public class PrismBeanConverter {
 		
 		List<String> propOrder = inspector.getPropOrder(beanClass);
 		for (String fieldName: propOrder) {
-			QName elementName = new QName(namespace, inspector.findFieldElementName(fieldName, beanClass));
+			QName elementName = inspector.findFieldElementQName(fieldName, beanClass, namespace);
 			Method getter = inspector.findPropertyGetter(beanClass, fieldName);
 			if (getter == null) {
 				throw new IllegalStateException("No getter for field "+fieldName+" in "+beanClass);
@@ -758,7 +783,9 @@ public class PrismBeanConverter {
 			//nothing more to do
 			return;
 		}
-		
+
+        // TODO: implement special handling for RawType, if necessary (it has no XmlType annotation any more)
+
 		XmlType xmlType = beanClass.getAnnotation(XmlType.class);
 		if (xmlType == null) {
 			// no @XmlType annotation, we are not interested to go any deeper
@@ -850,20 +877,88 @@ public class PrismBeanConverter {
 		return xprim;
 	}
 
-	private XNode marshalRawValue(RawType value) throws SchemaException {
+    private <T> PrimitiveXNode<T> createPrimitiveXNode(T val, QName type) {
+        return createPrimitiveXNode(val, type, false);
+    }
+
+    private XNode marshalRawValue(RawType value) throws SchemaException {
         return value.serializeToXNode();
 	}
 
-	private XNode marshalItemPath(ItemPathType itemPath){
-		PrimitiveXNode xprim = new PrimitiveXNode<>();
-		ItemPath path = itemPath.getItemPath();
-//		XPathHolder holder = new XPathHolder(path);
-//		xprim.setValue(holder.getXPath());
-		xprim.setValue(path);
-		xprim.setTypeQName(ItemPathType.COMPLEX_TYPE);
-		return xprim;
-	}
+    private XNode marshalItemPathType(ItemPathType itemPath) {
+        PrimitiveXNode<ItemPath> xprim = new PrimitiveXNode<ItemPath>();
+        if (itemPath != null){
+            ItemPath path = itemPath.getItemPath();
+            xprim.setValue(path);
+            xprim.setTypeQName(ItemPathType.COMPLEX_TYPE);
+        }
+        return xprim;
+    }
 
+    private XNode marshalSchemaDefinition(SchemaDefinitionType schemaDefinitionType) {
+        SchemaXNode xschema = new SchemaXNode();
+        xschema.setSchemaElement(schemaDefinitionType.getSchema());
+        MapXNode xmap = new MapXNode();
+        xmap.put(DOMUtil.XSD_SCHEMA_ELEMENT, xschema);
+        return xmap;
+    }
+
+    // TODO create more appropriate interface to be able to simply serialize ProtectedStringType instances
+    public <T> MapXNode marshalProtectedDataType(ProtectedDataType<T> protectedType) throws SchemaException {
+        MapXNode xmap = new MapXNode();
+        if (protectedType.getEncryptedDataType() != null) {
+            EncryptedDataType encryptedDataType = protectedType.getEncryptedDataType();
+            MapXNode xEncryptedDataType = (MapXNode) marshall(encryptedDataType);
+            xmap.put(ProtectedDataType.F_ENCRYPTED_DATA, xEncryptedDataType);
+        } else if (protectedType.getClearValue() != null){
+            QName type = XsdTypeMapper.toXsdType(protectedType.getClearValue().getClass());
+            PrimitiveXNode xClearValue = createPrimitiveXNode(protectedType.getClearValue(), type);
+            xmap.put(ProtectedDataType.F_CLEAR_VALUE, xClearValue);
+        }
+        // TODO: clearValue
+        return xmap;
+    }
+
+    private PolyString unmarshalPolyString(MapXNode xmap) throws SchemaException {
+        String orig = xmap.getParsedPrimitiveValue(QNameUtil.nullNamespace(PolyString.F_ORIG), DOMUtil.XSD_STRING);
+        if (orig == null) {
+            throw new SchemaException("Null polystring orig in "+xmap);
+        }
+        String norm = xmap.getParsedPrimitiveValue(QNameUtil.nullNamespace(PolyString.F_NORM), DOMUtil.XSD_STRING);
+        return new PolyString(orig, norm);
+    }
+
+    private SchemaDefinitionType unmarshalSchemaDefinitionType(MapXNode xmap) throws SchemaException {
+        Entry<QName, XNode> subEntry = xmap.getSingleSubEntry("schema element");
+        if (subEntry == null) {
+            return null;
+        }
+        XNode xsub = subEntry.getValue();
+        if (xsub == null) {
+            return null;
+        }
+        if (!(xsub instanceof SchemaXNode)) {
+            throw new SchemaException("Cannot parse schema from "+xsub);
+        }
+//		Element schemaElement = ((SchemaXNode)xsub).getSchemaElement();
+//		if (schemaElement == null) {
+//			throw new SchemaException("Empty schema in "+xsub);
+//		}
+        SchemaDefinitionType schemaDefType = unmarshalSchemaDefinitionType((SchemaXNode) xsub);
+//		new SchemaDefinitionType();
+//		schemaDefType.setSchema(schemaElement);
+        return schemaDefType;
+    }
+
+    public SchemaDefinitionType unmarshalSchemaDefinitionType(SchemaXNode xsub) throws SchemaException{
+        Element schemaElement = ((SchemaXNode)xsub).getSchemaElement();
+        if (schemaElement == null) {
+            throw new SchemaException("Empty schema in "+xsub);
+        }
+        SchemaDefinitionType schemaDefType = new SchemaDefinitionType();
+        schemaDefType.setSchema(schemaElement);
+        return schemaDefType;
+    }
 
 }
  

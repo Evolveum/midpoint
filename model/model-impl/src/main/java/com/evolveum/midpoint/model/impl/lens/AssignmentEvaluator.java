@@ -262,7 +262,8 @@ public class AssignmentEvaluator<F extends FocusType> {
 			} else {
 				// Do not throw an exception. We don't have referential integrity. Therefore if a role is deleted then throwing
 				// an exception would prohibit any operations with the users that have the role, including removal of the reference.
-				LOGGER.debug("No target or construcion in assignment in {}, ignoring it", source);
+				LOGGER.debug("No target or construction in assignment in {}, ignoring it", source);
+                //result.recordWarning("No target or construction in assignment in " + source + ", ignoring it.");
 			}
 			
 		} else {

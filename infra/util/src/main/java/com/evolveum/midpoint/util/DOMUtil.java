@@ -937,7 +937,7 @@ public class DOMUtil {
 		} else {
 			element = document.createElementNS(qname.getNamespaceURI(), qname.getLocalPart());
 		}
-		if (qname.getPrefix() != null) {
+		if (StringUtils.isNotEmpty(qname.getPrefix())) {
 			element.setPrefix(qname.getPrefix());
 		}
 		return element;

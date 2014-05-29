@@ -77,6 +77,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class SchemaRegistry implements LSResourceResolver, EntityResolver, DebugDumpable {
 	
 	private static final QName DEFAULT_XSD_TYPE = DOMUtil.XSD_STRING;
+
+    private static final String RUNTIME_CATALOG_RESOURCE = "META-INF/catalog-runtime.xml";
+
+    private String catalogResource;
 	
 	private javax.xml.validation.SchemaFactory schemaFactory;
 	private javax.xml.validation.Schema javaxSchema;
@@ -94,11 +98,12 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 	
 	public SchemaRegistry() {
 		super();
+        this.catalogResource = RUNTIME_CATALOG_RESOURCE;
 		this.schemaDescriptions = new ArrayList<SchemaDescription>();
 		this.parsedSchemas = new HashMap<String, SchemaDescription>();
 		this.extensionSchemas = new HashMap<QName, ComplexTypeDefinition>();
 	}
-	
+
 	public DynamicNamespacePrefixMapper getNamespacePrefixMapper() {
 		return namespacePrefixMapper;
 	}
@@ -149,8 +154,27 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		desc.setPrismSchema(true);
 		registerSchemaDescription(desc);
 	}
-	
-	/**
+
+    public void registerPrismSchemasFromWsdlResource(String resourcePath, List<Package> compileTimeClassesPackages) throws SchemaException {
+        List<SchemaDescription> descriptions = SchemaDescription.parseWsdlResource(resourcePath);
+        Iterator<Package> pkgIterator = null;
+        if (compileTimeClassesPackages != null) {
+            if (descriptions.size() != compileTimeClassesPackages.size()) {
+                throw new SchemaException("Mismatch between the size of compileTimeClassesPackages ("+compileTimeClassesPackages.size()
+                        +" and schemas in "+resourcePath+" ("+descriptions.size()+")");
+            }
+            pkgIterator = compileTimeClassesPackages.iterator();
+        }
+        for (SchemaDescription desc : descriptions) {
+            desc.setPrismSchema(true);
+            if (pkgIterator != null) {
+                desc.setCompileTimeClassesPackage(pkgIterator.next());
+            }
+            registerSchemaDescription(desc);
+        }
+    }
+
+    /**
 	 * Must be called before call to initialize()
 	 */
 	public void registerPrismSchemaResource(String resourcePath, String usualPrefix, Package compileTimeClassesPackage) throws SchemaException {
@@ -386,8 +410,12 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Debug
 		CatalogResolver catalogResolver = new CatalogResolver(catalogManager);
 		Catalog catalog = catalogResolver.getCatalog();
 
+        if (catalogResource == null) {
+            throw new IllegalStateException("Catalog is not defined");
+        }
+
 		Enumeration<URL> catalogs = Thread.currentThread().getContextClassLoader()
-				.getResources("META-INF/catalog.xml");
+				.getResources(catalogResource);
 		while (catalogs.hasMoreElements()) {
 			URL catalogURL = catalogs.nextElement();
 			catalog.parseCatalog(catalogURL);

@@ -84,9 +84,8 @@ public class ModelClientUtil {
 	}
 
     public static ItemPathType createItemPathType(String stringPath) {
-        ItemPathType itemPathType = new ItemPathType();
         String pathDeclaration = "declare default namespace '" + NS_COMMON + "'; " + stringPath;
-        itemPathType.getContent().add(pathDeclaration);
+        ItemPathType itemPathType = new ItemPathType(pathDeclaration);
         return itemPathType;
     }
 

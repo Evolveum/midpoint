@@ -721,14 +721,13 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		ItemDeltaType propMod = new ItemDeltaType();
 		//create modification path
 		Document doc = DOMUtil.getDocument();
-		ItemPathType path = new ItemPathType();
+		ItemPathType path = new ItemPathType("credentials/password/value");
 //		PropertyPath propPath = new PropertyPath(new PropertyPath(ResourceObjectShadowType.F_CREDENTIALS), CredentialsType.F_PASSWORD);
-		path.getContent().add("credentials/password/value");
 		propMod.setPath(path);
 
 		//set the replace value
-        MapXNode passPsXnode = prismContext.getXnodeProcessor().createSerializer().serializeProtectedDataType(passPs);
-		RawType value = new RawType(passPsXnode);
+        MapXNode passPsXnode = prismContext.getBeanConverter().marshalProtectedDataType(passPs);
+		RawType value = new RawType(passPsXnode, prismContext);
 		propMod.getValue().add(value);
 		
 		//set the modificaion type

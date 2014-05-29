@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.model;
+package com.evolveum.midpoint.model.impl;
 
 import com.evolveum.midpoint.model.api.ModelPort;
-import com.evolveum.midpoint.model.impl.ModelWebService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -30,23 +29,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_3.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteChanges;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteChangesResponse;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScripts;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsResponse;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.FindShadowOwner;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.FindShadowOwnerResponse;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.GetObject;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.GetObjectResponse;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ImportFromResource;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.ImportFromResourceResponse;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.NotifyChange;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.NotifyChangeResponse;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.SearchObjects;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.SearchObjectsResponse;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.TestResource;
-import com.evolveum.midpoint.xml.ns._public.model.model_3.TestResourceResponse;
-import org.jcp.xml.dsig.internal.dom.DOMUtils;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteChangesResponseType;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteChangesType;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsResponseType;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.ExecuteScriptsType;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.FindShadowOwnerResponseType;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.FindShadowOwnerType;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.GetObjectResponseType;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.GetObjectType;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.ImportFromResourceResponseType;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.ImportFromResourceType;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.NotifyChangeResponseType;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.NotifyChangeType;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.SearchObjectsResponseType;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.SearchObjectsType;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.TestResourceResponseType;
+import com.evolveum.midpoint.xml.ns._public.model.model_3.TestResourceType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -54,9 +52,15 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import javax.xml.namespace.QName;
+import javax.xml.soap.Detail;
+import javax.xml.soap.SOAPException;
+import javax.xml.soap.SOAPFactory;
+import javax.xml.soap.SOAPFault;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.ws.Holder;
 import javax.xml.ws.Provider;
+import javax.xml.ws.WebServiceProvider;
+import javax.xml.ws.soap.SOAPFaultException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
@@ -91,7 +95,20 @@ public class ModelWebServiceRaw implements Provider<DOMSource> {
         try {
             return invokeAllowingFaults(request);
         } catch (FaultMessage faultMessage) {
-            return serializeFaultMessage(faultMessage);
+            try {
+                SOAPFactory factory = SOAPFactory.newInstance();
+                SOAPFault soapFault = factory.createFault();
+                soapFault.setFaultCode(SOAP11_FAULTCODE_SERVER);           // todo here is a constant until we have a mechanism to determine the correct value (client / server)
+                soapFault.setFaultString(faultMessage.getMessage());
+                // fault actor?
+                // stack trace of the outer exception (FaultMessage) is unimportant, because it is always created at one place
+                // todo consider providing stack trace of the inner exception
+                //Detail detail = soapFault.addDetail();
+                //detail.setTextContent(getStackTraceAsString(faultMessage));
+                throw new SOAPFaultException(soapFault);
+            } catch (SOAPException e) {
+                throw new RuntimeException("SOAP Exception: " + e.getMessage(), e);
+            }
         }
     }
 
@@ -116,56 +133,56 @@ public class ModelWebServiceRaw implements Provider<DOMSource> {
         Node response;
         Holder<OperationResultType> operationResultTypeHolder = new Holder<>();
         try {
-            if (requestObject instanceof GetObject) {
-                GetObject g = (GetObject) requestObject;
+            if (requestObject instanceof GetObjectType) {
+                GetObjectType g = (GetObjectType) requestObject;
                 Holder<ObjectType> objectTypeHolder = new Holder<>();
                 ws.getObject(g.getObjectType(), g.getOid(), g.getOptions(), objectTypeHolder, operationResultTypeHolder);
-                GetObjectResponse gr = new GetObjectResponse();
+                GetObjectResponseType gr = new GetObjectResponseType();
                 gr.setObject(objectTypeHolder.value);
                 gr.setResult(operationResultTypeHolder.value);
                 response = prismContext.serializeAnyDataToElement(gr, ModelPort.GET_OBJECT_RESPONSE);
-            } else if (requestObject instanceof SearchObjects) {
-                SearchObjects s = (SearchObjects) requestObject;
+            } else if (requestObject instanceof SearchObjectsType) {
+                SearchObjectsType s = (SearchObjectsType) requestObject;
                 Holder<ObjectListType> objectListTypeHolder = new Holder<>();
                 ws.searchObjects(s.getObjectType(), s.getQuery(), s.getOptions(), objectListTypeHolder, operationResultTypeHolder);
-                SearchObjectsResponse sr = new SearchObjectsResponse();
+                SearchObjectsResponseType sr = new SearchObjectsResponseType();
                 sr.setObjectList(objectListTypeHolder.value);
                 sr.setResult(operationResultTypeHolder.value);
                 response = prismContext.serializeAnyDataToElement(sr, ModelPort.SEARCH_OBJECTS_RESPONSE);
-            } else if (requestObject instanceof ExecuteChanges) {
-                ExecuteChanges e = (ExecuteChanges) requestObject;
+            } else if (requestObject instanceof ExecuteChangesType) {
+                ExecuteChangesType e = (ExecuteChangesType) requestObject;
                 ObjectDeltaOperationListType objectDeltaOperationListType = ws.executeChanges(e.getDeltaList(), e.getOptions());
-                ExecuteChangesResponse er = new ExecuteChangesResponse();
+                ExecuteChangesResponseType er = new ExecuteChangesResponseType();
                 er.setDeltaOperationList(objectDeltaOperationListType);
                 response = prismContext.serializeAnyDataToElement(er, ModelPort.EXECUTE_CHANGES_RESPONSE);
-            } else if (requestObject instanceof FindShadowOwner) {
-                FindShadowOwner f = (FindShadowOwner) requestObject;
+            } else if (requestObject instanceof FindShadowOwnerType) {
+                FindShadowOwnerType f = (FindShadowOwnerType) requestObject;
                 Holder<UserType> userTypeHolder = new Holder<>();
                 ws.findShadowOwner(f.getShadowOid(), userTypeHolder, operationResultTypeHolder);
-                FindShadowOwnerResponse fsr = new FindShadowOwnerResponse();
+                FindShadowOwnerResponseType fsr = new FindShadowOwnerResponseType();
                 fsr.setUser(userTypeHolder.value);
                 fsr.setResult(operationResultTypeHolder.value);
                 response = prismContext.serializeAnyDataToElement(fsr, ModelPort.FIND_SHADOW_OWNER_RESPONSE);
-            } else if (requestObject instanceof TestResource) {
-                TestResource tr = (TestResource) requestObject;
+            } else if (requestObject instanceof TestResourceType) {
+                TestResourceType tr = (TestResourceType) requestObject;
                 OperationResultType operationResultType = ws.testResource(tr.getResourceOid());
-                TestResourceResponse trr = new TestResourceResponse();
+                TestResourceResponseType trr = new TestResourceResponseType();
                 trr.setResult(operationResultType);
                 response = prismContext.serializeAnyDataToElement(trr, ModelPort.TEST_RESOURCE_RESPONSE);
-            } else if (requestObject instanceof ExecuteScripts) {
-                ExecuteScripts es = (ExecuteScripts) requestObject;
-                ExecuteScriptsResponse esr = ws.executeScripts(es);
+            } else if (requestObject instanceof ExecuteScriptsType) {
+                ExecuteScriptsType es = (ExecuteScriptsType) requestObject;
+                ExecuteScriptsResponseType esr = ws.executeScripts(es);
                 response = prismContext.serializeAnyDataToElement(esr, ModelPort.EXECUTE_SCRIPTS_RESPONSE);
-            } else if (requestObject instanceof ImportFromResource) {
-                ImportFromResource ifr = (ImportFromResource) requestObject;
+            } else if (requestObject instanceof ImportFromResourceType) {
+                ImportFromResourceType ifr = (ImportFromResourceType) requestObject;
                 TaskType taskType = ws.importFromResource(ifr.getResourceOid(), ifr.getObjectClass());
-                ImportFromResourceResponse ifrr = new ImportFromResourceResponse();
+                ImportFromResourceResponseType ifrr = new ImportFromResourceResponseType();
                 ifrr.setTask(taskType);
                 response = prismContext.serializeAnyDataToElement(ifrr, ModelPort.IMPORT_FROM_RESOURCE_RESPONSE);
-            } else if (requestObject instanceof NotifyChange) {
-                NotifyChange nc = (NotifyChange) requestObject;
+            } else if (requestObject instanceof NotifyChangeType) {
+                NotifyChangeType nc = (NotifyChangeType) requestObject;
                 TaskType taskType = ws.notifyChange(nc.getChangeDescription());
-                NotifyChangeResponse ncr = new NotifyChangeResponse();
+                NotifyChangeResponseType ncr = new NotifyChangeResponseType();
                 ncr.setTask(taskType);
                 response = prismContext.serializeAnyDataToElement(ncr, ModelPort.NOTIFY_CHANGE_RESPONSE);
             } else {

@@ -220,8 +220,7 @@ public class TestJaxbParsing {
         item1.setPath(new ItemPathType(path));
         ProtectedStringType protectedString = new ProtectedStringType();
         protectedString.setEncryptedData(new EncryptedDataType());
-        RawType value = new RawType();
-        value.getContent().add(new JAXBElement(new QName(SchemaConstants.NS_C, "protectedString"), ProtectedStringType.class, protectedString));
+        RawType value = new RawType(PrismTestUtil.getPrismContext().getBeanConverter().marshall(protectedString), PrismTestUtil.getPrismContext());
         item1.getValue().add(value);
 
         String xml = PrismTestUtil.serializeJaxbElementToString(

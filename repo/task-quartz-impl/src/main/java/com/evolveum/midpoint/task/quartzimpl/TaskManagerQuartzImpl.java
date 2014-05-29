@@ -474,8 +474,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "resumeTask");
         result.addArbitraryObjectAsParam("task", task);
 
-        if (task.getExecutionStatus() != TaskExecutionStatus.SUSPENDED) {
-            String message = "Attempted to resume a task that is not in the SUSPENDED state (task = " + task + ", state = " + task.getExecutionStatus();
+        if (task.getExecutionStatus() != TaskExecutionStatus.SUSPENDED &&
+                !(task.getExecutionStatus() == TaskExecutionStatus.CLOSED && task.isCycle())) {
+            String message = "Attempted to resume a task that is not in the SUSPENDED state (or CLOSED for recurring tasks) (task = " + task + ", state = " + task.getExecutionStatus();
             LOGGER.error(message);
             result.recordFatalError(message);
             return;

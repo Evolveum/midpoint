@@ -176,7 +176,7 @@ public class ValueSerializationUtil {
 		XNodeSerializer serializer = prismContext.getXnodeProcessor().createSerializer();
 		XNode node = serializer.serializeItemValue(value, def);
 		String s = prismContext.getParserDom().serializeToString(node, itemName);
-		System.out.println("serialized ITEM VALUE: " + s);
+		//System.out.println("serialized ITEM VALUE: " + s);
 		return s;
 	}
 	
@@ -186,7 +186,7 @@ public class ValueSerializationUtil {
 	}
 
 	public static <T> T deserializeValue(String value, Class clazz, QName itemName, ItemDefinition itemDef, PrismContext prismContext, String language) throws SchemaException{
-		System.out.println("item value deserialization");
+		//System.out.println("item value deserialization");
 		
 		XNode xnode = prismContext.getParserDom().parse(value);
 		
@@ -236,13 +236,13 @@ public class ValueSerializationUtil {
 	}
 	
 	public static Collection<? extends PrismValue> deserializeItemValues(String value, Item item, String language) throws SchemaException{
-		System.out.println("item value deserialization");
+		//System.out.println("item value deserialization");
 		PrismContext prismContext = item.getPrismContext();
 		XNode xnode = prismContext.getParserDom().parse(value);
 		if (xnode instanceof RootXNode){
 			xnode = ((RootXNode) xnode).getSubnode();
 		}
-		System.out.println("value: " + value);
+		//System.out.println("value: " + value);
 		Item parsedItem = prismContext.getXnodeProcessor().parseItem(xnode, item.getElementName(), item.getDefinition());
 		return parsedItem.getValues();
 //		throw new UnsupportedOperationException("need to be implemented");

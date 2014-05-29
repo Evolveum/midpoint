@@ -555,13 +555,14 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
 	}
     
     public void revive(PrismContext prismContext) throws SchemaException {
-    	if (this.prismContext != null) {
-    		return;
-    	}
-    	this.prismContext = prismContext;
-    	if (definition != null) {
-    		definition.revive(prismContext);
-    	}
+        // TODO cleanup this method; currently, it can be expected there is no Item without prismContext
+        // (but it is necessary to do e.g. PolyString recomputation even if PrismContext is set!)
+    	if (this.prismContext == null) {
+            this.prismContext = prismContext;
+            if (definition != null) {
+                definition.revive(prismContext);
+            }
+        }
     	if (values != null) {
     		for (V value: values) {
     			value.revive(prismContext);

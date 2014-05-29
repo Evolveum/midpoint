@@ -383,6 +383,14 @@ public class TaskDto extends Selectable {
     public boolean getBound() {
 		return taskType.getBinding() == TaskBindingType.TIGHT;
 	}
+
+    public void setBound(boolean value) {
+        if (value) {
+            taskType.setBinding(TaskBindingType.TIGHT);
+        } else {
+            taskType.setBinding(TaskBindingType.LOOSE);
+        }
+    }
 	
 	public Integer getInterval() {
 		return interval;
@@ -419,6 +427,14 @@ public class TaskDto extends Selectable {
 	public boolean getRecurring() {
 		return taskType.getRecurrence() == TaskRecurrenceType.RECURRING;
 	}
+
+    public void setRecurring(boolean value) {
+        if (value) {
+            taskType.setRecurrence(TaskRecurrenceType.RECURRING);
+        } else {
+            taskType.setRecurrence(TaskRecurrenceType.SINGLE);
+        }
+    }
 	
 	public Long getCurrentRuntime() {
         if (isRunNotFinished()) {

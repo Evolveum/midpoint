@@ -24,15 +24,10 @@
 			 xmlns:jaxws="http://java.sun.com/xml/ns/jaxws"
 			 xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/fault-3">
     
-	<!-- This does not really work. Bug in JAX-WS RI? -->
-	<jaxws:bindings>
-		<jaxws:package  name="com.evolveum.midpoint.xml.ns._public.common.fault_1"/>
-	</jaxws:bindings>
-	
 	<types>
 		<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-3">
-			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
-						schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>			
+			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+						schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
 
 			<xsd:complexType name="FaultType" abstract="true">
 				<xsd:sequence>

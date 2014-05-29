@@ -44,13 +44,14 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
 import com.evolveum.midpoint.prism.PrismContext;
 
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectDeltaOperationListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import org.apache.commons.lang.StringUtils;
@@ -94,7 +95,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.parser.util.XNodeProcessorUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryJaxbConvertor;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -1471,12 +1471,11 @@ public class TestSanity extends AbstractModelIntegrationTest {
         ItemDeltaType passwordDelta = new ItemDeltaType();
         passwordDelta.setModificationType(ModificationTypeType.REPLACE);
         passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password/value"));
-        RawType passwordValue = new RawType();
         ProtectedStringType pass = new ProtectedStringType();
         pass.setClearValue(NEW_PASSWORD);
-        passwordValue.getContent().add(ModelClientUtil.toJaxbElement(ItemDeltaType.F_VALUE, pass));
-//        passwordValue.getContent().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_VALUE, 
-//        		ModelClientUtil.createProtectedString(NEW_PASSWORD)));
+        XNode passValue = prismContext.getBeanConverter().marshall(pass);
+        System.out.println("PASSWORD VALUE: " + passValue.debugDump());
+        RawType passwordValue = new RawType(passValue, prismContext);
         passwordDelta.getValue().add(passwordValue);
         userDelta.getItemDelta().add(passwordDelta);
         
@@ -1763,11 +1762,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
         objectChange.setOid(USER_JACK_OID);
         ItemDeltaType modificationDeleteAccountRef = new ItemDeltaType();
         modificationDeleteAccountRef.setModificationType(ModificationTypeType.DELETE);
-        RawType modificationValue = new RawType();
         ObjectReferenceType accountRefToDelete = new ObjectReferenceType();
         accountRefToDelete.setOid(accountShadowOidDerby);
-        JAXBElement<ObjectReferenceType> accountRefToDeleteElement = new JAXBElement<ObjectReferenceType>(UserType.F_LINK_REF, ObjectReferenceType.class, accountRefToDelete);
-        modificationValue.getContent().add(accountRefToDeleteElement);
+        RawType modificationValue = new RawType(prismContext.getBeanConverter().marshall(accountRefToDelete), prismContext);
         modificationDeleteAccountRef.getValue().add(modificationValue);
         modificationDeleteAccountRef.setPath(new ItemPathType(new ItemPath(UserType.F_LINK_REF)));
         objectChange.getItemDelta().add(modificationDeleteAccountRef);
@@ -3731,11 +3728,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
     	ItemPathType path = new ItemPathType(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "givenName")));
     	mod1.setPath(path);
     	
-    	RawType value = new RawType();
+    	RawType value = new RawType(new PrimitiveXNode<String>("newAngelika"), prismContext);
     	//TODO: shouldn't it be JaxbElement<PolyString>? 
 //    	Element el = DOMUtil.createElement(DOMUtil.getDocument(), new QName(resourceTypeOpenDjrepo.getNamespace(), "givenName"));
 //    	el.setTextContent("newAngelika");
-        value.getContent().add("newAngelika");
         mod1.getValue().add(value);
     	
     	delta.getItemDelta().add(mod1);
@@ -3796,8 +3792,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         ItemDeltaType passwordDelta = new ItemDeltaType();
         passwordDelta.setModificationType(ModificationTypeType.REPLACE);
         passwordDelta.setPath(ModelClientUtil.createItemPathType("credentials/password/value"));
-        RawType passwordValue = new RawType();
-        passwordValue.getContent().add(ModelClientUtil.toJaxbElement(ItemDeltaType.F_VALUE, ModelClientUtil.createProtectedString(newPassword)));
+        RawType passwordValue = new RawType(prismContext.getBeanConverter().marshall(ModelClientUtil.createProtectedString(newPassword)), prismContext);
         passwordDelta.getValue().add(passwordValue);
     	
 //    	ItemDeltaType mod1 = new ItemDeltaType();

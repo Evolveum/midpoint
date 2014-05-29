@@ -129,5 +129,5 @@ public abstract class AsyncUpdatePanel<V, T> extends BaseSimplePanel {
      * @param callableParameterModel Model providing access to parameters needed by the callable
      * @return A callable instance that encapsulates the logic needed to obtain the panel data
      */
-    protected abstract Callable<T> createCallable(Authentication auth, IModel<V> callableParameterModel);
+    protected abstract SecurityContextAwareCallable<T> createCallable(Authentication auth, IModel<V> callableParameterModel);
 }

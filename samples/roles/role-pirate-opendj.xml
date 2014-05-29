@@ -45,10 +45,8 @@
                     <ref>ri:businessCategory</ref>
                     <outbound>
                     	<expression>
-		                    <value>
-		                        <ri:businessCategory>loot</ri:businessCategory>
-		                        <ri:businessCategory>murder</ri:businessCategory>
-		                    </value>
+		                    <value>loot</value>
+                            <value>murder</value>
 		                </expression>
 		            </outbound>
             </attribute>    		

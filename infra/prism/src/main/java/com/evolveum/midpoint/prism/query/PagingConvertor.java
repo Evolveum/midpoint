@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.query;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismConstants;
@@ -38,8 +39,7 @@ public class PagingConvertor {
 		
 		QName orderBy = null;
 		if (pagingType.getOrderBy() != null){
-			XPathHolder xpath = new XPathHolder(pagingType.getOrderBy());
-			orderBy = ItemPath.getName(xpath.toItemPath().first());
+			orderBy = ItemPath.getName(pagingType.getOrderBy().getItemPath().first());
 		}
 		
 		return ObjectPaging.createPaging(pagingType.getOffset(), pagingType.getMaxSize(), orderBy, toOrderDirection(pagingType.getOrderDirection()));
@@ -71,9 +71,7 @@ public class PagingConvertor {
 		pagingType.setMaxSize(paging.getMaxSize());
 		pagingType.setOffset(paging.getOffset());
 		if (paging.getOrderBy() != null) {
-			Element orderBy = DOMUtil.createElement(PrismConstants.Q_ORDER_BY);
-			DOMUtil.setQNameValue(orderBy, paging.getOrderBy());
-			pagingType.setOrderBy(orderBy);
+			pagingType.setOrderBy(new ItemPathType(new ItemPath(paging.getOrderBy())));
 		}
 		
 		return pagingType;

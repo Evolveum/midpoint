@@ -18,6 +18,8 @@ package com.evolveum.midpoint.model.impl.scripting;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,6 +30,8 @@ import java.util.Map;
  * @author mederly
  */
 public class ExecutionContext {
+    private static final Trace LOGGER = TraceManager.getTrace(ExecutionContext.class);
+
     private Task task;
     private StringBuilder consoleOutput = new StringBuilder();
     private Map<String, Data> variables = new HashMap<>();
@@ -64,6 +68,9 @@ public class ExecutionContext {
 
     public void println(Object o) {
         consoleOutput.append(o).append("\n");
+        if (o != null) {
+            LOGGER.info(o.toString());          // temporary, until some better way of logging bulk action executions is found
+        }
     }
 
     public Data getFinalOutput() {

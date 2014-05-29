@@ -28,6 +28,7 @@ import java.util.Set;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -388,7 +389,7 @@ public class SchemaDebugUtil {
 		return sb.toString();
 	}
 
-	public static String prettyPrint(ItemDeltaType change) {
+	public static String prettyPrint(ItemDeltaType change) throws SchemaException {
 		if (change == null) {
 			return "null";
 		}
@@ -406,10 +407,8 @@ public class SchemaDebugUtil {
 
 		List<RawType> values = change.getValue();
 		for (RawType value : values) {
-			for (Object element : value.getContent()) {
-				sb.append(prettyPrint(element));
-				sb.append(",");
-			}
+			sb.append(prettyPrint(value.serializeToXNode()));       // todo implement correctly...
+			sb.append(",");
 		}
 
 		return sb.toString();
