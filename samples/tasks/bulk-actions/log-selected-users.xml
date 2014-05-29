@@ -20,7 +20,7 @@
          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 
     <task>
-        <name>Recompute users having names starting with 'a'</name>
+        <name>Log information on users starting with 'b'</name>
 		<extension>
             <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
                 <s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
@@ -29,12 +29,12 @@
                         <q:substring>
                             <q:matching>polyStringNorm</q:matching>
                             <q:path>c:name</q:path>
-                            <q:value>a</q:value>
+                            <q:value>b</q:value>
                             <q:anchorStart>true</q:anchorStart>
                         </q:substring>
                     </s:searchFilter>
                     <s:action>
-                        <s:type>recompute</s:type>
+                        <s:type>log</s:type>
                     </s:action>
                 </s:search>
             </scext:executeScript>
