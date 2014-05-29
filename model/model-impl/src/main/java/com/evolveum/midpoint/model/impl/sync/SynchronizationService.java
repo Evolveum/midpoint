@@ -242,6 +242,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				Collection modifications = SynchronizationSituationUtil
 						.createSynchronizationSituationAndDescriptionDelta(object,
 								situation.getSituation(), task.getChannel(), false);
+				modifications.add(PropertyDelta.createModificationReplaceProperty(ShadowType.F_INTENT, object.getDefinition(), synchronizationPolicy.getIntent()));
+				
 				repositoryService.modifyObject(ShadowType.class, object.getOid(), modifications, subResult);
 				subResult.recordSuccess();
 				return;
