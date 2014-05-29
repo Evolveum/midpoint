@@ -649,6 +649,27 @@ public class TestVillage extends AbstractStoryTest {
 		
 	}
 	
+	@Test
+	public void test201unassignRole() throws Exception{
+		final String TEST_NAME = "test200createUserAssignOrgPwdPolicy";
+        TestUtil.displayTestTile(this, TEST_NAME);
+		unassignRole(USER_MIKE_OID, ROLE_BASIC_OID);
+		//TODO: assertions
+	}
+	
+	@Test
+	public void test202assignRoleOrgPwdPolicy() throws Exception{
+		final String TEST_NAME = "test200createUserAssignOrgPwdPolicy";
+        TestUtil.displayTestTile(this, TEST_NAME);
+		
+        //this will throw exception, if incorrect pwd policy is selected...but some assertion will be nice :)
+        assignRole(USER_MIKE_OID, ROLE_BASIC_OID);
+		
+		//TODO: assertion
+	}
+	
+	
+	
 	
 	private void assertLocGov(PrismObject<UserType> user, String expLoc, String expOrg) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		UserType userType = user.asObjectable();

@@ -272,7 +272,7 @@ public class PasswordPolicyProcessor {
 		ObjectDelta accountDelta = projectionContext.getDelta();
 		
 		if (accountDelta == null){
-			LOGGER.trace("Skipping processing password policies. User delta not specified.");
+			LOGGER.trace("Skipping processing password policies. Shadow delta not specified.");
 			return;
 		}
 		
@@ -296,10 +296,10 @@ public class PasswordPolicyProcessor {
 				// Modification sanity check
 				if (accountDelta.getChangeType() == ChangeType.MODIFY && passwordValueDelta != null
 						&& (passwordValueDelta.isAdd() || passwordValueDelta.isDelete())) {
-					throw new SchemaException("User password value cannot be added or deleted, it can only be replaced");
+					throw new SchemaException("Shadow password value cannot be added or deleted, it can only be replaced");
 				}
 				if (passwordValueDelta == null) {
-					LOGGER.trace("Skipping processing password policies. User delta does not contain password change.");
+					LOGGER.trace("Skipping processing password policies. Shadow delta does not contain password change.");
 					return;
 				}
 				password = passwordValueDelta.getPropertyNew();
@@ -307,10 +307,34 @@ public class PasswordPolicyProcessor {
 		}
 
 //		PrismProperty<PasswordType> password = getPassword(projectionContext);
-		
-		ValuePolicyType passwordPolicy = projectionContext.getEffectivePasswordPolicy();
+		ValuePolicyType passwordPolicy = null;
+		if (isCheckOrgPolicy(context)){
+			passwordPolicy = determineValuePolicy(context.getFocusContext().getObjectAny(), result);
+			context.getFocusContext().setOrgPasswordPolicy(passwordPolicy);
+		} else {
+			passwordPolicy = projectionContext.getEffectivePasswordPolicy();
+		}
 		
 		processPasswordPolicy(passwordPolicy, password, result);
+	}
+	
+	private <F extends ObjectType> boolean isCheckOrgPolicy(LensContext<F> context) throws SchemaException{
+		LensFocusContext focusCtx = context.getFocusContext();
+		if (focusCtx.getDelta() != null){
+			if (focusCtx.getDelta().isAdd()){
+				return false;
+			}
+			
+			if (focusCtx.getDelta().isModify() && focusCtx.getDelta().hasItemDelta(SchemaConstants.PATH_PASSWORD_VALUE)){
+				return false;
+			}
+		}
+		
+		if (focusCtx.getOrgPasswordPolicy() != null){
+			return false;
+		}
+		
+		return true;
 	}
 
 
