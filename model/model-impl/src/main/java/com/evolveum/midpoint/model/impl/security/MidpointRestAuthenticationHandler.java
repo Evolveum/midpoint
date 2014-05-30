@@ -22,11 +22,13 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.apache.cxf.jaxrs.ext.RequestHandler;
+import org.apache.cxf.jaxrs.ext.ResponseHandler;
 import org.apache.cxf.jaxrs.model.ClassResourceInfo;
 import org.apache.cxf.jaxrs.model.OperationResourceInfo;
 import org.apache.cxf.message.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -36,7 +38,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-public class MidpointRestAuthenticationHandler implements RequestHandler {
+public class MidpointRestAuthenticationHandler implements RequestHandler, ResponseHandler {
 	 
 	@Autowired(required =true)
 	private UserProfileService userDetails;
@@ -113,6 +115,7 @@ public class MidpointRestAuthenticationHandler implements RequestHandler {
         }
         
         m.put("authenticatedUser", userToAuthenticate);
+        securityEnforcer.setupPreAuthenticatedSecurityContext(userToAuthenticate.asPrismObject());
                 
            
         return null;
@@ -130,5 +133,11 @@ public class MidpointRestAuthenticationHandler implements RequestHandler {
 //            return Response.status(401).header("WWW-Authenticate", "Basic").build();
 //        }
     }
+
+	@Override
+	public Response handleResponse(Message m, OperationResourceInfo ori, Response response) {
+		securityEnforcer.setupPreAuthenticatedSecurityContext((PrismObject) null);
+		return null;
+	}
  
 }

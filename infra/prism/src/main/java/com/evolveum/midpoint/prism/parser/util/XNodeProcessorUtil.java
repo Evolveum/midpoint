@@ -117,7 +117,7 @@ public class XNodeProcessorUtil {
         		protector.encrypt(protectedType);
         	}
         } catch (EncryptionException ex){
-        	System.out.println("failed to encrypt..");
+        	//System.out.println("failed to encrypt..");
         	throw new IllegalArgumentException("failed to encrypt. " + ex);
         }
 	}

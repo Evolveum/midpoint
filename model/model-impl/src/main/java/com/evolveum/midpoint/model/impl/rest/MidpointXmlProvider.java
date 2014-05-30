@@ -107,9 +107,9 @@ public class MidpointXmlProvider<T> extends AbstractConfigurableProvider impleme
 			return null;
 		}
 		
-		if (entityStream.available() == 0){
-			return null;
-		}
+//		if (entityStream.available() == 0){
+//			return null;
+//		}
 		
 		T object = null;
 		try {

@@ -22,7 +22,7 @@
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 	<name>jack</name>
-	<resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
+	<resourceRef oid="10000000-0000-0000-0000-000000000003"/>
 	<objectClass>ri:AccountObjectClass</objectClass>
 	<intent>default</intent>
 	<attributes>

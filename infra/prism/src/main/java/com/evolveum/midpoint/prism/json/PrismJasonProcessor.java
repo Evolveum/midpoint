@@ -135,7 +135,7 @@ public class PrismJasonProcessor {
 //		prismObj.applyDefinition(def);
 //		prismContext.adopt(prismObj.asObjectable());
 		
-		System.out.println("object: \n" + prismObj.debugDump());
+		//System.out.println("object: \n" + prismObj.debugDump());
 		
 		return prismObj;
 	}
@@ -409,7 +409,7 @@ generator.close();
 				Collection<? extends Item> newContainerItems) throws SchemaException {
 			for (Item<?> newItem : newContainerItems) {
 				if (newItem == null){
-					System.out.println("new item name null");
+					//System.out.println("new item name null");
 					continue;
 				}
 				Item existingItem = containerValue.findItem(newItem.getElementName());
@@ -637,7 +637,7 @@ generator.close();
 	    	mapper.configure(DeserializationFeature.READ_ENUMS_USING_TO_STRING, false);
 //	    	mapper.configure(Feature.USE_GETTERS_AS_SETTERS, true);
 	    	
-	    	System.out.println("expected java type: " + expectedJavaType.getSimpleName());
+	    	//System.out.println("expected java type: " + expectedJavaType.getSimpleName());
 //	    	PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
 	    	
 //	    	mapper.getTypeFactory().

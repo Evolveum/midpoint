@@ -22,7 +22,7 @@ public class QNameDeserializer extends JsonDeserializer<QName>{
 	@Override
 	public QName deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException,
 			JsonProcessingException {
-		System.out.println("tralalaaaaa   QName deserializer");
+		//System.out.println("tralalaaaaa   QName deserializer");
 //		Object ob = jp.getEmbeddedObject();
 		
 //		JsonNode node = jp.getCodec().readTree(jp);
