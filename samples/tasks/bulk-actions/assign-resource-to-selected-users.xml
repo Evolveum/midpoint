@@ -20,7 +20,7 @@
          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
 
     <task>
-        <name>Recompute users having names starting with 'a'</name>
+        <name>Assign OpenDJ account to users starting with 'a'</name>
 		<extension>
             <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
                 <s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
@@ -34,7 +34,11 @@
                         </q:substring>
                     </s:searchFilter>
                     <s:action>
-                        <s:type>recompute</s:type>
+                        <s:type>assign</s:type>
+                        <s:parameter>
+                            <s:name>resource</s:name>
+                            <s:constant>ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</s:constant>
+                        </s:parameter>
                     </s:action>
                 </s:search>
             </scext:executeScript>

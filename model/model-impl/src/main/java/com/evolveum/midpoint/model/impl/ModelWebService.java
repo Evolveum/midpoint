@@ -125,7 +125,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	@Autowired(required = true)
 	private PrismContext prismContext;
 	
-    //@Autowired
+    @Autowired
     private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
 
 	@Override
@@ -302,7 +302,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
                 } else {
                     // temporarily we send serialized XML in the case of MSL output
                     ItemListType jaxbOutput = prepareXmlData(outputContext.getFinalOutput());
-                    output.setMslData(prismContext.serializeAnyData(jaxbOutput, PrismContext.LANG_XML));
+                    output.setMslData(prismContext.serializeAnyData(jaxbOutput, SchemaConstants.C_VALUE, PrismContext.LANG_XML));
                 }
             }
             result.computeStatusIfUnknown();
@@ -316,15 +316,14 @@ public class ModelWebService implements ModelPortType, ModelPort {
     }
 
     private ItemListType prepareXmlData(Data output) throws JAXBException, SchemaException {
-        throw new UnsupportedOperationException("uncomment and fix this code");
-//        ItemListType itemListType = new ItemListType();
-//        if (output != null) {
-//            for (Item item : output.getData()) {
-//                RawType rawType = prismContext.toRawType(item);
-//                itemListType.getItem().add(rawType);
-//            }
-//        }
-//        return itemListType;
+        ItemListType itemListType = new ItemListType();
+        if (output != null) {
+            for (Item item : output.getData()) {
+                RawType rawType = prismContext.toRawType(item);
+                itemListType.getItem().add(rawType);
+            }
+        }
+        return itemListType;
     }
 
 

@@ -181,7 +181,7 @@ public class ValueSerializationUtil {
 	}
 	
 	public static String serializeFilter(SearchFilterType query, PrismContext prismContext, String language){
-		System.out.println("query serialization");
+		//System.out.println("query serialization");
 		throw new UnsupportedOperationException("need to be implemented");
 	}
 
@@ -249,7 +249,7 @@ public class ValueSerializationUtil {
 	}
 	
 	public static SearchFilterType deserializeFilter(String query, String language){
-		System.out.println("query deserialization");
+		//System.out.println("query deserialization");
 		throw new UnsupportedOperationException("need to be implemented");
 	}
 

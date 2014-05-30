@@ -16,7 +16,7 @@ public class QNameSerializer extends JsonSerializer<QName>{
 	@Override
 	public void serialize(QName value, JsonGenerator jgen, SerializerProvider provider) throws IOException,
 			JsonProcessingException {
-		System.out.println("wualaaa QName serialization");
+		//System.out.println("wualaaa QName serialization");
 		jgen.writeString(QNameUtil.qNameToUri(value));
 //		jgen.writeString(value.toString());
 //		jgen.writeStartObject();
@@ -29,7 +29,7 @@ public class QNameSerializer extends JsonSerializer<QName>{
 	public void serializeWithType(QName value, JsonGenerator jgen, SerializerProvider provider,
 			TypeSerializer typeSer) throws IOException, JsonProcessingException {
 		// TODO Auto-generated method stub
-		System.out.println("QName serialization with type");
+		//System.out.println("QName serialization with type");
 		
 //		jgen.writeStartObject();
 //		typeSer.writeCustomTypePrefixForObject(value, jgen, "qname");

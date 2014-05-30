@@ -17,10 +17,12 @@
 
 <objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <task>
-        <name>Recompute users having names starting with 'a'</name>
+        <name>Set preferredLanguage for users starting with 'b'</name>
 		<extension>
             <scext:executeScript xmlns:scext="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3">
                 <s:search xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
@@ -29,12 +31,24 @@
                         <q:substring>
                             <q:matching>polyStringNorm</q:matching>
                             <q:path>c:name</q:path>
-                            <q:value>a</q:value>
+                            <q:value>b</q:value>
                             <q:anchorStart>true</q:anchorStart>
                         </q:substring>
                     </s:searchFilter>
                     <s:action>
-                        <s:type>recompute</s:type>
+                        <s:type>modify</s:type>
+                        <s:parameter>
+                            <s:name>delta</s:name>
+                            <s:constant xsi:type="t:ObjectDeltaType">
+                                <t:changeType>modify</t:changeType>     <!-- this is the default, can be omitted -->
+                                <!-- objectType and oid are taken from the object being modified -->
+                                <t:itemDelta>
+                                    <t:modificationType>replace</t:modificationType>
+                                    <t:path>c:preferredLanguage</t:path>
+                                    <t:value>sk_SK</t:value>
+                                </t:itemDelta>
+                            </s:constant>
+                        </s:parameter>
                     </s:action>
                 </s:search>
             </scext:executeScript>

@@ -442,6 +442,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 
     private void initLayout() {
         Form mainForm = new Form("mainForm");
+        mainForm.setMultiPart(true);
         add(mainForm);
 
         Label requestedBy = new Label("requestedBy", new PropertyModel(requesterModel, "object.asObjectable.name"));

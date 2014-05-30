@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" xmlns:xenc="http://www.w3.org/2001/04/xmlenc#" xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" jaxb:extensionBindingPrefixes="xjc" jaxb:version="2.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=jar:file:/D:/midpoint/tgit/midpoint/gui/admin-gui/target/midpoint/WEB-INF/lib/schema-2.3-SNAPSHOT.jar!/xml/ns/standard/XMLSchema.xsd" namespace="http://www.w3.org/2001/XMLSchema">
+    <xsd:annotation>
+      <xsd:documentation>
+                Importing the schema of XSD schema definition explicitly. This causes that we can use "strict" matching
+                for the xsd:schema elements used in runtime.
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:import>
+  <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=jar:file:/D:/midpoint/tgit/midpoint/gui/admin-gui/target/midpoint/WEB-INF/lib/schema-2.3-SNAPSHOT.jar!/xml/ns/public/common/common-3.xsd" namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <xsd:annotation>
+      <xsd:documentation>
+                Common midPoint schema.
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:import>
+  <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=http://midpoint.evolveum.com/xml/ns/public/model/scripting-3" namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+    <xsd:annotation>
+      <xsd:documentation>
+                Scripting language.
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:import>
+  <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=http://prism.evolveum.com/xml/ns/public/annotation-3" namespace="http://prism.evolveum.com/xml/ns/public/annotation-3">
+    <xsd:annotation>
+      <xsd:documentation>
+                Common midPoint annotations used in various XSD schemas.
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:import>
+  <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=jar:file:/D:/midpoint/tgit/midpoint/gui/admin-gui/target/midpoint/WEB-INF/lib/schema-2.3-SNAPSHOT.jar!/prism/xml/ns/public/types-3.xsd" namespace="http://prism.evolveum.com/xml/ns/public/types-3">
+    <xsd:annotation>
+      <xsd:documentation>
+                Prism data types.
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:import>
+  <xsd:annotation>
+    <xsd:documentation>
+            Schema that defines data types used in XML version of midPoint APIs.
+            
+            Version: 3.0
+            Recommended namespace prefix: apit
+        </xsd:documentation>
+  </xsd:annotation>
+  <xsd:complexType name="ImportOptionsType">
+    <xsd:annotation>
+      <xsd:documentation>
+                The options for import tasks. It specifies optional settings for import such as "overwrite" and "stop on
+                error".
+            </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="overwrite" type="xsd:boolean">
+        <xsd:annotation>
+          <xsd:documentation>
+                        If set to a true value it will cause that objects that are already in the repository will be
+                        overwritten by the imported objects.
+                        It may not be applicable to all import types. E.g. it makes no sense for import from resource,
+                        as this
+                        is not storing objects in the repository directly.
+                    </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element minOccurs="0" name="keepOid" type="xsd:boolean">
+        <xsd:annotation>
+          <xsd:documentation>
+                        If set to a true value it will cause that objects that overwritten objects will reuse the same
+                        OID
+                        as previous objects.
+                        May be potentially dangerous. USE WITH CARE.
+                    </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element minOccurs="0" name="stopAfterErrors" type="xsd:int">
+        <xsd:annotation>
+          <xsd:documentation>
+                        Number of errors that will cause import to stop. If set to one the import will stop on first
+                        error.
+                        If set to zero or negative value the import will not stop on any error.
+                    </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element minOccurs="0" default="true" name="summarizeSucceses" type="xsd:boolean">
+        <xsd:annotation>
+          <xsd:documentation>
+                        If set to true the successfuly imported items will be summarized in the result.
+                        WARNING: setting this to false may result in a very large result structure and may cause
+                        overflow of
+                        the system memory.
+                    </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element minOccurs="0" default="false" name="summarizeErrors" type="xsd:boolean">
+        <xsd:annotation>
+          <xsd:documentation>
+                        If set to true the importe errors will be summarized in the result.
+                    </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element minOccurs="0" default="false" name="referentialIntegrity" type="xsd:boolean">
+        <xsd:annotation>
+          <xsd:documentation>
+                        If set to true the importe errors will be summarized in the result.
+                    </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element minOccurs="0" default="true" name="validateStaticSchema" type="xsd:boolean">
+        <xsd:annotation>
+          <xsd:documentation>
+                        If set to true the importe errors will be summarized in the result.
+                    </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element minOccurs="0" default="true" name="validateDynamicSchema" type="xsd:boolean">
+        <xsd:annotation>
+          <xsd:documentation>
+                        If set to true the importe errors will be summarized in the result.
+                    </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element minOccurs="0" default="true" name="encryptProtectedValues" type="xsd:boolean">
+        <xsd:annotation>
+          <xsd:documentation>
+                        If set to true the importe errors will be summarized in the result.
+                    </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element minOccurs="0" default="false" name="fetchResourceSchema" type="xsd:boolean">
+        <xsd:annotation>
+          <xsd:documentation>
+                        If set to true the importe errors will be summarized in the result.
+                    </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ObjectModificationType">
+    <xsd:annotation>
+      <xsd:documentation>
+                Describes a change of attributes of a specific object.
+                All changes are expected to happen atomically, but
+                there may be exceptions. Please check with the
+                documentation of the interface using this type for
+                more details.
+
+               	Used in the interfaces (modifyObject)
+            </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element name="oid" type="xsd:string">
+        <xsd:annotation>
+          <xsd:documentation>
+                        OID of the object to modify.
+
+                        Due to consistency reasons this should rather be
+                        an attribute. But it is an element because of
+                        OpenESB bug with attributes in message parts.
+                    </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element minOccurs="1" maxOccurs="unbounded" name="itemDelta" type="t:ItemDeltaType">
+        <xsd:annotation>
+          <xsd:documentation>
+                        Describe a change to a single attribute of an object.
+                        
+                        TODO: this should be renamed to "itemModification"
+                    </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:element name="objectModification" type="tns:ObjectModificationType" />
+  <xsd:complexType name="ObjectListType">
+    <xsd:sequence>
+      <xsd:element minOccurs="0" maxOccurs="unbounded" name="object" type="c:ObjectType" />
+    </xsd:sequence>
+    <xsd:attribute name="count" type="xsd:int" />
+  </xsd:complexType>
+  <xsd:complexType name="ResourceObjectShadowListType">
+    <xsd:sequence>
+      <xsd:element minOccurs="0" maxOccurs="unbounded" name="object" type="c:ShadowType" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="UserListType">
+    <xsd:sequence>
+      <xsd:element minOccurs="0" maxOccurs="unbounded" name="user" type="c:UserType" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ResourceObjectType">
+    <xsd:annotation>
+      <xsd:appinfo>
+        <a:container xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3" />
+      </xsd:appinfo>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:any minOccurs="1" maxOccurs="unbounded" namespace="##other" processContents="lax">
+        <xsd:annotation>
+          <xsd:appinfo>
+            <xjc:dom xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc" />
+          </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:any>
+    </xsd:sequence>
+    <xsd:attribute name="id" type="xsd:long" use="optional" />
+  </xsd:complexType>
+  <xsd:complexType name="ResourceObjectIdentificationType">
+    <xsd:annotation>
+      <xsd:appinfo>
+        <a:container />
+      </xsd:appinfo>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:any minOccurs="1" maxOccurs="unbounded" namespace="##other" processContents="lax">
+        <xsd:annotation>
+          <xsd:appinfo>
+            <xjc:dom />
+          </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:any>
+    </xsd:sequence>
+    <xsd:attribute name="id" type="xsd:long" use="optional" />
+  </xsd:complexType>
+  <xsd:complexType name="PropertyReferenceListType">
+    <xsd:annotation>
+      <xsd:documentation>
+                DEPRECATED
+            </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" maxOccurs="unbounded" name="property" type="t:ItemPathType" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="SelectorQualifiedGetOptionsType">
+    <xsd:annotation>
+      <xsd:documentation>
+                Selector-qualified options for a get-like operation.
+            </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" maxOccurs="unbounded" name="option" type="tns:SelectorQualifiedGetOptionType" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="SelectorQualifiedGetOptionType">
+    <xsd:annotation>
+      <xsd:documentation>
+                TODO
+            </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" maxOccurs="1" name="selector" type="tns:ObjectSelectorType" />
+      <xsd:element minOccurs="0" maxOccurs="1" name="options" type="tns:GetOperationOptionsType" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ObjectSelectorType">
+    <xsd:annotation>
+      <xsd:documentation>
+                TODO
+            </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" maxOccurs="1" name="path" type="t:ItemPathType" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="RetrieveOptionType">
+    <xsd:annotation>
+      <xsd:documentation>
+                TODO
+            </xsd:documentation>
+      <xsd:appinfo>
+        <jaxb:typesafeEnumClass xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" />
+      </xsd:appinfo>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="default">
+        <xsd:annotation>
+          <xsd:appinfo>
+            <jaxb:typesafeEnumMember name="DEFAULT" />
+          </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:enumeration>
+      <xsd:enumeration value="include">
+        <xsd:annotation>
+          <xsd:appinfo>
+            <jaxb:typesafeEnumMember name="INCLUDE" />
+          </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:enumeration>
+      <xsd:enumeration value="exclude">
+        <xsd:annotation>
+          <xsd:appinfo>
+            <jaxb:typesafeEnumMember name="EXCLUDE" />
+          </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:enumeration>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="XmlScriptsType">
+    <xsd:sequence>
+      <xsd:any minOccurs="0" maxOccurs="unbounded" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ScriptOutputsType">
+    <xsd:sequence>
+      <xsd:element minOccurs="0" maxOccurs="unbounded" name="output" type="tns:SingleScriptOutputType" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="SingleScriptOutputType">
+    <xsd:sequence>
+      <xsd:choice>
+        <xsd:element name="xmlData" type="s:ItemListType" />
+        <xsd:element name="mslData" type="xsd:string" />
+      </xsd:choice>
+      <xsd:element minOccurs="0" name="textOutput" type="xsd:string" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ExecuteScriptsOptionsType">
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="outputFormat" type="tns:OutputFormatType" />
+      <xsd:element minOccurs="0" name="objectLimit" type="xsd:int" />
+      <xsd:element minOccurs="0" name="executeAsynchronously" type="xsd:boolean" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="OutputFormatType">
+    <xsd:annotation>
+      <xsd:documentation>
+                TODO
+            </xsd:documentation>
+    </xsd:annotation>
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="xml">
+        <xsd:annotation>
+          <xsd:appinfo>
+            <jaxb:typesafeEnumMember name="XML" />
+          </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:enumeration>
+      <xsd:enumeration value="msl">
+        <xsd:annotation>
+          <xsd:appinfo>
+            <jaxb:typesafeEnumMember name="MSL" />
+          </xsd:appinfo>
+        </xsd:annotation>
+      </xsd:enumeration>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="GetOperationOptionsType">
+    <xsd:annotation>
+      <xsd:documentation>
+                See GetOperationOptions for a description.
+            </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="retrieve" type="tns:RetrieveOptionType" />
+      <xsd:element minOccurs="0" name="resolve" type="xsd:boolean" />
+      <xsd:element minOccurs="0" name="noFetch" type="xsd:boolean" />
+      <xsd:element minOccurs="0" name="raw" type="xsd:boolean" />
+      <xsd:element minOccurs="0" name="noDiscovery" type="xsd:boolean" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ObjectDeltaListType">
+    <xsd:annotation>
+      <xsd:documentation>
+                List of object deltas.
+            </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" maxOccurs="unbounded" name="delta" type="t:ObjectDeltaType" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ObjectDeltaOperationListType">
+    <xsd:annotation>
+      <xsd:documentation>
+                List of object delta operations (deltas + operation results).
+            </xsd:documentation>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" maxOccurs="unbounded" name="deltaOperation" type="c:ObjectDeltaOperationType" />
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

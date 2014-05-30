@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<schema xmlns:xenc="http://www.w3.org/2001/04/xmlenc#" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" elementFormDefault="qualified" targetNamespace="http://www.w3.org/2001/04/xmlenc#" version="1.0" xmlns="http://www.w3.org/2001/XMLSchema">
+  <import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=xmldsig-core-schema.xsd" namespace="http://www.w3.org/2000/09/xmldsig#" />
+  <complexType name="EncryptedType" abstract="true">
+    <sequence>
+      <element minOccurs="0" name="EncryptionMethod" type="xenc:EncryptionMethodType" />
+      <element minOccurs="0" ref="ds:KeyInfo" />
+      <element ref="xenc:CipherData" />
+      <element minOccurs="0" ref="xenc:EncryptionProperties" />
+    </sequence>
+    <attribute name="Id" type="ID" use="optional" />
+    <attribute name="Type" type="anyURI" use="optional" />
+    <attribute name="MimeType" type="string" use="optional" />
+    <attribute name="Encoding" type="anyURI" use="optional" />
+  </complexType>
+  <complexType name="EncryptionMethodType" mixed="true">
+    <sequence>
+      <element minOccurs="0" name="KeySize" type="xenc:KeySizeType" />
+      <element minOccurs="0" name="OAEPparams" type="base64Binary" />
+      <any minOccurs="0" maxOccurs="unbounded" namespace="##other" />
+    </sequence>
+    <attribute name="Algorithm" type="anyURI" use="required" />
+  </complexType>
+  <simpleType name="KeySizeType">
+    <restriction base="integer" />
+  </simpleType>
+  <element name="CipherData" type="xenc:CipherDataType" />
+  <complexType name="CipherDataType">
+    <choice>
+      <element name="CipherValue" type="base64Binary" />
+      <element ref="xenc:CipherReference" />
+    </choice>
+  </complexType>
+  <element name="CipherReference" type="xenc:CipherReferenceType" />
+  <complexType name="CipherReferenceType">
+    <choice>
+      <element minOccurs="0" name="Transforms" type="xenc:TransformsType" />
+    </choice>
+    <attribute name="URI" type="anyURI" use="required" />
+  </complexType>
+  <complexType name="TransformsType">
+    <sequence>
+      <element maxOccurs="unbounded" ref="ds:Transform" />
+    </sequence>
+  </complexType>
+  <element name="EncryptedData" type="xenc:EncryptedDataType" />
+  <complexType name="EncryptedDataType">
+    <complexContent mixed="false">
+      <extension base="xenc:EncryptedType" />
+    </complexContent>
+  </complexType>
+  <element name="EncryptedKey" type="xenc:EncryptedKeyType" />
+  <complexType name="EncryptedKeyType">
+    <complexContent mixed="false">
+      <extension base="xenc:EncryptedType">
+        <sequence>
+          <element minOccurs="0" ref="xenc:ReferenceList" />
+          <element minOccurs="0" name="CarriedKeyName" type="string" />
+        </sequence>
+        <attribute name="Recipient" type="string" use="optional" />
+      </extension>
+    </complexContent>
+  </complexType>
+  <element name="AgreementMethod" type="xenc:AgreementMethodType" />
+  <complexType name="AgreementMethodType" mixed="true">
+    <sequence>
+      <element minOccurs="0" name="KA-Nonce" type="base64Binary" />
+      <any minOccurs="0" maxOccurs="unbounded" namespace="##other" />
+      <element minOccurs="0" name="OriginatorKeyInfo" type="ds:KeyInfoType" />
+      <element minOccurs="0" name="RecipientKeyInfo" type="ds:KeyInfoType" />
+    </sequence>
+    <attribute name="Algorithm" type="anyURI" use="required" />
+  </complexType>
+  <element name="ReferenceList">
+    <complexType>
+      <choice minOccurs="1" maxOccurs="unbounded">
+        <element name="DataReference" type="xenc:ReferenceType" />
+        <element name="KeyReference" type="xenc:ReferenceType" />
+      </choice>
+    </complexType>
+  </element>
+  <complexType name="ReferenceType">
+    <sequence>
+      <any minOccurs="0" maxOccurs="unbounded" namespace="##other" />
+    </sequence>
+    <attribute name="URI" type="anyURI" use="required" />
+  </complexType>
+  <element name="EncryptionProperties" type="xenc:EncryptionPropertiesType" />
+  <complexType name="EncryptionPropertiesType">
+    <sequence>
+      <element maxOccurs="unbounded" ref="xenc:EncryptionProperty" />
+    </sequence>
+    <attribute name="Id" type="ID" use="optional" />
+  </complexType>
+  <element name="EncryptionProperty" type="xenc:EncryptionPropertyType" />
+  <complexType name="EncryptionPropertyType" mixed="true">
+    <choice maxOccurs="unbounded">
+      <any namespace="##other" processContents="lax" />
+    </choice>
+    <attribute name="Target" type="anyURI" use="optional" />
+    <attribute name="Id" type="ID" use="optional" />
+    <anyAttribute namespace="http://www.w3.org/XML/1998/namespace" />
+  </complexType>
+</schema>

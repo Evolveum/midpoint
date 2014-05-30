@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:tns="http://prism.evolveum.com/xml/ns/public/annotation-3" elementFormDefault="qualified" targetNamespace="http://prism.evolveum.com/xml/ns/public/annotation-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:annotation>
+    <xsd:documentation>
+            Common Prism annotations used in various XSD schemas.
+
+			Version: 3.0
+            Default prefix: a
+        </xsd:documentation>
+  </xsd:annotation>
+  <xsd:element name="container">
+    <xsd:annotation>
+      <xsd:documentation>
+                Item marker annotation: Container marker. This annotation marks complex types that are considered prism containers.
+
+                Every first-level element in a container is prism item (property, another container or reference) even if
+                it has no extra annotation.
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="object">
+    <xsd:annotation>
+      <xsd:documentation>
+                Item marker annotation: Object marker. This annotation marks complex types that are considered prism objects.
+				Note: prism object are also containers.
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="type" type="xsd:QName">
+    <xsd:annotation>
+      <xsd:documentation>
+            	Type override annotation.
+                TODO
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="displayName" type="xsd:string">
+    <xsd:annotation>
+      <xsd:documentation>
+            	Item annotation: item display name. The content of this annotation specifies a
+            	human-readable string that describes the type.
+            	E.g. "User" may be a good display name for UserType.
+            	It may also contain key to the catalog file.
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="displayOrder" type="xsd:int">
+    <xsd:annotation>
+      <xsd:documentation>
+            	Item annotation: display order. The content of this annotation specifies
+            	an order in which the item should be displayed relative to other items
+            	at the same level. The items will be displayed by sorting them by the
+            	values of displayOrder annotation (ascending). Items that do not have
+            	any displayOrder annotation will be displayed last. The ordering of
+            	values with the same displayOrder is undefined and it may be arbitrary.
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="help" type="xsd:string">
+    <xsd:annotation>
+      <xsd:documentation>
+            	Item annotation: help text. The help text is usually displayed as a tooltip
+            	or when a special icon is clicked.
+            	It may also contain key to the catalog file. 
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="access" type="tns:AccessAnnotationType">
+    <xsd:annotation>
+      <xsd:documentation>
+            	Item annotation: access restrictions. This annotation specifies the allowed
+            	operations for an item. If no access annotation is present then all
+            	operations are allowed.
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:simpleType name="AccessAnnotationType">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="read" />
+      <xsd:enumeration value="update" />
+      <xsd:enumeration value="create" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:element name="indexed" type="xsd:boolean">
+    <xsd:annotation>
+      <xsd:documentation>
+                Property marker annotation: indexed property. Property that has this
+                annotation should be indexed in the data store.
+                WARNING: Presence of this annotation may impose some restriction on the
+                property, usually a length restriction. E.g. database systems usually
+                restrict the length of a datatype that can be efficiently indexed.
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="ignore" type="xsd:boolean">
+    <xsd:annotation>
+      <xsd:documentation>
+                Item marker annotation: ignored item. Item that has this annotation
+                should be ignored by any processing. The ignored item is still part
+                of the schema. Item instances may appear in the serialized data formats
+                (e.g. XML) or data store and the parser should not raise an error if
+                it encounters them. But any high-level processing code should ignore
+                presence of this item. E.g. it should not be displayed to the user, should
+                not be present in transformed data structures, etc.
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="operational" type="xsd:boolean">
+    <xsd:annotation>
+      <xsd:documentation>
+                Marks operational property. Operational properties are auxiliary data
+                (or meta-data) that are usually not modifiable by the end user. They are
+                generated and maintained by the system. Operational properties are also
+                not usually displayed unless it is explicitly requested.
+                
+                The example of operation properties are modification timestamps, create timestamps,
+                user that made the last change, etc.
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="composite" type="xsd:boolean">
+    <xsd:annotation>
+      <xsd:documentation>
+                Marks composite reference. Composite references do not refer to the target
+                object by OID but rather contain the entire target object forming a composition.
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="deprecated" type="xsd:boolean">
+    <xsd:annotation>
+      <xsd:documentation>
+                Marks deprecated parts of the schema.
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="extension" type="xsd:QName">
+    <xsd:annotation>
+      <xsd:documentation>
+                Complex type annotation. Complex type that contains this annotation
+                defines the content of the 'extension' item of data type specified by the
+                content of this annotation. E.g. in the content of this annotation is
+                c:UserType then the complex type that has this annotation defines the
+                structure of 'extension' element of UserType objects.
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="objectReference">
+    <xsd:annotation>
+      <xsd:documentation>
+                Item marker annotation: object reference. This annotation specifies that
+                an element or data type is object reference (PrismReference). 
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="objectReferenceTargetType" type="xsd:QName">
+    <xsd:annotation>
+      <xsd:documentation>
+                Object reference annotation: reference target type. Content of this
+                annotation specifies the object type that the reference points to. 
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="maxOccurs" type="xsd:string">
+    <xsd:annotation>
+      <xsd:documentation>
+                Same as normal maxOccurs XSD attribute, but can also be used
+                with top-level elements.
+                It may contain decimal string representation of a non-negative integer value or
+                a string 'unbounded'.
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:attribute name="maxOccurs" type="xsd:string">
+    <xsd:annotation>
+      <xsd:documentation>
+                Same as normal maxOccurs XSD attribute, but can also be used
+                with dynamic elements similarly to xsi:type.
+                It may contain decimal string representation of a non-negative integer value or
+                a string 'unbounded'.
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:attribute>
+</xsd:schema>

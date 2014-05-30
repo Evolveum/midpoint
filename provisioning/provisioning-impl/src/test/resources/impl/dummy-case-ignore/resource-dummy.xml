@@ -108,12 +108,27 @@
 			<protected>
 				<filter>
 					<q:substring>
+						<q:matching>stringIgnoreCase</q:matching>
 						<q:path>
 							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
 							attributes/icfs:name
 						</q:path>
-						<q:value>X</q:value>
+						<!-- This should also match accounts starting with capital X -->
+						<q:value>x</q:value>
 						<q:anchorStart>true</q:anchorStart>
+					</q:substring>
+				</filter>
+			</protected>
+			<protected>
+				<filter>
+					<q:substring>
+						<q:matching>stringIgnoreCase</q:matching>
+						<q:path>
+							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+							attributes/icfs:name
+						</q:path>
+						<q:value>-aDm</q:value>
+						<q:anchorEnd>true</q:anchorEnd>
 					</q:substring>
 				</filter>
 			</protected>

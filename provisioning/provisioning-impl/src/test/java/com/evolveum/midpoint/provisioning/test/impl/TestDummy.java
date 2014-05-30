@@ -3208,8 +3208,19 @@ public class TestDummy extends AbstractDummyTest {
 		// GIVEN
 		testAddProtectedAccount(TEST_NAME, "Xavier");
 		testAddProtectedAccount(TEST_NAME, "Xenophobia");
+		testAddProtectedAccount(TEST_NAME, "nobody-adm");
+		testAddAccount(TEST_NAME, "abcadm");
 		testAddAccount(TEST_NAME, "piXel");
 		testAddAccount(TEST_NAME, "supernaturalius");
+	}
+	
+	@Test
+	public void test511AddProtectedAccountCaseIgnore() throws Exception {
+		final String TEST_NAME = "test511AddProtectedAccountCaseIgnore";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		testAddAccount(TEST_NAME, "xaxa");
+		testAddAccount(TEST_NAME, "somebody-ADM");
 	}
 	
 	private PrismObject<ShadowType> createAccountShadow(String username) throws SchemaException {
@@ -3229,7 +3240,7 @@ public class TestDummy extends AbstractDummyTest {
 		return shadow;
 	}
 	
-	private void testAddProtectedAccount(final String TEST_NAME, String username) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException {
+	protected void testAddProtectedAccount(final String TEST_NAME, String username) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException {
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();

@@ -19,10 +19,10 @@ public class ItemPathTypeDeserializer extends JsonDeserializer<ItemPathType>{
 	@Override
 	public ItemPathType deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException,
 			JsonProcessingException {
-		System.out.println("ITEM PATH TYPE");
-		System.out.println("current t: " +jp.getCurrentToken());
-		System.out.println("cuuretn nmae " + jp.getCurrentName());
-		System.out.println("item path type: " + jp.getText());
+		//System.out.println("ITEM PATH TYPE");
+		//System.out.println("current t: " +jp.getCurrentToken());
+		//System.out.println("cuuretn nmae " + jp.getCurrentName());
+		//System.out.println("item path type: " + jp.getText());
 		
 		if (jp.getCurrentToken() != JsonToken.VALUE_STRING){
 			throw new JsonParseException("Cannot parse path value. Expected that the value will be string but it is: " + jp.getCurrentTokenId(), jp.getCurrentLocation());
@@ -31,7 +31,7 @@ public class ItemPathTypeDeserializer extends JsonDeserializer<ItemPathType>{
 		if (StringUtils.isBlank(path)){
 			throw new IllegalStateException("Error while deserializing path. No path specified.");
 		}
-		System.out.println("path: " + path);
+		//System.out.println("path: " + path);
 //		if (path.startsWith("declare.*")){
 			XPathHolder holder = new XPathHolder(path);
 			ItemPath itemPath = holder.toItemPath();

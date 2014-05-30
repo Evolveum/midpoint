@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=jar:file:/D:/midpoint/tgit/midpoint/gui/admin-gui/target/midpoint/WEB-INF/lib/schema-2.3-SNAPSHOT.jar!/prism/xml/ns/public/types-3.xsd" namespace="http://prism.evolveum.com/xml/ns/public/types-3" />
+  <xsd:annotation>
+    <xsd:documentation>
+			Version: 2.0
+            Recommended namespace prefix: icfs
+        </xsd:documentation>
+  </xsd:annotation>
+  <xsd:element name="uid" type="xsd:string">
+    <xsd:annotation>
+      <xsd:documentation>
+                UID unique identifier
+            </xsd:documentation>
+      <xsd:appinfo>
+        <a:access xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3">read</a:access>
+        <a:maxOccurs xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3">1</a:maxOccurs>
+      </xsd:appinfo>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="name" type="xsd:string">
+    <xsd:annotation>
+      <xsd:documentation>
+                __NAME__ attribute
+            </xsd:documentation>
+      <xsd:appinfo>
+        <a:maxOccurs xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3">1</a:maxOccurs>
+      </xsd:appinfo>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="password" type="t:ProtectedStringType">
+    <xsd:annotation>
+      <xsd:documentation>
+                __PASSWORD__ attribute
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="shortName" type="xsd:string">
+    <xsd:annotation>
+      <xsd:documentation>
+                __SHORT_NAME__ attribute
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="lastPasswordChangeDate" type="xsd:string">
+    <xsd:annotation>
+      <xsd:documentation>
+                __LAST_PASSWORD_CHANGE_DATE__ attribute
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="passwordChangeInterval" type="xsd:string">
+    <xsd:annotation>
+      <xsd:documentation>
+                __PASSWORD_CHANGE_INTERVAL__ attribute
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="enable" type="xsd:boolean">
+    <xsd:annotation>
+      <xsd:documentation>
+                __ENABLE__ attribute
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="enableDate" type="xsd:long">
+    <xsd:annotation>
+      <xsd:documentation>
+                __ENABLE_DATE__ attribute
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="disableDate" type="xsd:long">
+    <xsd:annotation>
+      <xsd:documentation>
+                __DISABLE_DATE__ attribute
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="lockOut" type="xsd:boolean">
+    <xsd:annotation>
+      <xsd:documentation>
+                __LOCK_OUT__ attribute
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="passwordExpirationDate" type="xsd:long">
+    <xsd:annotation>
+      <xsd:documentation>
+                __PASSWORD_EXPIRATION_DATE__ attribute
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="passwordExpired" type="xsd:boolean">
+    <xsd:annotation>
+      <xsd:documentation>
+                __PASSWORD_EXPIRED__ attribute
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="currentPassword" type="t:ProtectedStringType">
+    <xsd:annotation>
+      <xsd:documentation>
+                __CURRENT_PASSWORD__ attribute
+            </xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="description" type="xsd:string">
+    <xsd:annotation>
+      <xsd:documentation>
+                __DESCRIPTION__ attribute
+            </xsd:documentation>
+      <xsd:appinfo>
+        <a:nativeAttributeName xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3">__DESCRIPTION__</a:nativeAttributeName>
+      </xsd:appinfo>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="groups" type="xsd:string">
+    <xsd:annotation>
+      <xsd:documentation>
+                __GROUPS__ attribute
+            </xsd:documentation>
+      <xsd:appinfo>
+        <a:nativeAttributeName xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3">__GROUPS__</a:nativeAttributeName>
+      </xsd:appinfo>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="lastLoginDate" type="xsd:long">
+    <xsd:annotation>
+      <xsd:documentation>
+                __LAST_LOGIN_DATE__ attribute
+            </xsd:documentation>
+      <xsd:appinfo>
+        <a:nativeAttributeName xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3">__LAST_LOGIN_DATE__</a:nativeAttributeName>
+      </xsd:appinfo>
+    </xsd:annotation>
+  </xsd:element>
+</xsd:schema>
