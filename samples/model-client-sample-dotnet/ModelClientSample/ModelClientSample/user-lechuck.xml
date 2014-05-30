@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<object oid="c0c010c0-d34d-b33f-f00d-11111111ec1e" 
+		xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+		xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+		xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'
+		xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+		xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+		xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'
+        xsi:type="c:UserType">
+    <name><t:orig>lechuck</t:orig></name>
+    <fullName><t:orig>Ghost Pirate LeChuck</t:orig></fullName>
+    <givenName><t:orig>Chuck</t:orig></givenName>
+    <familyName><t:orig>LeChuck</t:orig></familyName>
+    <honorificPrefix><t:orig>Ghost Pirate</t:orig></honorificPrefix>
+    <emailAddress>lechuck@monkeyisland.com</emailAddress>
+    <telephoneNumber>555-1234</telephoneNumber>
+    <employeeNumber>emp1234</employeeNumber>
+    <employeeType>UNDEAD</employeeType>
+    <locality>Monkey Island</locality>
+
+    <credentials>
+        <password>
+        	<value>
+	            <t:clearValue>4rrrrghhhghghgh!123</t:clearValue>
+            </value>
+        </password>
+    </credentials>
+    
+    <activation>
+    	<administrativeStatus>enabled</administrativeStatus>
+    </activation>
+</object>

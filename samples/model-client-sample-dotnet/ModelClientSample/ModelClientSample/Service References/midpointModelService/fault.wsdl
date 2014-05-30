@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" xmlns:jaxws="http://java.sun.com/xml/ns/jaxws" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns="http://schemas.xmlsoap.org/wsdl/" name="fault" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <xsd:schema xmlns="http://schemas.xmlsoap.org/wsdl/" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-3">
+      <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=jar:file:/D:/midpoint/tgit/midpoint/gui/admin-gui/target/midpoint/WEB-INF/lib/schema-2.3-SNAPSHOT.jar!/xml/ns/public/common/common-3.xsd" namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" />
+      <xsd:complexType name="FaultType" abstract="true">
+        <xsd:sequence>
+          <xsd:element name="message" type="xsd:string" />
+          <xsd:element name="operationResult" type="c:OperationResultType" />
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="fault" type="tns:FaultType" />
+      <xsd:complexType name="SystemFaultType">
+        <xsd:annotation>
+          <xsd:documentation>
+				All system (non-business) error condition should be derived
+				from this type.
+				These errors are result
+				from the system and network conditions
+				and are usually temporary (although some may be permanent).
+					</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent mixed="false">
+          <xsd:extension base="tns:FaultType" />
+        </xsd:complexContent>
+      </xsd:complexType>
+      <xsd:element name="systemFault" type="tns:SystemFaultType" />
+      <xsd:complexType name="ObjectAccessFaultType" abstract="true">
+        <xsd:annotation>
+          <xsd:documentation>
+				TODO
+					</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent mixed="false">
+          <xsd:extension base="tns:FaultType" />
+        </xsd:complexContent>
+      </xsd:complexType>
+      <xsd:complexType name="ObjectNotFoundFaultType">
+        <xsd:annotation>
+          <xsd:documentation>
+				Object with specified criteria (OID) has not been found in the
+				repository.
+					</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent mixed="false">
+          <xsd:extension base="tns:ObjectAccessFaultType" />
+        </xsd:complexContent>
+      </xsd:complexType>
+      <xsd:element name="objectNotFoundFault" type="tns:ObjectNotFoundFaultType" />
+      <xsd:complexType name="ObjectAlreadyExistsFaultType">
+        <xsd:annotation>
+          <xsd:documentation>
+				Object with specified criteria (OID) already exists in the
+				repository.
+					</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent mixed="false">
+          <xsd:extension base="tns:ObjectAccessFaultType" />
+        </xsd:complexContent>
+      </xsd:complexType>
+      <xsd:element name="objectAlreadyExistsFault" type="tns:ObjectAlreadyExistsFaultType" />
+      <xsd:complexType name="InapplicableOperationFaultType">
+        <xsd:annotation>
+          <xsd:documentation>
+				Operation cannot be applied to the object.
+				(e.g. conflicting change)
+					</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent mixed="false">
+          <xsd:extension base="tns:ObjectAccessFaultType" />
+        </xsd:complexContent>
+      </xsd:complexType>
+      <xsd:element name="inapplicableOperationFault" type="tns:InapplicableOperationFaultType" />
+      <xsd:complexType name="SchemaViolationFaultType">
+        <xsd:annotation>
+          <xsd:documentation>
+				Provided object does not conform to the internal schema.
+					</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent mixed="false">
+          <xsd:extension base="tns:ObjectAccessFaultType">
+            <xsd:sequence>
+              <xsd:element minOccurs="0" maxOccurs="unbounded" name="violatingPropertyName" type="xsd:QName" />
+            </xsd:sequence>
+          </xsd:extension>
+        </xsd:complexContent>
+      </xsd:complexType>
+      <xsd:element name="schemaViolationFaul" type="tns:SchemaViolationFaultType" />
+      <xsd:complexType name="ReferentialIntegrityFaultType">
+        <xsd:annotation>
+          <xsd:documentation>
+				Operation on an object would cause inconsistencies in referential
+				integrity. E.g. attempt to delete
+				an object that is a target of
+				existing reference.
+					</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent mixed="false">
+          <xsd:extension base="tns:ObjectAccessFaultType">
+            <xsd:sequence>
+              <xsd:element minOccurs="0" maxOccurs="unbounded" name="referringObjectOid" type="xsd:string" />
+            </xsd:sequence>
+          </xsd:extension>
+        </xsd:complexContent>
+      </xsd:complexType>
+      <xsd:element name="referentialIntegrityFault" type="tns:ReferentialIntegrityFaultType" />
+      <xsd:complexType name="UnsupportedObjectTypeFaultType">
+        <xsd:annotation>
+          <xsd:documentation>
+				Object type passed to the operation is not supported by the
+				implementation.
+					</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent mixed="false">
+          <xsd:extension base="tns:ObjectAccessFaultType" />
+        </xsd:complexContent>
+      </xsd:complexType>
+      <xsd:element name="unsupportedObjectTypeFault" type="tns:UnsupportedObjectTypeFaultType" />
+      <xsd:complexType name="IllegalArgumentFaultType">
+        <xsd:annotation>
+          <xsd:documentation>
+				Argument provided to the operation is illegal.
+				E.g. mandatory argument is null or empty, the
+				argument does not
+				conform to the required format, etc.
+					</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent mixed="false">
+          <xsd:extension base="tns:FaultType" />
+        </xsd:complexContent>
+      </xsd:complexType>
+      <xsd:element name="illegalArgumentFault" type="tns:IllegalArgumentFaultType" />
+      <xsd:complexType name="UnsupportedOperationFaultType">
+        <xsd:annotation>
+          <xsd:documentation>
+				The invoked operation is not supported.
+				E.g. attempt to invoke non-implemented optional operation
+				or
+				attempt to use resource capability that is not supported.
+					</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent mixed="false">
+          <xsd:extension base="tns:FaultType" />
+        </xsd:complexContent>
+      </xsd:complexType>
+      <xsd:element name="unsupportedOperationFault" type="tns:UnsupportedOperationFaultType" />
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="FaultMessage">
+    <wsdl:part name="fault" element="tns:fault" />
+  </wsdl:message>
+</wsdl:definitions>
