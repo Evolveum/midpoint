@@ -57,6 +57,7 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
     private static final String ID_STATUS = "status";
     private static final String ID_SHOW_MORE = "showMore";
     private static final String ID_TRIGGER = "trigger";
+    private static final String ID_PROTECTED = "protected";
 
     public CheckTableHeader(String id, IModel<ObjectWrapper> model) {
         super(id, model);
@@ -95,6 +96,17 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
             }
         });
         add(trigger);
+
+        Label protectedIcon = new Label(ID_PROTECTED);
+        protectedIcon.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                ObjectWrapper wrapper = getModelObject();
+                return wrapper.isProtectedAccount();
+            }
+        });
+        add(protectedIcon);
 
         BootstrapLabel status = new BootstrapLabel(ID_STATUS, createStringResource("CheckTableHeader.label.error"),
                 new Model(BootstrapLabel.State.DANGER));
