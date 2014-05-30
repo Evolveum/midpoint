@@ -1,0 +1,31 @@
+midPoint 3.0 "Newton"
+---------------------
+
+* Generic synchronization: synchronize almost any type of object to the resource
+* Entitlement management support allows management of resource groups, privileges and roles in a native and convenient way.
+* Delegated Administration: ability to define fine-grained authorizations scoped to a specific organizational unit. Attribute-level authorizations.
+* REST API
+* Improved reporting (based on Jasper Reports)
+* Performance improvements
+* Bulk actions: Ability to execute an action on all users/accounts (or subset).
+* GUI improvements: Improved GUI design and ergonomics, ability to conveniently adjust some aspects of GUI look&feel
+* Switch to common OpenICF/ConnId 1.4 framework
+* Schema and interface cleanup
+* Scripting Hooks
+* Schema documentation automatically generated from the definition (schemadoc)
+* Higher-order inducements
+* New expression evaluators for assignments and entitlement associations
+* Iteration support for focal objects (e.g. users)
+* New administration GUI pages
+* Partial multi-tenancy support
+* Support for resource read-only mode
+* Extended function libraries for expressions
+* Support for time-based mappings in object template
+* Improved synchronization reaction configuration options
+* Improved reconciliation and synchronization performance
+* Support for filters in protected accounts specification
+* Support for binary attribute values
+* Support for user photo
+* Schema improvements
+* Improved logging messages
+

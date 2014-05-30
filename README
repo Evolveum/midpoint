@@ -1,9 +1,13 @@
+midPoint 3.0 "Newton"
+---------------------
+
 General informations:
 
-midPoint is a tool that synchronizes several identity repositories, manages them
-and makes them available in unified form. It belongs to the user provisioning 
-category of the enterprise identity management field. The basic features include:
+MidPoint is a comprehensive identity provisioning system. MidPoint can synchronize several
+identity repositories, manage and transform data in these repostories to keep them synchronized.
+MidPoint also makes the data available in unified form. 
 
+The most important features of midPoint are:
    - User provisioning and deprovisioning
    - Integration of Identity Connector Framework
    - Administration GUI
@@ -11,14 +15,19 @@ category of the enterprise identity management field. The basic features include
    - Custom schema extensibility
    - Identity synchronization (liveSync, reconciliation, discovery, import)
    - Support for expressions in synchronization mappings (Groovy, JavaScript, XPathv2)
-   - Advanced RBAC support
+   - Advanced RBAC support with temporal constraints
    - Identity management process automation (workflow, notifications)
    - Password policies
+   - Generic synchronization
+   - Entitlements
+   - Support for ConnId and OpenICF connectors
    - Provisioning consistency and error handling
    - Segregation of Duties (SoG)
    - Support for security auditing and reporting
-   - Local Java APIs
-   - Remote web service interface
+   - Workflow
+   - Reporting
+   - Notifications
+   - Local Java APIs, Remote web service interface (SOAP), REST API
    - High availablity (HA) support
   
 
