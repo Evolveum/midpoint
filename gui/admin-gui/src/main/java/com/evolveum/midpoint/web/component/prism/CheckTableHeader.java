@@ -19,6 +19,8 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.BootstrapLabel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
@@ -28,8 +30,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -77,6 +78,13 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
         add(check);
 
         Label icon = new Label(ID_ICON);
+        icon.add(AttributeModifier.replace("class", new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                return createAccountIcon();
+            }
+        }));
         add(icon);
 
         Label trigger = new Label(ID_TRIGGER);
@@ -160,6 +168,20 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
             }
         });
         add(menu);
+    }
+
+    private String createAccountIcon() {
+        ObjectWrapper wrapper = getModelObject();
+        PrismObject object = wrapper.getObject();
+        PrismProperty status = object.findProperty(new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS));
+        if (status != null && status.getRealValue() != null) {
+            ActivationStatusType value = (ActivationStatusType) status.getRealValue();
+            if (ActivationStatusType.DISABLED.equals(value)) {
+                return "fa fa-male text-muted";
+            }
+        }
+
+        return "fa fa-male";
     }
 
     private String createTriggerTooltip() {
