@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xsd:schema xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:annotation>
+    <xsd:documentation>
+ 			Identity Connector Framework version 1 (ICF1) connector configuration schema.
+ 			
+ 			TODO
+
+			The specific connector schemas are based on this definition.
+			MidPoint will look for the definition of top-level element that is
+			by convention the element with local name "configuration". It will use it as basic definition
+			for resource configuration. The definition of "configuration" element will most likely
+			refer to the data types and elements used in this schema definition.
+ 			
+ 			Version: 2.0
+            Recommended namespace prefix: icfc
+        </xsd:documentation>
+  </xsd:annotation>
+  <xsd:complexType name="ConfigurationPropertiesType">
+    <xsd:annotation>
+      <xsd:documentation>
+				TODO
+			</xsd:documentation>
+      <xsd:appinfo>
+        <a:container xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3" />
+      </xsd:appinfo>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:any minOccurs="0" maxOccurs="unbounded" namespace="##any" processContents="lax" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:element name="configurationProperties" type="tns:ConfigurationPropertiesType">
+    <xsd:annotation>
+      <xsd:appinfo>
+        <a:maxOccurs>1</a:maxOccurs>
+      </xsd:appinfo>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:complexType name="ConnectorPoolConfigurationType">
+    <xsd:annotation>
+      <xsd:documentation>
+				Type that contains configuration of ICF connector pools. This configuration is common for all
+				ICF connectors, therefore it may be part of a static schema.
+			</xsd:documentation>
+      <xsd:appinfo>
+        <a:container />
+      </xsd:appinfo>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="minEvictableIdleTimeMillis" type="xsd:int">
+        <xsd:annotation>
+          <xsd:documentation>
+						TODO
+					</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element minOccurs="0" name="minIdle" type="xsd:int">
+        <xsd:annotation>
+          <xsd:documentation>
+						TODO
+					</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element minOccurs="0" name="maxIdle" type="xsd:int">
+        <xsd:annotation>
+          <xsd:documentation>
+						TODO
+					</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element minOccurs="0" name="maxObjects" type="xsd:int">
+        <xsd:annotation>
+          <xsd:documentation>
+						TODO
+					</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element minOccurs="0" name="maxWait" type="xsd:int">
+        <xsd:annotation>
+          <xsd:documentation>
+						TODO
+					</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:element name="connectorPoolConfiguration" type="tns:ConnectorPoolConfigurationType">
+    <xsd:annotation>
+      <xsd:documentation>
+				Element that contains configuration of ICF connector pools.
+			</xsd:documentation>
+      <xsd:appinfo>
+        <a:maxOccurs>1</a:maxOccurs>
+      </xsd:appinfo>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="producerBufferSize" type="xsd:int">
+    <xsd:annotation>
+      <xsd:documentation>
+				TODO
+			</xsd:documentation>
+      <xsd:appinfo>
+        <a:maxOccurs>1</a:maxOccurs>
+      </xsd:appinfo>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:element name="timeouts" type="tns:TimeoutsType">
+    <xsd:annotation>
+      <xsd:documentation>
+				TODO
+			</xsd:documentation>
+      <xsd:appinfo>
+        <a:maxOccurs>1</a:maxOccurs>
+      </xsd:appinfo>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:complexType name="TimeoutsType">
+    <xsd:annotation>
+      <xsd:documentation>
+				Type that contains configuration of ICF operation timeouts.
+			</xsd:documentation>
+      <xsd:appinfo>
+        <a:container />
+      </xsd:appinfo>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="create" type="xsd:int" />
+      <xsd:element minOccurs="0" name="get" type="xsd:int" />
+      <xsd:element minOccurs="0" name="update" type="xsd:int" />
+      <xsd:element minOccurs="0" name="delete" type="xsd:int" />
+      <xsd:element minOccurs="0" name="test" type="xsd:int" />
+      <xsd:element minOccurs="0" name="scriptOnConnector" type="xsd:int" />
+      <xsd:element minOccurs="0" name="scriptOnResource" type="xsd:int" />
+      <xsd:element minOccurs="0" name="authentication" type="xsd:int" />
+      <xsd:element minOccurs="0" name="search" type="xsd:int" />
+      <xsd:element minOccurs="0" name="validate" type="xsd:int" />
+      <xsd:element minOccurs="0" name="sync" type="xsd:int" />
+      <xsd:element minOccurs="0" name="schema" type="xsd:int" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ResultsHandlerConfigurationType">
+    <xsd:annotation>
+      <xsd:documentation>
+                Type that contains configuration of ICF results handlers.
+
+                There is a default consisting of these handlers: NormalizingResultsHandler, FilteredResultsHandler, AttributesToGetSearchResultsHandler.
+
+                This configuration allow to overconfigure the chain. E.g. to enable case-sensitive searches.
+
+                (This configuration is common for all ICF connectors, therefore it may be part of a static schema.)
+            </xsd:documentation>
+      <xsd:appinfo>
+        <a:container />
+      </xsd:appinfo>
+    </xsd:annotation>
+    <xsd:sequence>
+      <xsd:element minOccurs="0" name="enableNormalizingResultsHandler" type="xsd:boolean">
+        <xsd:annotation>
+          <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element minOccurs="0" name="enableFilteredResultsHandler" type="xsd:boolean">
+        <xsd:annotation>
+          <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element minOccurs="0" name="enableCaseInsensitiveFilter" type="xsd:boolean">
+        <xsd:annotation>
+          <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element minOccurs="0" name="enableAttributesToGetSearchResultsHandler" type="xsd:boolean">
+        <xsd:annotation>
+          <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:element name="resultsHandlerConfiguration" type="tns:ResultsHandlerConfigurationType">
+    <xsd:annotation>
+      <xsd:documentation>
+                Element that contains configuration of ICF results handlers.
+            </xsd:documentation>
+      <xsd:appinfo>
+        <a:maxOccurs>1</a:maxOccurs>
+      </xsd:appinfo>
+    </xsd:annotation>
+  </xsd:element>
+</xsd:schema>

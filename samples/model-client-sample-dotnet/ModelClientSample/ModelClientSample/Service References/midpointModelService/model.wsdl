@@ -1,0 +1,481 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:apit="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/model/model-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" xmlns="http://schemas.xmlsoap.org/wsdl/" name="model" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <documentation>
+
+	Interface of the IDM Model subsystem.
+
+	IDM Model Web interface provides access unified to the identity objects stored in the repository and on the resources. It
+	abstracts away the details about where and how are the data stored, it hides all the low-level system components.
+
+	Implementation of this interface are expected to enforce a consistency of access control decisions and model, e.g. to enforce
+	Role-Based Access Control (RBAC). RBAC is only one of many possibly models and this interface may have many implementations.
+
+	Implementations of this interface may automatically derive properties and attributes for objects. E.g. RBAC models may
+	automatically derive resource accounts attributes based on user role membership.
+
+	This a web service version of the IDM Model Interface represented in WSDL. As such it has some inherent limitations but it is
+	usable for remote access to the Model services.
+
+    </documentation>
+  <wsdl:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-3" location="http://localhost.:8080/midpoint/model/model-3?wsdl=../common/fault-3.wsdl" />
+  <wsdl:types>
+    <xsd:schema xmlns="http://schemas.xmlsoap.org/wsdl/" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-3">
+      <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=jar:file:/D:/midpoint/tgit/midpoint/gui/admin-gui/target/midpoint/WEB-INF/lib/schema-2.3-SNAPSHOT.jar!/xml/ns/public/common/common-3.xsd" namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" />
+      <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-3" />
+      <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=http://prism.evolveum.com/xml/ns/public/query-3" namespace="http://prism.evolveum.com/xml/ns/public/query-3" />
+      <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3" />
+      <xsd:import schemaLocation="http://localhost.:8080/midpoint/model/model-3?xsd=http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" namespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" />
+      <xsd:complexType name="GetObjectType">
+        <xsd:sequence>
+          <xsd:element name="objectType" type="xsd:QName" />
+          <xsd:element name="oid" type="xsd:string" />
+          <xsd:element name="options" type="apit:SelectorQualifiedGetOptionsType" />
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="getObject" type="tns:GetObjectType" />
+      <xsd:complexType name="GetObjectResponseType">
+        <xsd:sequence>
+          <xsd:element name="object" type="c:ObjectType" />
+          <xsd:element name="result" type="c:OperationResultType" />
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="getObjectResponse" type="tns:GetObjectResponseType" />
+      <xsd:complexType name="ExecuteChangesType">
+        <xsd:sequence>
+          <xsd:element name="deltaList" type="apit:ObjectDeltaListType" />
+          <xsd:element name="options" type="c:ModelExecuteOptionsType" />
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="executeChanges" type="tns:ExecuteChangesType" />
+      <xsd:complexType name="ExecuteChangesResponseType">
+        <xsd:sequence>
+          <xsd:element name="deltaOperationList" type="apit:ObjectDeltaOperationListType" />
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="executeChangesResponse" type="tns:ExecuteChangesResponseType" />
+      <xsd:complexType name="SearchObjectsType">
+        <xsd:sequence>
+          <xsd:element name="objectType" type="xsd:QName" />
+          <xsd:element name="query" type="q:QueryType">
+            <xsd:annotation>
+              <xsd:documentation>
+                                Search criteria (may be null).
+                            </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+          <xsd:element name="options" type="apit:SelectorQualifiedGetOptionsType" />
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="searchObjects" type="tns:SearchObjectsType" />
+      <xsd:complexType name="SearchObjectsResponseType">
+        <xsd:sequence>
+          <xsd:element name="objectList" type="apit:ObjectListType" />
+          <xsd:element name="result" type="c:OperationResultType" />
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="searchObjectsResponse" type="tns:SearchObjectsResponseType" />
+      <xsd:complexType name="FindShadowOwnerType">
+        <xsd:sequence>
+          <xsd:element name="shadowOid" type="xsd:string" />
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="findShadowOwner" type="tns:FindShadowOwnerType" />
+      <xsd:complexType name="FindShadowOwnerResponseType">
+        <xsd:sequence>
+          <xsd:element name="user" type="c:UserType" />
+          <xsd:element name="result" type="c:OperationResultType" />
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="findShadowOwnerResponse" type="tns:FindShadowOwnerResponseType" />
+      <xsd:complexType name="TestResourceType">
+        <xsd:sequence>
+          <xsd:element name="resourceOid" type="xsd:string" />
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="testResource" type="tns:TestResourceType" />
+      <xsd:complexType name="testResourceResponseType">
+        <xsd:sequence>
+          <xsd:element name="result" type="c:OperationResultType" />
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="testResourceResponse" type="tns:testResourceResponseType" />
+      <xsd:complexType name="ImportFromResourceType">
+        <xsd:sequence>
+          <xsd:element name="resourceOid" type="xsd:string" />
+          <xsd:element name="objectClass" type="xsd:QName">
+            <xsd:annotation>
+              <xsd:documentation>
+                                Object class to import.
+                                Local name, assumed to be in the resource namespace.
+                            </xsd:documentation>
+            </xsd:annotation>
+          </xsd:element>
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="importFromResource" type="tns:ImportFromResourceType" />
+      <xsd:complexType name="ImportFromResourceResponseType">
+        <xsd:sequence>
+          <xsd:element name="task" type="c:TaskType" />
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="importFromResourceResponse" type="tns:ImportFromResourceResponseType" />
+      <xsd:complexType name="NotifyChangeType">
+        <xsd:sequence>
+          <xsd:element name="changeDescription" type="c:ResourceObjectShadowChangeDescriptionType" />
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="notifyChange" type="tns:NotifyChangeType" />
+      <xsd:complexType name="NotifyChangeResponseType">
+        <xsd:sequence>
+          <xsd:element name="task" type="c:TaskType" />
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="notifyChangeResponse" type="tns:NotifyChangeResponseType" />
+      <xsd:complexType name="ExecuteScriptsType">
+        <xsd:sequence>
+          <xsd:choice>
+            <xsd:element name="xmlScripts" type="apit:XmlScriptsType" />
+            <xsd:element name="mslScripts" type="xsd:string" />
+          </xsd:choice>
+          <xsd:element minOccurs="0" name="options" type="apit:ExecuteScriptsOptionsType" />
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="executeScripts" type="tns:ExecuteScriptsType" />
+      <xsd:complexType name="ExecuteScriptsResponseType">
+        <xsd:sequence>
+          <xsd:element name="outputs" type="apit:ScriptOutputsType" />
+          <xsd:element name="result" type="c:OperationResultType" />
+        </xsd:sequence>
+      </xsd:complexType>
+      <xsd:element name="executeScriptsResponse" type="tns:ExecuteScriptsResponseType" />
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="testResourceResponse">
+    <wsdl:part name="parameters" element="tns:testResourceResponse" />
+  </wsdl:message>
+  <wsdl:message name="executeChangesResponse">
+    <wsdl:part name="parameters" element="tns:executeChangesResponse" />
+  </wsdl:message>
+  <wsdl:message name="executeScripts">
+    <wsdl:part name="parameters" element="tns:executeScripts" />
+  </wsdl:message>
+  <wsdl:message name="findShadowOwnerResponse">
+    <wsdl:part name="parameters" element="tns:findShadowOwnerResponse" />
+  </wsdl:message>
+  <wsdl:message name="importFromResource">
+    <wsdl:part name="parameters" element="tns:importFromResource" />
+  </wsdl:message>
+  <wsdl:message name="searchObjectsResponse">
+    <wsdl:part name="parameters" element="tns:searchObjectsResponse" />
+  </wsdl:message>
+  <wsdl:message name="testResource">
+    <wsdl:part name="parameters" element="tns:testResource" />
+  </wsdl:message>
+  <wsdl:message name="getObjectResponse">
+    <wsdl:part name="parameters" element="tns:getObjectResponse" />
+  </wsdl:message>
+  <wsdl:message name="findShadowOwner">
+    <wsdl:part name="parameters" element="tns:findShadowOwner" />
+  </wsdl:message>
+  <wsdl:message name="searchObjects">
+    <wsdl:part name="parameters" element="tns:searchObjects" />
+  </wsdl:message>
+  <wsdl:message name="notifyChangeResponse">
+    <wsdl:part name="parameters" element="tns:notifyChangeResponse" />
+  </wsdl:message>
+  <wsdl:message name="importFromResourceResponse">
+    <wsdl:part name="parameters" element="tns:importFromResourceResponse" />
+  </wsdl:message>
+  <wsdl:message name="notifyChange">
+    <wsdl:part name="parameters" element="tns:notifyChange" />
+  </wsdl:message>
+  <wsdl:message name="executeScriptsResponse">
+    <wsdl:part name="parameters" element="tns:executeScriptsResponse" />
+  </wsdl:message>
+  <wsdl:message name="getObject">
+    <wsdl:part name="parameters" element="tns:getObject" />
+  </wsdl:message>
+  <wsdl:message name="executeChanges">
+    <wsdl:part name="parameters" element="tns:executeChanges" />
+  </wsdl:message>
+  <wsdl:portType name="modelPortType">
+    <wsdl:operation name="getObject">
+      <documentation>
+                    Returns object for provided OID.
+                    Must fail if object with the OID does not exists.
+
+                    Reference resolution is SUPPORTED by this operation.
+
+                    Faults:
+                      any SystemFaultType
+                      IllegalArgumentFaultType: wrong OID format
+                      ObjectNotFoundFaultType: object with specified OID does not exists
+            </documentation>
+      <wsdl:input name="getObject" message="tns:getObject" />
+      <wsdl:output name="getObjectResponse" message="tns:getObjectResponse" />
+      <wsdl:fault name="fault" message="f:FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="searchObjects">
+      <documentation>
+                    Search for objects in the repository. Searches through all
+                    object types. Returns a list of objects that match search
+                    criteria.
+
+                    Faults:
+                      any SystemFaultType
+                      IllegalArgumentFaultType: wrong object type
+                      SchemaViolationFaultType: unknown property used in search query
+            </documentation>
+      <wsdl:input name="searchObjects" message="tns:searchObjects" />
+      <wsdl:output name="searchObjectsResponse" message="tns:searchObjectsResponse" />
+      <wsdl:fault name="fault" message="f:FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="executeChanges">
+      <documentation>
+        <p>Execute the provided object deltas.</p>
+        <p>
+                The operation executes the provided object deltas. All deltas must relate to analogous objects (e.g. user
+                and linked accounts). The implementation may throw an error if the objects are not analogous. The implementation
+                also implicitly links the objects (mark them to be analogous) if such a link is part of the data model.
+                E.g. the implementation links all accounts to the user if they are passed in a single delta collection.
+                This is especially useful if the account deltas are ADD deltas without OID and therefore cannot be linked
+                explicitly.
+                </p>
+        <p>
+                There must be no more than one delta for each object.
+                The order of execution is not defined and the implementation is free to determine the correct or most suitable ordering.
+                </p>
+        <p>
+                The OID provided in ADD deltas may be empty. In that case the OID
+                will be assigned by the implementation and the OIDs will be set in the
+                deltas after the operation is completed.
+                </p>
+        <p>
+                Execution of ADD deltas should fail if such object already exists (if object with
+                the provided OID already exists). Execution of MODIFY and DELETE deltas should fail if
+                such objects do not exist.
+                </p>
+        <p>
+                The operation may fail if provided OIDs are in an unusable format for the
+                storage. Generating own OIDs and providing them to this method is not
+                recommended for normal operation.
+                </p>
+        <p>
+                There are no explicit atomicity guarantees for the operations. Some of the operations may pass, some may fail
+                or even fail partially. The consistency of the data and state are not based on operation atomicity but rather
+                a data model that can "repair" inconsistencies.
+                </p>
+        <p>
+                The operation may fail if any of the objects to be created or modified does not conform to
+                the underlying schema of the storage system or the schema enforced by the implementation.
+                </p>
+                Faults:
+                      any SystemFaultType
+                TODO reword to FaultTypes
+                      ObjectAlreadyExistsException: object with specified identifiers already exists, cannot add
+                      ObjectNotFoundException: object required to complete the operation was not found (e.g.
+                                               appropriate connector or resource definition)
+                      SchemaException: error dealing with resource schema, e.g. created object does not conform to schema
+                      ExpressionEvaluationException: evaluation of expression associated with the object has failed
+                      CommunicationException: Communication (network) error during retrieval. E.g. error communicating with the resource
+                      ConfigurationException: Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
+                      PolicyViolationException: Policy violation was detected during processing of the object
+                      SecurityViolationException: Security violation during operation execution. May be caused either by midPoint internal
+                                                  security mechanism but also by external mechanism (e.g. on the resource)
+                      IllegalArgumentException: wrong OID format, etc.
+
+            </documentation>
+      <wsdl:input name="executeChanges" message="tns:executeChanges" />
+      <wsdl:output name="executeChangesResponse" message="tns:executeChangesResponse" />
+      <wsdl:fault name="fault" message="f:FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="findShadowOwner">
+      <documentation>
+                Returns the User object representing owner of specified account
+                (account shadow).
+                May return (null?? empty??) object if there is no owner
+                specified for the account.
+
+                Implements the backward "owns" association between account
+                shadow and user. Forward association is implemented by property
+                "account" of user object.
+
+                Faults:
+                      any SystemFaultType
+                      IllegalArgumentFaultType: wrong OID format
+                      ObjectNotFoundFaultType: object with specified OID does not exists
+            </documentation>
+      <wsdl:input name="findShadowOwner" message="tns:findShadowOwner" />
+      <wsdl:output name="findShadowOwnerResponse" message="tns:findShadowOwnerResponse" />
+      <wsdl:fault name="fault" message="f:FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="testResource">
+      <documentation>
+                WARNING:
+                This operation should not be here. It is in fact
+                just a diagnostics methods from the provisioning interface
+                that need to be accessed from GUI. Do not use it for
+                anything serious. It will disappear eventually.
+
+                Test the resouce connection and basic resource connector
+                functionality.
+
+                This operation will NOT raise fault in case the resource
+                connection fails. It such case it will indicate the failure in
+                the return message, but the operation itself succeeds.
+                The operations fails only if the provided arguments are wrong,
+                in case of system error, system misconfiguration, etc.
+
+                Faults:
+                any SystemFaultType
+                ObjectNotFoundFaultType: specified Resource definition does not exist
+            </documentation>
+      <wsdl:input name="testResource" message="tns:testResource" />
+      <wsdl:output name="testResourceResponse" message="tns:testResourceResponse" />
+      <wsdl:fault name="fault" message="f:FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="importFromResource">
+      <documentation>
+            	TODO: update description
+            	
+                Launch import task that will import all the accounts from the
+                resource.
+
+                WARNING: This operation is not considered public. It is a
+                temporary solution until we have full-featured task management.
+                It may be removed any time without a warning.
+
+                DO NOT USE IT unless you are really sure you know what you
+                are doing.
+
+                Faults:
+                      any SystemFaultType
+                      ObjectNotFoundFaultType: specified Resource definition does not exist
+            </documentation>
+      <wsdl:input name="importFromResource" message="tns:importFromResource" />
+      <wsdl:output name="importFromResourceResponse" message="tns:importFromResourceResponse" />
+      <wsdl:fault name="fault" message="f:FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="notifyChange">
+      <documentation>
+            	TODO: update description
+            	
+               Trigger change notification.
+            </documentation>
+      <wsdl:input name="notifyChange" message="tns:notifyChange" />
+      <wsdl:output name="notifyChangeResponse" message="tns:notifyChangeResponse" />
+      <wsdl:fault name="fault" message="f:FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="executeScripts">
+      <documentation>
+      </documentation>
+      <wsdl:input name="executeScripts" message="tns:executeScripts" />
+      <wsdl:output name="executeScriptsResponse" message="tns:executeScriptsResponse" />
+      <wsdl:fault name="fault" message="f:FaultMessage" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="modelBinding" type="tns:modelPortType">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="getObject">
+      <soap:operation soapAction="" />
+      <wsdl:input name="getObject">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="getObjectResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="fault">
+        <soap:fault use="literal" name="fault" namespace="" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="searchObjects">
+      <soap:operation soapAction="" />
+      <wsdl:input name="searchObjects">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="searchObjectsResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="fault">
+        <soap:fault use="literal" name="fault" namespace="" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="executeChanges">
+      <soap:operation soapAction="" />
+      <wsdl:input name="executeChanges">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="executeChangesResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="fault">
+        <soap:fault use="literal" name="fault" namespace="" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="findShadowOwner">
+      <soap:operation soapAction="" />
+      <wsdl:input name="findShadowOwner">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="findShadowOwnerResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="fault">
+        <soap:fault use="literal" name="fault" namespace="" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="testResource">
+      <soap:operation soapAction="" />
+      <wsdl:input name="testResource">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="testResourceResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="fault">
+        <soap:fault use="literal" name="fault" namespace="" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="importFromResource">
+      <soap:operation soapAction="" />
+      <wsdl:input name="importFromResource">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="importFromResourceResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="fault">
+        <soap:fault use="literal" name="fault" namespace="" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="notifyChange">
+      <soap:operation soapAction="" />
+      <wsdl:input name="notifyChange">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="notifyChangeResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="fault">
+        <soap:fault use="literal" name="fault" namespace="" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="executeScripts">
+      <soap:operation soapAction="" />
+      <wsdl:input name="executeScripts">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="executeScriptsResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="fault">
+        <soap:fault use="literal" name="fault" namespace="" />
+      </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="modelWebService">
+    <wsdl:port name="modelPort" binding="tns:modelBinding">
+      <soap:address location="http://localhost.:8080/midpoint/model/model-3" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>
