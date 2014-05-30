@@ -576,6 +576,7 @@ public class ShadowManager {
 		ShadowType repoShadowType = repoShadow.asObjectable();
 
         setKindIfNecessary(repoShadowType, objectClassDefinition);
+//        setIntentIfNecessary(repoShadowType, objectClassDefinition);
 
         // We don't want to store credentials in the repo
 		repoShadowType.setCredentials(null);
@@ -601,6 +602,10 @@ public class ShadowManager {
 			repoShadowType.setObjectClass(attributesContainer.getDefinition().getTypeName());
 		}
 		
+		if (repoShadowType.isProtectedObject() != null){
+			repoShadowType.setProtectedObject(null);
+		}
+		
 		normalizeAttributes(repoShadow, objectClassDefinition);
 
 		return repoShadow;
@@ -609,6 +614,12 @@ public class ShadowManager {
     public void setKindIfNecessary(ShadowType repoShadowType, RefinedObjectClassDefinition objectClassDefinition) {
         if (repoShadowType.getKind() == null && objectClassDefinition != null) {
             repoShadowType.setKind(objectClassDefinition.getKind());
+        }
+    }
+    
+    public void setIntentIfNecessary(ShadowType repoShadowType, RefinedObjectClassDefinition objectClassDefinition) {
+        if (repoShadowType.getIntent() == null && objectClassDefinition.getIntent() != null) {
+            repoShadowType.setIntent(objectClassDefinition.getIntent());
         }
     }
 

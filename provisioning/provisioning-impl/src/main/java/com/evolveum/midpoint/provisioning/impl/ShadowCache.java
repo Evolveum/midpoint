@@ -1556,7 +1556,7 @@ public abstract class ShadowCache {
 			accessChecker.filterGetAttributes(resultAttibutes, objectClassDefinition, parentResult);
 			resultShadow.add(resultAttibutes);
 			
-			resultShadowType.setProtectedObject(resourceShadowType.isProtectedObject());
+//			resultShadowType.setProtectedObject(resourceShadowType.isProtectedObject());
 			resultShadowType.setIgnored(resourceShadowType.isIgnored());
 
 			resultShadowType.setActivation(resourceShadowType.getActivation());
@@ -1566,6 +1566,10 @@ public abstract class ShadowCache {
 			ShadowType resourceAccountShadow = resourceShadow.asObjectable();
 			resultAccountShadow.setCredentials(resourceAccountShadow.getCredentials());
 		}
+		
+		//protected
+		resouceObjectConverter.setProtectedFlag(resource, objectClassDefinition, resultShadow);
+//		resultShadowType.setProtectedObject();
 
 		// Activation
 		ActivationType resultActivationType = resultShadowType.getActivation();
