@@ -61,7 +61,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
     protected PrismValue parent;
     protected ItemDefinition definition;
     private List<V> values = new ArrayList<V>();
-    private transient Map<String,Object> userData;
+    private transient Map<String,Object> userData = new HashMap<>();;
     
     protected transient PrismContext prismContext;
 
@@ -74,7 +74,6 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
     Item(QName elementName) {
         super();
         this.elementName = elementName;
-        this.userData = new HashMap<String, Object>();
     }
 
     /**
@@ -86,7 +85,6 @@ public abstract class Item<V extends PrismValue> implements Itemable, DebugDumpa
         this.elementName = elementName;
         this.definition = definition;
         this.prismContext = prismContext;
-        this.userData = new HashMap<String, Object>();
     }
         
     /**
