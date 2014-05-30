@@ -18,107 +18,51 @@ package com.evolveum.midpoint.testing.story;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
-import java.util.Collection;
+import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.notifications.api.transports.Message;
-
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.SearchResultEntry;
-import org.opends.server.util.LDIFException;
-import org.opends.server.util.LDIFReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.model.common.expression.evaluator.LiteralExpressionEvaluatorFactory;
-import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskHandler;
+import com.evolveum.midpoint.model.impl.util.DebugReconciliationTaskResultListener;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.match.MatchingRule;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.ProvisioningScriptSpec;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
@@ -169,7 +113,13 @@ public class TestOrgSync extends AbstractStoryTest {
 	
 	protected static final File TASK_LIVE_SYNC_DUMMY_HR_FILE = new File(TEST_DIR, "task-dumy-hr-livesync.xml");
 	protected static final String TASK_LIVE_SYNC_DUMMY_HR_OID = "10000000-0000-0000-5555-555500000001";
-	
+
+	protected static final File TASK_RECON_OPENDJ_DEFAULT_SINGLE_FILE = new File(TEST_DIR, "task-reconcile-opendj-default-single.xml");
+	protected static final String TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID = "10000000-0000-0000-5555-555500000004";
+
+	protected static final File TASK_RECON_OPENDJ_LDAPGROUP_SINGLE_FILE = new File(TEST_DIR, "task-reconcile-opendj-ldapgroup-single.xml");
+	protected static final String TASK_RECON_OPENDJ_LDAPGROUP_SINGLE_OID = "10000000-0000-0000-5555-555500000014";
+
 	private static final String ACCOUNT_HERMAN_USERNAME = "ht";
 	private static final String ACCOUNT_HERMAN_FIST_NAME = "Herman";
 	private static final String ACCOUNT_HERMAN_LAST_NAME = "Toothrot";
@@ -244,6 +194,11 @@ public class TestOrgSync extends AbstractStoryTest {
 	private static final File BOOTY_OU_LDIF_FILE = new File(TEST_DIR, "booty.ldif");
 	private static final File BOOTY_LOOKOUT_OU_LDIF_FILE = new File(TEST_DIR, "booty-lookout.ldif");
 	
+	@Autowired(required=true)
+	private ReconciliationTaskHandler reconciliationTaskHandler;
+	
+	private DebugReconciliationTaskResultListener reconciliationTaskResultListener;
+	
 	protected static DummyResource dummyResourceHr;
 	protected static DummyResourceContoller dummyResourceCtlHr;
 	protected ResourceType resourceDummyHrType;
@@ -271,6 +226,9 @@ public class TestOrgSync extends AbstractStoryTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
+		
+		reconciliationTaskResultListener = new DebugReconciliationTaskResultListener();
+		reconciliationTaskHandler.setReconciliationTaskResultListener(reconciliationTaskResultListener);
 		
 		// Resources
 		dummyResourceCtlHr = DummyResourceContoller.create(RESOURCE_DUMMY_HR_ID, resourceDummyHr);
@@ -924,6 +882,127 @@ public class TestOrgSync extends AbstractStoryTest {
         
         assertBasicRoleAndResources(user);
         assertAssignments(user, 2);
+	}
+	
+	
+	@Test
+    public void test500ReconcileOpenDJDefault() throws Exception {
+		final String TEST_NAME = "test500ReconcileOpenDJDefault";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestOrgSync.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users before recon", users);
+        assertUsers(15);
+
+        reconciliationTaskResultListener.clear();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        importObjectFromFile(TASK_RECON_OPENDJ_DEFAULT_SINGLE_FILE);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        reconciliationTaskResultListener.assertResult(RESOURCE_OPENDJ_OID, 0, 17, 0, 0);
+        
+        users = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users after recon", users);
+        
+        assertUsers(18);
+
+        // Task result
+        PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
+        OperationResultType reconTaskResult = reconTaskAfter.asObjectable().getResult();
+        display("Recon task result", reconTaskResult);
+        TestUtil.assertSuccess(reconTaskResult);
+	}
+	
+	@Test
+    public void test502ReconcileOpenDJDefaultAgain() throws Exception {
+		final String TEST_NAME = "test502ReconcileOpenDJDefaultAgain";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestOrgSync.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        assertUsers(18);
+        reconciliationTaskResultListener.clear();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        restartTask(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        waitForTaskFinish(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID, false);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        reconciliationTaskResultListener.assertResult(RESOURCE_OPENDJ_OID, 0, 17, 0, 0);
+        
+        assertUsers(18);
+
+        // Task result
+        PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECON_OPENDJ_DEFAULT_SINGLE_OID);
+        OperationResultType reconTaskResult = reconTaskAfter.asObjectable().getResult();
+        display("Recon task result", reconTaskResult);
+        TestUtil.assertSuccess(reconTaskResult);
+	}
+	
+	@Test
+    public void test510ReconcileOpenDJLdapGroup() throws Exception {
+		final String TEST_NAME = "test510ReconcileOpenDJLdapGroup";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestOrgSync.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users before recon", users);
+        assertUsers(18);
+
+        reconciliationTaskResultListener.clear();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        importObjectFromFile(TASK_RECON_OPENDJ_LDAPGROUP_SINGLE_FILE);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        waitForTaskFinish(TASK_RECON_OPENDJ_LDAPGROUP_SINGLE_OID, false);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        reconciliationTaskResultListener.assertResult(RESOURCE_OPENDJ_OID, 0, 2, 0, 0);
+        
+        users = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users after recon", users);
+        
+        assertUsers(18);
+
+        // Task result
+        PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECON_OPENDJ_LDAPGROUP_SINGLE_OID);
+        OperationResultType reconTaskResult = reconTaskAfter.asObjectable().getResult();
+        display("Recon task result", reconTaskResult);
+        TestUtil.assertSuccess(reconTaskResult);
 	}
 	
 	protected void assertUserGuybrush(PrismObject<UserType> user) {

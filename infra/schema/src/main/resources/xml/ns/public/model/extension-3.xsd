@@ -19,6 +19,7 @@
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             elementFormDefault="qualified">
@@ -28,6 +29,9 @@
             Model object extension schema. Used mostly in task extensions.
         </xsd:documentation>
     </xsd:annotation>
+
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3" 
+    			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
 
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"
                 schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3">
@@ -93,6 +97,66 @@
         </xsd:annotation>
     </xsd:element>
 
+    <xsd:element name="objectclass" type="xsd:QName">
+        <xsd:annotation>
+            <xsd:documentation>
+                QName of an object class to process in the import task.
+                E.g. during import from resource.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="kind" type="c:ShadowKindType">
+        <xsd:annotation>
+            <xsd:appinfo>
+            	<a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+    
+    <xsd:element name="intent" type="xsd:string">
+        <xsd:annotation>
+            <xsd:appinfo>
+            	<a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="filename" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                Name of file (on the server) to process.
+            </xsd:documentation>
+            <xsd:appinfo>
+            	<a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="endpoint" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                Name of Camel endpoint to process messages from.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="route" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                Name of Camel route used to process messages.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:maxOccurs>-1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 
 </xsd:schema>
 

@@ -180,7 +180,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			resource = provisioningService.getObject(ResourceType.class, resourceOid, null, task, opResult);
 			
 			RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, LayerType.MODEL, prismContext);
-			rObjectclassDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+			rObjectclassDef = Utils.determineObjectClass(refinedSchema, task);
 			
 		} catch (ObjectNotFoundException ex) {
 			// This is bad. The resource does not exist. Permanent problem.
@@ -265,7 +265,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
                 return runResult;
             }
 			afterResourceReconTimestamp = clock.currentTimeMillis();
-			if (!performShadowReconciliation(resource, reconStartTimestamp, afterResourceReconTimestamp, reconResult, task, opResult)) {
+			if (!performShadowReconciliation(resource, rObjectclassDef, reconStartTimestamp, afterResourceReconTimestamp, reconResult, task, opResult)) {
                 processInterruption(runResult, resource, task, opResult);
                 return runResult;
             }
@@ -400,7 +400,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 		try {
 			
-			ObjectQuery query = createAccountSearchQuery(resource, rObjectclassDef);
+			ObjectQuery query = createObjectclassSearchQuery(resource, rObjectclassDef);
 	
 			OperationResult searchResult = new OperationResult(OperationConstants.RECONCILIATION+".searchIterative"); 
 			provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, searchResult);               // note that progress is incremented within the handler, as it extends AbstractSearchIterativeResultHandler
@@ -444,7 +444,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	}
 
     // returns false in case of execution interruption
-	private boolean performShadowReconciliation(final PrismObject<ResourceType> resource,
+	private boolean performShadowReconciliation(final PrismObject<ResourceType> resource, final RefinedObjectClassDefinition rObjectclassDef,
 			long startTimestamp, long endTimestamp, ReconciliationTaskResult reconResult, final Task task, OperationResult result) throws SchemaException {
         boolean interrupted;
 
@@ -468,6 +468,9 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		Handler<PrismObject<ShadowType>> handler = new Handler<PrismObject<ShadowType>>() {
 			@Override
 			public boolean handle(PrismObject<ShadowType> shadow) {
+				if (!rObjectclassDef.matches(shadow.asObjectable())) {
+					return true;
+				}
 				reconcileShadow(shadow, resource, task);
 				countHolder.setValue(countHolder.getValue() + 1);
                 incrementAndRecordProgress(task, new OperationResult("dummy"));     // reconcileShadow writes to its own dummy OperationResult, so we do the same here
@@ -610,7 +613,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		return EqualFilter.createEqual(ShadowType.F_FAILED_OPERATION_TYPE, ShadowType.class, prismContext, null, failedOp);
 	}
 	
-	private ObjectQuery createAccountSearchQuery(PrismObject<ResourceType> resource,
+	private ObjectQuery createObjectclassSearchQuery(PrismObject<ResourceType> resource,
 			RefinedObjectClassDefinition refinedAccountDefinition) throws SchemaException {
 		QName objectClass = refinedAccountDefinition.getObjectClassDefinition().getTypeName();
 		return ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);

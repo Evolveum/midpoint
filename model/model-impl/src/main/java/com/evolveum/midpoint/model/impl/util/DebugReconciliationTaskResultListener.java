@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013 Evolveum
+ * Copyright (c) 2013-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.model.intest.sync;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
+package com.evolveum.midpoint.model.impl.util;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,8 +22,16 @@ import java.util.List;
 
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskResult;
 import com.evolveum.midpoint.model.impl.sync.ReconciliationTaskResultListener;
-import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 
+/**
+ * Debugging listener for reconciliation tasks.
+ * 
+ * This is not the best place for this object. But we have to live with it now. 
+ * 
+ * @author semancik
+ *
+ */
 public class DebugReconciliationTaskResultListener implements
 		ReconciliationTaskResultListener {
 
@@ -35,7 +40,6 @@ public class DebugReconciliationTaskResultListener implements
 	@Override
 	public void process(ReconciliationTaskResult reconResult) {
 		results.add(reconResult);
-		IntegrationTestTools.display("Recon task result", reconResult);
 	}
 	
 	public void clear() {
@@ -45,14 +49,14 @@ public class DebugReconciliationTaskResultListener implements
 	public void assertResult(String resourceOid, long expectedUnOpsCount, long expectedResourceReconCount, long expectedResourceReconErrors, 
 			long expectedShadowReconCount) {
 		ReconciliationTaskResult result = findResult(resourceOid);
-		assertNotNull("No recon result for resource "+resourceOid, result);
-		assertEquals("Wrong upOpsCount in recon result for resource "+resourceOid, 
+		assert result != null : "No recon result for resource "+resourceOid;
+		PrismAsserts.assertEquals("Wrong upOpsCount in recon result for resource "+resourceOid, 
 				expectedUnOpsCount, result.getUnOpsCount());
-		assertEquals("Wrong resourceReconCount in recon result for resource "+resourceOid, 
+		PrismAsserts.assertEquals("Wrong resourceReconCount in recon result for resource "+resourceOid, 
 				expectedResourceReconCount, result.getResourceReconCount());
-		assertEquals("Wrong resourceReconCount in recon result for resource "+resourceOid, 
+		PrismAsserts.assertEquals("Wrong resourceReconCount in recon result for resource "+resourceOid, 
 				expectedResourceReconErrors, result.getResourceReconErrors());
-		assertEquals("Wrong shadowReconCount in recon result for resource "+resourceOid, 
+		PrismAsserts.assertEquals("Wrong shadowReconCount in recon result for resource "+resourceOid, 
 				expectedShadowReconCount, result.getShadowReconCount());
 	}
 

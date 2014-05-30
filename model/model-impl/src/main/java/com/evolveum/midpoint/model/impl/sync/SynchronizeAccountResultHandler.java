@@ -32,6 +32,7 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -115,6 +116,13 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 			LOGGER.trace("{} skipping {} because it is protected",new Object[] {
 					getProcessShortNameCapitalized(), accountShadow});
 			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it is protected");
+			return true;
+		}
+		
+		if (!refinedObjectClass.matches(newShadowType)) {
+			LOGGER.trace("{} skipping {} because it does not match objectClass/kind/intent",new Object[] {
+					getProcessShortNameCapitalized(), accountShadow});
+			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it does not match objectClass/kind/intent");
 			return true;
 		}
 		

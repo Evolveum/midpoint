@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.impl.importer;
 
+import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -56,7 +57,7 @@ import java.util.List;
 @Component
 public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 
-    public static final String HANDLER_URI = ImportConstants.IMPORT_URI_TASK_PREFIX + "/file/handler-3";
+    public static final String HANDLER_URI = ModelConstants.NS_IMPORT_OBJECTS_TASK_PREFIX + "/file/handler-3";
 
     @Autowired(required = true)
     private TaskManager taskManager;
@@ -75,7 +76,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
     public ImportObjectsFromFileTaskHandler() {
         super();
         //handlers = new HashMap<Task, ImportAccountsFromResourceResultHandler>();
-        filenamePropertyDefinition = new PrismPropertyDefinition(ImportConstants.FILENAME_PROPERTY_NAME, 
+        filenamePropertyDefinition = new PrismPropertyDefinition(ModelConstants.FILENAME_PROPERTY_NAME, 
         		DOMUtil.XSD_STRING, prismContext);
     }
 
@@ -161,7 +162,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 
         // Determine the input file from task extension
 
-        PrismProperty<String> filenameProperty = task.getExtensionProperty(ImportConstants.FILENAME_PROPERTY_NAME);
+        PrismProperty<String> filenameProperty = task.getExtensionProperty(ModelConstants.FILENAME_PROPERTY_NAME);
         if (filenameProperty == null) {
             LOGGER.error("Import: No file specified");
             opResult.recordFatalError("No file specified");

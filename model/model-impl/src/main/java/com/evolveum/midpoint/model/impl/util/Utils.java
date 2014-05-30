@@ -29,7 +29,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.model.impl.importer.ImportConstants;
+import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.importer.ObjectImporter;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
@@ -283,19 +283,19 @@ public final class Utils {
 	    public static RefinedObjectClassDefinition determineObjectClass(RefinedResourceSchema refinedSchema, Task task) {
 	    	
 	    	QName objectclass = null;
-	    	PrismProperty<QName> objectclassProperty = task.getExtensionProperty(ImportConstants.OBJECTCLASS_PROPERTY_NAME);
+	    	PrismProperty<QName> objectclassProperty = task.getExtensionProperty(ModelConstants.OBJECTCLASS_PROPERTY_NAME);
 	        if (objectclassProperty != null) {
 	            objectclass = objectclassProperty.getValue().getValue();
 	        }
 	        
 	        ShadowKindType kind = null;
-	        PrismProperty<ShadowKindType> kindProperty = task.getExtensionProperty(ImportConstants.KIND_PROPERTY_NAME);
+	        PrismProperty<ShadowKindType> kindProperty = task.getExtensionProperty(ModelConstants.KIND_PROPERTY_NAME);
 	        if (kindProperty != null) {
 	        	kind = kindProperty.getValue().getValue();
 	        }
 	        
 	        String intent = null;
-	        PrismProperty<String> intentProperty = task.getExtensionProperty(ImportConstants.INTENT_PROPERTY_NAME);
+	        PrismProperty<String> intentProperty = task.getExtensionProperty(ModelConstants.INTENT_PROPERTY_NAME);
 	        if (intentProperty != null) {
 	        	intent = intentProperty.getValue().getValue();
 	        }

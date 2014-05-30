@@ -38,6 +38,8 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -305,6 +307,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     }
 
     public void setObjectClassDefinition(ObjectClassComplexTypeDefinition objectClassDefinition) {
+    	Validate.notNull(objectClassDefinition, "ObjectClass definition must not be null");
         this.objectClassDefinition = objectClassDefinition;
     }
     
@@ -723,6 +726,33 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 			return AttributeFetchStrategyType.IMPLICIT;
 		}
 		return biType.getFetchStrategy();
+	}
+    
+	public boolean matches(ShadowType shadowType) {
+		if (shadowType == null) {
+			return false;
+		}
+		if (!QNameUtil.match(objectClassDefinition.getTypeName(), shadowType.getObjectClass())) {
+			return false;
+		}
+		if (shadowType.getKind() == null) {
+			if (kind != ShadowKindType.ACCOUNT) {
+				return false;
+			}
+		} else {
+			if (!MiscUtil.equals(kind, shadowType.getKind())) {
+				return false;
+			}
+		}
+		if (shadowType.getIntent() == null) {
+			if (isDefault) {
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return MiscUtil.equals(intent, shadowType.getIntent());
+		}
 	}
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.sync.SynchronizeAccountResultHandler;
 import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeTaskHandler;
@@ -84,7 +85,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @Component
 public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterativeTaskHandler<ShadowType, SynchronizeAccountResultHandler> {
 
-    public static final String HANDLER_URI = ImportConstants.IMPORT_URI_TASK_PREFIX + "/accounts-resource/handler-3";
+    public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/import/handler-3";
 
     // WARNING! This task handler is efficiently singleton!
  	// It is a spring bean and it is supposed to handle all search task instances
@@ -106,7 +107,7 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
 
     public ImportAccountsFromResourceTaskHandler() {
         super(ShadowType.class, "Import from resource", OperationConstants.IMPORT_ACCOUNTS_FROM_RESOURCE);
-        objectclassPropertyDefinition = new PrismPropertyDefinition<QName>(ImportConstants.OBJECTCLASS_PROPERTY_NAME, 
+        objectclassPropertyDefinition = new PrismPropertyDefinition<QName>(ModelConstants.OBJECTCLASS_PROPERTY_NAME, 
         		DOMUtil.XSD_QNAME, prismContext);
         setLogFinishInfo(true);
     }
