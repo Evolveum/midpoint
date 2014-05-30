@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.ObjectWrapperUtil;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
@@ -48,6 +49,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -74,6 +77,8 @@ public class PageAccount extends PageAdminResources {
     private static final String DOT_CLASS = PageAccount.class.getName() + ".";
     private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
     private static final String OPERATION_SAVE_ACCOUNT = DOT_CLASS + "saveAccount";
+
+    private static final String ID_PROTECTED_MESSAGE = "protectedMessage";
 
     private IModel<ObjectWrapper> accountModel;
 
@@ -105,7 +110,7 @@ public class PageAccount extends PageAdminResources {
         }
 
         ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(null, null, account, ContainerStatus.MODIFYING, this);
-OperationResultType fetchResult = account.getPropertyRealValue(ShadowType.F_FETCH_RESULT, OperationResultType.class);
+        OperationResultType fetchResult = account.getPropertyRealValue(ShadowType.F_FETCH_RESULT, OperationResultType.class);
         wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));
         wrapper.setShowEmpty(false);
         return wrapper;
@@ -113,7 +118,19 @@ OperationResultType fetchResult = account.getPropertyRealValue(ShadowType.F_FETC
 
     private void initLayout() {
         Form mainForm = new Form("mainForm");
+        mainForm.setMultiPart(true);
         add(mainForm);
+
+        WebMarkupContainer protectedMessage = new WebMarkupContainer(ID_PROTECTED_MESSAGE);
+        protectedMessage.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                ObjectWrapper wrapper = accountModel.getObject();
+                return wrapper.isProtectedAccount();
+            }
+        });
+        mainForm.add(protectedMessage);
 
         PrismObjectPanel userForm = new PrismObjectPanel("account", accountModel, new PackageResourceReference(
                 ImgResources.class, ImgResources.HDD_PRISM), mainForm) {
@@ -141,6 +158,14 @@ OperationResultType fetchResult = account.getPropertyRealValue(ShadowType.F_FETC
                 target.add(getFeedbackPanel());
             }
         };
+        save.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                ObjectWrapper wrapper = accountModel.getObject();
+                return !wrapper.isProtectedAccount();
+            }
+        });
         mainForm.add(save);
 
         AjaxButton back = new AjaxButton("back", createStringResource("pageAccount.button.back")) {
