@@ -45,6 +45,7 @@ public class UserListItemDto extends Selectable implements InlineMenuable {
     private String email;
     private int accountCount;
     private String icon;
+    private String iconTitle;
     private PrismContainer credentials;
     private List<InlineMenuItem> menuItems;
 
@@ -76,6 +77,14 @@ public class UserListItemDto extends Selectable implements InlineMenuable {
 
     public void setIcon(String icon) {
         this.icon = icon;
+    }
+
+    public String getIconTitle() {
+        return iconTitle;
+    }
+
+    public void setIconTitle(String iconTitle) {
+        this.iconTitle = iconTitle;
     }
 
     public String getName() {
