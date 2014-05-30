@@ -132,10 +132,13 @@ public class ModelRestService {
 	@Path("/{type}")
 //	@Produces({"text/html", "application/xml"})
 	@Consumes({"application/xml", "application/json"})
-	public <T extends ObjectType> Response addObject(@PathParam("type") String type, PrismObject<T> object, @QueryParam("options") List<String> options, @Context UriInfo uriInfo){
+	public <T extends ObjectType> Response addObject(@PathParam("type") String type, PrismObject<T> object, @QueryParam("options") List<String> options, @Context UriInfo uriInfo, @Context MessageContext mc){
 		LOGGER.info("model rest service for add operation start");
 		
+		UserType user = (UserType) mc.get("authenticatedUser");
+
 		Task task = taskManager.createTaskInstance();
+		task.setOwner(user.asPrismObject());
 		OperationResult parentResult = new OperationResult("add");
 		Class clazz = ObjectTypes.getClassFromRestType(type);
 		if (!object.getCompileTimeClass().equals(clazz)){
@@ -180,11 +183,15 @@ public class ModelRestService {
 	@PUT
 	@Path("/{type}/{id}")
 //	@Produces({"text/html", "application/xml"})
-	public <T extends ObjectType> Response addObject(@PathParam("type") String type, @PathParam("id") String id, PrismObject<T> object, @QueryParam("options") List<String> options, @Context UriInfo uriInfo, @Context Request request){
+	public <T extends ObjectType> Response addObject(@PathParam("type") String type, @PathParam("id") String id, PrismObject<T> object, @QueryParam("options") List<String> options, @Context UriInfo uriInfo, @Context Request request, @Context MessageContext mc){
 	
 LOGGER.info("model rest service for add operation start");
 		
+
+		UserType user = (UserType) mc.get("authenticatedUser");
+
 		Task task = taskManager.createTaskInstance();
+		task.setOwner(user.asPrismObject());
 		OperationResult parentResult = new OperationResult("add");
 		
 		Class clazz = ObjectTypes.getClassFromRestType(type);
