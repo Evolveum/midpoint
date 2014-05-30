@@ -186,6 +186,21 @@ public class PageUsers extends PageAdminUsers {
                     }
                 };
             }
+
+            @Override
+            protected IModel<String> createTitleModel(final IModel<UserListItemDto> rowModel) {
+                return new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        String key = rowModel.getObject().getIconTitle();
+                        if (key == null) {
+                            return null;
+                        }
+                        return createStringResource(key).getString();
+                    }
+                };
+            }
         });
 
         IColumn column = new LinkColumn<UserListItemDto>(createStringResource("ObjectType.name"),
@@ -291,7 +306,7 @@ public class PageUsers extends PageAdminUsers {
                 GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
         provider.setOptions(options);
 
-        TablePanel table = new TablePanel<UserListItemDto>(ID_TABLE, provider, columns);
+        TablePanel table = new TablePanel(ID_TABLE, provider, columns);
         table.setOutputMarkupId(true);
 
         UsersStorage storage = getSessionStorage().getUsers();
@@ -313,6 +328,7 @@ public class PageUsers extends PageAdminUsers {
         dto.setAccountCount(createAccountCount(obj));
         dto.setCredentials(obj.findContainer(UserType.F_CREDENTIALS));
         dto.setIcon(WebMiscUtil.createUserIcon(obj));
+        dto.setIconTitle(WebMiscUtil.createUserIconTitle(obj));
 
         dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageUsers.menu.enable"),
                 new ColumnMenuAction<UserListItemDto>() {

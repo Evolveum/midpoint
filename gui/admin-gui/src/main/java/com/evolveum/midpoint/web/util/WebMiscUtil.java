@@ -429,7 +429,6 @@ public final class WebMiscUtil {
 
     public static String createUserIcon(PrismObject<UserType> object) {
         UserType user = object.asObjectable();
-        CredentialsType credentials = user.getCredentials();
 
         //if user has superuser role assigned, it's superuser
         for (AssignmentType assignment : user.getAssignment()) {
@@ -438,12 +437,40 @@ public final class WebMiscUtil {
                 continue;
             }
             if (StringUtils.equals(targetRef.getOid(), SystemObjectsType.ROLE_SUPERUSER.value())) {
-                return "silk-user_red";
+                return "fa fa-male text-danger";
             }
         }
 
-        return "silk-user";
+        ActivationType activation = user.getActivation();
+        if (activation != null && ActivationStatusType.DISABLED.equals(activation.getEffectiveStatus())){
+            return "fa fa-male text-muted";
+        }
+
+        return "fa fa-male";
     }
+
+    public static String createUserIconTitle(PrismObject<UserType> object) {
+        UserType user = object.asObjectable();
+
+        //if user has superuser role assigned, it's superuser
+        for (AssignmentType assignment : user.getAssignment()) {
+            ObjectReferenceType targetRef = assignment.getTargetRef();
+            if (targetRef == null) {
+                continue;
+            }
+            if (StringUtils.equals(targetRef.getOid(), SystemObjectsType.ROLE_SUPERUSER.value())) {
+                return "User.superuser";
+            }
+        }
+
+        ActivationType activation = user.getActivation();
+        if (activation != null && ActivationStatusType.DISABLED.equals(activation.getEffectiveStatus())){
+            return "User.disabled";
+        }
+
+        return null;
+    }
+
 
     public static double getSystemLoad() {
         com.sun.management.OperatingSystemMXBean operatingSystemMXBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
