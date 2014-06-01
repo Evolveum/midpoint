@@ -335,12 +335,12 @@
             <dependency>
                 <groupId>org.connid</groupId>
                 <artifactId>connector-framework</artifactId>
-                <version>1.4.0.erc1</version>
+                <version>1.4.0.erc2</version>
             </dependency>
             <dependency>
                 <groupId>org.connid</groupId>
                 <artifactId>connector-framework-internal</artifactId>
-                <version>1.4.0.erc1</version>
+                <version>1.4.0.erc2</version>
             </dependency>
             <dependency>
                 <groupId>org.forgerock.openicf.connectors</groupId>
