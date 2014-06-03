@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.repo.sql;
 
+import ch.qos.logback.classic.db.names.TableName;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -41,7 +42,16 @@ import java.util.*;
 /**
  * This class and its subclasses provides org. closure table handling.
  *
+ * Data structures used are:
+ *
+ *  (1) Repo object graph G = (V, E) where V is a set of vertices (repo objects) and E is a set of edges (parentRef relations).
+ *      There is an edge e = (V1, V2) in E [i.e. edge from V1 to V2] if and only if V1.parentRef contains V2 [i.e. V2 is a parent of V1].
+ *
+ *  (2) OrgClosure binary relation. OrgClosure(D, A) iff there is a path in object graph from D (descendant) to A (ascendant).
+ *      This path should be of length at least 0.
+ *
  * @author lazyman
+ * @author mederly
  */
 public class OrgClosureManager {
 
@@ -80,34 +90,76 @@ public class OrgClosureManager {
     }
 
     private <T extends ObjectType> void handleDelete(String oid, Class<T> type, Session session) {
-        Query query = session.createQuery("delete from ROrgClosure o where o.descendant=:oid");
-        query.setString("oid", oid);
-        int count = query.executeUpdate();
 
-        if (LOGGER.isTraceEnabled()) LOGGER.trace("Deleted {} records from org. closure table.", count);
+        boolean maybeNonLeaf = isTypeNonLeaf(type);
 
-        //if there is still parentRef pointing to this oid, we have to add oid to incorrect table
-        query = session.createSQLQuery("insert into m_org_incorrect (ancestor_oid, descendant_oid) " +
-                "select distinct :oid, owner_oid from m_reference where targetOid=:oid and reference_type=0");
-        query.setString("oid", oid);
-        count = query.executeUpdate();
+        if (maybeNonLeaf) {
+            // delete all edges (<child> -> OID) from the closure
+            List<String> children = getChildren(oid, session);
+            for (String childOid : children) {
+                removeEdge(childOid, oid, session);
+            }
+            if (LOGGER.isTraceEnabled()) LOGGER.trace("Deleted {} 'child' links.", children.size());
 
-        if (LOGGER.isTraceEnabled()) LOGGER.trace("Added {} records to incorrect table.", count);
+            // we know there are no children, so the removal may be much quicker
+            if (children.isEmpty()) {
+                maybeNonLeaf = false;
+            }
+        }
 
-        //this is an alternative to previous insert into select, can be removed later
-//        query = session.createQuery("select distinct ownerOid from RParentOrgRef where targetOid=:oid");
-//        query.setString("oid", oid);
-//        List<String> descendants = query.list();
-//
-//        List<ROrgIncorrect> incorrects = new ArrayList<>();
-//        for (String descendant : descendants) {
-//            incorrects.add(new ROrgIncorrect(oid, descendant));
-//        }
-//        bulkSave(incorrects, session);
+        // delete all edges (OID -> <parent>) from the closure
+        List<String> parents = getParents(oid, session);
+        removeEdges(oid, new HashSet<>(parents), maybeNonLeaf, session);
+        if (LOGGER.isTraceEnabled()) LOGGER.trace("Deleted {} 'parent' links.", parents.size());
+
+        // delete (OID, OID) record TODO remove if unnecessary
+        Query deleteSelfQuery = session.createSQLQuery("delete from m_org_closure " +
+                "where descendant_oid=:oid and ancestor_oid=:oid");
+        deleteSelfQuery.setString("oid", oid);
+        int count = deleteSelfQuery.executeUpdate();
+        if (LOGGER.isTraceEnabled()) LOGGER.trace("Removed {} self-record from m_org_closure table.", count);
+
+    }
+
+    private List<String> getParents(String oid, Session session) {
+        Query parentsQuery = session.createQuery("select distinct targetOid from RParentOrgRef where ownerOid=:oid");
+        parentsQuery.setString("oid", oid);
+        return parentsQuery.list();
+    }
+
+    private List<String> getChildren(String oid, Session session) {
+        Query childrenQuery = session.createQuery("select distinct ownerOid from RParentOrgRef where targetOid=:oid");
+        childrenQuery.setString("oid", oid);
+        return childrenQuery.list();
+    }
+
+    private List<String> retainExistingOids(Collection<String> oids, Session session) {
+        Query query = session.createQuery("select o.oid from RObject o where o.oid in (:oids)");
+        query.setParameterList("oids", oids);
+        return query.list();
     }
 
     private <T extends ObjectType> void handleAdd(String oid, Set<String> parents, Class<T> type, Session session) {
-        addParents(oid, parents, true, session);
+
+        // adding self-record TODO remove if unnecessary
+        session.save(new ROrgClosure(oid, oid));
+        session.flush();
+        session.clear();
+
+        boolean maybeNonLeaf = isTypeNonLeaf(type);
+
+        if (maybeNonLeaf) {
+            List<String> livingChildren = retainExistingOids(getChildren(oid, session), session);
+            for (String child : livingChildren) {
+                addEdge(child, oid, maybeNonLeaf, session);
+            }
+        }
+
+        addEdges(oid, retainExistingOids(parents, session), maybeNonLeaf, session);
+    }
+
+    private <T extends ObjectType> boolean isTypeNonLeaf(Class<T> type) {
+        return OrgType.class.equals(type);
     }
 
     private <T extends ObjectType> void handleModify(Collection<? extends ItemDelta> modifications, Session session,
@@ -116,178 +168,215 @@ public class OrgClosureManager {
             return;
         }
 
+        boolean maybeNonLeaf = isTypeNonLeaf(type);
+
+        // TODO optimize this!
+
         Set<String> parents = getOidFromDeleteDeltas(modifications);
-        removeParents(oid, parents, session);
+        removeEdges(oid, parents, maybeNonLeaf, session);
 
         parents = getOidFromAddDeltas(modifications);
-        addParents(oid, parents, false, session);
+        addEdges(oid, retainExistingOids(parents, session), maybeNonLeaf, session);
     }
 
-    private void removeParents(String oid, Set<String> parents, Session session) {
-        Query query = session.createQuery("select o.oid from RObject o where o.oid in (:oids)");
-        query.setParameterList("oids", parents);
-        List<String> existing = query.list();
+    private void removeEdges(String oid, Set<String> parents, boolean maybeNonLeaf, Session session) {
 
-        if (!existing.isEmpty()) {
-            query = session.createQuery("select distinct ancestorOid from ROrgClosure where descendantOid in (:existing)");
-            query.setParameterList("existing", existing);
-            List<String> ancestors = query.list();
-            if (!ancestors.isEmpty()) {
-                query = session.createQuery("select distinct ownerOid from RParentOrgRef where targetOid=:oid");
-                query.setString("oid", oid);
-                List<String> ownerList = new ArrayList(query.list());
-
-                ownerList.removeAll(parents);
-
-                if (!ownerList.isEmpty()) {
-                    for (String ancestor : ancestors) {
-                        query = session.createQuery("select count(*) from ROrgClosure where ancestorOid=:aOid and descendantOid in (:dOids)");
-                        query.setString("aOid", ancestor);
-                        query.setParameterList("dOids", ownerList);
-
-                        Number count = (Number) query.uniqueResult();
-                        if (count != null && count.intValue() > 0) {
-                            continue;
-                        }
-
-                        query = session.createQuery("delete from ROrgClosure o where o.ancestorOid=:aOid and o.descendantOid in (" +
-                                "select descendantOid from ROrgClosure o1 where o1.ancestorOid=:aOid1 and o1.descendantOid!=:aOid1)");
-                        query.setString("aOid", ancestor);
-//                        query.setString("aOid1", );
-                    }
-                }
+        if (!maybeNonLeaf) {
+            // very simple case: we only remove a few entries from the closure table
+            Query removeFromClosureQuery = session.createSQLQuery(
+                    "delete from M_ORG_CLOSURE " +
+                            "where descendant_oid = :oid and ancestor_oid IN (:parents) ");
+            removeFromClosureQuery.setString("oid", oid);
+            removeFromClosureQuery.setParameterList("parents", parents);
+            int count = removeFromClosureQuery.executeUpdate();
+            if (LOGGER.isTraceEnabled()) LOGGER.trace("Removed {} records from closure table.", count);
+        } else {
+            // generalized version (quite expensive)
+            for (String parent : parents) {
+                removeEdge(oid, parent, session);
             }
         }
-
-        //todo handle incorrects
-
-        //todo finish
     }
 
-    private Map<String, Set<String>> createDescendantAncestorsMap(List<String[]> ocList) {
-        Map<String, Set<String>> descAncMap = new HashMap<>();
-        for (String[] array : ocList) {
-            Set<String> ancestors = descAncMap.get(array[1]);
-            if (ancestors == null) {
-                ancestors = new HashSet<>();
-                descAncMap.put(array[1], ancestors);
-            }
-            ancestors.add(array[0]);
-        }
+    // expects that all parents are really existing
+    private void addEdges(String oid, Collection<String> parents, boolean maybeNonLeaf, Session session) {
 
-        return descAncMap;
+        if (!maybeNonLeaf) {
+            // very simple case: we only add a few entries to the closure table
+            Query addToClosureQuery = session.createSQLQuery(
+                    "insert into M_ORG_CLOSURE (descendant_oid, ancestor_oid) " +
+                            "select :oid as descendant, M_ORG_CLOSURE.ancestor_oid as ancestor " +
+                            "from M_ORG_CLOSURE " +
+                            "where M_ORG_CLOSURE.descendant_oid IN (:parents) ");
+            addToClosureQuery.setString("oid", oid);
+            addToClosureQuery.setParameterList("parents", parents);
+            int count = addToClosureQuery.executeUpdate();
+            if (LOGGER.isTraceEnabled()) LOGGER.trace("Added {} records to closure table.", count);
+            session.flush();
+            session.clear();
+        } else {
+            // general case
+            for (String parent : parents) {
+                addEdge(oid, parent, maybeNonLeaf, session);
+            }
+        }
     }
 
-    private void addParents(String oid, Set<String> parents, boolean addingObject, Session session) {
-        List<ROrgClosure> closures = new ArrayList<>();
-        List<ROrgIncorrect> incorrects = new ArrayList<>();
-        if (addingObject) {
-            closures.add(new ROrgClosure(oid, oid));
-        }
+    // "a" is child, "b" is parent
+    private void addEdge(String a, String b, boolean maybeNonLeaf, Session session) {
 
-        if (parents.isEmpty()) {
-            if (addingObject) {
-                //we'll attempt to fix incorrect references to object referenced by oid (if it's currently adding)
-                closures.addAll(addClosuresFromIncorrects(oid, new ArrayList<String>(), session));
-            }
-            bulkSave(closures, session);
-            return;
-        }
+        String tempTableName = "m_org_closure_temp_" + System.currentTimeMillis() + "_" + ((int) (Math.random() * 10000000.0));
+        String deltaTempTableName = "m_org_closure_delta_temp_" + System.currentTimeMillis() + "_" + ((int) (Math.random() * 10000000.0));
+        Query query1 = session.createSQLQuery(
+                "create cached local temporary table " + tempTableName + " as select * from (" +
+                        "select M_ORG_CLOSURE.descendant_oid as descendant, :b as ancestor " +
+                        "from M_ORG_CLOSURE " +
+                        "where M_ORG_CLOSURE.ancestor_oid = :a " +
+                     "UNION " +
+                        "select :a as descendant, M_ORG_CLOSURE.ancestor_oid as ancestor " +
+                        "from M_ORG_CLOSURE " +
+                        "where M_ORG_CLOSURE.descendant_oid = :b " +
+                     "UNION " +
+                        "select M_ORG_CLOSURE_1.descendant_oid as descendant, M_ORG_CLOSURE_2.ancestor_oid as ancestor  " +
+                        "from M_ORG_CLOSURE as M_ORG_CLOSURE_1, M_ORG_CLOSURE as M_ORG_CLOSURE_2 " +
+                        "where M_ORG_CLOSURE_1.ancestor_oid = :a and M_ORG_CLOSURE_2.descendant_oid = :b " +
+                ")");
+        query1.setString("a", a);
+        query1.setString("b", b);
+        int count = query1.executeUpdate();
+        if (LOGGER.isTraceEnabled()) LOGGER.trace("Added {} records to temporary table {}.", count, tempTableName);
 
-        if (LOGGER.isTraceEnabled()) LOGGER.trace("add parents {} for {}", Arrays.toString(parents.toArray()), oid);
+        // TODO put query2 here if self-records are not used
 
-        Query query = session.createQuery("select o.oid from RObject o where o.oid in (:oids)");
-        query.setParameterList("oids", parents);
-        List<String> existing = query.list();
+        Query deltaQuery = session.createSQLQuery(
+                "create cached local temporary table " + deltaTempTableName + " as select descendant, ancestor from " + tempTableName + " as T " +
+                "where not exists (select M_ORG_CLOSURE.descendant_oid as descendant, M_ORG_CLOSURE.ancestor_oid as ancestor " +
+                                  "from M_ORG_CLOSURE " +
+                                  "where M_ORG_CLOSURE.descendant_oid = descendant and M_ORG_CLOSURE.ancestor_oid = ancestor) "
+                );
+        count = deltaQuery.executeUpdate();
+        if (LOGGER.isTraceEnabled()) LOGGER.trace("Added {} records to temporary delta table {}.", count, deltaTempTableName);
 
-        List<String> newClosureAncestors = new ArrayList<>();
-        if (!existing.isEmpty()) {
-            if (LOGGER.isTraceEnabled())
-                LOGGER.trace("adding for existing {} for {}", Arrays.toString(existing.toArray()), oid);
-
-            query = session.createQuery("select ancestorOid from ROrgClosure where descendantOid in (:existing) group by ancestorOid");
-            query.setParameterList("existing", existing);
-            List<String> ancestors = new ArrayList<String>(query.list());
-
-            query = session.createQuery("select ancestorOid from ROrgClosure where descendantOid = :oid");
-            query.setString("oid", oid);
-            ancestors.removeAll(new ArrayList<String>(query.list()));
-            newClosureAncestors = ancestors;
-
-            for (String a : ancestors) {
-                closures.add(new ROrgClosure(a, oid));
-            }
-        }
-
-        parents.removeAll(existing);
-
-        if (!parents.isEmpty()) {
-            if (LOGGER.isTraceEnabled())
-                LOGGER.trace("adding incorrects {} for {}", Arrays.toString(parents.toArray()), oid);
-            for (String nonexisting : parents) {
-                incorrects.add(new ROrgIncorrect(nonexisting, oid));
-            }
-
-            query = session.createQuery("select ancestorOid from ROrgIncorrect where descendantOid in (:nonexisting) group by ancestorOid");
-            query.setParameterList("nonexisting", parents);
-            List<String> ancestors = new ArrayList<String>(query.list());
-
-            if (!ancestors.isEmpty()) {
-                query = session.createQuery("select ancestorOid from ROrgIncorrect where descendantOid = :oid");
-                query.setString("oid", oid);
-                ancestors.removeAll(new ArrayList<String>(query.list()));
-
-                for (String a : ancestors) {
-                    incorrects.add(new ROrgIncorrect(a, oid));
-                }
-            }
-        }
-
-        if (addingObject) {
-            //we'll attempt to fix incorrect references to object referenced by oid (if it's currently adding)
-            closures.addAll(addClosuresFromIncorrects(oid, newClosureAncestors, session));
-        }
-
-        bulkSave(closures, session);
-        bulkSave(incorrects, session);
+        Query addToClosureQuery = session.createSQLQuery(
+                "insert into M_ORG_CLOSURE (descendant_oid, ancestor_oid)" +
+                        "select descendant, ancestor from " + deltaTempTableName);
+        count = addToClosureQuery.executeUpdate();
+        if (LOGGER.isTraceEnabled()) LOGGER.trace("Added {} records to closure table.", count);
+        session.flush();
+        session.clear();
     }
 
-    /**
-     * This method copies data from incorrect table to closure table. Firstly it loads all descendant oids
-     * (from records which ancestorOid points to currently adding object), then:
-     * 1/ add them to clsure table like (oid, descendant)
-     * 2/ do a "cross join" (cartesian product) on ancestors (currently adding, method parameter) and previously
-     *      selected descendants, to fix all transient parent-child relationship.
-     * 3/ deletes all records which were created for "incorrect" (ancestorOid=oid)
-     *
-     * @param oid identifier of object we're adding
-     * @param newClosureAncestors ancestors currently adding to org. closure table based on parents
-     * @param session
-     * @return new closure records
-     */
-    private List<ROrgClosure> addClosuresFromIncorrects(String oid, List<String> newClosureAncestors, Session session) {
-        List<ROrgClosure> closures = new ArrayList<>();
-        //this can be probably improved by some insert select with union all
-        Query query = session.createQuery("select descendantOid from ROrgIncorrect where ancestorOid=:oid");
-        query.setString("oid", oid);
-        List<String> descendants = query.list();
-        if (LOGGER.isTraceEnabled()) LOGGER.trace("Found {} descendants for oid {}. {}",
-                new Object[]{descendants.size(), oid, Arrays.toString(descendants.toArray())});
+    private void removeEdge(String oid, String parent, Session session) {
 
-        if (!descendants.isEmpty()) {
-            for (String descendant : descendants) {
-                closures.add(new ROrgClosure(oid, descendant));
-                for (String ancestor : newClosureAncestors) {
-                    closures.add(new ROrgClosure(ancestor, descendant));
-                }
-            }
+        String suspectsTableName = "m_org_closure_suspects_temp_" + System.currentTimeMillis() + "_" + ((int) (Math.random() * 10000000.0));
+        String trustyTableName = "m_org_closure_trusty_temp_" + System.currentTimeMillis() + "_" + ((int) (Math.random() * 10000000.0));
+        String tcNewTableName = "m_org_closure_tc_new_temp_" + System.currentTimeMillis() + "_" + ((int) (Math.random() * 10000000.0));
+        /*
+         *  Table SUSPECT contains a (x, y) pair iff there is a path from x to y (in original graph) that goes through oid->parent edge
+         */
+        long start = System.currentTimeMillis();
+        Query suspectsQuery = session.createSQLQuery(
+// version when (X,X) is not in closure
+//                "create local temporary table " + suspectsTableName + " as select * from (" +
+//                        "select M_ORG_CLOSURE_1.descendant_oid as descendant, M_ORG_CLOSURE_2.ancestor_oid as ancestor " +
+//                        "from M_ORG_CLOSURE as M_ORG_CLOSURE_1, M_ORG_CLOSURE as M_ORG_CLOSURE_2 " +
+//                        "where M_ORG_CLOSURE_1.ancestor_oid = :oid and M_ORG_CLOSURE_2.descendant_oid = :parent " +
+//                    "union " +
+//                        "select M_ORG_CLOSURE.descendant_oid as descendant, :parent as ancestor " +
+//                        "from M_ORG_CLOSURE " +
+//                        "where M_ORG_CLOSURE.ancestor_oid = :oid " +
+//                    "union " +
+//                        "select :oid as descendant, M_ORG_CLOSURE.ancestor_oid as ancestor " +
+//                        "from M_ORG_CLOSURE " +
+//                        "where M_ORG_CLOSURE.descendant_oid = :parent " +
+//                    "union " +
+//                        "select :oid as descendant, :parent as ancestor " +
+//                        "from M_ORG_CLOSURE " +
+//                        "where M_ORG_CLOSURE.descendant_oid = :oid and M_ORG_CLOSURE.ancestor_oid = :parent" +
+//                        ")");
 
-            query = session.createQuery("delete from ROrgIncorrect where ancestorOid=:oid");
-            query.setString("oid", oid);
-            query.executeUpdate();
-        }
+                // version when (X,X) are in closure
+                "create cached local temporary table " + suspectsTableName + " as select * from (" +
+                        "select M_ORG_CLOSURE_1.descendant_oid as descendant, M_ORG_CLOSURE_2.ancestor_oid as ancestor " +
+                        "from M_ORG_CLOSURE as M_ORG_CLOSURE_1, M_ORG_CLOSURE as M_ORG_CLOSURE_2 " +
+                        "where M_ORG_CLOSURE_1.ancestor_oid = :oid and M_ORG_CLOSURE_2.descendant_oid = :parent " +
+                        ")");
 
-        return closures;
+        suspectsQuery.setString("oid", oid);
+        suspectsQuery.setString("parent", parent);
+        int count = suspectsQuery.executeUpdate();
+        if (LOGGER.isTraceEnabled()) LOGGER.trace("Added {} records to temporary table {} in {}ms.", new Object[]{count, suspectsTableName, System.currentTimeMillis()-start});
+
+        start = System.currentTimeMillis();
+        Query suspectsIdxQuery = session.createSQLQuery("create index " + suspectsTableName + "_idx on " + suspectsTableName + " (descendant, ancestor)");
+        suspectsIdxQuery.executeUpdate();
+        if (LOGGER.isTraceEnabled()) LOGGER.trace("Created index on temporary table {} in {}ms.", suspectsTableName, System.currentTimeMillis()-start);
+
+        /*
+         *  Table TRUSTY contains paths that are surely unaffected by the deletion of oid->parent edge.
+         */
+        start = System.currentTimeMillis();
+        Query trustyQuery = session.createSQLQuery(
+                "create cached local temporary table " + trustyTableName + " as select * from (" +
+                        "select M_ORG_CLOSURE.descendant_oid as descendant, M_ORG_CLOSURE.ancestor_oid as ancestor " +
+                        "from M_ORG_CLOSURE " +
+                        "where not exists (select descendant, ancestor from " + suspectsTableName + " as SUSPECT " +
+                        "                  where SUSPECT.descendant = M_ORG_CLOSURE.descendant_oid " +
+                                                 "and SUSPECT.ancestor = M_ORG_CLOSURE.ancestor_oid) " +
+                     "union " +
+                        "select owner_oid as descendant, targetOid as ancestor " +
+                        "from m_reference " +
+                        "where m_reference.owner_oid <> :oid and m_reference.targetOid <> :parent and reference_type=0)");
+        trustyQuery.setString("oid", oid);
+        trustyQuery.setString("parent", parent);
+        count = trustyQuery.executeUpdate();
+        if (LOGGER.isTraceEnabled()) LOGGER.trace("Added {} records to temporary table {} in {}ms.", new Object[]{count, trustyTableName, System.currentTimeMillis()-start});
+
+        start = System.currentTimeMillis();
+        Query trustyIdx1Query = session.createSQLQuery("create index " + trustyTableName + "_idx1 on " + trustyTableName + " (descendant, ancestor)");
+        trustyIdx1Query.executeUpdate();
+        Query trustyIdx2Query = session.createSQLQuery("create index " + trustyTableName + "_idx2 on " + trustyTableName + " (descendant)");
+        trustyIdx2Query.executeUpdate();
+        Query trustyIdx3Query = session.createSQLQuery("create index " + trustyTableName + "_idx3 on " + trustyTableName + " (ancestor)");
+        trustyIdx3Query.executeUpdate();
+        if (LOGGER.isTraceEnabled()) LOGGER.trace("Created indices on temporary table {} in {}ms.", trustyTableName, System.currentTimeMillis()-start);
+
+        /*
+         *  New closure will contain
+         *   (1) all TRUSTY paths
+         *   (2) all paths constructed by concatenating 2 consecutive TRUSTY paths
+         *   (3) all paths constructed by concatenating 3 consecutive TRUSTY paths
+         */
+        start = System.currentTimeMillis();
+        Query tcNewQuery = session.createSQLQuery(
+                "create cached local temporary table " + tcNewTableName + " as select * from (" +
+                        "select * from " + trustyTableName + " " +
+                    "union " +
+                        "select T1.descendant, T2.ancestor " +
+                        "from " + trustyTableName + " T1, " + trustyTableName + " T2 " +
+                        "where T1.ancestor = T2.descendant " +
+                    "union " +
+                        "select T1.descendant, T3.ancestor " +
+                        "from " + trustyTableName + " T1, " + trustyTableName + " T2, " + trustyTableName + " T3 " +
+                        "where T1.ancestor = T2.descendant and T2.ancestor = T3.descendant)");
+        count = tcNewQuery.executeUpdate();
+        if (LOGGER.isTraceEnabled()) LOGGER.trace("Added {} records to temporary table {} in {}ms.", new Object[]{count, tcNewTableName, System.currentTimeMillis()-start});
+
+        start = System.currentTimeMillis();
+        Query tcNewIdxQuery = session.createSQLQuery("create index " + tcNewTableName + "_idx on " + tcNewTableName+ " (descendant, ancestor)");
+        tcNewIdxQuery.executeUpdate();
+        if (LOGGER.isTraceEnabled()) LOGGER.trace("Created index on temporary table {} in {}ms.", tcNewTableName, System.currentTimeMillis()-start);
+
+        /*
+         *  Now remove all edges from TC that should not be there.
+         */
+        start = System.currentTimeMillis();
+        Query purgeQuery = session.createSQLQuery(
+                "delete from M_ORG_CLOSURE " +
+                "where not exists (select * from " + tcNewTableName + " as T " +
+                                  "where T.descendant = M_ORG_CLOSURE.descendant_oid and T.ancestor = M_ORG_CLOSURE.ancestor_oid)");
+        count = purgeQuery.executeUpdate();
+        if (LOGGER.isTraceEnabled()) LOGGER.trace("Removed {} records from closure table in {}ms.", new Object[]{count, System.currentTimeMillis()-start});
     }
 
     private void bulkSave(List objects, Session session) {
@@ -360,6 +449,58 @@ public class OrgClosureManager {
     /**
      * OLD STUFF *
      */
+    private Map<String, Set<String>> createDescendantAncestorsMap(List<String[]> ocList) {
+        Map<String, Set<String>> descAncMap = new HashMap<>();
+        for (String[] array : ocList) {
+            Set<String> ancestors = descAncMap.get(array[1]);
+            if (ancestors == null) {
+                ancestors = new HashSet<>();
+                descAncMap.put(array[1], ancestors);
+            }
+            ancestors.add(array[0]);
+        }
+
+        return descAncMap;
+    }
+
+    /**
+     * This method copies data from incorrect table to closure table. Firstly it loads all descendant oids
+     * (from records which ancestorOid points to currently adding object), then:
+     * 1/ add them to clsure table like (oid, descendant)
+     * 2/ do a "cross join" (cartesian product) on ancestors (currently adding, method parameter) and previously
+     *      selected descendants, to fix all transient parent-child relationship.
+     * 3/ deletes all records which were created for "incorrect" (ancestorOid=oid)
+     *
+     * @param oid identifier of object we're adding
+     * @param newClosureAncestors ancestors currently adding to org. closure table based on parents
+     * @param session
+     * @return new closure records
+     */
+    private List<ROrgClosure> addClosuresFromIncorrects(String oid, List<String> newClosureAncestors, Session session) {
+        List<ROrgClosure> closures = new ArrayList<>();
+        //this can be probably improved by some insert select with union all
+        Query query = session.createQuery("select descendantOid from ROrgIncorrect where ancestorOid=:oid");
+        query.setString("oid", oid);
+        List<String> descendants = query.list();
+        if (LOGGER.isTraceEnabled()) LOGGER.trace("Found {} descendants for oid {}. {}",
+                new Object[]{descendants.size(), oid, Arrays.toString(descendants.toArray())});
+
+        if (!descendants.isEmpty()) {
+            for (String descendant : descendants) {
+                closures.add(new ROrgClosure(oid, descendant));
+                for (String ancestor : newClosureAncestors) {
+                    closures.add(new ROrgClosure(ancestor, descendant));
+                }
+            }
+
+            query = session.createQuery("delete from ROrgIncorrect where ancestorOid=:oid");
+            query.setString("oid", oid);
+            query.executeUpdate();
+        }
+
+        return closures;
+    }
+
     private void overwriteAddObjectAttempt(Collection<? extends ItemDelta> modifications, RObject merged,
                                            Session session, ObjectType objectType) throws DtoTranslationException, SchemaException {
         //update org. unit hierarchy based on modifications

@@ -18,7 +18,13 @@ package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -35,11 +41,12 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -59,22 +66,133 @@ public class OrgClosureTest extends BaseSQLRepoTest {
 //    private static final int[] TREE_LEVELS_USERS = {5, 10, 4, 20, 20, 15};
 
     //1191 OU, 10943 U  =>  428585 queries ~ 6min, h2
-//    private static final int[] TREE_LEVELS = {1, 5, 3, 3, 5, 4};
-//    private static final int[] TREE_LEVELS_USERS = {3, 4, 5, 6, 7, 10};
+    private static final int[] TREE_LEVELS = {1, 5, 3, 3, 5, 4};
+    private static final int[] TREE_LEVELS_USERS = {3, 4, 5, 6, 7, 10};
+    // closure table has 80927 entries
+
+//    private static final int[] TREE_LEVELS = {1, 2, 3, 4, 5};
+//    private static final int[] TREE_LEVELS_USERS = {1, 2, 3, 4, 5};
 
     //9 OU, 23 U        =>  773 queries ~ 50s, h2
-    private static final int[] TREE_LEVELS = {1, 2, 3};
-    private static final int[] TREE_LEVELS_USERS = {1, 2, 3};
+//    private static final int[] TREE_LEVELS = {1, 2, 3};
+//    private static final int[] TREE_LEVELS_USERS = {1, 2, 3};
+    // closure table has
 
     private int count = 0;
 
-    @Test(enabled = false)
+    private List<String> rootOids = new ArrayList<>();
+
+    private List<OrgType> allOrgCreated = new ArrayList<>();
+
+    @Test(enabled = true)
     public void loadOrgStructure() throws Exception {
         OperationResult opResult = new OperationResult("===[ addOrgStruct ]===");
 
+        final int NODE_ROUNDS = 0;
+        final int LINK_ROUNDS = 20;
+
         LOGGER.info("Start.");
+
+        long start = System.currentTimeMillis();
         loadOrgStructure(null, TREE_LEVELS, TREE_LEVELS_USERS, "", opResult);
+        System.out.println("Loaded " + allOrgCreated.size() + " orgs and " + (count-allOrgCreated.size()) + " users in " + (System.currentTimeMillis() - start) + "ms");
+
+        // parentRef link removal + addition
+        long totalTimeLinkRemovals = 0, totalTimeLinkAdditions = 0;
+        for (int round = 1; round <= LINK_ROUNDS; round++) {
+
+            // removal
+            System.out.println("Removing parent from org #" + round);
+            int index = 1 + (int) Math.floor(Math.random() * (allOrgCreated.size()-1));          // assuming node 0 is the root
+            OrgType org = allOrgCreated.get(index);
+
+            // check if it's a root (by chance)
+            if (org.getParentOrgRef().isEmpty()) {
+                round--;
+                continue;
+            }
+
+            start = System.currentTimeMillis();
+            removeOrgParent(org, opResult);
+            long timeRemoval = System.currentTimeMillis() - start;
+            System.out.println(" ... done in " + timeRemoval + "ms");
+
+            // addition
+            System.out.println("Re-adding parent for org #" + round);
+            start = System.currentTimeMillis();
+            addOrgParent(org, opResult);
+            long timeAddition = System.currentTimeMillis() - start;
+            System.out.println(" ... done in " + timeAddition + "ms");
+
+            totalTimeLinkRemovals += timeRemoval;
+            totalTimeLinkAdditions += timeAddition;
+        }
+
+        if (LINK_ROUNDS > 0) {
+            System.out.println("Avg time for a link removal: " + ((double) totalTimeLinkRemovals/LINK_ROUNDS) + " ms");
+            System.out.println("Avg time for a link addition: " + ((double) totalTimeLinkAdditions/LINK_ROUNDS) + " ms");
+        }
+
+
+
+        // OrgType node removal + addition
+        long totalTimeNodeRemovals = 0, totalTimeNodeAdditions = 0;
+        for (int round = 1; round <= NODE_ROUNDS; round++) {
+
+            // removal
+            System.out.println("Removing org #" + round);
+            int index = (int) Math.floor(Math.random() * allOrgCreated.size());
+            OrgType org = allOrgCreated.get(index);
+            start = System.currentTimeMillis();
+            removeOrg(org.getOid(), opResult);
+            long timeRemoval = System.currentTimeMillis() - start;
+            System.out.println(" ... done in " + timeRemoval + "ms");
+
+            // addition
+            System.out.println("Re-adding org #" + round);
+            start = System.currentTimeMillis();
+            addOrg(org, opResult);
+            long timeAddition = System.currentTimeMillis() - start;
+            System.out.println(" ... done in " + timeAddition + "ms");
+
+            totalTimeNodeRemovals += timeRemoval;
+            totalTimeNodeAdditions += timeAddition;
+        }
+
+        if (NODE_ROUNDS > 0) {
+            System.out.println("Avg time for a node removal: " + ((double) totalTimeNodeRemovals/NODE_ROUNDS) + " ms");
+            System.out.println("Avg time for a node addition: " + ((double) totalTimeNodeAdditions/NODE_ROUNDS) + " ms");
+        }
+
+        start = System.currentTimeMillis();
+        removeOrgStructure(opResult);
+        System.out.println("Removed in " + (System.currentTimeMillis() - start) + "ms");
+
         LOGGER.info("Finish.");
+    }
+
+    private void removeOrgParent(OrgType org, OperationResult opResult) throws Exception {
+        List<ItemDelta> modifications = new ArrayList<>();
+        PrismReferenceValue existingValue = org.getParentOrgRef().get(0).asReferenceValue();
+        ItemDelta removeParent = ReferenceDelta.createModificationDelete(OrgType.class, OrgType.F_PARENT_ORG_REF, prismContext, existingValue.clone());
+        modifications.add(removeParent);
+        repositoryService.modifyObject(OrgType.class, org.getOid(), modifications, opResult);
+    }
+
+    private void addOrgParent(OrgType org, OperationResult opResult) throws Exception {
+        List<ItemDelta> modifications = new ArrayList<>();
+        PrismReferenceValue existingValue = org.getParentOrgRef().get(0).asReferenceValue();
+        ItemDelta readdParent = ReferenceDelta.createModificationAdd(OrgType.class, OrgType.F_PARENT_ORG_REF, prismContext, existingValue.clone());
+        modifications.add(readdParent);
+        repositoryService.modifyObject(OrgType.class, org.getOid(), modifications, opResult);
+    }
+
+    private void removeOrg(String oid, OperationResult opResult) throws Exception {
+        repositoryService.deleteObject(OrgType.class, oid, opResult);
+    }
+
+    private void addOrg(OrgType org, OperationResult opResult) throws Exception {
+        repositoryService.addObject(org.asPrismObject(), null, opResult);
     }
 
     private void loadOrgStructure(String parentOid, int[] TREE_SIZE, int[] USER_SIZE, String oidPrefix,
@@ -88,6 +206,10 @@ public class OrgClosureTest extends BaseSQLRepoTest {
             PrismObject<OrgType> org = createOrg(parentOid, i, newOidPrefix);
             LOGGER.info("Creating {}, total {}", org, count);
             String oid = repositoryService.addObject(org, null, result);
+            if (parentOid == null) {
+                rootOids.add(oid);
+            }
+            allOrgCreated.add(org.asObjectable());
             count++;
 
             for (int u = 0; u < USER_SIZE[0]; u++) {
@@ -100,6 +222,37 @@ public class OrgClosureTest extends BaseSQLRepoTest {
                     newOidPrefix + i, result);
         }
     }
+
+    private void removeOrgStructure(OperationResult result) throws Exception {
+        for (String rootOid : rootOids) {
+            removeOrgStructure(rootOid, result);
+        }
+    }
+
+    private void removeOrgStructure(String nodeOid, OperationResult result) throws Exception {
+        removeUsersFromOrg(nodeOid, result);
+        ObjectQuery query = new ObjectQuery();
+        ObjectFilter filter = OrgFilter.createOrg(nodeOid, OrgFilter.Scope.ONE_LEVEL);
+        query.setFilter(filter);
+        List<PrismObject<OrgType>> subOrgs = repositoryService.searchObjects(OrgType.class, query, null, result);
+        for (PrismObject<OrgType> subOrg : subOrgs) {
+            removeOrgStructure(subOrg.getOid(), result);
+        }
+        repositoryService.deleteObject(OrgType.class, nodeOid, result);
+        LOGGER.trace("Org " + nodeOid + " was removed");
+    }
+
+    private void removeUsersFromOrg(String nodeOid, OperationResult result) throws Exception {
+        ObjectQuery query = new ObjectQuery();
+        ObjectFilter filter = OrgFilter.createOrg(nodeOid, OrgFilter.Scope.ONE_LEVEL);
+        query.setFilter(filter);
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        for (PrismObject<UserType> user : users) {
+            repositoryService.deleteObject(UserType.class, user.getOid(), result);
+            LOGGER.trace("User " + user.getOid() + " was removed");
+        }
+    }
+
 
     private PrismObject<UserType> createUser(String parentOid, int i, int u, String oidPrefix)
             throws Exception {
