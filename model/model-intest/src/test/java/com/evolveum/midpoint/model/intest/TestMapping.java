@@ -15,11 +15,13 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.UUID;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -29,6 +31,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.impl.trigger.RecomputeTriggerHandler;
@@ -116,6 +119,12 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, "jack", "Jack Sparrow", true);
         assertDummyAccountAttribute(RESOURCE_DUMMY_BLUE_NAME, "jack", DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME,
         		"SystemConfiguration");
+        DummyAccount accountJackBlue = dummyResourceBlue.getAccountByUsername(ACCOUNT_JACK_DUMMY_USERNAME);
+        String drinkBlue = accountJackBlue.getAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME);
+        assertNotNull("No blue drink", drinkBlue);
+        UUID drinkUuidBlue = UUID.fromString(drinkBlue);
+        assertNotNull("No drink UUID", drinkUuidBlue);
+        display("Drink UUID", drinkUuidBlue.toString());
         
         // Check audit
         display("Audit", dummyAuditService);

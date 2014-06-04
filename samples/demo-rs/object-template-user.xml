@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- User template that demonstrates advanced usage such as account assignment and RB-RBAC -->
+
+<objectTemplate oid="c0c010c0-d34d-b33f-f00d-777333333333"
+   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
+   xmlns:t='http://prism.evolveum.com/xml/ns/public/types-3'>
+
+
+        <name>User Template</name>
+        
+        <mapping>
+            <description>
+                Property mapping.
+                Defines how properties of user object are set up.
+                This specific definition sets a full name as a concatenation
+                of givenName and familyName.
+            </description>
+            <strength>weak</strength>
+            <source>
+                <path>$user/givenName</path>
+            </source>
+            <source>
+                <path>$user/familyName</path>
+            </source>
+            <expression>
+                <script>
+                    <language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
+                    <code>
+                        givenName + ' ' + familyName
+                    </code>
+                </script>
+            </expression>
+            <target>
+                <path>$user/fullName</path>
+            </target>
+        </mapping>
+        
+    <mapping>
+    	<source>
+    		<path>employeeType</path>
+    	</source>
+    	<expression>
+            <value>
+		<!-- Basic Role -->
+		<targetRef oid="12345678-d34d-b33f-f00d-987987987988" type="c:RoleType"/>
+            </value>    	
+    	</expression>
+    	<target>
+    		<path>assignment</path>
+    	</target>
+    	<condition>
+    		<script>
+            	<code>employeeType == 'regular'</code>
+            </script>
+		</condition>
+    </mapping>
+
+    <mapping>
+    	<source>
+    		<path>employeeType</path>
+    	</source>
+    	<expression>
+            <value>
+		<!-- Gold Customer Role -->
+		<targetRef oid="12345678-d34d-b33f-f00d-98798798798b" type="c:RoleType"/>
+            </value>    	
+    	</expression>
+    	<target>
+    		<path>assignment</path>
+    	</target>
+    	<condition>
+    		<script>
+            	<code>employeeType == 'gold'</code>
+            </script>
+		</condition>
+    </mapping>
+
+    </objectTemplate>
