@@ -25,10 +25,12 @@ import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
@@ -41,7 +43,7 @@ import org.apache.wicket.model.PropertyModel;
  * @author lazyman
  *
  */
-public class ReportConfigurationPanel extends SimplePanel<ReportDto> {
+public class ReportConfigurationPanel extends SimplePanel<PrismObject<ReportType>> {
 
     private static final String ID_NAME = "name";
     private static final String ID_DESCRIPTION = "description";
@@ -53,39 +55,40 @@ public class ReportConfigurationPanel extends SimplePanel<ReportDto> {
     private static final String ID_LABEL_SIZE = "col-md-4";
     private static final String ID_INPUT_SIZE = "col-md-8";
 
-    public ReportConfigurationPanel(String id, IModel<ReportDto> model) {
+    public ReportConfigurationPanel(String id, IModel<PrismObject<ReportType>> model) {
         super(id, model);
     }
 
     @Override
     protected void initLayout() {
-        TextFormGroup name = new TextFormGroup(ID_NAME, new PropertyModel<String>(getModel(), ReportDto.F_NAME),
+        TextFormGroup name = new TextFormGroup(ID_NAME, new PrismPropertyModel<>(getModel(), ObjectType.F_NAME),
                 createStringResource("ObjectType.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
         add(name);
 
-        TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION, new PropertyModel<String>(getModel(),
-                ReportDto.F_DESCRIPTION), createStringResource("ObjectType.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION,
+                new PrismPropertyModel<>(getModel(), ObjectType.F_DESCRIPTION),
+                createStringResource("ObjectType.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         add(description);
 
-        IModel choices = WebMiscUtil.createReadonlyModelFromEnum(ExportType.class);
-        IChoiceRenderer renderer = new EnumChoiceRenderer();
-        DropDownFormGroup exportType = new DropDownFormGroup(ID_EXPORT_TYPE, new
-                PropertyModel<ExportType>(getModel(), ReportDto.F_EXPORT_TYPE), choices, renderer,
-                createStringResource("ReportType.export"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
-        add(exportType);
-
-        //todo useHibernateSession and orientation
-
-        IModel<ObjectWrapper> wrapper = new LoadableModel<ObjectWrapper>(false) {
-
-            @Override
-            protected ObjectWrapper load() {
-                PrismObject<ReportType> report = getModel().getObject().getObject();
-
-                return new ObjectWrapper(null, null, report, null, ContainerStatus.MODIFYING);
-            }
-        };
-        PrismObjectPanel properties = new PrismObjectPanel(ID_PROPERTIES, wrapper, null, null);
-        add(properties);
+//        IModel choices = WebMiscUtil.createReadonlyModelFromEnum(ExportType.class);
+//        IChoiceRenderer renderer = new EnumChoiceRenderer();
+//        DropDownFormGroup exportType = new DropDownFormGroup(ID_EXPORT_TYPE, new
+//                PropertyModel<ExportType>(getModel(), ReportDto.F_EXPORT_TYPE), choices, renderer,
+//                createStringResource("ReportType.export"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+//        add(exportType);
+//
+//        //todo useHibernateSession and orientation
+//
+//        IModel<ObjectWrapper> wrapper = new LoadableModel<ObjectWrapper>(false) {
+//
+//            @Override
+//            protected ObjectWrapper load() {
+//                PrismObject<ReportType> report = getModel().getObject().getObject();
+//
+//                return new ObjectWrapper(null, null, report, null, ContainerStatus.MODIFYING);
+//            }
+//        };
+//        PrismObjectPanel properties = new PrismObjectPanel(ID_PROPERTIES, wrapper, null, null);
+//        add(properties);
     }
 }
