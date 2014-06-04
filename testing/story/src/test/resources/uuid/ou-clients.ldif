@@ -1,0 +1,4 @@
+dn: ou=clients,dc=example,dc=com
+ou: clients
+objectclass: top
+objectclass: organizationalUnit

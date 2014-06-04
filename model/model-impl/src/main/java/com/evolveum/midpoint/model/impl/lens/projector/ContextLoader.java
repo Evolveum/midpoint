@@ -387,14 +387,15 @@ public class ContextLoader {
 		Class<F> focusType = focusContext.getObjectTypeClass();
 
 		ObjectReferenceType templateRef = null;
-		for (ObjectTypeTemplateType objectTemplate: systemConfigurationType.getObjectTemplate()) {
-			QName typeQName = objectTemplate.getType();
+		for (ObjectTypeTemplateType policyConfigurationType: systemConfigurationType.getObjectTemplate()) {
+			QName typeQName = policyConfigurationType.getType();
 			ObjectTypes objectType = ObjectTypes.getObjectTypeFromTypeQName(typeQName);
 			if (objectType == null) {
 				throw new ConfigurationException("Unknown type "+typeQName+" in object template definition in system configuration");
 			}
 			if (objectType.getClassDefinition() == focusType) {
-				templateRef = objectTemplate.getObjectTemplateRef();
+				templateRef = policyConfigurationType.getObjectTemplateRef();
+				focusContext.setObjectPolicyConfigurationType(policyConfigurationType);
 			}
 		}
 		
