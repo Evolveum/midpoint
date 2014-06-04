@@ -27,6 +27,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.mutable.MutableBoolean;
 
 import com.evolveum.midpoint.common.ActivationComputer;
@@ -89,6 +90,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypeTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -100,6 +102,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationT
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author semancik
@@ -1086,13 +1089,35 @@ public class LensUtil {
     }
     
     public static <F extends ObjectType> void checkContextSanity(LensContext<F> context, String activityDescription, 
-			OperationResult result) throws SchemaException {
+			OperationResult result) throws SchemaException, PolicyViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext != null) {
 			PrismObject<F> focusObjectNew = focusContext.getObjectNew();
 			if (focusObjectNew != null) {
-				if (focusObjectNew.asObjectable().getName() == null) {
+				PolyStringType namePolyType = focusObjectNew.asObjectable().getName();
+				if (namePolyType == null) {
 					throw new SchemaException("Focus "+focusObjectNew+" does not have a name after "+activityDescription);
+				}
+				ObjectTypeTemplateType objectPolicyConfigurationType = focusContext.getObjectPolicyConfigurationType();
+				if (objectPolicyConfigurationType != null && BooleanUtils.isTrue(objectPolicyConfigurationType.isOidNameBoundMode())) {
+					ObjectDelta<F> focusDelta = focusContext.getDelta();
+					if (focusDelta != null) {
+						if (focusDelta.isAdd()) {
+							if (namePolyType != null) {
+								// name delta is OK, but it has to match
+								if (focusObjectNew.getOid() != null) {
+									if (!focusObjectNew.getOid().equals(namePolyType.getOrig())) {
+										throw new PolicyViolationException("Cannot set name to a value different than OID in name-oid bound mode");
+									}
+								}
+							}
+						} else {
+							PropertyDelta<Object> nameDelta = focusDelta.findPropertyDelta(FocusType.F_NAME);
+							if (nameDelta != null) {
+								throw new PolicyViolationException("Cannot change name in name-oid bound mode");
+							}
+						}
+					}
 				}
 			}
 		}

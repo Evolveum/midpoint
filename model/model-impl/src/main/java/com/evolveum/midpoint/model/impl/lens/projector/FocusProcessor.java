@@ -217,7 +217,10 @@ public class FocusProcessor {
 				if (focusNew != null) {
 					PolyStringType focusNewName = focusNew.asObjectable().getName();
 					if (focusNewName == null) {
-						String newName = OidUtil.generateOid();
+						String newName = focusNew.getOid();
+						if (newName == null) {
+							newName = OidUtil.generateOid();
+						}
 						LOGGER.trace("Generating new name (bound to OID): {}", newName);
 						PrismObjectDefinition<F> focusDefinition = focusContext.getObjectDefinition();
 						PrismPropertyDefinition<PolyString> focusNameDef = focusDefinition.findPropertyDefinition(FocusType.F_NAME);
