@@ -71,8 +71,8 @@
         <filter-class>org.apache.wicket.protocol.http.WicketFilter</filter-class>
         <init-param>
             <param-name>configuration</param-name>
-              <!--<param-value>development</param-value>-->
-            <param-value>deployment</param-value>
+              <param-value>development</param-value>
+            <!--<param-value>deployment</param-value>-->
         </init-param>
         <init-param>
             <param-name>applicationBean</param-name>
@@ -117,7 +117,6 @@
         <!--<init-param>-->
             <!--<param-name>configuration</param-name>-->
             <!--<param-value>development</param-value>-->
-            <!--&lt;!&ndash;<param-value>deployment</param-value>&ndash;&gt;-->
         <!--</init-param>-->
         <!--<init-param>-->
             <!--<param-name>applicationBean</param-name>-->
@@ -152,7 +151,7 @@
             <!--<param-value>org.apache.wicket.atmosphere.TrackMessageSizeFilter</param-value>-->
         <!--</init-param>-->
         <!--<load-on-startup>1</load-on-startup>-->
-        <!--&lt;!&ndash;<async-supported>true</async-supported> supported in servlet 3.0 (tomcat 7) &ndash;&gt;-->
+        <!--<async-supported>true</async-supported> supported in servlet 3.0 (tomcat 7) -->
     <!--</servlet>-->
     <!--<servlet-mapping>-->
         <!--<servlet-name>Atmospherefilter</servlet-name>-->
