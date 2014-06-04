@@ -160,6 +160,7 @@
 		<module>repo</module>
 		<module>provisioning</module>
 		<module>model</module>
+		<module>custom</module>
 		<module>gui</module>
 		<module>icf-connectors</module>
 		<module>samples</module>
