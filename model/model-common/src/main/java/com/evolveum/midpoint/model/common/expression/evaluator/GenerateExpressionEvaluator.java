@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.common.expression.evaluator;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
@@ -53,6 +54,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.GenerateExpressionEvaluatorModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.GenerateExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
@@ -116,25 +118,36 @@ public class GenerateExpressionEvaluator<V extends PrismValue> implements Expres
 //        	stringPolicyType = elementStringPolicy;
 //        }
 //        
-		// TODO: generate value based on stringPolicyType (if not null)
 		String stringValue = null;
-		if (stringPolicyType != null) {
-			if (isNotEmptyMinLength(stringPolicyType)) {
-				stringValue = ValuePolicyGenerator.generate(stringPolicyType, DEFAULT_LENGTH, true, params.getResult());
-			} else{
-				stringValue = ValuePolicyGenerator.generate(stringPolicyType, DEFAULT_LENGTH, false, params.getResult());
+	    GenerateExpressionEvaluatorModeType mode = generateEvaluatorType.getMode();
+	    if (mode == null || mode == GenerateExpressionEvaluatorModeType.POLICY) {
+	    
+			// TODO: generate value based on stringPolicyType (if not null)
+			if (stringPolicyType != null) {
+				if (isNotEmptyMinLength(stringPolicyType)) {
+					stringValue = ValuePolicyGenerator.generate(stringPolicyType, DEFAULT_LENGTH, true, params.getResult());
+				} else{
+					stringValue = ValuePolicyGenerator.generate(stringPolicyType, DEFAULT_LENGTH, false, params.getResult());
+				}
+				params.getResult().computeStatus();
+				if (params.getResult().isError()){
+					throw new ExpressionEvaluationException("Failed to generate value according to policy: " + stringPolicyType.getDescription() +". "+ params.getResult().getMessage());
+				}
 			}
-			params.getResult().computeStatus();
-			if (params.getResult().isError()){
-				throw new ExpressionEvaluationException("Failed to generate value according to policy: " + stringPolicyType.getDescription() +". "+ params.getResult().getMessage());
-			}
-		}
-        
-        if (stringValue == null){
-        	int length = DEFAULT_LENGTH;
-    		RandomString randomString = new RandomString(length);
-    		stringValue= randomString.nextString();	
-        }
+	        
+	        if (stringValue == null){
+	        	int length = DEFAULT_LENGTH;
+	    		RandomString randomString = new RandomString(length);
+	    		stringValue = randomString.nextString();	
+	        }
+	        
+	    } else if (mode == GenerateExpressionEvaluatorModeType.UUID) {
+	    	UUID randomUUID = UUID.randomUUID();
+	    	stringValue = randomUUID.toString();
+	    	
+	    } else {
+	    	throw new ExpressionEvaluationException("Unknown mode for generate expression: "+mode);
+	    }
         
         Object value;
         QName outputType = outputDefinition.getTypeName();

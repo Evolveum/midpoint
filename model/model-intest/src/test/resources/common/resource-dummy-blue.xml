@@ -170,6 +170,17 @@
 				</outbound>
 			</attribute>
 			<attribute>
+				<ref>ri:drink</ref>
+				<outbound>
+					<strength>weak</strength>
+					<expression>
+						<generate>
+							<mode>uuid</mode>
+						</generate>
+					</expression>
+				</outbound>
+			</attribute>
+			<attribute>
 				<ref>ri:quote</ref>
 				<displayName>Quote</displayName>
 				<tolerant>true</tolerant>
