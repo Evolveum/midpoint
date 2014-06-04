@@ -46,6 +46,7 @@ import com.evolveum.midpoint.web.component.menu.top.TopMenuBar;
 import com.evolveum.midpoint.web.component.message.MainFeedback;
 import com.evolveum.midpoint.web.component.message.OpResult;
 import com.evolveum.midpoint.web.component.message.TempFeedback;
+import com.evolveum.midpoint.web.component.message2.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
@@ -111,6 +112,8 @@ public abstract class PageBase extends WebPage {
     private static final String ID_TEMP_FEEDBACK = "tempFeedback";
     private static final String ID_DEBUG_BAR = "debugBar";
     private static final String ID_CLEAR_CACHE = "clearCssCache";
+    private static final String ID_FEEDBACK_LIST = "feedbackList";
+    private static final String ID_FEEDBACK_DETAILS = "feedbackDetails";
 
     @SpringBean(name = "modelController")
     private ModelService modelService;
@@ -233,6 +236,10 @@ public abstract class PageBase extends WebPage {
 
         TempFeedback tempFeedback = new TempFeedback(ID_TEMP_FEEDBACK);
         feedbackContainer.add(tempFeedback);
+
+//        FeedbackAlerts feedbackList = new FeedbackAlerts(ID_FEEDBACK_LIST);
+//        feedbackList.setOutputMarkupId(true);
+//        add(feedbackList);
 
         initDebugBar();
     }
