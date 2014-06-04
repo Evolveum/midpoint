@@ -30,6 +30,7 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.xpath.FoundIndex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -73,10 +74,12 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.OidUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -100,6 +103,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappin
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTypeTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.StringPolicyType;
@@ -205,6 +209,25 @@ public class FocusProcessor {
 		}
 		
 		while (true) {
+			
+			ObjectTypeTemplateType objectPolicyConfigurationType = focusContext.getObjectPolicyConfigurationType();
+			if (objectPolicyConfigurationType != null && BooleanUtils.isTrue(objectPolicyConfigurationType.isOidNameBoundMode())) {
+				// Generate the name now - unless it is already present
+				PrismObject<F> focusNew = focusContext.getObjectNew();
+				if (focusNew != null) {
+					PolyStringType focusNewName = focusNew.asObjectable().getName();
+					if (focusNewName == null) {
+						String newName = OidUtil.generateOid();
+						LOGGER.trace("Generating new name (bound to OID): {}", newName);
+						PrismObjectDefinition<F> focusDefinition = focusContext.getObjectDefinition();
+						PrismPropertyDefinition<PolyString> focusNameDef = focusDefinition.findPropertyDefinition(FocusType.F_NAME);
+						PropertyDelta<PolyString> nameDelta = focusNameDef.createEmptyDelta(new ItemPath(FocusType.F_NAME));
+						nameDelta.setValueToReplace(new PrismPropertyValue<PolyString>(new PolyString(newName), OriginType.USER_POLICY, null));
+						focusContext.swallowToSecondaryDelta(nameDelta);
+						focusContext.recompute();
+					}
+				}
+			}
 		
 			ExpressionVariables variables = Utils.getDefaultExpressionVariables(focusContext.getObjectNew(), null, null, null, context.getSystemConfiguration());
 			if (iterationToken == null) {
