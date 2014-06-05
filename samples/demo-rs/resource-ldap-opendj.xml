@@ -426,6 +426,16 @@ object.
 						</source>
 					</outbound>
 				</attribute>
+				
+	            <association>
+	            	<ref>ri:group</ref>
+	            	<displayName>LDAP Group Membership</displayName>
+	            	<kind>entitlement</kind>
+	            	<intent>ldapGroup</intent>
+	            	<direction>objectToSubject</direction>
+	            	<associationAttribute>ri:uniqueMember</associationAttribute>
+	            	<valueAttribute>icfs:name</valueAttribute>
+	            </association>
 
 				<iteration>
 					<maxIterations>5</maxIterations>
@@ -434,17 +444,6 @@ object.
 				<protected>
 					<icfs:name>uid=idm,ou=Administrators,dc=example,dc=com</icfs:name>
 				</protected>
-
-            <association>
-            	<ref>ri:group</ref>
-            	<displayName>LDAP Group Membership</displayName>
-            	<kind>entitlement</kind>
-            	<intent>ldapGroup</intent>
-            	<direction>objectToSubject</direction>
-            	<associationAttribute>ri:uniqueMember</associationAttribute>
-            	<valueAttribute>icfs:name</valueAttribute>
-            </association>
-
 
 				<activation>
 					<administrativeStatus>

@@ -107,6 +107,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
@@ -152,11 +153,32 @@ public class TestUuid extends AbstractStoryTest {
 
 	private static final String USER_RAPP_GIVEN_NAME = "Rapp";
 	private static final String USER_RAPP_FAMILY_NAME = "Scallion";
+
+	private static final String USER_MANCOMB_GIVEN_NAME = "Mancomb";
+	private static final String USER_MANCOMB_FAMILY_NAME = "Seepgood";
+
+	private static final String USER_KATE_NAME = "c0c010c0-d34d-b33f-f00d-11111aa00001";
+	private static final String USER_KATE_GIVEN_NAME = "Kate";
+	private static final String USER_KATE_FAMILY_NAME = "Capsize";
+	
+	private static final String USER_WALLY_OID = "c0c010c0-d34d-b33f-f00d-11111aa00002";
+	private static final String USER_WALLY_GIVEN_NAME = "Wally";
+	private static final String USER_WALLY_FAMILY_NAME = "Feed";
+	
+	private static final String USER_ROGERS_OID = "c0c010c0-d34d-b33f-f00d-11111aa00003";
+	private static final String USER_ROGERS_GIVEN_NAME = "Rum";
+	private static final String USER_ROGERS_FAMILY_NAME = "Rogers";
+
+	private static final String USER_MARTY_OID = "c0c010c0-d34d-b33f-f00d-11111aa00004";
+	private static final String USER_MARTY_NAME = "marty";
+	private static final String USER_MARTY_GIVEN_NAME = "Mad";
+	private static final String USER_MARTY_FAMILY_NAME = "Marty";
 	
 	protected ResourceType resourceOpenDjType;
 	protected PrismObject<ResourceType> resourceOpenDj;
 	
 	protected String userRappOid;
+	protected String userMancombOid;
 	
 	@Override
     protected void startResources() throws Exception {
@@ -247,9 +269,11 @@ public class TestUuid extends AbstractStoryTest {
         assertLdapClient(userAfter, USER_RAPP_GIVEN_NAME, USER_RAPP_FAMILY_NAME);
 	}
 	
+	// TODO: modify user, account should be modified
+	
 	@Test
-    public void test102RappUnAssignRoleClient() throws Exception {
-		final String TEST_NAME = "test102RappUnAssignRoleClient";
+    public void test107RappUnAssignRoleClient() throws Exception {
+		final String TEST_NAME = "test107RappUnAssignRoleClient";
         TestUtil.displayTestTile(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         
@@ -262,12 +286,173 @@ public class TestUuid extends AbstractStoryTest {
         assertNoLdapClient(userAfter);
 	}
 	
-	// TODO: test add user with role
+	@Test
+    public void test110AddMancombWithRoleClient() throws Exception {
+		final String TEST_NAME = "test110AddMancombWithRoleClient";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> user = createClientUser(null, null, USER_MANCOMB_GIVEN_NAME, USER_MANCOMB_FAMILY_NAME, true);
+        
+        // WHEN
+        addObject(user, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        userMancombOid = user.getOid();
+        
+        PrismObject<UserType> userAfter = getUser(userMancombOid);
+        assertUser(userAfter, USER_MANCOMB_GIVEN_NAME, USER_MANCOMB_FAMILY_NAME);
+        assertLdapClient(userAfter, USER_MANCOMB_GIVEN_NAME, USER_MANCOMB_FAMILY_NAME);
+	}
+
+	/**
+	 * Test user rename. Name is bound to OID and OID cannot be changed therefore
+	 * an attempt to rename should fail.
+	 */
+	@Test
+    public void test112RenameMancomb() throws Exception {
+		final String TEST_NAME = "test112RenameMancomb";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        try {
+	        // WHEN
+	        modifyUserReplace(userMancombOid, UserType.F_NAME, task, result, PrismTestUtil.createPolyString("whatever"));
+	        
+	        AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+        	// This is expected
+        	result.computeStatus();
+        	TestUtil.assertFailure(result);
+        }
+        
+        PrismObject<UserType> userAfter = getUser(userMancombOid);
+        assertUser(userAfter, USER_MANCOMB_GIVEN_NAME, USER_MANCOMB_FAMILY_NAME);
+        assertLdapClient(userAfter, USER_MANCOMB_GIVEN_NAME, USER_MANCOMB_FAMILY_NAME);
+	}
 	
-	// TODO: test user rename. Should fail.
+	@Test
+    public void test119MancombDelete() throws Exception {
+		final String TEST_NAME = "test119MancombDelete";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        // WHEN
+        deleteObject(UserType.class, userMancombOid, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertNoObject(UserType.class, userMancombOid, task, result);
+        openDJController.assertNoEntry("uid="+userMancombOid+",ou=clients,dc=example,dc=com");
+	}
 	
-	// TODO: test delete user that already has a role
-		
+	/**
+	 * Kate nas a name. But no OID.
+	 */
+	@Test
+    public void test120AddKateWithRoleClient() throws Exception {
+		final String TEST_NAME = "test120AddKateWithRoleClient";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> user = createClientUser(null, USER_KATE_NAME, USER_KATE_GIVEN_NAME, USER_KATE_FAMILY_NAME, true);
+        
+        // WHEN
+        addObject(user, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_KATE_NAME);
+        assertUser(userAfter, USER_WALLY_GIVEN_NAME, USER_WALLY_FAMILY_NAME);
+        assertLdapClient(userAfter, USER_WALLY_GIVEN_NAME, USER_WALLY_FAMILY_NAME);
+	}
+
+	/**
+	 * Wally already has OID. But no name.
+	 */
+	@Test
+    public void test122AddWallyWithRoleClient() throws Exception {
+		final String TEST_NAME = "test122AddWallyWithRoleClient";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> user = createClientUser(USER_WALLY_OID, null, USER_WALLY_GIVEN_NAME, USER_WALLY_FAMILY_NAME, true);
+        
+        // WHEN
+        addObject(user, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_WALLY_OID);
+        assertUser(userAfter, USER_WALLY_GIVEN_NAME, USER_WALLY_FAMILY_NAME);
+        assertLdapClient(userAfter, USER_WALLY_GIVEN_NAME, USER_WALLY_FAMILY_NAME);
+	}
+	
+	/**
+	 * rogers has both OID and name and they do match.
+	 */
+	@Test
+    public void test124AddRogersWithRoleClient() throws Exception {
+		final String TEST_NAME = "test124AddMartyWithRoleClient";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> user = createClientUser(USER_ROGERS_OID, USER_ROGERS_OID, USER_ROGERS_GIVEN_NAME, USER_ROGERS_FAMILY_NAME, true);
+        
+        // WHEN
+        addObject(user, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(USER_ROGERS_OID);
+        assertUser(userAfter, USER_ROGERS_GIVEN_NAME, USER_ROGERS_FAMILY_NAME);
+        assertLdapClient(userAfter, USER_ROGERS_GIVEN_NAME, USER_ROGERS_FAMILY_NAME);
+	}
+	
+	/**
+	 * marty has both OID and name and they do NOT match.
+	 */
+	@Test
+    public void test126AddMartyWithRoleClient() throws Exception {
+		final String TEST_NAME = "test124AddMartyWithRoleClient";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> user = createClientUser(USER_MARTY_OID, USER_MARTY_NAME, USER_MARTY_GIVEN_NAME, USER_MARTY_FAMILY_NAME, true);
+        
+        try {
+	        // WHEN
+        	addObject(user, task, result);
+	        
+	        AssertJUnit.fail("Unexpected success");
+        } catch (PolicyViolationException e) {
+        	// This is expected
+        	result.computeStatus();
+        	TestUtil.assertFailure(result);
+        }
+        
+        // THEN
+        
+        assertNoObject(UserType.class, USER_MARTY_OID, task, result);
+        openDJController.assertNoEntry("uid="+USER_MARTY_OID+",ou=clients,dc=example,dc=com");
+	}
 	
 	private void assertUser(PrismObject<UserType> user, String firstName, String lastName)  {
 		display("User", user);
@@ -311,6 +496,22 @@ public class TestUuid extends AbstractStoryTest {
 			} else {
 				activation.setAdministrativeStatus(ActivationStatusType.DISABLED);
 			}
+		}
+		return user;
+	}
+	
+	private PrismObject<UserType> createClientUser(String oid, String name, String givenName,
+			String familyName, boolean enabled) throws SchemaException {
+        PrismObject<UserType> user = createNoNameUser(givenName, familyName, enabled);
+        AssignmentType roleAssignment = new AssignmentType();
+        ObjectReferenceType targetRef = new ObjectReferenceType();
+        targetRef.setOid(ROLE_CLIENT_OID);
+        targetRef.setType(RoleType.COMPLEX_TYPE);
+		roleAssignment.setTargetRef(targetRef);
+		user.asObjectable().getAssignment().add(roleAssignment);
+		user.setOid(oid);
+		if (name != null) {
+			user.asObjectable().setName(PrismTestUtil.createPolyStringType(name));
 		}
 		return user;
 	}
