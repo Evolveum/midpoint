@@ -52,6 +52,7 @@
             <icfcldap:credentials>
                 <clearValue>secret</clearValue>
             </icfcldap:credentials>
+            <icfcldap:modifiersNamesToFilterOut>cn=directory manager</icfcldap:modifiersNamesToFilterOut>
             <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
             <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
         </icfc:configurationProperties>
@@ -60,6 +61,14 @@
 			<icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>
 		</icfc:resultsHandlerConfiguration>
     </connectorConfiguration>
+    
+	<schema>
+		<generationConstraints>
+		    <generateObjectClass>ri:AccountObjectClass</generateObjectClass>
+		    <generateObjectClass>ri:GroupObjectClass</generateObjectClass>
+		    <generateObjectClass>ri:CustomorganizationalUnitObjectClass</generateObjectClass>
+		</generationConstraints>
+	</schema>
 
     <schemaHandling>
 
@@ -69,9 +78,15 @@
             <displayName>Default Account</displayName>
             <default>true</default>
             <objectClass>ri:AccountObjectClass</objectClass>
-            <!-- No mapping for name. The mapping is present in the roles. -->
-
-            <attribute>
+			
+			<attribute>
+				<ref>icfs:name</ref>
+				<displayName>Distinguished Name</displayName>
+				<description>No mapping for name. The mapping is present in the roles.</description>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+			</attribute>
+			
+			<attribute>
                 <ref>ri:cn</ref>
                 <displayName>Common Name</displayName>
                 <outbound>
@@ -121,6 +136,20 @@
             	<associationAttribute>ri:uniqueMember</associationAttribute>
             	<valueAttribute>icfs:name</valueAttribute>
             </association>
+            
+            <protected>
+				<filter>
+					<q:substring>
+						<q:matching>stringIgnoreCase</q:matching>
+						<q:path>
+							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+							attributes/icfs:name
+						</q:path>
+						<q:value>ou=Administrators,dc=example,dc=com</q:value>
+						<q:anchorEnd>true</q:anchorEnd>
+					</q:substring>
+				</filter>
+			</protected>
             
             <activation>
                 <administrativeStatus>

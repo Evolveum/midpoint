@@ -454,8 +454,6 @@ public class TestUuid extends AbstractStoryTest {
         openDJController.assertNoEntry("uid="+USER_MARTY_OID+",ou=clients,dc=example,dc=com");
 	}
 	
-	// TODO: test add object that already has OID
-	
 	private void assertUser(PrismObject<UserType> user, String firstName, String lastName)  {
 		display("User", user);
 		String oid = user.getOid();
