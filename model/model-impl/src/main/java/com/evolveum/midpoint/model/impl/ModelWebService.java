@@ -21,6 +21,7 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelPort;
+import com.evolveum.midpoint.model.common.util.AbstractModelWebService;
 import com.evolveum.midpoint.model.impl.controller.ModelController;
 import com.evolveum.midpoint.model.impl.scripting.Data;
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
@@ -105,7 +106,7 @@ import java.util.List;
  * 
  */
 @Service
-public class ModelWebService implements ModelPortType, ModelPort {
+public class ModelWebService extends AbstractModelWebService implements ModelPortType, ModelPort {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelWebService.class);
 	
@@ -115,16 +116,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
     // for more complicated interactions (like executeChanges)
     @Autowired
     private ModelController modelController;
-	
-	@Autowired(required = true)
-	private TaskManager taskManager;
-	
-	@Autowired(required = true)
-	private AuditService auditService;
-	
-	@Autowired(required = true)
-	private PrismContext prismContext;
-	
+		
     @Autowired
     private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
 
@@ -460,27 +452,6 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		LOGGER.info("result of notify change: {}", parentResult.debugDump());
 		return handleTaskResult(task);
 	}
-
-
-    private void setTaskOwner(Task task) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null) {
-            throw new SystemException("Failed to get authentication object");
-        }
-        UserType userType = (UserType) ((MidPointPrincipal)(SecurityContextHolder.getContext().getAuthentication().getPrincipal())).getUser();
-        if (userType == null) {
-            throw new SystemException("Failed to get user from authentication object");
-        }
-        task.setOwner(userType.asPrismObject());
-    }
-
-    private Task createTaskInstance(String operationName) {
-		// TODO: better task initialization
-		Task task = taskManager.createTaskInstance(operationName);
-		setTaskOwner(task);
-		task.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
-		return task;
-	}
 	
 	/**
 	 * return appropriate form of taskType (and result) to
@@ -492,43 +463,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		return task.getTaskPrismObject().asObjectable();
 	}
 	
-	private void auditLogin(Task task) {
-        AuditEventRecord record = new AuditEventRecord(AuditEventType.CREATE_SESSION, AuditEventStage.REQUEST);
-        PrismObject<UserType> owner = task.getOwner();
-        if (owner != null) {
-	        record.setInitiator(owner);
-	        PolyStringType name = owner.asObjectable().getName();
-	        if (name != null) {
-	        	record.setParameter(name.getOrig());
-	        }
-        }
-
-        record.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
-        record.setTimestamp(System.currentTimeMillis());
-        record.setSessionIdentifier(task.getTaskIdentifier());
-        
-        record.setOutcome(OperationResultStatus.SUCCESS);
-
-        auditService.audit(record, task);
-	}
 	
-	private void auditLogout(Task task) {
-		AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
-		PrismObject<UserType> owner = task.getOwner();
-        if (owner != null) {
-	        record.setInitiator(owner);
-	        PolyStringType name = owner.asObjectable().getName();
-	        if (name != null) {
-	        	record.setParameter(name.getOrig());
-	        }
-        }
-
-        record.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
-        record.setTimestamp(System.currentTimeMillis());
-        record.setSessionIdentifier(task.getTaskIdentifier());
-        
-        record.setOutcome(OperationResultStatus.SUCCESS);
-
-        auditService.audit(record, task);
-	}
+	
+	
 }
