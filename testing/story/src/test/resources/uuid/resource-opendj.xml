@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2014 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- Resource definition for an embedded OpenDJ instance. -->
+
+<resource oid="10000000-0000-0000-0000-000000000003"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+          xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-3"
+          xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
+
+    <name>Embedded Test OpenDJ</name>
+
+    <connectorRef type="ConnectorType">
+    	<description>Dummy description, just for the test</description>
+		<filter>
+            <q:equal>
+            	<q:path>connectorType</q:path>
+                <q:value>org.identityconnectors.ldap.LdapConnector</q:value>
+            </q:equal>
+        </filter>
+    </connectorRef>
+
+    <connectorConfiguration
+            xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector"
+            xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
+        <icfc:configurationProperties>
+            <icfcldap:port>10389</icfcldap:port>
+            <icfcldap:host>localhost</icfcldap:host>
+            <icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
+            <icfcldap:principal>cn=directory manager</icfcldap:principal>
+            <icfcldap:credentials>
+                <clearValue>secret</clearValue>
+            </icfcldap:credentials>
+            <icfcldap:modifiersNamesToFilterOut>cn=directory manager</icfcldap:modifiersNamesToFilterOut>
+            <icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
+            <icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
+        </icfc:configurationProperties>
+        
+        <icfc:resultsHandlerConfiguration>
+			<icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter>
+		</icfc:resultsHandlerConfiguration>
+    </connectorConfiguration>
+    
+	<schema>
+		<generationConstraints>
+		    <generateObjectClass>ri:AccountObjectClass</generateObjectClass>
+		    <generateObjectClass>ri:GroupObjectClass</generateObjectClass>
+		    <generateObjectClass>ri:CustomorganizationalUnitObjectClass</generateObjectClass>
+		</generationConstraints>
+	</schema>
+
+    <schemaHandling>
+
+        <objectType>
+			<kind>account</kind>
+            <intent>default</intent>
+            <displayName>Default Account</displayName>
+            <default>true</default>
+            <objectClass>ri:AccountObjectClass</objectClass>
+			
+			<attribute>
+				<ref>icfs:name</ref>
+				<displayName>Distinguished Name</displayName>
+				<description>No mapping for name. The mapping is present in the roles.</description>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+			</attribute>
+			
+			<attribute>
+                <ref>ri:cn</ref>
+                <displayName>Common Name</displayName>
+                <outbound>
+                	<source>
+	                    <path>$user/fullName</path>
+                    </source>
+                </outbound>
+            </attribute>
+
+            <attribute>
+                <ref>ri:sn</ref>                
+                <outbound>
+                	<source>
+                		<path>familyName</path>
+                	</source>
+                </outbound>
+            </attribute>
+
+            <attribute>
+                <ref>ri:givenName</ref>
+                <outbound>
+                	<source>
+                		<path>givenName</path>
+                	</source>
+                </outbound>
+            </attribute>
+
+            <attribute>
+                <ref>ri:uid</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                	<!-- This MUST be weak in case of OpenDJ. If DN (name) is changed then the uid will be changed
+                	     as a side-effect as it is a naming attribute. -->
+                	<strength>weak</strength>
+                	<source>
+                		<path>$user/name</path>
+                	</source>
+                </outbound>
+            </attribute>
+
+            <association>
+            	<ref>ri:group</ref>
+            	<displayName>LDAP Group Membership</displayName>
+            	<kind>entitlement</kind>
+            	<intent>ldapGroup</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:uniqueMember</associationAttribute>
+            	<valueAttribute>icfs:name</valueAttribute>
+            </association>
+            
+            <protected>
+				<filter>
+					<q:substring>
+						<q:matching>stringIgnoreCase</q:matching>
+						<q:path>
+							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+							attributes/icfs:name
+						</q:path>
+						<q:value>ou=Administrators,dc=example,dc=com</q:value>
+						<q:anchorEnd>true</q:anchorEnd>
+					</q:substring>
+				</filter>
+			</protected>
+            
+            <activation>
+                <administrativeStatus>
+                    <outbound/>
+                </administrativeStatus>
+            </activation>
+            
+            <credentials>
+                <password>
+                    <outbound/>
+                </password>
+            </credentials>
+
+        </objectType>
+        
+        <objectType>
+        	<kind>entitlement</kind>
+            <intent>ldapGroup</intent>
+            <displayName>LDAP Group</displayName>
+            <objectClass>ri:GroupObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                    <!-- Name cannot be weak. Changes in name trigger object rename. -->
+					<source>
+						<path>$focus/name</path>
+					</source>
+                    <expression>
+                    	<script>
+	                        <code>
+	                        	import javax.naming.ldap.Rdn
+	                        	import javax.naming.ldap.LdapName
+	                        	
+	                        	dn = new LdapName('ou=groups,dc=example,dc=com')
+	                        	dn.add(new Rdn('cn', name.toString()))
+	                        	return dn.toString()
+	                        </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:cn</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                	<!-- This MUST be weak in case of OpenDJ. If DN (name) is changed then the uid will be changed
+                	     as a side-effect as it is a naming attribute. -->
+                	<strength>weak</strength>
+                	<source>
+                		<path>$focus/name</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:description</ref>
+                <outbound>
+                	<source>
+                		<path>description</path>
+                	</source>
+                </outbound>
+            </attribute>
+        </objectType>
+        
+    </schemaHandling>
+
+    <capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+    	<configured>
+	        <cap:activation>
+	            <cap:status>
+	                <cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
+	                <cap:enableValue/>
+	                <cap:disableValue>true</cap:disableValue>
+	            </cap:status>
+	        </cap:activation>
+		</configured>
+    </capabilities>
+
+    <synchronization>
+    	<objectSynchronization>
+    		<objectClass>ri:AccountObjectClass</objectClass>
+	        <enabled>true</enabled>
+	        <correlation>
+	            <q:equal>
+	                <q:path>name</q:path>
+	                <expression>
+	                	<path>$shadow/attributes/ri:uid</path>
+	                </expression>
+	            </q:equal>
+	        </correlation>
+
+            <objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
+
+	        <reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+	            </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+	            </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+	            </action>
+	        </reaction>
+		</objectSynchronization>
+	</synchronization>
+</resource>

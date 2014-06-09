@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2014 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
+         xmlns:my="http://whatever.com/my"
+         xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+         xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3">
+
+	<resource oid="df778d48-ecb5-11e3-8238-001e8c717e5b">
+
+		<name>eDirectory</name>
+
+		<description>Novell/NetIQ eDirectory</description>
+
+		<connectorRef type="ConnectorType">
+			<filter>
+				<q:equal>
+					<q:path>c:connectorType</q:path>
+					<q:value>org.identityconnectors.ldap.LdapConnector</q:value>
+				</q:equal>
+			</filter>
+		</connectorRef>
+
+		<connectorConfiguration>
+			<icfc:configurationProperties
+			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.ldap-connector/org.identityconnectors.ldap.LdapConnector">
+				<icfcldap:port>3636</icfcldap:port>
+				<icfcldap:ssl>true</icfcldap:ssl>
+				<icfcldap:host>deimos.lab.evolveum.com</icfcldap:host>
+				<icfcldap:baseContexts>o=example</icfcldap:baseContexts>
+				<icfcldap:principal>cn=admin,o=example</icfcldap:principal>
+				<icfcldap:credentials>
+					<clearValue>XXXXXXXXXXXXX</clearValue>
+				</icfcldap:credentials>
+				<icfcldap:uidAttribute>dn</icfcldap:uidAttribute>
+				<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
+<!--				<icfcldap:accountOperationalAttributes>XXXXXXXXXXXXXXXXXXXX</icfcldap:accountOperationalAttributes> -->
+				<icfcldap:useBlocks>true</icfcldap:useBlocks>
+				<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
+			</icfc:configurationProperties>
+		</connectorConfiguration>
+
+	    <schema>
+		<generationConstraints>
+		    <generateObjectClass>ri:AccountObjectClass</generateObjectClass>
+		    <generateObjectClass>ri:GroupObjectClass</generateObjectClass>
+		    <generateObjectClass>ri:CustomorganizationalUnitObjectClass</generateObjectClass>
+		</generationConstraints>
+	    </schema>
+
+
+		<schemaHandling>
+			<objectType>
+				<kind>account</kind>
+				<displayName>Default Account</displayName>
+				<default>true</default>
+				<objectClass>ri:AccountObjectClass</objectClass>
+				<attribute>
+					<ref>icfs:name</ref>
+					<displayName>Distinguished Name</displayName>
+					<matchingRule>mr:stringIgnoreCase</matchingRule>
+					<outbound>
+						<source>
+							<path>$user/name</path>
+						</source>
+						<expression>
+							<script>
+								<code>
+									import javax.naming.ldap.Rdn
+									import javax.naming.ldap.LdapName
+	
+									dn = new LdapName('ou=people,o=example')
+									dn.add(new Rdn('uid',name.toString()))
+									return dn.toString()
+								</code>
+							</script>
+						</expression>
+					</outbound>
+				</attribute>
+				<attribute>
+					<ref>icfs:uid</ref>
+					<displayName>ICF UID</displayName>
+					<matchingRule>mr:stringIgnoreCase</matchingRule>
+				</attribute>
+				<attribute>
+					<ref>ri:cn</ref>
+					<outbound>
+						<source>
+							<path>fullName</path>
+						</source>
+					</outbound>
+				</attribute>
+				<attribute>
+					<ref>ri:sn</ref>
+					<outbound>
+						<source>
+							<path>familyName</path>
+						</source>
+					</outbound>
+				</attribute>
+				<attribute>
+					<ref>ri:givenName</ref>
+					<outbound>
+						<source>
+							<path>givenName</path>
+						</source>
+					</outbound>
+				</attribute>
+				<attribute>
+					<ref>ri:uid</ref>
+					<matchingRule>mr:stringIgnoreCase</matchingRule>
+					<outbound>
+						<strength>weak</strength>
+						<source>
+							<path>name</path>
+						</source>
+					</outbound>
+				</attribute>
+
+				<attribute>
+					<ref>ri:mail</ref>
+					<outbound>
+						<source>
+							<path>emailAddress</path>
+						</source>
+					</outbound>
+				</attribute>
+				<attribute>
+					<ref>ri:telephoneNumber</ref>
+					<outbound>
+						<source>
+							<path>telephoneNumber</path>
+						</source>
+					</outbound>
+				</attribute>
+
+            <association>
+            	<ref>ri:group</ref>
+            	<displayName>LDAP Group Membership</displayName>
+            	<kind>entitlement</kind>
+            	<intent>ldapGroup</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:member</associationAttribute>
+            	<valueAttribute>icfs:name</valueAttribute>
+            </association>
+				<protected>
+				<filter>
+					<q:equal>
+						<q:path>
+							declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
+							attributes/icfs:name
+						</q:path>
+						<q:value>cn=admin,o=example</q:value>
+					</q:equal>
+				</filter>
+			</protected>
+
+
+
+				<activation>
+					<administrativeStatus>
+						<outbound/>
+						<inbound>
+							<strength>weak</strength>
+							<expression>
+								<asIs/>
+							</expression>
+						</inbound>
+					</administrativeStatus>
+				</activation>
+
+				<credentials>
+					<password>
+						<outbound>
+							<expression>
+								<asIs/>
+							</expression>
+						</outbound>
+					</password>
+				</credentials>
+
+			</objectType>
+
+        <objectType>
+        	<kind>entitlement</kind>
+            <intent>ldapGroup</intent>
+            <displayName>LDAP Group</displayName>
+            <objectClass>ri:GroupObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+					<source>
+						<path>$focus/name</path>
+					</source>
+                    <expression>
+                    	<script>
+	                        <code>
+	                        	import javax.naming.ldap.Rdn
+	                        	import javax.naming.ldap.LdapName
+	                        	
+	                        	dn = new LdapName('ou=groups,o=example')
+	                        	dn.add(new Rdn('cn', name.toString()))
+	                        	return dn.toString()
+	                        </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:cn</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                	<strength>weak</strength>
+                	<source>
+                		<path>$focus/name</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:description</ref>
+                <outbound>
+                	<source>
+                		<path>description</path>
+                	</source>
+                </outbound>
+            </attribute>
+        </objectType>
+
+		</schemaHandling>
+
+
+<!--		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3">
+			<configured>
+				<cap:activation>
+					<cap:status>
+						<cap:attribute>ri:XXXXXXXXXXXXXXXXXXXXXXXXXX</cap:attribute>
+						<cap:enableValue/>
+						<cap:disableValue>true</cap:disableValue>
+					</cap:status>
+				</cap:activation>
+			</configured>
+		</capabilities>
+-->
+
+	</resource>
+
+</objects>

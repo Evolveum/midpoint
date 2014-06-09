@@ -75,6 +75,7 @@ import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
+import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -149,6 +150,15 @@ public class ChangeExecutor {
     	if (focusContext != null) {
 	        ObjectDelta<O> userDelta = focusContext.getWaveDelta(syncContext.getExecutionWave());
 	        if (userDelta != null) {
+	        	
+	        	ObjectTypeTemplateType objectPolicyConfigurationType = focusContext.getObjectPolicyConfigurationType();
+	        	if (objectPolicyConfigurationType != null && BooleanUtils.isTrue(objectPolicyConfigurationType.isOidNameBoundMode())) {
+	        		PrismObject<O> objectNew = focusContext.getObjectNew();
+	        		if (userDelta.isAdd() && objectNew.getOid() == null) {
+	        			String name = objectNew.asObjectable().getName().getOrig();
+	        			focusContext.setOid(name);
+	        		}
+	        	}
 	
 	        	OperationResult subResult = result.createSubresult(OPERATION_EXECUTE_FOCUS+"."+focusContext.getObjectTypeClass().getSimpleName());
 	        	try {

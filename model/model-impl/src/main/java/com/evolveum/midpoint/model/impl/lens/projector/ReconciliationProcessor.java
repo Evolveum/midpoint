@@ -164,7 +164,7 @@ public class ReconciliationProcessor {
 			}
 
 			RefinedObjectClassDefinition accountDefinition = accContext.getRefinedAccountDefinition();
-			reconcileAccount(accContext, squeezedAttributes, accountDefinition);
+			reconcileProjection(accContext, squeezedAttributes, accountDefinition);
 		} catch (RuntimeException e) {
 			subResult.recordFatalError(e);
 			throw e;
@@ -176,14 +176,14 @@ public class ReconciliationProcessor {
 		}
 	}
 
-	private void reconcileAccount(
-			LensProjectionContext accCtx,
+	private void reconcileProjection(
+			LensProjectionContext projCtx,
 			Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>> squeezedAttributes,
 			RefinedObjectClassDefinition accountDefinition) throws SchemaException {
 
-		PrismObject<ShadowType> account = accCtx.getObjectNew();
+		PrismObject<ShadowType> shadowNew = projCtx.getObjectNew();
 
-		PrismContainer attributesContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
+		PrismContainer attributesContainer = shadowNew.findContainer(ShadowType.F_ATTRIBUTES);
 		Collection<QName> attributeNames = MiscUtil.union(squeezedAttributes.keySet(), attributesContainer
 				.getValue().getPropertyNames());
 
@@ -193,7 +193,7 @@ public class ReconciliationProcessor {
 					.getAttributeDefinition(attrName);
 			if (attributeDefinition == null) {
 				throw new SchemaException("No definition for attribute " + attrName + " in "
-						+ accCtx.getResourceShadowDiscriminator());
+						+ projCtx.getResourceShadowDiscriminator());
 			}
 
 			DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>> pvwoTriple = squeezedAttributes
@@ -208,12 +208,12 @@ public class ReconciliationProcessor {
 			if (limitations != null) {
 				PropertyAccessType access = limitations.getAccess();
 				if (access != null) {
-					if (accCtx.isAdd() && (access.isAdd() == null || !access.isAdd())) {
+					if (projCtx.isAdd() && (access.isAdd() == null || !access.isAdd())) {
 						LOGGER.trace("Skipping reconciliation of attribute {} because it is non-createable",
 								attrName);
 						continue;
 					}
-					if (accCtx.isModify() && (access.isModify() == null || !access.isModify())) {
+					if (projCtx.isModify() && (access.isModify() == null || !access.isModify())) {
 						LOGGER.trace("Skipping reconciliation of attribute {} because it is non-updateable",
 								attrName);
 						continue;
@@ -293,12 +293,12 @@ public class ReconciliationProcessor {
 						if (hasValue) {
 							throw new SchemaException(
 									"Attempt to set more than one value for single-valued attribute "
-											+ attrName + " in " + accCtx.getResourceShadowDiscriminator());
+											+ attrName + " in " + projCtx.getResourceShadowDiscriminator());
 						}
-						recordDelta(valueMatcher, accCtx, attributeDefinition, ModificationType.REPLACE, shouldBeRealValue,
+						recordDelta(valueMatcher, projCtx, attributeDefinition, ModificationType.REPLACE, shouldBeRealValue,
 								shouldBePvwo.getConstruction().getSource());
 					} else {
-						recordDelta(valueMatcher, accCtx, attributeDefinition, ModificationType.ADD, shouldBeRealValue,
+						recordDelta(valueMatcher, projCtx, attributeDefinition, ModificationType.ADD, shouldBeRealValue,
 								shouldBePvwo.getConstruction().getSource());
 					}
 					hasValue = true;
@@ -306,7 +306,7 @@ public class ReconciliationProcessor {
 
 			}
 			
-			decideIfTolerate(accCtx, attributeDefinition, arePValues, shouldBePValues, valueMatcher);
+			decideIfTolerate(projCtx, attributeDefinition, arePValues, shouldBePValues, valueMatcher);
 			
 //				if (!attributeDefinition.isTolerant()) {
 //				for (PrismPropertyValue<Object> isPValue : arePValues) {

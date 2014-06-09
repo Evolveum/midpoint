@@ -46,7 +46,7 @@
             <a href="https://wiki.evolveum.com/display/midPoint/Data+Model">https://wiki.evolveum.com/display/midPoint/Data+Model</a>
             for more details.
 
-            <p>Version: 3.0-SNAPSHOT</p>
+            <p>Version: 3.1-SNAPSHOT</p>
 
             <p>Recommended namespace prefix: (default), c</p>
         </xsd:documentation>
@@ -4648,6 +4648,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
+        	<xsd:element name="mode" type="tns:GenerateExpressionEvaluatorModeType" minOccurs="0" default="policy"/>
         	<xsd:element name="valuePolicyRef" type="tns:ObjectReferenceType" minOccurs="0">
         		<xsd:annotation>
 	                <xsd:documentation>
@@ -4662,6 +4663,43 @@
     </xsd:complexType>
 
     <xsd:element name="generate" type="tns:GenerateExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+    
+    <xsd:simpleType name="GenerateExpressionEvaluatorModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Value generator mode.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="policy">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		Generator generates the value according to the applicable value policy (e.g. a password policy).
+                		The it generates a random string that satisfies the policy. If no policy can be determined then
+                		a reasonable default policy is assumed.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="POLICY"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="uuid">
+                <xsd:annotation>
+                	<xsd:documentation>
+                		The generator generates a random Universally Unique Identifier (UUID) string.
+                		The generated UUID is currently version 4 and complies with ISO/IEC 11578:1996, but this
+                		can change in the future.
+                	</xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="UUID"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:element name="script" type="tns:ScriptExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
@@ -7193,6 +7231,13 @@
              			<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
              		</xsd:appinfo>
                  </xsd:annotation>
+             </xsd:element>
+             <xsd:element name="oidNameBoundMode" type="xsd:boolean" minOccurs="0" default="false">
+             	<xsd:annotation>
+             		<xsd:documentation>
+             			A mode in which OID and name of the speciefied object are the same.
+             		</xsd:documentation>
+             	</xsd:annotation>
              </xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
