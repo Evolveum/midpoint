@@ -47,6 +47,7 @@
     </scm>
     <modules>
         <module>util</module>
+        <module>ws-util</module>
         <module>schema</module>
         <module>common</module>
         <module>test-util</module>
