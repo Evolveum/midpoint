@@ -400,7 +400,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         if (ContainerStatus.MODIFYING == getStatus() && !def.canModify()){
         	if (def.canRead()){
         		property.setReadonly(true);     // this might be too late [mederly]
-        		return true;
+        		return showEmpty(property);
         	} 
         	return false;
         }

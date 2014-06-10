@@ -799,7 +799,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
     			rOCDef = layerRefinedSchema.getRefinedDefinition(objectClassName);
     		}
     	}
-    	
+
     	ItemPath attributesPath = new ItemPath(ShadowType.F_ATTRIBUTES);
 		AuthorizationDecisionType attributesReadDecision = computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.READ.getUrl(), 
     			securityConstraints.getActionDecision(ModelAuthorizationAction.READ.getUrl(), null));
@@ -808,7 +808,13 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		AuthorizationDecisionType attributesModifyDecision = computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.MODIFY.getUrl(),
 				securityConstraints.getActionDecision(ModelAuthorizationAction.MODIFY.getUrl(), null));
 		LOGGER.trace("Attributes container access read:{}, add:{}, modify:{}", new Object[]{attributesReadDecision, attributesAddDecision, attributesModifyDecision});
-		for (LayerRefinedAttributeDefinition rAttrDef: rOCDef.getAttributeDefinitions()) {
+
+        /*
+         *  We are going to modify attribute definitions list.
+         *  So let's make a (shallow) clone here, although it is probably not strictly necessary.
+         */
+        rOCDef = rOCDef.clone();
+        for (LayerRefinedAttributeDefinition rAttrDef: rOCDef.getAttributeDefinitions()) {
 			ItemPath attributePath = new ItemPath(ShadowType.F_ATTRIBUTES, rAttrDef.getName());
 			AuthorizationDecisionType attributeReadDecision = computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.READ.getUrl(), attributesReadDecision);
 			AuthorizationDecisionType attributeAddDecision = computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.ADD.getUrl(), attributesAddDecision);

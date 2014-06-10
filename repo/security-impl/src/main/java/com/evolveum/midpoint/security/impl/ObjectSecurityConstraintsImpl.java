@@ -84,24 +84,36 @@ public class ObjectSecurityConstraintsImpl implements ObjectSecurityConstraints 
 	}
 
 	public AuthorizationDecisionType findItemDecision(ItemPath itemPath, String actionUrl, AuthorizationPhaseType phase) {
-		// TODO: loop to match possible wildcards
-		ItemSecurityConstraintsImpl itemSecurityConstraints = itemConstraintMap.get(itemPath);
-		if (itemSecurityConstraints == null) {
-			return null;
-		}
-		AuthorizationDecisionType actionDecision = getSimpleActionDecision(itemSecurityConstraints.getActionDecisionMap(), actionUrl, phase);
-		AuthorizationDecisionType allDecision = getSimpleActionDecision(itemSecurityConstraints.getActionDecisionMap(), 
-				AuthorizationConstants.AUTZ_ALL_URL, phase);
-		if (actionDecision == null && allDecision == null) {
-			return null;
-		}
-		if (actionDecision == AuthorizationDecisionType.DENY || allDecision == AuthorizationDecisionType.DENY) {
-			return AuthorizationDecisionType.DENY;
-		}
-		if (actionDecision != null) {
-			return actionDecision;
-		}
-		return allDecision;
+
+        // We return DENY immediately, and ALLOW only if no DENY is present. So here we remember if we should return ALLOW or null at the end.
+        boolean allow = false;
+
+		for (Map.Entry<ItemPath,ItemSecurityConstraintsImpl> entry : itemConstraintMap.entrySet()) {
+
+            ItemPath entryPath = entry.getKey();
+            if (entryPath.isSubPathOrEquivalent(itemPath)) {
+                ItemSecurityConstraintsImpl itemSecurityConstraints = entry.getValue();
+                if (itemSecurityConstraints == null) {
+                    continue;
+                }
+                AuthorizationDecisionType actionDecision = getSimpleActionDecision(itemSecurityConstraints.getActionDecisionMap(), actionUrl, phase);
+                AuthorizationDecisionType allDecision = getSimpleActionDecision(itemSecurityConstraints.getActionDecisionMap(),
+                        AuthorizationConstants.AUTZ_ALL_URL, phase);
+
+                if (actionDecision == AuthorizationDecisionType.DENY || allDecision == AuthorizationDecisionType.DENY) {
+                    return AuthorizationDecisionType.DENY;
+                }
+                if (actionDecision == AuthorizationDecisionType.ALLOW || allDecision == AuthorizationDecisionType.ALLOW) {
+                    allow = true;
+                }
+            }
+        }
+
+        if (allow) {
+            return AuthorizationDecisionType.ALLOW;
+        } else {
+            return null;
+        }
 	}
 
 	@Override
