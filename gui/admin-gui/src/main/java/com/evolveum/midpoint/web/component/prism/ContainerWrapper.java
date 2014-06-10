@@ -268,12 +268,12 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
                     PrismProperty property = container.findProperty(def.getName());
                     if (property == null) {
-                        properties.add(new PropertyWrapper(this, def.instantiate(), !def.canAdd(), ValueStatus.ADDED));
+                        boolean readWrite = def.canAdd() || (isPassword(def) && def.canModify());
+                        properties.add(new PropertyWrapper(this, def.instantiate(), !readWrite, ValueStatus.ADDED));
                     } else {
                         properties.add(new PropertyWrapper(this, property, !def.canModify(), ValueStatus.NOT_CHANGED));
                     }
-                    
-                   
+
                 }
             } 
         }
@@ -283,6 +283,11 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         result.recomputeStatus();
 
         return properties;
+    }
+
+    private boolean isPassword(PrismPropertyDefinition def) {
+        return CredentialsType.F_PASSWORD.equals(container.getElementName()) ||
+                CredentialsType.F_PASSWORD.equals(def.getName());           // in the future, this option could apply as well
     }
 
     private boolean isShadowAssociation() {
