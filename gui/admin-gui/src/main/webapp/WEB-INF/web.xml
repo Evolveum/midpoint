@@ -167,8 +167,13 @@
         <load-on-startup>1</load-on-startup>
     </servlet>
     <servlet-mapping>
+    	<!-- Deprecated -->
         <servlet-name>CXFServlet</servlet-name>
         <url-pattern>/model/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CXFServlet</servlet-name>
+        <url-pattern>/ws/*</url-pattern>
     </servlet-mapping>
     <session-config>
         <session-timeout>30</session-timeout>
