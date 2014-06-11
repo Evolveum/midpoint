@@ -142,6 +142,9 @@ public class PageRole extends PageAdminRoles{
         try {
             if (!isEditing()) {
                 RoleType r = new RoleType();
+                ActivationType defaultActivation = new ActivationType();
+                defaultActivation.setAdministrativeStatus(ActivationStatusType.ENABLED);
+                r.setActivation(defaultActivation);
                 getMidpointApplication().getPrismContext().adopt(r);
                 role = r.asPrismObject();
             } else {

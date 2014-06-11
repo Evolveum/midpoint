@@ -73,7 +73,18 @@ public class DropDownFormGroup<T> extends SimplePanel<T> {
 
     protected DropDownChoice createDropDown(String id, IModel<List<T>> choices, IChoiceRenderer renderer,
                                             boolean required) {
-        DropDownChoice choice =  new DropDownChoice(id, getModel(), choices, renderer);
+        DropDownChoice choice =  new DropDownChoice(id, getModel(), choices, renderer){
+
+            @Override
+            protected CharSequence getDefaultChoice(String selectedValue) {
+                return getString("DropDownChoicePanel.notDefined");
+            }
+
+            @Override
+            protected String getNullValidDisplayValue() {
+                return getString("DropDownChoicePanel.notDefined");
+            }
+        };
         choice.setNullValid(!required);
         choice.setRequired(required);
         return choice;

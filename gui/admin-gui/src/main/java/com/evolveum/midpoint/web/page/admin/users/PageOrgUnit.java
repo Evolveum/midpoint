@@ -509,6 +509,9 @@ public class PageOrgUnit extends PageAdminUsers {
             if (!isEditing()) {
                 if (unitToEdit == null) {
                     OrgType o = new OrgType();
+                    ActivationType defaultActivation = new ActivationType();
+                    defaultActivation.setAdministrativeStatus(ActivationStatusType.ENABLED);
+                    o.setActivation(defaultActivation);
                     getPrismContext().adopt(o);
                     org = o.asPrismObject();
                 } else {
