@@ -85,6 +85,15 @@ public abstract class AbstractWebServiceClient<P,S extends Service> {
 		options.addOption("e", "endpoint", true, "Endpoint URL");
 		options.addOption("v", "verbose", false, "Verbose mode");
 		options.addOption("h", "help", false, "Usage help");
+		extendOptions(options);
+	}
+
+	protected Options getOptions() {
+		return options;
+	}
+
+	protected void extendOptions(Options options) {
+		// nothing here. meant to be overridden
 	}
 
 	protected P createPort(String[] args) throws Exception {
