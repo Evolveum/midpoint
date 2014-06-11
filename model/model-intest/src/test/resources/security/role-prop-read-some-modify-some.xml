@@ -21,14 +21,14 @@
     <authorization>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     	<item>c:name</item>
-    	<item>c:fullName</item>
-    	<item>c:activation/c:administrativeStatus</item>
-    	<item>c:assignment</item>
+    	<item>fullName</item>
+    	<item>activation/administrativeStatus</item>
+    	<item>assignment</item>
     </authorization>
     <authorization>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-    	<item>c:fullName</item>
-    	<item>c:additionalName</item>
-    	<item>c:description</item>
+    	<item>fullName</item>
+    	<item>additionalName</item>
+    	<item>description</item>
     </authorization>
 </role>

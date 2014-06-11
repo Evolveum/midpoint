@@ -154,6 +154,15 @@
 					</outbound>
 				</attribute>
 
+            <association>
+            	<ref>ri:group</ref>
+            	<displayName>LDAP Group Membership</displayName>
+            	<kind>entitlement</kind>
+            	<intent>ldapGroup</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:member</associationAttribute>
+            	<valueAttribute>icfs:name</valueAttribute>
+            </association>
 				<protected>
 				<filter>
 					<q:equal>
@@ -166,15 +175,6 @@
 				</filter>
 			</protected>
 
-            <association>
-            	<ref>ri:group</ref>
-            	<displayName>LDAP Group Membership</displayName>
-            	<kind>entitlement</kind>
-            	<intent>ldapGroup</intent>
-            	<direction>objectToSubject</direction>
-            	<associationAttribute>ri:member</associationAttribute>
-            	<valueAttribute>icfs:name</valueAttribute>
-            </association>
 
 
 				<activation>

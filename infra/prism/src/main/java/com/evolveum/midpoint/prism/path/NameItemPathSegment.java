@@ -69,7 +69,8 @@ public class NameItemPathSegment extends ItemPathSegment {
 		final int prime = 31;
 		int result = super.hashCode();
 		result = prime * result + (isVariable ? 1231 : 1237);
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
+        // we need to compute hash from namespace-normalized name (in order for equals to work)
+		result = prime * result + ((name == null) ? 0 : name.getLocalPart().hashCode());
 		return result;
 	}
 

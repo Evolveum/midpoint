@@ -1447,6 +1447,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					throw (ObjectAlreadyExistsException) midpointEx;
 				} else if (midpointEx instanceof RuntimeException) {
 					throw (RuntimeException) midpointEx;
+                } else if (midpointEx instanceof SecurityViolationException) {
+                    throw (SecurityViolationException) midpointEx;
 				} else if (midpointEx instanceof Error) {
 					throw (Error) midpointEx;
 				} else {
@@ -1504,6 +1506,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (ObjectAlreadyExistsException) midpointEx;
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException) midpointEx;
+            } else if (midpointEx instanceof SecurityViolationException) {
+                throw (SecurityViolationException) midpointEx;
 			} else if (midpointEx instanceof Error) {
 				throw (Error) midpointEx;
 			} else {

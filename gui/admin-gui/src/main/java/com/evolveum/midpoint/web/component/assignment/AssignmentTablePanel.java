@@ -260,7 +260,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
 
                     @Override
                     public void onClick(AjaxRequestTarget target){
-                        showAssignablePopupPerformed(target, ResourceType.class);
+                        showAssignablePopupPerformed(target, ResourceType.class, ResourceType.F_NAME);
                     }
                 });
         items.add(item);
@@ -270,7 +270,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
 
                     @Override
                     public void onClick(AjaxRequestTarget target){
-                        showAssignablePopupPerformed(target, RoleType.class);
+                        showAssignablePopupPerformed(target, RoleType.class, RoleType.F_NAME);
                     }
                 });
         items.add(item);
@@ -280,7 +280,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
 
                     @Override
                     public void onClick(AjaxRequestTarget target){
-                        showAssignablePopupPerformed(target, OrgType.class);
+                        showAssignablePopupPerformed(target, OrgType.class, OrgType.F_NAME);
                     }
                 });
         items.add(item);
@@ -318,10 +318,12 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
         window.show(target);
     }
 
-    private void showAssignablePopupPerformed(AjaxRequestTarget target, Class<? extends ObjectType> type){
+    private void showAssignablePopupPerformed(AjaxRequestTarget target, Class<? extends ObjectType> type,
+                                              QName searchParameter){
         ModalWindow modal = (ModalWindow) get(ID_MODAL_ASSIGN);
         AssignablePopupContent content = (AssignablePopupContent)modal.get(modal.getContentId());
         content.setType(type);
+        content.setSearchParameter(searchParameter);
         showModalWindow(ID_MODAL_ASSIGN, target);
     }
 

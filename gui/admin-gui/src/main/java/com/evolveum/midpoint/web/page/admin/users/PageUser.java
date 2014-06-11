@@ -46,6 +46,7 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -900,15 +901,19 @@ public class PageUser extends PageAdminUsers {
         ModalWindow window = createModalWindow(MODAL_ID_RESOURCE,
                 createStringResource("pageUser.title.selectResource"), 1100, 520);
 
-        SimpleUserResourceProvider provider = new SimpleUserResourceProvider(this, accountsModel);
-        window.setContent(new ResourcesPopup(window.getContentId(), provider) {
+        final SimpleUserResourceProvider provider = new SimpleUserResourceProvider(this, accountsModel);
+        window.setContent(new ResourcesPopup(window.getContentId()) {
+
+            @Override
+            public SimpleUserResourceProvider getProvider(){
+                return provider;
+            }
 
             @Override
             protected void addPerformed(AjaxRequestTarget target, List<ResourceType> newResources) {
                 addSelectedAccountPerformed(target, newResources);
             }
         });
-
         add(window);
     }
 

@@ -307,7 +307,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 	private boolean isInList(ItemPath itemPath, Collection<ItemPath> allowedItems) {
 		boolean itemAllowed = false;
 		for (ItemPath allowedPath: allowedItems) {
-			if (allowedPath.equivalent(itemPath)) {
+			if (allowedPath.isSubPathOrEquivalent(itemPath)) {
 				itemAllowed = true;
 				break;
 			}

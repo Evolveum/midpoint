@@ -227,15 +227,14 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 //                }
 
                 temp.setValue(new PrismPropertyValue<Object>(value));
-                properties.add(new PropertyWrapper(this, temp, ValueStatus.NOT_CHANGED));
+                properties.add(new PropertyWrapper(this, temp, this.isReadonly(), ValueStatus.NOT_CHANGED));        // todo this.isReadOnly() - is that OK? (originally it was the default behavior for all cases)
             }
 
         }  else if (isShadowAssociation()){
         	if (object.getAssociations() != null){
         		for (PrismProperty property : object.getAssociations()){
         			//TODO: fix this -> for now, read only is supported..
-        			PropertyWrapper propertyWrapper = new PropertyWrapper(this, property, ValueStatus.NOT_CHANGED);
-        			propertyWrapper.setReadonly(true);
+        			PropertyWrapper propertyWrapper = new PropertyWrapper(this, property, true, ValueStatus.NOT_CHANGED);
                 	properties.add(propertyWrapper);
         		}
         	}
@@ -269,9 +268,9 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
                     PrismProperty property = container.findProperty(def.getName());
                     if (property == null) {
-                        properties.add(new PropertyWrapper(this, def.instantiate(), ValueStatus.ADDED));
+                        properties.add(new PropertyWrapper(this, def.instantiate(), !def.canAdd(), ValueStatus.ADDED));
                     } else {
-                        properties.add(new PropertyWrapper(this, property, ValueStatus.NOT_CHANGED));
+                        properties.add(new PropertyWrapper(this, property, !def.canModify(), ValueStatus.NOT_CHANGED));
                     }
                     
                    
@@ -389,12 +388,13 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         }
         
         if (ContainerStatus.MODIFYING == getStatus() && def.canModify()){
+            property.setReadonly(false);        // this might be too late [mederly]
         	return showEmpty(property);
         }
         
         if (ContainerStatus.MODIFYING == getStatus() && !def.canModify()){
         	if (def.canRead()){
-        		property.setReadonly(true);
+        		property.setReadonly(true);     // this might be too late [mederly]
         		return true;
         	} 
         	return false;

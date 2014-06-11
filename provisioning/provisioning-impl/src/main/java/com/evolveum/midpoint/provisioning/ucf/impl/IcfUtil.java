@@ -34,16 +34,17 @@ import javax.naming.directory.InvalidAttributeValueException;
 import javax.naming.directory.NoSuchAttributeException;
 import javax.naming.directory.SchemaViolationException;
 
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.exceptions.ConfigurationException;
 import org.identityconnectors.framework.common.exceptions.ConnectionBrokenException;
 import org.identityconnectors.framework.common.exceptions.ConnectionFailedException;
-import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorIOException;
 import org.identityconnectors.framework.common.exceptions.ConnectorSecurityException;
 import org.identityconnectors.framework.common.exceptions.InvalidCredentialException;
 import org.identityconnectors.framework.common.exceptions.OperationTimeoutException;
+import org.identityconnectors.framework.common.exceptions.PermissionDeniedException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
 
@@ -55,7 +56,6 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.identityconnectors.framework.impl.api.remote.RemoteWrappedException;
@@ -69,9 +69,11 @@ import org.identityconnectors.framework.impl.api.remote.RemoteWrappedException;
 class IcfUtil {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(IcfUtil.class);
-	
-	
-	static Throwable processIcfException(Throwable icfException, ConnectorInstanceIcfImpl conn,
+    private static final String DOT_NET_EXCEPTION_PACKAGE_PLUS_DOT = "Org.IdentityConnectors.Framework.Common.Exceptions.";
+    private static final String JAVA_EXCEPTION_PACKAGE = AlreadyExistsException.class.getPackage().getName();
+    private static final String DOT_NET_ARGUMENT_EXCEPTION = "System.ArgumentException";
+
+    static Throwable processIcfException(Throwable icfException, ConnectorInstanceIcfImpl conn,
 			OperationResult icfResult) {
 		return processIcfException(icfException, conn.getHumanReadableName(), icfResult);
 	}
@@ -88,7 +90,7 @@ class IcfUtil {
 	 * We need to do the brutal thing: remove all the ICF exceptions and do
 	 * not pass then to upper layers. Try to save at least some information
 	 * and "compress" the class names and messages of the inner ICF exceptions.
-	 * The full exception with a stack trace is logger here, so the details are
+	 * The full exception with a stack trace is logged here, so the details are
 	 * still in the log.
 	 * 
 	 * WARNING: This is black magic. Really. Blame ICF interface design.
@@ -119,11 +121,21 @@ class IcfUtil {
             // brutal hack, for now
             RemoteWrappedException remoteWrappedException = (RemoteWrappedException) icfException;
             String className = remoteWrappedException.getExceptionClass();
-            try {
-                icfException = (Throwable) Class.forName(className).getConstructor(String.class, Throwable.class).newInstance(
-                        remoteWrappedException.getMessage(), remoteWrappedException);
-            } catch (InstantiationException|IllegalAccessException|ClassNotFoundException|NoSuchMethodException|InvocationTargetException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't unwrap remote ICF exception, continuing with original one {}", e, icfException);
+            if (className == null) {
+                LOGGER.error("Remote ICF exception without inner exception class name. Continuing with original one: {}", icfException);
+            } else if (DOT_NET_ARGUMENT_EXCEPTION.equals(className) && remoteWrappedException.getMessage().contains("0x800708C5")) {       // password too weak
+                icfException = new SecurityViolationException(icfException.getMessage(), icfException);
+            } else {
+                if (className.startsWith(DOT_NET_EXCEPTION_PACKAGE_PLUS_DOT)) {
+                    className = JAVA_EXCEPTION_PACKAGE + "." + className.substring(DOT_NET_EXCEPTION_PACKAGE_PLUS_DOT.length());
+                    LOGGER.trace("Translated exception class: {}", className);
+                }
+                try {
+                    icfException = (Throwable) Class.forName(className).getConstructor(String.class, Throwable.class).newInstance(
+                            remoteWrappedException.getMessage(), remoteWrappedException);
+                } catch (InstantiationException|IllegalAccessException|ClassNotFoundException|NoSuchMethodException|InvocationTargetException e) {
+                    LoggingUtils.logException(LOGGER, "Couldn't unwrap remote ICF exception, continuing with original one {}", e, icfException);
+                }
             }
         }
 		
@@ -167,8 +179,8 @@ class IcfUtil {
 		// ########
 		// TODO: handle javax.naming.NoPermissionException
 		// relevant message directly in the exception ("javax.naming.NoPermissionException([LDAP: error code 50 - The entry uid=idm,ou=Administrators,dc=example,dc=com cannot be modified due to insufficient access rights])
-		
-		// Otherwise try few obvious things
+
+        // Otherwise try few obvious things
 		if (icfException instanceof IllegalArgumentException) {
 			// This is most likely missing attribute or similar schema thing
 			Exception newEx = new SchemaException(createMessageFromAllExceptions("Schema violation (most likely)", icfException));
@@ -234,7 +246,7 @@ class IcfUtil {
 		return newEx;
 	}
 
-	private static Exception lookForKnownCause(Throwable ex,
+    private static Exception lookForKnownCause(Throwable ex,
 			Throwable originalException, OperationResult parentResult) {
 		if (ex instanceof FileNotFoundException) {
 			Exception newEx = new com.evolveum.midpoint.util.exception.ConfigurationException(createMessageFromAllExceptions(null, ex));
@@ -264,10 +276,14 @@ class IcfUtil {
 			Exception newEx = new SchemaException(createMessageFromAllExceptions("Schema violation", ex)); 
 			parentResult.recordFatalError("Schema violation: "+ex.getMessage(), newEx);
 			return newEx;
+        } else if (ex instanceof org.identityconnectors.framework.common.exceptions.InvalidAttributeValueException) {
+            Exception newEx = new SchemaException(createMessageFromAllExceptions("Invalid attribute", ex));
+            parentResult.recordFatalError("Invalid attribute: "+ex.getMessage(), newEx);
+            return newEx;
 		} else if (ex instanceof InvalidAttributeValueException) {
 			// This is thrown by LDAP connector and may be also throw by similar
 			// connectors
-			Exception newEx = new SchemaException(createMessageFromAllExceptions("Invalid attribute", ex)); 
+			Exception newEx = new SchemaException(createMessageFromAllExceptions("Invalid attribute", ex));
 			parentResult.recordFatalError("Invalid attribute: "+ex.getMessage(), newEx);
 			return newEx;
 		} else if (ex instanceof ConnectException) {
