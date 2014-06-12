@@ -830,6 +830,8 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				rAttrDef.setOverrideCanModify(false);
 			}
 		}
+
+        // TODO what about associations, activation, and credentials?
     	
     	return rOCDef;
 	}
