@@ -41,6 +41,7 @@ import org.apache.ws.security.handler.WSHandlerConstants;
 public abstract class AbstractWebServiceClient<P,S extends Service> {
 	
 	private Options options = new Options();
+	private CommandLine commandLine;
 	private boolean verbose = false;
 	
 	public boolean isVerbose() {
@@ -69,8 +70,8 @@ public abstract class AbstractWebServiceClient<P,S extends Service> {
 	
 	public void main(String[] args) {
 		try {
-			init();
-			P port = createPort(args);
+			init(args);
+			P port = createPort();
 			int exitCode = invoke(port);
 			System.exit(exitCode);
 		} catch (Exception e) {
@@ -79,26 +80,46 @@ public abstract class AbstractWebServiceClient<P,S extends Service> {
 		}
 	}
 	
-	protected void init() {
+	protected void init(String[] args) throws ParseException {
 		options.addOption("u", "user", true, "Username");
 		options.addOption("p", "password", true, "Password");
 		options.addOption("e", "endpoint", true, "Endpoint URL");
 		options.addOption("v", "verbose", false, "Verbose mode");
 		options.addOption("h", "help", false, "Usage help");
+		extendOptions(options);
+		parseCommandLine(args);
 	}
 
-	protected P createPort(String[] args) throws Exception {
+	private void parseCommandLine(String[] args) throws ParseException {
+		CommandLineParser cliParser = new GnuParser();
+		commandLine = cliParser.parse(options, args, true);
+		if (commandLine.hasOption('h')) {
+			printHelp();
+			System.exit(0);
+		}
+		if (commandLine.hasOption('v')) {
+			verbose = true;
+		}
+	}
+
+	protected Options getOptions() {
+		return options;
+	}
+
+	public CommandLine getCommandLine() {
+		return commandLine;
+	}
+
+	protected void extendOptions(Options options) {
+		// nothing here. meant to be overridden
+	}
+
+	protected P createPort() throws Exception {
 		
 		String password = getDefaultPassword();
 		String username = getDefaultUsername();
 		String endpointUrl = getDefaultEndpointUrl();
 		
-		CommandLineParser cliParser = new GnuParser();
-		CommandLine commandLine = cliParser.parse(options, args, true);
-		if (commandLine.hasOption('h')) {
-			printHelp();
-			System.exit(0);
-		}
 		if (commandLine.hasOption('p')) {
 			password = commandLine.getOptionValue('p');
 		}
@@ -107,9 +128,6 @@ public abstract class AbstractWebServiceClient<P,S extends Service> {
 		}
 		if (commandLine.hasOption('e')) {
 			endpointUrl = commandLine.getOptionValue('e');
-		}
-		if (commandLine.hasOption('v')) {
-			verbose = true;
 		}
 		
 		if (verbose) {
