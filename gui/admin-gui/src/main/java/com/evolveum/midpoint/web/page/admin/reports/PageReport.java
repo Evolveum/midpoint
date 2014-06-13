@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -44,12 +45,14 @@ import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.string.StringValue;
 
@@ -75,6 +78,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
     private static final String OPERATION_LOAD_REPORT = DOT_CLASS + "loadReport";
     private static final String OPERATION_SAVE_REPORT = DOT_CLASS + "saveReport";
     private static final String OPERATION_RUN_REPORT = DOT_CLASS + "runReport";
+    private static final String OPERATION_VALIDATE_REPORT = DOT_CLASS + "validateReport";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TAB_PANEL = "tabPanel";
@@ -102,6 +106,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
         PrismObject<ReportType> prismReport = WebModelUtils.loadObject(ReportType.class, reportOid.toString(), result, this);
 
         if (prismReport == null) {
+            LOGGER.error("Couldn't load report.");
             throw new RestartResponseException(PageReports.class);
         }
 
@@ -147,7 +152,22 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
             }
         });
 
-        mainForm.add(new TabbedPanel(ID_TAB_PANEL, tabs));
+        TabbedPanel reportTabPanel = new TabbedPanel(ID_TAB_PANEL, tabs){
+
+            @Override
+            protected WebMarkupContainer newLink(final String linkId, final int index){
+
+                return new SubmitLink(linkId){
+
+                    @Override
+                    public void onSubmit(){
+                        setSelectedTab(index);
+                    }
+                };
+            }
+        };
+
+        mainForm.add(reportTabPanel);
 
         initButtons(mainForm);
     }
@@ -173,7 +193,24 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
 
             @Override
             public void setObject(String object) {
-                //todo implement
+                if(StringUtils.isEmpty(object)){
+                    error(getString("PageReport.message.cantSaveEmpty"));
+                    return;
+                }
+
+                OperationResult result = new OperationResult(OPERATION_VALIDATE_REPORT);
+
+                try {
+                    Holder<PrismObject<ReportType>> reportHolder = new Holder<PrismObject<ReportType>>(null);
+                    validateObject(object, reportHolder, true, result);
+
+                    if(result.isAcceptable()){
+                        model.setObject(reportHolder.getValue());
+                    }
+                } catch (Exception ex){
+                    result.recordFatalError("Could not save object.", ex);
+                    showResultInSession(result);
+                }
             }
 
             @Override

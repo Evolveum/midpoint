@@ -207,7 +207,7 @@ public class AssignmentTablePanel<T extends ObjectType> extends SimplePanel<Assi
 
     private void initModalWindows(){
         ModalWindow assignWindow = createModalWindow(ID_MODAL_ASSIGN,
-                createStringResource("AssignmentTablePanel.modal.title.selectAssignment"), 1100, 550);
+                createStringResource("AssignmentTablePanel.modal.title.selectAssignment"), 1100, 560);
         assignWindow.setContent(new AssignablePopupContent(assignWindow.getContentId()){
 
             @Override

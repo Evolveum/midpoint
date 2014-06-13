@@ -899,7 +899,7 @@ public class PageUser extends PageAdminUsers {
 
     private void initResourceModal() {
         ModalWindow window = createModalWindow(MODAL_ID_RESOURCE,
-                createStringResource("pageUser.title.selectResource"), 1100, 550);
+                createStringResource("pageUser.title.selectResource"), 1100, 560);
 
         final SimpleUserResourceProvider provider = new SimpleUserResourceProvider(this, accountsModel);
         window.setContent(new ResourcesPopup(window.getContentId()) {
@@ -919,7 +919,7 @@ public class PageUser extends PageAdminUsers {
 
     private void initAssignableModal() {
         ModalWindow window = createModalWindow(MODAL_ID_ASSIGNABLE,
-                createStringResource("pageUser.title.selectAssignable"), 1100, 550);
+                createStringResource("pageUser.title.selectAssignable"), 1100, 560);
         window.setContent(new AssignablePopupContent(window.getContentId()) {
 
             @Override
