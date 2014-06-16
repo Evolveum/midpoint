@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.users.dto;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -73,6 +74,10 @@ public class SimpleUserResourceProvider extends BaseSortableDataProvider<Selecta
         }
 
         return getAvailableData().iterator();
+    }
+
+    public void setResourceProviderQuery(ObjectQuery query){
+        resourceProvider.setQuery(query);
     }
 
     private Set<String> createUsedResourceOidSet() {

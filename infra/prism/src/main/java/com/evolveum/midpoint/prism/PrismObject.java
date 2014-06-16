@@ -25,7 +25,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
-
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -117,7 +116,35 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	}
 
 	public PrismContainer<?> getExtension() {
-		return (PrismContainer<?>) getValue().findItem(new QName(getElementName().getNamespaceURI(), PrismConstants.EXTENSION_LOCAL_NAME), PrismContainer.class);
+		return (PrismContainer<?>) getValue().findItem(getExtensionContainerElementName(), PrismContainer.class);
+	}
+	
+	public <I extends Item> I findExtensionItem(QName elementName) {
+		PrismContainer<?> extension = getExtension();
+		if (extension == null) {
+			return null;
+		}
+		return (I) extension.findItem(elementName);
+	}
+	
+	public <I extends Item> void addExtensionItem(I item) throws SchemaException {
+		PrismContainer<?> extension = getExtension();
+		if (extension == null) {
+			extension = createExtension();
+		}
+		extension.add(item);
+	}
+
+	public PrismContainer<?> createExtension() throws SchemaException {
+		PrismObjectDefinition<T> objeDef = getDefinition();
+		PrismContainerDefinition<Containerable> extensionDef = objeDef.findContainerDefinition(getExtensionContainerElementName());
+		PrismContainer<?> extensionContainer = extensionDef.instantiate();
+		getValue().add(extensionContainer);
+		return extensionContainer;
+	}
+
+	private QName getExtensionContainerElementName() {
+		return new QName(getElementName().getNamespaceURI(), PrismConstants.EXTENSION_LOCAL_NAME);
 	}
 
 	@Override

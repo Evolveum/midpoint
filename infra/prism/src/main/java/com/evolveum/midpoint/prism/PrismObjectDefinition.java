@@ -67,6 +67,10 @@ public class PrismObjectDefinition<T extends Objectable> extends PrismContainerD
 	public PrismObjectDefinition<T> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
 		return (PrismObjectDefinition<T>) super.cloneWithReplacedDefinition(itemName, newDefinition);
 	}
+	
+	public PrismContainerDefinition<?> getExtensionDefinition() {
+		return findContainerDefinition(getExtensionQName());
+	}
 
 	public void setExtensionDefinition(ComplexTypeDefinition extensionComplexTypeDefinition) {
 		QName extensionQName = getExtensionQName();
@@ -106,6 +110,14 @@ public class PrismObjectDefinition<T extends Objectable> extends PrismContainerD
 	private QName getExtensionQName() {
 		String namespace = getName().getNamespaceURI();
 		return new QName(namespace, PrismConstants.EXTENSION_LOCAL_NAME);
+	}
+	
+	public <I extends ItemDefinition> I getExtensionItemDefinition(QName elementName) {
+		PrismContainerDefinition<?> extensionDefinition = getExtensionDefinition();
+		if (extensionDefinition == null) {
+			return null;
+		}
+		return (I) extensionDefinition.findItemDefinition(elementName);
 	}
 
 	@Override
