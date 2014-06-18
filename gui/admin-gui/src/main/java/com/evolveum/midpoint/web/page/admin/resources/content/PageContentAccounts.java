@@ -56,7 +56,7 @@ import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountOwnerCh
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserListItemDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.session.ResourceContentStorage;
+import com.evolveum.midpoint.web.session.ResourcesStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -122,7 +122,7 @@ public class PageContentAccounts extends PageAdminResources {
 
             @Override
             protected AccountContentSearchDto load() {
-                ResourceContentStorage storage = getSessionStorage().getResourceContent();
+                ResourcesStorage storage = getSessionStorage().getResources();
                 AccountContentSearchDto dto = storage.getAccountContentSearch();
 
                 if(dto == null){
@@ -711,7 +711,7 @@ public class PageContentAccounts extends PageAdminResources {
         AccountContentDataProvider provider = (AccountContentDataProvider)table.getDataProvider();
         provider.setQuery(null);
 
-        ResourceContentStorage storage = getSessionStorage().getResourceContent();
+        ResourcesStorage storage = getSessionStorage().getResources();
         storage.setAccountContentSearch(searchModel.getObject());
         storage.setAccountContentPaging(null);
         panel.setCurrentPage(null);
