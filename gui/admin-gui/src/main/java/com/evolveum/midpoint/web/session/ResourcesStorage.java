@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.session;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentSearchDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceSearchDto;
 
 import java.io.Serializable;
@@ -35,6 +36,16 @@ public class ResourcesStorage implements Serializable{
      * */
     private ObjectPaging resourcePaging;
 
+    /**
+     *  DTO used for search in {@link com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts}
+     * */
+    private AccountContentSearchDto accountContentSearch;
+
+    /**
+     *  Paging DTO used in table on page {@link com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts}
+     * */
+    private ObjectPaging accountContentPaging;
+
     public ResourceSearchDto getResourceSearch() {
         return resourceSearch;
     }
@@ -49,5 +60,21 @@ public class ResourcesStorage implements Serializable{
 
     public void setResourcePaging(ObjectPaging resourcePaging) {
         this.resourcePaging = resourcePaging;
+    }
+
+    public AccountContentSearchDto getAccountContentSearch() {
+        return accountContentSearch;
+    }
+
+    public void setAccountContentSearch(AccountContentSearchDto accountContentSearch) {
+        this.accountContentSearch = accountContentSearch;
+    }
+
+    public ObjectPaging getAccountContentPaging() {
+        return accountContentPaging;
+    }
+
+    public void setAccountContentPaging(ObjectPaging accountContentPaging) {
+        this.accountContentPaging = accountContentPaging;
     }
 }

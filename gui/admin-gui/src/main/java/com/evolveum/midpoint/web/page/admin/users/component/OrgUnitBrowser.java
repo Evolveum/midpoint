@@ -36,7 +36,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgUnitSearchDto;
-import com.evolveum.midpoint.web.session.OrgUnitStorage;
+import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
@@ -104,7 +104,7 @@ public class OrgUnitBrowser extends ModalWindow {
 
             @Override
             protected OrgUnitSearchDto load() {
-                OrgUnitStorage storage = getPageBase().getSessionStorage().getOrgUnits();
+                UsersStorage storage = getPageBase().getSessionStorage().getUsers();
                 OrgUnitSearchDto dto = storage.getOrgUnitSearch();
 
                 if(dto == null){
@@ -345,7 +345,7 @@ public class OrgUnitBrowser extends ModalWindow {
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
         provider.setQuery(query);
 
-        OrgUnitStorage storage = getPageBase().getSessionStorage().getOrgUnits();
+        UsersStorage storage = getPageBase().getSessionStorage().getUsers();
         storage.setOrgUnitSearch(searchModel.getObject());
         panel.setCurrentPage(storage.getOrgUnitPaging());
 
@@ -361,7 +361,7 @@ public class OrgUnitBrowser extends ModalWindow {
         ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
         provider.setQuery(null);
 
-        OrgUnitStorage storage = getPageBase().getSessionStorage().getOrgUnits();
+        UsersStorage storage = getPageBase().getSessionStorage().getUsers();
         storage.setOrgUnitSearch(searchModel.getObject());
         panel.setCurrentPage(storage.getOrgUnitPaging());
 

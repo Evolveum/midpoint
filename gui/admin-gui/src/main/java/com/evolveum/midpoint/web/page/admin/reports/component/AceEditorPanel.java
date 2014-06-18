@@ -46,4 +46,8 @@ public class AceEditorPanel extends SimplePanel<String> {
         editor.setReadonly(false);
         add(editor);
     }
+
+    public AceEditor getEditor(){
+        return (AceEditor)get(ID_EDITOR);
+    }
 }
