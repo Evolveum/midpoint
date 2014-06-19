@@ -29,6 +29,7 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.component.message.OpResult;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
@@ -52,7 +53,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
-import org.apache.wicket.validation.ValidationError;
+import org.apache.wicket.validation.RawValidationError;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -190,15 +191,20 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
             public void validate(IValidatable<String> validatable) {
                 String value = validatable.getValue();
 
+                OperationResult result = new OperationResult(OPERATION_VALIDATE_REPORT);
                 Holder<PrismObject<ReportType>> reportHolder = new Holder<>(null);
 
-                OperationResult result = new OperationResult(OPERATION_VALIDATE_REPORT);
-                validateObject(value, reportHolder, true, result);
+                try {
+                    validateObject(value, reportHolder, true, result);
 
-                if(!result.isAcceptable()){
-                    //todo improve - show full result   [erik]
-                    //probably through RawValidationError and put there full result (maybe translated to new OpResult(result))
-                    validatable.error(new ValidationError(result.getMessage()));
+                    if(!result.isAcceptable()){
+                        result.recordFatalError("Could not validate object", result.getCause());
+                        validatable.error(new RawValidationError(new OpResult(result)));
+                    }
+                } catch (Exception e){
+                    LOGGER.error("Validation problem occured." + e.getMessage());
+                    result.recordFatalError("Could not validate object.", e);
+                    validatable.error(new RawValidationError(new OpResult(result)));
                 }
             }
         };
@@ -217,7 +223,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
                 try {
                     return getPrismContext().serializeObjectToString(report, PrismContext.LANG_XML);
                 } catch (SchemaException ex) {
-                    //todo improve error handling, show message on error page, also stacktrace... [erik]
+                    getSession().error(getString("PageReport.message.cantSerializeFromObjectToString") + ex);
                     throw new RestartResponseException(PageError.class);
                 }
             }
@@ -226,9 +232,15 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
             public void setObject(String object) {
                 OperationResult result = new OperationResult(OPERATION_VALIDATE_REPORT);
                 Holder<PrismObject<ReportType>> reportHolder = new Holder<>(null);
-                    validateObject(object, reportHolder, true, result);
 
+                try {
+                    validateObject(object, reportHolder, true, result);
                     model.setObject(reportHolder.getValue());
+                } catch (Exception e){
+                    LOGGER.error("Could not set object. Validation problem occured." + result.getMessage());
+                    result.recordFatalError("Could not set object. Validation problem occured,", e);
+                    showResultInSession(result);
+                }
             }
 
             @Override
