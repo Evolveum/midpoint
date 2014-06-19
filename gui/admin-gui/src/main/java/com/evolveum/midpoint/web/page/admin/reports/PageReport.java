@@ -32,7 +32,6 @@ import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.InputStringValidator;
 import com.evolveum.midpoint.web.page.admin.reports.component.AceEditorPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.ReportConfigurationPanel;
 import com.evolveum.midpoint.web.page.error.PageError;
@@ -42,16 +41,18 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.SubmitLink;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.string.StringValue;
+import org.apache.wicket.validation.IValidatable;
+import org.apache.wicket.validation.IValidator;
+import org.apache.wicket.validation.ValidationError;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -74,18 +75,12 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
     private static final String DOT_CLASS = PageReport.class.getName() + ".";
     private static final String OPERATION_LOAD_REPORT = DOT_CLASS + "loadReport";
     private static final String OPERATION_SAVE_REPORT = DOT_CLASS + "saveReport";
-    private static final String OPERATION_RUN_REPORT = DOT_CLASS + "runReport";
     private static final String OPERATION_VALIDATE_REPORT = DOT_CLASS + "validateReport";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TAB_PANEL = "tabPanel";
     private static final String ID_SAVE_BUTTON = "save";
     private static final String ID_CANCEL_BUTTON = "cancel";
-
-    private static final int FULL_XML_TAB_INDEX = 3;
-    private int previousTabIndex = 0;
-    private AceEditorPanel fullXmlEditorPanel;
-    private String fullXmlEditorPanelString;
 
     private LoadableModel<PrismObject<ReportType>> model;
 
@@ -150,77 +145,63 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
             @Override
             public WebMarkupContainer getPanel(String panelId) {
                 IModel<String> title = PageReport.this.createStringResource("PageReport.fullXml");
-                fullXmlEditorPanelString = getStringFromObject();
-                fullXmlEditorPanel = new AceEditorPanel(panelId, title, createFullXmlModel());
-                return fullXmlEditorPanel;
+
+                AceEditorPanel panel = new AceEditorPanel(panelId, title, createFullXmlModel());
+                panel.getEditor().add(createFullXmlValidator());
+                return panel;
             }
         });
 
         TabbedPanel reportTabPanel = new TabbedPanel(ID_TAB_PANEL, tabs){
-
             @Override
-            protected WebMarkupContainer newLink(final String linkId, final int index){
-
-                return new SubmitLink(linkId){
+            protected WebMarkupContainer newLink(String linkId, final int index) {
+                return new AjaxSubmitLink(linkId) {
 
                     @Override
-                    public void onSubmit(){
-                        if(previousTabIndex == FULL_XML_TAB_INDEX){
-                            fullXmlEditorPanelString = fullXmlEditorPanel.getEditor().getInput();
+                    protected void onError(AjaxRequestTarget target, Form<?> form) {
+                        super.onError(target, form);
 
-                            if(isReportValid(fullXmlEditorPanel.getEditor().getInput(), true)){
-                                setSelectedTab(index);
-                                previousTabIndex = index;
-                            } else {
-                                setSelectedTab(previousTabIndex);
-                            }
-                        } else{
-                            setSelectedTab(index);
-                            previousTabIndex = index;
+                        target.add(getFeedbackPanel());
+                    }
+
+                    @Override
+                    protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        super.onSubmit(target, form);
+
+                        setSelectedTab(index);
+                        if (target != null) {
+                            target.add(findParent(TabbedPanel.class));
                         }
                     }
                 };
             }
         };
+        reportTabPanel.setOutputMarkupId(true);
 
         mainForm.add(reportTabPanel);
 
         initButtons(mainForm);
     }
 
-    private boolean isReportValid(String object, boolean showError){
-        OperationResult result = new OperationResult(OPERATION_VALIDATE_REPORT);
+    private IValidator<String> createFullXmlValidator() {
+        return new IValidator<String>() {
 
-        try {
-            Holder<PrismObject<ReportType>> reportHolder = new Holder<PrismObject<ReportType>>(null);
-            validateObject(object, reportHolder, true, result);
+            @Override
+            public void validate(IValidatable<String> validatable) {
+                String value = validatable.getValue();
 
-            if(result.isAcceptable()){
-                return true;
+                Holder<PrismObject<ReportType>> reportHolder = new Holder<>(null);
+
+                OperationResult result = new OperationResult(OPERATION_VALIDATE_REPORT);
+                validateObject(value, reportHolder, true, result);
+
+                if(!result.isAcceptable()){
+                    //todo improve - show full result   [erik]
+                    //probably through RawValidationError and put there full result (maybe translated to new OpResult(result))
+                    validatable.error(new ValidationError(result.getMessage()));
+                }
             }
-
-        } catch (Exception ex){
-            if(showError){
-                result.recordFatalError("Could not save object.", ex);
-                showResultInSession(result);
-            }
-        }
-
-        return false;
-    }
-
-    private String getStringFromObject(){
-        PrismObject report = model.getObject();
-        if (report == null) {
-            return null;
-        }
-
-        try {
-            return getPrismContext().serializeObjectToString(report, PrismContext.LANG_XML);
-        } catch (SchemaException ex) {
-            error("Could not create XML object from report.");
-            throw new RestartResponseException(PageError.class);
-        }
+        };
     }
 
     private IModel<String> createFullXmlModel() {
@@ -228,36 +209,26 @@ public class PageReport<T extends Serializable> extends PageAdminReports {
 
             @Override
             public String getObject() {
-                if(fullXmlEditorPanel.getEditor().getInput() != null){
-                    if(fullXmlEditorPanel.getEditor().getInput().isEmpty()){
-                        return fullXmlEditorPanelString;
-                    } else if(isReportValid(fullXmlEditorPanel.getEditor().getInput(), false)){
-                        return fullXmlEditorPanelString;
-                    } else {
-                        return fullXmlEditorPanel.getEditor().getInput();
-                    }
-                } else {
-                    return fullXmlEditorPanelString;
+                PrismObject report = model.getObject();
+                if (report == null) {
+                    return null;
+                }
+
+                try {
+                    return getPrismContext().serializeObjectToString(report, PrismContext.LANG_XML);
+                } catch (SchemaException ex) {
+                    //todo improve error handling, show message on error page, also stacktrace... [erik]
+                    throw new RestartResponseException(PageError.class);
                 }
             }
 
             @Override
             public void setObject(String object) {
-                if(StringUtils.isEmpty(object)){
-                    error(getString("PageReport.message.cantSaveEmpty"));
-                    return;
-                }
-
                 OperationResult result = new OperationResult(OPERATION_VALIDATE_REPORT);
-
-                if(isReportValid(object, false)){
-                    Holder<PrismObject<ReportType>> reportHolder = new Holder<PrismObject<ReportType>>(null);
+                Holder<PrismObject<ReportType>> reportHolder = new Holder<>(null);
                     validateObject(object, reportHolder, true, result);
 
                     model.setObject(reportHolder.getValue());
-                }
-
-                fullXmlEditorPanelString = object;
             }
 
             @Override
