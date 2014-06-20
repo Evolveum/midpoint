@@ -20,16 +20,16 @@ public class ObjectWrapperUtil {
 	
 	public static <O extends ObjectType> ObjectWrapper createObjectWrapper(String displayName, String description, PrismObject<O> object, ContainerStatus status, PageBase pageBase) {
 		try {
-			PrismContainerDefinition editedDefinition = pageBase.getModelInteractionService().getEditObjectDefinition(object);
-			RefinedObjectClassDefinition refinedDefinition = null;
-			if (isShadow(object)){
+			PrismContainerDefinition objectDefinitionForEditing = pageBase.getModelInteractionService().getEditObjectDefinition(object);
+			RefinedObjectClassDefinition objectClassDefinitionForEditing = null;
+			if (isShadow(object)) {
 				PrismReference resourceRef = object.findReference(ShadowType.F_RESOURCE_REF);
                 PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
-                refinedDefinition = pageBase.getModelInteractionService().getEditObjectClassDefinition((PrismObject<ShadowType>) object, resource);
+                objectClassDefinitionForEditing = pageBase.getModelInteractionService().getEditObjectClassDefinition((PrismObject<ShadowType>) object, resource);
 			} 
 			
-		ObjectWrapper wrapper = new ObjectWrapper(displayName, description, object, editedDefinition, refinedDefinition, status);
-		return wrapper;
+		    ObjectWrapper wrapper = new ObjectWrapper(displayName, description, object, objectDefinitionForEditing, objectClassDefinitionForEditing, status, pageBase);
+		    return wrapper;
 		} catch (SchemaException ex){
 			throw new SystemException(ex);
 		}

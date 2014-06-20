@@ -783,22 +783,22 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		}
     	
     	RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
-    	LayerRefinedResourceSchema layerRefinedSchema = refinedSchema.forLayer(LayerType.PRESENTATION);
     	ShadowType shadowType = shadow.asObjectable();
     	ShadowKindType kind = shadowType.getKind();
     	String intent = shadowType.getIntent();
-    	LayerRefinedObjectClassDefinition rOCDef;
+        RefinedObjectClassDefinition rocd;
     	if (kind != null) {
-    		rOCDef = layerRefinedSchema.getRefinedDefinition(kind, intent);
+    		rocd = refinedSchema.getRefinedDefinition(kind, intent);
     	} else {
     		QName objectClassName = shadowType.getObjectClass();
     		if (objectClassName == null) {
     			// No data. Fall back to the default
-    			rOCDef = layerRefinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String)null);
+    			rocd = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String)null);
     		} else {
-    			rOCDef = layerRefinedSchema.getRefinedDefinition(objectClassName);
+    			rocd = refinedSchema.getRefinedDefinition(objectClassName);
     		}
     	}
+        LayerRefinedObjectClassDefinition layeredROCD = rocd.forLayer(LayerType.PRESENTATION);
 
     	ItemPath attributesPath = new ItemPath(ShadowType.F_ATTRIBUTES);
 		AuthorizationDecisionType attributesReadDecision = computeItemDecision(securityConstraints, attributesPath, ModelAuthorizationAction.READ.getUrl(), 
@@ -813,8 +813,8 @@ public class ModelController implements ModelService, ModelInteractionService, T
          *  We are going to modify attribute definitions list.
          *  So let's make a (shallow) clone here, although it is probably not strictly necessary.
          */
-        rOCDef = rOCDef.clone();
-        for (LayerRefinedAttributeDefinition rAttrDef: rOCDef.getAttributeDefinitions()) {
+        layeredROCD = layeredROCD.clone();
+        for (LayerRefinedAttributeDefinition rAttrDef: layeredROCD.getAttributeDefinitions()) {
 			ItemPath attributePath = new ItemPath(ShadowType.F_ATTRIBUTES, rAttrDef.getName());
 			AuthorizationDecisionType attributeReadDecision = computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.READ.getUrl(), attributesReadDecision);
 			AuthorizationDecisionType attributeAddDecision = computeItemDecision(securityConstraints, attributePath, ModelAuthorizationAction.ADD.getUrl(), attributesAddDecision);
@@ -831,9 +831,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			}
 		}
 
-        // TODO what about associations, activation, and credentials?
+        // TODO what about activation and credentials?
     	
-    	return rOCDef;
+    	return layeredROCD;
 	}
 
 	@Override

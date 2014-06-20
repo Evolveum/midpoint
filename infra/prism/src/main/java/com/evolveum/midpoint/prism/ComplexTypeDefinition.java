@@ -269,7 +269,13 @@ public class ComplexTypeDefinition extends Definition {
 	
 	protected void copyDefinitionData(ComplexTypeDefinition clone) {
 		super.copyDefinitionData(clone);
-		clone.itemDefinitions.addAll(this.itemDefinitions);
+        clone.superType = this.superType;
+        clone.containerMarker = this.containerMarker;
+        clone.objectMarker = this.objectMarker;
+        clone.xsdAnyMarker = this.xsdAnyMarker;
+        clone.extensionForType = this.extensionForType;
+        clone.compileTimeClass = this.compileTimeClass;
+        clone.itemDefinitions.addAll(this.itemDefinitions);
 	}
 
 	public void replaceDefinition(QName propertyName, ItemDefinition newDefinition) {

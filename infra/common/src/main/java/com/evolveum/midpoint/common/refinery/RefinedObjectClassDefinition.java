@@ -92,6 +92,18 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         this.objectClassDefinition = objectClassDefinition;
     }
 
+    /**
+     * Creates a derived version of this ROCD for a given layer.
+     * TODO clone if necessary/if specified (currently there is no cloning)
+     *
+     * @param layerType
+     * @return
+     */
+    public LayerRefinedObjectClassDefinition forLayer(LayerType layerType) {
+        Validate.notNull(layerType);
+        return LayerRefinedObjectClassDefinition.wrap(this, layerType);
+    }
+
     @Override
     public ResourceAttributeDefinition getDescriptionAttribute() {
         return objectClassDefinition.getDescriptionAttribute();
@@ -809,5 +821,5 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 			return getKind()+":"+getIntent();
 		}
 	}
-    
+
 }

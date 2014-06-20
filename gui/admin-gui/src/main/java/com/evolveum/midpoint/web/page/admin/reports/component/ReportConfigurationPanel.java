@@ -82,7 +82,7 @@ public class ReportConfigurationPanel extends SimplePanel<ReportDto> {
             protected ObjectWrapper load() {
                 PrismObject<ReportType> report = getModel().getObject().getObject();
 
-                return new ObjectWrapper(null, null, report, null, ContainerStatus.MODIFYING);
+                return new ObjectWrapper(null, null, report, null, ContainerStatus.MODIFYING, getPageBase());
             }
         };
         PrismObjectPanel properties = new PrismObjectPanel(ID_PROPERTIES, wrapper, null, null);
