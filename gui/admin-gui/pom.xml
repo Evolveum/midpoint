@@ -114,8 +114,17 @@
                     <artifactId>slf4j-api</artifactId>
                     <groupId>org.slf4j</groupId>
                 </exclusion>
+                <exclusion>
+				    <groupId>org.webjars</groupId>
+    				<artifactId>webjars-locator</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+        	<groupId>org.webjars</groupId>
+    		<artifactId>webjars-locator</artifactId>
+    		<version>0.15</version>
+        </dependency>        
         <dependency>
             <groupId>ro.isdc.wro4j</groupId>
             <artifactId>wro4j-extensions</artifactId>
@@ -180,6 +189,16 @@
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-api</artifactId>
             <version>3.1-SNAPSHOT</version>
+            <exclusions>
+            	<exclusion>
+            		<artifactId>jaxb-impl</artifactId>
+            		<groupId>com.sun.xml.bind</groupId>
+            	</exclusion>
+            	<exclusion>
+            		<artifactId>jaxb-core</artifactId>
+            		<groupId>com.sun.xml.bind</groupId>
+            	</exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
@@ -218,6 +237,20 @@
             <artifactId>repo-cache</artifactId>
             <version>3.1-SNAPSHOT</version>
             <scope>runtime</scope>
+            <exclusions>
+            	<exclusion>
+            		<artifactId>jaxb-impl</artifactId>
+            		<groupId>com.sun.xml.bind</groupId>
+            	</exclusion>
+            	<exclusion>
+            		<artifactId>jaxb-api</artifactId>
+            		<groupId>javax.xml.bind</groupId>
+            	</exclusion>
+            	<exclusion>
+            		<artifactId>jaxb-core</artifactId>
+            		<groupId>com.sun.xml.bind</groupId>
+            	</exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
@@ -242,6 +275,12 @@
             <artifactId>model-impl</artifactId>
             <version>3.1-SNAPSHOT</version>
             <scope>runtime</scope>
+            <exclusions>
+            	<exclusion>
+            		<artifactId>jaxb-impl</artifactId>
+            		<groupId>com.sun.xml.bind</groupId>
+            	</exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
@@ -267,12 +306,24 @@
             <version>3.1-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
-		<dependency>
+	<dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>report-impl</artifactId>
             <version>3.1-SNAPSHOT</version>
             <scope>runtime</scope>
         </dependency>
+	<dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>common</artifactId>
+            <version>3.1-SNAPSHOT</version>
+            <exclusions>
+				<exclusion>
+					<groupId>xml-apis</groupId>
+  					<artifactId>xml-apis</artifactId>
+				</exclusion>
+            </exclusions>
+        </dependency>
+ 
         <!-- SPRING -->
         <dependency>
             <groupId>org.springframework</groupId>
@@ -362,6 +413,12 @@
         </dependency>
         -->
 
+		<dependency>
+			<groupId>javax.jws</groupId>
+			<artifactId>jsr181-api</artifactId>
+			<version>1.0-MR1</version>
+		</dependency>
+
         <!-- TEST -->
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
@@ -446,6 +503,12 @@
 			<groupId>net.sf.jasperreports</groupId>
 			<artifactId>jasperreports</artifactId>
 			<version>4.7.0-e1</version>
+			<exclusions>
+				<exclusion>
+					<groupId>xml-apis</groupId>
+  					<artifactId>xml-apis</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.hibernate</groupId>

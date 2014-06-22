@@ -35,6 +35,8 @@ import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import org.eclipse.jetty.jndi.local.localContextRoot;
+
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -64,17 +66,18 @@ public class ClassPathUtil {
 
 		while (resources.hasMoreElements()) {
 			URL candidateUrl = resources.nextElement();
-			LOGGER.trace("Candidates from: " + candidateUrl.getPath());
+			LOGGER.trace("Candidates from: " + candidateUrl);
 
 			// test if it is a directory or JAR
-			if ("file".contentEquals(candidateUrl.getProtocol())) {
-				classes.addAll(getFromDirectory(candidateUrl, packageName));
-
-			} else if ("jar".contentEquals(candidateUrl.getProtocol())) {
-				classes.addAll(getFromJar(candidateUrl, packageName));
-
-			}
-		}
+            String protocol = candidateUrl.getProtocol(); 
+            if ("file".contentEquals(protocol)) {
+            	classes.addAll(getFromDirectory(candidateUrl, packageName));
+            } else if ("jar".contentEquals(protocol) || "zip".contentEquals(protocol)) {
+            	classes.addAll(getFromJar(candidateUrl, packageName));
+            } else {
+                LOGGER.warn("Unsupported protocol for candidate URL {}", candidateUrl);
+            }		
+        }
 
 		return classes;
 	}
@@ -148,10 +151,20 @@ public class ClassPathUtil {
 		// sample:
 		// file:/C:/.m2/repository/test-util/1.9-SNAPSHOT/test-util-1.9-SNAPSHOT.jar!/test-data/opendj.template
 		// output:
-		// /C:/.m2/repository/test-util/1.9-SNAPSHOT/test-util-1.9-SNAPSHOT.jar
+		// file/C:/.m2/repository/test-util/1.9-SNAPSHOT/test-util-1.9-SNAPSHOT.jar
 		String srcName = srcUrl.getPath().split("!/")[0];
 
-		// Probaly hepls fix error in windows with URI
+		//solution to make it work in Weblogic, because we have to make the path absolute, that means with scheme, that means basically with prefix file:/
+		//in Tomcat the form is jar:file:/
+		//in Weblogic the form is only zip:/
+		LOGGER.trace("srcUrl.getProtocol(): {}", srcUrl.getProtocol());
+		
+		if ("zip".equals(srcUrl.getProtocol())) {
+			srcName = "file:" + srcName;
+		}
+		LOGGER.trace("srcName: {}", srcName);
+		
+		// Probably hepls fix error in windows with URI
 		File jarTmp = null;
 		try {
 			jarTmp = new File(new URI(srcName));
