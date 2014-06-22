@@ -1,0 +1,75 @@
+ <?xml version="1.0" encoding="UTF-8"?>
+<weblogic-application xmlns="http://xmlns.oracle.com/weblogic/weblogic-application”
+xmlns:xsi=”http://www.w3.org/2001/XMLSchema-instance
+xsi:schemaLocation=”http://xmlns.oracle.com/weblogic/weblogic-application
+http://xmlns.oracle.com/weblogic/weblogic-application/1.0/weblogic-application.xsd">
+    <xml>
+        <parser-factory>
+            <saxparser-factory>com.sun.org.apache.xerces.internal.jaxp.SAXParserFactoryImpl</saxparser-factory>
+            <document-builder-factory>net.sf.saxon.dom.DocumentBuilderFactoryImpl</document-builder-factory>
+            <transformer-factory>net.sf.saxon.TransformerFactoryImpl</transformer-factory>
+        </parser-factory>
+    </xml>
+    <application-param>
+        <param-name>webapp.encoding.default</param-name>
+        <param-value>UTF-8</param-value>
+    </application-param>
+    <prefer-application-packages>
+        <!-- // for logging  -->
+        <package-name>org.slf4j.*</package-name>
+        <package-name>ch.qos.logback.*</package-name>
+        <package-name>org.apache.commons.logging.*</package-name>
+        <!-- // for jaxb  -->
+        <!--package-name>com.sun.xml.*</package-name-->
+        <!-- // for apache commons lang/io  -->
+        <package-name>org.apache.commons.*</package-name>
+  <!-- // for spring/hibernate -->
+        <package-name>antlr.*</package-name>
+        <package-name>org.springframework.*</package-name>
+        <!-- // for jstl -->
+        <package-name>javax.servlet.jsp.jstl.*</package-name>
+        <!-- // for jax-ws -->
+        <package-name>javax.jws.*</package-name>
+        <package-name>javax.ws.*</package-name>
+ 	 <!-- // xml processing -->
+        <!--package-name>javax.xml.*</package-name-->
+        <package-name>javax.xml.stream.*</package-name>
+        <!--package-name>org.xml.sax.*</package-name-->
+        <!--package-name>org.w3c.*</package-name-->
+        <package-name>org.apache.xmlcommons.*</package-name>
+        <package-name>org.apache.xml.serializer.*</package-name>
+        <package-name>net.sf.saxon.*</package-name>
+        <package-name>org.apache.xalan.*</package-name>
+        <package-name>com.ctc.wstx.*</package-name>
+        <package-name>org.codehaus.*</package-name>       
+
+        <package-name>org.mozilla.*</package-name>
+	<package-name>org.joda.*</package-name>
+    </prefer-application-packages>
+    <prefer-application-resources>
+        <resource-name>META-INF/services/javax.ws.rs.ext.RuntimeDelegate</resource-name>
+        <resource-name>META-INF/services/javax.xml.bind.JAXBContext</resource-name>
+        <resource-name>META-INF/services/javax.xml.datatype.DatatypeFactory</resource-name>
+        <resource-name>META-INF/services/javax.xml.parsers.DocumentBuilderFactory</resource-name>
+        <resource-name>META-INF/services/javax.xml.parsers.SAXParserFactory</resource-name>
+        <resource-name>META-INF/services/javax.xml.stream.XMLEventFactory</resource-name>
+        <resource-name>META-INF/services/javax.xml.stream.XMLInputFactory</resource-name>
+        <resource-name>META-INF/services/javax.xml.stream.XMLOutputFactory</resource-name>
+        <resource-name>META-INF/services/javax.xml.transform.TransformerFactory</resource-name>
+        <resource-name>META-INF/services/javax.xml.validation.SchemaFactory</resource-name>
+        <resource-name>META-INF/services/javax.xml.ws.spi.Provider</resource-name>
+        <resource-name>META-INF/services/javax.xml.xpath.XPathFactory</resource-name>
+        <resource-name>META-INF/services/org.apache.cxf.bus.factory</resource-name>
+        <resource-name>META-INF/services/org.apache.xalan.extensions.bsf.BSFManager</resource-name>
+        <resource-name>META-INF/services/org.apache.xml.dtm.DTMManager</resource-name>
+        <resource-name>META-INF/services/org.codehaus.stax2.validation.XMLValidationSchemaFactory.dtd</resource-name>
+        <resource-name>META-INF/services/org.codehaus.stax2.validation.XMLValidationSchemaFactory.relaxng</resource-name>
+        <resource-name>META-INF/services/org.codehaus.stax2.validation.XMLValidationSchemaFactory.w3c</resource-name>
+        <resource-name>META-INF/services/org.osgi.framework.launch.FrameworkFactory</resource-name>
+        <resource-name>META-INF/services/org.relaxng.datatype.DatatypeLibraryFactory</resource-name>
+        <resource-name>META-INF/services/org.w3c.dom.DOMImplementationSourceList</resource-name>
+        <resource-name>META-INF/services/org.xml.sax.driver</resource-name>
+        <!-- // geronimo (at present) has no service such declaration (glassfish and others do) - include for future reference -->
+        <resource-name>META-INF/services/com.sun.xml.ws.spi.db.BindingContextFactory</resource-name>
+    </prefer-application-resources>   
+</weblogic-application>
