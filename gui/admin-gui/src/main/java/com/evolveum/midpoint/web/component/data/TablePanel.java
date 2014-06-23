@@ -18,8 +18,11 @@ package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
+import com.evolveum.midpoint.web.component.data.paging.PagingSizePanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -44,25 +47,29 @@ public class TablePanel<T> extends Panel {
 
     private static final String ID_TABLE = "table";
     private static final String ID_PAGING = "paging";
+    private static final String ID_PAGING_SIZE = "pagingSize";
 
     private IModel<Boolean> showPaging = new Model<Boolean>(true);
     private IModel<Boolean> showCount = new Model<Boolean>(true);
+    private IModel<Boolean> showPagingSize = new Model<Boolean>(false);
 
     public TablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns) {
-        this(id, provider, columns, 10);
+        this(id, provider, columns, UserProfileStorage.DEFAULT_PAGING_SIZE, null);
     }
 
-    public TablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns, int itemsPerPage) {
+    public TablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns, int itemsPerPage,
+                      UserProfileStorage.TableId tableId) {
         super(id);
         Validate.notNull(provider, "Object type must not be null.");
         Validate.notNull(columns, "Columns must not be null.");
 
         add(AttributeModifier.prepend("style", "display: table; width: 100%;"));
 
-        initLayout(columns, itemsPerPage, provider);
+        initLayout(columns, itemsPerPage, provider, tableId);
     }
 
-    private void initLayout(List<IColumn<T, String>> columns, int itemsPerPage, ISortableDataProvider provider) {
+    private void initLayout(List<IColumn<T, String>> columns, final int itemsPerPage, ISortableDataProvider provider,
+                            final UserProfileStorage.TableId tableId) {
         DataTable<T, String> table = new SelectableDataTable<T>(ID_TABLE, columns, provider, itemsPerPage);
         table.setOutputMarkupId(true);
 
@@ -79,6 +86,20 @@ public class TablePanel<T> extends Panel {
         NavigatorPanel nb2 = new NavigatorPanel(ID_PAGING, table, showPagedPaging(provider));
         addVisibleBehaviour(nb2, showPaging);
         add(nb2);
+
+        PagingSizePanel pagingSizePanel = new PagingSizePanel(ID_PAGING_SIZE, tableId){
+
+            @Override
+            protected void pagingSizeChangePerformed(AjaxRequestTarget target){
+                Integer pageSize = getPagingSize();
+                getPageBase().getSessionStorage().getUserProfile().setPagingSize(tableId, pageSize);
+                setItemsPerPage(pageSize);
+                target.add(getNavigatorPanel());
+                target.add(getDataTable());
+            }
+        };
+        addVisibleBehaviour(pagingSizePanel, showPagingSize);
+        add(pagingSizePanel);
     }
 
     private void addVisibleBehaviour(Component comp, final IModel<Boolean> model) {
@@ -104,6 +125,10 @@ public class TablePanel<T> extends Panel {
         return (DataTable) get(ID_TABLE);
     }
 
+    public NavigatorPanel getNavigatorPanel(){
+        return (NavigatorPanel) get(ID_PAGING);
+    }
+
     public void setItemsPerPage(int size) {
         getDataTable().setItemsPerPage(size);
     }
@@ -121,6 +146,10 @@ public class TablePanel<T> extends Panel {
         }
 
         getDataTable().setCurrentPage(page);
+    }
+
+    public void setShowPagingSize(boolean show){
+        this.showPagingSize.setObject(show);
     }
 
     public void setShowPaging(boolean showPaging) {

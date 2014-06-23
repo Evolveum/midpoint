@@ -308,6 +308,7 @@ public class PageUsers extends PageAdminUsers {
 
         TablePanel table = new TablePanel(ID_TABLE, provider, columns);
         table.setOutputMarkupId(true);
+        table.setShowPagingSize(true);
 
         UsersStorage storage = getSessionStorage().getUsers();
         table.setCurrentPage(storage.getUsersPaging());
