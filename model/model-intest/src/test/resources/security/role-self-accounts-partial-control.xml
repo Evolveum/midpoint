@@ -33,18 +33,6 @@
     </authorization>
     <authorization>
     	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#add</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#modify</action>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#delete</action>
-    	<object>
-    		<type>ShadowType</type>
-    		<owner>
-    			<special>self</special>
-    		</owner>
-    	</object>
-    </authorization>
-    <authorization>
-    	<action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-model-3#read</action>
     	<object>
     		<type>ShadowType</type>
     		<owner>

@@ -70,6 +70,7 @@
         <activiti-engine.version>5.15.1</activiti-engine.version>
         <activiti-spring.version>5.15.1</activiti-spring.version>
         <commons-email.version>1.3</commons-email.version>
+        <connid.version>1.4.0.0-SNAPSHOT</connid.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -335,12 +336,12 @@
             <dependency>
                 <groupId>org.connid</groupId>
                 <artifactId>connector-framework</artifactId>
-                <version>1.4.0.erc2</version>
+                <version>${connid.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.connid</groupId>
                 <artifactId>connector-framework-internal</artifactId>
-                <version>1.4.0.erc2</version>
+                <version>${connid.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.forgerock.openicf.connectors</groupId>

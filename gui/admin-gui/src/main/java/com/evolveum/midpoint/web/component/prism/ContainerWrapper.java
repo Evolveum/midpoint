@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
@@ -71,29 +72,29 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
     
     private PrismContainerDefinition containerDefinition;
 
-    public ContainerWrapper(ObjectWrapper object, T container, ContainerStatus status, ItemPath path) {
+    public ContainerWrapper(ObjectWrapper object, T container, ContainerStatus status, ItemPath path, PageBase pageBase) {
         Validate.notNull(container, "Prism object must not be null.");
         Validate.notNull(status, "Container status must not be null.");
+        Validate.notNull(pageBase, "pageBase must not be null.");
 
         this.object = object;
         this.container = container;
         this.status = status;
         this.path = path;
         main = path == null;
-        readonly = object.isReadonly();
+        readonly = object.isReadonly();     // [pm] this is quite questionable
         showInheritedObjectAttributes = object.isShowInheritedObjectAttributes();
         //have to be after setting "main" property
         containerDefinition = getContainerDefinition();
-        createProperties();
+        properties = createProperties(pageBase);
     }
     
-    protected PrismContainerDefinition getContainerDefinition(){
-//    	if (object.getEditedDefinition() != null){
-    	if (main){
+    protected PrismContainerDefinition getContainerDefinition() {
+    	if (main) {
     		return object.getDefinition();
-    	} 
+    	} else {
         	return object.getDefinition().findContainerDefinition(path);
-        
+        }
     }
 
     OperationResult getResult() {
@@ -121,9 +122,6 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
     }
 
     public List<PropertyWrapper> getProperties() {
-        if (properties == null) {
-            properties = createProperties();
-        }
         return properties;
     }
 
@@ -137,7 +135,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         return null;
     }
 
-    private List<PropertyWrapper> createProperties() {
+    private List<PropertyWrapper> createProperties(PageBase pageBase) {
         result = new OperationResult(CREATE_PROPERTIES);
 
         List<PropertyWrapper> properties = new ArrayList<PropertyWrapper>();
@@ -147,23 +145,18 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         Class clazz = parent.getCompileTimeClass();
         if (ShadowType.class.isAssignableFrom(clazz)) {
         	QName name = containerDefinition.getName();
-//        	QName name = container.getDefinition().getName();
-        	
+
             if (ShadowType.F_ATTRIBUTES.equals(name)) {
                 try {
                 	definition = object.getRefinedAttributeDefinition();
                 	
-                	if (definition == null){
+                	if (definition == null) {
 	                    PrismReference resourceRef = parent.findReference(ShadowType.F_RESOURCE_REF);
 	                    PrismObject<ResourceType> resource = resourceRef.getValue().getObject();
-	                    RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
-	                            LayerType.PRESENTATION, parent.getPrismContext());
-	
-	                    PrismProperty<QName> objectClassProp = parent.findProperty(ShadowType.F_OBJECT_CLASS);
-	                    QName objectClass = objectClassProp != null ? objectClassProp.getRealValue() : null;
-	                    definition = refinedSchema.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT, objectClass)
-	                            .toResourceAttributeContainerDefinition();
-	
+
+                        definition = pageBase.getModelInteractionService()
+                                .getEditObjectClassDefinition(object.getObject(), resource).toResourceAttributeContainerDefinition();
+
 	                    if (LOGGER.isTraceEnabled()) {
 	                        LOGGER.trace("Refined account def:\n{}", definition.debugDump());
 	                    }
@@ -177,11 +170,9 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
                 }
             } else {
             	definition = containerDefinition;
-//                definition = container.getDefinition();
             }
         } else {
         	definition = containerDefinition;
-//            definition = container.getDefinition();
         }
 
         if (definition == null) {
@@ -219,20 +210,14 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
                 PrismProperty<Object> temp = def.instantiate();
 
                 String value = formatAssignmentBrief(assignmentType);
-//                if (assignmentType.getTarget() != null) {
-//                    value = assignmentType.getTarget().getName().getOrig();
-//                } else {
-//                    PrismReference targetRef = pcv.findReference(AssignmentType.F_TARGET_REF);
-//                    value = targetRef.getValue().getOid();
-//                }
 
                 temp.setValue(new PrismPropertyValue<Object>(value));
                 properties.add(new PropertyWrapper(this, temp, this.isReadonly(), ValueStatus.NOT_CHANGED));        // todo this.isReadOnly() - is that OK? (originally it was the default behavior for all cases)
             }
 
-        }  else if (isShadowAssociation()){
-        	if (object.getAssociations() != null){
-        		for (PrismProperty property : object.getAssociations()){
+        } else if (isShadowAssociation()) {
+        	if (object.getAssociations() != null) {
+        		for (PrismProperty property : object.getAssociations()) {
         			//TODO: fix this -> for now, read only is supported..
         			PropertyWrapper propertyWrapper = new PropertyWrapper(this, property, true, ValueStatus.NOT_CHANGED);
                 	properties.add(propertyWrapper);
@@ -262,18 +247,23 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
                         continue;
                     }
                     
-                    if (isShadowAssociation()){
+                    if (isShadowAssociation()) {
                     	continue;
                     }
 
                     PrismProperty property = container.findProperty(def.getName());
-                    if (property == null) {
-                        properties.add(new PropertyWrapper(this, def.instantiate(), !def.canAdd(), ValueStatus.ADDED));
+                    boolean propertyIsReadOnly;
+                    if (object.getStatus() == ContainerStatus.MODIFYING) {  // decision is based on parent object status, not this container's one (because container can be added also to an existing object)
+                        propertyIsReadOnly = !def.canModify();
                     } else {
-                        properties.add(new PropertyWrapper(this, property, !def.canModify(), ValueStatus.NOT_CHANGED));
+                        propertyIsReadOnly = !def.canAdd();
                     }
-                    
-                   
+                    if (property == null) {
+                        properties.add(new PropertyWrapper(this, def.instantiate(), propertyIsReadOnly, ValueStatus.ADDED));
+                    } else {
+                        properties.add(new PropertyWrapper(this, property, propertyIsReadOnly, ValueStatus.NOT_CHANGED));
+                    }
+
                 }
             } 
         }
@@ -283,6 +273,11 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         result.recomputeStatus();
 
         return properties;
+    }
+
+    private boolean isPassword(PrismPropertyDefinition def) {
+        return CredentialsType.F_PASSWORD.equals(container.getElementName()) ||
+                CredentialsType.F_PASSWORD.equals(def.getName());           // in the future, this option could apply as well
     }
 
     private boolean isShadowAssociation() {
@@ -382,32 +377,25 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         if (skipProperty(def) || def.isIgnored() || def.isOperational()) {
             return false;
         }
-        
-        if (ContainerStatus.ADDING == getStatus() && def.canAdd()){
-        	return true;
+
+        // we decide not according to status of this container, but according to the status of the whole object
+        if (object.getStatus() == ContainerStatus.ADDING) {
+        	return def.canAdd();
         }
+
+        // otherwise, object.getStatus() is MODIFYING
         
-        if (ContainerStatus.MODIFYING == getStatus() && def.canModify()){
-            property.setReadonly(false);        // this might be too late [mederly]
+        if (def.canModify()) {
         	return showEmpty(property);
-        }
-        
-        if (ContainerStatus.MODIFYING == getStatus() && !def.canModify()){
-        	if (def.canRead()){
-        		property.setReadonly(true);     // this might be too late [mederly]
-        		return true;
+        } else {
+        	if (def.canRead()) {
+        		return showEmpty(property);
         	} 
         	return false;
         }
-        
-        if (!def.canRead()){
-        	return false;
-        }
-
-        return showEmpty(property);
     }
 
-    private boolean showEmpty(PropertyWrapper property){
+    private boolean showEmpty(PropertyWrapper property) {
     	ObjectWrapper object = getObject();
 
         List<ValueWrapper> values = property.getValues();
@@ -516,8 +504,8 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
     public boolean isReadonly() {
     	PrismContainerDefinition def = getContainerDefinition();
-    	if (def != null){
-    		return (def.canRead() && !def.canAdd() && !def.canModify());
+    	if (def != null) {
+    		return (def.canRead() && !def.canAdd() && !def.canModify());        // todo take into account the containing object status (adding vs. modifying)
     	}
         return readonly;
     }

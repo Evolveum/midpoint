@@ -2582,9 +2582,9 @@
                     <xsd:documentation>
                         <p>
                         Reference to the tenant to which this assignment refers. This is an argument to the target of this
-                        assignment. E.g. is if frequenty used to parametrize the role which is assigned by this assignment.
+                        assignment. E.g. is if frequently used to parametrize the role which is assigned by this assignment.
                         However the exact interpretation of this value depends on the logic of the target role. It may be
-                        significat or it may be entirelly ignored.
+                        significant or it may be entirely ignored.
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>
@@ -2602,7 +2602,7 @@
     <xsd:complexType name="MappingsType">
         <xsd:annotation>
             <xsd:documentation>
-                Genric set of mappings.
+                Generic set of mappings.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -5783,11 +5783,11 @@
                 the implementation of the caching and fetching strategy, configuration of the
                 provisioning subsystem or operation that was invoked.
 
-                While this object is stored, attibutes set will contain attribute values that
+                When this object is stored, attribute set will contain attribute values that
                 are (persistently) cached from the resource.
 
-                At the normal case there should be at least attributes that identify the
-                resource object on the resouce (identifiers). This will be a single attribute
+                In the normal case, there should be at least attributes that identify the
+                resource object on the resource (identifiers). This will be a single attribute
                 in a normal case, something like uid, username, DN, etc. But if a single attribute
                 is not enough to identify the account, more than one attribute may be present.
 
@@ -5795,7 +5795,7 @@
                 user should have account on the resource, but the account is not yet created
                 and no identifier is yet assigned to it.
 
-                This schema does not distinguish which attributes are idenfiers are which are
+                This schema does not distinguish which attributes are identifiers and which are
                 ordinary attributes. That can be learned from the resource schema provided by
                 resource or resource connector.
 

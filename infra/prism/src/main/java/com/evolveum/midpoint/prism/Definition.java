@@ -246,7 +246,10 @@ public abstract class Definition implements Serializable, DebugDumpable {
 		clone.displayOrder = this.displayOrder;
 		clone.help = this.help;
 		clone.inherited = this.inherited;
-	}
+        clone.documentation = this.documentation;
+        clone.isAbstract = this.isAbstract;
+        clone.deprecated = this.deprecated;
+    }
 	
 	@Override
 	public int hashCode() {

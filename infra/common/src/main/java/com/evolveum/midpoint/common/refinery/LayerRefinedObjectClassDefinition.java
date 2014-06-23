@@ -32,6 +32,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
@@ -45,12 +46,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * @author semancik
+ * @author mederly
+ *
+ * Work in-progress. TODO fix this mess
  *
  */
 public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinition {
 	
 	private RefinedObjectClassDefinition refinedObjectClassDefinition;
 	private LayerType layer;
+    /**
+     * Keeps layer-specific information on resource object attributes.
+     * This list is lazily evaluated.
+     */
+    private List<LayerRefinedAttributeDefinition> layerRefinedAttributeDefinitions;
 	
 	private LayerRefinedObjectClassDefinition(RefinedObjectClassDefinition refinedAccountDefinition, LayerType layer) {
 		super(new QName("fake"), refinedAccountDefinition.getPrismContext());
@@ -77,346 +86,456 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return layer;
 	}
 
+    @Override
 	public QName getTypeName() {
 		return refinedObjectClassDefinition.getTypeName();
 	}
 
+    @Override
 	public void setTypeName(QName typeName) {
 		refinedObjectClassDefinition.setTypeName(typeName);
 	}
 
-	public ResourceAttributeDefinition getDescriptionAttribute() {
-		return refinedObjectClassDefinition.getDescriptionAttribute();
-	}
-
+    @Override
 	public boolean isIgnored() {
 		return refinedObjectClassDefinition.isIgnored();
 	}
 
+    @Override
 	public void setIgnored(boolean ignored) {
 		refinedObjectClassDefinition.setIgnored(ignored);
 	}
 
-	public void setDescriptionAttribute(ResourceAttributeDefinition descriptionAttribute) {
+    @Override
+    public ResourceAttributeDefinition getDescriptionAttribute() {
+        return substituteLayerRefinedAttributeDefinition(refinedObjectClassDefinition.getDescriptionAttribute());
+    }
+
+    @Override
+    public void setDescriptionAttribute(ResourceAttributeDefinition descriptionAttribute) {
 		refinedObjectClassDefinition.setDescriptionAttribute(descriptionAttribute);
 	}
 
-	public LayerRefinedAttributeDefinition getNamingAttribute() {
-		return LayerRefinedAttributeDefinition.wrap(refinedObjectClassDefinition.getNamingAttribute(), layer);
+    private LayerRefinedAttributeDefinition substituteLayerRefinedAttributeDefinition(ResourceAttributeDefinition attributeDef) {
+        LayerRefinedAttributeDefinition rAttrDef = findAttributeDefinition(attributeDef.getName());
+        return rAttrDef;
+    }
+
+    private Collection<LayerRefinedAttributeDefinition> substituteLayerRefinedAttributeDefinitionCollection(Collection<? extends RefinedAttributeDefinition> attributes) {
+        Collection<LayerRefinedAttributeDefinition> retval = new ArrayList<>();
+        for (RefinedAttributeDefinition rad : attributes) {
+            retval.add(substituteLayerRefinedAttributeDefinition(rad));
+        }
+        return retval;
+    }
+
+    @Override
+    public LayerRefinedAttributeDefinition getNamingAttribute() {
+        return substituteLayerRefinedAttributeDefinition(refinedObjectClassDefinition.getNamingAttribute());
 	}
 
+    @Override
 	public String getNativeObjectClass() {
 		return refinedObjectClassDefinition.getNativeObjectClass();
 	}
 
+    @Override
 	public Integer getDisplayOrder() {
 		return refinedObjectClassDefinition.getDisplayOrder();
 	}
 
+    @Override
 	public boolean isDefaultInAKind() {
 		return refinedObjectClassDefinition.isDefaultInAKind();
 	}
 
+    @Override
 	public void setDefaultInAKind(boolean defaultAccountType) {
 		refinedObjectClassDefinition.setDefaultInAKind(defaultAccountType);
 	}
-	
+
+    @Override
 	public ShadowKindType getKind() {
 		return refinedObjectClassDefinition.getKind();
 	}
 
+    @Override
 	public void setKind(ShadowKindType kind) {
 		refinedObjectClassDefinition.setKind(kind);
 	}
 
+    @Override
 	public AttributeFetchStrategyType getPasswordFetchStrategy() {
 		return refinedObjectClassDefinition.getPasswordFetchStrategy();
 	}
 
+    @Override
 	public String getIntent() {
 		return refinedObjectClassDefinition.getIntent();
 	}
 
+    @Override
 	public void setIntent(String accountTypeName) {
 		refinedObjectClassDefinition.setIntent(accountTypeName);
 	}
 
+    @Override
 	public void setDisplayOrder(Integer displayOrder) {
 		refinedObjectClassDefinition.setDisplayOrder(displayOrder);
 	}
 
+    @Override
 	public LayerRefinedAttributeDefinition getDisplayNameAttribute() {
-		return LayerRefinedAttributeDefinition.wrap(refinedObjectClassDefinition.getDisplayNameAttribute(), layer);
+        return substituteLayerRefinedAttributeDefinition(refinedObjectClassDefinition.getDisplayNameAttribute());
 	}
 
+    @Override
 	public String getHelp() {
 		return refinedObjectClassDefinition.getHelp();
 	}
 
+    @Override
 	public void setDisplayNameAttribute(QName displayName) {
 		refinedObjectClassDefinition.setDisplayNameAttribute(displayName);
 	}
 
+    @Override
 	public Collection<? extends LayerRefinedAttributeDefinition> getIdentifiers() {
-		return LayerRefinedAttributeDefinition.wrapCollection(refinedObjectClassDefinition.getIdentifiers(), layer);
+        return substituteLayerRefinedAttributeDefinitionCollection(refinedObjectClassDefinition.getIdentifiers());
 	}
 
-	public <D extends ItemDefinition> D findItemDefinition(QName name, Class<D> clazz) {
+    @Override
+    public <D extends ItemDefinition> D findItemDefinition(QName name, Class<D> clazz) {
 		D findItemDefinition = refinedObjectClassDefinition.findItemDefinition(name, clazz);
 		return (D) LayerRefinedAttributeDefinition.wrap((RefinedAttributeDefinition) findItemDefinition, layer);
 	}
 
+    @Override
 	public void setHelp(String help) {
 		refinedObjectClassDefinition.setHelp(help);
 	}
 
+    @Override
 	public Collection<? extends LayerRefinedAttributeDefinition> getSecondaryIdentifiers() {
 		return LayerRefinedAttributeDefinition.wrapCollection(refinedObjectClassDefinition.getSecondaryIdentifiers(), layer);
 	}
 
+    @Override
 	public Class getTypeClass() {
 		return refinedObjectClassDefinition.getTypeClass();
 	}
 
+    @Override
 	public Collection<ResourceObjectPattern> getProtectedObjectPatterns() {
 		return refinedObjectClassDefinition.getProtectedObjectPatterns();
 	}
 
+    @Override
 	public PrismContext getPrismContext() {
 		return refinedObjectClassDefinition.getPrismContext();
 	}
 
+    @Override
 	public void setNamingAttribute(ResourceAttributeDefinition namingAttribute) {
 		refinedObjectClassDefinition.setNamingAttribute(namingAttribute);
 	}
 
+    @Override
 	public ResourceAttributeContainer instantiate(QName name) {
 		return refinedObjectClassDefinition.instantiate(name);
 	}
 
-	public void setNamingAttribute(QName namingAttribute) {
+    @Override
+    public void setNamingAttribute(QName namingAttribute) {
 		refinedObjectClassDefinition.setNamingAttribute(namingAttribute);
 	}
 
+    @Override
 	public PrismPropertyDefinition findPropertyDefinition(QName name) {
-		return LayerRefinedAttributeDefinition.wrap((RefinedAttributeDefinition) refinedObjectClassDefinition.findPropertyDefinition(name), layer);
+        LayerRefinedAttributeDefinition def = findAttributeDefinition(name);
+        if (def != null) {
+            return def;
+        } else {
+            // actually, can there be properties other than attributes? [mederly]
+		    return LayerRefinedAttributeDefinition.wrap((RefinedAttributeDefinition) refinedObjectClassDefinition.findPropertyDefinition(name), layer);
+        }
 	}
 
-	public RefinedAttributeDefinition findAttributeDefinition(QName elementQName) {
-		RefinedAttributeDefinition attributeDefinition = refinedObjectClassDefinition.findAttributeDefinition(elementQName);
-		return LayerRefinedAttributeDefinition.wrap(attributeDefinition, layer);
+    @Override
+	public LayerRefinedAttributeDefinition findAttributeDefinition(QName elementQName) {
+        for (LayerRefinedAttributeDefinition definition : getAttributeDefinitions()) {
+            if (QNameUtil.match(definition.getName(), elementQName)) {
+                return definition;
+            }
+        }
+        return null;
 	}
 
+    @Override
 	public void setNativeObjectClass(String nativeObjectClass) {
 		refinedObjectClassDefinition.setNativeObjectClass(nativeObjectClass);
 	}
 
+    @Override
 	public LayerRefinedAttributeDefinition findAttributeDefinition(String elementLocalname) {
-		return LayerRefinedAttributeDefinition.wrap(refinedObjectClassDefinition.findAttributeDefinition(elementLocalname), layer);
+		return findAttributeDefinition(new QName(getResourceNamespace(), elementLocalname));        // todo or should we use ns-less matching?
 	}
 
+    @Override
 	public String getDisplayName() {
 		return refinedObjectClassDefinition.getDisplayName();
 	}
 
+    @Override
 	public void setDisplayName(String displayName) {
 		refinedObjectClassDefinition.setDisplayName(displayName);
 	}
-	
+
+    @Override
 	public List<? extends ItemDefinition> getDefinitions() {
-		return LayerRefinedAttributeDefinition.wrapCollection(refinedObjectClassDefinition.getDefinitions(), layer);
+		return getAttributeDefinitions();
 	}
 
+    @Override
 	public String getDescription() {
 		return refinedObjectClassDefinition.getDescription();
 	}
 
+    @Override
 	public void setDescription(String description) {
 		refinedObjectClassDefinition.setDescription(description);
 	}
 
+    @Override
 	public boolean isDefault() {
 		return refinedObjectClassDefinition.isDefault();
 	}
 
+    @Override
 	public void setDefault(boolean isDefault) {
 		refinedObjectClassDefinition.setDefault(isDefault);
 	}
 
+    @Override
 	public ObjectClassComplexTypeDefinition getObjectClassDefinition() {
 		return refinedObjectClassDefinition.getObjectClassDefinition();
 	}
 
+    @Override
 	public void setObjectClassDefinition(ObjectClassComplexTypeDefinition objectClassDefinition) {
 		refinedObjectClassDefinition.setObjectClassDefinition(objectClassDefinition);
 	}
 
-	public Collection<? extends LayerRefinedAttributeDefinition> getAttributeDefinitions() {
-		return LayerRefinedAttributeDefinition.wrapCollection(refinedObjectClassDefinition.getAttributeDefinitions(), layer);
+    @Override
+	public List<? extends LayerRefinedAttributeDefinition> getAttributeDefinitions() {
+        if (layerRefinedAttributeDefinitions == null) {
+            layerRefinedAttributeDefinitions = LayerRefinedAttributeDefinition.wrapCollection(refinedObjectClassDefinition.getAttributeDefinitions(), layer);
+        }
+		return layerRefinedAttributeDefinitions;
 	}
 
-	public ResourceType getResourceType() {
+    @Override
+    public ResourceType getResourceType() {
 		return refinedObjectClassDefinition.getResourceType();
 	}
 
+    @Override
 	public PrismObjectDefinition<ShadowType> getObjectDefinition() {
 		return refinedObjectClassDefinition.getObjectDefinition();
 	}
 
+    @Override
 	public void setDisplayNameAttribute(ResourceAttributeDefinition displayName) {
 		refinedObjectClassDefinition.setDisplayNameAttribute(displayName);
 	}
 
-	public RefinedAttributeDefinition getAttributeDefinition(QName attributeName) {
-		return refinedObjectClassDefinition.getAttributeDefinition(attributeName);
+    @Override
+	public LayerRefinedAttributeDefinition getAttributeDefinition(QName attributeName) {
+        // todo should there be any difference between findAttributeDefinition and getAttributeDefinition? [mederly]
+		return findAttributeDefinition(attributeName);
 	}
 
+    @Override
 	public boolean containsAttributeDefinition(QName attributeName) {
 		return refinedObjectClassDefinition.containsAttributeDefinition(attributeName);
 	}
 
+    @Override
 	public PrismPropertyDefinition createPropertyDefinition(String localName, QName typeName) {
-		return refinedObjectClassDefinition.createPropertyDefinition(localName, typeName);
+        throw new UnsupportedOperationException("property definition cannot be created in LayerRefinedObjectClassDefinition");
+		// return refinedObjectClassDefinition.createPropertyDefinition(localName, typeName);
 	}
 
+    @Override
 	public boolean isEmpty() {
 		return refinedObjectClassDefinition.isEmpty();
 	}
 
+    @Override
 	public PrismObject<ShadowType> createBlankShadow() {
 		return refinedObjectClassDefinition.createBlankShadow();
 	}
 
+    @Override
 	public ResourceShadowDiscriminator getShadowDiscriminator() {
 		return refinedObjectClassDefinition.getShadowDiscriminator();
 	}
 
+    @Override
 	public Collection<? extends QName> getNamesOfAttributesWithOutboundExpressions() {
 		return refinedObjectClassDefinition.getNamesOfAttributesWithOutboundExpressions();
 	}
 
-	public Collection<? extends QName> getNamesOfAttributesWithInboundExpressions() {
+    @Override
+    public Collection<? extends QName> getNamesOfAttributesWithInboundExpressions() {
 		return refinedObjectClassDefinition.getNamesOfAttributesWithInboundExpressions();
 	}
 
+    @Override
 	public List<MappingType> getCredentialsInbound() {
 		return refinedObjectClassDefinition.getCredentialsInbound();
 	}
 
+    @Override
 	public MappingType getCredentialsOutbound() {
 		return refinedObjectClassDefinition.getCredentialsOutbound();
 	}
 
+    @Override
 	public ObjectReferenceType getPasswordPolicy() {
 		return refinedObjectClassDefinition.getPasswordPolicy();
 	}
 
+    @Override
 	public Class<?> getCompileTimeClass() {
 		return refinedObjectClassDefinition.getCompileTimeClass();
 	}
 
+    @Override
 	public QName getExtensionForType() {
 		return refinedObjectClassDefinition.getExtensionForType();
 	}
 
-	public boolean isContainerMarker() {
+    @Override
+    public boolean isContainerMarker() {
 		return refinedObjectClassDefinition.isContainerMarker();
 	}
 
+    @Override
 	public boolean isIdentifier(QName attrName) {
 		return refinedObjectClassDefinition.isIdentifier(attrName);
 	}
 
+    @Override
 	public boolean isObjectMarker() {
 		return refinedObjectClassDefinition.isObjectMarker();
 	}
 
+    @Override
 	public boolean isXsdAnyMarker() {
 		return refinedObjectClassDefinition.isXsdAnyMarker();
 	}
 
+    @Override
 	public QName getSuperType() {
 		return refinedObjectClassDefinition.getSuperType();
 	}
 
+    @Override
 	public boolean isSecondaryIdentifier(QName attrName) {
 		return refinedObjectClassDefinition.isSecondaryIdentifier(attrName);
 	}
 
+    @Override
 	public boolean isRuntimeSchema() {
 		return refinedObjectClassDefinition.isRuntimeSchema();
 	}
 
+    @Override
 	public Collection<RefinedAssociationDefinition> getAssociations() {
 		return refinedObjectClassDefinition.getAssociations();
 	}
 
+    @Override
 	public Collection<RefinedAssociationDefinition> getAssociations(ShadowKindType kind) {
 		return refinedObjectClassDefinition.getAssociations(kind);
 	}
 
-	public ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition() {
+    @Override
+    public ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition() {
 		ResourceAttributeContainerDefinition resourceAttributeContainerDefinition = refinedObjectClassDefinition.toResourceAttributeContainerDefinition();
 		resourceAttributeContainerDefinition.setComplexTypeDefinition(this);
 		return resourceAttributeContainerDefinition;
 	}
 
-	public ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition(QName elementName) {
+    @Override
+    public ResourceAttributeContainerDefinition toResourceAttributeContainerDefinition(QName elementName) {
 		ResourceAttributeContainerDefinition resourceAttributeContainerDefinition = refinedObjectClassDefinition.toResourceAttributeContainerDefinition(elementName);
 		resourceAttributeContainerDefinition.setComplexTypeDefinition(this);
 		return resourceAttributeContainerDefinition;
 	}
 
-	public ResourceActivationDefinitionType getActivationSchemaHandling() {
+    @Override
+    public ResourceActivationDefinitionType getActivationSchemaHandling() {
 		return refinedObjectClassDefinition.getActivationSchemaHandling();
 	}
 
+    @Override
 	public ResourceBidirectionalMappingType getActivationBidirectionalMappingType(QName propertyName) {
 		return refinedObjectClassDefinition.getActivationBidirectionalMappingType(propertyName);
 	}
 
+    @Override
 	public AttributeFetchStrategyType getActivationFetchStrategy(QName propertyName) {
 		return refinedObjectClassDefinition.getActivationFetchStrategy(propertyName);
 	}
 
+    @Override
 	public Collection<RefinedAssociationDefinition> getEntitlementAssociations() {
 		return refinedObjectClassDefinition.getEntitlementAssociations();
 	}
-	
-	
 
+    @Override
 	public boolean isAbstract() {
 		return refinedObjectClassDefinition.isAbstract();
 	}
 
+    @Override
 	public boolean isDeprecated() {
 		return refinedObjectClassDefinition.isDeprecated();
 	}
 
+    @Override
 	public String getDocumentation() {
 		return refinedObjectClassDefinition.getDocumentation();
 	}
 
+    @Override
 	public String getDocumentationPreview() {
 		return refinedObjectClassDefinition.getDocumentationPreview();
 	}
 
+    @Override
 	public RefinedAssociationDefinition findAssociation(QName name) {
 		return refinedObjectClassDefinition.findAssociation(name);
 	}
 
+    @Override
 	public RefinedAssociationDefinition findEntitlementAssociation(QName name) {
 		return refinedObjectClassDefinition.findEntitlementAssociation(name);
 	}
 
+    @Override
 	public Collection<? extends QName> getNamesOfAssociationsWithOutboundExpressions() {
 		return refinedObjectClassDefinition.getNamesOfAssociationsWithOutboundExpressions();
 	}
 
+    @Override
 	public String getDocClassName() {
 		return refinedObjectClassDefinition.getDocClassName();
 	}
 
+    @Override
 	public boolean matches(ShadowType shadowType) {
 		return refinedObjectClassDefinition.matches(shadowType);
 	}
@@ -467,9 +586,38 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
         return "LRObjectClassDef";
     }
 
+    @Override
 	public String getHumanReadableName() {
 		return refinedObjectClassDefinition.getHumanReadableName();
 	}
-	
-    
+
+    @Override
+    public LayerRefinedObjectClassDefinition clone() {
+        return wrap(refinedObjectClassDefinition.clone(), this.layer);
+    }
+
+    @Override
+    public void setAssociations(Collection<RefinedAssociationDefinition> associations) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected String getResourceNamespace() {
+        return refinedObjectClassDefinition.getResourceNamespace();
+    }
+
+    @Override
+    public void add(RefinedAttributeDefinition refinedAttributeDefinition) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void parseAssociations(RefinedResourceSchema rSchema) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected String debugDump(int indent, LayerType layer) {
+        return refinedObjectClassDefinition.debugDump(indent, layer);
+    }
 }

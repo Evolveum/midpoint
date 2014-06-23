@@ -957,7 +957,78 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         assertDeleteDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
 	}
 
-	@Test
+    @Test
+    public void test256AutzJackSelfAccountsPartialControl() throws Exception {
+        final String TEST_NAME = "test256AutzJackSelfAccountsPartialControl";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        // GIVEN
+        cleanupAutzTest(USER_JACK_OID);
+        assignRole(USER_JACK_OID, ROLE_SELF_ACCOUNTS_PARTIAL_CONTROL_OID);
+
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+
+        login(USER_JACK_USERNAME);
+
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+
+        assertGetAllow(UserType.class, USER_JACK_OID);
+        assertGetDeny(UserType.class, USER_GUYBRUSH_OID);
+
+        assertAddDeny();
+
+        assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_NICK_NAME, PrismTestUtil.createPolyString("jackie"));
+        assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
+        assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
+
+        assertDeleteDeny();
+        assertDeleteDeny(UserType.class, USER_JACK_OID);
+
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        String accountOid = getSingleLinkOid(user);
+        assertGetAllow(ShadowType.class, accountOid);
+        PrismObject<ShadowType> shadow = getObject(ShadowType.class, accountOid);
+        display("Jack's shadow", shadow);
+        RefinedObjectClassDefinition rOcDef = modelInteractionService.getEditObjectClassDefinition(shadow, resourceDummy);
+        display("Refined objectclass def", rOcDef);
+        assertAttributeFlags(rOcDef, SchemaConstants.ICFS_UID, true, false, false);
+        assertAttributeFlags(rOcDef, SchemaConstants.ICFS_NAME, true, false, false);
+        assertAttributeFlags(rOcDef, new QName("location"), true, true, true);
+        assertAttributeFlags(rOcDef, new QName("weapon"), true, false, false);
+
+        // Not linked to jack
+        assertGetDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
+
+        // Not linked to jack
+        assertAddDeny(ACCOUNT_JACK_DUMMY_RED_FILE);
+        // Not even jack's account
+        assertAddDeny(ACCOUNT_GUYBRUSH_DUMMY_FILE);
+
+//        // Linked to jack
+//        assertAllow("add jack's account to jack", new Attempt() {
+//            @Override
+//            public void run(Task task, OperationResult result) throws Exception {
+//                modifyUserAddAccount(USER_JACK_OID, ACCOUNT_JACK_DUMMY_RED_FILE, task, result);
+//            }
+//        });
+//        user = getUser(USER_JACK_OID);
+//        display("Jack after red account link", user);
+//        String accountRedOid = getLinkRefOid(user, RESOURCE_DUMMY_RED_OID);
+//        assertNotNull("Strange, red account not linked to jack", accountRedOid);
+//
+//        // Linked to other user
+//        assertDeny("add gyubrush's account", new Attempt() {
+//            @Override
+//            public void run(Task task, OperationResult result) throws Exception {
+//                modifyUserAddAccount(USER_LARGO_OID, ACCOUNT_HERMAN_DUMMY_FILE, task, result);
+//            }
+//        });
+//
+//        assertDeleteAllow(ShadowType.class, accountRedOid);
+//        assertDeleteDeny(ShadowType.class, ACCOUNT_SHADOW_ELAINE_DUMMY_OID);
+    }
+
+    @Test
     public void test260AutzJackObjectFilterLocationShadowRole() throws Exception {
 		final String TEST_NAME = "test260AutzJackObjectFilterLocationShadowRole";
         TestUtil.displayTestTile(this, TEST_NAME);

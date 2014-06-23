@@ -92,6 +92,18 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         this.objectClassDefinition = objectClassDefinition;
     }
 
+    /**
+     * Creates a derived version of this ROCD for a given layer.
+     * TODO clone if necessary/if specified (currently there is no cloning)
+     *
+     * @param layerType
+     * @return
+     */
+    public LayerRefinedObjectClassDefinition forLayer(LayerType layerType) {
+        Validate.notNull(layerType);
+        return LayerRefinedObjectClassDefinition.wrap(this, layerType);
+    }
+
     @Override
     public ResourceAttributeDefinition getDescriptionAttribute() {
         return objectClassDefinition.getDescriptionAttribute();
@@ -200,7 +212,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	
 	public RefinedAssociationDefinition findAssociation(QName name) {
 		for (RefinedAssociationDefinition assocType: getAssociations()) {
-			if (assocType.getName().equals(name)) {
+			if (QNameUtil.match(assocType.getName(), name)) {
 				return assocType;
 			}
 		}
@@ -213,7 +225,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	
 	public RefinedAssociationDefinition findEntitlementAssociation(QName name) {
 		for (RefinedAssociationDefinition assocType: getEntitlementAssociations()) {
-			if (assocType.getName().equals(name)) {
+			if (QNameUtil.match(assocType.getName(), name)) {
 				return assocType;
 			}
 		}
@@ -248,7 +260,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         return clone;
     }
 
-    protected void copyDefinitionData(RefinedObjectClassDefinition clone) {
+    private void copyDefinitionData(RefinedObjectClassDefinition clone) {
         super.copyDefinitionData(clone);
         clone.intent = this.intent;
         clone.attributeDefinitions = this.attributeDefinitions;
@@ -271,7 +283,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         return findAttributeDefinition(elementQName);
     }
 
-	private String getResourceNamespace() {
+	protected String getResourceNamespace() {
 		return ResourceTypeUtil.getResourceNamespace(resourceType);
 	}
 
@@ -344,7 +356,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 
 	public RefinedAttributeDefinition getAttributeDefinition(QName attributeName) {
         for (RefinedAttributeDefinition attrDef : attributeDefinitions) {
-            if (attrDef.getName().equals(attributeName)) {
+            if (QNameUtil.match(attrDef.getName(), attributeName)) {
                 return attrDef;
             }
         }
@@ -358,7 +370,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 
     public boolean containsAttributeDefinition(QName attributeName) {
         for (RefinedAttributeDefinition rAttributeDef : attributeDefinitions) {
-            if (rAttributeDef.getName().equals(attributeName)) {
+            if (QNameUtil.match(rAttributeDef.getName(), attributeName)) {
                 return true;
             }
         }
@@ -572,7 +584,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         ResourceAttributeDefinitionType foundAttrDefType = null;
         for (ResourceAttributeDefinitionType attrDefType : rOcDefType.getAttribute()) {
             if (attrDefType.getRef() != null) {
-                if (attrDefType.getRef().equals(attrName)) {
+                if (QNameUtil.match(attrDefType.getRef(), attrName)) {
                     if (foundAttrDefType == null) {
                         foundAttrDefType = attrDefType;
                     } else {
@@ -600,6 +612,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 		ShadowType accountShadowType = accountShadow.asObjectable();
         
     	accountShadowType.setIntent(getIntent());
+        accountShadowType.setKind(getKind());
         accountShadowType.setObjectClass(objectClassDefinition.getTypeName());
         accountShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(resourceType));
         
@@ -706,11 +719,11 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     		return null;
     	}
     	
-    	if (ActivationType.F_ADMINISTRATIVE_STATUS.equals(propertyName)) {
+    	if (QNameUtil.match(ActivationType.F_ADMINISTRATIVE_STATUS, propertyName)) {
     		return activationSchemaHandling.getAdministrativeStatus();
-    	} else if (ActivationType.F_VALID_FROM.equals(propertyName)) {
+    	} else if (QNameUtil.match(ActivationType.F_VALID_FROM, propertyName)) {
     		return activationSchemaHandling.getValidFrom();
-    	} else if (ActivationType.F_VALID_TO.equals(propertyName)) {
+    	} else if (QNameUtil.match(ActivationType.F_VALID_TO, propertyName)) {
     		return activationSchemaHandling.getValidTo();
     	} else {
     		throw new IllegalArgumentException("Unknown activation property "+propertyName);
@@ -808,5 +821,5 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 			return getKind()+":"+getIntent();
 		}
 	}
-    
+
 }

@@ -66,13 +66,12 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
         }
     }
 
-    protected PrismPropertyDefinition getItemDefinition(){
+    protected PrismPropertyDefinition getItemDefinition() {
     	PrismPropertyDefinition propDef = container.getContainerDefinition().findPropertyDefinition(property.getDefinition().getName());
-    	if (propDef == null){
+    	if (propDef == null) {
     		propDef = property.getDefinition();
     	}
     	return propDef;
-    	
     }
     
     public boolean isVisible() {
