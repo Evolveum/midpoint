@@ -235,14 +235,12 @@ public class InitialDataImport {
         	try {
         		File tmpDir = new File(configuration.getMidpointHome()+"/tmp");
         		if (!tmpDir.mkdir()) {
-        			LOGGER.error("Failed to create temporary directory for inital objects {}", configuration.getMidpointHome()+"/tmp");
-        			throw new RuntimeException("Failed to create temporary directory for inital objects " + configuration.getMidpointHome()+"/tmp");
+        			LOGGER.warn("Failed to create temporary directory for inital objects {}. Maybe it already exists", configuration.getMidpointHome()+"/tmp");
         		}
 
         		tmpDir = new File(configuration.getMidpointHome()+"/tmp/initial-objects");
         		if (!tmpDir.mkdir()) {
-        			LOGGER.error("Failed to create temporary directory for inital objects {}", configuration.getMidpointHome()+"/tmp/initial-objects");
-        			throw new RuntimeException("Failed to create temporary directory for inital objects " + configuration.getMidpointHome()+"/tmp/initial-objects");
+        			LOGGER.warn("Failed to create temporary directory for inital objects {}. Maybe it already exists", configuration.getMidpointHome()+"/tmp/initial-objects");
         		}
         		
         		//prerequisite: we are expecting that the files are store in the same archive as the source code that is loading it
