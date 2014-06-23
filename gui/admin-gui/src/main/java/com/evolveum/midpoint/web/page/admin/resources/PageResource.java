@@ -39,6 +39,7 @@ import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -121,7 +122,8 @@ public class PageResource extends PageAdminResources {
                 new PropertyModel<List<ResourceObjectTypeDto>>(model, "objectTypes"));
         provider.setSort("displayName", SortOrder.ASCENDING);
         TablePanel objectTypes = new TablePanel<ResourceObjectTypeDto>("objectTypesTable", provider,
-                initObjectTypesColumns());
+                initObjectTypesColumns(), getPagingSize(UserProfileStorage.TableId.PAGE_RESOURCE_PANEL), UserProfileStorage.TableId.PAGE_RESOURCE_PANEL);
+        objectTypes.setShowPagingSize(true);
         objectTypes.setShowPaging(true);
         objectTypes.setOutputMarkupId(true);
         mainForm.add(objectTypes);

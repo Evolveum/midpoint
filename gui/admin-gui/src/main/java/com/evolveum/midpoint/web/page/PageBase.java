@@ -52,6 +52,7 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -637,5 +638,9 @@ public abstract class PageBase extends WebPage {
         sb.append("});");
 
         target.appendJavaScript(sb.toString());
+    }
+
+    public Integer getPagingSize(UserProfileStorage.TableId tableId){
+        return getSessionStorage().getUserProfile().getPagingSize(tableId);
     }
 }

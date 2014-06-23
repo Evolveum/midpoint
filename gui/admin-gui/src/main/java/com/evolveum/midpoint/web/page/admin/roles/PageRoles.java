@@ -42,7 +42,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.roles.dto.RolesSearchDto;
 import com.evolveum.midpoint.web.session.RolesStorage;
-import com.evolveum.midpoint.web.session.UsersStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -128,8 +128,10 @@ public class PageRoles extends PageAdminRoles {
         provider.setQuery(createQuery());
 
         List<IColumn<RoleType, String>> columns = initColumns();
-        TablePanel table = new TablePanel<>(ID_TABLE, provider, columns);
+        TablePanel table = new TablePanel<>(ID_TABLE, provider, columns, getPagingSize(UserProfileStorage.TableId.TABLE_ROLES),
+                UserProfileStorage.TableId.TABLE_ROLES);
         table.setOutputMarkupId(true);
+        table.setShowPagingSize(true);
         RolesStorage storage = getSessionStorage().getRoles();
         table.setCurrentPage(storage.getRolesPaging());
 
