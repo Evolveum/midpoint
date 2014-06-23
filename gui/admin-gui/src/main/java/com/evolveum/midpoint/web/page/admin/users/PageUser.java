@@ -284,7 +284,7 @@ public class PageUser extends PageAdminUsers {
         } catch (Exception ex){
         	result.recordFatalError("Couldn't get user.", ex);
             LoggingUtils.logException(LOGGER, "Couldn't load user", ex);
-            wrapper = new ObjectWrapper("pageUser.userDetails", null, user, null, status);
+            wrapper = new ObjectWrapper("pageUser.userDetails", null, user, null, status, this);
         }
 //        ObjectWrapper wrapper = new ObjectWrapper("pageUser.userDetails", null, user, status);
         if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {

@@ -40,6 +40,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * @author semancik
  *
+ * This class enhances RefinedResourceSchema with a layer-specific view.
+ *
+ * TODO: However, there are a few unresolved issues that should be dealt with:
+ *
+ * 1) Although it might seem to contain LayerRefinedObjectClassDefinitions (LROCDs), it is not the case:
+ * it generates them on the fly by calling LROCD.wrap method every time.
+ *
+ * 2) When accessing attributes via findItemDefinition of this object, a non-layered version
+ * of attribute container is returned.
+ *
  */
 public class LayerRefinedResourceSchema extends RefinedResourceSchema {
 	

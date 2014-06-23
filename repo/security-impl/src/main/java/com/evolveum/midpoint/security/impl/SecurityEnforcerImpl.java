@@ -260,7 +260,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 						@Override
 						public void visit(Visitable visitable) {
 							ItemPath itemPath = getPath(visitable);
-							if (itemPath != null) {
+							if (itemPath != null && !itemPath.isEmpty()) {
 								if (!isInList(itemPath, allowedItems)) {
 									LOGGER.trace("  DENY operation because item {} in the delta is not allowed", itemPath);
 									itemDecision.setValue(false);
@@ -274,7 +274,7 @@ public class SecurityEnforcerImpl implements SecurityEnforcer {
 						@Override
 						public void visit(Visitable visitable) {
 							ItemPath itemPath = getPath(visitable);
-							if (itemPath != null) {
+							if (itemPath != null && !itemPath.isEmpty()) {
 								if (!isInList(itemPath, allowedItems)) {
 									LOGGER.trace("  DENY operation because item {} in the object is not allowed", itemPath);
 									itemDecision.setValue(false);
