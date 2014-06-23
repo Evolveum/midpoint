@@ -41,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -52,11 +53,27 @@ import org.springframework.security.web.authentication.preauth.PreAuthenticatedA
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.security.CodeSource;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  * @author lazyman
@@ -73,7 +90,9 @@ public class InitialDataImport {
     private transient PrismContext prismContext;
     private ModelService model;
     private TaskManager taskManager;
-
+    @Autowired
+    private MidpointConfiguration configuration;
+    
     public void setModel(ModelService model) {
         Validate.notNull(model, "Model service must not be null.");
         this.model = model;
@@ -193,7 +212,12 @@ public class InitialDataImport {
     private File getResource(String name) {
         URI path;
         try {
+        	LOGGER.trace("getResource: name = {}", name);
             path = InitialDataImport.class.getClassLoader().getResource(name).toURI();
+            LOGGER.trace("getResource: path = {}", path);
+            //String updatedPath = path.toString().replace("zip:/", "jar:/");
+            //LOGGER.trace("getResource: path updated = {}", updatedPath);
+            //path = new URI(updatedPath);
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("parameter name = " + name, e);
         }
@@ -201,8 +225,74 @@ public class InitialDataImport {
     }
 
     private File[] getInitialImportObjects() {
-        File folder = getResource("initial-objects");
-        File[] files = folder.listFiles(new FileFilter() {
+        URL path = InitialDataImport.class.getClassLoader().getResource("initial-objects");
+    	String resourceType = path.getProtocol();
+
+        File[] files = null;
+        File folder = null;
+        
+        if ("zip".equals(resourceType) || "jar".equals(resourceType)) {
+        	try {
+        		File tmpDir = new File(configuration.getMidpointHome()+"/tmp");
+        		if (!tmpDir.mkdir()) {
+        			LOGGER.warn("Failed to create temporary directory for inital objects {}. Maybe it already exists", configuration.getMidpointHome()+"/tmp");
+        		}
+
+        		tmpDir = new File(configuration.getMidpointHome()+"/tmp/initial-objects");
+        		if (!tmpDir.mkdir()) {
+        			LOGGER.warn("Failed to create temporary directory for inital objects {}. Maybe it already exists", configuration.getMidpointHome()+"/tmp/initial-objects");
+        		}
+        		
+        		//prerequisite: we are expecting that the files are store in the same archive as the source code that is loading it
+	        	URI src = InitialDataImport.class.getProtectionDomain().getCodeSource().getLocation().toURI();
+	        	LOGGER.trace("InitialDataImport code location: {}", src);
+	            Map<String, String> env = new HashMap<>(); 
+	            env.put("create", "false");
+	            URI normalizedSrc = new URI(src.toString().replaceFirst("file:", "jar:file:"));
+	            LOGGER.trace("InitialDataImport normalized code location: {}", normalizedSrc);
+	        	try (FileSystem zipfs = FileSystems.newFileSystem(normalizedSrc, env)) {
+	                Path pathInZipfile = zipfs.getPath("/initial-objects");
+	                //TODO: use some well defined directory, e.g. midPoint home
+	                final Path destDir = Paths.get(configuration.getMidpointHome()+"/tmp");
+	                Files.walkFileTree(pathInZipfile, new SimpleFileVisitor<Path>(){
+	                    @Override
+	                    public FileVisitResult visitFile(Path file,
+	                        BasicFileAttributes attrs) throws IOException {
+	                      final Path destFile = Paths.get(destDir.toString(),
+	                                                      file.toString());
+	                      LOGGER.trace("Extracting file {} to {}", file, destFile);
+	                      Files.copy(file, destFile, StandardCopyOption.REPLACE_EXISTING);
+	                      return FileVisitResult.CONTINUE;
+	                    }
+	               
+	                    @Override
+	                    public FileVisitResult preVisitDirectory(Path dir,
+	                        BasicFileAttributes attrs) throws IOException {
+	                      final Path dirToCreate = Paths.get(destDir.toString(),
+	                                                         dir.toString());
+	                      if(Files.notExists(dirToCreate)){
+	                        LOGGER.trace("Creating directory {}", dirToCreate);
+	                        Files.createDirectory(dirToCreate);
+	                      }
+	                      return FileVisitResult.CONTINUE;
+	                    }
+	                  });
+
+	                
+	            }
+	        	folder = new File(configuration.getMidpointHome()+"/tmp/initial-objects");
+        	} catch (IOException ex) {
+        		throw new RuntimeException("Failed to copy initial objects file out of the archive to the temporary directory", ex);
+        	} catch (URISyntaxException ex) {
+        		throw new RuntimeException("Failed get URI for the source code bundled with initial objects", ex);
+        	} 
+        }
+        
+    	if ("file".equals(resourceType)) {
+	        folder = getResource("initial-objects");
+    	}
+    	
+        files = folder.listFiles(new FileFilter() {
 
             @Override
             public boolean accept(File pathname) {
@@ -223,7 +313,7 @@ public class InitialDataImport {
                 return n1 - n2;
             }
         });
-
+	
         return files;
     }
 
