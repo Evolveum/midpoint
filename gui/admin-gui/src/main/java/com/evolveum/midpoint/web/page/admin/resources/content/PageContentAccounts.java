@@ -57,6 +57,7 @@ import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserListItemDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.session.ResourcesStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -236,7 +237,9 @@ public class PageContentAccounts extends PageAdminResources {
         provider.setQuery(createQuery());
 
         List<IColumn> columns = initColumns();
-        TablePanel table = new TablePanel(ID_TABLE, provider, columns);
+        TablePanel table = new TablePanel(ID_TABLE, provider, columns,
+                getPagingSize(UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL), UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL);
+        table.setShowPagingSize(true);
         table.setOutputMarkupId(true);
         mainForm.add(table);
 

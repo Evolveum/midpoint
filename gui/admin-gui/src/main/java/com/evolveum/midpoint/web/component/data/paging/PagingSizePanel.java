@@ -27,6 +27,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.validation.validator.RangeValidator;
 
 /**
  *  @author shood
@@ -79,6 +80,7 @@ public class PagingSizePanel extends SimplePanel {
 
         final TextField<Integer> pagingText = new TextField<Integer>(ID_PAGING_SIZE, pagingModel);
         pagingText.setType(Integer.class);
+        pagingText.add(new RangeValidator<Integer>(1,50));
         pagingText.add(AttributeModifier.replace("placeholder", createStringResource("PagingSizePanel.label.pagingSize")));
         pagingText.add(new SearchFormEnterBehavior(setPagingButton));
         form.add(pagingText);

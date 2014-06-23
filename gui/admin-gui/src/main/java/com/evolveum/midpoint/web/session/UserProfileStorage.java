@@ -33,11 +33,38 @@ public class UserProfileStorage implements Serializable{
     public enum TableId{
         TABLE_ROLES,
         TABLE_USERS,
-        TREE_TABLE_PANEL
+        TREE_TABLE_PANEL,
+        RESOURCE_WIZARD_ATTRIBUTE_PANEL,
+        WF_WORK_ITEMS_PANEL,
+        CONF_PAGE_ACCOUNTS,
+        CONF_DEBUG_LIST_PANEL,
+        PAGE_REPORTS_PANEL,
+        PAGE_CREATED_REPORTS_PANEL,
+        PAGE_RESOURCE_PANEL,
+        PAGE_RESOURCES_PANEL,
+        PAGE_RESOURCE_ACCOUNTS_PANEL,
+        PAGE_TASKS_PANEL,
+        PAGE_USERS_PANEL,
+        PAGE_WORK_ITEMS
+
     }
 
     private Map<TableId, Integer> pagingSizeMap = new HashMap<TableId, Integer>(){{
         put(TableId.TABLE_ROLES, null);
+        put(TableId.TABLE_USERS, null);
+        put(TableId.TREE_TABLE_PANEL, null);
+        put(TableId.RESOURCE_WIZARD_ATTRIBUTE_PANEL, null);
+        put(TableId.WF_WORK_ITEMS_PANEL, null);
+        put(TableId.CONF_PAGE_ACCOUNTS, null);
+        put(TableId.CONF_DEBUG_LIST_PANEL, null);
+        put(TableId.PAGE_REPORTS_PANEL, null);
+        put(TableId.PAGE_CREATED_REPORTS_PANEL, null);
+        put(TableId.PAGE_RESOURCE_PANEL, null);
+        put(TableId.PAGE_RESOURCES_PANEL, null);
+        put(TableId.PAGE_RESOURCE_ACCOUNTS_PANEL, null);
+        put(TableId.PAGE_TASKS_PANEL, null);
+        put(TableId.PAGE_USERS_PANEL, null);
+        put(TableId.PAGE_WORK_ITEMS, null);
     }};
 
     public Map<TableId, Integer> getPageSizingMap(){
