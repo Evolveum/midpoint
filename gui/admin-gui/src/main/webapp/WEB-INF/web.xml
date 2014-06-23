@@ -110,55 +110,6 @@
         <dispatcher>ERROR</dispatcher>
     </filter-mapping>
 
-    <!--<servlet>-->
-        <!--<description>Atmospherefilter</description>-->
-        <!--<servlet-name>Atmospherefilter</servlet-name>-->
-        <!--<servlet-class>org.atmosphere.cpr.AtmosphereServlet</servlet-class>-->
-        <!--<init-param>-->
-            <!--<param-name>configuration</param-name>-->
-            <!--<param-value>development</param-value>-->
-            <!--&lt;!&ndash;<param-value>deployment</param-value>&ndash;&gt;-->
-        <!--</init-param>-->
-        <!--<init-param>-->
-            <!--<param-name>applicationBean</param-name>-->
-            <!--<param-value>midpointApplication</param-value>-->
-        <!--</init-param>-->
-        <!--<init-param>-->
-            <!--<param-name>applicationFactoryClassName</param-name>-->
-            <!--<param-value>org.apache.wicket.spring.SpringWebApplicationFactory</param-value>-->
-        <!--</init-param>-->
-        <!--<init-param>-->
-            <!--<param-name>org.atmosphere.useWebSocket</param-name>-->
-            <!--<param-value>true</param-value>-->
-        <!--</init-param>-->
-        <!--<init-param>-->
-            <!--<param-name>org.atmosphere.useNative</param-name>-->
-            <!--<param-value>true</param-value>-->
-        <!--</init-param>-->
-        <!--<init-param>-->
-            <!--<param-name>org.atmosphere.cpr.sessionSupport</param-name>-->
-            <!--<param-value>true</param-value>-->
-        <!--</init-param>-->
-        <!--<init-param>-->
-            <!--<param-name>filterMappingUrlPattern</param-name>-->
-            <!--<param-value>/*</param-value>-->
-        <!--</init-param>-->
-        <!--<init-param>-->
-            <!--<param-name>org.atmosphere.websocket.WebSocketProtocol</param-name>-->
-            <!--<param-value>org.atmosphere.websocket.protocol.EchoProtocol</param-value>-->
-        <!--</init-param>-->
-        <!--<init-param>-->
-            <!--<param-name>org.atmosphere.cpr.broadcastFilterClasses</param-name>-->
-            <!--<param-value>org.apache.wicket.atmosphere.TrackMessageSizeFilter</param-value>-->
-        <!--</init-param>-->
-        <!--<load-on-startup>1</load-on-startup>-->
-        <!--&lt;!&ndash;<async-supported>true</async-supported> supported in servlet 3.0 (tomcat 7) &ndash;&gt;-->
-    <!--</servlet>-->
-    <!--<servlet-mapping>-->
-        <!--<servlet-name>Atmospherefilter</servlet-name>-->
-        <!--<url-pattern>/*</url-pattern>-->
-    <!--</servlet-mapping>-->
-
     <servlet>
         <servlet-name>CXFServlet</servlet-name>
         <servlet-class>
