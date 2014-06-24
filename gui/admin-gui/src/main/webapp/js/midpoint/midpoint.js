@@ -121,3 +121,26 @@ function updateBodyTopPaddingReal() {
     var menuHeight = $(".navbar-fixed-top").outerHeight(false);
     $("body").css("padding-top", menuHeight + "px");
 }
+
+/**
+ * Used in PageSizePopover class, in table panel.
+ *
+ * @param buttonId
+ * @param popoverId
+ */
+function initPageSizePopover(buttonId, popoverId) {
+    var button = $('#' + buttonId);
+    button.click(function () {
+        var popover = $('#' + popoverId);
+
+        var position = button.position();
+
+        var left = position.left - popover.outerWidth();
+        var top = position.top + button.outerHeight() / 2 - popover.outerHeight() / 2;
+
+        popover.css("top", top);
+        popover.css("left", left);
+
+        popover.toggle();
+    });
+}

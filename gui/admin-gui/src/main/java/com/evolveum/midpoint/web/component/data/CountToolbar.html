@@ -20,22 +20,8 @@
     <tr>
         <td wicket:id="td" style="text-align: right;">
             <span wicket:id="count"/>
-
-            <button id="asdf" type="button" class="btn btn-xs btn-default">
-                <i class="fa fa-cog"></i>
-            </button>
-            <script>
-$(document).ready(function() {
-    $("#asdf").popover({
-        placement: 'left',
-        html: 'true',
-        title : 'Page size',
-        content : '<div class="input-group"><input type="text" class="form-control input-sm" style="display: inline-block; width: auto;" size="1"/><span class="input-group-btn"><button class="btn btn-sm btn-success" type="button"><i class="fa fa-check"></i></button></span></div>'
-    });
-});
-            </script>
+            <div wicket:id="pageSize"/>
         </td>
     </tr>
-
 </wicket:panel>
 </html>

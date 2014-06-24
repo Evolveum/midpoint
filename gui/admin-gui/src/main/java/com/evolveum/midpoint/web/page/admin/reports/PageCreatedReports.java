@@ -183,8 +183,7 @@ public class PageCreatedReports extends PageAdminReports {
 
         provider.setQuery(query);
 
-        TablePanel table = new TablePanel(ID_CREATED_REPORTS_TABLE, provider, initColumns(ajaxDownloadBehavior),
-                getPagingSize(UserProfileStorage.TableId.PAGE_CREATED_REPORTS_PANEL), UserProfileStorage.TableId.PAGE_CREATED_REPORTS_PANEL);
+        TablePanel table = new TablePanel(ID_CREATED_REPORTS_TABLE, provider, initColumns(ajaxDownloadBehavior), UserProfileStorage.TableId.PAGE_CREATED_REPORTS_PANEL);
         table.setShowPagingSize(true);
         table.setShowPaging(true);
         table.setOutputMarkupId(true);

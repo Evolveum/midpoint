@@ -207,8 +207,7 @@ public class PageDebugList extends PageAdminConfiguration {
         provider.setQuery(createQuery());
         Form mainForm = (Form) get(ID_MAIN_FORM);
 
-        TablePanel table = new TablePanel(ID_TABLE, provider, initColumns(provider.getType()),
-                getPagingSize(UserProfileStorage.TableId.CONF_DEBUG_LIST_PANEL), UserProfileStorage.TableId.CONF_DEBUG_LIST_PANEL);
+        TablePanel table = new TablePanel(ID_TABLE, provider, initColumns(provider.getType()), UserProfileStorage.TableId.CONF_DEBUG_LIST_PANEL);
         table.setShowPagingSize(true);
         table.setOutputMarkupId(true);
         mainForm.addOrReplace(table);

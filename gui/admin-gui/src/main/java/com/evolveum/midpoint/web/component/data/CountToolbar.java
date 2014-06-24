@@ -1,7 +1,9 @@
 package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -19,6 +21,7 @@ public class CountToolbar extends AbstractToolbar {
 
     private static final String ID_TD = "td";
     private static final String ID_COUNT = "count";
+    private static final String ID_PAGE_SIZE = "pageSize";
 
     public CountToolbar(DataTable<?, ?> table) {
         super(table);
@@ -41,6 +44,22 @@ public class CountToolbar extends AbstractToolbar {
         Label count = new Label(ID_COUNT, createModel());
         count.setRenderBodyOnly(true);
         td.add(count);
+
+        PageSizePopover popover = new PageSizePopover(ID_PAGE_SIZE) {
+
+            @Override
+            protected void pageSizeChanged(AjaxRequestTarget target) {
+                CountToolbar.this.pageSizeChanged(target);
+            }
+        };
+        popover.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return CountToolbar.this.isPageSizePopupVisible();
+            }
+        });
+        td.add(popover);
     }
 
     private IModel<String> createModel() {
@@ -83,5 +102,12 @@ public class CountToolbar extends AbstractToolbar {
                 return new StringResourceModel("CountToolbar.noFound", CountToolbar.this, null).getString();
             }
         };
+    }
+
+    protected void pageSizeChanged(AjaxRequestTarget target) {
+    }
+
+    protected boolean isPageSizePopupVisible() {
+        return true;
     }
 }

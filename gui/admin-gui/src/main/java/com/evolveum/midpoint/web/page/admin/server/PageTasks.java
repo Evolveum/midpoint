@@ -158,7 +158,7 @@ public class PageTasks extends PageAdminTasks {
 
         provider.setQuery(createTaskQuery());
         TablePanel<TaskDto> taskTable = new TablePanel<>(ID_TASK_TABLE, provider, taskColumns,
-                getPagingSize(UserProfileStorage.TableId.PAGE_TASKS_PANEL), UserProfileStorage.TableId.PAGE_TASKS_PANEL);
+                UserProfileStorage.TableId.PAGE_TASKS_PANEL);
         taskTable.setShowPagingSize(true);
         taskTable.setOutputMarkupId(true);
         mainForm.add(taskTable);

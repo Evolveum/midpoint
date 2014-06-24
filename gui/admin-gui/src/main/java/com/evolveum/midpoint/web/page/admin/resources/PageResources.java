@@ -143,7 +143,7 @@ public class PageResources extends PageAdminResources {
         add(mainForm);
 
         TablePanel resources = new TablePanel<>(ID_TABLE, initResourceDataProvider(), initResourceColumns(),
-                getPagingSize(UserProfileStorage.TableId.PAGE_RESOURCES_PANEL), UserProfileStorage.TableId.PAGE_RESOURCES_PANEL);
+                UserProfileStorage.TableId.PAGE_RESOURCES_PANEL);
         resources.setShowPagingSize(true);
         resources.setOutputMarkupId(true);
         mainForm.add(resources);
