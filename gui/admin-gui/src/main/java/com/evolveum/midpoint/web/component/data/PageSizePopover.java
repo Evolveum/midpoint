@@ -3,6 +3,7 @@ package com.evolveum.midpoint.web.component.data;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
@@ -55,12 +56,6 @@ public class PageSizePopover extends SimplePanel {
         Form form = new Form(ID_FORM);
         popover.add(form);
 
-        TextField input = new TextField(ID_INPUT, createInputModel());
-        input.add(new RangeValidator(5, 50));
-        input.setLabel(createStringResource("PageSizePopover.title"));
-        input.setType(Integer.class);
-        form.add(input);
-
         AjaxSubmitButton button = new AjaxSubmitButton(ID_BUTTON) {
 
             @Override
@@ -77,6 +72,13 @@ public class PageSizePopover extends SimplePanel {
             }
         };
         form.add(button);
+
+        TextField input = new TextField(ID_INPUT, createInputModel());
+        input.add(new RangeValidator(5, 50));
+        input.setLabel(createStringResource("PageSizePopover.title"));
+        input.add(new SearchFormEnterBehavior(button));
+        input.setType(Integer.class);
+        form.add(input);
     }
 
     private IModel<Integer> createInputModel() {

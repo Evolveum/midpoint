@@ -123,7 +123,6 @@ public class PageResource extends PageAdminResources {
         provider.setSort("displayName", SortOrder.ASCENDING);
         TablePanel objectTypes = new TablePanel<>("objectTypesTable", provider,
                 initObjectTypesColumns(), UserProfileStorage.TableId.PAGE_RESOURCE_PANEL);
-        objectTypes.setShowPagingSize(true);
         objectTypes.setShowPaging(true);
         objectTypes.setOutputMarkupId(true);
         mainForm.add(objectTypes);

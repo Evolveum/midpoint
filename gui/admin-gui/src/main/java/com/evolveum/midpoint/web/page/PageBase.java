@@ -639,8 +639,4 @@ public abstract class PageBase extends WebPage {
 
         target.appendJavaScript(sb.toString());
     }
-
-    public Integer getPagingSize(UserProfileStorage.TableId tableId){
-        return getSessionStorage().getUserProfile().getPagingSize(tableId);
-    }
 }

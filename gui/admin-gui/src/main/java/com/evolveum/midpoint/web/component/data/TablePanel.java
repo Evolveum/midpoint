@@ -45,7 +45,6 @@ public class TablePanel<T> extends Panel {
 
     private IModel<Boolean> showPaging = new Model<Boolean>(true);
     private IModel<Boolean> showCount = new Model<Boolean>(true);
-    private IModel<Boolean> showPagingSize = new Model<Boolean>(false);
 
     private UserProfileStorage.TableId tableId;
 
@@ -100,8 +99,13 @@ public class TablePanel<T> extends Panel {
 
             @Override
             protected boolean isPageSizePopupVisible() {
-                return showPagingSize.getObject();
+                if(tableId != null){
+                    return true;
+                } else {
+                    return false;
+                }
             }
+
         };
         addVisibleBehaviour(count, showCount);
         table.addBottomToolbar(count);
@@ -161,10 +165,6 @@ public class TablePanel<T> extends Panel {
         }
 
         getDataTable().setCurrentPage(page);
-    }
-
-    public void setShowPagingSize(boolean show) {
-        this.showPagingSize.setObject(show);
     }
 
     public void setShowPaging(boolean showPaging) {

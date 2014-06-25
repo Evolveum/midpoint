@@ -144,7 +144,6 @@ public class PageResources extends PageAdminResources {
 
         TablePanel resources = new TablePanel<>(ID_TABLE, initResourceDataProvider(), initResourceColumns(),
                 UserProfileStorage.TableId.PAGE_RESOURCES_PANEL);
-        resources.setShowPagingSize(true);
         resources.setOutputMarkupId(true);
         mainForm.add(resources);
 

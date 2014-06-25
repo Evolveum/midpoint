@@ -202,7 +202,6 @@ public class PageAccounts extends PageAdminConfiguration {
         provider.setOptions(SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         provider.setQuery(ObjectQuery.createObjectQuery(createResourceQueryFilter()));
         TablePanel accounts = new TablePanel(ID_ACCOUNTS, provider, createAccountsColumns(), UserProfileStorage.TableId.CONF_PAGE_ACCOUNTS);
-        accounts.setShowPagingSize(true);
         accounts.add(new VisibleEnableBehaviour() {
 
             @Override

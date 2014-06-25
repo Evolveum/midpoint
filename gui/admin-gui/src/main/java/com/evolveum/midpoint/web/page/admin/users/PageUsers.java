@@ -308,7 +308,6 @@ public class PageUsers extends PageAdminUsers {
         provider.setOptions(options);
 
         TablePanel table = new TablePanel(ID_TABLE, provider, columns, UserProfileStorage.TableId.PAGE_USERS_PANEL);
-        table.setShowPagingSize(true);
         table.setOutputMarkupId(true);
 
         UsersStorage storage = getSessionStorage().getUsers();

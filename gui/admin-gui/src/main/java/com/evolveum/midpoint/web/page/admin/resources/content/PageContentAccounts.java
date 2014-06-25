@@ -238,7 +238,6 @@ public class PageContentAccounts extends PageAdminResources {
 
         List<IColumn> columns = initColumns();
         TablePanel table = new TablePanel(ID_TABLE, provider, columns, UserProfileStorage.TableId.PAGE_RESOURCE_ACCOUNTS_PANEL);
-        table.setShowPagingSize(true);
         table.setOutputMarkupId(true);
         mainForm.add(table);
 

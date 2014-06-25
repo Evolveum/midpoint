@@ -331,7 +331,7 @@ public class TreeTablePanel extends SimplePanel<String> {
         };
         tableProvider.setOptions(WebModelUtils.createMinimalOptions());
         List<IColumn<OrgTableDto, String>> tableColumns = createTableColumns();
-        TablePanel table = new TablePanel(ID_TABLE, tableProvider, tableColumns);
+        TablePanel table = new TablePanel(ID_TABLE, tableProvider, tableColumns, UserProfileStorage.TableId.TREE_TABLE_PANEL);
         table.setOutputMarkupId(true);
         form.add(table);
     }

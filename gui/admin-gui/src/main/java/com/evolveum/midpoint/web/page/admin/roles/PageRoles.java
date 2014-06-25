@@ -130,7 +130,6 @@ public class PageRoles extends PageAdminRoles {
         List<IColumn<RoleType, String>> columns = initColumns();
         TablePanel table = new TablePanel<>(ID_TABLE, provider, columns, UserProfileStorage.TableId.TABLE_ROLES);
         table.setOutputMarkupId(true);
-        table.setShowPagingSize(true);
         RolesStorage storage = getSessionStorage().getRoles();
         table.setCurrentPage(storage.getRolesPaging());
 
