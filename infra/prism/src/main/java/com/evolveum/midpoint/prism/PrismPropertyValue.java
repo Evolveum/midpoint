@@ -572,12 +572,7 @@ public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, 
     }
 
 	private void dumpSuffix(StringBuilder builder) {
-        if (getOriginType() != null || getOriginObject() != null) {
-	        builder.append(", origin: ");
-	        builder.append(getOriginType());
-	        builder.append(":");
-	        builder.append(getOriginObject());
-        }
+		appendOriginDump(builder);
         if (getRawElement() != null) {
 	        builder.append(", raw element: ");
 	        builder.append(PrettyPrinter.prettyPrint(getRawElement()));

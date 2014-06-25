@@ -79,6 +79,7 @@ public class PageDebugView extends PageAdminConfiguration {
     private IModel<ObjectViewDto> model;
     private AceEditor editor;
     private final IModel<Boolean> encrypt = new Model<Boolean>(true);
+    private final IModel<Boolean> saveAsRaw = new Model<>(true);
     private final IModel<Boolean> validateSchema = new Model<Boolean>(false);
 
     public PageDebugView() {
@@ -167,6 +168,13 @@ public class PageDebugView extends PageAdminConfiguration {
 			@Override
 			protected void onUpdate(AjaxRequestTarget target) {
 			}
+        });
+
+        mainForm.add(new AjaxCheckBox("saveAsRaw", saveAsRaw) {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
         });
 
         mainForm.add(new AjaxCheckBox("validateSchema", validateSchema) {
@@ -280,8 +288,10 @@ public class PageDebugView extends PageAdminConfiguration {
                 }
 
                 Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection) MiscUtil.createCollection(delta);
-                ModelExecuteOptions options = ModelExecuteOptions.createRaw();
-
+                ModelExecuteOptions options = new ModelExecuteOptions();
+                if (saveAsRaw.getObject()) {
+                    options.setRaw(true);
+                }
                 if(!encrypt.getObject()) {
                 	options.setNoCrypt(true);
                 }

@@ -18,6 +18,8 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.w3c.dom.Element;
@@ -312,6 +314,17 @@ public abstract class PrismValue implements Visitable, PathVisitable, Serializab
 	 * The value is returned without any decorations or type demarcations (such as PPV, PRV, etc.)
 	 */
 	public abstract String toHumanReadableString();
+	
+	protected void appendOriginDump(StringBuilder builder) {
+		if (DebugUtil.isDetailedDebugDump()) {
+	        if (getOriginType() != null || getOriginObject() != null) {
+		        builder.append(", origin: ");
+		        builder.append(getOriginType());
+		        builder.append(":");
+		        builder.append(getOriginObject());
+	        }
+		}
+	}
 
     public static <T> Set<T> getRealValuesOfCollection(Collection<PrismPropertyValue<T>> collection) {
         Set<T> retval = new HashSet<T>(collection.size());

@@ -38,6 +38,7 @@ import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
@@ -199,17 +200,17 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         	LOGGER.trace("Refined schema:\n{}", refinedSchema.debugDump());
         }
         
-        RefinedObjectClassDefinition rObjectClass = Utils.determineObjectClass(refinedSchema, task);        
-        if (rObjectClass == null) {
+        ObjectClassComplexTypeDefinition objectClass = Utils.determineObjectClass(refinedSchema, task);        
+        if (objectClass == null) {
             LOGGER.error("Import: No objectclass specified and no default can be determined.");
             opResult.recordFatalError("No objectclass specified and no default can be determined");
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return null;
         }
         
-        LOGGER.info("Start executing import from resource {}, importing object class {}", resource, rObjectClass.getTypeName());
+        LOGGER.info("Start executing import from resource {}, importing object class {}", resource, objectClass.getTypeName());
 		
-		SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource, rObjectClass, "import", 
+		SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource, objectClass, "import", 
         		task, changeNotificationDispatcher);
         handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
         handler.setForceAdd(true);
@@ -230,7 +231,7 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
 	protected ObjectQuery createQuery(SynchronizeAccountResultHandler handler, TaskRunResult runResult, Task task, OperationResult opResult) {
         try {
 			return ObjectQueryUtil.createResourceAndAccountQuery(handler.getResource().getOid(), 
-					handler.getRefinedObjectClass().getTypeName(), prismContext);
+					handler.getObjectClass().getTypeName(), prismContext);
 		} catch (SchemaException e) {
 			LOGGER.error("Import: Schema error during creating search query: {}",e.getMessage());
             opResult.recordFatalError("Schema error during creating search query: "+e.getMessage(),e);

@@ -2457,6 +2457,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		throw new IllegalArgumentException("Synchronization setting for "+type+" and name "+name+" not found in "+resource);
 	}
 	
+	protected void assertShadowKindIntent(String shadowOid, ShadowKindType expectedKind,
+			String expectedIntent) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName()+".assertShadowKindIntent");
+		PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		assertShadowKindIntent(shadow, expectedKind, expectedIntent);
+	}
+	
 	protected void assertShadowKindIntent(PrismObject<ShadowType> shadow, ShadowKindType expectedKind,
 			String expectedIntent) {
 		assertEquals("Wrong kind in "+shadow, expectedKind, shadow.asObjectable().getKind());

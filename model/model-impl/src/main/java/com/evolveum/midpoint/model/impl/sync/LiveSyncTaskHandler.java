@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
 
@@ -191,8 +192,8 @@ public class LiveSyncTaskHandler implements TaskHandler {
             return runResult;
         }
         
-        RefinedObjectClassDefinition rObjectClass = Utils.determineObjectClass(refinedSchema, task);        
-        if (rObjectClass == null) {
+        ObjectClassComplexTypeDefinition objectClass = Utils.determineObjectClass(refinedSchema, task);        
+        if (objectClass == null) {
             LOGGER.error("Live Sync: No objectclass specified and no default can be determined.");
             opResult.recordFatalError("No objectclass specified and no default can be determined");
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
@@ -209,7 +210,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
 			// It will use extension of task to store synchronization state
 
             Utils.clearRequestee(task);
-			changesProcessed = provisioningService.synchronize(resourceOid, rObjectClass.getTypeName(), task, opResult);
+			changesProcessed = provisioningService.synchronize(resourceOid, objectClass.getTypeName(), task, opResult);
             progress += changesProcessed;
 			
 		} catch (ObjectNotFoundException ex) {
