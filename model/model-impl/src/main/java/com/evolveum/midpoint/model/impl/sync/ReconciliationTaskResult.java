@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -27,7 +28,7 @@ public class ReconciliationTaskResult implements DebugDumpable {
 	
 	private TaskRunResult runResult;
 	PrismObject<ResourceType> resource;
-	RefinedObjectClassDefinition refinedObjectclassDefinition;
+	ObjectClassComplexTypeDefinition objectclassDefinition;
 	private long etime;
 	private long unOpsTime;
 	private long resourceReconTime;
@@ -54,13 +55,13 @@ public class ReconciliationTaskResult implements DebugDumpable {
 		this.resource = resource;
 	}
 
-	public RefinedObjectClassDefinition getRefinedObjectclassDefinition() {
-		return refinedObjectclassDefinition;
+	public ObjectClassComplexTypeDefinition getObjectclassDefinition() {
+		return objectclassDefinition;
 	}
 
-	public void setRefinedObjectclassDefinition(
-			RefinedObjectClassDefinition refinedObjectclassDefinition) {
-		this.refinedObjectclassDefinition = refinedObjectclassDefinition;
+	public void setObjectclassDefinition(
+			ObjectClassComplexTypeDefinition refinedObjectclassDefinition) {
+		this.objectclassDefinition = refinedObjectclassDefinition;
 	}
 
 	public long getEtime() {
@@ -137,7 +138,7 @@ public class ReconciliationTaskResult implements DebugDumpable {
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "resource", resource.toString(), indent);
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabel(sb, "rOCD", refinedObjectclassDefinition.toString(), indent);
+		DebugUtil.debugDumpWithLabel(sb, "rOCD", objectclassDefinition.toString(), indent);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "etime", etime, indent);
 		sb.append("\n");

@@ -275,7 +275,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         }
     }
 
-
     @Test
     public void queryGenericLong() throws Exception {
         Session session = open();
@@ -1506,6 +1505,57 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             OrFilter or = OrFilter.createOr(type1, type2, type3);
 
             String real = getInterpretedQuery(session, ObjectType.class, ObjectQuery.createObjectQuery(or));
+
+            LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+            AssertJUnit.assertEquals(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test(expectedExceptions = QueryException.class)
+    public void test410QueryGenericClob() throws Exception {
+        Session session = open();
+        try {
+            EqualFilter eq = EqualFilter.createEqual(
+                    new ItemPath(ObjectType.F_EXTENSION, new QName("http://example.com/p", "locations")),
+                    GenericObjectType.class, prismContext, null);
+
+            getInterpretedQuery(session, GenericObjectType.class, ObjectQuery.createObjectQuery(eq));
+        } catch (QueryException ex) {
+            LOGGER.info("Exception", ex);
+            throw ex;
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test420QueryGenericString() throws Exception {
+        Session session = open();
+        try {
+            Criteria main = session.createCriteria(RGenericObject.class, "g");
+
+            Criteria stringExt = main.createCriteria("strings", "s", JoinType.LEFT_OUTER_JOIN);
+
+            //and
+            Conjunction c2 = Restrictions.conjunction();
+            c2.add(Restrictions.eq("s.ownerType", RObjectExtensionType.EXTENSION));
+            c2.add(Restrictions.eq("s.name", new QName("http://example.com/p", "stringType")));
+            c2.add(Restrictions.eq("s.value", "asdf"));
+
+            main.add(c2);
+            ProjectionList projections = Projections.projectionList();
+            addFullObjectProjectionList("g", projections, false);
+            main.setProjection(projections);
+
+            String expected = HibernateToSqlTranslator.toSql(main);
+
+            EqualFilter eq = EqualFilter.createEqual(
+                    new ItemPath(ObjectType.F_EXTENSION, new QName("http://example.com/p", "stringType")),
+                    GenericObjectType.class, prismContext, "asdf");
+
+            String real = getInterpretedQuery(session, GenericObjectType.class, ObjectQuery.createObjectQuery(eq));
 
             LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
             AssertJUnit.assertEquals(expected, real);

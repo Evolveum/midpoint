@@ -92,5 +92,20 @@ public class TestImportReconDeprecated extends TestImportRecon {
 	protected File getDummyResourceAzureFile() {
 		return RESOURCE_DUMMY_AZURE_DEPRECATED_FILE;
 	}
+
+	@Override
+	public void test500ImportTAugustusFromResourceDummy() throws Exception {
+		// Not relevant for deprecated syntax
+	}
+
+	@Override
+	public void test502ImportAugustusFromResourceDummy() throws Exception {
+		// Not relevant for deprecated syntax
+	}
+
+	@Override
+	public void test510ImportFromResourceDummy() throws Exception {
+		// Not relevant for deprecated syntax
+	}
 	
 }
