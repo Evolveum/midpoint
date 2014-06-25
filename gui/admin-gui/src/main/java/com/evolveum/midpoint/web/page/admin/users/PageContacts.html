@@ -65,6 +65,7 @@
     </form>
     <hr />
 
+    <!--
     <div class="row">
         <div class="col-md-10 col-md-offset-1">
             <table class="table table-striped table-condensed">
@@ -107,10 +108,174 @@
             </table>
         </div>
     </div>
+    -->
 
     <!--<div wicket:id="table"/>-->
     <!---->
-    <div wicket:id="tree"/>
+    <!--<div wicket:id="tree"/>-->
+
+    <div class="row">
+        <div class="col-md-10 col-md-offset-1">
+            <div class="row" style="border-bottom: 1px solid #ddd; margin: 0px;">
+                <div class="col-md-9">
+                    <h3 style="margin-top: 0px">Org. structure</h3>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-control input-sm pull-right">
+                        <option>Super Department</option>
+                    </select>
+                </div>
+                <hr/>
+            </div>
+            <table class="table table-condensed table-striped">
+                <tr>
+                    <td style="width: 16px;"><i class="fa fa-fw fa-folder-open"></i></td>
+                    <td colspan="3">Ministry of offence</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td colspan="3">
+                        <div class="media">
+                            <a class="pull-left" href="#">
+                                <img alt="64x64" class="media-object" style="width: 64px; height: 64px;"
+                                     src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjZWVlIi8+PHRleHQgdGV4dC1hbmNob3I9Im1pZGRsZSIgeD0iMzIiIHk9IjMyIiBzdHlsZT0iZmlsbDojYWFhO2ZvbnQtd2VpZ2h0OmJvbGQ7Zm9udC1zaXplOjEycHg7Zm9udC1mYW1pbHk6QXJpYWwsSGVsdmV0aWNhLHNhbnMtc2VyaWY7ZG9taW5hbnQtYmFzZWxpbmU6Y2VudHJhbCI+NjR4NjQ8L3RleHQ+PC9zdmc+">
+                            </a>
+                            <div class="media-body">
+                                <h4 class="media-heading">John Doe<small>&nbsp;(jdoe)</small><i class="fa fa-fw fa-star text-warning"></i></h4>
+                                <div><strong>Phone:&nbsp;</strong>+421 (123) 123 123</div>
+                                <div><strong>Email:&nbsp;</strong><a href="mailto:#">john.doe@example.com</a></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width: 16px;"></td>
+                    <td style="width: 16px;"><i class="fa fa-fw fa-folder-open"></i></td>
+                    <td colspan="2">Weapons Section</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td colspan="3">
+                        <div class="media">
+                            <a class="pull-left" href="#">
+                                <img alt="64x64" class="media-object" style="width: 64px; height: 64px;"
+                                     src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjZWVlIi8+PHRleHQgdGV4dC1hbmNob3I9Im1pZGRsZSIgeD0iMzIiIHk9IjMyIiBzdHlsZT0iZmlsbDojYWFhO2ZvbnQtd2VpZ2h0OmJvbGQ7Zm9udC1zaXplOjEycHg7Zm9udC1mYW1pbHk6QXJpYWwsSGVsdmV0aWNhLHNhbnMtc2VyaWY7ZG9taW5hbnQtYmFzZWxpbmU6Y2VudHJhbCI+NjR4NjQ8L3RleHQ+PC9zdmc+">
+                            </a>
+                            <div class="media-body">
+                                <h4 class="media-heading">Alice Doe<small>&nbsp;(adoe)</small><i class="fa fa-fw fa-star text-warning"></i></h4>
+                                <div><strong>Phone:&nbsp;</strong>+421 (123) 123 124</div>
+                                <div><strong>Email:&nbsp;</strong><a href="mailto:#">alice.doe@example.com</a></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="width: 16px;"></td>
+                    <td style="width: 16px;"></td>
+                    <td style="width: 16px;"><i class="fa fa-fw fa-folder-open"></i></td>
+                    <td colspan="2">Super Department</td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td colspan="3">
+                        <div class="media">
+                            <a class="pull-left" href="#">
+                                <img alt="64x64" class="media-object" style="width: 64px; height: 64px;"
+                                     src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjZWVlIi8+PHRleHQgdGV4dC1hbmNob3I9Im1pZGRsZSIgeD0iMzIiIHk9IjMyIiBzdHlsZT0iZmlsbDojYWFhO2ZvbnQtd2VpZ2h0OmJvbGQ7Zm9udC1zaXplOjEycHg7Zm9udC1mYW1pbHk6QXJpYWwsSGVsdmV0aWNhLHNhbnMtc2VyaWY7ZG9taW5hbnQtYmFzZWxpbmU6Y2VudHJhbCI+NjR4NjQ8L3RleHQ+PC9zdmc+">
+                            </a>
+                            <div class="media-body">
+                                <h4 class="media-heading">Bud Light<small>&nbsp;(blight)</small><i class="fa fa-fw fa-star text-warning"></i></h4>
+                                <div><strong>Phone:&nbsp;</strong>+421 (123) 123 129</div>
+                                <div><strong>Email:&nbsp;</strong><a href="mailto:#">bud.light@example.com</a></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="danger">
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td colspan="3">
+                        <div class="media">
+                            <a class="pull-left" href="#">
+                                <img alt="64x64" class="media-object" style="width: 64px; height: 64px;"
+                                     src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjZWVlIi8+PHRleHQgdGV4dC1hbmNob3I9Im1pZGRsZSIgeD0iMzIiIHk9IjMyIiBzdHlsZT0iZmlsbDojYWFhO2ZvbnQtd2VpZ2h0OmJvbGQ7Zm9udC1zaXplOjEycHg7Zm9udC1mYW1pbHk6QXJpYWwsSGVsdmV0aWNhLHNhbnMtc2VyaWY7ZG9taW5hbnQtYmFzZWxpbmU6Y2VudHJhbCI+NjR4NjQ8L3RleHQ+PC9zdmc+">
+                            </a>
+                            <div class="media-body">
+                                <h4 class="media-heading">Foo Bar<small>&nbsp;(fbar)</small></h4>
+                                <div><strong>Phone:&nbsp;</strong>+421 (123) 123 125</div>
+                                <div><strong>Email:&nbsp;</strong><a href="mailto:#">foo.bar@example.com</a></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td colspan="3">
+                        <div class="media">
+                            <a class="pull-left" href="#">
+                                <img alt="64x64" class="media-object" style="width: 64px; height: 64px;"
+                                     src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjZWVlIi8+PHRleHQgdGV4dC1hbmNob3I9Im1pZGRsZSIgeD0iMzIiIHk9IjMyIiBzdHlsZT0iZmlsbDojYWFhO2ZvbnQtd2VpZ2h0OmJvbGQ7Zm9udC1zaXplOjEycHg7Zm9udC1mYW1pbHk6QXJpYWwsSGVsdmV0aWNhLHNhbnMtc2VyaWY7ZG9taW5hbnQtYmFzZWxpbmU6Y2VudHJhbCI+NjR4NjQ8L3RleHQ+PC9zdmc+">
+                            </a>
+                            <div class="media-body">
+                                <h4 class="media-heading">Justin Bieber<small>&nbsp;(jbieber)</small></h4>
+                                <div><strong>Phone:&nbsp;</strong>+421 (123) 123 126</div>
+                                <div><strong>Email:&nbsp;</strong><a href="mailto:#">justin.bieber@example.com</a></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td colspan="3">
+                        <div class="media">
+                            <a class="pull-left" href="#">
+                                <img alt="64x64" class="media-object" style="width: 64px; height: 64px;"
+                                     src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjZWVlIi8+PHRleHQgdGV4dC1hbmNob3I9Im1pZGRsZSIgeD0iMzIiIHk9IjMyIiBzdHlsZT0iZmlsbDojYWFhO2ZvbnQtd2VpZ2h0OmJvbGQ7Zm9udC1zaXplOjEycHg7Zm9udC1mYW1pbHk6QXJpYWwsSGVsdmV0aWNhLHNhbnMtc2VyaWY7ZG9taW5hbnQtYmFzZWxpbmU6Y2VudHJhbCI+NjR4NjQ8L3RleHQ+PC9zdmc+">
+                            </a>
+                            <div class="media-body">
+                                <h4 class="media-heading">Lee Child<small>&nbsp;(lchild)</small></h4>
+                                <div><strong>Phone:&nbsp;</strong>+421 (123) 123 127</div>
+                                <div><strong>Email:&nbsp;</strong><a href="mailto:#">lee.child@example.com</a></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td colspan="3">
+                        <div class="media">
+                            <a class="pull-left" href="#">
+                                <img alt="64x64" class="media-object" style="width: 64px; height: 64px;"
+                                     src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCI+PHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiBmaWxsPSIjZWVlIi8+PHRleHQgdGV4dC1hbmNob3I9Im1pZGRsZSIgeD0iMzIiIHk9IjMyIiBzdHlsZT0iZmlsbDojYWFhO2ZvbnQtd2VpZ2h0OmJvbGQ7Zm9udC1zaXplOjEycHg7Zm9udC1mYW1pbHk6QXJpYWwsSGVsdmV0aWNhLHNhbnMtc2VyaWY7ZG9taW5hbnQtYmFzZWxpbmU6Y2VudHJhbCI+NjR4NjQ8L3RleHQ+PC9zdmc+">
+                            </a>
+                            <div class="media-body">
+                                <h4 class="media-heading">Jo Nesbo<small>&nbsp;(jnesbo)</small></h4>
+                                <div><strong>Phone:&nbsp;</strong>+421 (123) 123 128</div>
+                                <div><strong>Email:&nbsp;</strong><a href="mailto:#">jo.nesbo@example.com</a></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td colspan="3"><a href="#">Load more ...</a></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
 </wicket:extend>
 </body>
 </html>
