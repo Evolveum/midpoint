@@ -99,11 +99,7 @@ public class TablePanel<T> extends Panel {
 
             @Override
             protected boolean isPageSizePopupVisible() {
-                if(tableId != null){
-                    return true;
-                } else {
-                    return false;
-                }
+                return tableId != null;
             }
 
         };
