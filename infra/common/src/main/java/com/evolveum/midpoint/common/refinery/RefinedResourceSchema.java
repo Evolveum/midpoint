@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.QNameUtil;
 
+import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
@@ -50,7 +51,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author semancik
  *
  */
-public class RefinedResourceSchema extends PrismSchema implements DebugDumpable {
+public class RefinedResourceSchema extends ResourceSchema implements DebugDumpable {
 	
 	private static final String USER_DATA_KEY_PARSED_RESOURCE_SCHEMA = RefinedResourceSchema.class.getName()+".parsedResourceSchema";
 	private static final String USER_DATA_KEY_REFINED_SCHEMA = RefinedResourceSchema.class.getName()+".refinedSchema";
@@ -63,6 +64,7 @@ public class RefinedResourceSchema extends PrismSchema implements DebugDumpable 
 
 	private RefinedResourceSchema(ResourceType resourceType, ResourceSchema originalResourceSchema, PrismContext prismContext) {
 		super(ResourceTypeUtil.getResourceNamespace(resourceType), prismContext);
+		Validate.notNull(originalResourceSchema);
 		this.originalResourceSchema = originalResourceSchema;
 	}
 	
@@ -152,11 +154,10 @@ public class RefinedResourceSchema extends PrismSchema implements DebugDumpable 
 		return null;
 	}
 	
-	private ObjectClassComplexTypeDefinition findObjectClassDefinition(QName objectClassQName) {
+	public ObjectClassComplexTypeDefinition findObjectClassDefinition(QName objectClassQName) {
 		return originalResourceSchema.findObjectClassDefinition(objectClassQName);
 	}
 	
-
 	public static RefinedResourceSchema getRefinedSchema(ResourceType resourceType) throws SchemaException {
 		return getRefinedSchema(resourceType, resourceType.asPrismObject().getPrismContext());
 	}

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -60,17 +61,17 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 	
 	private ResourceObjectChangeListener objectChangeListener;
 	private ResourceType resource;
-	private RefinedObjectClassDefinition refinedObjectClass;
+	private ObjectClassComplexTypeDefinition objectClass;
 	private QName sourceChannel;
 	private boolean forceAdd;
     private Task task;
 
-	public SynchronizeAccountResultHandler(ResourceType resource, RefinedObjectClassDefinition refinedObjectClass,
+	public SynchronizeAccountResultHandler(ResourceType resource, ObjectClassComplexTypeDefinition objectClass,
 			String processShortName, Task task, ResourceObjectChangeListener objectChangeListener) {
 		super(task, SynchronizeAccountResultHandler.class.getName(), processShortName, "from "+resource);
 		this.objectChangeListener = objectChangeListener;
 		this.resource = resource;
-		this.refinedObjectClass = refinedObjectClass;
+		this.objectClass = objectClass;
         this.task = task;
 		forceAdd = false;
 	}
@@ -95,8 +96,8 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		return resource;
 	}
 
-	public RefinedObjectClassDefinition getRefinedObjectClass() {
-		return refinedObjectClass;
+	public ObjectClassComplexTypeDefinition getObjectClass() {
+		return objectClass;
 	}
 
 	/*
@@ -119,7 +120,8 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 			return true;
 		}
 		
-		if (!refinedObjectClass.matches(newShadowType)) {
+		if (objectClass != null && (objectClass instanceof RefinedObjectClassDefinition) 
+				&& !((RefinedObjectClassDefinition)objectClass).matches(newShadowType)) {
 			LOGGER.trace("{} skipping {} because it does not match objectClass/kind/intent",new Object[] {
 					getProcessShortNameCapitalized(), accountShadow});
 			result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it does not match objectClass/kind/intent");
