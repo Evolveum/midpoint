@@ -33,20 +33,20 @@ public class PageContacts extends PageAdminUsers {
     }
 
     private void initLayout() {
-        ITreeProvider<ContactTreeDto> provider = new ContactDataProvider();
-
-        NestedTree tree = new NestedTree<ContactTreeDto>(ID_TREE, provider) {
-
-            @Override
-            protected Component newContentComponent(String id, IModel model) {
-                ContactTreeDto dto = (ContactTreeDto) model.getObject();
-                if (dto instanceof ContactUserDto) {
-                    return new ContactUserPanel(id, model);
-                }
-
-                return new ContactOrgUnitPanel(id, model);
-            }
-        };
-        add(tree);
+//        ITreeProvider<ContactTreeDto> provider = new ContactDataProvider();
+//
+//        NestedTree tree = new NestedTree<ContactTreeDto>(ID_TREE, provider) {
+//
+//            @Override
+//            protected Component newContentComponent(String id, IModel model) {
+//                ContactTreeDto dto = (ContactTreeDto) model.getObject();
+//                if (dto instanceof ContactUserDto) {
+//                    return new ContactUserPanel(id, model);
+//                }
+//
+//                return new ContactOrgUnitPanel(id, model);
+//            }
+//        };
+//        add(tree);
     }
 }
