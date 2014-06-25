@@ -307,8 +307,7 @@ public class PageUsers extends PageAdminUsers {
                 GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
         provider.setOptions(options);
 
-        TablePanel table = new TablePanel(ID_TABLE, provider, columns,
-                getPagingSize(UserProfileStorage.TableId.PAGE_USERS_PANEL), UserProfileStorage.TableId.PAGE_USERS_PANEL);
+        TablePanel table = new TablePanel(ID_TABLE, provider, columns, UserProfileStorage.TableId.PAGE_USERS_PANEL);
         table.setShowPagingSize(true);
         table.setOutputMarkupId(true);
 

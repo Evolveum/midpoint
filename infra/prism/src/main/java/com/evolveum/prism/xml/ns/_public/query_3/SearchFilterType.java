@@ -73,9 +73,7 @@ import org.w3c.dom.Element;
 
 
 @XmlAccessorType(XmlAccessType.NONE)        // we select getters/fields to expose via JAXB individually
-@XmlType(name = "SearchFilterType", propOrder = {
-	"description",
-    "filterClause",
+@XmlType(name = "SearchFilterType", propOrder = {       // no prop order, because we serialize this class manually
 })
 public class SearchFilterType implements Serializable, Cloneable, Equals, HashCode, DebugDumpable, Revivable
 {

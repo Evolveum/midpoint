@@ -257,7 +257,7 @@ public class PrismBeanConverter {
 							// This is the case of Collection<JAXBElement<?>>
 							// we need to exctract the specific type from the factory method
 							if (elementMethod == null){
-								throw new IllegalArgumentException("Wildcard type in JAXBElement field specification and no facotry method found for field "+fieldName+" in "+beanClass+", cannot determine collection type (inner type argument)");
+								throw new IllegalArgumentException("Wildcard type in JAXBElement field specification and no factory method found for field "+fieldName+" in "+beanClass+", cannot determine collection type (inner type argument)");
 							}
 							Type factoryMethodGenericReturnType = elementMethod.getGenericReturnType();
 							Type factoryMethodTypeArgument = getTypeArgument(factoryMethodGenericReturnType, "in factory method "+elementMethod+" return type for field "+fieldName+" in "+beanClass+", cannot determine collection type");
@@ -428,7 +428,7 @@ public class PrismBeanConverter {
 		return filterType;
 	}
 	
-	private XNode marshalSearchFilterType(SearchFilterType value) throws SchemaException {
+	private MapXNode marshalSearchFilterType(SearchFilterType value) throws SchemaException {
 		if (value == null) {
 			return null;
 		}
@@ -624,32 +624,39 @@ public class PrismBeanConverter {
             return xProtected;
         } else if (bean instanceof ItemPathType){
             return marshalItemPathType((ItemPathType) bean);
-        } else if (bean instanceof SearchFilterType) {
-            return marshalSearchFilterType((SearchFilterType) bean);
         } else if (bean instanceof RawType) {
             return marshalRawValue((RawType) bean);
         } else if (bean instanceof XmlAsStringType) {
             return marshalXmlAsStringType((XmlAsStringType) bean);
-        }
-        else if (prismContext != null && prismContext.getSchemaRegistry().determineDefinitionFromClass(bean.getClass()) != null){
+        } else if (prismContext != null && prismContext.getSchemaRegistry().determineDefinitionFromClass(bean.getClass()) != null){
         	return prismContext.getXnodeProcessor().serializeObject(((Objectable)bean).asPrismObject()).getSubnode();
         }
-       
-		MapXNode xmap = new MapXNode();
-				
-		Class<? extends Object> beanClass = bean.getClass();
-		
-		//check for enums
-		if (beanClass.isEnum()){
-			String enumValue = XNodeProcessorUtil.findEnumFieldValue(beanClass, bean);
-			if (StringUtils.isEmpty(enumValue)){
-				enumValue = bean.toString();
-			}
-			QName fieldTypeName = inspector.findFieldTypeName(null, beanClass, DEFAULT_PLACEHOLDER);
-			return createPrimitiveXNode(enumValue, fieldTypeName, false);
-//			return marshallValue(bean, fieldTypeName, false);
-		}
-		
+
+        // Note: SearchFilterType is treated below
+
+        Class<? extends Object> beanClass = bean.getClass();
+
+        //check for enums
+        if (beanClass.isEnum()){
+            String enumValue = XNodeProcessorUtil.findEnumFieldValue(beanClass, bean);
+            if (StringUtils.isEmpty(enumValue)){
+                enumValue = bean.toString();
+            }
+            QName fieldTypeName = inspector.findFieldTypeName(null, beanClass, DEFAULT_PLACEHOLDER);
+            return createPrimitiveXNode(enumValue, fieldTypeName, false);
+        }
+
+        MapXNode xmap;
+        if (bean instanceof SearchFilterType) {
+            // this hack is here because of c:ConditionalSearchFilterType - it is analogous to situation when unmarshalling this type (TODO: rework this in a nicer way)
+            xmap = marshalSearchFilterType((SearchFilterType) bean);
+            if (SearchFilterType.class.equals(bean.getClass())) {
+                return xmap;        // nothing more to serialize; otherwise we continue, because in that case we deal with a subclass of SearchFilterType
+            }
+        } else {
+            xmap = new MapXNode();
+        }
+
 		XmlType xmlType = beanClass.getAnnotation(XmlType.class);
 		if (xmlType == null) {
 			throw new IllegalArgumentException("Cannot marshall "+beanClass+" it does not have @XmlType annotation");
