@@ -59,6 +59,7 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ProvisioningScriptSpec;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -97,6 +98,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	
 	private static final String ACCOUNT_CAPSIZE_NAME = "capsize";
 	private static final String ACCOUNT_CAPSIZE_FULLNAME = "Kata Capsize";
+	
+	private static final String USER_AUGUSTUS_NAME = "augustus";
+	private static final File ACCOUNT_TAUGUSTUS_FILE = new File(TEST_DIR, "account-taugustus-dummy.xml");
+	private static final String ACCOUNT_TAUGUSTUS_OID = "22220000-2200-0000-0000-444400004456";
+	private static final String ACCOUNT_TAUGUSTUS_NAME = "Taugustus";
+	private static final String ACCOUNT_TAUGUSTUS_FULLNAME = "Augustus DeWaat";
 	
 	protected static final File RESOURCE_DUMMY_AZURE_FILE = new File(TEST_DIR, "resource-dummy-azure.xml");
 	protected static final File RESOURCE_DUMMY_AZURE_DEPRECATED_FILE = new File(TEST_DIR, "resource-dummy-azure-deprecated.xml");
@@ -169,8 +176,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		PrismObject<ShadowType> accountStan = PrismTestUtil.parseObject(ACCOUNT_STAN_FILE);
 		provisioningService.addObject(accountStan, null, null, initTask, initResult);
 		
+		addObject(SHADOW_GROUP_DUMMY_TESTERS_FILE, initTask, initResult);
+		
 		InternalMonitor.reset();
 		InternalMonitor.setTraceShadowFetchOperation(true);
+		
+		DebugUtil.setDetailedDebugDump(true);
 	}
 	
 	protected File getDummyResourceLimeFile() {
@@ -1079,6 +1090,62 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         // Audit record structure is somehow complex here.
 //        assertReconAuditModifications(4, TASK_RECONCILE_DUMMY_LIME_OID);
+	}
+	
+	/**
+	 * Imports a testing account (Taugustus)
+	 */
+	@Test
+    public void test500ImportTAugustusFromResourceDummy() throws Exception {
+		final String TEST_NAME = "test500ImportTAugustusFromResourceDummy";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        PrismObject<ShadowType> accountStan = PrismTestUtil.parseObject(ACCOUNT_TAUGUSTUS_FILE);
+		provisioningService.addObject(accountStan, null, null, task, result);
+        
+        // Preconditions
+        assertUsers(10);
+        dummyAuditService.clear();
+        rememberShadowFetchOperationCount();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.importFromResource(ACCOUNT_TAUGUSTUS_OID, task, result);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        display(result);
+        TestUtil.assertSuccess(result);
+        
+        // First fetch: import handler reading the account
+        // Second fetch: fetchback to correctly process inbound (import changes the account).
+//        assertShadowFetchOperationCountIncrement(2);
+        
+        // WHY???
+        assertShadowFetchOperationCountIncrement(1);
+                
+        assertImportedUserByOid(USER_ADMINISTRATOR_OID);
+        assertImportedUserByOid(USER_JACK_OID);
+        assertImportedUserByOid(USER_BARBOSSA_OID);
+        assertImportedUserByOid(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_STAN_NAME, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(USER_AUGUSTUS_NAME, RESOURCE_DUMMY_OID);
+        
+        // These are protected accounts, they should not be imported
+        assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
+        assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
+        
+        assertUsers(11);
+        
+        // Check audit
+        assertImportAuditModifications(1);
+
 	}
 
 	private void assertImportAuditModifications(int expectedModifications) {

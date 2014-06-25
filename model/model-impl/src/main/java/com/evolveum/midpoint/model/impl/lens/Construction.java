@@ -411,6 +411,8 @@ public class Construction<F extends FocusType> implements DebugDumpable, Seriali
 		PrismContainerDefinition<ShadowAssociationType> outputDefinition = getAssociationContainerDefinition();
 		Mapping<PrismContainerValue<ShadowAssociationType>> mapping = mappingFactory.createMapping(outboundMappingType,
 				"for association " + PrettyPrinter.prettyPrint(assocName)  + " in " + source);
+		mapping.setOriginType(OriginType.ASSIGNMENTS);
+		mapping.setOriginObject(source);
 		
 		RefinedAssociationDefinition rAssocDef = refinedObjectClassDefinition.findAssociation(assocName);
 		if (rAssocDef == null) {
