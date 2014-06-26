@@ -216,14 +216,15 @@ public class PageWorkItem extends PageAdminWorkItems {
         ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(
                 createStringResource("pageWorkItem.requester.description").getString(),     // name (large font)
                 PolyString.getOrig(prism.asObjectable().getName()),                         // description (smaller font)
-                prism, status, this);
-        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-            showResultInSession(wrapper.getResult());
-        }
+                prism, status, true, this);
         wrapper.setShowEmpty(false);
         wrapper.setMinimalized(true);
         wrapper.setShowAssignments(false);
         wrapper.setReadonly(true);
+        wrapper.initializeContainers(this);
+        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+            showResultInSession(wrapper.getResult());
+        }
 
         return wrapper;
        
@@ -244,14 +245,15 @@ public class PageWorkItem extends PageAdminWorkItems {
         ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(
                 createStringResource("pageWorkItem.objectOld.description").getString(),     // name (large font)
                 PolyString.getOrig(prism.asObjectable().getName()),                         // description (smaller font)
-                prism, status, this);
-        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-            showResultInSession(wrapper.getResult());
-        }
+                prism, status, true, this);
         wrapper.setShowEmpty(false);
         wrapper.setMinimalized(true);
         wrapper.setShowAssignments(true);
         wrapper.setReadonly(true);
+        wrapper.initializeContainers(this);
+        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+            showResultInSession(wrapper.getResult());
+        }
 
         return wrapper;
         
@@ -281,14 +283,15 @@ public class PageWorkItem extends PageAdminWorkItems {
         ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(
                 createStringResource("pageWorkItem.objectNew.description").getString(),     // name (large font)
                 PolyString.getOrig(prism.asObjectable().getName()),                         // description (smaller font)
-                prism, status, this);
-        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-            showResultInSession(wrapper.getResult());
-        }
+                prism, status, true, this);
         wrapper.setShowEmpty(false);
         wrapper.setMinimalized(true);
         wrapper.setShowAssignments(true);
         wrapper.setReadonly(true);
+        wrapper.initializeContainers(this);
+        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+            showResultInSession(wrapper.getResult());
+        }
 
         return wrapper;
     }
@@ -310,14 +313,14 @@ public class PageWorkItem extends PageAdminWorkItems {
 
         ContainerStatus status = ContainerStatus.MODIFYING;
         try{
-        ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper("pageWorkItem.requestSpecifics", null, prism, status, this);
-//        ObjectWrapper wrapper = new ObjectWrapper("pageWorkItem.requestSpecifics", null, prism, status);
-        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-            showResultInSession(wrapper.getResult());
-        }
-        wrapper.setShowEmpty(true);
-        wrapper.setMinimalized(false);
-        wrapper.setShowInheritedObjectAttributes(false);
+            ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper("pageWorkItem.requestSpecifics", null, prism, status, true, this);
+            wrapper.setShowEmpty(true);
+            wrapper.setMinimalized(false);
+            wrapper.setShowInheritedObjectAttributes(false);
+            wrapper.initializeContainers(this);
+            if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+                showResultInSession(wrapper.getResult());
+            }
 
         return wrapper;
         } catch (Exception ex){
@@ -336,22 +339,19 @@ public class PageWorkItem extends PageAdminWorkItems {
         }
 
         ContainerStatus status = ContainerStatus.MODIFYING;
-        try{
-        ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(
-                createStringResource("pageWorkItem.additionalData.description").getString(),     // name (large font)
-                PolyString.getOrig(prism.asObjectable().getName()),                         // description (smaller font)
-                prism, status, this);
-//        ObjectWrapper wrapper = new ObjectWrapper(
-//                createStringResource("pageWorkItem.additionalData.description").getString(),     // name (large font)
-//                PolyString.getOrig(prism.asObjectable().getName()),                         // description (smaller font)
-//                prism, status);
-        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-            showResultInSession(wrapper.getResult());
-        }
-        wrapper.setShowEmpty(false);
-        wrapper.setMinimalized(true);
-        wrapper.setReadonly(true);
-        return wrapper;
+        try {
+            ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(
+                    createStringResource("pageWorkItem.additionalData.description").getString(),     // name (large font)
+                    PolyString.getOrig(prism.asObjectable().getName()),                         // description (smaller font)
+                    prism, status, true, this);
+            wrapper.setShowEmpty(false);
+            wrapper.setMinimalized(true);
+            wrapper.setReadonly(true);
+            wrapper.initializeContainers(this);
+            if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+                showResultInSession(wrapper.getResult());
+            }
+            return wrapper;
         } catch (Exception ex){
             LoggingUtils.logException(LOGGER, "Couldn't get work item.", ex);
         }
@@ -365,15 +365,15 @@ public class PageWorkItem extends PageAdminWorkItems {
         ContainerStatus status = ContainerStatus.MODIFYING;
 		try {
 			ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper("pageWorkItem.trackingData", null,
-					prism, status, this);
-			// ObjectWrapper wrapper = new
-			// ObjectWrapper("pageWorkItem.trackingData", null, prism, status);
-			if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-				showResultInSession(wrapper.getResult());
-			}
+					prism, status, true, this);
 			wrapper.setShowEmpty(false);
 			wrapper.setMinimalized(true);
 			wrapper.setReadonly(true);
+            wrapper.initializeContainers(this);
+            wrapper.setShowInheritedObjectAttributes(false);
+            if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
+                showResultInSession(wrapper.getResult());
+            }
 
 			return wrapper;
 		} catch (Exception ex) {
