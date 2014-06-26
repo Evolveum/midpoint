@@ -16,20 +16,28 @@
 
 package com.evolveum.midpoint.model.impl.scripting.actions;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.impl.scripting.ActionExecutor;
+import com.evolveum.midpoint.model.impl.scripting.Data;
+import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
+import com.evolveum.midpoint.model.impl.scripting.ScriptExecutionException;
 import com.evolveum.midpoint.model.impl.scripting.ScriptingExpressionEvaluator;
 import com.evolveum.midpoint.model.impl.scripting.helpers.ExpressionHelper;
 import com.evolveum.midpoint.model.impl.scripting.helpers.OperationsHelper;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ActionExpressionType;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author mederly
  */
 public abstract class BaseActionExecutor implements ActionExecutor {
+
+    private static final String PARAM_RAW = "raw";
 
     @Autowired
     protected ScriptingExpressionEvaluator scriptingExpressionEvaluator;
@@ -50,5 +58,14 @@ public abstract class BaseActionExecutor implements ActionExecutor {
     protected ModelService modelService;
 
     //protected Data getArgumentValue(ActionExpressionType actionExpression, String parameterName, boolean required) throws ScriptExecutionException {
+
+    // todo move to some helper?
+    protected boolean getParamRaw(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
+        return expressionHelper.getArgumentAsBoolean(expression.getParameter(), PARAM_RAW, input, context, false, PARAM_RAW, result);
+    }
+
+    protected String rawSuffix(boolean raw) {
+        return raw ? " (raw)" : "";
+    }
 
 }
