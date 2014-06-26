@@ -64,6 +64,8 @@ public class AssignExecutor extends BaseActionExecutor {
     @Override
     public Data execute(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
 
+        boolean raw = getParamRaw(expression, input, context, result);
+
         JAXBElement<?> resourceExpression = expressionHelper.getArgument(expression.getParameter(), PARAM_RESOURCE, false, false, NAME);
         JAXBElement<?> roleExpression = expressionHelper.getArgument(expression.getParameter(), PARAM_ROLE, false, false, NAME);
 
@@ -91,8 +93,8 @@ public class AssignExecutor extends BaseActionExecutor {
             if (item instanceof PrismObject && ((PrismObject) item).asObjectable() instanceof FocusType) {
                 PrismObject<? extends ObjectType> prismObject = (PrismObject) item;
                 ObjectType objectType = prismObject.asObjectable();
-                operationsHelper.applyDelta(createDelta(objectType, resources, roles), context, result);
-                context.println("Modified " + item.toString());
+                operationsHelper.applyDelta(createDelta(objectType, resources, roles), operationsHelper.createExecutionOptions(raw), context, result);
+                context.println("Modified " + item.toString() + rawSuffix(raw));
             } else {
                 throw new ScriptExecutionException("Item could not be modified, because it is not a PrismObject of FocusType: " + item.toString());
             }
