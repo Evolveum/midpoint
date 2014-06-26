@@ -78,4 +78,10 @@ public class OperationsHelper {
             throw new ScriptExecutionException("Couldn't get object: " + e.getMessage(), e);
         }
     }
+
+    public ModelExecuteOptions createExecutionOptions(boolean raw) {
+        ModelExecuteOptions options = new ModelExecuteOptions();
+        options.setRaw(raw);
+        return options;
+    }
 }

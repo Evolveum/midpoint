@@ -5206,7 +5206,7 @@
             			This overrides other template definitions (system global, resource).
             		</xsd:documentation>
             		<xsd:appinfo>
-                    	<a:objectReferenceTargetType>tns:ObjetcTemplateType</a:objectReferenceTargetType>
+                    	<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
                     </xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
@@ -5251,7 +5251,7 @@
         				DEPRECATED. For compatibility only. Use objectTemplateRef in reaction instead.
         			</xsd:documentation>
         			<xsd:appinfo>
-                    	<a:objectReferenceTargetType>tns:ObjetcTemplateType</a:objectReferenceTargetType>
+                    	<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
                     	<a:deprecated/>
                     </xsd:appinfo>
         		</xsd:annotation>
@@ -5262,7 +5262,7 @@
         				DEPRECATED. For compatibility only. Use objectTemplateRef in reaction instead.
         			</xsd:documentation>
         			<xsd:appinfo>
-                    	<a:objectReferenceTargetType>tns:ObjetcTemplateType</a:objectReferenceTargetType>
+                    	<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
                     	<a:deprecated/>
                     </xsd:appinfo>
         		</xsd:annotation>
