@@ -36,13 +36,18 @@ import java.util.concurrent.Future;
  */
 public class GuiComponents {
 
-    private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(10);
+    private static ExecutorService EXECUTOR;
+
     private static final String KEY_BOOLEAN_NULL = "Boolean.NULL";
     private static final String KEY_BOOLEAN_TRUE = "Boolean.TRUE";
     private static final String KEY_BOOLEAN_FALSE = "Boolean.FALSE";
 
     public static void destroy() {
         EXECUTOR.shutdownNow();
+    }
+
+    public static void init() {
+        EXECUTOR = Executors.newFixedThreadPool(10);
     }
 
     public static <T> Future<T> submitCallable(Callable<T> callable) {
