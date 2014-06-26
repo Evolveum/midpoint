@@ -94,6 +94,11 @@ public class TestImportReconDeprecated extends TestImportRecon {
 	}
 
 	@Override
+	public void test500ImportTAugustusFromResourceDummy() throws Exception {
+		// Not relevant for deprecated syntax
+	}
+
+	@Override
 	public void test502ImportAugustusFromResourceDummy() throws Exception {
 		// Not relevant for deprecated syntax
 	}
