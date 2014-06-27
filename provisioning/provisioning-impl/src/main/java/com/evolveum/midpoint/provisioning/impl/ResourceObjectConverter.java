@@ -87,24 +87,15 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AttributeFetchStrategyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AvailabilityStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionReturnMultiplicityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptArgumentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvisioningScriptHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationDirectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 
 /**
  * 
@@ -404,7 +395,17 @@ public class ResourceObjectConverter {
 				return null;
 			}
 		}
-		
+
+        /*
+         *  State of the shadow before execution of the deltas - e.g. with original attributes, as it may be recorded in such a way in
+         *  groups of which this account is a member of. (In case of object->subject associations.)
+         *
+         *  Note: currently this is more-or-less hypothetical situation, because e.g. in AD the subject (account)
+         *  is recorded in object (group) under his current DN -> the one that is in shadowAfter (below).
+         *  So this is currently commented out.
+         */
+        //PrismObject<ShadowType> shadowBefore = shadow.clone();
+
 		collectAttributeAndEntitlementChanges(itemDeltas, operations, resource, shadow, objectClassDefinition);
 		
 		Collection<PropertyModificationOperation> sideEffectChanges = null;
@@ -426,9 +427,19 @@ public class ResourceObjectConverter {
 			// Execute primary ICF operation on this shadow
 			sideEffectChanges = executeModify(connector, resource, objectClassDefinition, identifiers, operations, parentResult);
 		}
-		
-		// Execute entitlement modification on other objects (if needed)
-		executeEntitlementChangesModify(connector, resource, objectClassDefinition, shadow, scripts, itemDeltas, parentResult);
+
+        /*
+         *  State of the shadow after execution of the deltas - e.g. with new DN (if it was part of the delta), because this one should be recorded
+         *  in groups of which this account is a member of. (In case of object->subject associations.)
+         */
+        PrismObject<ShadowType> shadowAfter = shadow.clone();
+        for (ItemDelta itemDelta : itemDeltas) {
+            itemDelta.applyTo(shadowAfter);
+        }
+
+        // Execute entitlement modification on other objects (if needed)
+        // Currently we use 'shadowAfter' both for removing and adding entitlements. In future, this behavior may become configurable.
+		executeEntitlementChangesModify(connector, resource, objectClassDefinition, shadowAfter, shadowAfter, scripts, itemDeltas, parentResult);
 		
 		parentResult.recordSuccess();
 		return sideEffectChanges;
@@ -529,15 +540,15 @@ public class ResourceObjectConverter {
 		Map<ResourceObjectDiscriminator, Collection<Operation>> roMap = new HashMap<ResourceObjectDiscriminator, Collection<Operation>>();
 		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
 		
-		entitlementConverter.collectEntitlementsAsObjectOperation(roMap, objectClassDefinition, shadow, rSchema, resource);
+		entitlementConverter.collectEntitlementsAsObjectOperationInShadowAdd(roMap, objectClassDefinition, shadow, rSchema, resource);
 		
 		executeEntitlements(connector, resource, roMap, parentResult);
 		
 	}
 	
 	private void executeEntitlementChangesModify(ConnectorInstance connector, ResourceType resource,
-			RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts,
-			Collection<? extends ItemDelta> objectDeltas, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
+			RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadowWhenRemovingEntitlement, PrismObject<ShadowType> shadowWhenNotRemovingEntitlement,
+            OperationProvisioningScriptsType scripts, Collection<? extends ItemDelta> objectDeltas, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
 		
 		Map<ResourceObjectDiscriminator, Collection<Operation>> roMap = new HashMap<ResourceObjectDiscriminator, Collection<Operation>>();
 		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
@@ -546,7 +557,7 @@ public class ResourceObjectConverter {
 			if (new ItemPath(ShadowType.F_ASSOCIATION).equals(itemDelta.getPath())) {
 				ContainerDelta<ShadowAssociationType> containerDelta = (ContainerDelta<ShadowAssociationType>)itemDelta;				
 				entitlementConverter.collectEntitlementsAsObjectOperation(roMap, containerDelta, objectClassDefinition,
-						shadow, rSchema, resource);
+                        shadowWhenRemovingEntitlement, shadowWhenNotRemovingEntitlement, rSchema, resource);
 			}
 		}
 		
@@ -916,8 +927,8 @@ public class ResourceObjectConverter {
 	}
 
 
-	private void collectAttributeAndEntitlementChanges(Collection<? extends ItemDelta> objectChange, 
-			Collection<Operation> operations, ResourceType resource, PrismObject<ShadowType> shadow, 
+	private void collectAttributeAndEntitlementChanges(Collection<? extends ItemDelta> objectChange,
+			Collection<Operation> operations, ResourceType resource, PrismObject<ShadowType> shadow,
 			RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
 		if (operations == null) {
 			operations = new ArrayList<Operation>();

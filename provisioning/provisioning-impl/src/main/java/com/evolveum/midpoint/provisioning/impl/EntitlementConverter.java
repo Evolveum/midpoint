@@ -63,7 +63,6 @@ import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationDirectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -275,7 +274,7 @@ class EntitlementConverter {
 		}
 	}
 	
-	public <T> void collectEntitlementsAsObjectOperation(Map<ResourceObjectDiscriminator, Collection<Operation>> roMap,
+	public <T> void collectEntitlementsAsObjectOperationInShadowAdd(Map<ResourceObjectDiscriminator, Collection<Operation>> roMap,
 			RefinedObjectClassDefinition objectClassDefinition,
 			PrismObject<ShadowType> shadow, RefinedResourceSchema rSchema, ResourceType resource) 
 					throws SchemaException {
@@ -312,14 +311,14 @@ class EntitlementConverter {
 	
 	public <T> void collectEntitlementsAsObjectOperation(Map<ResourceObjectDiscriminator, Collection<Operation>> roMap,
 			ContainerDelta<ShadowAssociationType> containerDelta, RefinedObjectClassDefinition objectClassDefinition,
-			PrismObject<ShadowType> shadow, RefinedResourceSchema rSchema, ResourceType resource) 
+			PrismObject<ShadowType> shadowWhenRemovingEntitlements, PrismObject<ShadowType> shadowWhenNotRemovingEntitlements, RefinedResourceSchema rSchema, ResourceType resource)
 					throws SchemaException {
 		collectEntitlementsAsObjectOperation(roMap, containerDelta.getValuesToAdd(), objectClassDefinition,
-				shadow, rSchema, resource, ModificationType.ADD);
+                shadowWhenNotRemovingEntitlements, rSchema, resource, ModificationType.ADD);
 		collectEntitlementsAsObjectOperation(roMap, containerDelta.getValuesToDelete(), objectClassDefinition,
-				shadow, rSchema, resource, ModificationType.DELETE);
+                shadowWhenRemovingEntitlements, rSchema, resource, ModificationType.DELETE);
 		collectEntitlementsAsObjectOperation(roMap, containerDelta.getValuesToReplace(), objectClassDefinition,
-				shadow, rSchema, resource, ModificationType.REPLACE);
+                shadowWhenNotRemovingEntitlements, rSchema, resource, ModificationType.REPLACE);
 	}
 	
 	/////////
@@ -520,7 +519,7 @@ class EntitlementConverter {
 	
 	private <T> void collectEntitlementsAsObjectOperation(Map<ResourceObjectDiscriminator, Collection<Operation>> roMap,
 			Collection<PrismContainerValue<ShadowAssociationType>> set, RefinedObjectClassDefinition objectClassDefinition,
-			PrismObject<ShadowType> shadow, RefinedResourceSchema rSchema, ResourceType resource, ModificationType modificationType) 
+			PrismObject<ShadowType> shadow, RefinedResourceSchema rSchema, ResourceType resource, ModificationType modificationType)
 					throws SchemaException {
 		if (set == null) {
 			return;
@@ -533,7 +532,7 @@ class EntitlementConverter {
 	
 	private <T> void collectEntitlementAsObjectOperation(Map<ResourceObjectDiscriminator, Collection<Operation>> roMap,
 			PrismContainerValue<ShadowAssociationType> associationCVal, RefinedObjectClassDefinition objectClassDefinition,
-			PrismObject<ShadowType> shadow, RefinedResourceSchema rSchema, ResourceType resource, ModificationType modificationType) 
+			PrismObject<ShadowType> shadow, RefinedResourceSchema rSchema, ResourceType resource, ModificationType modificationType)
 					throws SchemaException {
 		
 		ShadowAssociationType associationType = associationCVal.asContainerable();
@@ -584,14 +583,14 @@ class EntitlementConverter {
 		
 		QName valueAttrName = assocDefType.getResourceObjectAssociationType().getValueAttribute();
 		if (valueAttrName == null) {
-			throw new SchemaException("No value attribute definied in entitlement association in "+resource);
+			throw new SchemaException("No value attribute defined in entitlement association in "+resource);
 		}
 		ResourceAttribute<T> valueAttr = ShadowUtil.getAttribute(shadow, valueAttrName);
 		if (valueAttr == null) {
 			// TODO: check schema and try to fetch full shadow if necessary
 			throw new SchemaException("No value attribute "+valueAttrName+" in shadow");
 		}
-		
+
 		PropertyDelta<T> attributeDelta = null;
 		for(Operation operation: operations) {
 			if (operation instanceof PropertyModificationOperation) {
