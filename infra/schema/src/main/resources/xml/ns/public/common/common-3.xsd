@@ -5847,6 +5847,7 @@
 	    </xsd:sequence>
 	    <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
+    <xsd:element name="shadowAssociation" type="tns:ShadowAssociationType" />
 
     <xsd:complexType name="ShadowIdentifiersType">
     	<xsd:annotation>

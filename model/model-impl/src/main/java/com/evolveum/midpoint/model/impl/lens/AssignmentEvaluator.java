@@ -210,7 +210,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException {
 		assertSource(source, evalAssignment);
 		
-		LOGGER.trace("Evaluate assignment {} (eval costr: {})", assignmentPath, assignmentPathSegment.isEvaluateConstructions());
+		LOGGER.trace("Evaluate assignment {} (eval constr: {})", assignmentPath, assignmentPathSegment.isEvaluateConstructions());
 		
 		AssignmentType assignmentType = assignmentPathSegment.getAssignmentType();
 		

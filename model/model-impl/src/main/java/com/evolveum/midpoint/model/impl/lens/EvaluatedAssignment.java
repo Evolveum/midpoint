@@ -139,7 +139,7 @@ public class EvaluatedAssignment<F extends FocusType> implements DebugDumpable {
 	public void evaluateConstructions(ObjectDeltaObject<F> focusOdo, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		for (Construction<F> construction :constructions) {
 			construction.setUserOdo(focusOdo);
-			LOGGER.trace("Evaluating construction '{}' in {}", construction);
+			LOGGER.trace("Evaluating construction '{}' in {}", construction, construction.getSource());
 			construction.evaluate(task, result);
 		}
 	}

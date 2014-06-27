@@ -232,6 +232,14 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 		return null;
 	}
 	
+    public Collection<QName> getNamesOfAssociations() {
+        Collection<QName> names = new HashSet<QName>();
+        for (RefinedAssociationDefinition assocDef : getAssociations()) {
+            names.add(assocDef.getName());
+        }
+        return names;
+    }
+
     public Collection<? extends QName> getNamesOfAssociationsWithOutboundExpressions() {
         Collection<QName> names = new HashSet<QName>();
         for (RefinedAssociationDefinition assocDef : getAssociations()) {
@@ -242,7 +250,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         return names;
     }
 
-	public Collection<ResourceObjectPattern> getProtectedObjectPatterns() {
+    public Collection<ResourceObjectPattern> getProtectedObjectPatterns() {
 		if (protectedObjectPatterns == null) {
 			protectedObjectPatterns = new ArrayList<ResourceObjectPattern>();
 		}

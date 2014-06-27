@@ -68,4 +68,12 @@ public class RefinedAssociationDefinition implements Serializable {
 		return BooleanUtils.isTrue(resourceObjectAssociationType.isExclusiveStrong());
 	}
 
+    public boolean isIgnored() {
+        return false;           // todo implement!
+    }
+
+    public boolean isTolerant() {
+        return BooleanUtils.isNotFalse(resourceObjectAssociationType.isTolerant());
+    }
+
 }
