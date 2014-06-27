@@ -1235,9 +1235,6 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // Second fetch: fetchback to correctly process inbound (import changes the account).
 //        assertShadowFetchOperationCountIncrement(2);
         
-        // WHY???
-        assertShadowFetchOperationCountIncrement(1);
-                
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
         assertImportedUserByOid(USER_BARBOSSA_OID);
