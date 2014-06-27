@@ -27,7 +27,7 @@ import java.util.List;
 public class DebugConfDialogDto implements Serializable {
 
     public static enum Operation {
-        DELETE_SELECTED, DELETE_ALL_TYPE, DELETE_ALL_IDENTITIES;
+        DELETE_SELECTED, DELETE_ALL_TYPE;
     }
 
     private Operation operation;
