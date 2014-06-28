@@ -364,6 +364,7 @@
             		<expression>
             			<value>
                             <!-- "testers" group -->
+                            <name>ri:group</name>
                             <shadowRef oid="20000000-0000-0000-3333-000000000002" type="ShadowType"/>
             			</value>
             		</expression>
