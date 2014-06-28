@@ -263,10 +263,10 @@ public class ReconciliationProcessor {
 //					sb.append("\n    ");
 //					sb.append(shouldBePValue.getPropertyValue());
 //					Mapping<?> shouldBeMapping = shouldBePValue.getMapping();
-//					if (shouldBeMapping.getStrength() != MappingStrengthType.STRONG) {
+//					if (shouldBeMapping.getStrength() == MappingStrengthType.STRONG) {
 //						sb.append(" STRONG");
 //					}
-//					if (shouldBeMapping.getStrength() != MappingStrengthType.WEAK) {
+//					if (shouldBeMapping.getStrength() == MappingStrengthType.WEAK) {
 //						sb.append(" WEAK");
 //					}
 //				}
@@ -421,10 +421,10 @@ public class ReconciliationProcessor {
 					sb.append("\n    ");
 					sb.append(shouldBeCValue.getItemValue());
 					Mapping<?> shouldBeMapping = shouldBeCValue.getMapping();
-					if (shouldBeMapping.getStrength() != MappingStrengthType.STRONG) {
+					if (shouldBeMapping.getStrength() == MappingStrengthType.STRONG) {
 						sb.append(" STRONG");
 					}
-					if (shouldBeMapping.getStrength() != MappingStrengthType.WEAK) {
+					if (shouldBeMapping.getStrength() == MappingStrengthType.WEAK) {
 						sb.append(" WEAK");
 					}
 				}
