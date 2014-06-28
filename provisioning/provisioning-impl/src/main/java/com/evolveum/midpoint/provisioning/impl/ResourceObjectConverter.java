@@ -400,11 +400,15 @@ public class ResourceObjectConverter {
          *  State of the shadow before execution of the deltas - e.g. with original attributes, as it may be recorded in such a way in
          *  groups of which this account is a member of. (In case of object->subject associations.)
          *
-         *  Note: currently this is more-or-less hypothetical situation, because e.g. in AD the subject (account)
-         *  is recorded in object (group) under his current DN -> the one that is in shadowAfter (below).
-         *  So this is currently commented out.
+         *  This is used when the resource does NOT provide referential integrity by itself. This is e.g. the case of OpenDJ with default
+         *  settings.
+         *
+         *  On the contrary, AD and OpenDJ with referential integrity plugin do provide automatic referential integrity, so this feature is
+         *  not needed.
+         *
+         *  We decide based on setting of explicitReferentialIntegrity in association definition.
          */
-        //PrismObject<ShadowType> shadowBefore = shadow.clone();
+        PrismObject<ShadowType> shadowBefore = shadow.clone();
 
 		collectAttributeAndEntitlementChanges(itemDeltas, operations, resource, shadow, objectClassDefinition);
 		
@@ -438,8 +442,7 @@ public class ResourceObjectConverter {
         }
 
         // Execute entitlement modification on other objects (if needed)
-        // Currently we use 'shadowAfter' both for removing and adding entitlements. In future, this behavior may become configurable.
-		executeEntitlementChangesModify(connector, resource, objectClassDefinition, shadowAfter, shadowAfter, scripts, itemDeltas, parentResult);
+		executeEntitlementChangesModify(connector, resource, objectClassDefinition, shadowBefore, shadowAfter, scripts, itemDeltas, parentResult);
 		
 		parentResult.recordSuccess();
 		return sideEffectChanges;
@@ -547,7 +550,7 @@ public class ResourceObjectConverter {
 	}
 	
 	private void executeEntitlementChangesModify(ConnectorInstance connector, ResourceType resource,
-			RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadowWhenRemovingEntitlement, PrismObject<ShadowType> shadowWhenNotRemovingEntitlement,
+			RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadowBefore, PrismObject<ShadowType> shadowAfter,
             OperationProvisioningScriptsType scripts, Collection<? extends ItemDelta> objectDeltas, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
 		
 		Map<ResourceObjectDiscriminator, Collection<Operation>> roMap = new HashMap<ResourceObjectDiscriminator, Collection<Operation>>();
@@ -557,7 +560,7 @@ public class ResourceObjectConverter {
 			if (new ItemPath(ShadowType.F_ASSOCIATION).equals(itemDelta.getPath())) {
 				ContainerDelta<ShadowAssociationType> containerDelta = (ContainerDelta<ShadowAssociationType>)itemDelta;				
 				entitlementConverter.collectEntitlementsAsObjectOperation(roMap, containerDelta, objectClassDefinition,
-                        shadowWhenRemovingEntitlement, shadowWhenNotRemovingEntitlement, rSchema, resource);
+                        shadowBefore, shadowAfter, rSchema, resource);
 			}
 		}
 		

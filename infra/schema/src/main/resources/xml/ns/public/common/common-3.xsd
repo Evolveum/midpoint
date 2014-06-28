@@ -3910,7 +3910,18 @@
 		     		<xsd:element name="direction" type="tns:ResourceObjectAssociationDirectionType"  minOccurs="0"></xsd:element>
 		     		<xsd:element name="associationAttribute" type="xsd:QName"  minOccurs="0"></xsd:element>
 		     		<xsd:element name="valueAttribute" type="xsd:QName"  minOccurs="0"></xsd:element>
-		     		<xsd:element name="explicitReferentialIntegrity" type="xsd:boolean"  minOccurs="0" default="true"></xsd:element>
+		     		<xsd:element name="explicitReferentialIntegrity" type="xsd:boolean"  minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Whether you require midPoint to provide referential integrity for object-to-subject associations.
+
+                                Used for resources that do not provide referential integrity by themselves, e.g. for OpenDJ with
+                                default settings (i.e. with referential integrity plugin turned off).
+
+                                For resources having referential integrity, e.g. for Active Directory, set this parameter to false.
+                            </xsd:documentation>
+                        </xsd:annotation>
+		     		</xsd:element>
 		     	</xsd:sequence>
 		     </xsd:extension>
 	     </xsd:complexContent>
