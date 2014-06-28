@@ -163,6 +163,7 @@
                     <direction>objectToSubject</direction>
                     <associationAttribute>ri:member</associationAttribute>
                     <valueAttribute>icfs:name</valueAttribute>
+                    <explicitReferentialIntegrity>false</explicitReferentialIntegrity>
                 </association>
 
                 <iteration>
@@ -312,7 +313,7 @@
                     <q:equal>
                         <q:path>c:name</q:path>
                         <expression>
-                            <path>$shadow/attributes/sAMAccountName</path>
+                            <path>$shadow/attributes/samAccountName</path>
                         </expression>
                     </q:equal>
                 </correlation>
