@@ -114,8 +114,38 @@ public class RefinedResourceSchema extends ResourceSchema implements DebugDumpab
 		}
 		return null;
 	}
-	
-	public RefinedObjectClassDefinition getRefinedDefinition(QName objectClassName) {
+
+    /**
+     * If no intents are provided, default account definition is returned.
+     * We check whether there is only one relevant rOCD.
+     */
+    public RefinedObjectClassDefinition getRefinedDefinition(ShadowKindType kind, Collection<String> intents) throws SchemaException {
+        RefinedObjectClassDefinition found = null;
+        for (RefinedObjectClassDefinition acctDef: getRefinedDefinitions(kind)) {
+            RefinedObjectClassDefinition foundCurrent = null;
+            if (intents == null || intents.isEmpty()) {
+                if (acctDef.isDefault()) {
+                    foundCurrent = acctDef;
+                }
+            } else {
+                if (intents.contains(acctDef.getIntent())) {
+                    foundCurrent = acctDef;
+                }
+            }
+            if (foundCurrent != null) {
+                if (found != null) {
+                    if (!QNameUtil.match(found.getTypeName(), foundCurrent.getTypeName())) {
+                        throw new SchemaException("More than one ObjectClass found for kind " + kind + ", intents: " + intents + ": " + found.getTypeName() + ", " + foundCurrent.getTypeName());
+                    }
+                } else {
+                    found = foundCurrent;
+                }
+            }
+        }
+        return found;
+    }
+
+    public RefinedObjectClassDefinition getRefinedDefinition(QName objectClassName) {
 		for (Definition def: definitions) {
 			if ((def instanceof RefinedObjectClassDefinition) 
 					&& (QNameUtil.match(def.getTypeName(), objectClassName))) {

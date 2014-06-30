@@ -3906,7 +3906,14 @@
         	<xsd:extension base="tns:ResourceItemDefinitionType">
 		     	<xsd:sequence>
 		     		<xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0"></xsd:element>
-		     		<xsd:element name="intent" type="xsd:string" minOccurs="0"></xsd:element>
+		     		<xsd:element name="intent" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                A set of intents corresponding to this association type.
+                                NOTE: All of them must point to the same resource ObjectClass!
+                            </xsd:documentation>
+                        </xsd:annotation>
+		     		</xsd:element>
 		     		<xsd:element name="direction" type="tns:ResourceObjectAssociationDirectionType"  minOccurs="0"></xsd:element>
 		     		<xsd:element name="associationAttribute" type="xsd:QName"  minOccurs="0"></xsd:element>
 		     		<xsd:element name="valueAttribute" type="xsd:QName"  minOccurs="0"></xsd:element>

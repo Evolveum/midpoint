@@ -561,12 +561,11 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         return rOcDef;
 	}
 
-	public void parseAssociations(RefinedResourceSchema rSchema) {
+	public void parseAssociations(RefinedResourceSchema rSchema) throws SchemaException {
 		for (ResourceObjectAssociationType resourceObjectAssociationType: schemaHandlingObjectTypeDefinitionType.getAssociation()) {
 			RefinedAssociationDefinition rAssocDef = new RefinedAssociationDefinition(resourceObjectAssociationType);
 			ShadowKindType assocKind = rAssocDef.getKind();
-			String assocIntent = rAssocDef.getIntent();
-			RefinedObjectClassDefinition assocTarget = rSchema.getRefinedDefinition(assocKind, assocIntent);
+			RefinedObjectClassDefinition assocTarget = rSchema.getRefinedDefinition(assocKind, rAssocDef.getIntents());
 			rAssocDef.setAssociationTarget(assocTarget);
 			associations.add(rAssocDef);
 		}
