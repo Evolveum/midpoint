@@ -165,9 +165,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		
 		boolean logDebug = isLogDebug(change);
 		if (logDebug) {
-			LOGGER.debug("SYNCHRONIZATION: received change notifiation {}", change);
+			LOGGER.debug("SYNCHRONIZATION: received change notification {}", change);
 		} else {
-			LOGGER.trace("SYNCHRONIZATION: received change notifiation {}", change);
+			LOGGER.trace("SYNCHRONIZATION: received change notification {}", change);
 		}
 
 		OperationResult subResult = parentResult.createSubresult(NOTIFY_CHANGE);

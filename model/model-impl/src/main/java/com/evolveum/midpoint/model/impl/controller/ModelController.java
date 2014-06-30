@@ -31,6 +31,7 @@ import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_3.LensContextType;
 
 import org.apache.commons.lang.NotImplementedException;
@@ -751,9 +752,13 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			List<? extends ItemDefinition> origSubDefinitions = ((PrismContainerDefinition<?>)origItemDefinition).getDefinitions();
 			containerDefinition.getDefinitions().clear();
 			for (ItemDefinition subDef: origSubDefinitions) {
-				ItemDefinition newDef = applySecurityContraints(subDef, new ItemPath(itemPath, subDef.getName()), securityConstraints, 
-						readDecision, addDecision, modifyDecision);
-				containerDefinition.getComplexTypeDefinition().add(newDef);
+                // TODO fix this brutal hack - it is necessary to avoid endless recursion in the style of "Decision for authorization/object/owner/owner/......../owner/special: ALLOW"
+                // it's too late to come up with a serious solution
+                if (!(itemPath.lastNamed() != null && ObjectSpecificationType.F_OWNER.equals(itemPath.lastNamed().getName()) && ObjectSpecificationType.F_OWNER.equals(subDef.getName()))) {
+				    ItemDefinition newDef = applySecurityContraints(subDef, new ItemPath(itemPath, subDef.getName()), securityConstraints,
+						    readDecision, addDecision, modifyDecision);
+				    containerDefinition.getComplexTypeDefinition().add(newDef);
+                }
 			}
 		}
 		return itemDefinition;
