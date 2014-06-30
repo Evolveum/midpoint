@@ -30,6 +30,7 @@ public class AuthorizationConstants {
 	public static final String NS_AUTHORIZATION = NS_SECURITY_PREFIX + "authorization-3";
 	public static final String NS_AUTHORIZATION_UI = NS_SECURITY_PREFIX + "authorization-ui-3";
 	public static final String NS_AUTHORIZATION_WS = NS_SECURITY_PREFIX + "authorization-ws-3";
+	public static final String NS_AUTHORIZATION_REST = NS_SECURITY_PREFIX + "authorization-rest-3";
 	public static final String NS_AUTHORIZATION_MODEL = NS_SECURITY_PREFIX + "authorization-model-3";
 	
 	public static final QName AUTZ_ALL_QNAME = new QName(NS_AUTHORIZATION, "all");

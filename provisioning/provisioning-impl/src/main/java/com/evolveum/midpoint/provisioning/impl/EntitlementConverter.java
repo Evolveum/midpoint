@@ -104,9 +104,9 @@ class EntitlementConverter {
 			PrismContainer<ShadowAssociationType> associationContainer = associationDef.instantiate();
 			
 			for (RefinedAssociationDefinition assocDefType: entitlementAssociationDefs) {
-				RefinedObjectClassDefinition entitlementDef = refinedSchema.getRefinedDefinition(ShadowKindType.ENTITLEMENT, assocDefType.getIntent());
+				RefinedObjectClassDefinition entitlementDef = refinedSchema.getRefinedDefinition(ShadowKindType.ENTITLEMENT, assocDefType.getIntents());
 				if (entitlementDef == null) {
-					throw new SchemaException("No definition for entitlement intent '"+assocDefType.getIntent()+"' in "+resourceType);
+					throw new SchemaException("No definition for entitlement intent(s) '"+assocDefType.getIntents()+"' in "+resourceType);
 				}
 				ResourceObjectAssociationDirectionType direction = assocDefType.getResourceObjectAssociationType().getDirection();
 				if (direction == ResourceObjectAssociationDirectionType.SUBJECT_TO_OBJECT) {
@@ -361,9 +361,9 @@ class EntitlementConverter {
 			if (associationName == null) {
 				throw new SchemaException("No name in entitlement association "+assocDefType+" in "+resourceType);
 			}
-			final RefinedObjectClassDefinition entitlementOcDef = refinedSchema.getRefinedDefinition(ShadowKindType.ENTITLEMENT, assocDefType.getIntent());
+			final RefinedObjectClassDefinition entitlementOcDef = refinedSchema.getRefinedDefinition(ShadowKindType.ENTITLEMENT, assocDefType.getIntents());
 			if (entitlementOcDef == null) {
-				throw new SchemaException("No definition for entitlement intent '"+assocDefType.getIntent()+"' defined in entitlement association "+associationName+" in "+resourceType);
+				throw new SchemaException("No definition for entitlement intent(s) '"+assocDefType.getIntents()+"' defined in entitlement association "+associationName+" in "+resourceType);
 			}
 			
 			final QName assocAttrName = assocDefType.getResourceObjectAssociationType().getAssociationAttribute();
@@ -552,13 +552,13 @@ class EntitlementConverter {
 			return;
 		}
 		
-		String entitlementIntent = assocDefType.getIntent();
-		if (entitlementIntent == null) {
+		Collection<String> entitlementIntents = assocDefType.getIntents();
+		if (entitlementIntents == null || entitlementIntents.isEmpty()) {
 			throw new SchemaException("No entitlement intent specified in association "+associationCVal+" in "+resource);
 		}
-		RefinedObjectClassDefinition entitlementOcDef = rSchema.getRefinedDefinition(ShadowKindType.ENTITLEMENT, entitlementIntent);
+		RefinedObjectClassDefinition entitlementOcDef = rSchema.getRefinedDefinition(ShadowKindType.ENTITLEMENT, entitlementIntents);
 		if (entitlementOcDef == null) {
-			throw new SchemaException("No definition of entitlement intent '"+entitlementIntent+"' specified in association "+associationCVal+" in "+resource);
+			throw new SchemaException("No definition of entitlement intent(s) '"+entitlementIntents+"' specified in association "+associationCVal+" in "+resource);
 		}
 		
 		QName assocAttrName = assocDefType.getResourceObjectAssociationType().getAssociationAttribute();
@@ -568,7 +568,7 @@ class EntitlementConverter {
 		
 		RefinedAttributeDefinition assocAttrDef = entitlementOcDef.findAttributeDefinition(assocAttrName);
 		if (assocAttrDef == null) {
-			throw new SchemaException("Association attribute '"+assocAttrName+"'defined in entitlement association was not found in entitlement intent '"+entitlementIntent+"' in schema for "+resource);
+			throw new SchemaException("Association attribute '"+assocAttrName+"'defined in entitlement association was not found in entitlement intent(s) '"+entitlementIntents+"' in schema for "+resource);
 		}
 		
 		ResourceAttributeContainer identifiersContainer = 

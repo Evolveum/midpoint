@@ -1604,8 +1604,7 @@ public abstract class ShadowCache {
 					ShadowAssociationType shadowAssociationType = associationCVal.asContainerable();
 					QName associationName = shadowAssociationType.getName();
 					RefinedAssociationDefinition rEntitlementAssociation = objectClassDefinition.findEntitlementAssociation(associationName);
-					String entitlementIntent = rEntitlementAssociation.getIntent();
-					RefinedObjectClassDefinition entitlementObjectClassDef = refinedSchema.getRefinedDefinition(ShadowKindType.ENTITLEMENT, entitlementIntent);
+					RefinedObjectClassDefinition entitlementObjectClassDef = refinedSchema.getRefinedDefinition(ShadowKindType.ENTITLEMENT, rEntitlementAssociation.getIntents());
 					
 					PrismObject<ShadowType> entitlementShadow = (PrismObject<ShadowType>) identifierContainer.getUserData(ResourceObjectConverter.FULL_SHADOW_KEY);
 					if (entitlementShadow == null) {

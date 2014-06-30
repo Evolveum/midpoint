@@ -19,6 +19,7 @@ package com.evolveum.midpoint.repo.sql;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.util.MidPointConnectionCustomizer;
 import com.evolveum.midpoint.repo.sql.util.MidPointMySQLDialect;
+import com.evolveum.midpoint.repo.sql.util.MidPointPostgreSQLDialect;
 import com.evolveum.midpoint.repo.sql.util.UnicodeSQLServer2008Dialect;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -488,7 +489,8 @@ public class SqlRepositoryConfiguration {
 
     public boolean isUsingPostgreSQL() {
         return isUsingDialect(PostgresPlusDialect.class)
-                || isUsingDialect(PostgreSQLDialect.class);
+                || isUsingDialect(PostgreSQLDialect.class)
+                || isUsingDialect(MidPointPostgreSQLDialect.class);
     }
 
     public boolean isUsingSQLServer() {
