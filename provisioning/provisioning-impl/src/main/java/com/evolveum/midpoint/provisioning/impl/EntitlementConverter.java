@@ -22,6 +22,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -63,7 +64,6 @@ import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationDirectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
@@ -275,7 +275,7 @@ class EntitlementConverter {
 		}
 	}
 	
-	public <T> void collectEntitlementsAsObjectOperation(Map<ResourceObjectDiscriminator, Collection<Operation>> roMap,
+	public <T> void collectEntitlementsAsObjectOperationInShadowAdd(Map<ResourceObjectDiscriminator, Collection<Operation>> roMap,
 			RefinedObjectClassDefinition objectClassDefinition,
 			PrismObject<ShadowType> shadow, RefinedResourceSchema rSchema, ResourceType resource) 
 					throws SchemaException {
@@ -284,7 +284,7 @@ class EntitlementConverter {
 			return;
 		}
 		collectEntitlementsAsObjectOperation(roMap, associationContainer.getValues(), objectClassDefinition,
-				shadow, rSchema, resource, ModificationType.ADD);
+				null, shadow, rSchema, resource, ModificationType.ADD);
 	}
 
 	
@@ -312,14 +312,14 @@ class EntitlementConverter {
 	
 	public <T> void collectEntitlementsAsObjectOperation(Map<ResourceObjectDiscriminator, Collection<Operation>> roMap,
 			ContainerDelta<ShadowAssociationType> containerDelta, RefinedObjectClassDefinition objectClassDefinition,
-			PrismObject<ShadowType> shadow, RefinedResourceSchema rSchema, ResourceType resource) 
+			PrismObject<ShadowType> shadowBefore, PrismObject<ShadowType> shadowAfter, RefinedResourceSchema rSchema, ResourceType resource)
 					throws SchemaException {
 		collectEntitlementsAsObjectOperation(roMap, containerDelta.getValuesToAdd(), objectClassDefinition,
-				shadow, rSchema, resource, ModificationType.ADD);
+                shadowBefore, shadowAfter, rSchema, resource, ModificationType.ADD);
 		collectEntitlementsAsObjectOperation(roMap, containerDelta.getValuesToDelete(), objectClassDefinition,
-				shadow, rSchema, resource, ModificationType.DELETE);
+                shadowBefore, shadowAfter, rSchema, resource, ModificationType.DELETE);
 		collectEntitlementsAsObjectOperation(roMap, containerDelta.getValuesToReplace(), objectClassDefinition,
-				shadow, rSchema, resource, ModificationType.REPLACE);
+                shadowBefore, shadowAfter, rSchema, resource, ModificationType.REPLACE);
 	}
 	
 	/////////
@@ -348,13 +348,13 @@ class EntitlementConverter {
 		for (RefinedAssociationDefinition assocDefType: objectClassDefinition.getEntitlementAssociations()) {
 			if (assocDefType.getResourceObjectAssociationType().getDirection() != ResourceObjectAssociationDirectionType.OBJECT_TO_SUBJECT) {
 				// We can ignore these. They will die together with the object. No need to explicitly delete them.
-				LOGGER.trace("Ignoring object-to-subject association in deleted shadow");
+				LOGGER.trace("Ignoring subject-to-object association in deleted shadow");
 				continue;
 			}
 			if (assocDefType.getResourceObjectAssociationType().isExplicitReferentialIntegrity() != null
 					&& !assocDefType.getResourceObjectAssociationType().isExplicitReferentialIntegrity()) {
 				// Referential integrity not required for this one
-				LOGGER.trace("Ignoring association in deleted shadow because it has explicity referential integrity turned off");
+				LOGGER.trace("Ignoring association in deleted shadow because it has explicit referential integrity turned off");
 				continue;
 			}
 			QName associationName = assocDefType.getName();
@@ -520,20 +520,20 @@ class EntitlementConverter {
 	
 	private <T> void collectEntitlementsAsObjectOperation(Map<ResourceObjectDiscriminator, Collection<Operation>> roMap,
 			Collection<PrismContainerValue<ShadowAssociationType>> set, RefinedObjectClassDefinition objectClassDefinition,
-			PrismObject<ShadowType> shadow, RefinedResourceSchema rSchema, ResourceType resource, ModificationType modificationType) 
+			PrismObject<ShadowType> shadowBefore, PrismObject<ShadowType> shadowAfter, RefinedResourceSchema rSchema, ResourceType resource, ModificationType modificationType)
 					throws SchemaException {
 		if (set == null) {
 			return;
 		}
 		for (PrismContainerValue<ShadowAssociationType> associationCVal: set) {
-			collectEntitlementAsObjectOperation(roMap, associationCVal, objectClassDefinition, shadow,
+			collectEntitlementAsObjectOperation(roMap, associationCVal, objectClassDefinition, shadowBefore, shadowAfter,
 					rSchema, resource, modificationType);
 		}
 	}
 	
 	private <T> void collectEntitlementAsObjectOperation(Map<ResourceObjectDiscriminator, Collection<Operation>> roMap,
 			PrismContainerValue<ShadowAssociationType> associationCVal, RefinedObjectClassDefinition objectClassDefinition,
-			PrismObject<ShadowType> shadow, RefinedResourceSchema rSchema, ResourceType resource, ModificationType modificationType) 
+			PrismObject<ShadowType> shadowBefore, PrismObject<ShadowType> shadowAfter, RefinedResourceSchema rSchema, ResourceType resource, ModificationType modificationType)
 					throws SchemaException {
 		
 		ShadowAssociationType associationType = associationCVal.asContainerable();
@@ -584,14 +584,37 @@ class EntitlementConverter {
 		
 		QName valueAttrName = assocDefType.getResourceObjectAssociationType().getValueAttribute();
 		if (valueAttrName == null) {
-			throw new SchemaException("No value attribute definied in entitlement association in "+resource);
+			throw new SchemaException("No value attribute defined in entitlement association in "+resource);
 		}
+
+        // Which shadow would we use - shadowBefore or shadowAfter?
+        //
+        // If the operation is ADD or REPLACE, we use current version of the shadow (shadowAfter), because we want
+        // to ensure that we add most-recent data to the subject.
+        //
+        // If the operation is DELETE, we have two possibilities:
+        //  - if the resource provides referential integrity, the subject has already
+        //    new data (because the object operation was already carried out), so we use shadowAfter
+        //  - if the resource does not provide referential integrity, the subject has OLD data
+        //    so we use shadowBefore
+        PrismObject<ShadowType> shadow;
+        if (modificationType != ModificationType.DELETE) {
+            shadow = shadowAfter;
+        } else {
+            if (BooleanUtils.isFalse(assocDefType.getResourceObjectAssociationType().isExplicitReferentialIntegrity())) {
+                // i.e. resource has ref integrity by itself
+                shadow = shadowAfter;
+            } else {
+                shadow = shadowBefore;
+            }
+        }
+
 		ResourceAttribute<T> valueAttr = ShadowUtil.getAttribute(shadow, valueAttrName);
 		if (valueAttr == null) {
 			// TODO: check schema and try to fetch full shadow if necessary
 			throw new SchemaException("No value attribute "+valueAttrName+" in shadow");
 		}
-		
+
 		PropertyDelta<T> attributeDelta = null;
 		for(Operation operation: operations) {
 			if (operation instanceof PropertyModificationOperation) {

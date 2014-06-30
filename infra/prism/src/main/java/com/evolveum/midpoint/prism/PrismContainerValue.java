@@ -1392,6 +1392,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
         	}
         	sb.append("id=").append(PrettyPrinter.prettyPrint(getId()));
         }
+        appendOriginDump(sb);
         List<Item<?>> items = getItems();
         if (items != null) {
 	        Iterator<Item<?>> i = getItems().iterator();

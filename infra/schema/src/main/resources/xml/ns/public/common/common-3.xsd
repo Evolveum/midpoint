@@ -3910,7 +3910,18 @@
 		     		<xsd:element name="direction" type="tns:ResourceObjectAssociationDirectionType"  minOccurs="0"></xsd:element>
 		     		<xsd:element name="associationAttribute" type="xsd:QName"  minOccurs="0"></xsd:element>
 		     		<xsd:element name="valueAttribute" type="xsd:QName"  minOccurs="0"></xsd:element>
-		     		<xsd:element name="explicitReferentialIntegrity" type="xsd:boolean"  minOccurs="0" default="true"></xsd:element>
+		     		<xsd:element name="explicitReferentialIntegrity" type="xsd:boolean"  minOccurs="0" default="true">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Whether you require midPoint to provide referential integrity for object-to-subject associations.
+
+                                Used for resources that do not provide referential integrity by themselves, e.g. for OpenDJ with
+                                default settings (i.e. with referential integrity plugin turned off).
+
+                                For resources having referential integrity, e.g. for Active Directory, set this parameter to false.
+                            </xsd:documentation>
+                        </xsd:annotation>
+		     		</xsd:element>
 		     	</xsd:sequence>
 		     </xsd:extension>
 	     </xsd:complexContent>
@@ -4991,18 +5002,18 @@
                         <p>Flag indicating if this synchronization specification is enabled. If it is not,
                         then the system will ignore this definition.
                         If enabled, the synchronization should start with most recent change
-                        after enablinh synchronization. It will NOT pull in even the changes that
+                        after enabling synchronization. It will NOT pull in even the changes that
                         were done during disabled synchronization.</p>
 
                         <p>If this flag is not present the synchronization is assumed to be enabled.
-                        This flag is meant to act as a tool to temprarily disable synchronizatoin without loosing the
+                        This flag is meant to act as a tool to temporarily disable synchronization without loosing the
                         configuration and and state or for forcing the synchronization engine to "skip" some changes.</p>
                         
                         <p>Note that this is different than disabling/deleting the synchronization task. If the task
-                        is stopped, midPont will not poll for changes at all. This means that the changes will
+                        is stopped, midPoint will not poll for changes at all. This means that the changes will
                         still be "pending" on the resource and once the task is enabled it will pull such changes.
                         On the other hand, disabling synchronization using this flag and leaving the task running will
-                        "acknowldge" all changes without doing anything.</p>
+                        "acknowledge" all changes without doing anything.</p>
                         
                         <p>Also note that disabling synchronization using this flag will disable all the flavors, e.g.
                         it will also disable import from resource.</p>
@@ -5206,7 +5217,7 @@
             			This overrides other template definitions (system global, resource).
             		</xsd:documentation>
             		<xsd:appinfo>
-                    	<a:objectReferenceTargetType>tns:ObjetcTemplateType</a:objectReferenceTargetType>
+                    	<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
                     </xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
@@ -5251,7 +5262,7 @@
         				DEPRECATED. For compatibility only. Use objectTemplateRef in reaction instead.
         			</xsd:documentation>
         			<xsd:appinfo>
-                    	<a:objectReferenceTargetType>tns:ObjetcTemplateType</a:objectReferenceTargetType>
+                    	<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
                     	<a:deprecated/>
                     </xsd:appinfo>
         		</xsd:annotation>
@@ -5262,7 +5273,7 @@
         				DEPRECATED. For compatibility only. Use objectTemplateRef in reaction instead.
         			</xsd:documentation>
         			<xsd:appinfo>
-                    	<a:objectReferenceTargetType>tns:ObjetcTemplateType</a:objectReferenceTargetType>
+                    	<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
                     	<a:deprecated/>
                     </xsd:appinfo>
         		</xsd:annotation>
@@ -5847,6 +5858,7 @@
 	    </xsd:sequence>
 	    <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
+    <xsd:element name="shadowAssociation" type="tns:ShadowAssociationType" />
 
     <xsd:complexType name="ShadowIdentifiersType">
     	<xsd:annotation>

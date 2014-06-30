@@ -54,6 +54,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -280,7 +281,7 @@ public final class Utils {
 	        result.recordSuccessIfUnknown();
 	    }
 	    
-	    public static RefinedObjectClassDefinition determineObjectClass(RefinedResourceSchema refinedSchema, Task task) {
+	    public static ObjectClassComplexTypeDefinition determineObjectClass(RefinedResourceSchema refinedSchema, Task task) {
 	    	
 	    	QName objectclass = null;
 	    	PrismProperty<QName> objectclassProperty = task.getExtensionProperty(ModelConstants.OBJECTCLASS_PROPERTY_NAME);
@@ -298,6 +299,13 @@ public final class Utils {
 	        PrismProperty<String> intentProperty = task.getExtensionProperty(ModelConstants.INTENT_PROPERTY_NAME);
 	        if (intentProperty != null) {
 	        	intent = intentProperty.getValue().getValue();
+	        }
+	        
+	        if (kind == null && intent == null && objectclass != null) {
+	        	// Return generic object class definition from resource schema. No kind/intent means that we want
+	        	// to process all kinds and intents in the object class.
+	        	ObjectClassComplexTypeDefinition objectClassDefinition = refinedSchema.findObjectClassDefinition(objectclass);
+	        	return objectClassDefinition;
 	        }
 	        
 	        RefinedObjectClassDefinition refinedObjectClassDefinition;

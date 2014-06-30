@@ -118,6 +118,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     public void init() {
         super.init();
 
+        GuiComponents.init();
+
         getComponentInstantiationListeners().add(new SpringComponentInjector(this));
 
         IResourceSettings resourceSettings = getResourceSettings();

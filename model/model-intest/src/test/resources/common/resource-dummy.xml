@@ -312,6 +312,20 @@
 						</script>
 					</expression>
 				</outbound>
+				<inbound>
+					<!-- This avoids "kickback" of a name from account to a user. -->
+					<strength>weak</strength>
+					<expression>
+						<script>
+							<code>
+								input?.substring(1)
+							</code>
+						</script>
+					</expression>
+					<target>
+						<path>$user/name</path>
+					</target>
+				</inbound>
 			</attribute>
 			<attribute>
 				<ref>ri:fullname</ref>
@@ -325,6 +339,12 @@
 						</script>
 					</expression>
 				</outbound>
+				<inbound>
+					<strength>weak</strength>
+					<target>
+						<path>$user/fullName</path>
+					</target>
+				</inbound>
 			</attribute>
 			<attribute>
 				<ref>ri:location</ref>
@@ -344,6 +364,7 @@
             		<expression>
             			<value>
                             <!-- "testers" group -->
+                            <name>ri:group</name>
                             <shadowRef oid="20000000-0000-0000-3333-000000000002" type="ShadowType"/>
             			</value>
             		</expression>
@@ -371,6 +392,9 @@
             <activation>
             	<administrativeStatus>
             		<outbound/>
+            		<inbound>
+            			<strength>weak</strength>
+            		</inbound>
             	</administrativeStatus>
             </activation>
             
@@ -548,13 +572,68 @@ end
 	
 	<synchronization>
 		<objectSynchronization>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<kind>account</kind>
+			<intent>default</intent>
 			<enabled>true</enabled>
+			<condition>
+				<script>
+					<code>!basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').startsWith("T")</code>
+				</script>
+			</condition>
 			<correlation>
 				<q:equal>
 					<q:path>name</q:path>
 					<expression>
 						<path>declare namespace icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3";
                             $account/attributes/icfs:name</path>
+					</expression>
+				</q:equal>
+			</correlation>
+			<reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#unlink</handlerUri>
+	            </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#link</handlerUri>
+	            </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
+	            </action>
+	        </reaction>
+        </objectSynchronization>
+
+		<objectSynchronization>
+			<objectClass>ri:AccountObjectClass</objectClass>
+			<kind>account</kind>
+			<intent>test</intent>
+			<enabled>true</enabled>
+			<condition>
+				<script>
+					<code>basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').startsWith("T")</code>
+				</script>
+			</condition>
+			<correlation>
+				<q:equal>
+					<q:path>name</q:path>
+					<expression>
+						<script>
+							<code>basic.getAttributeValue(shadow, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3', 'name').substring(1)</code>
+						</script>
 					</expression>
 				</q:equal>
 			</correlation>

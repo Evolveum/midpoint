@@ -43,10 +43,21 @@ public class ItemValueWithOrigin<V extends PrismValue> implements DebugDumpable 
 		this.mapping = mapping;
 		this.construction = accountConstruction;
 	}
-	
+
+    @Deprecated
 	public V getPropertyValue() {
 		return itemValue;
 	}
+
+    // the same as above, but with correct name
+    public V getItemValue() {
+        return itemValue;
+    }
+
+    // use with care
+    public void setItemValue(V value) {
+        this.itemValue = value;
+    }
 	
 	public Mapping<?> getMapping() {
 		return mapping;

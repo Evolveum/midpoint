@@ -52,6 +52,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -59,6 +60,7 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ProvisioningScriptSpec;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -69,6 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -98,6 +101,60 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	private static final String ACCOUNT_CAPSIZE_NAME = "capsize";
 	private static final String ACCOUNT_CAPSIZE_FULLNAME = "Kata Capsize";
 	
+	private static final String USER_AUGUSTUS_NAME = "augustus";
+
+	private static final File ACCOUNT_AUGUSTUS_FILE = new File(TEST_DIR, "account-augustus-dummy.xml");
+	private static final String ACCOUNT_AUGUSTUS_OID = "22220000-2200-0000-0000-444400004457";
+	private static final String ACCOUNT_AUGUSTUS_NAME = "augustus";
+	private static final String ACCOUNT_AUGUSTUS_FULLNAME = "Augustus DeWaat";
+	
+	private static final File ACCOUNT_TAUGUSTUS_FILE = new File(TEST_DIR, "account-taugustus-dummy.xml");
+	private static final String ACCOUNT_TAUGUSTUS_OID = "22220000-2200-0000-0000-444400004456";
+	private static final String ACCOUNT_TAUGUSTUS_NAME = "Taugustus";
+	private static final String ACCOUNT_TAUGUSTUS_FULLNAME = "Augustus DeWaat";
+	
+	private static final File ACCOUNT_KENNY_FILE = new File(TEST_DIR, "account-kenny-dummy.xml");
+	private static final String ACCOUNT_KENNY_OID = "22220000-2200-0000-0000-444400004461";
+	private static final String ACCOUNT_KENNY_NAME = "kenny";
+	private static final String ACCOUNT_KENNY_FULLNAME = "Kenny Falmouth";
+
+	private static final String USER_PALIDO_NAME = "palido";
+	private static final File ACCOUNT_TPALIDO_FILE = new File(TEST_DIR, "account-tpalido-dummy.xml");
+	private static final String ACCOUNT_TPALIDO_OID = "22220000-2200-0000-0000-444400004462";
+	private static final String ACCOUNT_TPALIDO_NAME = "Tpalido";
+	private static final String ACCOUNT_TPALIDO_FULLNAME = "Palido Domingo";
+	
+	private static final File ACCOUNT_LECHIMP_FILE = new File(TEST_DIR, "account-lechimp-dummy.xml");
+	private static final String ACCOUNT_LECHIMP_OID = "22220000-2200-0000-0000-444400004463";
+	private static final String ACCOUNT_LECHIMP_NAME = "lechimp";
+	private static final String ACCOUNT_LECHIMP_FULLNAME = "Captain LeChimp";
+
+	private static final File ACCOUNT_TLECHIMP_FILE = new File(TEST_DIR, "account-tlechimp-dummy.xml");
+	private static final String ACCOUNT_TLECHIMP_OID = "22220000-2200-0000-0000-444400004464";
+	private static final String ACCOUNT_TLECHIMP_NAME = "Tlechimp";
+	private static final String ACCOUNT_TLECHIMP_FULLNAME = "Captain LeChimp";
+	
+	private static final File ACCOUNT_ANDRE_FILE = new File(TEST_DIR, "account-andre-dummy.xml");
+	private static final String ACCOUNT_ANDRE_OID = "22220000-2200-0000-0000-444400004465";
+	private static final String ACCOUNT_ANDRE_NAME = "andre";
+	private static final String ACCOUNT_ANDRE_FULLNAME = "King Andre";
+	
+	private static final File ACCOUNT_TANDRE_FILE = new File(TEST_DIR, "account-tandre-dummy.xml");
+	private static final String ACCOUNT_TANDRE_OID = "22220000-2200-0000-0000-444400004466";
+	private static final String ACCOUNT_TANDRE_NAME = "Tandre";
+	private static final String ACCOUNT_TANDRE_FULLNAME = "King Andre";
+	
+	private static final String USER_LAFOOT_NAME = "lafoot";
+	private static final File ACCOUNT_TLAFOOT_FILE = new File(TEST_DIR, "account-tlafoot-dummy.xml");
+	private static final String ACCOUNT_TLAFOOT_OID = "22220000-2200-0000-0000-444400004467";
+	private static final String ACCOUNT_TLAFOOT_NAME = "Tlafoot";
+	private static final String ACCOUNT_TLAFOOT_FULLNAME = "Effete LaFoot";
+	
+	private static final File ACCOUNT_CRUFF_FILE = new File(TEST_DIR, "account-cruff-dummy.xml");
+	private static final String ACCOUNT_CRUFF_OID = "22220000-2200-0000-0000-444400004468";
+	private static final String ACCOUNT_CRUFF_NAME = "cruff";
+	private static final String ACCOUNT_CRUFF_FULLNAME = "Cruff";
+
 	protected static final File RESOURCE_DUMMY_AZURE_FILE = new File(TEST_DIR, "resource-dummy-azure.xml");
 	protected static final File RESOURCE_DUMMY_AZURE_DEPRECATED_FILE = new File(TEST_DIR, "resource-dummy-azure-deprecated.xml");
 	protected static final String RESOURCE_DUMMY_AZURE_OID = "10000000-0000-0000-0000-00000000a204";
@@ -169,8 +226,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		PrismObject<ShadowType> accountStan = PrismTestUtil.parseObject(ACCOUNT_STAN_FILE);
 		provisioningService.addObject(accountStan, null, null, initTask, initResult);
 		
+		addObject(SHADOW_GROUP_DUMMY_TESTERS_FILE, initTask, initResult);
+		
 		InternalMonitor.reset();
 		InternalMonitor.setTraceShadowFetchOperation(true);
+		
+//		DebugUtil.setDetailedDebugDump(true);
 	}
 	
 	protected File getDummyResourceLimeFile() {
@@ -1079,6 +1140,212 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         // Audit record structure is somehow complex here.
 //        assertReconAuditModifications(4, TASK_RECONCILE_DUMMY_LIME_OID);
+	}
+	
+	/**
+	 * Imports a testing account (Taugustus)
+	 */
+	@Test
+    public void test500ImportTAugustusFromResourceDummy() throws Exception {
+		final String TEST_NAME = "test500ImportTAugustusFromResourceDummy";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        PrismObject<ShadowType> accountStan = PrismTestUtil.parseObject(ACCOUNT_TAUGUSTUS_FILE);
+		provisioningService.addObject(accountStan, null, null, task, result);
+        
+        // Preconditions
+        assertUsers(10);
+        dummyAuditService.clear();
+        rememberShadowFetchOperationCount();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.importFromResource(ACCOUNT_TAUGUSTUS_OID, task, result);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        display(result);
+        TestUtil.assertSuccess(result);
+        
+        // First fetch: import handler reading the account
+        // Second fetch: fetchback to correctly process inbound (import changes the account).
+//        assertShadowFetchOperationCountIncrement(2);
+        
+        // WHY???
+        assertShadowFetchOperationCountIncrement(1);
+                
+        assertImportedUserByOid(USER_ADMINISTRATOR_OID);
+        assertImportedUserByOid(USER_JACK_OID);
+        assertImportedUserByOid(USER_BARBOSSA_OID);
+        assertImportedUserByOid(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_STAN_NAME, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(USER_AUGUSTUS_NAME, RESOURCE_DUMMY_OID);
+        
+        // These are protected accounts, they should not be imported
+        assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
+        assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
+        
+        assertUsers(11);
+        
+        assertShadowKindIntent(ACCOUNT_TAUGUSTUS_OID, ShadowKindType.ACCOUNT, INTENT_TEST);
+        
+        // Check audit
+        assertImportAuditModifications(1);
+
+	}
+	
+	/**
+	 * Imports a default account (augustus), it should be linked
+	 */
+	@Test
+    public void test502ImportAugustusFromResourceDummy() throws Exception {
+		final String TEST_NAME = "test502ImportAugustusFromResourceDummy";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_AUGUSTUS_FILE);
+		provisioningService.addObject(account, null, null, task, result);
+        
+        // Preconditions
+        assertUsers(11);
+        dummyAuditService.clear();
+        rememberShadowFetchOperationCount();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.importFromResource(ACCOUNT_AUGUSTUS_OID, task, result);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        display(result);
+        TestUtil.assertSuccess(result);
+        
+        // First fetch: import handler reading the account
+        // Second fetch: fetchback to correctly process inbound (import changes the account).
+//        assertShadowFetchOperationCountIncrement(2);
+        
+        assertImportedUserByOid(USER_ADMINISTRATOR_OID);
+        assertImportedUserByOid(USER_JACK_OID);
+        assertImportedUserByOid(USER_BARBOSSA_OID);
+        assertImportedUserByOid(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_STAN_NAME, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(USER_AUGUSTUS_NAME, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_OID);
+        
+        // These are protected accounts, they should not be imported
+        assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
+        assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
+        
+        assertUsers(11);
+        
+        assertShadowKindIntent(ACCOUNT_AUGUSTUS_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
+        assertShadowKindIntent(ACCOUNT_TAUGUSTUS_OID, ShadowKindType.ACCOUNT, INTENT_TEST);
+        
+        // Check audit
+        assertImportAuditModifications(1);
+
+	}
+	
+	/**
+	 * This should import all the intents in the object class
+	 */
+	@Test
+    public void test510ImportFromResourceDummy() throws Exception {
+		final String TEST_NAME = "test510ImportFromResourceDummy";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_KENNY_FILE);
+        provisioningService.addObject(account, null, null, task, result);
+        
+        account = PrismTestUtil.parseObject(ACCOUNT_TPALIDO_FILE);
+		provisioningService.addObject(account, null, null, task, result);
+
+        account = PrismTestUtil.parseObject(ACCOUNT_LECHIMP_FILE);
+		provisioningService.addObject(account, null, null, task, result);
+
+        account = PrismTestUtil.parseObject(ACCOUNT_TLECHIMP_FILE);
+		provisioningService.addObject(account, null, null, task, result);
+		
+		account = PrismTestUtil.parseObject(ACCOUNT_ANDRE_FILE);
+		provisioningService.addObject(account, null, null, task, result);
+
+		account = PrismTestUtil.parseObject(ACCOUNT_TANDRE_FILE);
+		provisioningService.addObject(account, null, null, task, result);
+
+		account = PrismTestUtil.parseObject(ACCOUNT_TLAFOOT_FILE);
+		provisioningService.addObject(account, null, null, task, result);
+
+		account = PrismTestUtil.parseObject(ACCOUNT_CRUFF_FILE);
+		provisioningService.addObject(account, null, null, task, result);
+		
+        // Preconditions
+		assertUsers(11);
+        dummyAuditService.clear();
+        rememberShadowFetchOperationCount();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.importFromResource(RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), task, result);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        OperationResult subresult = result.getLastSubresult();
+        TestUtil.assertInProgress("importAccountsFromResource result", subresult);
+        
+        waitForTaskFinish(task, true, 40000);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        TestUtil.assertSuccess(task.getResult());
+        
+        // First fetch: search in import handler
+        // 6 fetches: fetchback to correctly process inbound (import changes the account).
+        // The accounts are modified during import as there are also outbound mappings in
+        // ther dummy resource. As the import is in fact just a recon the "fetchbacks" happens.
+        // One is because of counting resource objects before importing them.
+//        assertShadowFetchOperationCountIncrement(8);
+        
+        // WHY????
+//        assertShadowFetchOperationCountIncrement(4);
+        
+        assertImportedUserByOid(USER_ADMINISTRATOR_OID);
+        assertImportedUserByOid(USER_JACK_OID);
+        assertImportedUserByOid(USER_BARBOSSA_OID);
+        assertImportedUserByOid(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID);
+        assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID);
+        assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_STAN_NAME, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(USER_AUGUSTUS_NAME, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_KENNY_NAME, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(USER_PALIDO_NAME, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_LECHIMP_NAME, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_CRUFF_NAME, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(USER_LAFOOT_NAME, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_ANDRE_NAME, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_OID);
+        
+        // These are protected accounts, they should not be imported
+        assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
+        assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
+        
+        assertUsers(17);
+        
+        assertShadowKindIntent(ACCOUNT_AUGUSTUS_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
+        assertShadowKindIntent(ACCOUNT_TAUGUSTUS_OID, ShadowKindType.ACCOUNT, INTENT_TEST);
 	}
 
 	private void assertImportAuditModifications(int expectedModifications) {

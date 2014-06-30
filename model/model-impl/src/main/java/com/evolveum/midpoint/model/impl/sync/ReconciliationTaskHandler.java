@@ -60,6 +60,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -175,12 +176,12 @@ public class ReconciliationTaskHandler implements TaskHandler {
         // todo consider setting expectedTotal to null here
 		
 		PrismObject<ResourceType> resource;
-		RefinedObjectClassDefinition rObjectclassDef;
+		ObjectClassComplexTypeDefinition objectclassDef;
 		try {
 			resource = provisioningService.getObject(ResourceType.class, resourceOid, null, task, opResult);
 			
 			RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, LayerType.MODEL, prismContext);
-			rObjectclassDef = Utils.determineObjectClass(refinedSchema, task);
+			objectclassDef = Utils.determineObjectClass(refinedSchema, task);
 			
 		} catch (ObjectNotFoundException ex) {
 			// This is bad. The resource does not exist. Permanent problem.
@@ -212,10 +213,10 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		}
 
 		reconResult.setResource(resource);
-		reconResult.setRefinedObjectclassDefinition(rObjectclassDef);
+		reconResult.setObjectclassDefinition(objectclassDef);
 		
 		LOGGER.info("Start executing reconciliation of resource {}, reconciling object class {}",
-				resource, rObjectclassDef);
+				resource, objectclassDef);
 		long reconStartTimestamp = clock.currentTimeMillis();
 		
 		AuditEventRecord requestRecord = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.REQUEST);
@@ -260,12 +261,12 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		long afterResourceReconTimestamp;
 		long afterShadowReconTimestamp;
 		try {			
-			if (!performResourceReconciliation(resource, rObjectclassDef, reconResult, task, opResult)) {
+			if (!performResourceReconciliation(resource, objectclassDef, reconResult, task, opResult)) {
                 processInterruption(runResult, resource, task, opResult);
                 return runResult;
             }
 			afterResourceReconTimestamp = clock.currentTimeMillis();
-			if (!performShadowReconciliation(resource, rObjectclassDef, reconStartTimestamp, afterResourceReconTimestamp, reconResult, task, opResult)) {
+			if (!performShadowReconciliation(resource, objectclassDef, reconStartTimestamp, afterResourceReconTimestamp, reconResult, task, opResult)) {
                 processInterruption(runResult, resource, task, opResult);
                 return runResult;
             }
@@ -320,7 +321,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		long resourceReconTime = afterResourceReconTimestamp - beforeResourceReconTimestamp;
 		long shadowReconTime = afterShadowReconTimestamp - afterResourceReconTimestamp;
 		LOGGER.info("Done executing reconciliation of resource {}, object class {}, Etime: {} ms (un-ops: {}, resource: {}, shadow: {})",
-				new Object[]{resource, rObjectclassDef, 
+				new Object[]{resource, objectclassDef, 
 					etime,
 					unOpsTime,
 					resourceReconTime,
@@ -383,7 +384,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	}
 
     // returns false in case of execution interruption
-	private boolean performResourceReconciliation(PrismObject<ResourceType> resource, RefinedObjectClassDefinition rObjectclassDef, ReconciliationTaskResult reconResult, Task task, OperationResult result)
+	private boolean performResourceReconciliation(PrismObject<ResourceType> resource, ObjectClassComplexTypeDefinition objectclassDef, ReconciliationTaskResult reconResult, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 
@@ -394,13 +395,13 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		// Instantiate result handler. This will be called with every search
 		// result in the following iterative search
 		SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource.asObjectable(),
-				rObjectclassDef, "reconciliation", task, changeNotificationDispatcher);
+				objectclassDef, "reconciliation", task, changeNotificationDispatcher);
 		handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_RECON);
 		handler.setStopOnError(false);
 
 		try {
 			
-			ObjectQuery query = createObjectclassSearchQuery(resource, rObjectclassDef);
+			ObjectQuery query = createObjectclassSearchQuery(resource, objectclassDef);
 	
 			OperationResult searchResult = new OperationResult(OperationConstants.RECONCILIATION+".searchIterative"); 
 			provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, searchResult);               // note that progress is incremented within the handler, as it extends AbstractSearchIterativeResultHandler
@@ -444,7 +445,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	}
 
     // returns false in case of execution interruption
-	private boolean performShadowReconciliation(final PrismObject<ResourceType> resource, final RefinedObjectClassDefinition rObjectclassDef,
+	private boolean performShadowReconciliation(final PrismObject<ResourceType> resource, final ObjectClassComplexTypeDefinition objectclassDef,
 			long startTimestamp, long endTimestamp, ReconciliationTaskResult reconResult, final Task task, OperationResult result) throws SchemaException {
         boolean interrupted;
 
@@ -468,7 +469,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		Handler<PrismObject<ShadowType>> handler = new Handler<PrismObject<ShadowType>>() {
 			@Override
 			public boolean handle(PrismObject<ShadowType> shadow) {
-				if (!rObjectclassDef.matches(shadow.asObjectable())) {
+				if ((objectclassDef instanceof RefinedObjectClassDefinition) && !((RefinedObjectClassDefinition)objectclassDef).matches(shadow.asObjectable())) {
 					return true;
 				}
 				reconcileShadow(shadow, resource, task);
@@ -614,8 +615,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	}
 	
 	private ObjectQuery createObjectclassSearchQuery(PrismObject<ResourceType> resource,
-			RefinedObjectClassDefinition refinedAccountDefinition) throws SchemaException {
-		QName objectClass = refinedAccountDefinition.getObjectClassDefinition().getTypeName();
+			ObjectClassComplexTypeDefinition objectClassDefinition) throws SchemaException {
+		QName objectClass = objectClassDefinition.getTypeName();
 		return ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), objectClass, prismContext);
 	}
 

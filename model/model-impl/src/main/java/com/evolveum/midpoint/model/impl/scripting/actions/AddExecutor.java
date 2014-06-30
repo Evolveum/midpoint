@@ -55,12 +55,14 @@ public class AddExecutor extends BaseActionExecutor {
     @Override
     public Data execute(ActionExpressionType expression, Data input, ExecutionContext context, OperationResult result) throws ScriptExecutionException {
 
+        boolean raw = getParamRaw(expression, input, context, result);
+
         for (Item item : input.getData()) {
             if (item instanceof PrismObject) {
                 PrismObject<? extends ObjectType> prismObject = (PrismObject) item;
                 ObjectType objectType = prismObject.asObjectable();
-                operationsHelper.applyDelta(createAddDelta(objectType), context, result);
-                context.println("Added " + item.toString());
+                operationsHelper.applyDelta(createAddDelta(objectType), operationsHelper.createExecutionOptions(raw), context, result);
+                context.println("Added " + item.toString() + rawSuffix(raw));
             } else {
                 throw new ScriptExecutionException("Item couldn't be added, because it is not a PrismObject: " + item.toString());
             }

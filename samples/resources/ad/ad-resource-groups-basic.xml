@@ -22,6 +22,7 @@
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+    xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
         xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
         xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3 ../../../infra/schema/src/main/resources/xml/ns/public/common/common-3.xsd">
@@ -152,6 +153,19 @@
 						</expression>
 					</outbound>
 				</attribute>
+
+                <!-- This defines an association between user and groups he is a member of -->
+                <association>
+                    <ref>ri:group</ref>
+                    <displayName>AD Group Membership</displayName>
+                    <kind>entitlement</kind>
+                    <intent>group</intent>
+                    <direction>objectToSubject</direction>
+                    <associationAttribute>ri:member</associationAttribute>
+                    <valueAttribute>icfs:name</valueAttribute>
+                    <explicitReferentialIntegrity>false</explicitReferentialIntegrity>
+                </association>
+
 				<iteration>
 					<maxIterations>5</maxIterations>
 				</iteration>
@@ -175,26 +189,16 @@
 					</password>
 				</credentials>
 
-                <!-- This defines an association between user and groups he is a member of -->
-                <association>
-                    <ref>ri:group</ref>
-                    <displayName>AD Group Membership</displayName>
-                    <kind>entitlement</kind>
-                    <intent>group</intent>
-                    <direction>objectToSubject</direction>
-                    <associationAttribute>ri:member</associationAttribute>
-                    <valueAttribute>icfs:name</valueAttribute>
-                </association>
             </objectType>
 
             <!-- handling of groups -->
 
             <objectType>
                 <kind>entitlement</kind>
-                <displayName>AD Group</displayName>
                 <intent>group</intent>
-                <objectClass>ri:CustomGroupObjectClass</objectClass>
+                <displayName>AD Group</displayName>
                 <default>true</default>
+                <objectClass>ri:CustomGroupObjectClass</objectClass>
                 <attribute>
                     <ref>icfs:name</ref>
                     <matchingRule>mr:stringIgnoreCase</matchingRule>
@@ -250,8 +254,8 @@
         <synchronization>
             <objectSynchronization>
                 <!-- Synchronizing users -->
-                <enabled>true</enabled>
                 <objectClass>ri:AccountObjectClass</objectClass>
+                <enabled>true</enabled>
 
                 <correlation>
                     <q:description>
@@ -299,17 +303,17 @@
 
             <objectSynchronization>
                 <!-- Synchronizing groups with roles -->
-                <enabled>true</enabled>
                 <objectClass>ri:CustomGroupObjectClass</objectClass>
                 <kind>entitlement</kind>
                 <intent>group</intent>
                 <focusType>c:RoleType</focusType>
+                <enabled>true</enabled>
 
                 <correlation>
                     <q:equal>
                         <q:path>c:name</q:path>
                         <expression>
-                            <path>$shadow/attributes/sAMAccountName</path>
+                            <path>$shadow/attributes/samAccountName</path>
                         </expression>
                     </q:equal>
                 </correlation>

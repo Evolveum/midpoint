@@ -643,7 +643,7 @@ public class PageUser extends PageAdminUsers {
                 String resourceName = WebMiscUtil.getName(resource);
                 
                 ObjectWrapper wrapper = ObjectWrapperUtil.createObjectWrapper(resourceName, WebMiscUtil.getOrigStringFromPoly(accountType
-                        .getName()), account, ContainerStatus.MODIFYING, this);
+                        .getName()), account, ContainerStatus.MODIFYING, true, this);
 //                ObjectWrapper wrapper = new ObjectWrapper(resourceName, WebMiscUtil.getOrigStringFromPoly(accountType
 //                        .getName()), account, ContainerStatus.MODIFYING);
                 wrapper.setFetchResult(OperationResult.createOperationResult(fetchResult));
@@ -664,7 +664,7 @@ public class PageUser extends PageAdminUsers {
                 	
                 }
 
-               
+                wrapper.initializeContainers(this);
 
                 list.add(new UserAccountDto(wrapper, UserDtoStatus.MODIFY));
 

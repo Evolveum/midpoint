@@ -17,8 +17,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 public class ObjectWrapperUtil {
 
-	
-	public static <O extends ObjectType> ObjectWrapper createObjectWrapper(String displayName, String description, PrismObject<O> object, ContainerStatus status, PageBase pageBase) {
+
+    public static <O extends ObjectType> ObjectWrapper createObjectWrapper(String displayName, String description, PrismObject<O> object, ContainerStatus status, PageBase pageBase) {
+        return createObjectWrapper(displayName, description, object, status, false, pageBase);
+    }
+
+	public static <O extends ObjectType> ObjectWrapper createObjectWrapper(String displayName, String description, PrismObject<O> object, ContainerStatus status, boolean delayContainerCreation, PageBase pageBase) {
 		try {
 			PrismContainerDefinition objectDefinitionForEditing = pageBase.getModelInteractionService().getEditObjectDefinition(object);
 			RefinedObjectClassDefinition objectClassDefinitionForEditing = null;
@@ -28,7 +32,7 @@ public class ObjectWrapperUtil {
                 objectClassDefinitionForEditing = pageBase.getModelInteractionService().getEditObjectClassDefinition((PrismObject<ShadowType>) object, resource);
 			} 
 			
-		    ObjectWrapper wrapper = new ObjectWrapper(displayName, description, object, objectDefinitionForEditing, objectClassDefinitionForEditing, status, pageBase);
+		    ObjectWrapper wrapper = new ObjectWrapper(displayName, description, object, objectDefinitionForEditing, objectClassDefinitionForEditing, status, delayContainerCreation, pageBase);
 		    return wrapper;
 		} catch (SchemaException ex){
 			throw new SystemException(ex);

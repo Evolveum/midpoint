@@ -311,6 +311,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
     protected static final ItemPath ROLE_EXTENSION_COST_CENTER_PATH = new ItemPath(RoleType.F_EXTENSION, new QName(NS_PIRACY, "costCenter"));
 
     protected static final String DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME = "sea";
+    
+    protected static final String INTENT_TEST = "test";
 	
 	// Authorizations
 	
