@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.web.component.dialog;
 
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualFilter;
@@ -39,7 +37,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.filter.NoFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
@@ -77,20 +74,14 @@ public class DeleteAllDialog extends ModalWindow{
     private static final String ID_NO = "no";
     private static final String ID_TOTAL = "totalCountLabel";
 
-    private IModel<String> messageUsers;
-    private IModel<String> messageOrgUnits;
-    private IModel<String> messageAccountShadows;
-    private IModel<String> messageRoleShadows;
-    private IModel<String> messageOrgShadows;
-    private IModel<String> messageTotal;
-    private IModel<DeleteAllDto> model;
+    private IModel<DeleteAllDto> model = new Model(new DeleteAllDto());
 
-    private int objectsToDelete = 0;
-    private int accountShadowTypeCount = 0;
-    private int orgUnitCount = 0;
-    private int userCount = 0;
-    private int orgShadowCount = 0;
-    private int roleShadowCount = 0;
+//    private int objectsToDelete = 0;
+//    private int accountShadowTypeCount = 0;
+//    private int orgUnitCount = 0;
+//    private int userCount = 0;
+//    private int orgShadowCount = 0;
+//    private int roleShadowCount = 0;
 
     public DeleteAllDialog(String id, IModel<String> title){
         super(id);
@@ -98,15 +89,6 @@ public class DeleteAllDialog extends ModalWindow{
         if(title != null){
             setTitle(title);
         }
-
-        model = new LoadableModel<DeleteAllDto>(false) {
-
-            @Override
-            protected DeleteAllDto load() {
-                return new DeleteAllDto();
-            }
-        };
-        loadMessages();
 
         setCssClassName(ModalWindow.CSS_CLASS_GRAY);
         setCookieName(ConfirmationDialog.class.getSimpleName() + ((int) (Math.random() * 100)));
@@ -142,49 +124,15 @@ public class DeleteAllDialog extends ModalWindow{
         return model;
     }
 
-    private void loadMessages(){
-        messageUsers = new LoadableModel<String>() {
-            @Override
-            protected String load() {
-                return createDeleteUsersMessage();
-            }
-        };
+    private void updateLabelModel(AjaxRequestTarget target, String labelID){
+        LoadableModel<String> model = (LoadableModel<String>)getLabel(labelID).getDefaultModel();
+        model.reset();
 
-        messageOrgUnits = new LoadableModel<String>() {
-            @Override
-            protected String load() {
-                return createDeleteOrgUnitsMessage();
-            }
-        };
+        model = (LoadableModel<String>)getLabel(ID_TOTAL).getDefaultModel();
+        model.reset();
 
-        messageAccountShadows = new LoadableModel<String>() {
-            @Override
-            protected String load() {
-                return createDeleteAccountShadowsMessage();
-            }
-        };
-
-        messageOrgShadows = new LoadableModel<String>() {
-            @Override
-            protected String load() {
-                return createDeleteShadowsMessage(OrgType.COMPLEX_TYPE);
-            }
-        };
-
-        messageRoleShadows = new LoadableModel<String>() {
-            @Override
-            protected String load() {
-                return createDeleteShadowsMessage(RoleType.COMPLEX_TYPE);
-            }
-        };
-
-        messageTotal = new LoadableModel<String>() {
-
-            @Override
-            protected String load() {
-                return createTotalMessage();
-            }
-        };
+        target.add(getLabel(labelID));
+        target.add(getLabel(ID_TOTAL));
     }
 
     private void initLayout(WebMarkupContainer content){
@@ -194,10 +142,7 @@ public class DeleteAllDialog extends ModalWindow{
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                messageUsers.setObject(createDeleteUsersMessage());
-                messageTotal.setObject(createTotalMessage());
-                target.add(getLabel(ID_TEXT_USERS));
-                target.add(getLabel(ID_TOTAL));
+                updateLabelModel(target, ID_TEXT_USERS);
             }
         });
         content.add(deleteUsersCheckbox);
@@ -207,10 +152,7 @@ public class DeleteAllDialog extends ModalWindow{
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                messageOrgUnits.setObject(createDeleteOrgUnitsMessage());
-                messageTotal.setObject(createTotalMessage());
-                target.add(getLabel(ID_TEXT_ORGS));
-                target.add(getLabel(ID_TOTAL));
+                updateLabelModel(target, ID_TEXT_ORGS);
             }
         });
         content.add(deleteOrgsCheckbox);
@@ -221,10 +163,7 @@ public class DeleteAllDialog extends ModalWindow{
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                messageAccountShadows.setObject(createDeleteAccountShadowsMessage());
-                messageTotal.setObject(createTotalMessage());
-                target.add(getLabel(ID_TEXT_ACC_SHADOWS));
-                target.add(getLabel(ID_TOTAL));
+                updateLabelModel(target, ID_TEXT_ACC_SHADOWS);
             }
         });
         content.add(deleteAccountShadowsCheckbox);
@@ -235,10 +174,7 @@ public class DeleteAllDialog extends ModalWindow{
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                messageOrgShadows.setObject(createDeleteShadowsMessage(OrgType.COMPLEX_TYPE));
-                messageTotal.setObject(createTotalMessage());
-                target.add(getLabel(ID_TEXT_ORG_SHADOWS));
-                target.add(getLabel(ID_TOTAL));
+                updateLabelModel(target, ID_TEXT_ORG_SHADOWS);
             }
         });
         content.add(deleteOrgShadowsCheckbox);
@@ -249,35 +185,62 @@ public class DeleteAllDialog extends ModalWindow{
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                messageRoleShadows.setObject(createDeleteShadowsMessage(RoleType.COMPLEX_TYPE));
-                messageTotal.setObject(createTotalMessage());
-                target.add(getLabel(ID_TEXT_ROLE_SHADOWS));
-                target.add(getLabel(ID_TOTAL));
+                updateLabelModel(target, ID_TEXT_ROLE_SHADOWS);
             }
         });
         content.add(deleteRoleShadowsCheckbox);
 
-        Label usersLabel = new Label(ID_TEXT_USERS, messageUsers);
+        Label usersLabel = new Label(ID_TEXT_USERS, new LoadableModel<String>() {
+            @Override
+            protected String load() {
+                return createDeleteUsersMessage();
+            }
+        });
         usersLabel.setOutputMarkupId(true);
         content.add(usersLabel);
 
-        Label orgsLabel = new Label(ID_TEXT_ORGS, messageOrgUnits);
+        Label orgsLabel = new Label(ID_TEXT_ORGS, new LoadableModel<String>() {
+            @Override
+            protected String load() {
+                return createDeleteOrgUnitsMessage();
+            }
+        });
         orgsLabel.setOutputMarkupId(true);
         content.add(orgsLabel);
 
-        Label accShadowsLabel = new Label(ID_TEXT_ACC_SHADOWS, messageAccountShadows);
+        Label accShadowsLabel = new Label(ID_TEXT_ACC_SHADOWS, new LoadableModel<String>() {
+            @Override
+            protected String load() {
+                return createDeleteAccountShadowsMessage();
+            }
+        });
         accShadowsLabel.setOutputMarkupId(true);
         content.add(accShadowsLabel);
 
-        Label orgShadowsLabel = new Label(ID_TEXT_ORG_SHADOWS, messageOrgShadows);
+        Label orgShadowsLabel = new Label(ID_TEXT_ORG_SHADOWS, new LoadableModel<String>() {
+            @Override
+            protected String load() {
+                return createDeleteShadowsMessage(OrgType.COMPLEX_TYPE);
+            }
+        });
         orgShadowsLabel.setOutputMarkupId(true);
         content.add(orgShadowsLabel);
 
-        Label roleShadowsLabel = new Label(ID_TEXT_ROLE_SHADOWS, messageRoleShadows);
+        Label roleShadowsLabel = new Label(ID_TEXT_ROLE_SHADOWS, new LoadableModel<String>() {
+            @Override
+            protected String load() {
+                return createDeleteShadowsMessage(RoleType.COMPLEX_TYPE);
+            }
+        });
         roleShadowsLabel.setOutputMarkupId(true);
         content.add(roleShadowsLabel);
 
-        Label countLabel = new Label(ID_TOTAL, messageTotal);
+        Label countLabel = new Label(ID_TOTAL, new LoadableModel<String>() {
+            @Override
+            protected String load() {
+                return createTotalMessage();
+            }
+        });
         countLabel.setOutputMarkupId(true);
         content.add(countLabel);
 
@@ -311,35 +274,34 @@ public class DeleteAllDialog extends ModalWindow{
     }
 
     private String createTotalMessage(){
-        objectsToDelete = 0;
         DeleteAllDto dto = model.getObject();
+        dto.setObjectsToDelete(0);
+
         if(dto.getDeleteUsers()){
-            objectsToDelete += userCount;
+            dto.setObjectsToDelete(dto.getObjectsToDelete() + dto.getUserCount());
         }
         if(dto.getDeleteOrgs()){
-            objectsToDelete += orgUnitCount;
+            dto.setObjectsToDelete(dto.getObjectsToDelete() + dto.getOrgUnitCount());
         }
         if(dto.getDeleteAccountShadow()){
-            objectsToDelete += accountShadowTypeCount;
+            dto.setObjectsToDelete(dto.getObjectsToDelete() + dto.getAccountShadowTypeCount());
         }
         if(dto.getDeleteOrgShadow()){
-            objectsToDelete += orgShadowCount;
+            dto.setObjectsToDelete(dto.getObjectsToDelete() + dto.getOrgShadowCount());
         }
         if(dto.getDeleteRoleShadow()){
-            objectsToDelete += roleShadowCount;
+            dto.setObjectsToDelete(dto.getObjectsToDelete() + dto.getRoleShadowCount());
         }
 
-        return createStringResource("pageDebugList.label.totalToDelete", objectsToDelete).getString();
+        return createStringResource("deleteAllDialog.label.totalToDelete", dto.getObjectsToDelete()).getString();
     }
 
     private String createDeleteUsersMessage(){
         if(!model.getObject().getDeleteUsers()){
-            return createStringResource("pageDebugList.label.usersDelete", 0).getString();
+            return createStringResource("deleteAllDialog.label.usersDelete", 0).getString();
         }
-
-        userCount = 0;
-
-        Task task = createSimpleTask(OPERATION_COUNT_TASK);
+        DeleteAllDto dto = model.getObject();
+        Task task = getPagebase().createSimpleTask(OPERATION_COUNT_TASK);
         OperationResult result = new OperationResult(OPERATION_COUNT_TASK);
 
         Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
@@ -347,27 +309,26 @@ public class DeleteAllDialog extends ModalWindow{
         options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, opt));
 
         try {
-            userCount = getModelService().countObjects(UserType.class, null, options, task, result);
+            dto.setUserCount(getPagebase().getModelService().countObjects(UserType.class, null, options, task, result));
 
             //We need to substract 1, because we are not deleting user 'Administrator'
-            userCount--;
-            objectsToDelete += userCount;
+            dto.setUserCount(dto.getUserCount()-1);
+            dto.setObjectsToDelete(dto.getObjectsToDelete() + dto.getUserCount());
         } catch (Exception ex) {
-            result.computeStatus(getString("pageDebugList.message.countSearchProblem"));
-            LoggingUtils.logException(LOGGER, getString("pageDebugList.message.countSearchProblem"), ex);
+            result.computeStatus(getString("deleteAllDialog.message.countSearchProblem"));
+            LoggingUtils.logException(LOGGER, getString("deleteAllDialog.message.countSearchProblem"), ex);
         }
 
-        return createStringResource("pageDebugList.label.usersDelete", userCount).getString();
+        return createStringResource("deleteAllDialog.label.usersDelete", dto.getUserCount()).getString();
     }
 
     private String createDeleteOrgUnitsMessage(){
         if(!model.getObject().getDeleteOrgs()){
-            return createStringResource("pageDebugList.label.orgUnitsDelete", 0).getString();
+            return createStringResource("deleteAllDialog.label.orgUnitsDelete", 0).getString();
         }
 
-        orgUnitCount = 0;
-
-        Task task = createSimpleTask(OPERATION_COUNT_TASK);
+        DeleteAllDto dto = model.getObject();
+        Task task = getPagebase().createSimpleTask(OPERATION_COUNT_TASK);
         OperationResult result = new OperationResult(OPERATION_COUNT_TASK);
 
         Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
@@ -375,25 +336,24 @@ public class DeleteAllDialog extends ModalWindow{
         options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, opt));
 
         try {
-            orgUnitCount = getModelService().countObjects(OrgType.class, null, options, task, result);
+            dto.setOrgUnitCount(getPagebase().getModelService().countObjects(OrgType.class, null, options, task, result));
 
-            objectsToDelete += orgUnitCount;
+            dto.setObjectsToDelete(dto.getObjectsToDelete() + dto.getOrgUnitCount());
         } catch (Exception ex) {
-            result.computeStatus(getString("pageDebugList.message.countSearchProblem"));
-            LoggingUtils.logException(LOGGER, getString("pageDebugList.message.countSearchProblem"), ex);
+            result.computeStatus(getString("deleteAllDialog.message.countSearchProblem"));
+            LoggingUtils.logException(LOGGER, getString("deleteAllDialog.message.countSearchProblem"), ex);
         }
 
-        return createStringResource("pageDebugList.label.orgUnitsDelete", orgUnitCount).getString();
+        return createStringResource("deleteAllDialog.label.orgUnitsDelete", dto.getOrgUnitCount()).getString();
     }
 
     private String createDeleteAccountShadowsMessage(){
         if(!model.getObject().getDeleteAccountShadow()){
-            return createStringResource("pageDebugList.label.accountShadowsDelete", 0).getString();
+            return createStringResource("deleteAllDialog.label.accountShadowsDelete", 0).getString();
         }
 
-        accountShadowTypeCount = 0;
-
-        Task task = createSimpleTask(OPERATION_SEARCH_ITERATIVE_TASK);
+        DeleteAllDto dto = model.getObject();
+        Task task = getPagebase().createSimpleTask(OPERATION_SEARCH_ITERATIVE_TASK);
         OperationResult result = new OperationResult(OPERATION_SEARCH_ITERATIVE_TASK);
 
         Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
@@ -401,30 +361,28 @@ public class DeleteAllDialog extends ModalWindow{
         options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, opt));
 
         try {
-            ObjectFilter filter = EqualFilter.createEqual(ShadowType.F_KIND, ShadowType.class, getPrismContext(), null, ShadowKindType.ACCOUNT);
+            ObjectFilter filter = EqualFilter.createEqual(ShadowType.F_KIND, ShadowType.class, getPagebase().getPrismContext(), null, ShadowKindType.ACCOUNT);
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-            accountShadowTypeCount = getModelService().countObjects(ShadowType.class, query, options, task, result);
-            objectsToDelete += accountShadowTypeCount;
+            dto.setAccountShadowTypeCount(getPagebase().getModelService().countObjects(ShadowType.class, query, options, task, result));
+            dto.setObjectsToDelete(dto.getObjectsToDelete() + dto.getAccountShadowTypeCount());
         } catch (Exception ex) {
-            result.computeStatus(getString("pageDebugList.message.countSearchProblem"));
-            LoggingUtils.logException(LOGGER, getString("pageDebugList.message.countSearchProblem"), ex);
+            result.computeStatus(getString("deleteAllDialog.message.countSearchProblem"));
+            LoggingUtils.logException(LOGGER, getString("deleteAllDialog.message.countSearchProblem"), ex);
         }
 
-        return createStringResource("pageDebugList.label.accountShadowsDelete", accountShadowTypeCount).getString();
+        return createStringResource("deleteAllDialog.label.accountShadowsDelete", dto.getAccountShadowTypeCount()).getString();
     }
 
     private String createDeleteShadowsMessage(final QName focus){
         if(OrgType.COMPLEX_TYPE.equals(focus) && !model.getObject().getDeleteOrgShadow()){
-            return createStringResource("pageDebugList.label.orgShadowsDelete", 0).getString();
+            return createStringResource("deleteAllDialog.label.orgShadowsDelete", 0).getString();
         } else if(RoleType.COMPLEX_TYPE.equals(focus) && !model.getObject().getDeleteRoleShadow()){
-            return createStringResource("pageDebugList.label.roleShadowsDelete", 0).getString();
+            return createStringResource("deleteAllDialog.label.roleShadowsDelete", 0).getString();
         }
-
-        orgShadowCount = 0;
-        roleShadowCount = 0;
+        DeleteAllDto dto = model.getObject();
         int count = 0;
 
-        Task task = createSimpleTask(OPERATION_SEARCH_ITERATIVE_TASK);
+        Task task = getPagebase().createSimpleTask(OPERATION_SEARCH_ITERATIVE_TASK);
         final OperationResult result = new OperationResult(OPERATION_SEARCH_ITERATIVE_TASK);
 
         Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<>();
@@ -442,7 +400,7 @@ public class DeleteAllDialog extends ModalWindow{
                     return true;
                 }
 
-                PrismObject<ResourceType> resource = WebModelUtils.loadObject(ResourceType.class, oid, result, (PageBase) getPage());
+                PrismObject<ResourceType> resource = WebModelUtils.loadObject(ResourceType.class, oid, result, getPagebase());
 
                 if(resource != null && resource.asObjectable() != null){
                     SynchronizationType sync = resource.asObjectable().getSynchronization();
@@ -459,52 +417,45 @@ public class DeleteAllDialog extends ModalWindow{
         };
 
         try {
-            ObjectFilter filter = EqualFilter.createEqual(ShadowType.F_KIND, ShadowType.class, getPrismContext(), null, ShadowKindType.ACCOUNT);
+            ObjectFilter filter = EqualFilter.createEqual(ShadowType.F_KIND, ShadowType.class, getPagebase().getPrismContext(), null, ShadowKindType.ACCOUNT);
             ObjectQuery query = ObjectQuery.createObjectQuery(NotFilter.createNot(filter));
-            getModelService().searchObjectsIterative(ShadowType.class, query, orgShadowHandler, options, task, result);
+            getPagebase().getModelService().searchObjectsIterative(ShadowType.class, query, orgShadowHandler, options, task, result);
             if(OrgType.COMPLEX_TYPE.equals(focus)){
-                count = orgShadowCount;
+                count = dto.getOrgShadowCount();
             } else if(RoleType.COMPLEX_TYPE.equals(focus)){
-                count = roleShadowCount;
+                count = dto.getRoleShadowCount();
             }
 
-            objectsToDelete += count;
+            dto.setObjectsToDelete(dto.getObjectsToDelete() + count);
         } catch (Exception ex) {
-            result.computeStatus(getString("pageDebugList.message.countSearchProblem"));
-            LoggingUtils.logException(LOGGER, getString("pageDebugList.message.countSearchProblem"), ex);
+            result.computeStatus(getString("deleteAllDialog.message.countSearchProblem"));
+            LoggingUtils.logException(LOGGER, getString("deleteAllDialog.message.countSearchProblem"), ex);
         }
 
         if(OrgType.COMPLEX_TYPE.equals(focus)){
-            return createStringResource("pageDebugList.label.orgShadowsDelete", count).getString();
+            return createStringResource("deleteAllDialog.label.orgShadowsDelete", count).getString();
         } else if(RoleType.COMPLEX_TYPE.equals(focus)){
-            return createStringResource("pageDebugList.label.roleShadowsDelete", count).getString();
+            return createStringResource("deleteAllDialog.label.roleShadowsDelete", count).getString();
         } else {
             return null;
         }
     }
 
     public int getObjectsToDelete(){
-        return objectsToDelete;
+        return model.getObject().getObjectsToDelete();
     }
 
     private void addShadowType(String focus){
+        DeleteAllDto dto = model.getObject();
         if(OrgType.COMPLEX_TYPE.getLocalPart().equals(focus)){
-            orgShadowCount++;
+            dto.setOrgShadowCount(dto.getOrgShadowCount() + 1);
         } else if(RoleType.COMPLEX_TYPE.getLocalPart().equals(focus)){
-            roleShadowCount++;
+            dto.setOrgShadowCount(dto.getRoleShadowCount() + 1);
         }
     }
 
-    public Task createSimpleTask(String operation){
-        return null;
-    }
-
-    public ModelService getModelService(){
-        return null;
-    }
-
-    public PrismContext getPrismContext(){
-        return null;
+    private PageBase getPagebase(){
+        return (PageBase) getPage();
     }
 
     public void yesPerformed(AjaxRequestTarget target) {

@@ -30,11 +30,18 @@ public class DeleteAllDto implements Serializable{
     public static final String F_ORG_SHADOW = "deleteOrgShadow";
     public static final String F_ROLE_SHADOW = "deleteRoleShadow";
 
-    private Boolean deleteUsers = false;
-    private Boolean deleteOrgs = false;
-    private Boolean deleteAccountShadow = false;
-    private Boolean deleteRoleShadow = false;
-    private Boolean deleteOrgShadow = false;
+    private boolean deleteUsers = false;
+    private boolean deleteOrgs = false;
+    private boolean deleteAccountShadow = false;
+    private boolean deleteRoleShadow = false;
+    private boolean deleteOrgShadow = false;
+
+    private int objectsToDelete = 0;
+    private int accountShadowTypeCount = 0;
+    private int orgUnitCount = 0;
+    private int userCount = 0;
+    private int orgShadowCount = 0;
+    private int roleShadowCount = 0;
 
     private Map<String, String> resourceFocusMap = new HashMap<>();
 
@@ -46,43 +53,91 @@ public class DeleteAllDto implements Serializable{
         this.resourceFocusMap = resourceFocusMap;
     }
 
-    public Boolean getDeleteUsers() {
+    public boolean getDeleteUsers() {
         return deleteUsers;
     }
 
-    public void setDeleteUsers(Boolean deleteUsers) {
+    public void setDeleteUsers(boolean deleteUsers) {
         this.deleteUsers = deleteUsers;
     }
 
-    public Boolean getDeleteOrgs() {
+    public boolean getDeleteOrgs() {
         return deleteOrgs;
     }
 
-    public void setDeleteOrgs(Boolean deleteOrgs) {
+    public void setDeleteOrgs(boolean deleteOrgs) {
         this.deleteOrgs = deleteOrgs;
     }
 
-    public Boolean getDeleteAccountShadow() {
+    public boolean getDeleteAccountShadow() {
         return deleteAccountShadow;
     }
 
-    public void setDeleteAccountShadow(Boolean deleteAccountShadow) {
+    public void setDeleteAccountShadow(boolean deleteAccountShadow) {
         this.deleteAccountShadow = deleteAccountShadow;
     }
 
-    public Boolean getDeleteRoleShadow() {
+    public boolean getDeleteRoleShadow() {
         return deleteRoleShadow;
     }
 
-    public void setDeleteRoleShadow(Boolean deleteRoleShadow) {
+    public void setDeleteRoleShadow(boolean deleteRoleShadow) {
         this.deleteRoleShadow = deleteRoleShadow;
     }
 
-    public Boolean getDeleteOrgShadow() {
+    public boolean getDeleteOrgShadow() {
         return deleteOrgShadow;
     }
 
-    public void setDeleteOrgShadow(Boolean deleteOrgShadow) {
+    public void setDeleteOrgShadow(boolean deleteOrgShadow) {
         this.deleteOrgShadow = deleteOrgShadow;
+    }
+
+    public int getObjectsToDelete() {
+        return objectsToDelete;
+    }
+
+    public void setObjectsToDelete(int objectsToDelete) {
+        this.objectsToDelete = objectsToDelete;
+    }
+
+    public int getAccountShadowTypeCount() {
+        return accountShadowTypeCount;
+    }
+
+    public void setAccountShadowTypeCount(int accountShadowTypeCount) {
+        this.accountShadowTypeCount = accountShadowTypeCount;
+    }
+
+    public int getOrgUnitCount() {
+        return orgUnitCount;
+    }
+
+    public void setOrgUnitCount(int orgUnitCount) {
+        this.orgUnitCount = orgUnitCount;
+    }
+
+    public int getUserCount() {
+        return userCount;
+    }
+
+    public void setUserCount(int userCount) {
+        this.userCount = userCount;
+    }
+
+    public int getOrgShadowCount() {
+        return orgShadowCount;
+    }
+
+    public void setOrgShadowCount(int orgShadowCount) {
+        this.orgShadowCount = orgShadowCount;
+    }
+
+    public int getRoleShadowCount() {
+        return roleShadowCount;
+    }
+
+    public void setRoleShadowCount(int roleShadowCount) {
+        this.roleShadowCount = roleShadowCount;
     }
 }
