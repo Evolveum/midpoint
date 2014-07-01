@@ -124,7 +124,7 @@
         	<groupId>org.webjars</groupId>
     		<artifactId>webjars-locator</artifactId>
     		<version>0.15</version>
-        </dependency>        
+        </dependency>
         <dependency>
             <groupId>ro.isdc.wro4j</groupId>
             <artifactId>wro4j-extensions</artifactId>
@@ -141,7 +141,7 @@
                 <exclusion>
                     <!-- unused library (13mb) -->
                     <groupId>org.jruby</groupId>
-                    <artifactId>jruby-complete</artifactId>
+                    <artifactId>jruby-core</artifactId>
                 </exclusion>
                 <exclusion>
                     <!-- unused library (500kb) -->
@@ -158,12 +158,42 @@
                     <groupId>com.google.javascript</groupId>
                     <artifactId>closure-compiler</artifactId>
                 </exclusion>
+                <exclusion>
+                    <!-- unused library -->
+                    <groupId>org.webjars</groupId>
+                    <artifactId>coffee-script</artifactId>
+                </exclusion>
+                <exclusion>
+                    <!-- unused library -->
+                    <groupId>org.codehaus.gmaven.runtime</groupId>
+                    <artifactId>gmaven-runtime-1.7</artifactId>
+                </exclusion>
+                <exclusion>
+                    <!-- unused library -->
+                    <groupId>com.github.lltyk</groupId>
+                    <artifactId>dojo-shrinksafe</artifactId>
+                </exclusion>
+                <exclusion>
+                    <!-- unused library -->
+                    <groupId>org.webjars</groupId>
+                    <artifactId>emberjs</artifactId>
+                </exclusion>
+                <exclusion>
+                    <!-- unused library -->
+                    <groupId>org.webjars</groupId>
+                    <artifactId>handlebars</artifactId>
+                </exclusion>
+                <exclusion>
+                    <!-- unused library -->
+                    <groupId>org.webjars</groupId>
+                    <artifactId>json2</artifactId>
+                </exclusion>
+                <exclusion>
+                    <!-- unused library -->
+                    <groupId>com.google.code.gson</groupId>
+                    <artifactId>gson</artifactId>
+                </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.mozilla</groupId>
-            <artifactId>rhino</artifactId>
-            <version>1.7R4</version>
         </dependency>
 
         <!-- MIDPOINT LOCALIZATION -->
@@ -348,10 +378,6 @@
         <dependency>
             <groupId>org.apache.wicket</groupId>
             <artifactId>wicket-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.wicket</groupId>
-            <artifactId>wicket-atmosphere</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.wicket</groupId>
