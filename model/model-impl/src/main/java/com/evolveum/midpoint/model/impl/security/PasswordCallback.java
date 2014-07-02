@@ -26,6 +26,8 @@ import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.security.api.UserProfileService;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
@@ -36,6 +38,8 @@ import org.apache.ws.security.WSPasswordCallback;
  * @author Igor Farinic
  */
 public class PasswordCallback implements CallbackHandler {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(PasswordCallback.class);
 
     private UserProfileService userDetailsService;
     private Protector protector;
@@ -46,8 +50,12 @@ public class PasswordCallback implements CallbackHandler {
     }
 
     public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
+    	LOGGER.trace("Invoked PasswordCallback with {} callbacks: {}", callbacks.length, callbacks);
         WSPasswordCallback pc = (WSPasswordCallback) callbacks[0];
 
+        String wssPasswordType = pc.getType();
+        LOGGER.trace("Password type: {}", wssPasswordType);
+        
         MidPointPrincipal user;
 		try {
 			user = userDetailsService.getPrincipal(pc.getIdentifier());
