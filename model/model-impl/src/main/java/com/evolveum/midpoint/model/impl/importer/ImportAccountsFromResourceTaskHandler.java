@@ -23,11 +23,9 @@ import javax.xml.namespace.QName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.sync.SynchronizeAccountResultHandler;
-import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.model.impl.util.AbstractSearchIterativeTaskHandler;
 import com.evolveum.midpoint.model.impl.util.Utils;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -180,11 +178,12 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
 			return null;
 		}
 		
-        return createHandler(resource, runResult, task, opResult);
+        return createHandler(resource, null, runResult, task, opResult);
 	}
-	
-	private SynchronizeAccountResultHandler createHandler(ResourceType resource, TaskRunResult runResult, Task task,
-			OperationResult opResult) {
+
+    // shadowToImport - it is used to derive objectClass/intent/kind when importing a single shadow
+	private SynchronizeAccountResultHandler createHandler(ResourceType resource, PrismObject<ShadowType> shadowToImport,
+                                                          TaskRunResult runResult, Task task, OperationResult opResult) {
 		
 		RefinedResourceSchema refinedSchema;
         try {
@@ -200,7 +199,12 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         	LOGGER.trace("Refined schema:\n{}", refinedSchema.debugDump());
         }
         
-        ObjectClassComplexTypeDefinition objectClass = Utils.determineObjectClass(refinedSchema, task);        
+        ObjectClassComplexTypeDefinition objectClass;
+        if (shadowToImport != null) {
+            objectClass = Utils.determineObjectClass(refinedSchema, shadowToImport);
+        } else {
+            objectClass = Utils.determineObjectClass(refinedSchema, task);
+        }
         if (objectClass == null) {
             LOGGER.error("Import: No objectclass specified and no default can be determined.");
             opResult.recordFatalError("No objectclass specified and no default can be determined");
@@ -260,7 +264,7 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
     	
     	// Create a result handler just for one object. Invoke the handle() method manually.
     	TaskRunResult runResult = new TaskRunResult();
-		SynchronizeAccountResultHandler resultHandler = createHandler(resource.asObjectable(), runResult, task, parentResult);
+		SynchronizeAccountResultHandler resultHandler = createHandler(resource.asObjectable(), shadow, runResult, task, parentResult);
 		if (resultHandler == null) {
 			return false;
 		}
