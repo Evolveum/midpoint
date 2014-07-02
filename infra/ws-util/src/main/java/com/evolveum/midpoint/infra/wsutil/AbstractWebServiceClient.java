@@ -61,7 +61,18 @@ public abstract class AbstractWebServiceClient<P,S extends Service> {
 	protected abstract String getDefaultUsername();
 	
 	protected String getPasswordType() {
-		return WSConstants.PW_DIGEST;
+		if (commandLine.hasOption('P')) {
+			String optionValue = commandLine.getOptionValue('P');
+			if ("text".equals(optionValue)) {
+				return WSConstants.PW_TEXT;
+			} else if ("digest".equals(optionValue)) {
+				return WSConstants.PW_DIGEST;
+			} else {
+				throw new IllegalArgumentException("Unknown password type "+optionValue);
+			}
+		} else {
+			return WSConstants.PW_TEXT;
+		}
 	}
 	
 	protected abstract String getDefaultPassword();
@@ -85,6 +96,7 @@ public abstract class AbstractWebServiceClient<P,S extends Service> {
 	protected void init(String[] args) throws ParseException {
 		options.addOption("u", "user", true, "Username");
 		options.addOption("p", "password", true, "Password");
+		options.addOption("P", "password-type", true, "Password type (text or digest)");
 		options.addOption("e", "endpoint", true, "Endpoint URL");
 		options.addOption("v", "verbose", false, "Verbose mode");
 		options.addOption("m", "messages", false, "Log SOAP messages");
