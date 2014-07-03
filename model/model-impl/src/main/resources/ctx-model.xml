@@ -407,14 +407,13 @@
         <constructor-arg>
             <map>
                 <entry key="action" value="UsernameToken"/>
-                <entry key="passwordType" value="PasswordDigest"/>
                 <entry key="passwordCallbackRef">
                     <ref bean="passwordCallback"/>
                 </entry>
             </map>
         </constructor-arg>
     </bean>
-
+    
     <bean id="springAuthenticationInjector" class="com.evolveum.midpoint.model.impl.security.SpringAuthenticationInjectorInterceptor">
         <constructor-arg name="userDetailsService" ref="userDetailsService"/>
         <constructor-arg name="securityEnforcer" ref="securityEnforcer"/>

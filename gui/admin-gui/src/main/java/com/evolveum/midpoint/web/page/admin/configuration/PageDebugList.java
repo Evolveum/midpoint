@@ -17,8 +17,6 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
@@ -46,6 +44,7 @@ import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.dialog.DeleteAllDialog;
+import com.evolveum.midpoint.web.component.dialog.DeleteAllDto;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
@@ -145,21 +144,6 @@ public class PageDebugList extends PageAdminConfiguration {
                 createStringResource("pageDebugList.dialog.title.deleteAll")){
 
             @Override
-            public Task createSimpleTask(String operation){
-                return PageDebugList.this.createSimpleTask(operation);
-            }
-
-            @Override
-            public ModelService getModelService(){
-                return PageDebugList.this.getModelService();
-            }
-
-            @Override
-            public PrismContext getPrismContext(){
-                return PageDebugList.this.getPrismContext();
-            }
-
-            @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 close(target);
 
@@ -171,19 +155,21 @@ public class PageDebugList extends PageAdminConfiguration {
                 OperationResult result = new OperationResult(OPERATION_LAXATIVE_DELETE);
 
                 objectsDeleted = 0;
-                if(getModel().getObject().getDeleteUsers()){
+                DeleteAllDto dto = getModel().getObject();
+
+                if(dto.getDeleteUsers()){
                     deleteAllUsers(task, result, options);
                 }
-                if(getModel().getObject().getDeleteOrgs()){
+                if(dto.getDeleteOrgs()){
                     deleteAllOrgUnits(task, result, options);
                 }
-                if(getModel().getObject().getDeleteAccountShadow()){
+                if(dto.getDeleteAccountShadow()){
                     deleteAllAccountShadows(task, result, options);
                 }
-                if(getModel().getObject().getDeleteOrgShadow()){
+                if(dto.getDeleteOrgShadow()){
                     deleteAllNonAccountShadows(task, result, options, OrgType.COMPLEX_TYPE);
                 }
-                if(getModel().getObject().getDeleteRoleShadow()){
+                if(dto.getDeleteRoleShadow()){
                     deleteAllNonAccountShadows(task, result, options, RoleType.COMPLEX_TYPE);
                 }
 
