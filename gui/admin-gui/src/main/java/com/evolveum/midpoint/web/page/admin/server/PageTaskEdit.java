@@ -50,6 +50,7 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.server.dto.ScheduleValidator;
 import com.evolveum.midpoint.web.page.admin.server.dto.StartEndDateValidator;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
@@ -149,7 +150,7 @@ public class PageTaskEdit extends PageAdminTasks {
         this(new PageParameters(), null);
     }
 
-    public PageTaskEdit(PageParameters parameters, PageBase previousPage) {
+    public PageTaskEdit(PageParameters parameters, PageTemplate previousPage) {
 
         this.parameters = parameters;
         setPreviousPage(previousPage);

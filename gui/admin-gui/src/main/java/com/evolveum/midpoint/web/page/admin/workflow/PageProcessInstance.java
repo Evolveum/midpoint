@@ -27,6 +27,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.PageTemplate;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
@@ -69,7 +70,7 @@ public class PageProcessInstance extends PageAdminWorkItems {
         this(new PageParameters(), null);
     }
 
-    public PageProcessInstance(final PageParameters parameters, PageBase previousPage) {
+    public PageProcessInstance(final PageParameters parameters, PageTemplate previousPage) {
 
         this.parameters = parameters;
         setPreviousPage(previousPage);
