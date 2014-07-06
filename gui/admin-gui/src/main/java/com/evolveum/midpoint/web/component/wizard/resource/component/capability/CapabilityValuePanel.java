@@ -18,19 +18,50 @@ package com.evolveum.midpoint.web.component.wizard.resource.component.capability
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.CapabilityDto;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.*;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 
 /**
  *  @author shood
  * */
 public class CapabilityValuePanel extends SimplePanel{
 
-    private IModel<CapabilityDto> model;
+    private static final String ID_LABEL = "label";
+    private static final String ID_ENABLED = "enabled";
 
     public CapabilityValuePanel(String componentId, IModel<CapabilityDto> model){
         super(componentId, model);
     }
 
     @Override
-    protected void initLayout(){}
+    protected void initLayout(){
+
+        Label label = new Label(ID_LABEL, createStringResource(getCapabilityLabelKey()));
+        add(label);
+
+        CheckBox enabled = new CheckBox(ID_ENABLED, new PropertyModel<Boolean>(getModel(), "capability.enabled"));
+        add(enabled);
+    }
+
+    private String getCapabilityLabelKey(){
+        CapabilityType capability = ((CapabilityDto)getModel().getObject()).getCapability();
+
+        if(capability instanceof ReadCapabilityType){
+            return "capabilityValuePanel.label.capability.read";
+        } else if(capability instanceof UpdateCapabilityType){
+            return "capabilityValuePanel.label.capability.update";
+        } else if(capability instanceof CreateCapabilityType){
+            return "capabilityValuePanel.label.capability.create";
+        } else if(capability instanceof DeleteCapabilityType){
+            return "capabilityValuePanel.label.capability.delete";
+        } else if(capability instanceof LiveSyncCapabilityType){
+            return "capabilityValuePanel.label.capability.liveSync";
+        } else if(capability instanceof TestConnectionCapabilityType){
+            return "capabilityValuePanel.label.capability.testConnection";
+        }
+        return null;
+    }
 }

@@ -72,4 +72,35 @@ public class CapabilityDto<T extends CapabilityType> implements Serializable {
     public void setSelected(boolean selected) {
         this.selected = selected;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+
+        if (!(o instanceof CapabilityDto))
+            return false;
+
+        CapabilityDto that = (CapabilityDto) o;
+
+        if (nativeCapability != that.nativeCapability)
+            return false;
+        if (selected != that.selected)
+            return false;
+        if (!capability.equals(that.capability))
+            return false;
+        if (!value.equals(that.value))
+            return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (selected ? 1 : 0);
+        result = 31 * result + (nativeCapability ? 1 : 0);
+        result = 31 * result + value.hashCode();
+        result = 31 * result + capability.hashCode();
+        return result;
+    }
 }

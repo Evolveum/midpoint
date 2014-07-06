@@ -31,7 +31,6 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.util.BasePanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -97,7 +96,7 @@ public class ResourcesPopup extends BasePanel {
         };
         searchForm.add(basicSearch);
 
-        TablePanel resources = new TablePanel<ResourceDto>(ID_TABLE,
+        TablePanel resources = new TablePanel<>(ID_TABLE,
                 getProvider(), initResourceColumns());
         resources.setOutputMarkupId(true);
         add(resources);
@@ -118,7 +117,7 @@ public class ResourcesPopup extends BasePanel {
     }
 
     private List<IColumn<ResourceDto, String>> initResourceColumns() {
-        List<IColumn<ResourceDto, String>> columns = new ArrayList<IColumn<ResourceDto, String>>();
+        List<IColumn<ResourceDto, String>> columns = new ArrayList<>();
 
         IColumn column = new CheckBoxHeaderColumn<ResourceDto>();
         columns.add(column);
@@ -129,7 +128,7 @@ public class ResourcesPopup extends BasePanel {
     }
 
     private List<ResourceType> getSelectedResources() {
-        List<ResourceType> list = new ArrayList<ResourceType>();
+        List<ResourceType> list = new ArrayList<>();
 
         TablePanel table = getTablePanel();
         SimpleUserResourceProvider provider = (SimpleUserResourceProvider) table.getDataTable().getDataProvider();

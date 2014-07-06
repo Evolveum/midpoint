@@ -18,7 +18,7 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-    <!--<div wicket:id="capabilitySelectPopup" />-->
+    <div wicket:id="capabilitySelectPopup" />
 
     <div class="row capability">
         <div class="col-xs-5 col-sm-4 col-sm-offset-2 col-md-4 col-md-offset-2 col-lg-3 col-lg-offset-3">
@@ -26,10 +26,12 @@
 
             <table class="table table-striped table-condensed">
                 <tbody wicket:id="tableRows">
-                <!--<tbody>-->
                     <tr wicket:id="capabilityRow">
                         <td class="capability-item">
-                            <span wicket:id="capabilityName">[Capability Name]</span>
+                            <span wicket:id="capabilityName" />
+                        </td>
+                        <td>
+                            <a wicket:id="capabilityEdit" class="btn btn-primary btn-sm"><i class="fa fa-pencil-square-o" /></a>
                         </td>
                         <td>
                             <a wicket:id="capabilityDelete" class="btn btn-danger btn-sm"><i class="fa fa-fw fa-minus" /></a>
@@ -42,6 +44,8 @@
                 <a wicket:id="capabilityAdd" class="btn btn-success"><i class="fa fa-fw fa-plus"/></a>
             </div>
         </div>
+
+        <div class="col-xs-5 col-sm-4 col-md-4 col-lg-3" wicket:id="capabilityConfig" />
     </div>
 </wicket:panel>
 </html>
