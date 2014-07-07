@@ -31,6 +31,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAccountDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.Item;
@@ -230,7 +231,6 @@ public class LensUtil {
 		context.rot();
 		
 		if (CompiletimeConfig.CONSISTENCY_CHECKS) context.checkConsistence();
-		
 		return context;
 	}
 	

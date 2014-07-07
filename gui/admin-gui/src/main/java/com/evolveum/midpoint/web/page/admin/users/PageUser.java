@@ -152,6 +152,7 @@ public class PageUser extends PageAdminUsers {
 	private static final String ID_USER_FORM = "userForm";
 	private static final String ID_ACCOUNTS_DELTAS = "accountsDeltas";
 	private static final String ID_FORCE_CHECK = "forceCheck";
+	private static final String ID_RECONCILE_CHECK = "reconcileCheck";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
 	private IModel<ObjectWrapper> userModel;
@@ -161,6 +162,7 @@ public class PageUser extends PageAdminUsers {
 	// used to add force flag to operations if necessary, will be moved to some
 	// "page dto"
 	private boolean forceAction;
+	private boolean reconcileAction;
 
 	// it should be sent from submit. If the user is on the preview page and
 	// than he wants to get back to the edit page, the object delta is set, so
@@ -824,6 +826,25 @@ public class PageUser extends PageAdminUsers {
 			}
 		});
 		mainForm.add(forceCheck);
+		
+		// todo move model object to some dto and use PropertyModel
+				CheckBox reconcileCheck = new CheckBox(ID_RECONCILE_CHECK, new IModel<Boolean>() {
+
+					@Override
+					public Boolean getObject() {
+						return reconcileAction;
+					}
+
+					@Override
+					public void setObject(Boolean value) {
+						reconcileAction = value;
+					}
+
+					@Override
+					public void detach() {
+					}
+				});
+				mainForm.add(reconcileCheck);
 	}
 
 	private void initAccountButton(Form mainForm) {
@@ -1329,6 +1350,7 @@ public class PageUser extends PageAdminUsers {
 		Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
 		ModelExecuteOptions options = new ModelExecuteOptions();
 		options.setForce(forceAction);
+		options.setReconcile(reconcileAction);
 		// try {
 
 		try {
@@ -1341,7 +1363,7 @@ public class PageUser extends PageAdminUsers {
 				LOGGER.trace("User delta computed from form:\n{}", new Object[] { delta.debugDump(3) });
 			}
 
-			LOGGER.debug("Using force flag: {}.", new Object[] { forceAction });
+			LOGGER.debug("Using force flag: {}, reconcile flag {}.", new Object[] { forceAction, reconcileAction });
 		} catch (Exception ex) {
 			result.recordFatalError(getString("pageUser.message.cantCreateUser"), ex);
 			LoggingUtils.logException(LOGGER, getString("pageUser.message.cantCreateUser"), ex);
@@ -1582,7 +1604,12 @@ public class PageUser extends PageAdminUsers {
 		ObjectDelta delta = null;
 		ModelContext changes = null;
 		ModelExecuteOptions options = forceAction ? ModelExecuteOptions.createForce() : null;
-
+		if (options == null){
+			options = reconcileAction ? ModelExecuteOptions.createReconcile() : null;
+		} else{
+			options.setReconcile(reconcileAction);
+		}
+		
 		try {
 			delta = userWrapper.getObjectDelta();
 			if (userWrapper.getOldDelta() != null) {
@@ -1604,14 +1631,14 @@ public class PageUser extends PageAdminUsers {
 				prepareUserForAdd(user);
 				getPrismContext().adopt(user, UserType.class);
 				deltas.add(delta);
-				changes = getModelInteractionService().previewChanges(deltas, null, task, result);
+				changes = getModelInteractionService().previewChanges(deltas, options, task, result);
 				result.recordSuccess();
 				break;
 			case MODIFYING:
 				WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
 				prepareUserDeltaForModify(delta);
 				deltas.add(delta);
-				changes = getModelInteractionService().previewChanges(deltas, null, task, result);
+				changes = getModelInteractionService().previewChanges(deltas, options, task, result);
 				result.recordSuccess();
 				break;
 			// support for add/delete containers (e.g. delete credentials)

@@ -375,6 +375,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 					RewindException rewindException = null;
 					LensContext<?, ?> context = LensUtil.objectDeltasToContext(deltas, provisioning, prismContext, task, result);
 					context.setOptions(options);
+					context.setDoReconciliationForAllProjections(ModelExecuteOptions.isReconcile(options));
 					try {
 						
 						clockwork.run(context, task, result);
