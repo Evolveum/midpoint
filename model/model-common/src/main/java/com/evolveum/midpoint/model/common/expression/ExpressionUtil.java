@@ -209,8 +209,10 @@ public class ExpressionUtil {
 		if (root instanceof ObjectReferenceType) {
 			root = resolveReference((ObjectReferenceType)root, objectResolver, varDesc, shortDesc, result);
 		}
-			
-		if (root instanceof PrismObject<?>) {
+
+        if (root instanceof Objectable) {
+            return (((Objectable) root).asPrismObject()).find(relativePath);
+        } if (root instanceof PrismObject<?>) {
 			return ((PrismObject<?>)root).find(relativePath);
 		} else if (root instanceof PrismContainer<?>) {
 			return ((PrismContainer<?>)root).find(relativePath);
