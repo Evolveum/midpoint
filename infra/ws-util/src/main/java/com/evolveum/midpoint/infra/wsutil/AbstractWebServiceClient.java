@@ -30,6 +30,8 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.cxf.frontend.ClientProxy;
+import org.apache.cxf.interceptor.LoggingInInterceptor;
+import org.apache.cxf.interceptor.LoggingOutInterceptor;
 import org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor;
 import org.apache.ws.security.WSConstants;
 import org.apache.ws.security.handler.WSHandlerConstants;
@@ -59,7 +61,18 @@ public abstract class AbstractWebServiceClient<P,S extends Service> {
 	protected abstract String getDefaultUsername();
 	
 	protected String getPasswordType() {
-		return WSConstants.PW_DIGEST;
+		if (commandLine.hasOption('P')) {
+			String optionValue = commandLine.getOptionValue('P');
+			if ("text".equals(optionValue)) {
+				return WSConstants.PW_TEXT;
+			} else if ("digest".equals(optionValue)) {
+				return WSConstants.PW_DIGEST;
+			} else {
+				throw new IllegalArgumentException("Unknown password type "+optionValue);
+			}
+		} else {
+			return WSConstants.PW_TEXT;
+		}
 	}
 	
 	protected abstract String getDefaultPassword();
@@ -83,8 +96,10 @@ public abstract class AbstractWebServiceClient<P,S extends Service> {
 	protected void init(String[] args) throws ParseException {
 		options.addOption("u", "user", true, "Username");
 		options.addOption("p", "password", true, "Password");
+		options.addOption("P", "password-type", true, "Password type (text or digest)");
 		options.addOption("e", "endpoint", true, "Endpoint URL");
 		options.addOption("v", "verbose", false, "Verbose mode");
+		options.addOption("m", "messages", false, "Log SOAP messages");
 		options.addOption("h", "help", false, "Usage help");
 		extendOptions(options);
 		parseCommandLine(args);
@@ -157,9 +172,11 @@ public abstract class AbstractWebServiceClient<P,S extends Service> {
 		
 		WSS4JOutInterceptor wssOut = new WSS4JOutInterceptor(wssProps);
 		cxfEndpoint.getOutInterceptors().add(wssOut);
-        // enable the following to get client-side logging of outgoing requests and incoming responses
-        //cxfEndpoint.getOutInterceptors().add(new LoggingOutInterceptor());
-        //cxfEndpoint.getInInterceptors().add(new LoggingInInterceptor());
+		
+		if (commandLine.hasOption('m')) {
+			cxfEndpoint.getInInterceptors().add(new LoggingInInterceptor());
+			cxfEndpoint.getOutInterceptors().add(new LoggingOutInterceptor());
+		}
 
 		return modelPort;
 	}
