@@ -201,11 +201,17 @@ public class PageAccount extends PageAdminResources {
         ObjectWrapper wrapper = accountModel.getObject();
         try {
             ObjectDelta<ShadowType> delta = wrapper.getObjectDelta();
+            if (delta == null) {
+                return;
+            }
+            if (delta.getPrismContext() == null) {
+                getPrismContext().adopt(delta);
+            }
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Account delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
             }
 
-            if (delta == null || delta.isEmpty()) {
+            if (delta.isEmpty()) {
                 return;
             }
             WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
