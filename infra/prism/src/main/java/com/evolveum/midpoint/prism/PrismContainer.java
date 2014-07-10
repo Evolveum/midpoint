@@ -76,7 +76,13 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
         }
         this.compileTimeClass = compileTimeClass;
     }
-    
+
+    public PrismContainer(QName name, Class<V> compileTimeClass, PrismContext prismContext) {
+        this(name, compileTimeClass);
+        this.prismContext = prismContext;
+    }
+
+
     protected PrismContainer(QName name, PrismContainerDefinition<V> definition, PrismContext prismContext) {
         super(name, definition, prismContext);
     }

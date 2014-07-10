@@ -83,7 +83,7 @@ public class CloneProcessor implements Processor {
         while (constructors.hasNext()) {
             JMethod constructor = constructors.next();
             if (constructor.hasSignature(new JType[]{impl})
-                    || constructor.hasSignature(new JType[]{})) {
+                    /* || constructor.hasSignature(new JType[]{}) */) {             // default constructor has to be kept there!
                 constructors.remove();
             }
         }
